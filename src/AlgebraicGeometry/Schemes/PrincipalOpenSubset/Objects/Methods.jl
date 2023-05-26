@@ -39,3 +39,17 @@ function generic_fraction(a::MPolyQuoLocRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
+########################################################################
+# Base change
+########################################################################
+
+function base_change(phi::Any, U::PrincipalOpenSubset;
+    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+  )
+  Y = domain(ambient_map)
+  pbf = pullback(ambient_map)
+  h = pbf(complement_equation(U))
+  UU = PrincipalOpenSubset(Y, h)
+  return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
+end
+

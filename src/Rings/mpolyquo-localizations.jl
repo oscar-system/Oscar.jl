@@ -150,7 +150,7 @@ inverted_set(L::MPolyQuoLocRing) = L.S
 @doc raw"""
     modulus(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``IS⁻¹``.
 """
 function modulus(L::MPolyQuoLocRing) 
   if !has_attribute(L, :modulus)
@@ -166,7 +166,7 @@ modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 @doc raw"""
     underlying_quotient(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``𝕜[x₁,…,xₙ]/I``.
 """
 underlying_quotient(L::MPolyQuoLocRing) = L.Q
 
@@ -185,7 +185,7 @@ end
 @doc raw"""
     localized_ring(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocRing) = L.W
 
@@ -204,9 +204,11 @@ end
 @doc raw"""
     gens(L::MPolyQuoLocRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
+Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
 """
 gens(L::MPolyQuoLocRing) = L.(gens(base_ring(L)))
+
+gen(L::MPolyQuoLocRing, i::Int) = L(gen(base_ring(L), i))
 
 ### printing
 function Base.show(io::IO, L::MPolyQuoLocRing)
@@ -279,11 +281,11 @@ julia> RQ, _ = quo(R, I);
 julia> RQL, iota = localization(RQ, U);
 
 julia> RQL
-Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
 
 julia> iota
 Map from
-Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) to Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+RQ to Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
 ```
 """ localization(A::MPolyQuoRing, U::AbsMPolyMultSet)
 
@@ -429,7 +431,7 @@ is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 @doc raw"""
     lifted_numerator(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a ∈ 𝕜[x₁,…,xₙ]`` of the numerator. 
 """
 lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
@@ -437,7 +439,7 @@ lifted_numerator(a::MPolyQuoLocRingElem) = a.numerator
 @doc raw"""
     lifted_denominator(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``b ∈  𝕜[x₁,…,xₙ]`` of the denominator.
 """
 lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
@@ -445,7 +447,7 @@ lifted_denominator(a::MPolyQuoLocRingElem) = a.denominator
 @doc raw"""
     fraction(a::MPolyQuoLocRingElem)
 
-For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a//b ∈ Quot(𝕜[x₁,…,xₙ])`` of the fraction. 
 """
 fraction(a::MPolyQuoLocRingElem) = lifted_numerator(a)//lifted_denominator(a)
@@ -513,7 +515,7 @@ end
 @doc raw"""
     lift(f::MPolyQuoLocRingElem)
 
-For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+Given ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]`` of the fraction. 
 """
 lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
@@ -985,7 +987,7 @@ codomain(f::MPolyQuoLocalizedRingHom) = f.codomain
 @doc raw"""
     restricted_map(f::MPolyQuoLocalizedRingHom)
 
-For a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``this returns 
+Given a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[U⁻¹] → S``, return
 the canonically associated map ``ϕ' : 𝕜[x₁,…,xₘ] → S``.
 """
 restricted_map(f::MPolyQuoLocalizedRingHom) = f.res
@@ -1004,7 +1006,7 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
-hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, a, check=check)
+hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, res, check=check)
 
 function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
   R = base_ring(L)
@@ -1083,7 +1085,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
     end
     set_attribute!(f, :minimal_denominators, minimal_denominators)
 
-    help_ring, help_kappa, theta = _add_variables(S, ["θ"])
+    help_ring, help_kappa, theta = _add_variables(S, [:θ])
     set_attribute!(f, :helper_ring, help_ring)
     kappa = help_kappa
     set_attribute!(f, :kappa, help_kappa)
@@ -1152,10 +1154,10 @@ end
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
 function as_affine_algebra(
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
-    inverse_name::String="θ"
+    inverse_name::VarName=:_0
   )
   R = base_ring(L)
-  A, phi, t = _add_variables_first(R, [inverse_name])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
@@ -1167,10 +1169,10 @@ end
 # return the isomorphism L -> SomeAffineAlgebra
 function _as_affine_algebra(
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
-    inverse_name::String="θ"
+    inverse_name::VarName=:_0
   )
   R = base_ring(L)
-  A, phi, t = _add_variables_first(R, [inverse_name])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
@@ -1206,8 +1208,8 @@ function is_isomorphism(
   end
   K = domain(phi)
   L = codomain(phi)
-  A, I, d1, inc1, theta1 = as_affine_algebra(K, inverse_name="s")
-  B, J, d2, inc2, theta2 = as_affine_algebra(L, inverse_name="t")
+  A, I, d1, inc1, theta1 = as_affine_algebra(K, inverse_name=:s)
+  B, J, d2, inc2, theta2 = as_affine_algebra(L, inverse_name=:t)
 
   # write the denominators of the images of the variables xᵢ of K as 
   # polynomials in the variables yⱼ of L and the localization variable t:
@@ -1230,7 +1232,7 @@ function is_isomorphism(
   for f in images(phi)
     J_ext = ideal(B, push!(gens(J), inc2(denominator(f))))
     G, M = standard_basis_with_transformation_matrix(J_ext)
-	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
+    gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, last(collect(M)))
   end
 
@@ -1245,7 +1247,7 @@ function is_isomorphism(
     q = lifted_denominator(phi_h)
     J_ext = ideal(B, push!(gens(J), inc2(p)))
     G, M = standard_basis_with_transformation_matrix(J_ext)
-	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
+    gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, inc2(q)*last(collect(M)))
   end
   pushfirst!(imagesB, prod(denoms))
@@ -1256,11 +1258,11 @@ function is_isomorphism(
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
-  C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
+  C, j1, B_vars = _add_variables_first(A, symbols(B))
   j2 = hom(B, C, B_vars)
-  G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
+  G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
-				  String.(symbols(C)),  
+				  symbols(C),
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(B)-1)
 				  *Singular.ordering_dp(1)
@@ -1278,20 +1280,20 @@ function is_isomorphism(
   pre_images = Vector{elem_type(V)}()
   #pre_imagesA = Vector{elem_type(A)}()
   # the first variable needs special treatment
-  #singp = Singular.reduce(gens(singC)[1], stdG)
-  #singp < gens(singC)[n+1] || return false
+  #singp = Singular.reduce(gen(singC, 1), stdG)
+  #singp < gen(singC, n+1) || return false
   #p = C(singp)
   #push!(pre_imagesA, evaluate(p, vcat([zero(A) for i in 0:n], gens(A))))
   for i in 1:n
-    singp = Singular.reduce(gens(singC)[i+1], stdG)
-    singp < gens(singC)[n+1] || return false
+    singp = Singular.reduce(gen(singC, i+1), stdG)
+    singp < gen(singC, n+1) || return false
     p = C(singp)
     # Write p as an element in the very original ring
     #push!(pre_imagesA, evaluate(p, vcat([zero(A) for i in 0:n], gens(A))))
     push!(pre_images, evaluate(p, vcat([zero(V) for i in 0:n], [V(one(R), d1)], V.(gens(R)))))
   end
 
-  invJ = ideal(A, [(p < gens(singC)[n+1] ? evaluate(C(p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
+  invJ = ideal(A, [(p < gen(singC, n+1) ? evaluate(C(p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
   # TODO: invJ is already a Groebner basis, but only for the ordering used 
   # in the above elimination.
   # Make sure, this ordering is used again for the sanity check below!
@@ -1322,16 +1324,16 @@ end
 ### adds the variables with names specified in v to the polynomial 
 # ring R and returns a triple consisting of the new ring, the embedding 
 # of the original one, and a list of the new variables. 
-function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
+function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
-  n = length(gens(R))
+  n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1:n])
-  return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+  return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
-function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
+function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
-  n = length(gens(R))
+  n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
@@ -1365,7 +1367,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   j = 1
   for i in 1:ngens(R)
     if !iszero(l[4][i])
-      push!(imgs, gens(Rnew)[j])
+      push!(imgs, gen(Rnew, j))
       j = j+1
     else
       push!(imgs, zero(Rnew))
@@ -1421,7 +1423,7 @@ function simplify(L::MPolyQuoRing)
   j = 1
   for i in 1:ngens(R)
     if !iszero(l[4][i])
-      push!(imgs, gens(Rnew)[j])
+      push!(imgs, gen(Rnew, j))
       j = j+1
     else
       push!(imgs, zero(Rnew))
@@ -1500,7 +1502,7 @@ end
  
 ### required getter functions
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
-gens(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
+gen(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 getindex(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
@@ -1516,14 +1518,64 @@ MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
 
 
 ### Additional constructors
+@doc raw"""
+    intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
+    intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal...)
+    intersect(VI::Vector{<:MPolyQuoLocalizedIdeal{T}}) where T
+Return the intersection of two or more ideals.
+
+# Examples
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> Q = ideal(R,[x*y-z*w]);
+
+julia> RQ,phiQ = quo(R,Q);
+
+julia> T = MPolyComplementOfKPointIdeal(R,[0,0,0,0]);
+
+julia> RQL, phiQL = Localization(RQ,T);
+
+julia> I = ideal(RQL,RQL.([x,z]))
+ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [x, z]
+
+julia> J = ideal(RQL,RQL.([y]))
+ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [y]
+
+julia> intersect(I,J)
+ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [z*w, y*z, x*y]
+
+julia> intersect([I,J])
+ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [z*w, y*z, x*y]
+```
+"""
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
   L == base_ring(J) || error("ideals must be defined in the same ring")
-  preI = Oscar.pre_image_ideal(I)
-  preJ = Oscar.pre_image_ideal(J) 
+  preI = pre_image_ideal(I)
+  preJ = pre_image_ideal(J)
   R = base_ring(L)
   K = intersect(preI, preJ)
   return L(K)
+end
+
+function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal...)
+  L = base_ring(I)
+  erg = pre_image_ideal(I)
+  for K in J
+    base_ring(K) == L || error("base rings must match")
+    erg = intersect(erg,pre_image_ideal(K))
+  end
+  return L(erg)
+end
+
+function intersect(VI::Vector{<:MPolyQuoLocalizedIdeal{T}}) where T
+  @assert length(VI) != 0
+  L = base_ring(VI[1])
+  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+  VIpre = [pre_image_ideal(J) for J in VI]
+  erg = intersect(VIpre)
+  return L(erg)
 end
 
 ### Basic functionality
@@ -1543,6 +1595,10 @@ end
 
 function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
+end
+
+function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
 end
 
 ### Conversion of ideals in the original ring to localized ideals
@@ -1579,13 +1635,13 @@ end
 
 ### printing
 function Base.show(io::IO, I::MPolyQuoLocalizedIdeal)
-  if length(gens(I)) == 0
+  if ngens(I) == 0
     print(io, "zero ideal in $(base_ring(I))")
     return
   end
   str = "ideal in $(base_ring(I)) generated by [$(first(gens(I)))"
   for i in 2:ngens(I)
-    str = str * ", $(gens(I, i))"
+    str = str * ", $(gen(I, i))"
   end
   str = str * "]"
   print(io, str)
@@ -1686,6 +1742,46 @@ end
 ## compatibility functions to allow user to not care about which type of
 ## MPolyAnyIdeal they are handling
 ############################################################################# 
+
+@doc raw"""
+     primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return the primary decomposition of ``I``.
+"""
+function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = primary_decomposition(saturated_ideal(I))
+  result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
+  erase = Int[]
+  for i in 1:length(result)
+    # if component is trivial, erase it
+    is_one(result[i][2]) || continue
+    push!(erase,i)
+  end
+  deleteat!(result, erase)
+  return result
+end
+
+@doc raw"""
+    minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+
+Return the minimal associated primes of I.
+"""
+function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+  Q = base_ring(I)
+  R = base_ring(Q)
+  decomp = minimal_primes(saturated_ideal(I))
+  result = [ideal(Q, Q.(gens(b))) for b in decomp]
+  erase = Int[]
+  for i in 1:length(result)
+    # if a component is trivial, erase it
+    is_one(result[i]) || continue
+    push!(erase,i)
+  end
+  deleteat!(result, erase)
+  return result
+end
 
 @doc raw"""
     saturation(I::T, J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}

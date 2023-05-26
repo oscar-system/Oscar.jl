@@ -70,10 +70,10 @@ where `x₀,…,xₙ` is a list of variable names.
 julia> projective_space(QQ, [:x, :PPP, :?])
 Projective space of dimension 2
   with homogeneous coordinates x PPP ?
-  over Rational Field
+  over Rational field
 
 julia> homogeneous_coordinate_ring(ans)
-Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   PPP -> [1]
   ? -> [1]
@@ -88,7 +88,7 @@ function projective_space(A::Ring, var_symb::Vector{<:VarName})
 end
 
 @doc raw"""
-    projective_space(A::Ring, r::Int; var_name::VarName="s")
+    projective_space(A::Ring, r::Int; var_name::VarName=:s)
 
 Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A` 
 where `s` is a string for the variable names.  
@@ -102,7 +102,7 @@ end
 function projective_space(
     W::Union{<:SpecOpen, <:AbsSpec}, 
     r::Int; 
-    var_name::VarName="s"
+    var_name::VarName=:s
   ) 
   P = projective_space(OO(W), r, var_name=var_name)
   set_base_scheme!(P, W)

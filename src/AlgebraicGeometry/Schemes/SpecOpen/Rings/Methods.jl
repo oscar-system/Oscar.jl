@@ -218,7 +218,7 @@ function restriction_map(
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
-  d = gens(U)
+  d = complement_equations(U)
   I = complement_ideal(U)
   # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with 
   # k the minimal exponent such that the property P(h^k) returns `true`.
@@ -394,7 +394,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
   end
 
   if ambient_scheme(U) === ambient_scheme(V)
-    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
+    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), complement_equations(V))]
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
     end

@@ -175,7 +175,7 @@ end
 function _iso_oscar_gap(FO::FinField)
    p = GAP.Obj(characteristic(FO))::GAP.Obj
    d = degree(FO)
-   if GAPWrap.IsCheapConwayPolynomial(p, d)
+   if d == 1 || GAPWrap.IsCheapConwayPolynomial(p, d)
      FG = GAPWrap.GF(p, d)
    else
      # Calling `GAPWrap.GF(p, d)` would throw a GAP error.
@@ -268,7 +268,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    finv = function(x::GAP.Obj)
       GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
       coeffs = GAPWrap.Coefficients(B, x)
-      coeffs === GAP.Globals.fail && throw(ArgumentError("$x is not an element oof $FG"))
+      @req coeffs !== GAP.Globals.fail "$x is not an element oof $FG"
       return QQFieldElem(coeffs[1]) * oO + QQFieldElem(coeffs[2]) * zO
    end
 
@@ -382,6 +382,14 @@ GAP: x_1^2+x_1-1
 julia> preimage(f, y) == pol
 true
 ```
+
+!!! warning
+    The functions `Oscar.iso_oscar_gap` and [`Oscar.iso_gap_oscar`](@ref)
+    are not injective.
+    Due to caching, it may happen that `S` stores an attribute value
+    of `Oscar.iso_gap_oscar(S)`,
+    but that the codomain of this map is not identical with
+    or even not equal to the given `R`.
 """
 @attr Map function iso_oscar_gap(F)
    return _iso_oscar_gap(F)
@@ -411,7 +419,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::PolyRing{T}, RG::GAP.GapOb
    return (f, finv)
 end
 
-function _iso_oscar_gap(RO::PolyRing{T}) where T
+function _iso_oscar_gap(RO::PolyRing)
    coeffs_iso = iso_oscar_gap(base_ring(RO))
    RG = GAPWrap.PolynomialRing(codomain(coeffs_iso))
 

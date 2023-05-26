@@ -98,6 +98,7 @@ character_field
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
+is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
 schur_index
@@ -165,6 +166,7 @@ arithmetic operations:
 
 ```@docs
 scalar_product
+coordinates(chi::GAPGroupClassFunction)
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
 restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
 ```

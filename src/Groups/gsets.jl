@@ -454,7 +454,7 @@ Sym( [ 1 .. 6 ] )
 to
 Sym( [ 1 .. 15 ] )
 
-julia> g = gens(G)[1]
+julia> g = gen(G, 1)
 (1,2,3,4,5,6)
 
 julia> elms = collect(Omega);

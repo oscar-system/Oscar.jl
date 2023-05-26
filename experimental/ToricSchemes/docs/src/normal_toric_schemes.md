@@ -6,13 +6,21 @@ CurrentModule = Oscar
 
 ## Constructors
 
-We can construct a toric scheme as follows:
-```julia
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+We provide the following constructors for toric covered schemes:
+```@docs
+toric_covered_scheme(antv::AffineNormalToricVariety)
+toric_covered_scheme(ntv::NormalToricVariety)
+```
 
-julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+## Special constructors
+
+We support constructors for a couple of famous geometries:
+```@docs
+affine_space(::Type{ToricCoveredScheme}, d::Int; set_attributes::Bool = true)
+projective_space(::Type{ToricCoveredScheme}, d::Int; set_attributes::Bool = true)
+weighted_projective_space(::Type{ToricCoveredScheme}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
+hirzebruch_surface(::Type{ToricCoveredScheme}, r::Int; set_attributes::Bool = true)
+del_pezzo_surface(::Type{ToricCoveredScheme}, b::Int; set_attributes::Bool = true)
 ```
 
 

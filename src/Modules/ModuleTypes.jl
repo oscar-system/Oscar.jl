@@ -72,6 +72,7 @@ option is set in suitable functions.
   R::Ring
   n::Int
   S::Vector{Symbol}
+  d::Union{Vector{GrpAbFinGenElem}, Nothing}
 
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
@@ -81,6 +82,7 @@ option is set in suitable functions.
     r.n = n
     r.R = R
     r.S = S
+    r.d = nothing
 
     r.incoming_morphisms = Vector{ModuleFPHom}()
     r.outgoing_morphisms = Vector{ModuleFPHom}()
@@ -90,7 +92,7 @@ option is set in suitable functions.
 end
 
 @doc raw"""
-    FreeModElem{T}
+    FreeModElem{T} <: AbstractFreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
 which specifies its coordinates with respect to the basis of standard unit vectors of $F$.
@@ -98,10 +100,10 @@ which specifies its coordinates with respect to the basis of standard unit vecto
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
@@ -116,13 +118,14 @@ julia> f == g
 true
 ```
 """
-struct FreeModElem{T} <: AbstractFreeModElem{T}
+mutable struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+  d::Union{GrpAbFinGenElem, Nothing}
 
   function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
-    r = new{T}(coords,parent)
-    return r
+      r = new{T}(coords, parent, nothing)
+      return r
   end
 end
 
@@ -195,6 +198,7 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
   default_ordering::ModuleOrdering
   matrix::MatElem
+  is_graded::Bool
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid SubModuleOfFreeModule
@@ -207,7 +211,7 @@ end
 
 
 @doc raw"""
-    SubquoModule{T} <: ModuleFP{T}
+    SubquoModule{T} <: AbstractSubQuo{T}
 
 The type of subquotient modules.
 A subquotient module $M$ is a module where $M = A + B / B$ where $A$ and $B$ are 
@@ -246,7 +250,7 @@ end
 
 
 @doc raw"""
-    SubquoModuleElem{T}
+    SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
 is given by a sparse row (`SRow`) which specifies the coefficients of an $R$-linear 
@@ -255,7 +259,7 @@ combination of the generators of $M$ which defines $f$.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -323,9 +327,11 @@ mutable struct SubQuoHom{
   im::Vector
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
+  d::GrpAbFinGenElem
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -334,10 +340,11 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -346,10 +353,11 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -358,7 +366,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = im
-    return r
+    return set_grading(r)
   end
 
   # Constructors for maps with change of base ring
@@ -368,6 +376,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -377,7 +386,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{FreeModElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -386,6 +395,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -395,7 +405,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{SubquoModuleElem}(im)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -404,6 +414,7 @@ mutable struct SubQuoHom{
       im::Vector, 
       h::RingMapType
     ) where {T1,T2,RingMapType}
+    ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
@@ -413,7 +424,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = im
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -494,6 +505,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
   header::MapHeader
   ring_map::RingMapType
+  d::GrpAbFinGenElem
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
@@ -503,6 +515,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
     ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
@@ -519,12 +532,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
-    return r
+    return set_grading(r)
   end
 
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
     ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
+    ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))
@@ -544,7 +558,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
-    return r
+    return set_grading(r)
   end
 
 end
@@ -676,4 +690,13 @@ function Base.show(io::IO, FR::FreeResolution)
             continue
         end
     end
+end
+
+mutable struct BettiTable
+  B::Dict{Tuple{Int, Any}, Int}
+  project::Union{GrpAbFinGenElem, Nothing}
+  reverse_direction::Bool
+  function BettiTable(B::Dict{Tuple{Int, Any}, Int}; project::Union{GrpAbFinGenElem, Nothing}=nothing, reverse_direction::Bool=false)
+      return new(B, project, reverse_direction)
+  end
 end

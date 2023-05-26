@@ -2,7 +2,6 @@
 using Pkg
 using Random
 using RandomExtensions
-using Test
 
 # our packages
 import AbstractAlgebra
@@ -20,14 +19,17 @@ import Singular
 # import stuff from Base for which we want to provide extra methods
 import Base:
     +,
+    -,
     *,
     ^,
     ==,
     conj,
     convert,
+    deepcopy_internal,
     eltype,
     exponent,
     getindex,
+    hash,
     intersect,
     inv,
     isfinite,

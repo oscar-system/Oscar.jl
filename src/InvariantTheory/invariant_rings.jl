@@ -49,7 +49,7 @@ julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
@@ -60,7 +60,7 @@ with generators
 PermGroupElem[(1,2,3), (1,2)]
 
 julia> coefficient_ring(IRp)
-Rational Field
+Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)
@@ -164,16 +164,16 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -196,16 +196,16 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 with generators
 fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
+Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -338,14 +338,14 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::InvRing, d::Int, algo::Symbol = :default)
+     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
 
@@ -365,11 +365,11 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3 over K
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
@@ -386,11 +386,11 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3 over Finite field of characteristic 3
 with generators
 fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
@@ -405,7 +405,7 @@ julia> basis(IR, 3)
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
 
 @doc raw"""
     basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
@@ -569,7 +569,8 @@ julia> MS = molien_series(IR)
 (-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
 
 julia> parent(MS)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> S2 = symmetric_group(2);
 

@@ -20,6 +20,14 @@ is_natural_alternating_group(G::GAPGroup)
 is_isomorphic_with_alternating_group(G::GAPGroup)
 permutation_group
 @permutation_group
+projective_general_linear_group
+projective_special_linear_group
+projective_symplectic_group
+projective_orthogonal_group
+projective_special_orthogonal_group
+projective_omega_group
+projective_unitary_group
+projective_special_unitary_group
 ```
 
 In OSCAR, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.

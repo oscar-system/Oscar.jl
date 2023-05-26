@@ -29,7 +29,7 @@
   @test IE*Iweak == Ictrl1
 
   C2strict = strict_transform(bl,C2sheaf)
-  bl2 = blow_up(C2strict,covering=oscar.simplified_covering(W2),var_name="t")
+  bl2 = blow_up(C2strict,covering=Oscar.simplified_covering(W2),var_name="t")
 
   E2 = strict_transform(bl2,E)
 end
@@ -68,7 +68,7 @@ end
 
   # decompose and check that we obtain the expected results
   L1 = Oscar.associated_points(ISheaf)
-  L2 = Oscar.minimal_associated_points(ISheaf)
+  L2 = Oscar.maximal_associated_points(ISheaf)
   dimsL1 = [dim(a) for a in L1]
   dimsL2 = [dim(a) for a in L2]
   @test length(L1) == 3

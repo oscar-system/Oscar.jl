@@ -385,7 +385,7 @@ end
     double_coset(H::Group, x::GAPGroupElem, K::Group)
     *(H::Group, x::GAPGroupElem, K::Group)
 
-returns the double coset `HxK`.
+Return the double coset `HxK`.
 
 # Examples
 ```jldoctest
@@ -480,21 +480,21 @@ end
 """
     representative(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `x`.
+Return a representative `x` of the double coset `C` = `HxK`.
 """
 representative(C::GroupDoubleCoset) = C.repr
 
 """
     left_acting_group(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `H`
+Given a double coset `C` = `HxK`, return `H`.
 """
 left_acting_group(C::GroupDoubleCoset) = C.H
 
 """
     right_acting_group(C::GroupDoubleCoset)
 
-if `C` = `HxK`, returns `K`
+Given a double coset `C` = `HxK`, return `K`.
 """
 right_acting_group(C::GroupDoubleCoset) = C.K
 

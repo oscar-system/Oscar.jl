@@ -323,7 +323,7 @@ function transform_to_positive_orthant(rs::Matrix{Int})
     return original * transformation, transformation
 end
 
-function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; algorithm::Symbol=:BayerStillmanA)
   x = gens(base_ring(I))
   W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
   return _hilbert_numerator_from_leading_exponents([AbstractAlgebra.leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
@@ -331,12 +331,12 @@ end
 
 
 @doc raw"""
-    multi_hilbert_series(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
+    multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
 
 !!! note 
-    The advanced user can select a `alg` for the computation; 
+    The advanced user can select a `algorithm` for the computation; 
     see the code for details.
 
 # Examples
@@ -344,7 +344,7 @@ Return the Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -403,12 +403,10 @@ Domain:
 Abelian group with structure: Z
 Codomain:
 =========
-(General) abelian group with relation matrix
-[1 -1]
-with structure of Abelian group with structure: Z
+G
 ```
 """
-function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
+function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
    R = base_ring(A)
    I = A.I
    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -421,7 +419,7 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
       isoinv = hom(G, H, V)
       W = R.d
       W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
       change = hom(R, S, gens(S))
       I = change(A.I)
       R = S
@@ -438,7 +436,7 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
        end
    end
    if m == 1
-      VAR = ["t"]
+      VAR = [:t]
    else
       VAR = [_make_variable("t", i) for i = 1:m]
    end
@@ -454,7 +452,7 @@ function multi_hilbert_series(A::MPolyQuoRing; alg=:BayerStillmanA)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m, alg=alg)
+      p = _numerator_monomial_multi_hilbert_series(LI, S, m, algorithm=algorithm)
    end
    return  (p, q), (H, iso)
 end
@@ -473,7 +471,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = graded_polynomial_ring(coefficient_ring(R), map(string, symbols(R)), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -511,7 +509,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
@@ -520,12 +518,12 @@ end
 #end
 
 @doc raw"""
-    multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
+    multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
 
 !!! note 
-    The advanced user can select a `alg` for the computation; 
+    The advanced user can select a `algorithm` for the computation; 
     see the code for details.
 
 # Examples
@@ -533,7 +531,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -592,13 +590,11 @@ Domain:
 Abelian group with structure: Z
 Codomain:
 =========
-(General) abelian group with relation matrix
-[1 -1]
-with structure of Abelian group with structure: Z
+G
 ```
 """
-function multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
-   (p, q), (H, iso) = multi_hilbert_series(A, alg=alg)
+function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+   (p, q), (H, iso) = multi_hilbert_series(A, algorithm=algorithm)
    f = p//q
    p = numerator(f)
    q = denominator(f)
@@ -647,7 +643,7 @@ of $A$, and return the value $H(A, g)$ as above.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
+(Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -762,9 +758,8 @@ true
 """
 function is_normal(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   singular_assure(I)
   # TODO remove old1 & old2 once new Singular jll is out
@@ -810,9 +805,8 @@ function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
- if !((R isa Oscar.MPolyDecRing) && is_standard_graded(R))
-    throw(ArgumentError("The base ring must be standard ZZ-graded."))
- end
+ @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
+
  singular_assure(I, negdegrevlex(gens(R)))
  res = Singular.LibHomolog.isCM(I.gens.gens.S)
  if res == 1 return true end
@@ -914,8 +908,8 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   singular_assure(GJ)
   I = Singular.Ideal(GJ.Sx, GJ.Sx(RtoT(f)))
   K = ideal(T, reduce(I, GJ.S))
-  @assert is_one(length(gens(K.gens.S)))
-  nf = GJ.Ox(gens(K.gens.S)[1])
+  @assert is_one(ngens(K.gens.S))
+  nf = GJ.Ox(K.gens.S[1])
   ###
 
   S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
@@ -1047,10 +1041,10 @@ end
 #
 ##############################################################################
 
-function _conv_normalize_alg(alg::Symbol)
-  if alg == :primeDec
+function _conv_normalize_alg(algorithm::Symbol)
+  if algorithm == :primeDec
     return "prim"
-  elseif alg == :equidimDec
+  elseif algorithm == :equidimDec
     return "equidim"
   else
     error("algorithm invalid")
@@ -1072,7 +1066,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
 end
 
 @doc raw"""
-    normalization(A::MPolyQuoRing; alg = :equidimDec)
+    normalization(A::MPolyQuoRing; algorithm = :equidimDec)
 
 Find the normalization of a reduced affine algebra over a perfect field $K$.
 That is, given the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
@@ -1096,9 +1090,9 @@ The third entry $\mathfrak a_k$ is a tuple $(d_k, J_k)$, consisting of an elemen
 $d_k\in A$ and an ideal $J_k\subset A$, such that $\frac{1}{d_k}J_k = A_k$ 
 as $A$-submodules of the total ring of fractions of $A$.
 
-By default (`alg = :equidimDec`), as a first step on its way to find the decomposition $I=I_1\cap\dots\cap I_r$, 
+By default (`algorithm = :equidimDec`), as a first step on its way to find the decomposition $I=I_1\cap\dots\cap I_r$, 
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
-Alternatively, if specified by `alg = :primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
+Alternatively, if specified by `algorithm = :primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
 
 See [GLS10](@cite).
@@ -1117,41 +1111,40 @@ julia> L = normalization(A);
 julia> size(L)
 (2,)
 
-julia> LL = normalization(A, alg = :primeDec);
+julia> LL = normalization(A, algorithm = :primeDec);
 
 julia> size(LL)
 (3,)
 
 julia> LL[1][1]
-Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+A
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][3]
 (y, ideal(x, y))
 ```
 """
-function normalization(A::MPolyQuoRing; alg=:equidimDec)
+function normalization(A::MPolyQuoRing; algorithm=:equidimDec)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   br = base_ring(base_ring(A))
   singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg))
+  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(algorithm))
   return _conv_normalize_data(A, l, br)
 end
 
 @doc raw"""
-    normalization_with_delta(A::MPolyQuoRing; alg = :equidimDec)
+    normalization_with_delta(A::MPolyQuoRing; algorithm::Symbol = :equidimDec)
 
 Compute the normalization
 
@@ -1197,15 +1190,14 @@ julia> L[3]
 -1
 ```
 """
-function normalization_with_delta(A::MPolyQuoRing; alg=:equidimDec)
+function normalization_with_delta(A::MPolyQuoRing; algorithm::Symbol=:equidimDec)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  if base_ring(A) isa MPolyDecRing
-    throw(ArgumentError("Not implemented for quotients of decorated rings."))
-  end
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+
   I = A.I
   br = base_ring(base_ring(A))
   singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg), "withDelta")
+  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(algorithm), "withDelta")
   return (_conv_normalize_data(A, l, br), l[3][1]::Vector{Int}, l[3][2]::Int)
 end
 
@@ -1230,9 +1222,10 @@ Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such
 """
 function noether_normalization(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
- if base_ring(A) isa MPolyDecRing && !(is_standard_graded(A))
-   throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
- end
+  if base_ring(A) isa MPolyDecRing
+    @req is_standard_graded(A) "If the base ring is decorated, it must be standard graded"
+  end
+
  I = A.I
  R = base_ring(I)
  singular_assure(I)
@@ -1260,7 +1253,7 @@ end
 ##############################################################################
 
 @doc raw"""
-    integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
+    integral_basis(f::MPolyRingElem, i::Int; algorithm::Symbol = :normal_local)
 
 Given a polynomial $f$ in two variables with coefficients in a perfect field $K$, and
 given an integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
@@ -1273,12 +1266,12 @@ over $K[x]$. The function returns a pair $(d, V)$, where $d$ is an element of $A
 and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
 form an integral basis for $\overline{A}$ over $K[x]$.
 
-By default (`alg = :normal_local`), the function relies on the
+By default (`algorithm = :normal_local`), the function relies on the
 local-to-global approach to normalization presented in [BDLPSS13](@cite).
-Alternatively, if specified by `alg = :normal_global`, the global normalization
+Alternatively, if specified by `algorithm = :normal_global`, the global normalization
 algorithm in [GLS10](@cite) is used. If $K = \mathbb Q$, it is recommended to
 apply the algorithm in [BDLP19](@cite), which makes use of Puiseux expansions
-and Hensel lifting (`alg = :hensel`).
+and Hensel lifting (`algorithm = :hensel`).
 
 !!! note
     The conditions on $f$ are automatically checked.
@@ -1294,34 +1287,26 @@ julia> integral_basis(f, 2)
 (x^2, MPolyQuoRingElem{QQMPolyRingElem}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
 ```
 """
-function integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
+function integral_basis(f::MPolyRingElem, i::Int; algorithm::Symbol = :normal_local)
   R = parent(f)
 
-  if alg == :hensel
+  if algorithm == :hensel
     options = ("hensel",)
-  elseif alg == :normal_local
+  elseif algorithm == :normal_local
     options = ("normal", "local")
-  elseif alg == :normal_global
+  elseif algorithm == :normal_global
     options = ("normal", "global")
   else
-    throw(ArgumentError("unsupported algorithm $alg"))
+    throw(ArgumentError("unsupported algorithm $algorithm"))
   end
 
-  if R isa MPolyDecRing
-    throw(ArgumentError("Not implemented for decorated rings."))
-  end
+  @req !(R isa MPolyDecRing) "Not implemented for decorated rings"
   
-  if nvars(R) != 2
-    throw(ArgumentError("The parent ring must be a polynomial ring in two variables."))
-  end
+  @req nvars(R) == 2 "The parent ring must be a polynomial ring in two variables"
 
-  if !(i == 1 || i == 2)
-    throw(ArgumentError("The index $i must be either 1 or 2, indicating the integral variable."))
-  end
+  @req i == 1 || i == 2 "The index $i must be either 1 or 2, indicating the integral variable"
 
-  if !isone(coeff(f, [i], [degree(f, i)]))
-    throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
-  end
+  @req isone(coeff(f, [i], [degree(f, i)])) "The input polynomial must be monic as a polynomial in $(gen(R,i))"
 
   SR = singular_poly_ring(R)
 
@@ -1332,9 +1317,7 @@ function integral_basis(f::MPolyRingElem, i::Int; alg = :normal_local)
     throw(NotImplementedError(:integral_basis, f))
   end
 
-  if !is_irreducible(f)
-    throw(ArgumentError("The input polynomial must be irreducible"))
-  end
+  @req is_irreducible(f) "The input polynomial must be irreducible"
 
   l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred", options...)
   A, p = quo(R, ideal(R, [f]))

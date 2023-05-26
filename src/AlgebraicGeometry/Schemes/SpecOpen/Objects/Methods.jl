@@ -13,11 +13,11 @@ function intersect(
   )
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  X === Y && return SpecOpen(Y, gens(U), check=check)
+  X === Y && return SpecOpen(Y, complement_equations(U), check=check)
   if check && !issubset(Y, X)
     Y = intersect(Y, X)
   end
-  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))], check=check)
+  return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))], check=check)
 end
 
 intersect(U::SpecOpen, Y::AbsSpec) = intersect(Y, U)
@@ -28,7 +28,7 @@ function intersect(
   )
   X = ambient_scheme(U)
   X == ambient_scheme(V) || error("ambient schemes do not coincide")
-  return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
+  return SpecOpen(X, [a*b for a in complement_equations(U) for b in complement_equations(V)])
 end
 
 ########################################################################
@@ -36,7 +36,7 @@ end
 ########################################################################
 function Base.union(U::SpecOpen, V::SpecOpen)
   ambient_scheme(U) == ambient_scheme(V) || error("the two open sets are not contained in the same ambient scheme")
-  return SpecOpen(ambient_scheme(U), vcat(gens(U), gens(V)))
+  return SpecOpen(ambient_scheme(U), vcat(complement_equations(U), complement_equations(V)))
 end
 
 ########################################################################
@@ -48,7 +48,7 @@ function issubset(
   )
   ambient_coordinate_ring(Y) === ambient_coordinate_ring(U) || return false
   issubset(Y, ambient_scheme(U)) || return false
-  return one(OO(Y)) in ideal(OO(Y), gens(U))
+  return one(OO(Y)) in ideal(OO(Y), complement_equations(U))
 end
 
 
@@ -64,7 +64,7 @@ function issubset(U::SpecOpen, V::SpecOpen)
   Z = complement(V)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
-  for g in gens(U)
+  for g in complement_equations(U)
     isempty(hypersurface_complement(Z, g)) || return false
   end
   return true
@@ -90,7 +90,7 @@ function closure(U::SpecOpen{<:StdSpec})
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = saturated_ideal(modulus(OO(X)))
-  I = saturation(I, ideal(R, gens(U)))
+  I = saturation(I, ideal(R, complement_equations(U)))
   return subscheme(X, I)
 end
 
@@ -102,7 +102,7 @@ function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuo
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
-  I = saturation(I, ideal(R, gens(U)))
+  I = saturation(I, ideal(R, complement_equations(U)))
   return subscheme(X, I)
 end
 
@@ -128,7 +128,7 @@ function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
   if check
     issubset(codomain(f), ambient_scheme(V)) || error("set is not guaranteed to be open in the codomain")
   end
-  new_gens = pullback(f).(gens(V))
+  new_gens = pullback(f).(complement_equations(V))
   return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
 end
 
@@ -141,6 +141,19 @@ function Base.show(io::IO, U::SpecOpen)
     print(io, name(U))
     return
   end
-  print(io, "complement of zero locus of $(gens(U)) in $(ambient_scheme(U))")
+  print(io, "complement of zero locus of $(complement_equations(U)) in $(ambient_scheme(U))")
+end
+
+########################################################################
+# Base change
+########################################################################
+function base_change(phi::Any, U::SpecOpen;
+    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+  )
+  Y = domain(ambient_map)
+  pbf = pullback(ambient_map)
+  h = pbf.(complement_equations(U))
+  UU = SpecOpen(Y, h)
+  return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
 end
 

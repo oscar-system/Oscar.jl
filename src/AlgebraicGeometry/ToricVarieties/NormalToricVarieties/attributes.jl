@@ -83,7 +83,7 @@ cached, then this function returns `true` and otherwise `false`.
 
 # Examples
 ```jldoctest
-julia> is_finalized(del_pezzo_surface(3))
+julia> is_finalized(del_pezzo_surface(NormalToricVariety, 3))
 false
 ```
 """
@@ -125,9 +125,7 @@ function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::V
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != nrays(v)
-        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan"))
-    end
+    @req length(coordinate_names) == nrays(v) "The provided list of coordinate names must match the number of rays in the fan"
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
 
@@ -139,7 +137,7 @@ Allows to set the names of the coordinates of the torus.
 
 # Examples
 ```jldoctest
-julia> F3 = hirzebruch_surface(3);
+julia> F3 = hirzebruch_surface(NormalToricVariety, 3);
 
 julia> set_coordinate_names_of_torus(F3, ["u", "v"])
 
@@ -153,9 +151,7 @@ function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
-    if length(coordinate_names) != ambient_dim(v)
-        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan"))
-    end
+    @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
     set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
 end
 
@@ -168,7 +164,9 @@ end
 
 @doc raw"""
     coefficient_ring(v::AbstractNormalToricVariety)
-This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
+
+Return the coefficient_ring `QQ` of the normal toric variety `v`.
+
 # Examples
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
@@ -185,7 +183,7 @@ coefficient_ring(v::AbstractNormalToricVariety) = QQ
 @doc raw"""
     coordinate_names(v::AbstractNormalToricVariety)
 
-This method returns the names of the homogeneous coordinates of 
+Return the names of the homogeneous coordinates of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 
 # Examples
@@ -225,7 +223,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> R, _ = polynomial_ring(QQ, 3);
 
 julia> cox_ring(R, p2)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x1 -> [1]
   x2 -> [1]
   x3 -> [1]
@@ -251,7 +249,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
 
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
+Multivariate polynomial ring in 3 variables over QQ graded by
   y1 -> [1]
   y2 -> [1]
   y3 -> [1]
@@ -394,12 +392,9 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !is_simplicial(v)
-        throw(ArgumentError("The ideal of linear relations is only supported for simplicial toric varieties"))
-    end
-    if ngens(R) != nrays(v)
-        throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))
-    end
+    @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
+    @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
+
     indeterminates = gens(R)
     d = rank(character_lattice(v))
     generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
@@ -458,8 +453,8 @@ ideal(-x1*x2 + x3*x4)
 ```
 """
 function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
-    cone = Cone(pm_object(antv).WEIGHT_CONE)
-    gens = pm_object(cone).CONE_TORIC_IDEAL.BINOMIAL_GENERATORS
+    C = cone(pm_object(antv).WEIGHT_CONE)
+    gens = pm_object(C).CONE_TORIC_IDEAL.BINOMIAL_GENERATORS
     return binomial_exponents_to_ideal(R, gens)
 end
 
@@ -486,8 +481,8 @@ ideal(-x1*x2 + x3*x4)
 ```
 """
 @attr MPolyIdeal function toric_ideal(antv::AffineNormalToricVariety)
-    cone = Cone(pm_object(antv).WEIGHT_CONE)
-    n = length(hilbert_basis(cone))
+    C = cone(pm_object(antv).WEIGHT_CONE)
+    n = length(hilbert_basis(C))
     R, _ = polynomial_ring(coefficient_ring(antv), n, cached=false)
     return toric_ideal(R, antv)
 end
@@ -506,7 +501,8 @@ end
 
 @doc raw"""
     coordinate_names_of_torus(v::AbstractNormalToricVariety)
-This method returns the names of the coordinates of the torus of
+
+Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
 @attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
@@ -522,10 +518,8 @@ in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
     n = length(coordinate_names_of_torus(v))
-    if length(gens(R)) < 2 * n
-        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates"))
-    end
-    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
+    @req ngens(R) >= 2 * n "The given ring must have at least $n indeterminates"
+    relations = [gen(R, i) * gen(R, i+n) - one(coefficient_ring(R)) for i in 1:n]
     return quo(R, ideal(relations))[1]
 end
 
@@ -542,7 +536,7 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
 
 julia> coordinate_ring_of_torus(p2)
-Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
+Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
@@ -916,7 +910,7 @@ julia> dim(nef)
 1
 ```
 """
-@attr Cone nef_cone(v::NormalToricVariety) = Cone(pm_object(v).NEF_CONE)
+@attr Cone nef_cone(v::NormalToricVariety) = cone(pm_object(v).NEF_CONE)
 
 
 """
@@ -936,7 +930,7 @@ julia> dim(mori)
 1
 ```
 """
-@attr Cone mori_cone(v::NormalToricVariety) = Cone(pm_object(v).MORI_CONE)
+@attr Cone mori_cone(v::NormalToricVariety) = cone(pm_object(v).MORI_CONE)
 
 
 @doc raw"""
@@ -1045,7 +1039,7 @@ julia> affine_open_covering(p2)
 @attr Vector{AffineNormalToricVariety} function affine_open_covering(v::AbstractNormalToricVariety)
     charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
     for i in 1:pm_object(v).N_MAXIMAL_CONES
-        charts[i] = affine_normal_toric_variety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
+        charts[i] = affine_normal_toric_variety(cone(Polymake.fan.cone(pm_object(v), i-1)))
     end
     return charts
 end

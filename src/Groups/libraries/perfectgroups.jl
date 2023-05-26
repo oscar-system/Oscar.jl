@@ -5,7 +5,7 @@
 @doc raw"""
     orders_perfect_groups()
 
-Returns a sorted vector of all numbers to $2 \cdot 10^6$ that occur as orders
+Return a sorted vector of all numbers to $2 \cdot 10^6$ that occur as orders
 of perfect groups.
 
 # Examples

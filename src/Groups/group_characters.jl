@@ -377,7 +377,7 @@ Return an array of strings that contains all those names of character tables
 in the character table library that satisfy the conditions in the array `L`.
 
 # Examples
-```jldoctest
+```
 julia> spor_names = all_character_table_names(is_sporadic_simple => true,
          is_duplicate_table => false);
 
@@ -864,6 +864,14 @@ function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     return group_class_function(tbl, irr[i])
 end
 #TODO: cache the irreducibles in the table
+
+# in order to make `tbl[end]` work
+Base.lastindex(tbl::GAPGroupCharacterTable) = length(tbl)
+
+# in order to make `findfirst` and `findall` work
+function Base.keys(tbl::GAPGroupCharacterTable)
+    return keys(1:length(tbl))
+end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     irr = GAP.Globals.Irr(GAPTable(tbl))::GapObj
@@ -1433,12 +1441,64 @@ Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
 Return $\sum_{g \in G}$ `chi`($g$) `conj(psi)`($g$) / $|G|$,
 where $G$ is the group of both `chi` and `psi`.
+The result is an instance of `T`.
 """
 scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(QQFieldElem, chi, psi)
 
 function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
     @req chi.table === psi.table "character tables must be identical"
-    return T(GAP.Globals.ScalarProduct(chi.values, psi.values)::GAP.Obj)::T
+    return T(GAPWrap.ScalarProduct(chi.table.GAPTable, chi.values, psi.values))::T
+end
+
+
+@doc raw"""
+    coordinates(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
+                   where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
+
+Return the vector $[a_1, a_2, \ldots, a_n]$ of scalar products
+(see [`scalar_product`](@ref)) of `chi` with the irreducible characters
+$[t[1], t[2], \ldots, t[n]]$ of the character table $t$ of `chi`,
+that is, `chi` is equal to $\sum_{i==1}^n a_i t[i]$.
+The result is an instance of `Vector{T}`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> chi = natural_character(g);
+
+julia> coordinates(Int, chi)
+5-element Vector{Int64}:
+ 0
+ 0
+ 0
+ 1
+ 1
+
+julia> t = chi.table;  t3 = mod(t, 3);  chi3 = restrict(chi, t3);
+
+julia> coordinates(Int, chi3)
+4-element Vector{Int64}:
+ 0
+ 1
+ 0
+ 1
+```
+"""
+coordinates(chi::GAPGroupClassFunction) = coordinates(QQFieldElem, chi)
+
+function coordinates(::Type{T}, chi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
+    t = chi.table
+    GAPt = t.GAPTable
+    if characteristic(t) == 0
+      # use scalar products for an ordinary character
+      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([chi.values]))
+    else
+      # decompose a Brauer character
+      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([chi.values]), GapObj("nonnegative"))
+    end
+    return Vector{T}(c[1])::Vector{T}
 end
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
@@ -1516,6 +1576,25 @@ For Brauer characters there is no generic method for checking irreducibility.
 """
 function is_irreducible(chi::GAPGroupClassFunction)
     return GAPWrap.IsIrreducibleCharacter(chi.values)
+end
+
+@doc raw"""
+    is_faithful(chi::GAPGroupClassFunction)
+
+Return `true` if the value of `chi` at the identity element does not occur
+as value of `chi` at any other element, and `false` otherwise.
+
+If `chi` is an ordinary character then `true` is returned if and only if
+the representations affording `chi` have trivial kernel.
+
+# Examples
+```jldoctest
+julia> show(map(is_faithful, character_table(symmetric_group(3))))
+Bool[0, 1, 0]
+```
+"""
+function is_faithful(chi::GAPGroupClassFunction)
+    return length(class_positions_of_kernel(chi)) == 1
 end
 
 # Apply a class function to a group element.

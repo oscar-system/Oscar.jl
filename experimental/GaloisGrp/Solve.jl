@@ -285,8 +285,7 @@ julia> d = derived_series(G)
  Group(())
 
 julia> fixed_field(C, d)
-(Relative number field with defining polynomial x^3 - 3*x + 17
- over Number field over Rational Field with defining polynomial x^2 + 7695, a2)
+(Relative number field of degree 3 over number field, a2)
 ```
 """
 function Oscar.fixed_field(C::GaloisCtx, s::Vector{PermGroup})
