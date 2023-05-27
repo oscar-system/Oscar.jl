@@ -24,9 +24,7 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
 Graded free module R^3([0]) of rank 3 over R
@@ -168,12 +166,7 @@ julia> g = gens(G)
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
-(Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 
 julia> F = free_module(S, 3)
 Free module of rank 3 over S
@@ -230,10 +223,7 @@ Return the new module.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -247,14 +237,10 @@ Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
 
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y), Map from
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
 R to S defined by a julia-function with inverse)
 
 julia> F = free_module(S, 2)
@@ -1522,9 +1508,7 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
 Decorated free module of rank 3 over RR^3([0])

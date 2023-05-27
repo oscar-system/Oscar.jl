@@ -82,11 +82,7 @@ julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 4 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -142,11 +138,7 @@ julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 4 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -176,11 +168,7 @@ julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 4 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -210,11 +198,7 @@ julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 4 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)

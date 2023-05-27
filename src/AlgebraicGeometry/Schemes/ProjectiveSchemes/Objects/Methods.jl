@@ -74,7 +74,7 @@ Projective space of dimension 2
 julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal()
+Spec of Quotient of multivariate polynomial ring by ideal with 0 generators
 
 julia> phi = dehomogenization_map(P, U);
 
@@ -186,7 +186,7 @@ julia> X = covered_scheme(P);
 
 
 julia> U = first(affine_charts(X))
-Spec of Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
 
 julia> phi = homogenization_map(P, U);
 

@@ -42,7 +42,9 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = MPolyComplementOfPrimeIdeal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> x+1 in U
 true
@@ -97,7 +99,9 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = MPolyComplementOfPrimeIdeal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = Localization(U);
 
@@ -123,7 +127,9 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = MPolyComplementOfPrimeIdeal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = Localization(U);
 
@@ -155,12 +161,16 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = MPolyComplementOfPrimeIdeal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = Localization(R, U);
 
 julia> Rloc
-localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x)
+Localization
+  of multivariate polynomial ring in 3 variables over QQ
+  at complement of prime ideal(x)
 
 julia> iota
 Map with following data
@@ -169,7 +179,7 @@ Domain:
 Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x)
+Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
 ```
 """
 function Localization(S::AbsMultSet)
@@ -383,11 +393,24 @@ canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem}
 
 characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
 
-function Base.show(io::IO, W::AbsLocalizedRing) 
-  print(io, "localization of ") 
-  print(io, base_ring(W))
-  print(io, " at the ")
-  print(io, inverted_set(W))
+function Base.show(io::IO, ::MIME"text/plain", W::AbsLocalizedRing)
+  io = pretty(io)
+  println(io, "Localization", Indent())
+  println(io, "of ", Lowercase(), base_ring(W))
+  print(io, "at ")
+  print(io, Lowercase(), inverted_set(W))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, W::AbsLocalizedRing)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Localized ring")
+  else
+    print(io, "Localization of ", Lowercase(), base_ring(W))
+    print(io, " at ")
+    print(pretty(IOContext(io, :supercompact =>true)), Lowercase(), inverted_set(W))
+  end
 end
 
 function zero!(a::AbsLocalizedRingElem) 

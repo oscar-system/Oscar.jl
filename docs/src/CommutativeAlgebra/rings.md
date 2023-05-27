@@ -356,10 +356,7 @@ julia> typeof(f)
 QQMPolyRingElem
 
 julia> S, (x, y, z) = grade(R)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> g = 3*x^2+y*z
 3*x^2 + y*z

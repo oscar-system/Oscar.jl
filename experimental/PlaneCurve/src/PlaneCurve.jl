@@ -148,10 +148,7 @@ julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(R)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(y^3*x^6 - y^6*x^2*z)
 x^6*y^3 - x^2*y^6*z
@@ -185,10 +182,7 @@ create the projective plane curve defined by `f`.
 # Examples
 ```jldoctest
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(z*x^2-y^3)
 Projective plane curve defined by x^2*z - y^3
@@ -475,8 +469,8 @@ julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.ring(C)
-(Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(-x^3 + x + y^2), Map from
-Multivariate polynomial ring in 2 variables over QQ to Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(-x^3 + x + y^2) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+Multivariate polynomial ring in 2 variables over QQ to Quotient of multivariate polynomial ring by ideal with 1 generator defined by a julia-function with inverse)
 ```
 """
 function ring(C::PlaneCurve)
