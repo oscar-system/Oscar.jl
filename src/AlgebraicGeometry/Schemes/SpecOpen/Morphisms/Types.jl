@@ -37,7 +37,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
     Y = ambient_scheme(V)
     n = length(f)
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
-    if check
+    @check begin
       for i in 1:n
         domain(f[i]) === affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
         codomain(f[i]) === Y || error("codomain is not compatible")

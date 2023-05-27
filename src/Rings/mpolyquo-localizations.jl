@@ -242,7 +242,7 @@ function quo(
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
   L = MPolyQuoLocRing(R, J, S, quo(R, J)[1], W)
-  return L, hom(W, L, hom(R, L, gens(L)))
+  return L, hom(W, L, hom(R, L, gens(L), check=false), check=false)
 end
 
 function quo(
@@ -254,7 +254,7 @@ function quo(
   base_ring(I) = localized_ring(L) || error("ideal does not belong to the correct ring")
   J = pre_saturated_ideal(I)
   W = MPolyQuoLocRing(R, J, S, quo(R, J)[1], localized_ring(L))
-  return W, hom(L, W, gens(W))
+  return W, hom(L, W, gens(W), check=false)
 end
 
 function quo(
@@ -266,7 +266,7 @@ function quo(
   W = localized_ring(L) 
   J = J + modulus(underlying_quotient(L))
   P = MPolyQuoLocRing(R, J, S, quo(R, J)[1], W)
-  return P, hom(L, P, gens(P))
+  return P, hom(L, P, gens(P), check=false)
 end
 
 @doc raw"""
@@ -977,7 +977,7 @@ constructor takes as input the triple
     R = base_ring(L)
     R === domain(res) || error("restriction map is not compatible")
     U = inverted_set(L)
-    if check
+    @check begin
       for f in U
         is_unit(S(res(f))) || error("map is not well defined")
       end
@@ -1027,14 +1027,14 @@ function MPolyQuoLocalizedRingHom(
     a::Vector{T};
     check::Bool=true
   ) where {T<:RingElem}
-  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
+  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a, check=check), check=check)
 end
 
 hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, res, check=check)
 
 function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
   R = base_ring(L)
-  res = hom(R, S, a)
+  res = hom(R, S, a, check=check)
   MPolyQuoLocalizedRingHom(L, S, res, check=check)
 end
 
@@ -1150,7 +1150,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
     c_inv = theta[1]
     helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p, denominator(y))) for y in images(f)]
     set_attribute!(f, :helper_images, helper_images)
-    eta = hom(R, help_ring, helper_images)
+    eta = hom(R, help_ring, helper_images, check=false)
     set_attribute!(f, :eta, eta)
   end
   return get_attribute(f, :helper_ring)::base_ring_type(domain(f))
@@ -1254,7 +1254,7 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   W = MPolyQuoLocRing(R, modulus(underlying_quotient(L)), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   A = codomain(id)
-  h = hom(P, A, id.(f.(gens(P))))
+  h = hom(P, A, id.(f.(gens(P))), check=false)
   return preimage(h, ideal(A, id.(W.(gens(J)))))
 end
 
@@ -1311,13 +1311,13 @@ function is_isomorphism(
   pushfirst!(imagesB, prod(denoms))
 
   # perform a sanity check
-  phiAB = hom(A, B, imagesB)
+  phiAB = hom(A, B, imagesB, check=false)
   issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
   C, j1, B_vars = _add_variables_first(A, symbols(B))
-  j2 = hom(B, C, B_vars)
+  j2 = hom(B, C, B_vars, check=false)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
 				  symbols(C),
@@ -1385,14 +1385,14 @@ end
 function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = ngens(R)
-  phi = hom(R, ext_R, gens(ext_R)[1:n])
+  phi = hom(R, ext_R, gens(ext_R)[1:n], check=false)
   return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
 function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = ngens(R)
-  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
+  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)], check=false)
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 
@@ -1420,7 +1420,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])))
+  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1431,7 +1431,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
       push!(imgs, zero(Rnew))
     end
   end
-  proj_map = hom(R, Rnew, imgs)
+  proj_map = hom(R, Rnew, imgs, check=false)
 
   # the full substitution map 
   f = compose(subst_map_R, proj_map)
@@ -1456,9 +1456,9 @@ end
 function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
   Lnew = MPolyLocRing(base_ring(L), inverted_set(L))
   R = base_ring(L)
-  finv = hom(R, L, gens(L))
-  f = hom(R, Lnew, gens(Lnew))
-  return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv)
+  finv = hom(R, L, gens(L), check=false)
+  f = hom(R, Lnew, gens(Lnew), check=false)
+  return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
 function simplify(L::MPolyQuoRing)
@@ -1476,7 +1476,7 @@ function simplify(L::MPolyQuoRing)
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb, cached=false)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])))
+  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1487,7 +1487,7 @@ function simplify(L::MPolyQuoRing)
       push!(imgs, zero(Rnew))
     end
   end
-  proj_map = hom(R, Rnew, imgs)
+  proj_map = hom(R, Rnew, imgs, check=false)
 
   # the full substitution map 
   f = compose(subst_map_R, proj_map)
@@ -1505,8 +1505,8 @@ end
 
 function simplify(R::MPolyRing)
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R), cached=false)
-  f = hom(R, Rnew, gens(Rnew))
-  finv = hom(Rnew, R, gens(R))
+  f = hom(R, Rnew, gens(Rnew), check=false)
+  finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
 end
 
@@ -1948,7 +1948,7 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MP
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
-    g = hom(S, L, lift.(f.img_gens))
+    g = hom(S, L, lift.(f.img_gens), check=false)
     set_attribute!(f, :lifted_map, g)
   end
   g = get_attribute(f, :lifted_map)
@@ -1960,7 +1960,7 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
-    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens))
+    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens), check=false)
     set_attribute!(f, :lifted_map, g)
   end
   g = get_attribute(f, :lifted_map)

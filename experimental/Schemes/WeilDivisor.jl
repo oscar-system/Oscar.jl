@@ -33,7 +33,7 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
-    if check
+    @check begin
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
@@ -44,7 +44,7 @@ stored as a formal linear combination over some ring ``R`` of
 
   function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
     X = scheme(C)
-    if check
+    @check begin
       for D in keys(coefficient_dict(C))
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
@@ -79,7 +79,7 @@ in `R`.
 """
 function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   D = IdDict{IdealSheaf, elem_type(R)}()
-  return WeilDivisor(X, R, D)
+  return WeilDivisor(X, R, D, check=false)
 end
 
 function zero(W::WeilDivisor)
@@ -100,9 +100,11 @@ weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring)
+function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
-  D[I] = one(R)
+  @check isprime(I) "ideal sheaf must be prime"
+  @check dim(X) - dim(D) == 1 "components of a divisor must be of codimension one"
+  coefficient_dict(D)[I] = one(R)
   return D
 end
 
@@ -128,7 +130,7 @@ function copy(D::WeilDivisor)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict)
+  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
 function Base.show(io::IO, D::WeilDivisor)

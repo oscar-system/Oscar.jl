@@ -296,8 +296,8 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     kk = coefficient_ring(R)
     A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
     t = last(x_ext) 
-    inc = hom(R, A, x_ext[1:end-1])
-    phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], )) # the homogeneous variables come first
+    inc = hom(R, A, x_ext[1:end-1], check=false)
+    phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
     J = kernel(phi)
     pb = inverse(pullback_to_cone)
     Jh = ideal(homogeneous_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
@@ -329,7 +329,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   R = OO(W)
   T, (t,) = polynomial_ring(R, ["t"])
   S, s = grade(polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])[1])
-  phi = hom(S, T, [t*g for g in gens(I)])
+  phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
   Bl_W = ProjectiveScheme(S, K)
@@ -792,7 +792,7 @@ end
   end
 
   # TODO: Remove the internal checks in the constructors below
-  covering_map = CoveringMorphism(result_covering, C, projection_dict) 
+  covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false) 
   set_attribute!(P, :covering_projection_to_base, covering_map)
   return result
 end

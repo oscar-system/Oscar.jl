@@ -1141,7 +1141,7 @@ function Localization(S::AbsMPolyMultSet)
     R = ambient_ring(S)
     Rloc = MPolyLocRing(R, S)
     #iota = MapFromFunc(x -> Rloc(x), R, Rloc)
-    iota = hom(R, Rloc, Rloc.(gens(R)))
+    iota = hom(R, Rloc, Rloc.(gens(R)), check=false)
     return Rloc, iota
 end
 
@@ -1506,8 +1506,8 @@ is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BR
 @attr function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
   a = point_coordinates(inverted_set(L))
   R = base_ring(L)
-  shift = hom(R, R, gens(R)+R.(a))
-  back_shift = hom(R, R, gens(R)-R.(a))
+  shift = hom(R, R, gens(R)+R.(a), check=false)
+  back_shift = hom(R, R, gens(R)-R.(a), check=false)
   return shift, back_shift
 end
 
@@ -2627,8 +2627,10 @@ mutable struct MPolyLocalizedRingHom{
     R = base_ring(W)
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
-    for f in U
-      is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
+    @check begin
+      for f in U
+        is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
+      end
     end
     return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end
@@ -2640,7 +2642,7 @@ function MPolyLocalizedRingHom(
       S::Ring,
       a::Vector{RingElemType}
   ) where {RingElemType<:RingElem}
-  res = hom(R, S, a)
+  res = hom(R, S, a, check=false)
   W, _ = Localization(units_of(R))
   return MPolyLocalizedRingHom(W, S, res)
 end
@@ -2652,7 +2654,7 @@ function MPolyLocalizedRingHom(
       check::Bool=true
   ) where {RingElemType<:RingElem}
   R = base_ring(W)
-  res = hom(R, S, a)
+  res = hom(R, S, a, check=false)
   return MPolyLocalizedRingHom(W, S, res, check=check)
 end
 
