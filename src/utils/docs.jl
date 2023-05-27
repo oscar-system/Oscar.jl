@@ -6,6 +6,16 @@
 ###############################################################################
 ###############################################################################
 
+################################################################################
+#
+#  DocTestSetup
+#
+################################################################################
+
+# Oscar needs some complicated setup to get the printing right. This provides a
+# helper function to set this up consistently.
+doctestsetup() = :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
   global docsproject = path
