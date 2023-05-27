@@ -170,10 +170,14 @@ function doit(
   end
 
   cd(joinpath(Oscar.oscardir, "docs")) do
-    DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive=true)
+    DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive=true)
     DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra); recursive=true)
     DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive=true)
+
+    if doctest !== false
+      Documenter.doctest(Oscar, fix = doctest === :fix)
+    end
 
     makedocs(
       bib;
@@ -181,7 +185,7 @@ function doit(
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
-      doctest=doctest,
+      doctest=false,
       strict=strict,
       checkdocs=:none,
       pages=doc,
