@@ -155,14 +155,21 @@ Construct the Lie algebra over the ring `R` with structure constants given by
 # Examples
 ```jldoctest
 julia> struct_consts = zeros(QQ, 3, 3, 3);
+
 julia> struct_consts[1, 2, 3] = QQ(1);
+
 julia> struct_consts[2, 1, 3] = QQ(-1);
+
 julia> struct_consts[3, 1, 1] = QQ(2);
+
 julia> struct_consts[1, 3, 1] = QQ(-2);
+
 julia> struct_consts[3, 2, 2] = QQ(-2);
+
 julia> struct_consts[2, 3, 2] = QQ(2);
+
 julia> sl2 = lie_algebra(QQ, struct_consts, ["e", "f", "h"])
-AbstractLieAlgebra over Rational Field
+AbstractLieAlgebra over Rational field
 
 julia> e, f, h = basis(sl2)
 3-element Vector{AbstractLieAlgebraElem{QQFieldElem}}:

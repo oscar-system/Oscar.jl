@@ -157,7 +157,7 @@ Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = general_linear_lie_algebra(QQ, 2)
-LinearLieAlgebra (⊆ gl_2) over Rational Field
+LinearLieAlgebra (⊆ gl_2) over Rational field
 
 julia> basis(L)
 4-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
@@ -167,11 +167,11 @@ julia> basis(L)
  x_2_2
 
 julia> matrix_repr_basis(L)
- 4-element Vector{QQMatrix}:
-  [1 0; 0 0]
-  [0 1; 0 0]
-  [0 0; 1 0]
-  [0 0; 0 1]
+4-element Vector{QQMatrix}:
+ [1 0; 0 0]
+ [0 1; 0 0]
+ [0 0; 1 0]
+ [0 0; 0 1]
 ```
 """
 function general_linear_lie_algebra(R::Ring, n::Int)
@@ -190,7 +190,7 @@ Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = special_linear_lie_algebra(QQ, 2)
-LinearLieAlgebra (⊆ gl_2) over Rational Field
+LinearLieAlgebra (⊆ gl_2) over Rational field
 
 julia> basis(L)
 3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
@@ -227,7 +227,7 @@ Return the special orthogonal Lie algebra $\mathfrak{so}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = special_orthogonal_lie_algebra(QQ, 3)
-LinearLieAlgebra (⊆ gl_3) over Rational Field
+LinearLieAlgebra (⊆ gl_3) over Rational field
 
 julia> basis(L)
 3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
