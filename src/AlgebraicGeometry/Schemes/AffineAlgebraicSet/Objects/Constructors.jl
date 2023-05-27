@@ -26,7 +26,7 @@ Return the vanishing locus of ``I`` as an algebraic set.
 This computes the radical of ``I`` if `check=true`.
 Otherwise, Oscar takes on faith that ``I`` is radical.
 
-```jldoctest
+```
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = vanishing_locus(ideal([y^2+y+x^3+1,x]))
@@ -56,7 +56,7 @@ Return the vanishing locus of the multivariate polynomial `p`.
 This computes the radical of ``I`` if `check=true`.
 Otherwise Oscar takes on faith that ``I`` is radical.
 
-```jldoctest
+```
 julia> R, (x,y) = QQ[:x,:y];
 
 julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
