@@ -477,7 +477,7 @@ Product of the multiplicative sets
   products of 1 element
 
 julia> (ST,)
-(Product of the multiplicative subsets [Complement of maximal ideal, Products of 1 element],)
+(Product of the multiplicative subsets [complement of maximal ideal, products of 1 element],)
 
 ```
 """
@@ -2678,7 +2678,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
-  to   Localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
 
@@ -2783,7 +2783,7 @@ julia> TL, _ =  localization(T, UT);
 
 julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]))
 Ring homomorphism
-  from Localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  from localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
 defined by
   x -> t
@@ -2793,7 +2793,7 @@ defined by
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
-  to   Localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
 

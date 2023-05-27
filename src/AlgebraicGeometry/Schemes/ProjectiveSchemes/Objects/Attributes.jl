@@ -211,7 +211,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over Quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
@@ -246,7 +246,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over Quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
@@ -374,7 +374,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over Quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
