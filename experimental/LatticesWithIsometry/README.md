@@ -19,7 +19,7 @@ divisors. The methods we resort to for this purpose are developed in the paper
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of even lattices following [Nikulin]. More precisely, the two
 functions `primitive_embeddings_in_primary_lattice` and
-`primitive_embeddings_of_elementary_lattice` offer, under certain conditions,
+`primitive_embeddings_of_primary_lattice` offer, under certain conditions,
 the possibility of obtaining representatives of such classes of primitive
 embeddings. Note nonetheless that these functions are not efficient in the case
 were the discriminant groups are large.
@@ -31,16 +31,11 @@ currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non optimized algorithms.
 
 Among the possible improvements and extensions:
-* Improve the lattice enumerations by upgrading the neighbor algorithms using
-  fast algorithms computing orbits of isotropic lines over finite fields;
-* Improve the computation of the orthogonal group for definite lattices;
 * Implement methods about for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
 * Implement methods for all kinds of equivariant primitive extensions (not
   necessarily admissibles);
-* Improve some enumerations algorithms using theoretical results about types of
-  lattices with isometries of finite order;
 * Import the methods for extending trivial discriminant actions on lattice whose
   discriminant group is an abelian $p$-group.
 
