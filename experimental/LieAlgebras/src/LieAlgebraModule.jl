@@ -46,6 +46,11 @@ base_ring(V::LieAlgebraModule{C}) where {C<:RingElement} = base_ring(base_lie_al
 
 base_ring(v::LieAlgebraModuleElem{C}) where {C<:RingElement} = base_ring(parent(v))
 
+@doc raw"""
+    base_lie_algebra(V::LieAlgebraModule{C}) -> LieAlgebra{C}
+
+Return the Lie algebra `V` is a module over.
+"""
 base_lie_algebra(V::LieAlgebraModule{C}) where {C<:RingElement} = V.L
 
 ngens(L::LieAlgebraModule{C}) where {C<:RingElement} = dim(L)
@@ -54,21 +59,46 @@ gens(L::LieAlgebraModule{C}) where {C<:RingElement} = basis(L)
 
 gen(L::LieAlgebraModule{C}, i::Int) where {C<:RingElement} = basis(L, i)
 
+@doc raw"""
+    dim(V::LieAlgebraModule{C}) -> Int
+
+Return the dimension of the Lie algebra module `V`.
+"""
 dim(V::LieAlgebraModule{C}) where {C<:RingElement} = V.dim
 
+@doc raw"""
+    basis(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModuleElem{C}}
+
+Return a basis of the Lie algebra module `V`.
+"""
 basis(L::LieAlgebraModule{C}) where {C<:RingElement} =
   [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 
+@doc raw"""
+    basis(V::LieAlgebraModule{C}, i::Int) -> LieAlgebraModuleElem{C}
+
+Return the `i`-th basis element of the Lie algebra module `V`.
+"""
 function basis(L::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
   R = base_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
 
+@doc raw"""
+    zero(V::LieAlgebraModule{C}) -> LieAlgebraModuleElem{C}
+
+Return the zero element of the Lie algebra module `V`.
+"""
 function zero(V::LieAlgebraModule{C}) where {C<:RingElement}
   mat = zero_matrix(base_ring(V), 1, dim(V))
   return elem_type(V)(V, mat)
 end
 
+@doc raw"""
+    iszero(v::LieAlgebraModuleElem{C}) -> Bool
+
+Check whether the Lie algebra module element `v` is zero.
+"""
 function iszero(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return iszero(coefficients(v))
 end
@@ -77,18 +107,28 @@ end
   return (v.mat)::dense_matrix_type(C)
 end
 
+@doc raw"""
+    coefficients(v::LieAlgebraModuleElem{C}) -> Vector{C}
+
+Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
+"""
 function coefficients(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return collect(Generic._matrix(v))[1, :]
 end
 
+@doc raw"""
+    coeff(v::LieAlgebraModuleElem{C}, i::Int) -> C
+
+Return the `i`-th coefficient of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
+"""
 function coeff(v::LieAlgebraModuleElem{C}, i::Int) where {C<:RingElement}
   return Generic._matrix(v)[1, i]
 end
 
 @doc raw"""
-    getindex(v::LieAlgebraElem{C}, i::Int) where C <: RingElement
+    getindex(v::LieAlgebraModuleElem{C}, i::Int) -> C
 
-Return the $i$-th coefficient of the module element $x$.
+Return the `i`-th coefficient of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
 function getindex(v::LieAlgebraModuleElem{C}, i::Int) where {C<:RingElement}
   return coeff(v, i)
@@ -156,6 +196,11 @@ function show_tensor_power(io::IO, V::LieAlgebraModule{C}) where {C<:RingElement
   print(IOContext(io, :compact => true), base_module(V))
 end
 
+@doc raw"""
+    symbols(V::LieAlgebraModule{C}) -> Vector{Symbol}
+
+Return the symbols used for printing basis elements of the Lie algebra module `V`.
+"""
 function symbols(V::LieAlgebraModule{C}) where {C<:RingElement}
   return V.s
 end
@@ -178,31 +223,65 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    (V::LieAlgebraModule{C})() -> LieAlgebraModuleElem{C}
+
+Return the zero element of the Lie algebra module `V`.
+"""
 function (V::LieAlgebraModule{C})() where {C<:RingElement}
   return zero(V)
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::Vector{Int}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficent vector `v`.
+Fails, if `Int` cannot be coerced into the base ring of `L`.
+"""
 function (V::LieAlgebraModule{C})(v::Vector{Int}) where {C<:RingElement}
   return V(base_ring(V).(v))
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::Vector{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficent vector `v`.
+"""
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(base_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(mat::MatElem{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector equivalent to
+the $1 \times \dim(L)$ matrix `mat`.
+"""
 function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
   @req ncols(v) == dim(V) "Length of vector does not match dimension"
   @req nrows(v) == 1 "Not a vector in module constructor"
   return elem_type(V)(V, v)
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::SRow{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficent vector `v`.
+"""
 function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(V))
   return elem_type(V)(V, mat)
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) -> LieAlgebraModuleElem{C}
+
+Return `v`. Fails, in general, if `v` is not an element of `V`.
+
+If `V` is the dual module of the parent of `v`, return the dual of `v`.
+"""
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   if is_dual(V) && base_module(V) == parent(v)
     return V(coefficients(v))
@@ -211,6 +290,17 @@ function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElem
   return v
 end
 
+@doc raw"""
+    (V::LieAlgebraModule{C})(a::Vector{T}) where {T<:LieAlgebraModuleElem{C}}) -> LieAlgebraModuleElem{C}
+
+If `V` is a direct sum, return its element, where the $i$-th component is equal to `a[i]`.
+If `V` is a tensor product, return the tensor product of the `a[i]`.
+If `V` is a exterior (symmetric, tensor) power, return the wedge product
+(product, tensor product) of the `a[i]`.
+
+Requires that `a` has a suitable length, and that the `a[i]` are elements of the correct modules,
+where _correct_ depends on the case above.
+"""
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
@@ -341,6 +431,12 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) -> LieAlgebraModuleElem{C}
+    *(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) -> LieAlgebraModuleElem{C}
+
+Apply the action of `x` on `v`.
+"""
 function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return action(x, v)
 end
@@ -369,39 +465,85 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    is_standard_module(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is a standard module.
+"""
 function is_standard_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :standard_module
 end
 
+@doc raw"""
+    is_dual(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is a dual module.
+"""
 function is_dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :dual
 end
 
-function is_tensor_product(V::LieAlgebraModule{C}) where {C<:RingElement}
-  return get_attribute(V, :type, :fallback)::Symbol == :tensor_product
-end
+@doc raw"""
+    is_direct_sum(V::LieAlgebraModule{C}) -> Bool
 
+Check whether `V` is a direct sum of modules.
+"""
 function is_direct_sum(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :direct_sum
 end
 
+@doc raw"""
+    is_tensor_product(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is a tensor product of modules.
+"""
+function is_tensor_product(V::LieAlgebraModule{C}) where {C<:RingElement}
+  return get_attribute(V, :type, :fallback)::Symbol == :tensor_product
+end
+
+@doc raw"""
+    is_exterior_power(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is an exterior power of a module.
+"""
 function is_exterior_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :exterior_power
 end
 
+@doc raw"""
+    is_symmetric_power(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is a symmetric power of a module.
+"""
 function is_symmetric_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :symmetric_power
 end
 
+@doc raw"""
+    is_tensor_power(V::LieAlgebraModule{C}) -> Bool
+
+Check whether `V` is a tensor power of a module.
+"""
 function is_tensor_power(V::LieAlgebraModule{C}) where {C<:RingElement}
   return get_attribute(V, :type, :fallback)::Symbol == :tensor_power
 end
 
+@doc raw"""
+    base_module(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
+
+Returns the base module of `V`, if `V` is a power module.
+"""
 function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
   return get_attribute(V, :base_module)::LieAlgebraModule{C}
 end
 
+@doc raw"""
+    base_modules(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModule{C}}
+
+Returns the summands or tensor factors base modules of `V`,
+if `V` is a direct sum or tensor product module.
+"""
 function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_direct_sum(V) || is_tensor_product(V) "Not a direct sum or tensor product module."
   return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
@@ -413,6 +555,20 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    abstract_module(L::LieAlgebra{C}, dimV::Int, transformation_matrices::Vector{<:MatElem{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
+
+Construct the the Lie algebra module over `L` of dimension `dimV` given by
+`transformation_matrices` and with basis element names `s`.
+
+* `transformation_matrices`: The action of the $i$-th basis element of `L`
+  on some element $v$ of the constructed module is given by left multiplication 
+  of the matrix `transformation_matrices[i]` to the coefficient vector of $v$.
+* `s`: A vector of basis element names. This is 
+  `[Symbol("v_$i") for i in 1:dimV]` by default.
+* `check`: If `true`, check that the structure constants are anti-symmetric and
+  satisfy the Jacobi identity. This is `true` by default.
+"""
 function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
@@ -423,6 +579,20 @@ function abstract_module(
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
+@doc raw"""
+    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
+
+Construct the the Lie algebra module over `L` of dimension `dimV` given by
+structure constants `struct_consts` and with basis element names `s`.
+
+* `struct_consts`: The entry with indices `[i,j][k]` is the scalar $a_{i,j}^k$ 
+  such that $x_i * v_j = \sum_k a_{i,j}^k v_k$, where $x_i$ denotes the $i$-th
+  basis element of `L` and $v_j$ the $j$-th basis element of the constructed module.
+* `s`: A vector of basis element names. This is 
+  `[Symbol("v_$i") for i in 1:dimV]` by default.
+* `check`: If `true`, check that the structure constants are anti-symmetric and
+  satisfy the Jacobi identity. This is `true` by default.
+"""
 function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
@@ -442,6 +612,12 @@ function abstract_module(
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
+@doc raw"""
+    highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) -> LieAlgebraModule{C}
+
+Construct the highest weight module of the Lie algebra `L` with highest weight `weight`.
+The actual construction is done in GAP.
+"""
 function highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) where {C<:RingElement}
   struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
   dimV = size(struct_consts, 2)
@@ -450,6 +626,13 @@ function highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) where {C<:
   return V
 end
 
+@doc raw"""
+    standard_module(L::LinearLieAlgebra{C}) -> LieAlgebraModule{C}
+
+Construct the standard module of the linear Lie algebra `L`.
+If `L` is a Lie subalgebra of $\mathfrak{gl}_n(R)$, then the standard module
+is $R^n$ with the action of $L$ given by left multiplication.
+"""
 function standard_module(L::LinearLieAlgebra{C}) where {C<:RingElement}
   dim_std_V = L.n
   transformation_matrices = matrix_repr_basis(L)
@@ -461,6 +644,11 @@ function standard_module(L::LinearLieAlgebra{C}) where {C<:RingElement}
   return std_V
 end
 
+@doc raw"""
+    dual(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
+
+Construct the dual module of `V`.
+"""
 function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_dual_V = dim(V)
@@ -481,6 +669,12 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return pow_V
 end
 
+@doc raw"""
+    direct_sum(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    ⊕(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+
+Construct the direct sum of the modules `V...`.
+"""
 function direct_sum(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
@@ -517,6 +711,12 @@ end
 ⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
   direct_sum(V, Vs...)
 
+@doc raw"""
+  tensor_product(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+  ⊗(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+
+Construct the tensor product of the modules `V...`.
+"""
 function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
@@ -564,6 +764,11 @@ end
 ⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
   tensor_product(V, Vs...)
 
+@doc raw"""
+    exterior_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
+
+Construct the `k`-th exterior power $\bigwedge^k (V)$ of the module `V`.
+"""
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V), k)
@@ -605,6 +810,11 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   return pow_V
 end
 
+@doc raw"""
+    symmetric_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
+
+Construct the `k`-th symmetric power $S^k (V)$ of the module `V`.
+"""
 function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V) + k - 1, k)
@@ -662,6 +872,11 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   return pow_V
 end
 
+@doc raw"""
+    tensor_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
+
+Construct the `k`-th tensor power $T^k (V)$ of the module `V`.
+"""
 function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
   dim_pow_V = dim(V)^k

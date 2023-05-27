@@ -42,7 +42,7 @@ dim(_::LieAlgebra{C}) where {C<:RingElement} = error("Should be implemented by s
 @doc raw"""
     basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
 
-Return a basis of the Lie algebra `L` as a vector of lie algebra elements.
+Return a basis of the Lie algebra `L`.
 """
 basis(L::LieAlgebra{C}) where {C<:RingElement} =
   [basis(L, i)::elem_type(L) for i in 1:dim(L)]
@@ -159,7 +159,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
 
-Return the Lie algebra element with coefficent vector `v`.
+Return the element of `L` with coefficent vector `v`.
 Fails, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
@@ -169,7 +169,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
 
-Return the Lie algebra element with coefficent vector `v`.
+Return the element of `L` with coefficent vector `v`.
 """
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(L) "Length of vector does not match dimension."
@@ -180,7 +180,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
 
-Return the Lie algebra element with coefficient vector equivalent to
+Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
 function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
@@ -191,7 +191,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
 
-Return the Lie algebra element with coefficent vector `v`.
+Return the element of `L` with coefficent vector `v`.
 """
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(L))
@@ -199,13 +199,13 @@ function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::LieAlgebraElem{C}) -> LieAlgebraElem{C}
+    (L::LieAlgebra{C})(x::LieAlgebraElem{C}) -> LieAlgebraElem{C}
 
-Return the Lie algebra element `v`. Fails if `v` is not an element of `L`.
+Return `x`. Fails if `x` is not an element of `L`.
 """
-function (L::LieAlgebra{C})(v::LieAlgebraElem{C}) where {C<:RingElement}
-  @req L == parent(v) "Incompatible modules."
-  return v
+function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:RingElement}
+  @req L == parent(x) "Incompatible modules."
+  return x
 end
 
 ###############################################################################

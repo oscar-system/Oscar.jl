@@ -118,12 +118,12 @@ end
     lie_algebra(R::Ring, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants given by
-`struct_consts` and basis element names given by `s`.
+`struct_consts` and with basis element names `s`.
 
-* `struct_consts`: The entry with indices `[i,j][k]` is the element $a_{i,j}^k$
+* `struct_consts`: The entry with indices `[i,j][k]` is the scalar $a_{i,j}^k$
   such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
 * `s`: A vector of basis element names. This is 
-  `([Symbol("x_$i") for i in 1:size(struct_consts, 1)])` by default.
+  `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
 * `cached`: If `true`, cache the result. This is `true` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
@@ -142,12 +142,12 @@ end
     lie_algebra(R::Ring, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants given by
-`struct_consts` and basis element names given by `s`.
+`struct_consts` and with basis element names `s`.
 
-* `struct_consts`: The entry with indices `[i,j,k]` is the element $a_{i,j}^k$
+* `struct_consts`: The entry with indices `[i,j,k]` is the scalar $a_{i,j}^k$
   such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
 * `s`: A vector of basis element names. This is
-  `([Symbol("x_$i") for i in 1:size(struct_consts, 1)])` by default.
+  `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
 * `cached`: If `true`, cache the result. This is `true` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
@@ -199,6 +199,14 @@ function lie_algebra(
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
 end
 
+@doc raw"""
+    lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
+
+Construct the Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
+The actual construction is done in GAP.
+
+If `cached` is `true`, the constructed Lie algebra is cached.
+"""
 function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
   @req dynkin[1] in 'A':'G' "Unknown Dynkin type"
 
