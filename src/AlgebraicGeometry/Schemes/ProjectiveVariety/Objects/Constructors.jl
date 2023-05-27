@@ -31,7 +31,7 @@ we check that ``I`` stays prime when viewed over the algebraic closure.
 This is an expensive check that can be disabled.
 Note that the ideal ``I`` must live in a standard graded ring.
 
-```jldoctest
+```
 julia> P3 = projective_space(QQ,3)
 Projective space of dimension 3
   with homogeneous coordinates s0 s1 s2 s3

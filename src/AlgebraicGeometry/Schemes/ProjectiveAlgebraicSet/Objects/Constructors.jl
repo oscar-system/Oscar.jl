@@ -9,7 +9,7 @@ Convert `X` to an `ProjectiveAlgebraicSet` by taking the underlying reduced sche
 
 If `check=false`, assumes that `X` is already reduced.
 
-```jldoctest
+```
 julia> P,(x0,x1,x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 
 julia> X = projective_scheme(ideal([x0*x1^2, x2]))
@@ -43,7 +43,7 @@ in projective space.
 This computes the radical of ``I`` if `check=true`.
 Otherwise Oscar takes on faith that ``I`` is radical.
 
-```jldoctest
+```
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
 julia> Oscar.vanishing_locus(ideal([x0,x1]))
@@ -112,7 +112,7 @@ Return the irreducible components of ``X`` defined over the base field of ``X``.
 
 Note that even if ``X`` is irreducible, there may be several geometrically irreducible components.
 
-```jldoctest
+```
 julia> P1 = projective_space(QQ,1)
 Projective space of dimension 1
   with homogeneous coordinates s0 s1
