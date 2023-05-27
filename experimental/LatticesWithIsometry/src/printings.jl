@@ -1,4 +1,4 @@
-function Base.show(io::IO,  ::MIME"text/plain", Lf::LatWithIsom)
+function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
   io = AbstractAlgebra.pretty(io)
   println(io, lattice(Lf))
   n = order_of_isometry(Lf)
@@ -9,11 +9,11 @@ function Base.show(io::IO,  ::MIME"text/plain", Lf::LatWithIsom)
     println(io, "with isometry of infinite order")
   end
   println(io, "given by")
-  print(IOContext(io, :compact => true), isometry(Lf))
+  show(io, MIME"text/plain"(), isometry(Lf))
   print(io, AbstractAlgebra.Dedent())
 end
 
-function Base.show(io::IO, Lf::LatWithIsom)
+function Base.show(io::IO, Lf::ZZLatWithIsom)
   if get(io, :supercompact, false)
     print(io, "Integer lattice with isometry")
   else

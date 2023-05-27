@@ -1,8 +1,9 @@
-export LatWithIsom
+export ZZLatWithIsom
 
 export admissible_equivariant_primitive_extensions
 export admissible_triples
 export ambient_isometry
+export enumerate_classes_of_lattices_with_isometry
 export image_centralizer_in_Oq
 export isometry
 export is_admissible_triple
@@ -12,11 +13,12 @@ export is_of_type
 export is_hermitian
 export lattice_with_isometry
 export order_of_isometry
+export primitive_embeddings_of_primary_lattice
 export primitive_embeddings_in_primary_lattice
 export representatives_of_hermitian_type
 export splitting_of_hermitian_prime_power
 export splitting_of_mixed_prime_power
-export splitting_of_partial_mixed_prime_power
+export splitting_of_pure_mixed_prime_power
 export splitting_of_prime_power
 export type
 

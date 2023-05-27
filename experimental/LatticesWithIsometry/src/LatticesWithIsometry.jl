@@ -1,6 +1,6 @@
 function set_lwi_level(k::Int)
-  set_assertion_level(:LatWithIsom, k)
-  set_verbosity_level(:LatWithIsom, k)
+  set_assertion_level(:ZZLatWithIsom, k)
+  set_verbosity_level(:ZZLatWithIsom, k)
 end
 
 include("exports.jl")

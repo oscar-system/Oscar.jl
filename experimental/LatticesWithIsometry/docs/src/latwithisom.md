@@ -8,9 +8,9 @@ We call *lattice with isometry* any pair $(L, f)$ consisting of an integer
 lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
 about integer lattices of the documentation for new users.
 
-On Oscar, such a pair is contained into a type called `LatWithIsom`:
+On Oscar, such a pair is contained into a type called `ZZLatWithIsom`:
 ```@docs
-LatWithIsom
+ZZLatWithIsom
 ```
 
 and it is seen as a quadruple $(L, f, f_a, n)$ where $n$ is the order of $f$ and
@@ -21,10 +21,10 @@ Given a lattice with isometry $(L, f)$, we provide the following accessors to th
 elements of the previously described quadruple:
 
 ```@docs
-lattice(::LatWithIsom)
-isometry(::LatWithIsom)
-ambient_isometry(::LatWithIsom)
-order_of_isometry(::LatWithIsom)
+lattice(::ZZLatWithIsom)
+isometry(::ZZLatWithIsom)
+ambient_isometry(::ZZLatWithIsom)
+order_of_isometry(::ZZLatWithIsom)
 ```
 
 Note that for some computations, it is more convenient to work either with the
@@ -69,38 +69,38 @@ instance, in order to know the genus of $L$, one can simply call `genus(Lf)`.
 Here is a list of what are the current accessible attributes:
 
 ```@docs
-ambient_space(::LatWithIsom)
-basis_matrix(::LatWithIsom)
-charpoly(::LatWithIsom)
-degree(::LatWithIsom)
-det(::LatWithIsom)
-discriminant(::LatWithIsom)
-genus(::LatWithIsom)
-gram_matrix(::LatWithIsom)
-is_definite(::LatWithIsom)
-is_even(::LatWithIsom)
-is_integral(::LatWithIsom)
-is_positive_definite(::LatWithIsom)
-is_negative_definite(::LatWithIsom)
-minimum(::LatWithIsom)
-minpoly(::LatWithIsom)
-norm(::LatWithIsom)
-rank(::LatWithIsom)
-rational_span(::LatWithIsom)
-scale(::LatWithIsom)
-signature_tuple(::LatWithIsom)
+ambient_space(::ZZLatWithIsom)
+basis_matrix(::ZZLatWithIsom)
+charpoly(::ZZLatWithIsom)
+degree(::ZZLatWithIsom)
+det(::ZZLatWithIsom)
+discriminant(::ZZLatWithIsom)
+genus(::ZZLatWithIsom)
+gram_matrix(::ZZLatWithIsom)
+is_definite(::ZZLatWithIsom)
+is_even(::ZZLatWithIsom)
+is_integral(::ZZLatWithIsom)
+is_positive_definite(::ZZLatWithIsom)
+is_negative_definite(::ZZLatWithIsom)
+minimum(::ZZLatWithIsom)
+minpoly(::ZZLatWithIsom)
+norm(::ZZLatWithIsom)
+rank(::ZZLatWithIsom)
+rational_span(::ZZLatWithIsom)
+scale(::ZZLatWithIsom)
+signature_tuple(::ZZLatWithIsom)
 ```
 
 Similarly, some basic operations on $\mathbb Z$-lattices are available for
 lattices with isometry.
 
 ```@docs
-biproduct(::Vector{LatWithIsom})
-direct_product(::Vector{LatWithIsom})
-direct_sum(::Vector{LatWithIsom})
-dual(::LatWithIsom)
-lll(::LatWithIsom)
-rescale(::LatWithIsom, ::RationalUnion)
+biproduct(::Vector{ZZLatWithIsom})
+direct_product(::Vector{ZZLatWithIsom})
+direct_sum(::Vector{ZZLatWithIsom})
+dual(::ZZLatWithIsom)
+lll(::ZZLatWithIsom)
+rescale(::ZZLatWithIsom, ::RationalUnion)
 ```
 
 ## Type for finite order isometries
@@ -115,12 +115,12 @@ type(::Lf)
 
 Since determining whether two pairs of lattices with isometry are isomorphic is
 a challenging task, one can perform a coarser comparison by looking at the type.
-This set of data keep track of some local and global invariants of the pair $(L,
-f)$ with the respect to the action of $f$ on $L$.
+This set of data keeps track of some local and global invariants of the pair $(L,
+f)$ with respect to the action of $f$ on $L$.
 
 ```@docs
-is_of_type(::LatWithIsom, t:Dict)
-is_of_same_type(::LatWithIsom, ::LatWithIsom)
+is_of_type(::ZZLatWithIsom, t:Dict)
+is_of_same_type(::ZZLatWithIsom, ::ZZLatWithIsom)
 ```
 
 ### Examples
@@ -141,13 +141,14 @@ type(Lf)
 Finally, if the minimal polynomial of $f$ is cyclotomic, i.e. the $n$-th
 cyclotomic polynomial, then we say that the pair $(L, f)$ is *of hermitian
 type*. The type of a lattice with isometry of hermitian type is called
-*hermitian*. 
+*hermitian*.
+
 These namings follow from the fact that, by the trace equivalence, one can
 associate to the pair $(L, f)$ a hermitian lattice over the ring of integers of
 the $n$-th cyclotomic field
 
 ```@docs
-is_of_hermitian_type(::LatWithIsom)
+is_of_hermitian_type(::ZZLatWithIsom)
 is_hermitian()
 ```
 
@@ -161,7 +162,7 @@ the $n$-th cyclotomic field for which $Lf$ is the associated trace lattice (see
 to perform the trace equivalence for lattices with isometry of hermitian type.
 
 ```@docs
-hermitian_structure(::LatWithIsom)
+hermitian_structure(::ZZLatWithIsom)
 ```
 
 ## Discriminant group
@@ -171,22 +172,22 @@ discriminant group of $L$, there exists a natural map $\pi\colon O(L) \to O(D_L)
 sending any isometry to its induced action on the discriminant form of $L$. In
 general, this map is neither injective nor surjective. If we denote $D_f :=
 \pi(f)$ then $\pi$ induces a map between centralizers $O(L, f)\to O(D_L, D_f)$.
-Again, this induces map is in general neither injective nor surjective, and we
+Again, this induced map is in general neither injective nor surjective, and we
 denote its image $G_{L,f}$.
 
 ```@docs
-discriminant_group(::LatWithIsom)
+discriminant_group(::ZZLatWithIsom)
 ```
 
 For simple cases as for definite lattices, $f$ being plus-or-minus the identity
 or if the rank of $L$ is equal to the totient of the order of $f$ (in the
 finite case), $G_{L,f}$ can be easily computed. The only other case which can
 be currently handled is for lattices with isometry of hermitian type following
-the *hermitian Miranda-Morisson theory* from [BH22]. This has been implemented
+the *hermitian Miranda-Morisson theory* from [BH23]. This has been implemented
 in this project and it can be indirectly used through the general following method:
 
 ```@docs
-image_centralizer_in_Oq(::LatWithIsom)
+image_centralizer_in_Oq(::ZZLatWithIsom)
 ```
 
 For an implementation of the regular Miranda-Morisson theory, we refer to the
@@ -205,8 +206,8 @@ compute $\ker(p(f))$ as a sublattice of $L$ equipped with the induced action of
 $f$, where $p$ is a polynomial with rational coefficients.
 
 ```@docs
-kernel_lattice(::LatWithIsom, ::Union{ZZPolyRingElem, QQPolyRingElem})
-kernel_lattice(::LatWithIsom, ::Integer)
+kernel_lattice(::ZZLatWithIsom, ::Union{ZZPolyRingElem, QQPolyRingElem})
+kernel_lattice(::ZZLatWithIsom, ::Integer)
 ```
 
 Note that such sublattices are by definition primitive in $L$ since $L$ is
@@ -214,27 +215,27 @@ non-degenerate. As particular kernel sublattices of $L$, one can also compute
 the so-called *invariant* and *coinvariant* lattices of $(L, f)$:
 
 ```@docs
-coinvariant_lattice(::LatWithIsom)
-invariant_lattice(::LatWithIsom)
+coinvariant_lattice(::ZZLatWithIsom)
+invariant_lattice(::ZZLatWithIsom)
 ```
 
 ## Signatures
 
-We conclude this introduction to basic functionalities for lattices with
-isometries by introducing a last invariant for lattices with isometry of
+We conclude this introduction about standard functionalities for lattices with
+isometry by introducing a last invariant for lattices with isometry of
 hermitain type $(L, f)$, called the *signatures*. These signatures are
 are intrinsequely connected to the local archimedean invariants of the
 hermitian structure associated to $(L, f)$ via the trace equivalence.
 
 ```@docs
-signatures(::LatWithIsom)
+signatures(::ZZLatWithIsom)
 ```
 
 ## Tips for users
 
 ### Report an issue
 
-If you are working with some lattices with isometries, of type `LatWithIsom`, and
+If you are working with some lattices with isometry, of type `ZZLatWithIsom`, and
 you need to report an issue, you can produce directly some lines of codes
 helping to reconstruct your "non-working" example. We have implemented a method
 `to_oscar` which prints 5 lines for reconstructing your example.
@@ -246,11 +247,11 @@ using Oscar # hide
 ### Make the code more talkative
 
 Within the code, there are more hidden messages and testing which are disabled
-by default. If you plan to experiment with the codes with your particular
+by default. If you plan to experiment with the codes with your favourite
 examples, you may want to be able to detect some issues to be reported, as well
 as knowing what the code is doing. Indeed, some functions might take time in
-term of compilation but also computations. For this, you can enable these extras
-tests and printings by seeting
+term of compilation but also computations. For this, you can enable these extra
+tests and printings by setting:
 
 ```julia
 Oscar.set_lwi_level(2)

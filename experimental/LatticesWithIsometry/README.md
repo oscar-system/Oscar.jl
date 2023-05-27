@@ -9,7 +9,7 @@ general.
 
 ## Content
 
-We introduce the new type `LatWithIsom` which parametrizes pairs $(L, f)$ where
+We introduce the new type `ZZLatWithIsom` which parametrizes pairs $(L, f)$ where
 $L$ is a non-denegerate $\mathbb{Z}$-lattice and $f$ is an isometry of $L$. One
 of the main feature of this project is the enumeration of isomorphism classes of
 pairs $(L, f)$ where $f$ is an isometry of finite order with at most two prime

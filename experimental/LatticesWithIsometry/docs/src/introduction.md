@@ -13,7 +13,7 @@ general.
 
 ## Content
 
-We introduce the new type `LatWithIsom` which parametrizes pairs $(L, f)$ where
+We introduce the new type `ZZLatWithIsom` which parametrizes pairs $(L, f)$ where
 $L$ is a non-denegerate $\mathbb{Z}$-lattice and $f$ is an isometry of $L$. One
 of the main feature of this project is the enumeration of isomorphism classes of
 pairs $(L, f)$ where $f$ is an isometry of finite order with at most two prime
@@ -23,7 +23,7 @@ divisors. The methods we resort to for this purpose are developed in the paper
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of even lattices following [Nikulin]. More precisely, the two
 functions `primitive_embeddings_in_primary_lattice` and
-`primitive_embeddings_of_elementary_lattice` offer, under certain conditions,
+`primitive_embeddings_of_primary_lattice` offer, under certain conditions,
 the possibility of obtaining representatives of such classes of primitive
 embeddings. Note nonetheless that these functions are not efficient in the case
 were the discriminant groups are large.
@@ -42,11 +42,9 @@ Among the possible improvements and extensions:
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
 * Implement methods for all kinds of equivariant primitive extensions (not
-  necessarily admissibles);
-* Improve some enumerations algorithms using theoretical results about types of
+  necessarily admissible);
+* Improve some enumeration algorithms using theoretical results about types of
   lattices with isometries of finite order;
-* Import the methods for extending trivial discriminant actions on lattice whose
-  discriminant group is an abelian $p$-group.
 
 ## Currently application of this project
 
