@@ -3,19 +3,19 @@
 ########################################################
 
 @doc raw"""
-    affine_algebraic_set(X::Spec; is_reduced=false, check=true) -> AffineAlgebraicSet
+    algebraic_set(X::Spec; is_reduced=false, check=true) -> AffineAlgebraicSet
 
 Convert the `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
 If `is_reduced` is set, assume that `X` is already reduced.
 If `is_reduced` and `check` are set, check that `X` is actually reduced as claimed.
 """
-function affine_algebraic_set(X::Spec; is_reduced::Bool=false, check::Bool=true)
+function algebraic_set(X::Spec; is_reduced::Bool=false, check::Bool=true)
   return AffineAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
 @doc raw"""
-    vanishing_locus(I::MPolyIdeal; is_radical=false, check::Bool=true)
+    algebraic_set(I::MPolyIdeal; is_radical=false, check::Bool=true)
 
 Return the vanishing locus of ``I`` as an affine algebraic set.
 
@@ -26,22 +26,20 @@ computations.
 ```jldoctest
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus(ideal([y^2+y+x^3+1,x]))
+julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
 Vanishing locus
   in Affine 2-space over GF(2)
   of ideal(x, y^2 + y + 1)
 
 ```
 """
-function vanishing_locus(I::MPolyIdeal{<:MPolyElem}; is_radical=false, check::Bool=true)
+function algebraic_set(I::MPolyIdeal{<:MPolyElem}; is_radical=false, check::Bool=true)
   X = Spec(base_ring(I), I)
   return AffineAlgebraicSet(X, is_reduced=is_radical, check=check)
 end
 
-affine_algebraic_set(I::MPolyIdeal{<:MPolyElem}; kwargs...) = vanishing_locus(I; kwargs...)
-
 @doc raw"""
-    vanishing_locus(p::MPolyRingElem; is_radical=false, check::Bool=true)
+    algebraic_set(p::MPolyRingElem; is_radical=false, check::Bool=true)
 
 Return the vanishing locus of the multivariate polynomial `p`
 seen as an affine algebraic set.
@@ -52,23 +50,21 @@ If it is known a priori that `p` is radical and the base field perfect, one can 
 ```jldoctest
 julia> R, (x,y) = QQ[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
+julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Vanishing locus
   in Affine 2-space over QQ
   of ideal(x^4 + x*y^2 + x*y + x)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
+julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Vanishing locus
   in Affine 2-space over GF(2)
   of ideal(x^4 + x*y^2 + x*y + x)
 
 ```
 """
-vanishing_locus(p::MPolyRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
-
-affine_algebraic_set(p::MPolyElem, check::Bool) = vanishing_locus(p, check=check)
+algebraic_set(p::MPolyRingElem, check::Bool=true) = algebraic_set(ideal(parent(p),p), check=check)
 
 ########################################################
 # (2) Intersections of algebraic sets
@@ -85,12 +81,12 @@ Affine space of dimension 2
   with coordinates x y
   over Rational Field
 
-julia> X = vanishing_locus(ideal([y - x^2]))
+julia> X = algebraic_set(ideal([y - x^2]))
 Vanishing locus
   in Affine 2-space over Rational Field
   of ideal(-x^2 + y)
 
-julia> Y = vanishing_locus(ideal([y]))
+julia> Y = algebraic_set(ideal([y]))
 Vanishing locus
   in Affine 2-space over Rational Field
   of ideal(y)
@@ -141,7 +137,7 @@ Return the closure of ``X`` in its ambient affine space.
 """
 function closure(X::AbsAffineAlgebraicSet)
   Xcl = closure(overlying_scheme(X), ambient_space(X))
-  return affine_algebraic_set(Xcl, check=false)
+  return algebraic_set(Xcl, check=false)
 end
 
 ########################################################
@@ -169,7 +165,7 @@ function irreducible_components(X::T) where {T <: AbsAffineAlgebraicSet{<:Field,
     return T[]
   end
   P = minimal_primes(I)
-  return T[vanishing_locus(p, is_reduced=true, check=false) for p in P]
+  return T[algebraic_set(p, is_reduced=true, check=false) for p in P]
 end
 
 @doc raw"""
@@ -198,5 +194,5 @@ function geometric_irreducible_components(X::AbsAffineAlgebraicSet{QQField, <:MP
     return []
   end
   Pabs = absolute_primary_decomposition(I)
-  return [(vanishing_locus(p[2], is_reduced=true, check=false), affine_variety(p[3], check=false),p[4]) for p in Pabs]
+  return [(algebraic_set(p[2], is_reduced=true, check=false), affine_variety(p[3], check=false),p[4]) for p in Pabs]
 end

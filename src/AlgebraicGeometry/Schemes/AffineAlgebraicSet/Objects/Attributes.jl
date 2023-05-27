@@ -69,12 +69,11 @@ Return the radical ideal of all polynomials vanishing in ``X``.
 vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 
 @doc raw"""
-    ideal(X::AbsAffineAlgebraicSet) -> Ideal
+    overlying_ideal(X::AbsAffineAlgebraicSet) -> Ideal
 
 Return an ideal whose radical is the vanishing ideal of `X`.
 """
-ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(overlying_scheme(X))
-
+overlying_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(overlying_scheme(X))
 
 # avoid computing the underlying scheme
 ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(overlying_scheme(X))

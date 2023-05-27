@@ -22,7 +22,8 @@ end
 
 Return the affine variety defined by the prime ideal ``I``.
 
-Since our varieties are irreducible, we check that ``I`` stays prime when
+By our convention varieties are absolutely irreducible.
+Hence we check that ``I`` stays prime when
 viewed over the algebraic closure. This is an expensive check that can be disabled.
 
 ```jldoctest
@@ -40,7 +41,7 @@ over the algebraic closure. But if you know that the ideal in question defines
 a variety, you can construct it by disabling the check.
 ```jldoctest
 julia> R, (x,y) = GF(2)[:x,:y];
-
+Since our varieties are absolutely
 julia> affine_variety(x^3+y+1, check=false)
 Affine variety
  in Affine 2-space over GF(2)
@@ -60,8 +61,8 @@ end
 Return the affine variety with coordinate ring `R`.
 
 We require that ``R`` is a finitely generated algebra over a field ``k`` and
-moreover that the base change of ``R`` to the algebraic closure ``\bar k``
-is an integral domain.
+moreover that the base change of ``R`` to the algebraic closure
+``\bar k`` is an integral domain.
 
 ```jldoctest
 julia> R, (x,y) = QQ[:x,:y];
@@ -80,7 +81,7 @@ affine_variety(R::MPolyAnyRing; check=true) = AffineVariety(Spec(R), check=check
 @doc raw"""
     function affine_variety(f::MPolyRingElem{<:Field}; check::Bool=true)
 
-Return the affine variety defined as the vanishing locus of the multivariate polynomial `f`.
+Return the affine variety defined by the multivariate polynomial `f`.
 
 This checks that `f` is irreducible over the algebraic closure.
 
