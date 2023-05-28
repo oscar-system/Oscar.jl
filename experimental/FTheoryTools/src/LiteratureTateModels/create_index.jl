@@ -1,4 +1,24 @@
-function create_literature_model_index()
+# Function to automatically generate index file from existing .json files
+# named model*.json in the Models directory
+
+# Currently, this stores the following data for quick searching of models:
+#    * arXiv data
+#        -arXiv ID
+#        -arXiv DOI
+#        -arXiv version number
+#    * publication data
+#        -arXiv DOI
+#        -journal name
+#    * paper metadata
+#        -author list
+#        -paper title
+#    * model location within paper
+#        -section number that introduces model
+#        -equation number tht introduces model
+#        -page number that introduces model (in arXiv version of paper, currently)
+
+
+function _create_literature_model_index()
   model_directory = joinpath(@__DIR__, "Models/")
   models = readdir(model_directory)
   filter!(s -> startswith(s, "model"), models)

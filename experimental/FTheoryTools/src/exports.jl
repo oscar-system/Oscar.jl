@@ -38,7 +38,6 @@ export has_version
 export singular_loci
 export link
 export literature_tate_model
-export create_literature_model_index
 export resolutions
 export resolve
 export set_description
