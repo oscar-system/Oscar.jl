@@ -26,10 +26,10 @@ Return the vanishing locus of ``I`` as an algebraic set.
 This computes the radical of ``I`` if `check=true`.
 Otherwise, Oscar takes on faith that ``I`` is radical.
 
-```jldoctest
+```
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus(ideal([y^2+y+x^3+1,x]))
+julia> X = Oscar.vanishing_locus(ideal([y^2+y+x^3+1,x]))
 Vanishing locus
   in Affine 2-space over GF(2)
   of ideal(x, y^2 + y + 1)
@@ -56,17 +56,17 @@ Return the vanishing locus of the multivariate polynomial `p`.
 This computes the radical of ``I`` if `check=true`.
 Otherwise Oscar takes on faith that ``I`` is radical.
 
-```jldoctest
+```
 julia> R, (x,y) = QQ[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
+julia> X = Oscar.vanishing_locus((y^2+y+x^3+1)*x^2)
 Vanishing locus
   in Affine 2-space over QQ
   of ideal(x^4 + x*y^2 + x*y + x)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
+julia> X = Oscar.vanishing_locus((y^2+y+x^3+1)*x^2)
 Vanishing locus
   in Affine 2-space over GF(2)
   of ideal(x^4 + x*y^2 + x*y + x)

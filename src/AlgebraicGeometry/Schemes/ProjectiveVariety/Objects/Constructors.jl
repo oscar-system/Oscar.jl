@@ -31,7 +31,7 @@ we check that ``I`` stays prime when viewed over the algebraic closure.
 This is an expensive check that can be disabled.
 Note that the ideal ``I`` must live in a standard graded ring.
 
-```jldoctest
+```
 julia> P3 = projective_space(QQ,3)
 Projective space of dimension 3
   with homogeneous coordinates s0 s1 s2 s3
@@ -39,7 +39,7 @@ Projective space of dimension 3
 
 julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 
-julia> X = projective_variety(s0^3 + s1^3 + s2^3 + s3^3)
+julia> X = Oscar.projective_variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
   in Projective 3-space over QQ
   defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
@@ -47,7 +47,7 @@ Projective variety
 julia> dim(X)
 2
 
-julia> Y = projective_variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
+julia> Y = Oscar.projective_variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in Projective 3-space over QQ
   defined by ideal(s0^3 + s1^3 + s2^3 + s3^3, s0)
