@@ -1664,13 +1664,13 @@ If `prime` is given, no search is performed.
 function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
   if prime != 0
     p = prime
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
 
@@ -1693,7 +1693,7 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
     if k(leading_coefficient(f)) == 0
       continue
     end
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     if any(x->x>1, values(lf.fac))
       continue
     end
