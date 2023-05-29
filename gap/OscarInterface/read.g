@@ -6,3 +6,4 @@
 
 ReadPackage( "OscarInterface", "gap/OscarInterface.gi");
 ReadPackage( "OscarInterface", "gap/alnuth.gi");
+ReadPackage( "OscarInterface", "gap/perf.grp.gi");

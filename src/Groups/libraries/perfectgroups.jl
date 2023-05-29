@@ -179,3 +179,13 @@ function number_perfect_groups(n::IntegerUnion)
 end
 
 # TODO: add all_perfect_groups() iterator
+
+function _load_hulpke_extraperfect() 
+  gaproot = GAP.Setup.gaproot()
+  grppath = joinpath(gaproot, "grp")
+  mkpath(grppath)
+  cd(grppath) do
+    GAP.Setup.force_symlink(artifact"gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559/perf27.grp", "perf27.grp")
+    GAP.Setup.force_symlink(artifact"gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559/perf33.grp", "perf33.grp")
+  end
+end
