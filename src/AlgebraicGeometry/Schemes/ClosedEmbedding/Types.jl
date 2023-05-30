@@ -37,10 +37,8 @@ ideal ``I ⊂ R``.
     Y = domain(f)
     X = codomain(f)
     base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
-    if check
-      Y == subscheme(X, I)
-      pullback(f).(gens(OO(X))) == gens(OO(Y))
-    end
+    @check Y == subscheme(X, I) "scheme is not compatible with ideal"
+    @check pullback(f).(gens(OO(X))) == gens(OO(Y)) "variables are not preserved by the map"
     return new{typeof(Y), typeof(X), pullback_type(f)}(f, I)
   end
 end

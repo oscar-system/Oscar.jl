@@ -349,7 +349,7 @@ is_local(ord::MonomialOrdering)
 is_mixed(ord::MonomialOrdering)
 ```
 
-## Transfering an ordering from another ring
+## Transferring an ordering from another ring
 
 ```@docs
 induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)

@@ -31,9 +31,7 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
     ) where {SpecType<:AbsSpec, RET<:RingElem}
     for a in f
       parent(a) == ambient_coordinate_ring(X) || error("element does not belong to the correct ring")
-      if check
-        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
-      end
+      @check !(!isempty(X) && iszero(OO(X)(a))) "generators must not be zero"
     end
     U = new{SpecType, typeof(base_ring(X))}(X, f)
     U.intersections = Dict{Tuple{Int, Int}, AbsSpec}()

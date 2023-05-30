@@ -219,7 +219,9 @@ julia> a = ideal(A, [x-y, z^4])
 ideal(x - y, z^4)
 
 julia> base_ring(a)
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ
+  by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
 2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
@@ -350,16 +352,10 @@ julia> para = hom(D1, C1, V1)
 Map with following data
 Domain:
 =======
-Multivariate polynomial ring in 4 variables over QQ graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded multivariate polynomial ring in 4 variables over QQ
 Codomain:
 =========
-Multivariate polynomial ring in 2 variables over QQ graded by
-  s -> [1]
-  t -> [1]
+Graded multivariate polynomial ring in 2 variables over QQ
 
 julia> twistedCubic = kernel(para)
 ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
@@ -374,17 +370,10 @@ julia> proj = hom(D2, C2, V2)
 Map with following data
 Domain:
 =======
-Multivariate polynomial ring in 3 variables over QQ graded by
-  a -> [1]
-  b -> [1]
-  c -> [1]
+Graded multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 4 variables over QQ graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+Quotient of multivariate polynomial ring by ideal with 3 generators
 
 julia> nodalCubic = kernel(proj)
 ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)
@@ -443,7 +432,7 @@ Domain:
 Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-b^3 + c)
+Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_surjective(F)
 true
@@ -523,19 +512,19 @@ julia> L[2]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x*y, x*z)
+Quotient of multivariate polynomial ring by ideal with 2 generators
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> L[3]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+Quotient of multivariate polynomial ring by ideal with 2 generators
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x*y, x*z)
+Quotient of multivariate polynomial ring by ideal with 2 generators
 
 ```
 ## Normalization

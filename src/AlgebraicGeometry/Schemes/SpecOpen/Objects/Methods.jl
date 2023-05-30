@@ -125,9 +125,7 @@ end
 ########################################################################
 
 function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
-  if check
-    issubset(codomain(f), ambient_scheme(V)) || error("set is not guaranteed to be open in the codomain")
-  end
+  @check issubset(codomain(f), ambient_scheme(V)) "set is not guaranteed to be open in the codomain"
   new_gens = pullback(f).(complement_equations(V))
   return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
 end
