@@ -20,20 +20,20 @@ end
 
 # Singular.isequal depends on order of generators
 function equalitytest(G::Oscar.IdealGens, K::Oscar.IdealGens)
-    if Singular.ngens(G) != Singular.ngens(K)
+    if length(gens(G)) != length(gens(K))
         return false
     end
     generators = Singular.gens(G)
     count = 0
     for gen in generators
         for r in Singular.gens(K)
-            if gen * leading_coefficient(r) - r * leading_coefficient(gen) == 0
+            if gen * first(coefficients(leading_term(r, ordering=G.ord))) - r * first(coefficients(leading_term(gen, ordering=G.ord))) == 0
                 count += 1
                 break
             end
         end
     end
-    if count == Singular.ngens(G)
+    if count == length(gens(G))
         return true
     end
     return false

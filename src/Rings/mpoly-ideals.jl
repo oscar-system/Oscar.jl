@@ -33,7 +33,7 @@ MPolyIdeal{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 ```
 """
 function ideal(R::MPolyRing, g::Vector)
-  h = elem_type(R)[R(f) for f = g]
+  h = [R(f) for f = g]
   #if isempty(g)
   #  push!(h, R())
   #end

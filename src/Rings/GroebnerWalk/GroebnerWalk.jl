@@ -110,10 +110,10 @@ function groebnerwalk(
         walk = (x) -> fractal_walk(x, S, T, infoLevel)
     elseif walktype == :fractal_start_order
         walk = (x) -> fractal_walk_start_order(x, S, T, infoLevel)
-    elseif walktype == :fractal_lex
-        walk = (x) -> fractal_walk_lex(x, S, T, infoLevel)
-    elseif walktype == :fractal_look_ahead
-        walk = (x) -> fractal_walk_look_ahead(x, S, T, infoLevel)
+#    elseif walktype == :fractal_lex
+ #       walk = (x) -> fractal_walk_lex(x, S, T, infoLevel)
+ #   elseif walktype == :fractal_look_ahead
+ #       walk = (x) -> fractal_walk_look_ahead(x, S, T, infoLevel)
     elseif walktype == :tran
         walk = (x) -> tran_walk(x, S, T, infoLevel)
     elseif walktype == :fractal_combined
@@ -338,7 +338,7 @@ function fractal_walk_combined(
     end
 
     global pTargetWeights =
-        [pertubed_vector(G, T, i) for i = 1:nvars(Singular.base_ring(G))]
+        [pertubed_vector(G, T, i) for i = 1:nvars(base_ring(G))]
     return fractal_walk_combined(G, S, T, S[1, :], pTargetWeights, 1, infoLevel)
 end
 
@@ -351,12 +351,14 @@ function fractal_walk_combined(
     p::Int,
     infoLevel::Int,
 )
-    R = Singular.base_ring(G)
-    G.isGB = true
+R = base_ring(G)
+G.isGB = true
+w = currweight
+ordAlt = G.ord
 
     # Handling the weight of the start order.
     if (p == 1)
-        if !ismonomial(initials(R, Singular.gens(G), currweight))
+        if !ismonomial(initials(G, w))
             global pStartWeights = [pertubed_vector(G, S, i) for i = 1:nvars(R)]
             global firstStepMode = true
         end
@@ -422,43 +424,32 @@ function fractal_walk_combined(
         else
             w = w + t * (pTargetWeights[p] - w)
             w = convert_bounding_vector(w)
-            Gw = initials(R, gens(G), w)
+            Gw = ideal(initials(G, w))
 
             # handling the current weight with regards to Int32-entries. If an entry of w is bigger than Int32 use the Buchberger-algorithm.
             if !checkInt32(w)
                 w, b = truncw(G, w, Gw)
                 if !b
-                    Rn = change_order(R, T)
+                    ordNew = create_order(R,T)
                     w = T[1, :]
-                    G = Singular.std(
-                        Singular.Ideal(
-                            Rn,
-                            [change_ring(x, Rn) for x in gens(G)],
-                        ),
-                        complete_reduction = true,
-                    )
+                    G = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
+    
                     if !inCone(G, T, pTargetWeights, p)
                         global pTargetWeights =
                             [pertubed_vector(G, T, i) for i = 1:nvars(R)]
                         if infoLevel >= 1
-                            println(
-                                "depth $p: not in cone ",
-                               pTargetWeights[p],
-                                ".",
-                            )
+                            println("depth $p: not in cone ",pTargetWeights[p], ".")
                         end
                     end
                     return G
                 end
             end
-            Rn = change_order(R, w, T)
+            ordNew = create_order(R,w,T)
 
             # converting the Groebner basis
-            if (p == Singular.nvars(R) || isbinomial(Gw))
-                H = Singular.std(
-                    Singular.Ideal(Rn, [change_ring(x, Rn) for x in Gw]),
-                    complete_reduction = true,
-                )
+            if (p == nvars(R) || isbinomial(gens(Gw)))
+                H = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
+
                 if infoLevel >= 1
                     println("depth $p: conversion in ", w, ".")
                 end
@@ -468,7 +459,7 @@ function fractal_walk_combined(
                     println("depth $p: recursive call in $w.")
                 end
                 H = fractal_walk_combined(
-                    Singular.Ideal(R, Gw),
+                    Oscar.IdealGens(R,gens(Gw), ordAlt),
                     S,
                     T,
                     deepcopy(currweight),
@@ -480,9 +471,9 @@ function fractal_walk_combined(
             end
         end
         #H = liftGW2(G, R, Gw, H, Rn)
-        H = lift_fractal_walk(G, H, Rn)
+        H = lift_fractal_walk(G, H, ordNew)
         G = interreduce_walk(H)
-        R = Rn
+        ordAlt = ordNew
         currweight = w
     end
 end
@@ -648,8 +639,9 @@ function fractal_walk_recursiv_startorder(
     p::Int,
     infoLevel::Int,
 )
-    R = Singular.base_ring(G)
+    R = base_ring(G)
     G.isGB = true
+    ordAlt = G.ord
 
     # Handling the starting weight.
     if (p == 1)
@@ -703,18 +695,16 @@ function fractal_walk_recursiv_startorder(
 
         w = w + t * (pTargetWeights[p] - w)
         w = convert_bounding_vector(w)
-        Gw = initials(G, w)
+        Gw = ideal(initials(G, w))
 
         # Handling the current weight with regards to Int32-entries. If an entry of w is bigger than Int32 use the Buchberger-algorithm.
-        if !checkInt32(w)
+      if !checkInt32(w)
             w, b = truncw(G, w, Gw)
             if !b
-                Rn = change_order(R, T)
+                ordNew = create_order(R,T)
                 w = T[1, :]
-                G = Singular.std(
-                    Singular.Ideal(Rn, [change_ring(x, Rn) for x in gens(G)]),
-                    complete_reduction = true,
-                )
+                G = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
+
                 if !inCone(G, T, pTargetWeights, p)
                     global pTargetWeights =
                         [pertubed_vector(G, T, i) for i = 1:nvars(R)]
@@ -725,14 +715,12 @@ function fractal_walk_recursiv_startorder(
                 return G
             end
         end
-        Rn = change_order(R, w, T)
+        ordNew = create_order(R,w,T)
 
         # Converting the Groebner basis
-        if p == Singular.nvars(R)
-            H = Singular.std(
-                Singular.Ideal(Rn, [change_ring(x, Rn) for x in Gw]),
-                complete_reduction = true,
-            )
+        if p == nvars(R)
+            H = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
+
             if infoLevel >= 1
                 println("depth $p: conversion in ", w, ".")
             end
@@ -742,20 +730,20 @@ function fractal_walk_recursiv_startorder(
                 println("depth $p: recursive call in $w.")
             end
             H = fractal_walk_recursiv_startorder(
-                Singular.Ideal(R, Gw),
-                S,
-                T,
-                deepcopy(currweight),
-                pTargetWeights,
-                p + 1,
-                infoLevel,
-            )
+                    Oscar.IdealGens(R,gens(Gw), ordAlt),
+                    S,
+                    T,
+                    deepcopy(currweight),
+                    pTargetWeights,
+                    p + 1,
+                    infoLevel,
+                )
             global firstStepMode = false
         end
         #H = liftGW2(G, R, Gw, H, Rn)
-        H = lift_fractal_walk(G, H, Rn)
+        H = lift_fractal_walk(G, H, ordNew)
         G = interreduce_walk(H)
-        R = Rn
+        ordAlt = ordNew
         currweight = w
     end
 end

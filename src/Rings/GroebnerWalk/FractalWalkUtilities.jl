@@ -27,7 +27,7 @@ end
 # returns ´true´ if all polynomials of the given array are monomials.
 function ismonomial(Gw::Vector{T}) where {T<:MPolyRingElem}
     for g in Gw
-        if length(Singular.coefficients(g)) > 1
+        if length(coefficients(g)) > 1
             return false
         end
     end
@@ -37,7 +37,7 @@ end
 # returns ´true´ if all polynomials of the given array are binomials or less.
 function isbinomial(Gw::Vector{T}) where {T<:MPolyRingElem}
     for g in Gw
-        if length(Singular.coefficients(g)) > 2
+        if length(coefficients(g)) > 2
             return false
         end
     end
