@@ -41,7 +41,7 @@ Among the possible improvements and extensions:
 
 ## Currently application of this project
 
-The project with initiated by S. Brandhorst and T. Hofmann for classifying
+The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use
 this code, and further extension of it, to classify finite subgroups of
 automorphisms and birational transformations on *hyperkaehler manifolds*, which

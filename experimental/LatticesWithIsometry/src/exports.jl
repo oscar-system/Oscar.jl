@@ -5,6 +5,7 @@ export admissible_triples
 export ambient_isometry
 export enumerate_classes_of_lattices_with_isometry
 export image_centralizer_in_Oq
+export invariant_coinvariant_pair
 export isometry
 export is_admissible_triple
 export is_of_hermitian_type

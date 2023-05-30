@@ -120,11 +120,6 @@ end
 #
 ##############################################################################
 
-function _on_subgroup_automorphic(H::Oscar.GAPGroup, g::AutomorphismGroupElem)
-  G = domain(parent(g))
-  return sub(G, g.(gens(H)))[1]
-end
-
 function _on_subgroup_automorphic(T::TorQuadModule, g::AutomorphismGroupElem)
   q = domain(parent(g))
   gene = TorQuadModuleElem[g(q(lift(t))) for t in gens(T)]
@@ -134,14 +129,28 @@ end
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
   @req domain(O) === codomain(i) "Incompatible arguments"
   q = domain(O)
-  togap = get_attribute(O, :to_gap)
-  tooscar = get_attribute(O, :to_oscar)
-  A = codomain(togap)
-  OA = automorphism_group(A)
-  OinOA, _ = sub(OA, OA.([g.X for g in gens(O)]))
-  N, _ = sub(A, togap.(i.(gens(domain(i)))))
-  stab, _ = stabilizer(OinOA, N, _on_subgroup_automorphic)
-  return sub(O, O.([h.X for h in gens(stab)]))
+  N, _ = sub(q, i.(gens(domain(i))))
+  return stabilizer(O, N, _on_subgroup_automorphic)
+end
+
+function _subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{TorQuadModule}; order::Hecke.IntegerUnion = -1)
+  q = domain(O)
+  it = order == -1 ? subgroups(q) : subgroups(q, order=order)
+  subs = TorQuadModule[j[1] for j in it]
+  m = gset(O, _on_subgroup_automorphic, subs)
+  orbs = orbits(m)
+  res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
+  for orb in orbs
+    rep = representative(orb)
+    stab, _ = stabilizer(O, rep, _on_subgroup_automorphic)
+    push!(res, (rep, stab))
+  end 
+  return res
+end
+
+function _classes_automorphic_subgroups(O::AutomorphismGroup{TorQuadModule}, q::TorQuadModule)
+  sors = _subgroups_orbit_representatives_and_stabilizers(O, order=order(q))
+  return filter(d -> is_isometric_with_isometry(domain(d[1]), q)[1], sors)
 end
 
 # The underlying abelian groups of H and V are elementary abelian p-groups, f is
@@ -277,34 +286,6 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   return res
 end
 
-function _subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{TorQuadModule}; order::Hecke.IntegerUnion = -1)
-  togap = get_attribute(O, :to_gap)
-  tooscar = get_attribute(O, :to_oscar)
-  q = domain(O)
-  A = abelian_group(q)
-  it = order == -1 ? subgroups(A) : subgroups(A, order=order)
-  Agap = codomain(togap)
-  coAgap = [sub(Agap, togap.(q.(j[2].(gens(j[1])))))[1] for j in it]
-  OAgap = automorphism_group(Agap)
-  OinOAgap, j = sub(OAgap, OAgap.([g.X for g in gens(O)]))
-  m = gset(OinOAgap, _on_subgroup_automorphic, coAgap)
-  orbs = orbits(m)
-  res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
-  for orb in orbs
-    rep = representative(orb)
-    stab, _ = stabilizer(OinOAgap, rep, _on_subgroup_automorphic)
-    _, rep = sub(q, TorQuadModuleElem[tooscar(Agap(g)) for g in gens(rep)])
-    stab, _ = sub(O, O.([h.X for h in gens(stab)]))
-    push!(res, (rep, stab))
-  end 
-  return res
-end
-
-function _classes_automorphic_subgroups(O::AutomorphismGroup{TorQuadModule}, q::TorQuadModule)
-  sors = _subgroups_orbit_representatives_and_stabilizers(O, order=order(q))
-  return filter(d -> is_isometric_with_isometry(domain(d[1]), q)[1], sors)
-end
-
 #################################################################################
 #
 # Embeddings in elementary lattices
@@ -320,7 +301,7 @@ end
 #
 # We follow the second definition of Nikulin, i.e. we classify up to the actions
 # of O(M) and O(N).
-function _isomorphism_classes_primitive_extensions(N::ZZLat, M::ZZLat, H::TorQuadModule, el::Bool; first::Bool = false)
+function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat, M::ZZLat, H::TorQuadModule, el::Bool; first::Bool = false)
   @hassert :ZZLatWithIsom 1 is_one(basis_matrix(N))
   @hassert :ZZLatWithIsom 1 is_one(basis_matrix(M))
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
@@ -335,11 +316,11 @@ function _isomorphism_classes_primitive_extensions(N::ZZLat, M::ZZLat, H::TorQua
   if el
     VN, VNinqN, _ = _get_V(id_hom(qN), minpoly(identity_matrix(QQ,1)), p)
     subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, p)
-    filter!(HN -> is_anti_isometric_with_anti_isometry(domain(HN[1]), H), subsN)
+    filter!(HN -> is_anti_isometric_with_anti_isometry(domain(HN[1]), H)[1], subsN)
     @assert !isempty(subsN)
     VM, VMinqM, _ = _get_V(id_hom(qM), minpoly(identity_matrix(QQ, 1)), p)
     subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(VMinqM, GM, p)
-    filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H), subsM)
+    filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H)[1], subsM)
     @assert !isempty(subsM)
   else
     subsN = _classes_automorphic_subgroups(GN, rescale(H, -1))
@@ -399,7 +380,7 @@ end
                                             classification::Bool = true,
                                             first::Bool = false,
                                             check::Bool = true)
-                                        -> Vector{Tuple{ZZLat, ZZLat, ZZLat}}
+                                        -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
 
 Given a `p`-primary lattice `L`, unique in its genus, and a lattice `M`,
 return whether `M` embeds primitively in `L`.
@@ -440,7 +421,7 @@ function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classificat
   GL, _ = image_in_Oq(rescale(L, -1))
   qL = domain(GL)
 
-  D, inj, proj = biproduct(qM, qL)
+  D, inj = direct_sum(qM, qL)
   qMinD, qLinD = inj
 
   if el
@@ -461,8 +442,8 @@ function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classificat
     @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
     for H in subsL
       HL = domain(H[1])
-      it = subgroups(abelian_group(VM), order = order(HL))
-      subsM = [sub(qM, VMinqM.(VM.(j[2].(gens(j[1])))))[2] for j in it]
+      it = subgroups(VM, order = order(HL))
+      subsM = TorQuadModuleMor[sub(qM, lift.(gens(j[1])))[2] for j in it]
       filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
       isempty(subsM)  && continue
 
@@ -489,7 +470,7 @@ function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classificat
       Ns = ZZLat[integer_lattice(gram=gram_matrix(N)) for N in Ns]
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
-        temp = _isomorphism_classes_primitive_extensions(N, M, qM2, el, first=first)
+        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, el, first=first)
         if !is_empty(temp)
           first && return true, temp
           append!(results, temps)
@@ -507,7 +488,7 @@ end
                                             classification::Bool = true,
                                             first::Bool = false,
                                             check::Bool = true)
-                                        -> Vector{Tuple{ZZLat, ZZLat, ZZLat}}
+                                        -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
 
 Given a lattice `L`, unique in its genus, and a `p`-primary lattice `M`,
 return whether `M` embeds primitively in `L`.
@@ -568,8 +549,8 @@ function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classificat
     @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
     for H in subsL
       HL = domain(H[1])
-      it = subgroups(abelian_group(qM), order = order(HL))
-      subsM = [sub(qM, (j[2].(gens(j[1]))))[2] for j in it]
+      it = subgroups(qM, order = order(HL))
+      subsM = TorQuadModuleMor[H[2] for H in it]
       filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
       isempty(subsM)  && continue
 
@@ -596,7 +577,7 @@ function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classificat
       Ns = ZZLat[integer_lattice(gram=gram_matrix(N)) for N in Ns]
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
-        temp = _isomorphism_classes_primitive_extensions(N, M, qM2, el, first=first)
+        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, el, first=first)
         if length(temp) > 0
           first && return true, temp
           append!(results, temp)
@@ -760,7 +741,6 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     OSB = orthogonal_group(SB)
     
     phi = _find_admissible_gluing(SAinqA, SBinqB, phi, l, spec)
-    #!ok && continue
     # we compute the image of the stabalizers in the respective OS* and we keep track
     # of the elements of the stabilizers acting trivially in the respective S*
     actA = hom(stabA, OSA, [OSA(restrict_automorphism(x, SAinqA)) for x in gens(stabA)])
@@ -806,8 +786,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
-      @assert _is_anti_isometry(phig)
-      @assert all(a -> Hecke.quadratic_product(a) + Hecke.quadratic_product(phig(a)) == 0, gens(domain(phig)))
+      @assert is_anti_isometry(phig)
 
       if amb
         _glue = Vector{QQFieldElem}[lift(g) + lift(phig(g)) for g in gens(domain(phig))]
@@ -843,9 +822,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
       qC2 = discriminant_group(C2)
       OqC2 = orthogonal_group(qC2)
       phi2 = hom(qC2, disc, [disc(lift(x)) for x in gens(qC2)])
-      @hassert :ZZLatWithIsom 1 _is_isometry(phi2)
-      println(genus(C2))
-      println(multiplicative_order(fC2))
+      @hassert :ZZLatWithIsom 1 is_isometry(phi2)
       if !is_of_type(lattice_with_isometry(C2, fC2^q, ambient_representation = false), type(C))
         continue
       end
@@ -871,21 +848,24 @@ end
 
 function _on_modular_matrix(M::QQMatrix, g::AutomorphismGroupElem)
   q = domain(parent(g))
-  R = Hecke.value_module(q)
+  R = value_module(q)
   m = matrix(g)
   return map_entries(a -> lift(R(a)), m*M*transpose(m))
 end
 
 function _on_modular_matrix_quad(M::QQMatrix, g::AutomorphismGroupElem)
   q = domain(parent(g))
-  R1 = Hecke.value_module(q)
-  R2 = Hecke.value_module_quadratic_form(q)
+  R1 = value_module(q)
+  R2 = value_module_quadratic_form(q)
   m = matrix(g)
-  m1 = map_entries(a -> lift(R2(a)), m*M*transpose(m))
+  m1 = m*M*transpose(m)
   for i in 1:nrows(m1)
     for j in 1:ncols(m1)
-      i == j && continue
-      m1[i,j] = lift(R1(m1[i,j]))
+      if i == j
+        m1[i,j] = lift(R2(m1[i,j]))
+      else
+        m1[i,j] = lift(R1(m1[i,j]))
+      end
     end
   end
   return m1
@@ -903,17 +883,17 @@ function _compute_double_stabilizer(SBinqB, l, spec)
   OHB, OSBHBtoOHB = restrict_automorphism_group(OSBHB, HBinSB)
   K, _ = kernel(OSBHBtoOHB)
   if p != 2
-    OHBrB, _ = stabilizer(OHB, Hecke.gram_matrix_bilinear(rB), _on_modular_matrix)
+    OHBrB, _ = stabilizer(OHB, gram_matrix_bilinear(rB), _on_modular_matrix)
   elseif spec
-    OHBrB, _ = stabilizer(OHB, Hecke.gram_matrix_quadratic(rB), _on_modular_matrix_quad)
+    OHBrB, _ = stabilizer(OHB, gram_matrix_quadratic(rB), _on_modular_matrix_quad)
   else
-    OHBrB, _ = stabilizer(OHB, Hecke.gram_matrix_bilinear(rB), _on_modular_matrix)
+    OHBrB, _ = stabilizer(OHB, gram_matrix_bilinear(rB), _on_modular_matrix)
   end
   OSBrB, _ = sub(OSB, union(gens(K), OSB.(gens((OSBHBtoOHB\(OHBrB))[1]))))
   return OSBrB
 end
 
-function _is_isometry(f::TorQuadModuleMor)
+function _is_isometry_bilinear(f::TorQuadModuleMor)
   !is_bijective(f) && return false
   for a in gens(domain(f))
     for b in gens(domain(f))
@@ -921,14 +901,11 @@ function _is_isometry(f::TorQuadModuleMor)
         return false
       end
     end
-    if Hecke.quadratic_product(a) != Hecke.quadratic_product(f(a))
-      return false
-    end
   end
   return true
 end
 
-function _is_anti_isometry(f::TorQuadModuleMor)
+function _is_anti_isometry_bilinear(f::TorQuadModuleMor)
   !is_bijective(f) && return false
   for a in gens(domain(f))
     for b in gens(domain(f))
@@ -971,9 +948,6 @@ function _find_admissible_gluing(SAinqA, SBinqB, phi, l, spec)
       break
     end
   end
-  #if cover(_on_subgroup_automorphic(phiHA, g)) != cover(HB)
-  #  return false, phi
-  #end
   phi_1 = compose(phi, hom(g))
   OSBHB, _ = stabilizer(OSB, HBinSB)
   g = one(OSBHB)
@@ -986,18 +960,11 @@ function _find_admissible_gluing(SAinqA, SBinqB, phi, l, spec)
     end
   end
   phig = compose(phi_1, hom(g))
-  #if cover(sub(SB, [SB(lift(phig(SA(lift(a))))) for a in HA])[1]) != cover(HB)
-  #  return false, phi
-  #elseif matrix(hom(rA, rB, [rBtoSB\(phig(rAtoSA(a))) for a in gens(rA)])) != matrix(phi_0)
-  #  return false, phi
-  #else
-  #  return true, phig
-  #end
   return phig
 end
 
 function _is_even(T)
-  B = Hecke.gram_matrix_bilinear(T)
+  B = gram_matrix_bilinear(T)
   return is_empty(B) || all(is_zero, diagonal(B))
 end
 
@@ -1011,10 +978,10 @@ function _anti_isometry_bilinear(r1, r2, p)
   r2tor2m = hom(r2, r2m, identity_matrix(ZZ, ngens(r2)))
   r1N, r1tor1N = normal_form(r1)
   r2mN, r2mtor2mN = normal_form(r2m)
-  @hassert :ZZLatWithIsom 1 Hecke.gram_matrix_bilinear(r1N) == Hecke.gram_matrix_bilinear(r2mN)
+  @hassert :ZZLatWithIsom 1 gram_matrix_bilinear(r1N) == gram_matrix_bilinear(r2mN)
   T = hom(r1N, r2mN, identity_matrix(ZZ, ngens(r1N)))
   T = compose(r1tor1N, compose(T, compose(inv(r2mtor2mN), inv(r2tor2m))))
-  @hassert :ZZLatWithIsom _is_anti_isometry(T)
+  @hassert :ZZLatWithIsom _is_anti_isometry_bilinear(T)
   return T
 end
 

@@ -622,6 +622,21 @@ in this case)
 invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
 
 @doc raw"""
+    invariant_lattice(L::ZZLat, G::MatrixGroup;
+                                ambient_representation::Bool = true) -> ZZLat
+
+Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
+return the invariant sublattice $L^G$ of `L`.
+
+If `ambient_representation` is set to true, the isometries in `G` are seen as
+isometries of the ambient quadratic space of `L` preserving `L`. Otherwise, they
+are considered as honnest isometries of `L`.
+"""
+function invariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
+  return invariant_lattice(L, matrix.(gens(G)), ambient_representation = ambient_representation)
+end
+
+@doc raw"""
     coinvariant_lattice(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the coinvariant lattice $L_f$ of
@@ -640,7 +655,68 @@ function coinvariant_lattice(Lf::ZZLatWithIsom)
   return kernel_lattice(Lf, chi)
 end
 
-###############################################################################
+@doc raw"""
+    coinvariant_lattice(L::ZZLat, G::MatrixGroup;
+                                  ambient_representation::Bool = true)
+                                                        -> ZZLat, MatrixGroup
+
+Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
+return the coinvariant sublattice $L_G$ of `L`, together with the subgroup `H`
+of isometries of $L_G$ induced by the action of $G$.
+
+If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
+as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
+they are considered as honnest isometries of `L`.
+"""
+function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
+  F = invariant_lattice(L, G, ambient_representation = ambient_representation)
+  C = orthogonal_submodule(L, F)
+  gene = QQMatrix[]
+  for g in gens(G)
+    if !ambient_representation
+      mL = matrix(g)
+      m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
+      mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
+      push!(gene, mc)
+    else
+      push!(gene, matrix(g))
+    end
+  end
+  return C, matrix_group(gene)
+end
+
+@doc raw"""
+    invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup;
+                                         ambient_representation::Bool = true)
+                                                   -> ZZLat, ZZLat, MatrixGroup
+
+Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
+return the invariant sublattice $L^G$ of `L` and its coinvariant sublattice
+$L_G$ together with the subgroup `H` of isometries of $L_G$ induced by the
+action of $G$.
+
+If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
+as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
+they are considered as honnest isometries of `L`.
+"""
+function invariant_coinvariant_pair(L::ZZlat, G::MatrixGroup; ambient_representation::Bool = true)
+  F = invariant_lattice(L, G, ambient_representation = ambient_representation)
+  C = orthogonal_submodule(L, F)
+  gene = QQMatrix[]
+  for g in gens(G)
+    if !ambient_representation
+      mL = matrix(g)
+      m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
+      mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
+      push!(gene, mc)
+    else
+      push!(gene, matrix(g))
+    end
+  end
+  return F, C, matrix_group(gene)
+end
+
+##############################################################################
 #
 #  Type
 #

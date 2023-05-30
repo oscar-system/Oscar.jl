@@ -74,9 +74,8 @@ end
     is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer) -> Bool
 
 Given a triple of $\mathbb Z$-genera `(A,B,C)` and a prime number `p`, such
-that the rank of `B` is divisible by $p-1$ and the level of `C` is a power
-of `p`, return whether `(A,B,C)` is `p`-admissible in the sense of
-Definition 4.13. [BH22]
+that the rank of `B` is divisible by $p-1$, return whether `(A,B,C)` is
+`p`-admissible in the sense of Definition 4.13. [BH22]
 """
 function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   zg = genus(integer_lattice(gram = matrix(QQ, 0, 0, [])))
@@ -217,7 +216,7 @@ $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
 
 See Algorithm 1 of [BH22].
 """
-function admissible_triples(G::ZZGenus, p::Int64; pA::Int = -1, pB::Int = -1)
+function admissible_triples(G::ZZGenus, p::Integer; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
   @req is_integral(G) "G must be a genus of integral lattices"
   n = rank(G)
@@ -458,7 +457,7 @@ If `check === true`, then `t` is checked to be hermitian. Note that `n` can be 1
 
 See Algorithm 3 of [BH22].
 """
-function representatives_of_hermitian_type(t::Dict, m::Integer = 1; check::Bool = true)
+function representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
   M = _representative(t, check = check)
   M === nothing && return ZZLatWithIsom[]
   return representatives_of_hermitian_type(M, m)

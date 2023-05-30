@@ -35,20 +35,17 @@ currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non optimized algorithms.
 
 Among the possible improvements and extensions:
-* Improve the lattice enumerations by upgrading the neighbor algorithms using
-  fast algorithms computing orbits of isotropic lines over finite fields;
-* Improve the computation of the orthogonal group for definite lattices;
 * Implement methods about for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
 * Implement methods for all kinds of equivariant primitive extensions (not
   necessarily admissible);
-* Improve some enumeration algorithms using theoretical results about types of
-  lattices with isometries of finite order;
+* Import the methods for extending trivial discriminant actions on lattice whose
+  discriminant group is an abelian $p$-group.
 
 ## Currently application of this project
 
-The project with initiated by S. Brandhorst and T. Hofmann for classifying
+The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use
 this code, and further extension of it, to classify finite subgroups of
 automorphisms and birational transformations on *hyperkaehler manifolds*, which
