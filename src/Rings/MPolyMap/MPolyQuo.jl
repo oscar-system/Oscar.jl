@@ -69,10 +69,10 @@ julia> F = hom(A, S, [s, s^2, s^3])
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+A
 Codomain:
 =========
-Multivariate Polynomial Ring in s, t over Rational Field
+Multivariate polynomial ring in 2 variables over QQ
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
@@ -80,7 +80,7 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
   end
@@ -93,7 +93,7 @@ function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end

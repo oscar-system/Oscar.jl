@@ -636,7 +636,7 @@ mutable struct IdelParent
   mU::Map #S-unit group map
   M::GrpAbFinGen  # the big module, direct product from
     # infinite gmodule x finite ones
-  mq::Map # "projection" of M -> the acutal module in the end
+  mq::Map # "projection" of M -> the actual module in the end
 
   data
 
@@ -1683,7 +1683,7 @@ end
 Tries to find the canonical generator of `H^2(C)` the  2nd
 cohomology group of the idel-class group.
 
-Currently only works if this can be infered from the local data in
+Currently only works if this can be inferred from the local data in
 the field, ie. if the `lcm` of the degrees of the completions is the
 full field degree.
 """    

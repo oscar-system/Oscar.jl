@@ -222,6 +222,11 @@ function abstract_variety(n::Int; base::Ring=QQ)
   return X
 end
 
+##TODO docstring
+function abstract_variety(n::Int, R::MPolyDecRingOrQuo)
+  return AbstractVariety(n::Int, R::MPolyDecRingOrQuo)
+end
+
 (X::AbstractVariety)(f::RingElement) = X.ring(f)
 gens(X::AbstractVariety) = gens(X.ring)
 
@@ -573,8 +578,8 @@ function exterior_power(F::AbstractBundle)
 end
 
 @doc raw"""
-    symmetric_power(k, F::AbstractBundle)
-    symmetric_power(k::Int, F::TnBundle)
+    symmetric_power(F::AbstractBundle, k)
+    symmetric_power(F::TnBundle, k::Int)
 Return the $k$-th symmetric power. For an `AbstractBundle`, $k$ can contain parameters.
 """
 function symmetric_power(F::AbstractBundle, k::Int)
@@ -931,10 +936,10 @@ function point(; base::Ring=QQ)
 end
 
 @doc raw"""
-    abstract_projective_variety(n::Int)
+    abstract_projective_space(n::Int)
 Construct an abstract projective space of dimension $n$, parametrizing
 1-dimensional *subspaces* of a vector space of dimension $n+1$."""
-function abstract_projective_variety(n::Int; base::Ring=QQ, symbol::String="h")
+function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
   R, (h,) = grade(PolynomialRing(base, [symbol])[1])
   I = ideal([h^(n+1)])
   AP = quo(R, I)[1]

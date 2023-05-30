@@ -10,7 +10,7 @@ This check uses proposition 5.2.6 in [CLS11](@cite).
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 

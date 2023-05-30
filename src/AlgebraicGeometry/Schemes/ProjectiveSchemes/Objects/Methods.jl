@@ -69,12 +69,12 @@ Return the restriction morphism from the graded coordinate ring of ``X`` to `ð’
 julia> P = projective_space(QQ, ["x0", "x1", "x2"])
 Projective space of dimension 2
   with homogeneous coordinates x0 x1 x2
-  over Rational Field
+  over Rational field
 
 julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
-Spec of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0) over Rational Field by ideal()
+Spec of Quotient of multivariate polynomial ring by ideal with 0 generators
 
 julia> phi = dehomogenization_map(P, U);
 
@@ -96,7 +96,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -117,7 +117,7 @@ function dehomogenization_map(
   end
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), pullback(p[U]), s)
+  phi = hom(S, OO(U), pullback(p[U]), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -148,7 +148,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
     return cache[U]
   end
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -180,13 +180,13 @@ julia> A, _ = QQ["u", "v"];
 julia> P = projective_space(A, ["x0", "x1", "x2"])
 Projective space of dimension 2
   with homogeneous coordinates x0 x1 x2
-  over Multivariate Polynomial Ring in u, v over Rational Field
+  over Multivariate polynomial ring in 2 variables over QQ
 
 julia> X = covered_scheme(P);
 
 
 julia> U = first(affine_charts(X))
-Spec of Localization of Quotient of Multivariate Polynomial Ring in (x1//x0), (x2//x0), u, v over Rational Field by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
 
 julia> phi = homogenization_map(P, U);
 

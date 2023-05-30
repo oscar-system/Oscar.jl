@@ -158,10 +158,10 @@ julia> G = inverse(F)
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in t over Rational Field
+Multivariate polynomial ring in 1 variable over QQ
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+D
 
 julia> G(t)
 x

@@ -20,12 +20,12 @@ Note that expensive checks can be turned off by setting `check=false`.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> SpecMor(X, Y, gens(OO(X)));
 ```
@@ -45,7 +45,7 @@ function SpecMor(
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f)), check=check)
+  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
 function SpecMor(
@@ -73,15 +73,15 @@ This method constructs the identity morphism from an affine scheme to itself.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> identity_map(X);
 ```
 """
-identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false))
-identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false))
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X))))
+identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
 
 
 @doc raw"""
@@ -94,10 +94,11 @@ Return the inclusion map from ``X`` to ``Y``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -106,7 +107,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(Y, X);
 
@@ -130,10 +131,11 @@ This method computes the composition of two morphisms.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -142,7 +144,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> m1 = inclusion_morphism(Y, X);
 
@@ -152,9 +154,9 @@ julia> compose(m1, m2) == m1
 true
 ```
 """
-function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
-  codomain(f) == domain(g) || error("Morphisms can not be composed")
-  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=check)
+function compose(f::AbsSpecMor, g::AbsSpecMor)
+  codomain(f) === domain(g) || error("Morphisms can not be composed")
+  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
 
 
@@ -169,10 +171,11 @@ to ``U`` and its codomain to ``V``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational Field
+  over Rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -181,17 +184,15 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true
 ```
 """
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
-  if check
-    issubset(U, domain(f)) || error("second argument does not lie in the domain of the map")
-    issubset(V, codomain(f)) || error("third argument does not lie in the codomain of the map")
-    issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
-  end
+  @check issubset(U, domain(f)) "second argument does not lie in the domain of the map"
+  @check issubset(V, codomain(f)) "third argument does not lie in the codomain of the map"
+  @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end

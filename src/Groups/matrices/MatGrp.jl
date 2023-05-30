@@ -170,7 +170,13 @@ function Base.show(io::IO, x::MatrixGroup)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
       else
-         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         if x.ring isa Field
+            print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+         else
+            print(io, string(x.descr), "(",x.deg,",")
+            print(IOContext(io, :supercompact => true), x.ring)
+            print(io ,")")
+         end
       end
    else
       print(io, "Matrix group of degree ", x.deg, " over ")
@@ -195,7 +201,6 @@ function assign_from_description(G::MatrixGroup)
       # using the following inefficient code. In the future, we should use appropriate
       # generators for Omega (e.g. by applying a form change matrix to the Omega
       # generators returned by GAP).
-      # This also compensates for the fact that Omega(-1,2,q) is not supported in GAP.
       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1, G.deg, F))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
@@ -592,7 +597,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -626,7 +631,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -661,7 +666,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -698,7 +703,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -750,7 +755,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -803,7 +808,7 @@ Currently, this function only supports rings of type `fqPolyRepField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over F_7
+Finite field of degree 1 over GF(7)
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)
@@ -856,12 +861,11 @@ julia> gens(H)
 2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [o 0; 0 2*o]
  [2 2*o+2; 2*o+2 0]
-
 ```
 """
 function unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -871,7 +875,8 @@ end
     special_unitary_group(n::Int, q::Int)
     SU = special_unitary_group
 
-Return the special unitary group of dimension `n` over the field `GF(q^2)`.
+Return the special unitary group of dimension `n` over the field with `q^2`
+elements.
 
 # Examples
 ```jldoctest
@@ -882,13 +887,11 @@ julia> gens(H)
 2-element Vector{MatrixGroupElem{fqPolyRepFieldElem, fqPolyRepMatrix}}:
  [1 2*o+2; 0 1]
  [0 2*o+2; 2*o+2 0]
-
 ```
-
 """
 function special_unitary_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   @req is_prime(b) "The field size must be a prime power"
+   fl, b, a = is_prime_power_with_data(q)
+   @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G

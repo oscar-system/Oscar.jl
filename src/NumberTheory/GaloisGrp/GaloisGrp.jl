@@ -763,7 +763,7 @@ end
 
 #one cannot compare (==) slpoly, no hash either..
 #(cannot be done, thus comparison is indirect via evaluation)
-#I assume algo can be improved (TODO: Max?)
+#I assume algorithm can be improved (TODO: Max?)
 function probable_orbit(G::Oscar.PermGroup, f::SLPoly; limit::Int = typemax(Int))
   n = ngens(parent(f))
   F = GF(next_prime(2^50))
@@ -1916,9 +1916,9 @@ julia> roots(C, 2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algo::Symbol=:pAdic)
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algorithm::Symbol=:pAdic)
 
-  @assert algo in [:pAdic, :Complex, :Symbolic]
+  @assert algorithm in [:pAdic, :Complex, :Symbolic]
 
   if prime != 0
     p = prime
@@ -1940,19 +1940,19 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   #       or the RootCtx needs to learn to deal with bad primes
  
   while true
-    if algo == :pAdic
+    if algorithm == :pAdic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
-    elseif algo == :Complex
+    elseif algorithm == :Complex
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), AcbField(20))
-    elseif algo == :Symbolic
+    elseif algorithm == :Symbolic
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)))
     else
-      error("wrong algo used")
+      error("wrong algorithm used")
     end
     r = roots(GC, 5)
     if length(r) < degree(K) 
       @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
-      algo != :pAdic || error("internal error aborting")
+      algorithm != :pAdic || error("internal error aborting")
       prime == 0 || throw(Hecke.BadPrime(p))
       p, _ = find_prime(K.pol, pStart = p+1)
       continue
@@ -2358,7 +2358,7 @@ julia> G, C = galois_group(x^3-2);
 
 julia> galois_quotient(C, 6)
 1-element Vector{Any}:
- Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
+ Number field of degree 6 over QQ
 
 julia> galois_group(ans[1])
 (Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)

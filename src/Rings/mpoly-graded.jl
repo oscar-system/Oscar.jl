@@ -30,10 +30,7 @@ If `R` is, say, `G`-graded, return `G`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> grading_group(R)
 GrpAb: Z
@@ -41,39 +38,65 @@ GrpAb: Z
 """
 grading_group(R::MPolyDecRing) = R.D
 
-@doc raw"""
-    is_graded(R::MPolyDecRing)
-
-Return `true` if `R` is graded, `false` otherwise.
-"""
 function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
 
-is_graded(::MPolyRing) = false
+@doc raw"""
+    is_graded(R::MPolyRing)
+
+Return `true` if `R` is graded, `false` otherwise.
+"""
+is_graded(R::MPolyRing) = false
 
 is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
 is_filtered(::MPolyRing) = false
 
-
-function show(io::IO, W::MPolyDecRing)
+function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
+  io = pretty(io)
   if is_filtered(W)
-    println(io, "$(forget_decoration(W)) filtrated by ")
+    print(io, forget_decoration(W))
+    println(io, " filtrated by ")
   else
-    println(io, "$(forget_decoration(W)) graded by ")
+    print(io, "$(forget_decoration(W))")
+    println(io, " graded by ")
   end
   R = forget_decoration(W)
   g = gens(R)
+  print(io, Indent())
   for i = 1:ngens(R)
     if i == ngens(R)
-       print(io, "  $(g[i]) -> $(W.d[i].coeff)")
-    else  
-       println(io, "  $(g[i]) -> $(W.d[i].coeff)")
-    end  
+       print(io, "$(g[i]) -> $(W.d[i].coeff)")
+    else
+       println(io, "$(g[i]) -> $(W.d[i].coeff)")
+    end
   end
+  print(io, Dedent())
 #  println(IOContext(io, :compact => true, ), W.d)
+end
+
+function Base.show(io::IO, W::MPolyDecRing)
+  Hecke.@show_name(io, W)
+  Hecke.@show_special(io, W)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    # no nested printing
+    if is_filtered(W)
+      print(io, "Filtered multivariate polynomial ring")
+    else
+      print(io, "Graded multivariate polynomial ring")
+    end
+  else
+    # nested printing allowed, preferably supercompact
+    R = forget_decoration(W)
+    if is_filtered(W)
+      print(io, "Filtered ", Lowercase(), R)
+    else
+      print(io, "Graded ", Lowercase(), R)
+    end
+  end
 end
 
 
@@ -86,11 +109,10 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, define a $\mathbb Z$-grading on `R` by creating 
-a free abelian group of type `GrpAbFinGen` given by one free generator, converting the entries 
-of `W` to elements of that group, and assigning these elements as weights 
-to the variables. Return the graded ring as an object of type `MPolyDecRing`, 
-together with the vector of variables.
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `GrpAbFinGen` 
+given by one free generator, and convert the entries of `W` to elements of that group. Then 
+create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
+of `R`, and return the new ring, together with the vector of variables.
 
     grade(R::MPolyRing)
 
@@ -99,21 +121,15 @@ As above, where the grading is the standard $\mathbb Z$-grading on `R`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> W = [1, 2, 3];
 
 julia> S, (x, y, z) = grade(R, W)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> T, (x, y, z) = grade(R)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 ```
 """
 function grade(R::MPolyRing, W::Vector{<:IntegerUnion})
@@ -133,10 +149,11 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
  
-Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, define a $\mathbb Z^m$-grading on `R` 
-by creating a free abelian group of type `GrpAbFinGen` given by `m` free generators, converting the vectors in
-`W` to elements of that group, and assigning these elements as weights to the variables. Return the graded
-ring as an object of type `MPolyDecRing`, together with the vector of variables.
+Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
+abelian group of type `GrpAbFinGen` given by `m` free generators, and convert the vectors in
+`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
+elements as weights to the variables of `R`, and return the new ring, together with the vector
+of variables.
 
     grade(R::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
 
@@ -145,7 +162,7 @@ As above, converting the columns of `W`.
 # Examples
 ```jldoctest
 julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3)
-(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
 
 julia> W = [1 1 0 0 0; 0 0 1 1 1]
 2×5 Matrix{Int64}:
@@ -153,12 +170,7 @@ julia> W = [1 1 0 0 0; 0 0 1 1 1]
  0  0  1  1  1
 
 julia> grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 ```
 """
 function grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
@@ -191,15 +203,12 @@ Return `true` if `R` is standard $\mathbb Z$-graded, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> W = [1, 2, 3];
 
 julia> S, (x, y, z) = grade(R, W)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> is_standard_graded(S)
 false
@@ -230,15 +239,12 @@ Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> W = [1, 2, 3];
 
 julia> S, (x, y, z) = grade(R, W)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> is_z_graded(S)
 true
@@ -263,7 +269,7 @@ Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
@@ -274,12 +280,7 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia> is_zm_graded(S)
 false
@@ -323,22 +324,19 @@ Return `true` if `R` is positively graded, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (t, x, y) = polynomial_ring(QQ, ["t", "x", "y"])
-(Multivariate Polynomial Ring in t, x, y over Rational Field, QQMPolyRingElem[t, x, y])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[t, x, y])
 
 julia> G = abelian_group([0])
 GrpAb: Z
 
 julia> S, (t, x, y) = grade(R, [-1, 1, 1])
-(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
-  t -> [-1]
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
 
 julia> is_positively_graded(S)
 false
 
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> G = abelian_group([0, 2])
 (General) abelian group with relation matrix
@@ -346,19 +344,11 @@ julia> G = abelian_group([0, 2])
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
 2-element Vector{GrpAbFinGenElem}:
- Element of
-(General) abelian group with relation matrix
-[0 0; 0 2]
-with components [1 1]
- Element of
-(General) abelian group with relation matrix
-[0 0; 0 2]
-with components [1 0]
+ Element of G with components [1 1]
+ Element of G with components [1 0]
 
 julia> S, (x, y) = grade(R, W)
-(Multivariate Polynomial Ring in x, y over Rational Field graded by 
-  x -> [1 1]
-  y -> [1 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> is_positively_graded(S)
 false
@@ -406,23 +396,13 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [4, 1]
 
 julia> R, x = graded_polynomial_ring(QQ, 4, :x, W)
-(Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field graded by
-  x1 -> [1 0]
-  x2 -> [0 1]
-  x3 -> [1 0]
-  x4 -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2, x3, x4])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2, x3, x4])
 
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 ```
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
@@ -461,15 +441,14 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
 
-Given a vector `W` of `ngens(R)` elements of a group `G` of type `GrpAbFinGen`,  
-define a  `G`-grading on `R` by assigning weights to the variables according to the entries of `W`.
-Return the graded ring as an object of type `MPolyDecRing`, together with the
-vector of variables.
+Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
+`G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
+the new ring as an object of type `MPolyDecRing`, together with the vector of variables.
 
 # Examples
 ```jldoctest
 julia> R, (t, x, y) = polynomial_ring(QQ, ["t", "x", "y"])
-(Multivariate Polynomial Ring in t, x, y over Rational Field, QQMPolyRingElem[t, x, y])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[t, x, y])
 
 julia> typeof(R)
 QQMPolyRing
@@ -481,15 +460,10 @@ julia> G = abelian_group([0])
 GrpAb: Z
 
 julia> g = gen(G, 1)
-Element of
-GrpAb: Z
-with components [1]
+Element of G with components [1]
 
 julia> S, (t, x, y) = grade(R, [-g, g, g])
-(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
-  t -> [-1]
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
 
 julia> typeof(S)
 MPolyDecRing{QQFieldElem, QQMPolyRing}
@@ -501,29 +475,20 @@ julia> typeof(x)
 MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}
 
 julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3)
-(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
 
 julia> G = abelian_group([0, 0])
 GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 
 julia> typeof(x[1])
 QQMPolyRingElem
@@ -543,7 +508,7 @@ julia> typeof(x[1])
 MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}
 
 julia> R, x = polynomial_ring(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
@@ -551,32 +516,15 @@ julia> G = abelian_group([0, 0, 2, 2])
 
 julia> g = gens(G)
 4-element Vector{GrpAbFinGenElem}:
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 0 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 1 0 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 0 1 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 0 0 1]
+ Element of G with components [1 0 0 0]
+ Element of G with components [0 1 0 0]
+ Element of G with components [0 0 1 0]
+ Element of G with components [0 0 0 1]
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 ```
 """
 function grade(R::MPolyRing, v::Vector{GrpAbFinGenElem})
@@ -868,7 +816,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded multivariate ring, retur
 # Examples
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
@@ -879,21 +827,13 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia> f = x[2]^2+2*x[4]^2
 x[2]^2 + 2*x[4]^2
 
 julia> degree(f)
-Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 2 0 0]
+Element of G with components [0 2 0 0]
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
@@ -903,11 +843,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [4, 1]
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [0 1]
-  x[3] -> [1 0]
-  x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
 julia> f = x[1]^4*x[2]+x[4]
 x[1]^4*x[2] + x[4]
@@ -921,10 +857,7 @@ julia> degree(Vector{Int}, f)
  1
 
 julia>  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> f = x^6+y^3+z^2
 x^6 + y^3 + z^2
@@ -984,10 +917,7 @@ Given an element `f` of a graded multivariate ring, return `true` if `f` is homo
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> f = x^2+y*z
 x^2 + y*z
@@ -1001,11 +931,7 @@ julia> W = [1 2 1 0; 3 4 0 1]
  3  4  0  1
 
 julia> S, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W)
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1 3]
-  x -> [2 4]
-  y -> [1 0]
-  z -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
 julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
@@ -1039,10 +965,7 @@ Given an element `f` of a graded multivariate ring, return the homogeneous compo
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> f = x^2+y+z
 x^2 + y + z
@@ -1053,7 +976,7 @@ Dict{GrpAbFinGenElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 ent
   [3] => z
 
 julia> R, x = polynomial_ring(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
@@ -1064,12 +987,7 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia> f = x[1]^2+x[3]^2+x[5]^2
 x[1]^2 + x[3]^2 + x[5]^2
@@ -1140,7 +1058,7 @@ homogeneous component of `f` whose degree is that element.
 # Examples
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
@@ -1151,12 +1069,7 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia> f = x[1]^2+x[3]^2+x[5]^2
 x[1]^2 + x[3]^2 + x[5]^2
@@ -1172,11 +1085,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [4, 1]
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
-  x[1] -> [1 0]
-  x[2] -> [0 1]
-  x[3] -> [1 0]
-  x[4] -> [4 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
 julia> f = x[1]^2*x[2]+x[4]
 x[1]^2*x[2] + x[4]
@@ -1185,10 +1094,7 @@ julia> homogeneous_component(f, [2, 1])
 x[1]^2*x[2]
 
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> f = x^2+y+z
 x^2 + y + z
@@ -1290,29 +1196,13 @@ GrpAb: Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] of degree graded by [1 1]
+homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree graded by [1 1]
 
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] of degree graded by [1 1]
- to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] defined by a julia-function with inverse
+S_[1 1] of dim 6 to S defined by a julia-function with inverse
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 x[2]*y[3]
@@ -1323,28 +1213,14 @@ x[1]*y[2]
 x[1]*y[1]
 
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> G = grading_group(T)
 GrpAb: Z
 
 julia> L = homogeneous_component(T, 2)
-(homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
-, Map from
-homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
- to Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] defined by a julia-function with inverse)
+(T_[2] of dim 6, Map from
+T_[2] of dim 6 to T defined by a julia-function with inverse)
 
 julia> FG = gens(L[1]);
 
@@ -1749,12 +1625,12 @@ function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
     weight_matrix::Matrix{Int},
     return_ring::Ring,
-    #alg=:generator
-    #alg=:custom
-    #alg=:gcd
-    #alg=:indeterminate
-    #alg=:cocoa
-    alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
+    #algorithm=:generator
+    #algorithm=:custom
+    #algorithm=:gcd
+    #algorithm=:indeterminate
+    #algorithm=:cocoa
+    algorithm::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
@@ -1762,17 +1638,17 @@ function _hilbert_numerator_from_leading_exponents(
   ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
-  if alg == :BayerStillmanA
+  if algorithm == :BayerStillmanA
     return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
-  elseif alg == :custom
+  elseif algorithm == :custom
     return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
-  elseif alg == :gcd # see Remark 5.3.11
+  elseif algorithm == :gcd # see Remark 5.3.11
     return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
-  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
+  elseif algorithm == :generator # just choosing on random generator, cf. Remark 5.3.8
     return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
-  elseif alg == :indeterminate # see Remark 5.3.8
+  elseif algorithm == :indeterminate # see Remark 5.3.8
     return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
-  elseif alg == :cocoa # see Remark 5.3.14
+  elseif algorithm == :cocoa # see Remark 5.3.14
     return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
@@ -2092,7 +1968,7 @@ end
 
 function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int = 1)
   R = parent(f)
-  A = symbols(R)
+  A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
   if size(W, 1) == 1
@@ -2144,7 +2020,7 @@ Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading 
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> f = x^3+x^2*y+x*y^2+y^3
 x^3 + x^2*y + x*y^2 + y^3
@@ -2158,7 +2034,7 @@ julia> F = homogenization(f, W, "z", 3)
 x^3*z[1]^3*z[2]^3 + x^2*y*z[1]^2*z[2]^2 + x*y^2*z[1]*z[2] + y^3
 
 julia> parent(F)
-Multivariate Polynomial Ring in x, y, z[1], z[2] over Rational Field graded by
+Multivariate polynomial ring in 4 variables over QQ graded by
   x -> [1 3]
   y -> [2 4]
   z[1] -> [1 0]
@@ -2195,7 +2071,7 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
   V = homogenization(gens(I), W, var, pos)
   R = parent(V[1])
   IH = ideal(R, V)
-  Y = ideal(R, [gens(R)[i] for i = pos:(pos+size(W, 1)-1)])
+  Y = ideal(R, [gen(R, i) for i = pos:(pos+size(W, 1)-1)])
   return saturation(IH, Y)
 end
 
@@ -2218,7 +2094,7 @@ Return the result as an element of a graded polynomial ring with the homogenizin
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = x^3-y^2-z
 x^3 - y^2 - z
@@ -2227,7 +2103,7 @@ julia> F = homogenization(f, "w", 4)
 x^3 - y^2*w - z*w^2
 
 julia> parent(F)
-Multivariate Polynomial Ring in x, y, z, w over Rational Field graded by
+Multivariate polynomial ring in 4 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1]
@@ -2250,7 +2126,7 @@ julia> PTC = homogenization(I, "w")
 ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> parent(PTC[1])
-Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+Multivariate polynomial ring in 4 variables over QQ graded by
   w -> [1]
   x -> [1]
   y -> [1]
@@ -2333,10 +2209,7 @@ Return the dehomogenization of `I` in a polynomial ring as above.
 # Examples
 ```jldoctest
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = x^3-x^2*y-x*z^2
 x^3 - x^2*y - x*z^2
@@ -2345,7 +2218,8 @@ julia> f = dehomogenization(F, 1)
 -y - z^2 + 1
 
 julia> parent(f)
-Multivariate Polynomial Ring in y, z over Rational Field
+Multivariate polynomial ring in 2 variables y, z
+  over rational field
 
 julia> V = [x*y-z^2, x^2*z-x^3]
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -2369,11 +2243,7 @@ julia> W = [1 2 1 0; 3 4 0 1]
  3  4  0  1
 
 julia> S, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W)
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1 3]
-  x -> [2 4]
-  y -> [1 0]
-  z -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
 julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
@@ -2390,7 +2260,7 @@ function dehomogenization(F::MPolyDecRingElem, pos::Int)
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2406,7 +2276,7 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
   m = ngens(G)
   @req pos in 1:l-m+1 "Index out of range."
   for i = 1:m
-      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
+      @assert degree(gen(S, pos-1+i)) == gen(G, i)
   end
   A = copy(symbols(S))
   deleteat!(A, pos:pos+m-1)
@@ -2527,8 +2397,6 @@ end
 Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
-
-gens(A::MPolyDecRing, i::Int) = A[i]
 
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
 # TODO: This still seems to be not resolved!!!

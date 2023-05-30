@@ -55,10 +55,10 @@ julia> F = hom(R, R, z -> z^2, [y, x])
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y over Finite field of degree 2 over F_2
+Multivariate polynomial ring in 2 variables over GF(2^2)
 Codomain:
 =========
-Multivariate Polynomial Ring in x, y over Finite field of degree 2 over F_2
+Multivariate polynomial ring in 2 variables over GF(2^2)
 
 julia> F(a * y)
 (a + 1)*x
@@ -72,10 +72,10 @@ julia> G = hom(S, S, hom(Qi, Qi, -i), [x^2, y^2])
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y over Imaginary quadratic field defined by x^2 + 1
+Multivariate polynomial ring in 2 variables over imaginary quadratic field defined by x^2 + 1
 Codomain:
 =========
-Multivariate Polynomial Ring in x, y over Imaginary quadratic field defined by x^2 + 1
+Multivariate polynomial ring in 2 variables over imaginary quadratic field defined by x^2 + 1
 
 julia> G(x+i*y)
 x^2 - sqrt(-1)*y^2
@@ -90,10 +90,10 @@ julia> H = hom(R, S, gens(S))
 Map with following data
 Domain:
 =======
-Multivariate Polynomial Ring in x, y over Integer Ring
+Multivariate polynomial ring in 2 variables over ZZ
 Codomain:
 =========
-Multivariate Polynomial Ring in x, y over Galois field with characteristic 2
+Multivariate polynomial ring in 2 variables over GF(2)
 
 julia> H(f)
 x^2 + 1
@@ -104,7 +104,7 @@ function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = t
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
   end
@@ -116,7 +116,7 @@ function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
   end

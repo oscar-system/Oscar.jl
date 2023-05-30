@@ -29,7 +29,7 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-birkhoff_polytope(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+birkhoff_polytope(n::Integer; even::Bool = false) = polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
 
 
@@ -194,21 +194,21 @@ cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
 Construct the regular tetrahedron, one of the Platonic solids.
 """
-tetrahedron() = Polyhedron(Polymake.polytope.tetrahedron());
+tetrahedron() = polyhedron(Polymake.polytope.tetrahedron());
 
 @doc raw"""
     dodecahedron()
 
 Construct the regular dodecahedron, one out of two Platonic solids.
 """
-dodecahedron() = Polyhedron(Polymake.polytope.dodecahedron());
+dodecahedron() = polyhedron(Polymake.polytope.dodecahedron());
 
 @doc raw"""
     icosahedron()
 
 Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
-icosahedron() = Polyhedron(Polymake.polytope.icosahedron());
+icosahedron() = polyhedron(Polymake.polytope.icosahedron());
 
 @doc raw"""
     johnson_solid(i::Int)
@@ -218,28 +218,28 @@ Construct the `i`-th proper Johnson solid.
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
-johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
+johnson_solid(index::Int) = polyhedron(Polymake.polytope.johnson_solid(index));
 
 @doc raw"""
     regular_24_cell()
 
 Construct the regular 24-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_24_cell() = Polyhedron(Polymake.polytope.regular_24_cell());
+regular_24_cell() = polyhedron(Polymake.polytope.regular_24_cell());
 
 @doc raw"""
     regular_120_cell()
 
 Construct the regular 120-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_120_cell() = Polyhedron(Polymake.polytope.regular_120_cell());
+regular_120_cell() = polyhedron(Polymake.polytope.regular_120_cell());
 
 @doc raw"""
     regular_600_cell()
 
 Construct the regular 600-cell, one out of three exceptional regular 4-polytopes.
 """
-regular_600_cell() = Polyhedron(Polymake.polytope.regular_600_cell());
+regular_600_cell() = polyhedron(Polymake.polytope.regular_600_cell());
 
 """
     newton_polytope(poly::Polynomial)
@@ -249,7 +249,7 @@ Compute the Newton polytope of the multivariate polynomial `poly`.
 # Examples
 ```jldoctest
 julia> S, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Integer Ring, ZZMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over ZZ, ZZMPolyRingElem[x, y])
 
 julia> f = x^3*y + 3x*y^2 + 1
 x^3*y + 3*x*y^2 + 1
@@ -270,13 +270,13 @@ function newton_polytope(f)
 end
 
 
-Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(T, normal_vector(H), negbias(H))
 
-Polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, normal_vector(H), negbias(H))
 
-Polyhedron(H::Hyperplane{T}) where T<:scalar_types = Polyhedron{T}(nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(T, nothing, (normal_vector(H), [negbias(H)]))
 
-Polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
     intersect(P::Polyhedron, Q::Polyhedron)
@@ -661,7 +661,7 @@ julia> nfacets(T)
 20
 ```
 """
-platonic_solid(s::String) = Polyhedron(Polymake.polytope.platonic_solid(s))
+platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
 
 @doc raw"""
     archimedean_solid(s)
@@ -722,7 +722,7 @@ julia> nfacets(T)
 14
 ```
 """
-archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
+archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s))
 
 @doc raw"""
     catalan_solid(s::String)
@@ -781,7 +781,7 @@ julia> nfacets(T)
 12
 ```
 """
-catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
+catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
 
 
 @doc raw"""
@@ -808,6 +808,28 @@ this is given by McMullen's Upper-Bound-Theorem.
 """
 upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
+@doc raw"""
+    billera_lee_polytope(h::AbstractVector)
+
+Construct a simplicial polytope whose h-vector is $h$.
+The corresponding g-vector must be an M-sequence.
+The ambient dimension equals the length of $h$, and the polytope lives in codimension one.
+- [BL81](@cite)
+
+# Examples
+```jldoctest
+julia> BL = billera_lee_polytope([1,3,3,1])
+Polyhedron in ambient dimension 4
+
+julia> f_vector(BL)
+3-element Vector{ZZRingElem}:
+ 6
+ 12
+ 8
+
+```
+"""
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)))
 
 @doc raw"""
     polarize(P::Polyhedron)
@@ -940,7 +962,7 @@ julia> nvertices(cp)
 20
 ```
 """
-cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
+cyclic_polytope(d::Int, n::Int) = polyhedron(Polymake.polytope.cyclic(d, n))
 
 # random constructions
 
@@ -1015,3 +1037,36 @@ end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
   rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)
+
+@doc raw"""
+    rand_subpolytope(P::Polyhedron, n::Int; seed=nothing)
+
+Construct a subpolytope of $P$ as the convex hull of $n$ vertices, chosen uniformly at random.
+The polyhedron $P$ must be bounded, and the number $n$ must not exceed the number of vertices.
+
+# Keywords
+- `seed::Int64`:          Seed for random number generation.
+
+# Examples
+```jldoctest
+julia> nvertices(rand_subpolytope(cube(3), 5))
+5
+
+```
+"""
+function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
+  if !bounded(P)
+    throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
+  end
+  nv = nvertices(P)
+  if n>nv
+    throw(ArgumentError("rand_subpolytope: number of vertices requested too high"))
+  end
+  opts = Dict{Symbol,Any}()
+  if seed != nothing
+    opts[:seed] = convert(Int64, seed)
+  end
+  pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
+  pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
+  return Polyhedron{T}(pm_obj)
+end

@@ -39,7 +39,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
       mor_dict[U] = compose(cf[U], cg[codomain(cf[U])])
     end
     cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc, check=false)
+    return CoveredSchemeMorphism(X, Z, cc)
   else
     haskey(refinements(Y), (codomain(cf), domain(cg))) || error("composition of this complicated case is not yet implemented")
     ref_mor = Y[codomain(cf), domain(cg)] # the refinement `CoveringMorphism`
@@ -50,7 +50,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
       mor_dict[U] = compose(compose(cf[U], ref_mor[V]), cg[W])
     end
     cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc, check=false)
+    return CoveredSchemeMorphism(X, Z, cc)
   end
 end
 
@@ -65,3 +65,33 @@ function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsSpec)
   return result
 end
 
+########################################################################
+# Comparison
+########################################################################
+function ==(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  f_cov = covering_morphism(f)
+  g_cov = covering_morphism(g)
+  domain(f_cov) === domain(g_cov) || error("comparison across refinements not implemented")
+  codomain(f_cov) === codomain(g_cov) || error("comparison across refinements not implemented")
+  return all(U->(f_cov[U] == g_cov[U]), patches(domain(f_cov)))
+end
+
+########################################################################
+# Base change
+########################################################################
+function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
+    domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
+    codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
+  )
+  f_cov = covering_morphism(f)
+  dom_cov = covering_morphism(domain_map)
+  cod_cov = covering_morphism(codomain_map)
+  _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
+  X = domain(f)
+  Y = codomain(f)
+  XX = domain(domain_map)
+  YY = domain(codomain_map)
+  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
+end

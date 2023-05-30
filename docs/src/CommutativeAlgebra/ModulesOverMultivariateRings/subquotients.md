@@ -41,11 +41,17 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 	matrices. Here, by convention, vectors are row vectors, and matrices operate by
 	multiplication on the right.
 
+!!! note
+    Over a graded ring $R$, we work with graded free modules $R^s$, $R^p$, $R^t$ and graded
+    homomorphisms $a$, $b$. As a consequence, every module involved in the construction of
+	the subquotient defined by $a$ and $b$ carries an induced grading. In particular, the
+	subquotient itself carries an induced grading.
+
 ## Types
 
 All OSCAR types for the finitely presented modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-The subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
+Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
 they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
@@ -77,10 +83,10 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -101,7 +107,8 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> base_ring(M)
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
 
 julia> F === ambient_free_module(M)
 true
@@ -135,7 +142,16 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
+```
 
+In the graded case, we also have:
+
+```@docs
+ grading_group(M::SubquoModule)
+```
+
+```@docs
+degrees_of_generators(M::SubquoModule)
 ```
 
 ## Elements of Subqotients
@@ -162,10 +178,10 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -218,10 +234,10 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -269,7 +285,7 @@ julia> parent(fm) === ambient_free_module(M)
 true
 
 julia> F = ambient_free_module(M)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> f = x*F[1]
 x*e[1]
@@ -297,7 +313,21 @@ Whether a given element of a subquotient is zero can be tested as follows:
 is_zero(m::SubquoModuleElem)
 ```
 
+In the graded case, we additionally have:
+
+```@docs
+is_homogeneous(m::SubquoModuleElem)
+```
+
+```@docs
+degree(m::SubquoModuleElem)
+```
+
 ## Tests on Subqotients
+
+The functions [`is_graded`](@ref), [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+and [`is_zm_graded`](@ref) carry over analogously to subquotients. They return `true` if the
+respective property is satisfied, and `false` otherwise. In addition, we have:
 
 ```@docs
 ==(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -357,6 +387,26 @@ matrix(a::SubQuoHom)
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
+The functions below test whether a homomorphism of type
+`SubQuoHom` is graded and homogeneous, respectively.
+
+```@docs
+is_graded(a:: SubQuoHom)
+```
+
+```@docs
+is_homogeneous(a:: SubQuoHom)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+degree(a:: SubQuoHom)
+```
+
+```@docs
+grading_group(a:: SubQuoHom)
+```
 
 
 

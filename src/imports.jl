@@ -2,7 +2,6 @@
 using Pkg
 using Random
 using RandomExtensions
-using Test
 
 # our packages
 import AbstractAlgebra
@@ -20,14 +19,17 @@ import Singular
 # import stuff from Base for which we want to provide extra methods
 import Base:
     +,
+    -,
     *,
     ^,
     ==,
     conj,
     convert,
+    deepcopy_internal,
     eltype,
     exponent,
     getindex,
+    hash,
     intersect,
     inv,
     isfinite,
@@ -57,6 +59,7 @@ import AbstractAlgebra:
     canonical_unit,
     codomain,
     data,
+    Dedent,
     degree,
     dim,
     domain,
@@ -78,6 +81,9 @@ import AbstractAlgebra:
     get_attribute,
     get_attribute!,
     Ideal,
+    Indent,
+    Lowercase,
+    LowercaseOff,
     Map,
     map,
     MatElem,
@@ -94,6 +100,7 @@ import AbstractAlgebra:
     PolyRingElem,
     polynomial_ring,
     PolyRing,
+    pretty,
     Ring,
     RingElem,
     RingElement,

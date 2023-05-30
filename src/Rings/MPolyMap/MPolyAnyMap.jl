@@ -205,7 +205,7 @@ function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, 
   g = coefficient_map(G)
   if typeof(codomain(f)) === typeof(domain(g))
     newcoeffmap = compose(f, g)
-    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)))
+    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
     return Generic.CompositeMap(F, G)
   end
@@ -214,13 +214,13 @@ end
 # No coefficient maps in both maps
 function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), G.(_images(F)))
+  return hom(domain(F), codomain(G), G.(_images(F)), check=false)
 end
 
 # Julia functions in both maps
 function compose(F::MPolyAnyMap{D, C, <: Function}, G::MPolyAnyMap{C, E, <: Function}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)))
+  return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)), check=false)
 end
 
 # Now compose with arbitrary maps
@@ -233,7 +233,7 @@ function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: M
   f = coefficient_map(F)
   if typeof(codomain(f)) === C
     newcoeffmap = compose(f, G)
-    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)))
+    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
     return Generic.CompositeMap(F, G)
   end

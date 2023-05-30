@@ -18,6 +18,12 @@ supporting computations in homological algebra.
 presentation(M::ModuleFP)
 ```
 
+## Representation as Cokernel
+
+```@docs
+present_as_cokernel(M::SubquoModule, task::Symbol = :none)
+```
+
 ## Syzygies and Free Resolutions
 
 ```@docs
@@ -40,7 +46,7 @@ homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ## Hom and Ext
 
 ```@docs
-hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 ```
 
 ```@docs

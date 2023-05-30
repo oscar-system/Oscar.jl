@@ -8,6 +8,7 @@ import Base: intersect
 # what follows                                                         #
 ########################################################################
 include("Types.jl")
+include("Methods.jl")
 
 include("AffineSchemes/Objects/Types.jl")
 include("AffineSchemes/Morphisms/Types.jl")
@@ -146,3 +147,4 @@ include("ProjectiveVariety/Objects/Constructors.jl")
 include("ProjectiveVariety/Objects/Properties.jl")
 include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
+

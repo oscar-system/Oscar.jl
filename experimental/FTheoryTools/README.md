@@ -34,6 +34,11 @@ This project just began, and is therefore in its experimental stage. Upcoming ta
 * Modify the _ambient_space_from_base function to return ring maps from the base to the ambient space and all other constructors/types to appropriately carry that around, then fix the corresponding bit of code in analyze_fibers.
 
 
+## Tutorial
+
+We provide a [tutorial for FTheoryTools in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/FTheoryToolsInOSCAR.ipynb).
+
+
 ## Possible future extensions
 
 Future extensions include, but are not necessarily limited to, the following:

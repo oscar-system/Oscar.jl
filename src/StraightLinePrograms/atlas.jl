@@ -201,7 +201,7 @@ function evaluate!(res::Vector{S}, p::AbstractAtlasSL, xs::Vector{S}) where S
         # first copy the outputs at the end of res before moving them
         # at the beginning of the array, to avoid overwriting values
         # which are still needed
-        # TODO: this algo can be slightly optimized
+        # TODO: this algorithm can be slightly optimized
         for i in p.outputs
             push!(res, res[i])
         end

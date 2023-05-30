@@ -377,7 +377,7 @@ Return an array of strings that contains all those names of character tables
 in the character table library that satisfy the conditions in the array `L`.
 
 # Examples
-```jldoctest
+```
 julia> spor_names = all_character_table_names(is_sporadic_simple => true,
          is_duplicate_table => false);
 
@@ -616,11 +616,14 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     emptycor = ["" for i in 1:length(ind)]
 
     # Fetch the Orthogonal Discriminants if applicable.
-    # (This is possible only if the OD database is available.
+    # (This is possible only if the OD database is available.)
     OD = get(io, :OD, false)::Bool
     if OD && hasproperty(GAP.Globals, :OrthogonalDiscriminants)
       ODs = [replace(x -> isnothing(x) ? "" : string(x),
                      Vector{Any}(GAP.Globals.OrthogonalDiscriminants(gaptbl)::GapObj))]
+      for i in (length(ODs[1])+1):n
+        push!(ODs[1], "")
+      end
       ODlabel = ["OD"]
       push!(emptycor, "")
     else
@@ -1441,13 +1444,100 @@ Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
 Return $\sum_{g \in G}$ `chi`($g$) `conj(psi)`($g$) / $|G|$,
 where $G$ is the group of both `chi` and `psi`.
+The result is an instance of `T`.
+
+Note that we do not support `dot(chi, psi)` and its infix notation
+because the documentation of `dot` states that the result is equal to the
+sum of `dot` results of corresponding entries,
+which does not hold for the scalar product of characters.
 """
 scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(QQFieldElem, chi, psi)
 
 function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
     @req chi.table === psi.table "character tables must be identical"
-    return T(GAP.Globals.ScalarProduct(chi.values, psi.values)::GAP.Obj)::T
+    return T(GAPWrap.ScalarProduct(chi.table.GAPTable, chi.values, psi.values))::T
 end
+
+
+@doc raw"""
+    coordinates(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
+                   where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
+
+Return the vector $[a_1, a_2, \ldots, a_n]$ of scalar products
+(see [`scalar_product`](@ref)) of `chi` with the irreducible characters
+$[t[1], t[2], \ldots, t[n]]$ of the character table $t$ of `chi`,
+that is, `chi` is equal to $\sum_{i==1}^n a_i t[i]$.
+The result is an instance of `Vector{T}`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> chi = natural_character(g);
+
+julia> coordinates(Int, chi)
+5-element Vector{Int64}:
+ 0
+ 0
+ 0
+ 1
+ 1
+
+julia> t = chi.table;  t3 = mod(t, 3);  chi3 = restrict(chi, t3);
+
+julia> coordinates(Int, chi3)
+4-element Vector{Int64}:
+ 0
+ 1
+ 0
+ 1
+```
+"""
+coordinates(chi::GAPGroupClassFunction) = coordinates(QQFieldElem, chi)
+
+function coordinates(::Type{T}, chi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
+    t = chi.table
+    GAPt = t.GAPTable
+    if characteristic(t) == 0
+      # use scalar products for an ordinary character
+      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([chi.values]))
+    else
+      # decompose a Brauer character
+      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([chi.values]), GapObj("nonnegative"))
+    end
+    return Vector{T}(c[1])::Vector{T}
+end
+
+
+@doc raw"""
+    multiplicities_eigenvalues(::Type{T} = Int, chi::GAPGroupClassFunction, i::Int) where T <: IntegerUnion
+
+Let $M$ be a representing matrix of an element in the `i`-th conjugacy class
+of the character table of `chi`,
+in a representation affording the character `chi`,
+and let $n$ be the order of the elements in this conjugacy class.
+
+Return the vector $(m_1, m_2, \ldots, m_n)$ of integers of type `T`
+such that $m_j$ is the multiplicity of $\zeta_n^j$ as an eigenvalue of $M$.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");  chi = t[4];
+
+julia> println(values(chi))
+QQAbElem{nf_elem}[4, 0, 1, -1, -1]
+
+julia> println(multiplicities_eigenvalues(chi, 5))
+[1, 1, 1, 1, 0]
+```
+"""
+function multiplicities_eigenvalues(::Type{T}, chi::GAPGroupClassFunction, i::Int) where T <: IntegerUnion
+    return Vector{T}(GAP.Globals.EigenvaluesChar(chi.values, i))
+end
+
+multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_eigenvalues(Int, chi, i)
+
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, n * chi.values)
@@ -1499,6 +1589,7 @@ Base.:^(chi::GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
 Return `true` if all values of `chi` are rational, i.e., in `QQ`,
 and `false` otherwise.
 
+# Examples
 ```jldoctest
 julia> all(is_rational, character_table(symmetric_group(4)))
 true

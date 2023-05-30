@@ -3,14 +3,14 @@ using Test
 
 @testset "del Pezzo surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
 
-    dP0 = del_pezzo_surface(0; set_attributes)
-    dP1 = del_pezzo_surface(1; set_attributes)
-    dP2 = del_pezzo_surface(2; set_attributes)
-    dP3 = del_pezzo_surface(3; set_attributes)
+    dP0 = del_pezzo_surface(NormalToricVariety, 0; set_attributes)
+    dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)
+    dP2 = del_pezzo_surface(NormalToricVariety, 2; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
 
     @testset "Should fail" begin
-        @test_throws ArgumentError del_pezzo_surface(-1; set_attributes)
-        @test_throws ArgumentError del_pezzo_surface(4; set_attributes)
+        @test_throws ArgumentError del_pezzo_surface(NormalToricVariety, -1; set_attributes)
+        @test_throws ArgumentError del_pezzo_surface(NormalToricVariety, 4; set_attributes)
     end
 
     @testset "Basic properties" begin

@@ -327,7 +327,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   x_img = pullback(gres).(x_img)
   phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
-  gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img))
+  gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
 
   y_img = gens(OO(Y))
   y_img = pullback(inverse(iso_Y)).(y_img)
@@ -335,7 +335,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(fres).(y_img)
   psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
-  ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img))
+  ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
 
   return SimpleGlueing(X, Y, ff, gg, check=false)
 end

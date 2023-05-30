@@ -38,3 +38,13 @@ function Base.show(io::IO, X::AbsCoveredScheme)
   end
   print(io, "covered scheme with $(npatches(default_covering(X))) affine patches in its default covering")
 end
+
+########################################################################
+# Base change
+########################################################################
+function base_change(phi::Any, X::AbsCoveredScheme)
+  C = default_covering(X)
+  CC, f_CC = base_change(phi, C)
+  XX = CoveredScheme(CC)
+  return XX, CoveredSchemeMorphism(XX, X, f_CC)
+end

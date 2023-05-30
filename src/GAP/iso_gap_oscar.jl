@@ -91,8 +91,8 @@ function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
        end
      elseif mod(N, 8) == 0
        N = div(N, 4)
-       FGgens = GAP.Globals.GeneratorsOfField(FG)
-       if any(x -> GAP.Globals.GaloisCyc(x,-1) != x, FGgens)
+       FGgens = GAPWrap.GeneratorsOfField(FG)
+       if any(x -> GAPWrap.GaloisCyc(x,-1) != x, FGgens)
          N = -N
        end
      end
@@ -109,7 +109,8 @@ function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
 end
 
 # If `FG` is a number field that is not cyclotomic then
-# it can be in `IsAlgebraicExtension` or in `IsCyclotomicCollection`.
+# it can be in `IsAlgebraicExtension` or in `IsCyclotomicCollection`
+# or in `IsNumberFieldByMatrices`.
 function _iso_gap_oscar_number_field(FG::GapObj)
    if GAPWrap.IsCyclotomicCollection(FG)
      # The abelian number fields of GAP store one generator.
@@ -119,7 +120,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      pol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals::GapObj, z)
      N = GAPWrap.DegreeOfLaurentPolynomial(pol)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
-     R, x = polynomial_ring(QQ, "x")
+     R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
      FO, _ = number_field(polFO, "z")
      powers = GapObj([z^i for i in 0:(N-1)])::GapObj
@@ -138,10 +139,10 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      # This is the analogon of `_iso_oscar_gap(FO::AnticNumberField)`.
      pol = GAPWrap.DefiningPolynomial(FG)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
-     R, x = polynomial_ring(QQ, "x")
+     R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
      FO, _ = number_field(polFO, "z")
-     fam = GAPWrap.ElementsFamily(GAP.Globals.FamilyObj(FG))
+     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      finv = function(x::Nemo.nf_elem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
@@ -150,6 +151,46 @@ function _iso_gap_oscar_number_field(FG::GapObj)
 
      f = function(x::GAP.Obj)
         coeffs = Vector{QQFieldElem}(GAPWrap.ExtRepOfObj(x))
+        return FO(coeffs)
+     end
+   elseif GAPWrap.IsNumberFieldByMatrices(FG)
+     # `pol` is the minimal polynomial of `M` because the GAP code
+     # caches the objects.
+     M = GAPWrap.PrimitiveElement(FG)
+     pol = GAPWrap.DefiningPolynomial(FG)
+
+     # Construct the isomorphic number field in Oscar.
+     cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
+     R = Hecke.Globals.Qx
+     polFO = R(Vector{QQFieldElem}(cfs))
+     FO, _ = number_field(polFO, "z", cached = false)
+
+     # The canonical basis of `FG` does in general not consist of the
+     # powers of `M`.
+     # Thus we cache the powers of `M` in order to compute preimages
+     # of elements from `FO`,
+     # and we compute the decomposition of the elements of the canonical
+     # basis of `FG` in terms of powers of `M` in order to compute images
+     # in `FO`.
+     pow = GAPWrap.One(M)
+     Mpowers = [pow]
+     for i in 2:degree(FO)
+       pow = pow * M
+       push!(Mpowers, pow)
+     end
+
+     C = GAPWrap.CanonicalBasis(FG)
+     A = inv(GapObj([GAPWrap.Coefficients(C, m) for m in Mpowers]))
+     Mpowers = GapObj(Mpowers)
+
+     finv = function(x::Nemo.nf_elem)
+        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        return GAPWrap.LinearCombination(coeffs, Mpowers)
+     end
+
+     f = function(x::GAP.Obj)
+        coeffs = GAPWrap.Coefficients(C, x)
+        coeffs = Vector{QQFieldElem}(coeffs * A)
         return FO(coeffs)
      end
    else
@@ -168,7 +209,7 @@ end
 
 function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
-   RO, x = polynomial_ring(codomain(coeffs_iso), "x")
+   RO, x = polynomial_ring(codomain(coeffs_iso), "x", cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(f, finv, RG, RO)
@@ -177,7 +218,7 @@ end
 function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
    nams = [string(x) for x in GAPWrap.IndeterminatesOfPolynomialRing(RG)]
-   RO, x = polynomial_ring(codomain(coeffs_iso), nams)
+   RO, x = polynomial_ring(codomain(coeffs_iso), nams, cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
 
    return MapFromFunc(f, finv, RG, RO)
@@ -247,6 +288,14 @@ GAP: x_1^2+x_1+1
 julia> f(y) == pol
 true
 ```
+
+!!! warning
+    The functions `Oscar.iso_gap_oscar` and [`Oscar.iso_oscar_gap`](@ref)
+    are not injective.
+    Due to caching, it may happen that `S` stores an attribute value
+    of `Oscar.iso_oscar_gap(S)`,
+    but that the codomain of this map is not identical with
+    or even not equal to the given `R`.
 """
 iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)
 
@@ -267,6 +316,12 @@ push!(_iso_gap_oscar_methods, "IsIntegers" => _iso_gap_oscar_ring_integers)
 push!(_iso_gap_oscar_methods, "IsRing and IsZmodnZObjNonprimeCollection" => _iso_gap_oscar_residue_ring)
 push!(_iso_gap_oscar_methods, "IsUnivariatePolynomialRing" => _iso_gap_oscar_univariate_polynomial_ring)
 push!(_iso_gap_oscar_methods, "IsPolynomialRing" => _iso_gap_oscar_multivariate_polynomial_ring)
+
+# Note that `IsNumberFieldByMatrices` is a GAP property,
+# but the alnuth package uses it like a GAP category,
+# i.e., one can rely on the fact that
+# this filter is set in a field generated by matrices .
+push!(_iso_gap_oscar_methods, "IsField and IsNumberFieldByMatrices" => _iso_gap_oscar_number_field)
 
 
 ################################################################################
@@ -289,7 +344,7 @@ function preimage_matrix(f::Map{GapObj, T}, a::MatElem) where T
    for i in 1:nrows(a)
       rows[i] = GapObj([preimage(f, a[i, j]) for j in 1:ncols(a)])
    end
-   return GAP.Globals.ImmutableMatrix(domain(f), GapObj(rows), true)
+   return GAPWrap.ImmutableMatrix(domain(f), GapObj(rows), true)
 end
 
 function AbstractAlgebra.map_entries(f::Map{GapObj, T}, a::GapObj) where T

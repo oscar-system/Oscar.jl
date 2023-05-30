@@ -10,25 +10,25 @@ struct PolyhedralComplex{T}
      PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
-# default scalar type: `QQFieldElem`
-PolyhedralComplex(x...) = PolyhedralComplex{QQFieldElem}(x...)
 
-PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
+polyhedral_complex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
 
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 
 @doc raw"""
-    PolyhedralComplex{T}(polyhedra, vr, far_vertices, L) where T<:scalar_types
+    polyhedral_complex(::T, polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments
+- `T`: Type of scalar to use, defaults to `QQFieldElem`.
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
   (i,j) if the ith polytope contains point j and 0 otherwise.
-- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up the polyhedral
-  complex. This matrix also contains the far vertices.
+- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up
+  the polyhedral complex. This matrix also contains the far vertices.
 - `far_vertices::Vector{Int}`: Vector containing the indices of the rows
   corresponding to the far vertices in `vr`.
-- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the polyhedral complex.
+- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the
+  polyhedral complex.
 
 A polyhedral complex formed from points, rays, and lineality combined into
 polyhedra indicated by an incidence matrix, where the columns represent the
@@ -49,7 +49,7 @@ julia> vr = [0 0; 1 0; 1 1; 0 1]
  1  1
  0  1
 
-julia> PC = PolyhedralComplex(IM, vr)
+julia> PC = polyhedral_complex(IM, vr)
 Polyhedral complex in ambient dimension 2
 ```
 
@@ -63,14 +63,14 @@ julia> far_vertices = [2,3,4];
 
 julia> L = [0 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> lineality_dim(PC)
 1
 ```
 """
-function PolyhedralComplex{T}(
+function polyhedral_complex(::Type{T},
                 polyhedra::IncidenceMatrix, 
                 vr::AbstractCollection[PointVector], 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
@@ -103,11 +103,18 @@ function PolyhedralComplex{T}(
         ))
     end
 end
+# default scalar type: `QQFieldElem`
+polyhedral_complex(polyhedra::IncidenceMatrix, 
+                vr::AbstractCollection[PointVector], 
+                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false) =
+  polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
 
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`
 # Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
-# This makes sure that PolyhedralComplex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
-PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
+# This makes sure that polyhedral_complex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
+polyhedral_complex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
 
 ###############################################################################
 ###############################################################################

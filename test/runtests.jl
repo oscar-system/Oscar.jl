@@ -1,6 +1,5 @@
 using Oscar
 using Test
-using Documenter
 
 import Random
 
@@ -78,10 +77,14 @@ function include(str::String)
 end
 
 @static if compiletimes
-  Base.cumulative_compile_timing(true);
+  Base.cumulative_compile_timing(true)
 end
-# Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
+
+# Used in both Rings/slpolys.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
+
+include("Aqua.jl")
+
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
@@ -92,26 +95,23 @@ include("Groups/runtests.jl")
 
 include("Rings/runtests.jl")
 
-include("NumberTheory/nmbthy-test.jl")
+include("NumberTheory/nmbthy.jl")
 
 if Oscar.is_dev
-  include("Experimental/GITFans-test.jl")
+  include("Experimental/GITFans.jl")
 end
 
 # Will automatically include all experimental packages following our
 # guidelines.
 include("../experimental/runtests.jl")
 
-include("Experimental/galois-test.jl")
-include("Experimental/gmodule-test.jl")
-include("Experimental/ModStdQt-test.jl")
-include("Experimental/ModStdNF-test.jl")
-include("Experimental/MPolyRingSparse-test.jl")
-include("Experimental/MatrixGroups-test.jl")
-include("Experimental/JuLie-test.jl")
-include("Experimental/SymmetricIntersections-test.jl")
-include("Experimental/ExteriorAlgebra-test.jl")
-include("Experimental/LinearQuotients/runtests.jl")
+include("Experimental/galois.jl")
+include("Experimental/gmodule.jl")
+include("Experimental/ModStdQt.jl")
+include("Experimental/ModStdNF.jl")
+include("Experimental/MatrixGroups.jl")
+include("Experimental/JuLie.jl")
+include("Experimental/ExteriorAlgebra.jl")
 
 include("Rings/ReesAlgebra.jl")
 
@@ -121,8 +121,9 @@ include("InvariantTheory/runtests.jl")
 
 include("AlgebraicGeometry/Schemes/runtests.jl")
 include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+include("TropicalGeometry/runtests.jl")
 
 include("Serialization/runtests.jl")
 

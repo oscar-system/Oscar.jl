@@ -19,10 +19,10 @@
   rrrWW = L(U21, WW)
   @test rrWW == compose(rho, rrrWW)
 
-  M1 = oscar.cotangent_sheaf(X)
+  M1 = Oscar.cotangent_sheaf(X)
   rho = M1(U[1], U21)
   @test rho(M1(U[1])[1]) in M1(U21)
-  T = oscar.tangent_sheaf(X)
+  T = Oscar.tangent_sheaf(X)
   rho = T(U[1], U21)
   g = rho(T(U[1])[1]) 
   @test g in T(U21)
@@ -36,7 +36,7 @@
   W = PrincipalOpenSubset(U[1], one(OO(U[1])))
   @test !iszero(T(W))
 
-  HomM1M1 = oscar.HomSheaf(M1, M1)
+  HomM1M1 = Oscar.HomSheaf(M1, M1)
   rho = HomM1M1(U[1], U21)
   g = HomM1M1(U[1])[1]
   @test rho(g) in HomM1M1(U21)
@@ -80,10 +80,10 @@ end
   f = x^3 + y^3 + z^3
   I = ideal(S, f)
   II = IdealSheaf(IP, I)
-  inc = oscar.CoveredClosedEmbedding(X, II)
+  inc = Oscar.CoveredClosedEmbedding(X, II)
   C = domain(inc)
   L = twisting_sheaf(IP, 2)
-  LC = oscar.PullbackSheaf(inc, L)
+  LC = Oscar.PullbackSheaf(inc, L)
   U = affine_charts(C)
   @test LC(U[1]) isa FreeMod
   V = PrincipalOpenSubset(U[1], one(OO(U[1])))
@@ -126,13 +126,13 @@ end
   IPC = subscheme(IP, f)
   C = covered_scheme(IPC)
   TC = tangent_sheaf(C)
-  IPTC = oscar.projectivization(TC)
+  IPTC = Oscar.projectivization(TC)
   Y = covered_scheme(IPTC)
   @test is_smooth(Y)
 
   L = twisting_sheaf(IPC, 2)
 
-  PL = oscar.projectivization(L)
+  PL = Oscar.projectivization(L)
   p = covered_projection_to_base(PL)
   @test patches(codomain(covering_morphism(p))) == patches(default_covering(C))
 end
@@ -150,8 +150,8 @@ end
 
   @test trivializing_covering(T) isa Covering
 
-  PT = oscar.projectivization(T)
-  PT = oscar.projectivization(T, var_names=["zebra", "giraffe"])
+  PT = Oscar.projectivization(T)
+  PT = Oscar.projectivization(T, var_names=["zebra", "giraffe"])
 end
 
 @testset "direct sums of sheaves" begin

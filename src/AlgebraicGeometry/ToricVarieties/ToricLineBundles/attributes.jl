@@ -3,9 +3,9 @@
 #####################
 
 @doc raw"""
-    divisor_class(l::ToricLineBundle)
+    picard_class(l::ToricLineBundle)
 
-Return the divisor class which defines the toric line bundle `l`.
+Return the class in the Picard group which defines the toric line bundle `l`.
 
 # Examples
 ```jldoctest
@@ -15,13 +15,13 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
-julia> divisor_class(l)
+julia> picard_class(l)
 Element of
 GrpAb: Z
 with components [2]
 ```
 """
-divisor_class(l::ToricLineBundle) = l.divisor_class
+picard_class(l::ToricLineBundle) = l.picard_class
 
 
 @doc raw"""
@@ -47,7 +47,7 @@ toric_variety(l::ToricLineBundle) = l.toric_variety
 @doc raw"""
     toric_divisor(l::ToricLineBundle)
 
-Return a divisor corresponding to the toric line bundle `l`.
+Return a toric divisor corresponding to the toric line bundle `l`.
 
 # Examples
 ```jldoctest
@@ -65,7 +65,7 @@ true
 ```
 """
 @attr ToricDivisor function toric_divisor(l::ToricLineBundle)
-    class = divisor_class(l)
+    class = picard_class(l)
     map1 = map_from_torusinvariant_cartier_divisor_group_to_picard_group(toric_variety(l))
     map2 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(toric_variety(l))
     image = map2(preimage(map1, class)).coeff
@@ -74,6 +74,29 @@ true
     set_attribute!(td, :is_cartier, true)
     return td
 end
+
+
+@doc raw"""
+    toric_divisor_class(l::ToricLineBundle)
+
+Return a divisor class in the Class group corresponding to the toric line bundle `l`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = toric_line_bundle(v, [ZZRingElem(2)])
+Toric line bundle on a normal toric variety
+
+julia> toric_divisor(l)
+Torus-invariant, cartier, non-prime divisor on a normal toric variety
+
+julia> is_cartier(toric_divisor(l))
+true
+```
+"""
+@attr ToricDivisorClass toric_divisor_class(l::ToricLineBundle) = toric_divisor_class(toric_divisor(l))
 
 
 @doc raw"""
@@ -177,7 +200,7 @@ julia> basis_of_global_sections(l)
             return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
         end
     end
-    hc = homogeneous_component(cox_ring(toric_variety(l)), divisor_class(l))
+    hc = homogeneous_component(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
     generators = gens(hc[1])
     return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[hc[2](x) for x in generators]
 end
