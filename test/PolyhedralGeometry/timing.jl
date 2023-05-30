@@ -6,7 +6,7 @@
 
     # If running multiple workers, and many OMP threads, CPU oversubscription may occur
     # which fails the timing tests. In this situation, skip instead.
-    if isdefined(Main, :Distributed) && (length(workers()) > 1)
+    if isdefined(Main, :Distributed) && nworkers() > 1
         get(ENV, "OMP_NUM_THREADS", "") == "1" || return
     end
 
