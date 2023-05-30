@@ -15,17 +15,6 @@ end
 
 const numprocs = parse(Int, numprocs_str)
 
-if !isempty(ARGS)
-  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
-  if !isempty(jargs)
-    numprocs = parse(Int,split(jargs[end], "-j")[end])
-  end
-elseif haskey(ENV, "NUMPROCS")
-  numprocs = parse(Int,ENV["NUMPROCS"])
-else
-  numprocs = 1
-end
-
 if numprocs >= 2
   println("Adding worker processes")
   addprocs(numprocs)
