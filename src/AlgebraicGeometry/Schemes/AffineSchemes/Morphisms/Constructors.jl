@@ -107,7 +107,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(Y, X);
 
@@ -144,7 +144,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> m1 = inclusion_morphism(Y, X);
 
@@ -184,7 +184,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true

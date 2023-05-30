@@ -50,7 +50,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x, y, z)
+Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -66,7 +66,7 @@ x*g[1]
 julia> RQL, _ = Localization(RQ, U);
 
 julia> FRQL =  free_module(RQL, 2, "h")
-Free module of rank 2 over Localization of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+Free module of rank 2 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
 
 julia> RQL(x)*FRQL[1]
 x*h[1]
@@ -1757,7 +1757,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over localization of Multivariate polynomial ring in 3 variables over QQ at the complement of ideal(x, y, z)
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
 
 julia> ARL = RL[x; y]
 [x]
@@ -1803,7 +1803,7 @@ by Submodule with 3 generators
 julia> RQL, _ = Localization(RQ, U);
 
 julia> FRQL = free_module(RQL, 1)
-Free module of rank 1 over Localization of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+Free module of rank 1 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
 
 julia> ARQL = RQL[x; y]
 [x]
@@ -3292,6 +3292,13 @@ Return a free module element that is a representative of `v`.
 """
 function repres(v::SubquoModuleElem)
   return v.repres
+end
+
+#######################################################
+
+function simplify(el::SubquoModuleElem)
+  reduced = reduce(repres(el), parent(el).quo)
+  return SubquoModuleElem(reduced, parent(el))
 end
 
 #######################################################
@@ -5589,10 +5596,7 @@ julia> Z = abelian_group(0)
 GrpAb: Z
 
 julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -5692,10 +5696,7 @@ julia> Z = abelian_group(0)
 GrpAb: Z
 
 julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -5859,10 +5860,7 @@ julia> Z = abelian_group(0)
 GrpAb: Z
 
 julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -6049,10 +6047,7 @@ julia> Z = abelian_group(0)
 GrpAb: Z
 
 julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = graded_free_module(Rg, 1);
 

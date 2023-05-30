@@ -1607,7 +1607,7 @@ end
 @doc raw"""
     induce(vars::AbstractVector{<:MPolyRingElem}, ord::ModuleOrdering)
 
-Return the monomial ordering on the variables `vars` induced by transfering
+Return the monomial ordering on the variables `vars` induced by transferring
 the ordering `ord`.
 
 # Examples

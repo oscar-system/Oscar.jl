@@ -1,7 +1,5 @@
 using Oscar
 using Test
-using Aqua
-using Documenter
 
 import Random
 
@@ -111,7 +109,6 @@ include("Experimental/galois.jl")
 include("Experimental/gmodule.jl")
 include("Experimental/ModStdQt.jl")
 include("Experimental/ModStdNF.jl")
-include("Experimental/MPolyRingSparse.jl")
 include("Experimental/MatrixGroups.jl")
 include("Experimental/JuLie.jl")
 include("Experimental/ExteriorAlgebra.jl")
@@ -124,8 +121,9 @@ include("InvariantTheory/runtests.jl")
 
 include("AlgebraicGeometry/Schemes/runtests.jl")
 include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+include("TropicalGeometry/runtests.jl")
 
 include("Serialization/runtests.jl")
 

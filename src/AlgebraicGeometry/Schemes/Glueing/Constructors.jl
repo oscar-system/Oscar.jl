@@ -25,11 +25,11 @@ julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
 Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map morphism from
 
-	Spec of localization of Multivariate polynomial ring in 2 variables over QQ at the powers of QQMPolyRingElem[x]
+	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
 
 to
 
-	Spec of localization of Multivariate polynomial ring in 2 variables over QQ at the powers of QQMPolyRingElem[u]
+	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
 
 with coordinates
 

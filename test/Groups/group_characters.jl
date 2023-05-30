@@ -731,6 +731,16 @@ end
   @test res isa Vector{QQFieldElem}
   @test coordinates(Int, chi) isa Vector{Int}
 
+  orders = orders_class_representatives(t)
+  pos = findfirst(x -> x == 4, orders)
+  chi = filter(x -> x[1] == 2, collect(t))[1]
+  ev = multiplicities_eigenvalues(chi, pos)
+  @test ev == [0, 1, 0, 1]
+  @test ev isa Vector{Int}
+  ev = multiplicities_eigenvalues(ZZRingElem, chi, pos)
+  @test ev == [0, 1, 0, 1]
+  @test ev isa Vector{ZZRingElem}
+
   # conjugate characters
   h = pcore(g, 2)[1]
   th = character_table(h)

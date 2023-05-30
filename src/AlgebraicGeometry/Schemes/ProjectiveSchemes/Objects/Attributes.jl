@@ -38,10 +38,9 @@ Projective scheme
   defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
-Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x + y)
+Quotient
+  of graded multivariate polynomial ring in 3 variables over QQ
+  by ideal(x + y)
 
 ```
 """
@@ -93,10 +92,7 @@ homogeneous ideal ``I`` this returns ``P``.
 # Example
 ```jldoctest
 julia> S, _ = grade(QQ["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> I = ideal(S, S[1] + S[2])
 ideal(x + y)
@@ -107,10 +103,9 @@ Projective scheme
   defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
-Quotient of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x + y)
+Quotient
+  of graded multivariate polynomial ring in 3 variables over QQ
+  by ideal(x + y)
 
 julia> ambient_coordinate_ring(X) === S
 true
@@ -216,10 +211,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
@@ -254,21 +246,18 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 
 julia> affine_cone(P)
-(Spec of Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2), Map with following data
+(Spec of Quotient of multivariate polynomial ring by ideal with 1 generator, Map with following data
 Domain:
 =======
 S
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 5 variables over QQ by ideal(u^2 + v^2))
+Quotient of multivariate polynomial ring by ideal with 1 generator)
 
 ```
 """
@@ -385,10 +374,7 @@ julia> R, (u, v) = QQ["u", "v"];
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
 julia> S, _ = grade(Q["x", "y", "z"][1])
-(Multivariate polynomial ring in 3 variables over quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(u^2 + v^2) graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
 
 julia> P = projective_scheme(S);
 

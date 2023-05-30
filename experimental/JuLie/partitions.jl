@@ -847,7 +847,7 @@ of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We a
 
 # Example
 We compute all partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
-part is allowed to occurr at most twice:
+part is allowed to occur at most twice:
 ```jldoctest
 julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 6-element Vector{Partition{Int64}}:
