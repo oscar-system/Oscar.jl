@@ -322,18 +322,6 @@ function load_parents(s::DeserializerState, parents::Vector)
     return loaded_parents
 end
 
-# builds parent tree
-function get_parents(parent_ring::Ring)
-    base = base_ring(parent_ring)
-    if has_elem_basic_encoding(base)
-        return Any[parent_ring]
-    end
-
-    parents = get_parents(base)
-    push!(parents, parent_ring)
-    return parents
-end
-
 ################################################################################
 # Include serialization implementations for various types
 

@@ -1,3 +1,18 @@
+################################################################################
+# Utility functions for ring parent tree
+
+# builds parent tree
+function get_parents(parent_ring::Ring)
+    base = base_ring(parent_ring)
+    if has_elem_basic_encoding(base)
+        return Any[parent_ring]
+    end
+
+    parents = get_parents(base)
+    push!(parents, parent_ring)
+    return parents
+end
+
 
 ################################################################################
 # ring of integers (singleton type)
@@ -103,7 +118,7 @@ function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPoly
         end
     end
     parent_ring = save_as_ref(s, parent_ring)
-    # end of list should be loaded first
+    # end of list should be loaded last
     push!(parents, parent_ring)
 
     return Dict(
