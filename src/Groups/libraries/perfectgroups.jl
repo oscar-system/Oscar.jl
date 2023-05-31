@@ -180,12 +180,16 @@ end
 
 # TODO: add all_perfect_groups() iterator
 
-function _load_hulpke_extraperfect() 
-  gaproot = GAP.Setup.gaproot()
-  grppath = joinpath(gaproot, "grp")
-  mkpath(grppath)
-  cd(grppath) do
-    GAP.Setup.force_symlink(artifact"gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559/perf27.grp", "perf27.grp")
-    GAP.Setup.force_symlink(artifact"gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559/perf33.grp", "perf33.grp")
+function __init_hulpke_extraperfect()
+  for i in [27, 33]
+    _write_gap_file(
+      "grp/perf$(i).grp",
+      """
+      Read(JuliaToGAP(IsString, JuliaEvalString(\"""
+        using Oscar.LazyArtifacts
+        @artifact_str "gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559/perf$(i).grp" nothing "$(joinpath(oscardir, "Artifacts.toml"))"
+      \""")));
+      """,
+    )
   end
 end
