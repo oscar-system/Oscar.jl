@@ -41,18 +41,6 @@ function coords(x::PrimeFieldElem)
   return [x]
 end
 
-# TODO : this is pushed to Nemo, once changes go through it can be removed.
-import Base: inv
-using FLINT_jll
-const libflint = FLINT_jll.libflint
-function inv(a::FpMatrix)
-  !is_square(a) && error("Matrix must be a square matrix")
-  z = similar(a)
-  r = ccall((:fmpz_mod_mat_inv, libflint), Int, (Ref{FpMatrix}, Ref{FpMatrix}), z, a)
-  !Bool(r) && error("Matrix not invertible")
-  return z
-end
-
 
 function largest_factor(n::IntegerUnion)
   nfactorization = factor(ZZ(n))
