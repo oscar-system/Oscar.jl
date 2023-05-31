@@ -19,7 +19,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
       return b
     end
     f = minpoly(x)
-    r = roots(f, k)
+    r = roots(k, f)
     pr = 10
     while true
       C = AcbField(pr)

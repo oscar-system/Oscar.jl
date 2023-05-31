@@ -118,7 +118,7 @@ function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int =
   @vprint :Subfields 2 "for $f\n"
 
   d = numerator(discriminant(FF))
-  rt = roots(d, AcbField(20))
+  rt = roots(AcbField(20), d)
   t = tStart
   local g::ZZPolyRingElem
   while true
