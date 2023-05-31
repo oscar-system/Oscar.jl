@@ -4,10 +4,6 @@ using Oscar
 export standard_finite_field
 
 
-# TODO we shouldn't use external packages, so write a custom memoization method
-# or ditch it if the performance benefit is negligible
-using Memoization
-
 const IntegerUnion = Oscar.IntegerUnion
 const PrimeField = Union{Nemo.fpField,Nemo.FpField}
 const PrimeFieldElem = Union{fpFieldElem,FpFieldElem}
@@ -141,8 +137,7 @@ function get_standard_extension!(f::Function, F::PrimeField, k::IntegerUnion)
 end
 
 
-# NOTE: Caching these values doesn't seem to give a noticeable improvement
-@memoize function standard_affine_shift_data(q::IntegerUnion)
+function standard_affine_shift_data(q::IntegerUnion)
   m = div(4 * q, 5)
   while gcd(m, q) != 1
     m -= 1
@@ -319,7 +314,7 @@ function standard_monomial(n::IntegerUnion)
 end
 # just returns degrees of monomials in tower basis
 # TODO : pass in factorization? Do we need this with memoization?
-@memoize function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
+function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   if n == 1
     return [1]
   end
