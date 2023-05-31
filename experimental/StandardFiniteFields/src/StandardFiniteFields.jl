@@ -463,7 +463,7 @@ Returns a finite field of order $p^n$.
 
 # Examples
 ```jldoctest
-julia> functionname(3, 24)
+julia> standard_finite_field(3, 24)
 Finite field of degree 24 over F_3
 ```
 """
