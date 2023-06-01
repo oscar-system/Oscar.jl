@@ -1,7 +1,6 @@
 using JSON
 using UUIDs
 
-
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -25,6 +24,12 @@ function DeserializerState()
 end
 
 const backref_sym = Symbol("#backref")
+
+struct MetaData
+    author::Union{String, Vector{String}}
+    name::String
+    email::String
+end
 
 ################################################################################
 # Version info
@@ -227,8 +232,8 @@ end
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any)
-    save(filename::String, obj::Any)
+    save(io::IO, obj::Any; meta_data::MetaData=nothing)
+    save(filename::String, obj::Any, meta_data::MetaData=nothing)
 
 Save an object `T` to the given io stream
 respectively to the file `filename`.
@@ -244,17 +249,21 @@ julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
-function save(io::IO, obj::Any)
+function save(io::IO, obj::Any; meta_data::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
+    if !isnothing(meta_data)
+        jsoncompatible[:meta] = Dict(key => getfield(meta_data, key)
+                                     for key in fieldnames(MetaData))
+    end
     jsonstr = json(jsoncompatible)
     write(io, jsonstr)
     return nothing
 end
 
-function save(filename::String, obj::Any)
+function save(filename::String, obj::Any; meta_data::Union{MetaData, Nothing}=nothing)
     open(filename, "w") do file
-        save(file, obj)
+        save(file, obj; meta_data=meta_data)
     end
 end
 
