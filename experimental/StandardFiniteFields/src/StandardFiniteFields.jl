@@ -504,3 +504,6 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
 end
 
 end
+
+using .StandardFiniteFields
+export standard_finite_field
