@@ -25,10 +25,15 @@ end
 
 const backref_sym = Symbol("#backref")
 
-struct MetaData
-    author::Union{String, Vector{String}}
-    name::String
-    email::String
+@Base.kwdef struct MetaData
+    author::Union{String, Vector{String}, Nothing} = nothing
+    name::Union{String, Nothing} = nothing
+    email::Union{String, Nothing} = nothing
+    affiliation::Union{String, Nothing} = nothing
+end
+
+function metadata(;args...)
+    return MetaData(;args...)
 end
 
 ################################################################################
@@ -232,8 +237,8 @@ end
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; meta_data::MetaData=nothing)
-    save(filename::String, obj::Any, meta_data::MetaData=nothing)
+    save(io::IO, obj::Any; metadata::MetaData=nothing)
+    save(filename::String, obj::Any, metadata::MetaData=nothing)
 
 Save an object `T` to the given io stream
 respectively to the file `filename`.
@@ -243,27 +248,35 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("/tmp/fourtitwo.json", 42);
+julia> meta = metadata(author="Douglas Adams", name="the meaning of life the universe and everything", email="douglas@adams.space", affiliation="The Universe")
+Oscar.MetaData("Douglas Adams", "the meaning of life the universe and everything", "douglas@adams.space", "The Universe")
+
+julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
 
 julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
-function save(io::IO, obj::Any; meta_data::Union{MetaData, Nothing}=nothing)
+function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
-    if !isnothing(meta_data)
-        jsoncompatible[:meta] = Dict(key => getfield(meta_data, key)
-                                     for key in fieldnames(MetaData))
+    if !isnothing(metadata)
+        meta_dict = Dict()
+        for key in fieldnames(MetaData)
+            if !isnothing(getfield(metadata, key))
+                meta_dict[key] = getfield(metadata, key)
+            end
+        end
+        jsoncompatible[:meta] = meta_dict
     end
     jsonstr = json(jsoncompatible)
     write(io, jsonstr)
     return nothing
 end
 
-function save(filename::String, obj::Any; meta_data::Union{MetaData, Nothing}=nothing)
+function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     open(filename, "w") do file
-        save(file, obj; meta_data=meta_data)
+        save(file, obj; metadata=metadata)
     end
 end
 
