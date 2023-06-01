@@ -154,7 +154,10 @@ function save_as_ref(s::SerializerState, obj::T) where T
     # find ref or create one
     ref = get(s.objmap, obj, nothing)
     if ref  !== nothing
-        return string(ref)
+        return Dict{Symbol, Any}(
+            :type => backref_sym,
+            :id => string(ref),
+        )
     end
     
     ref = s.objmap[obj] = uuid4()
@@ -168,7 +171,10 @@ function save_as_ref(s::SerializerState, obj::T) where T
     result[:data] = save_internal(s, obj)
     s.refs[Symbol(ref)] = result
 
-    return string(ref)
+    return Dict{Symbol, Any}(
+        :type => backref_sym,
+        :id => string(ref),
+    )
 end
 
 function save_type_dispatch(s::SerializerState, obj::T) where T
@@ -299,7 +305,8 @@ end
 # Utility functions for parent tree
 
 # loads parent tree
-function load_parents(s::DeserializerState, parent_ids::Vector)
+function load_parents(s::DeserializerState, parents::Vector)
+    parent_ids = [parent[:id] for parent in parents]
     loaded_parents = []
     
     for id in parent_ids
