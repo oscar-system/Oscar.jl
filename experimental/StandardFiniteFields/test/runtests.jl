@@ -20,7 +20,7 @@ function compare_poly(p,n)
 end
 
 
-@testset "standard_finite_field unit tests"
+@testset "standard_finite_field unit tests" begin
   @testset "characteristic 2 test GF(2^(2^$k))" for k in 3:5
     @test compare_poly(2, 2^k)
     @test compare_poly(ZZ(2), 2^k)
