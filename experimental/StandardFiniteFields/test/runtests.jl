@@ -25,11 +25,11 @@ end
     @test compare_poly(2, 2^k)
     @test compare_poly(ZZ(2), 2^k)
   end
-  @testset "small primes GF($p^(2^$k))" for p in small_primes for k in 3:5
+  @testset "small primes GF($p^(2^$k))" for p in small_primes, k in 3:5
     @test compare_poly(p, 2^k)
     @test compare_poly(ZZ(p), 2^k)
   end
-  @testset "small primes GF($p^($p^$k))" for p in small_primes for k in 3:5
+  @testset "small primes GF($p^($p^$k))" for p in small_primes, k in 3:5
     @test compare_poly(p, p^k)
     @test compare_poly(ZZ(p), p^k)
   end
