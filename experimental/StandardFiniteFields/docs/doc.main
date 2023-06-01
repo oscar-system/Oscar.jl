@@ -1,9 +1,5 @@
-# An example documentation
-```@meta
-CurrentModule = Oscar
-```
-
-
-```@docs
-    standard_finite_field(p::IntegerUnion, n::IntegerUnion)
-```
+[
+   "Standard Finite Fields" => [
+      "introduction.md",
+   ],
+]
