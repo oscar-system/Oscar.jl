@@ -464,7 +464,7 @@ Returns a finite field of order $p^n$.
 # Examples
 ```jldoctest
 julia> standard_finite_field(3, 24)
-Finite field of degree 24 over F_3
+Finite field of degree 24 over GF(3)
 ```
 """
 function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
