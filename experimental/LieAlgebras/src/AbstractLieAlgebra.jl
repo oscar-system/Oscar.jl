@@ -209,7 +209,7 @@ end
 @doc raw"""
     lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
+Construct the simple Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
 The actual construction is done in GAP.
 
 If `cached` is `true`, the constructed Lie algebra is cached.
