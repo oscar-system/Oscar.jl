@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Lie algebras
 
-Lie algebras in OSCAR are always finite dimensional, and represented by two different types,
+Lie algebras in OSCAR are currently always finite dimensional, and represented by two different types,
 namely `LinearLieAlgebra{C}` and `AbstractLieAlgebra{C}`, depending on whether a matrix
 representation is available or not.
 Both types are subtypes of `LieAlgebra{C}`. Similar to other types in OSCAR, each Lie algebra
