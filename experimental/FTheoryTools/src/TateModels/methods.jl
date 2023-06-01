@@ -82,13 +82,13 @@ end
 Set a description for a global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> set_description(t, "An SU(5)xU(1) GUT-model")
 
 julia> t
-Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arxiv paper 1109.3454 (equ. 3.5)
+Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
 function set_description(t::GlobalTateModel, description::String)
@@ -101,21 +101,24 @@ end
 #####################################################
 
 @doc raw"""
-    add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+    add_resolution(t::GlobalTateModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
 
-Set a description for a global Tate model.
+Add a known resolution for a global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]])
+julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
 
 julia> length(resolutions(t))
 2
 ```
 """
-function add_resolution(t::GlobalTateModel, resolution::Vector{Vector{String}})
+function add_resolution(t::GlobalTateModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+  @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
+
+  resolution = [centers, exceptionals]
   if has_attribute(t, :resolutions)
     known_resolutions = resolutions(t)
     if (resolution in known_resolutions) == false
@@ -141,19 +144,18 @@ Careful: Currently, this assumes that all blowups are toric blowups.
 We hope to remove this requirement in the near future.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = resolve(t, 1)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2], [0, 0, 0, 1, 0, 0, -1, -2], [0, 0, 0, 1, 0, 0, -1, -1], [0, 0, 0, 1, 0, 0, 0, -1], [0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2], [0, 0, 1, 0, 0, -1, -2], [0, 0, 1, 0, 0, -1, -1], [0, 0, 1, 0, 0, 0, -1], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1]]
 
 julia> cox_ring(v)
-Multivariate polynomial ring in 14 variables over QQ graded by
-  a10 -> [0 0 0 0 0 0]
+Multivariate polynomial ring in 13 variables over QQ graded by
+  a1 -> [0 0 0 0 0 0]
   a21 -> [0 0 0 0 0 0]
   a32 -> [0 0 0 0 0 0]
   a43 -> [0 0 0 0 0 0]
-  a65 -> [0 0 0 0 0 0]
   w -> [1 0 0 0 0 0]
   x -> [0 1 0 0 0 0]
   y -> [0 0 1 0 0 0]
@@ -168,23 +170,23 @@ Multivariate polynomial ring in 14 variables over QQ graded by
 function resolve(t::GlobalTateModel, index::Int)
   @req has_attribute(t, :resolutions) "No resolutions known for this model"
   @req index > 0 "The resolution must be specified by a non-negative integer"
-  @req index < length(resolutions(t)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
+  @req index <= length(resolutions(t)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
   
   # Gather information for resolution
-  resolution = resolutions(t)[index]
-  nr_blowups = length(resolution)-1
+  centers, exceptionals = resolutions(t)[index]
+  nr_blowups = length(centers)
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
   resolved_ambient_space = underlying_toric_variety(ambient_space(t))
-  R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], resolution[nr_blowups+1]))
-  for k in 1:nr_blowups
-    @req all(x -> x in gR, [eval_poly(p, R) for p in resolution[k]]) "Non-toric blowup currently not supported"
+  R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
+  for center in centers
+    @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
   end
   
   # Perform resolution
   for k in 1:nr_blowups
     S = cox_ring(resolved_ambient_space)
-    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in resolution[k]]); coordinate_name = resolution[nr_blowups + 1][k], set_attributes = true)
+    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k], set_attributes = true)
   end
   return toric_covered_scheme(resolved_ambient_space)
 end

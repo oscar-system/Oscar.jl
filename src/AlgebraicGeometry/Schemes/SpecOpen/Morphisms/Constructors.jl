@@ -20,9 +20,7 @@ end
 ########################################################################
 function inclusion_morphism(U::SpecOpen, V::SpecOpen; check::Bool=true)
   X = ambient_scheme(U)
-  if check 
-    issubset(U, V) || error("method not implemented")
-  end
+  @check issubset(U, V) "method not implemented"
   return SpecOpenMor(U, V, gens(ambient_coordinate_ring(X)), check=false)
 end
 
@@ -44,10 +42,12 @@ end
 
 Return the restriction ``g: U → V`` of ``f`` to ``U`` and ``V``.
 """
-restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
+function restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
+  error("method not implemented")
+end
 
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
-  if check
+  @check begin
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(V, codomain(f)) || error("$V is not contained in the codomain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
@@ -61,7 +61,7 @@ function restrict(
     V::SpecOpen;
     check::Bool=true
   )
-  if check
+  @check begin
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
     issubset(preimage(f,V), U) || error("f(U) is not contained in V")
@@ -74,7 +74,7 @@ function restrict(
 end
 
 function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
-  if check
+  @check begin
     issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end

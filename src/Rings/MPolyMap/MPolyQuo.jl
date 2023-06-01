@@ -80,7 +80,7 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
   end
@@ -93,7 +93,7 @@ function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end

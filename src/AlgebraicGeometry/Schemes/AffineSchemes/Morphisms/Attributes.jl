@@ -35,12 +35,12 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 
 julia> domain(f)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
@@ -69,7 +69,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 
@@ -106,7 +106,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> pullback(inclusion_morphism(X, Y))
 Map with following data
@@ -115,7 +115,7 @@ Domain:
 Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
@@ -213,7 +213,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 

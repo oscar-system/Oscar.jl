@@ -186,12 +186,7 @@ where R is the basering.
 # Examples
 ```jldoctest
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"])
-(Multivariate polynomial ring in 5 variables over QQ graded by
-  v -> [1]
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[v, w, x, y, z])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[v, w, x, y, z])
 
 julia> M = matrix(R, 2, 4, [v w x y; w x y z])
 [v   w   x   y]

@@ -11,13 +11,14 @@ For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
 function test_module(file::AbstractString; new::Bool=true)
   julia_exe = Base.julia_cmd()
+  project_path = Base.active_project()
   rel_test_file = normpath("test", "$file.jl")
   test_file = joinpath(oscardir, rel_test_file)
 
   if new
     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
-    @info("spawning ", `$julia_exe -e \"$cmd\"`)
-    run(`$julia_exe -e $cmd`)
+    @info("spawning ", `$julia_exe --project=$project_path -e \"$cmd\"`)
+    run(`$julia_exe --project=$project_path -e $cmd`)
   else
     @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
     @info("Running tests for $rel_test_file in same session")

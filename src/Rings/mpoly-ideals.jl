@@ -21,9 +21,7 @@ julia> typeof(I)
 MPolyIdeal{QQMPolyRingElem}
 
 julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"],  [1, 2])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [2], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> J = ideal(S, [(x^2+y)^2])
 ideal(x^4 + 2*x^2*y + y^2)
@@ -599,9 +597,7 @@ x^2 + 1
 
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by 
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> I = ideal(R, [x^2+y^2])
 ideal(x^2 + y^2)

@@ -30,8 +30,7 @@ end
   function CoveredSchemeMorphism(
       X::DomainType,
       Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
-      check::Bool=true
+      f::CoveringMorphism{<:Any, <:Any, BaseMorType}
     ) where {
              DomainType<:CoveredScheme,
              CodomainType<:CoveredScheme,

@@ -151,7 +151,7 @@ function build()
   system("Build.jl")
 end
 
-
+include("assertions.jl")
 
 include("exports.jl")
 

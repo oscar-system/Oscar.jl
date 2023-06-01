@@ -326,7 +326,7 @@ function extend!(
 
       # if not, extend D to this patch
       f, _ = glueing_morphisms(C[V, U])
-      pZ = preimage(f, Z)
+      pZ = preimage(f, Z, check=false)
       ZV = closure(pZ, V)
       D[V] = ideal(OO(V), gens(saturated_ideal(modulus(OO(ZV)))))
       V in dirty_patches || push!(dirty_patches, V)

@@ -305,8 +305,8 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
-(Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x1*x4), Map from
-Multivariate polynomial ring in 4 variables over QQ to Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x1*x4) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+Multivariate polynomial ring in 4 variables over QQ to Quotient of multivariate polynomial ring by ideal with 1 generator defined by a julia-function with inverse)
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
@@ -325,8 +325,8 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quo
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
-(Quotient of Multivariate polynomial ring in 6 variables over ZZ by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map from
-Multivariate polynomial ring in 6 variables over ZZ to Quotient of Multivariate polynomial ring in 6 variables over ZZ by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal with 10 generators, Map from
+Multivariate polynomial ring in 6 variables over ZZ to Quotient of multivariate polynomial ring by ideal with 10 generators defined by a julia-function with inverse)
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))

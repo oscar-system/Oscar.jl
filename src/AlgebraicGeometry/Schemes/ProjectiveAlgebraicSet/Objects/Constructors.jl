@@ -25,6 +25,7 @@ Vanishing locus
 ```
 """
 function projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
+  @check
   if check
     Xred = reduced_scheme(X)
   else
@@ -53,6 +54,7 @@ Vanishing locus
 ```
 """
 function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
+  @check
   if check
     Irad = radical(I)
     # additional checks in the constructor
