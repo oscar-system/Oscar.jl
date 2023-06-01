@@ -117,11 +117,14 @@ end
 @doc raw"""
     lie_algebra(R::Ring, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with structure constants given by
-`struct_consts` and with basis element names `s`.
+Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
+and with basis element names `s`.
 
-* `struct_consts`: The entry with indices `[i,j][k]` is the scalar $a_{i,j}^k$
-  such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
+The Lie bracket on the newly constructed Lie algebra `L` is determined by the structure
+constants in `struct_consts` as follows: let $x_i$ denote the $i$-th standard basis vector
+of `L`. Then the entry `struct_consts[i,j][k]` is a scalar $a_{i,j,k}$
+such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
+
 * `s`: A vector of basis element names. This is 
   `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
 * `cached`: If `true`, cache the result. This is `true` by default.
@@ -141,11 +144,14 @@ end
 @doc raw"""
     lie_algebra(R::Ring, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with structure constants given by
-`struct_consts` and with basis element names `s`.
+Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
+and with basis element names `s`.
 
-* `struct_consts`: The entry with indices `[i,j,k]` is the scalar $a_{i,j}^k$
-  such that $[x_i, x_j] = \sum_k a_{i,j}^k x_k$.
+The Lie bracket on the newly constructed Lie algebra `L` is determined by the structure
+constants in `struct_consts` as follows: let $x_i$ denote the $i$-th standard basis vector
+of `L`. Then the entry `struct_consts[i,j,k]` is a scalar $a_{i,j,k}$
+such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
+
 * `s`: A vector of basis element names. This is
   `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
 * `cached`: If `true`, cache the result. This is `true` by default.

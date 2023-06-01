@@ -585,9 +585,12 @@ end
 Construct the the Lie algebra module over `L` of dimension `dimV` given by
 structure constants `struct_consts` and with basis element names `s`.
 
-* `struct_consts`: The entry with indices `[i,j][k]` is the scalar $a_{i,j}^k$ 
-  such that $x_i * v_j = \sum_k a_{i,j}^k v_k$, where $x_i$ denotes the $i$-th
-  basis element of `L` and $v_j$ the $j$-th basis element of the constructed module.
+The action on the newly constructed Lie algebra module `V` is determined by the structure
+constants in `struct_consts` as follows: let $x_i$ denote the $i$-th standard basis vector
+of `L`, and $v_i$ the $i$-th standard basis vector of `V`.
+Then the entry `struct_consts[i,j][k]` is a scalar $a_{i,j,k}$
+such that $x_i * v_j = \sum_k a_{i,j,k} v_k$.
+
 * `s`: A vector of basis element names. This is 
   `[Symbol("v_$i") for i in 1:dimV]` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
