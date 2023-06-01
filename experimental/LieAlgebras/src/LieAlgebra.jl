@@ -160,7 +160,7 @@ end
     (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficent vector `v`.
-Fails, if `Int` cannot be coerced into the base ring of `L`.
+Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
   return L(base_ring(L).(v))
