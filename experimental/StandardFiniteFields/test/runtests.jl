@@ -6,19 +6,19 @@ GAP.Packages.load("StandardFF")
   end
 
   function GAPPoly(p, n)
-    poly = GAP.Globals.StandardFiniteField(Integer(p), n)
+    poly = GAP.Globals.StandardFiniteField(Int(p), n)
     poly = GAP.Globals.DefiningPolynomial(poly)
     poly = GAP.Globals.CoefficientsOfUnivariatePolynomial(poly)
     poly = polynomial(GF(p), map(GF(p), Vector{GAP.FFE}(poly)))
   end
 
-  small_test_primes = ZZ.([3, 5, 7])
-  # medium_test_primes = ZZ.([3433, 4073])
-
   function compare_poly(p, n)
     F = GF(p)
-    F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(p, n))))
+    F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(Integer(p), n))))
   end
+
+  small_test_primes = ZZ.([3, 5, 7])
+  # medium_test_primes = ZZ.([3433, 4073])
 
 
   @testset "characteristic 2 test GF(2^(2^$k))" for k = 3:5
