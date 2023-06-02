@@ -1,3 +1,14 @@
+  # TODO:
+  # Kill all standard Specs
+  # shortcut to get the coefficient(s) of a weil divisor
+  # intersect Weil with Weil on a surface
+  #=
+  julia> in_linear_system(linsys[1], D,check=false)
+false
+ =#
+ # subsystem typo |D + P| should be |D - n P|
+ # is_subsistem disable check in order_on_divisor
+
   add_verbosity_scope(:ellipticK3)
   set_verbosity_level(:ellipticK3, 2)
   k = GF(29)
@@ -11,6 +22,7 @@
 
   X_proj = projectivization(E, var_names=["z", "x", "y"])
 
+  # remove some charts not needed to cover S
   X = covered_scheme(X_proj)
   C = Covering([X[1][i] for i in [1,3,4,6]])
   for U in patches(C)
@@ -35,12 +47,12 @@
  ((11*t^5 + 22*t^4 + 23*t^3 + 14*t^2 + 17*t + 16)//(t^2 + 24*t + 28),
   (22*t^8 + 6*t^7 + 21*t^6 + 24*t^5 + 4*t^4 + 23*t^3 + 25*t^2 + 15*t + 6)//(t^3 + 7*t^2 + 26*t + 17))]]
 
-  # The section P used for the fibration hop
+  # The section P used for the fibration hop  Fiber_new = O + P + Vertical
   P = -mwl_basis[1] - mwl_basis[5]
 
   # Create the singular Weierstrass model S of the elliptic K3 surface
   a = a_invars(E)
-  U = affine_charts(X)[1]
+  U = affine_charts(X)[1]  # the standard Weierstrass chart
   (x, y, t) = gens(OO(U))
   @assert all(denominator(i)==1 for i in a)
   a = [numerator(a)(t) for a in a]
@@ -50,7 +62,7 @@
 
   inc_S = Oscar.CoveredClosedEmbedding(X, I)
   @test I === image_ideal(inc_S)
-  S = domain(inc_S)
+  S = domain(inc_S)  # The ADE singular elliptic K3 surface
 
   I_sing = Oscar.ideal_sheaf_of_singular_locus(S)
   I_sing_X = radical(pushforward(inc_S)(I_sing))
@@ -65,15 +77,20 @@
 
   #X = CoveredScheme(C)
   (x,y,t) = coordinates(UX)
-  fiber = IdealSheaf(X,UX,[t-1,ft])
+  fiber = IdealSheaf(X, UX, [t-1,ft]) # we want a smooth fiber
   (z,x,t) = coordinates(X[1][3])
-  zero_section = IdealSheaf(X,X[1][3],[x,z])
+  zero_section = IdealSheaf(X, X[1][3], [x,z])
 
+  # components of the singular fibers visible on S
   (x,y,t) = coordinates(UX)
-  A1_0 = IdealSheaf(X,UX,[t,ft])
+  A1_0 = IdealSheaf(X, UX, [t, ft])
   (x,y,s) = ambient_coordinates(X[1][4])
-  E8_0 = IdealSheaf(X,X[1][4],OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
-  divisors = vcat([PonX, zero_section, fiber,A1_0,E8_0], sections)
+  E8_0 = IdealSheaf(X,X[1][4], OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
+
+
+  # S = K3 --> X ambient space
+  # all relevant divisors as ideal sheaves on X
+  divisors = vcat([PonX, zero_section, fiber, A1_0, E8_0], sections)
 
 
   # initialization for the while loop
@@ -84,10 +101,9 @@
   exceptionals = []
   divisors0 = divisors
   count = 0
-  varnames= [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l]
+  varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l]
   projectionsX = []
   projectionsY = []
-  #weil_divs = []
   while true
     global count = count+1
     @vprint :ellipticK3 1 "blowup number: $(count)\n"
@@ -97,8 +113,10 @@
     I_sing_Y0 = Oscar.maximal_associated_points(I_sing_Y0)
     @vprint :ellipticK3 1 "number of singular points: $(length(I_sing_Y0))\n"
     if length(I_sing_Y0)==0
+      # stop if smooth
       break
     end
+    # take the first singular point and blow it up
     I_sing_X0_1 = radical(pushforward(inc_Y0)(I_sing_Y0[1]))
     prX1 = blow_up(I_sing_X0_1, covering=Oscar.simplified_covering(X0),
                   var_name=varnames[count])
@@ -106,9 +124,11 @@
     E1 = exceptional_divisor(prX1)
 
     @vprint :ellipticK3 2 "computing strict transforms\n"
+    # compute the exceptional divisors
     global exceptionals = [strict_transform(prX1, e) for e in exceptionals]
+    # move the divisors coming originally from S up to the next chart
     global divisors0 = [strict_transform(prX1, e) for e in divisors0]
-    push!(exceptionals,E1)
+    push!(exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(prX1, inc_Y0)
 
@@ -125,16 +145,19 @@
     push!(projectionsY, pr_Y1)
     simplify!(Y1)
 
+    # set up for the next iteration
     global Y0 = Y1
     global inc_Y0 = inc_Y1
     global X0 = X1
   end
   # Restrict the exceptional divisors:
+  # X > S <- Y0 < X0
   @vprint :ellipticK3 2 "Pull back divisors to Y0\n"
+  # Pulling back the divisors to Y0 may introduce multiplicities
   exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
   divisors_res = [pullback(inc_Y0)(e) for e in divisors0]
 
-  #Compute the intersection matrix:
+  # Compute the intersection matrix of the exceptional divisors:
   Ex = exceptionals_res
   @vprint :ellipticK3 2 "Exceptional Cartier to Weil divisors\n"
   ExWeil = weil_divisor.(Ex)   # too slow to be a test
@@ -145,9 +168,9 @@
     A[i, i] = -ZZ(2)
     for j in i+1:n
      @assert length(components(ExWeil[i]))==1
-     ci = coefficient_dict((ExWeil[i]))[components(ExWeil[i])[1]]
-     cj = coefficient_dict((ExWeil[j]))[components(ExWeil[j])[1]]
-     A[i, j] = divexact(integral(intersect(ExWeil[i], Ex[j])),ci*cj)
+     ci = coefficient_dict(ExWeil[i])[components(ExWeil[i])[1]]
+     cj = coefficient_dict(ExWeil[j])[components(ExWeil[j])[1]]
+     A[i, j] = divexact(integral(intersect(ExWeil[i], Ex[j])), ci*cj)
      A[j, i] = A[i,j]
    end
   end
@@ -160,13 +183,15 @@
   I = [2,9,4,6,5,8,7,3,1]; A[I,I]
   ExWeil = ExWeil[I]
 
+  # f: Y -- > S the total blowup
   f = projectionsY[1]
   for g in projectionsY[2:end]
     global f = g*f
   end
-  (x,y,t) = coordinates(S[1][1])
+  (x, y, t) = coordinates(S[1][1])
   fstar = pullback(f[Y0[1][1]])
-  linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t),fstar(t)-1)
-  PonY,OonY,FonY = [WeilDivisor(i,ZZ,check=false) for i in divisors_res[1:3]]
+  # |D| = | P + O + 1 F|
+  linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t), fstar(t)-1)
+  PonY, OonY, FonY = [WeilDivisor(i, ZZ,check=false) for i in divisors_res[1:3]]
   D = OonY + PonY + FonY
   L = linear_system(linsys, D, check=false)
