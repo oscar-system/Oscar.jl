@@ -12,6 +12,14 @@ Return the underlying reduced scheme defining ``X``.
 This is used to forward the `AbsSpec` functionality to ``X``, but may
 trigger the computation of a radical ideal. Hence this can be expensive.
 """
+function underlying_scheme(X::AffineAlgebraicSet)
+  if isdefined(X, :Xred)
+    return X.Xred
+  end
+  X.Xred = reduced_scheme(X.X)[1]
+  return X.Xred
+end
+
 function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   if isdefined(X, :Xred)
     return X.Xred
@@ -23,13 +31,6 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   return X.Xred
 end
 
-function underlying_scheme(X::AffineAlgebraicSet)
-  if isdefined(X, :Xred)
-    return X.Xred
-  end
-  X.Xred = reduced_scheme(X.X)[1]
-  return X.Xred
-end
 ########################################################################
 #
 # (2) AbsAffineAlgebraicSet interface
@@ -69,6 +70,7 @@ vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 Return an ideal whose radical is the vanishing ideal of `X`.
 
 If `X` is constructed from an ideal `I` this returns `I`.
+
 ```jldoctest
 julia> A2 = affine_space(QQ, :x);
 
@@ -80,6 +82,7 @@ julia> X = algebraic_set(I);
 
 julia> fat_ideal(X) === I
 true
+```
 """
 fat_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(fat_scheme(X))
 
