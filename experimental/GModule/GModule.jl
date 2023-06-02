@@ -920,7 +920,6 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       #bad prime...
       continue
     end
-    @assert length(t[1]) == 1
     pv = [findfirst(!iszero, x) for x = t[1]]
     if any(!isequal(pv[1]), pv)
       continue
