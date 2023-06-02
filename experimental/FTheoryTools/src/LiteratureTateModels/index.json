@@ -1,20 +1,124 @@
 [
-{
-    "file": "model1.json",
-    "doi": "10.1016/j.nuclphysb.2011.12.013",
-    "arxiv_id": "1109.3454",
-    "version": "2",
-    "equ_nr": "3.5",
-    "description": "SU(5)xU(1) restricted Tate model",
-    "link": "https://export.arxiv.org/pdf/1109.3454"
-},
-{
-    "file": "model2.json",
-    "doi": "10.1007/jhep04(2013)061",
-    "arxiv_id": "1212.2949",
-    "version": "2",
-    "equ_nr": "B.18",
-    "description": "SO(10)",
-    "link": "https://export.arxiv.org/pdf/1212.2949"
-}
+	{
+		"equation": "3.1",
+		"arxiv_id": "1109.3454",
+		"arxiv_version": "2",
+		"journal_doi": "10.1016/j.nuclphysb.2011.12.013",
+		"section": "3",
+		"journal": "Nucl. Phys. B",
+		"page": "10",
+		"file": "model1.json",
+		"title": "$G_4$ flux, chiral matter and singularity resolution in F-theory compactifications",
+		"arxiv_doi": "10.48550/arXiv.1109.3454",
+		"authors": ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"]
+	},
+	{
+		"equation": "3.2",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "3.1",
+		"journal": "JHEP",
+		"page": "19",
+		"file": "model2.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "3.42",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "3.2",
+		"journal": "JHEP",
+		"page": "31",
+		"file": "model3.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "4.1",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "4.1",
+		"journal": "JHEP",
+		"page": "37",
+		"file": "model4.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "4.23",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "4.2",
+		"journal": "JHEP",
+		"page": "44",
+		"file": "model5.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "5.1",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "5.1",
+		"journal": "JHEP",
+		"page": "49",
+		"file": "model6.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "5.1",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "5.1",
+		"journal": "JHEP",
+		"page": "49",
+		"file": "model7.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "5.1",
+		"arxiv_id": "1212.2949",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP04(2013)061",
+		"section": "5.1",
+		"journal": "JHEP",
+		"page": "49",
+		"file": "model8.json",
+		"title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+		"arxiv_doi": "10.48550/arXiv.1212.2949",
+		"authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"]
+	},
+	{
+		"equation": "A.1",
+		"arxiv_id": "1507.05954",
+		"arxiv_version": "2",
+		"journal_doi": "10.1007/JHEP11(2015)204",
+		"section": "A",
+		"journal": "JHEP",
+		"page": "71",
+		"file": "model9.json",
+		"title": "General U(1)×U(1) F-theory compactifications and beyond: geometry of unHiggsings and novel matter structure",
+		"arxiv_doi": "10.48550/arXiv.1507.05954",
+		"authors": [
+			"Mirjam Cvetič",
+			"Denis Klevers",
+			"Hernan Piragua",
+			"Washington Taylor"
+		]
+	}
 ]

@@ -5,10 +5,7 @@
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra",
-  "GaloisGrp",
-  "GITFans",
   "GModule",
-  "JuLie",
   "Matrix",
   "ModStd",
   "Rings",
@@ -21,6 +18,8 @@ const oldexppkgs = [
 const orderedpkgs = [
   "ToricSchemes",
   "FTheoryTools",
+  "JuLie",
+  "IntersectionTheory",
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -38,16 +37,12 @@ end
 # force trigger recompile when folder changes
 include_dependency(".")
 
-include("JuLie.jl")
-
 for pkg in Oscar.exppkgs
   include("$pkg/src/$pkg.jl")
 end
 
-include("GaloisGrp.jl")
 include("Rings.jl")
 include("ModStd.jl")
-include("GITFans.jl")
 include("GModule.jl")
 
 include("Schemes/Types.jl")

@@ -99,7 +99,7 @@
         "Hecke/orders/frac_ideals.md",
      ],
      "NumberTheory/abelian_closure.md",
-     "Experimental/galois.md",
+     "NumberTheory/galois.md",
   ],
 
   "Polyhedral Geometry" => [
@@ -164,6 +164,14 @@
         "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
+     ],
+     "Algebraic Sets" => [
+        "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
+        "AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet.md",
+     ],
+     "Algebraic Varieties" => [
+        "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
+        "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",

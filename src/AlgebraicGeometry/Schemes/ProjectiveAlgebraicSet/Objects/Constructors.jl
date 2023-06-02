@@ -9,7 +9,7 @@ Convert `X` to an `ProjectiveAlgebraicSet` by taking the underlying reduced sche
 
 If `check=false`, assumes that `X` is already reduced.
 
-```
+```jldoctest
 julia> P,(x0,x1,x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 
 julia> X = projective_scheme(ideal([x0*x1^2, x2]))
@@ -17,7 +17,7 @@ Projective scheme
   over Rational field
   defined by ideal(x0*x1^2, x2)
 
-julia> Y = Oscar.projective_algebraic_set(X)
+julia> Y = projective_algebraic_set(X)
 Vanishing locus
   in Projective 2-space over QQ
   of ideal(x2, x0*x1)
@@ -43,10 +43,10 @@ in projective space.
 This computes the radical of ``I`` if `check=true`.
 Otherwise Oscar takes on faith that ``I`` is radical.
 
-```
+```jldoctest
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
-julia> Oscar.vanishing_locus(ideal([x0,x1]))
+julia> vanishing_locus(ideal([x0,x1]))
 Vanishing locus
   in Projective 1-space over QQ
   of ideal(x1, x0)
@@ -112,7 +112,7 @@ Return the irreducible components of ``X`` defined over the base field of ``X``.
 
 Note that even if ``X`` is irreducible, there may be several geometrically irreducible components.
 
-```
+```jldoctest
 julia> P1 = projective_space(QQ,1)
 Projective space of dimension 1
   with homogeneous coordinates s0 s1
@@ -120,12 +120,12 @@ Projective space of dimension 1
 
 julia> (s0,s1) = homogeneous_coordinates(P1);
 
-julia> X = Oscar.vanishing_locus((s0^2+s1^2)*s1)
+julia> X = vanishing_locus((s0^2+s1^2)*s1)
 Vanishing locus
   in Projective 1-space over QQ
   of ideal(s0^2*s1 + s1^3)
 
-julia> (X1,X2) = Oscar.irreducible_components(X)
+julia> (X1,X2) = irreducible_components(X)
 2-element Vector{ProjectiveAlgebraicSet{QQField, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
  Vanishing locus in IP^1 of ideal(s0^2 + s1^2)
  Vanishing locus in IP^1 of ideal(s1)

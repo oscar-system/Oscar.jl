@@ -3,9 +3,9 @@ module JuLie
 using ..Oscar
 import Oscar: IntegerUnion
 
-include("JuLie/partitions.jl")
-include("JuLie/schur_polynomials.jl")
-include("JuLie/tableaux.jl")
+include("partitions.jl")
+include("schur_polynomials.jl")
+include("tableaux.jl")
 
 end
 
