@@ -165,23 +165,16 @@ import Nemo:
   ZZRingElem
 
 let exclude_hecke = [
-    :AbstractAlgebra,
     :change_uniformizer,
-    :coefficients_and_exponents,
     :coefficients,
-    :data,
     :exponent_vectors,
-    :exponents,
-    :genus_symbol,
     :leading_coefficient,
     :leading_monomial,
     :leading_term,
     :monomials,
     :narrow_class_group,
-    :Nemo,
     :Partition,
     :perm,
-    :Rational,
     :SymmetricGroup,
     :tail,
     :terms,
