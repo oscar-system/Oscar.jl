@@ -72,9 +72,9 @@ Return an ideal whose radical is the vanishing ideal of `X`.
 If `X` is constructed from an ideal `I` this returns `I`.
 
 ```jldoctest
-julia> A2 = affine_space(QQ, :x);
+julia> A2 = affine_space(QQ, [:x,:y]);
 
-julia> x = coordinates(A2);
+julia> (x, y) = coordinates(A2);
 
 julia> I = ideal(x^2, y);
 
