@@ -147,17 +147,17 @@ Affine space of dimension 3
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
   R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
   R, _ = polynomial_ring(kk, var_symbols)
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 ########################################################

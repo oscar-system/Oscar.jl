@@ -3,11 +3,11 @@
 ########################################################
 
 @doc raw"""
-    projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true) -> ProjectiveAlgebraicSet
+    algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=false, check::Bool=true) -> ProjectiveAlgebraicSet
 
-Convert `X` to an `ProjectiveAlgebraicSet` by taking the underlying reduced scheme.
+Convert `X` to an `ProjectiveAlgebraicSet` by considering its underlying reduced scheme.
 
-If `check=false`, assumes that `X` is already reduced.
+If `is_reduced` is `true` assume that `X` is already reduced.
 
 ```jldoctest
 julia> P,(x0,x1,x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
@@ -17,70 +17,48 @@ Projective scheme
   over Rational field
   defined by ideal(x0*x1^2, x2)
 
-julia> Y = projective_algebraic_set(X)
+julia> Y = algebraic_set(X)
 Vanishing locus
   in Projective 2-space over QQ
   of ideal(x2, x0*x1)
 
 ```
 """
-function projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
-  @check
-  if check
-    Xred = reduced_scheme(X)
-  else
-    Xred = X
-  end
-  ProjectiveAlgebraicSet(Xred, check=check)
+function algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=true, check::Bool=true)
+  return ProjectiveAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
 @doc raw"""
-    vanishing_locus(I::MPolyIdeal{MPolyDecRingElem}; check::Bool=true)
+    (I::MPolyIdeal{MPolyDecRingElem})
 
 Return the vanishing locus of the homogeneous ideal ``I`` as an algebraic set
 in projective space.
 
-This computes the radical of ``I`` if `check=true`.
-Otherwise Oscar takes on faith that ``I`` is radical.
-
 ```jldoctest
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
-julia> vanishing_locus(ideal([x0,x1]))
+julia> algebraic_set(ideal([x0,x1]))
 Vanishing locus
   in Projective 1-space over QQ
   of ideal(x1, x0)
 
 ```
 """
-function vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
-  @check
-  if check
-    Irad = radical(I)
-    # additional checks in the constructor
-    # note that Irad knows that it is a radical ideal
-    # by construction
-  else
-    Irad = I
-  end
-  X = ProjectiveScheme(base_ring(Irad),Irad)
-  return ProjectiveAlgebraicSet(X, check=check)
+function algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem};
+                       is_radical::Bool=false,
+                       check::Bool=true)
+  X = ProjectiveScheme(base_ring(I), I)
+  return algebraic_set(X, is_reduced=is_radical, check=check)
 end
 
-projective_algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true) = vanishing_locus(I, check=check)
 
 @doc raw"""
-    vanishing_locus(p::MPolyDecRingElem; check::Bool=true)
+    algebraic_set(p::MPolyDecRingElem; check::Bool=true)
 
-Return the vanishing locus of the homogeneous polynomial `p` as an algebraic set
-in projective space.
-
-This computes the radical of ``I`` if `check=true`
-otherwise take on faith that ``I`` is radical.
+Return the algebraic set defined by the homogeneous polynomial `p`.
 """
-vanishing_locus(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
+algebraic_set(p::MPolyDecRingElem; is_radical::Bool=false, check::Bool=true) = algebraic_set(ideal(parent(p),p), is_radical=is_radical, check=check)
 
-projective_algebraic_set(p::MPolyDecRingElem; check::Bool=true) = vanishing_locus(p, check=check)
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################
@@ -94,11 +72,9 @@ in projective space.
 This is the reduced subscheme of the scheme theoretic intersection.
 """
 function set_theoretic_intersection(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet)
-  throw(NotImplementedError(:set_theoretic_intersection,X))
-  Z = intersect(underlying_scheme(X), underlying_scheme(Y))
-  Zred,_ = reduced_scheme(Z)
+  Z = intersect(fat_scheme(X), fat_scheme(Y))
   # not sure how reduced vs geometrically reduced behaves hence check=true
-  return ProjectiveAlgebraicSet(Zred, check=true)
+  return algebraic_set(Z)
 end
 
 ########################################################
@@ -120,7 +96,7 @@ Projective space of dimension 1
 
 julia> (s0,s1) = homogeneous_coordinates(P1);
 
-julia> X = vanishing_locus((s0^2+s1^2)*s1)
+julia> X = algebraic_set((s0^2+s1^2)*s1)
 Vanishing locus
   in Projective 1-space over QQ
   of ideal(s0^2*s1 + s1^3)
@@ -137,10 +113,10 @@ Vanishing locus
 
 ```
 """
-function irreducible_components(X::AbsProjectiveAlgebraicSet)
-  I = defining_ideal(X)
+function irreducible_components(X::AbsProjectiveAlgebraicSet{S,T}) where {S,T}
+  I = fat_ideal(X)
   J = minimal_primes(I)
-  return typeof(X)[vanishing_locus(j,check=false) for j in J]
+  return ProjectiveAlgebraicSet{S,T}[algebraic_set(j, is_radical=true, check=false) for j in J]
 end
 
 

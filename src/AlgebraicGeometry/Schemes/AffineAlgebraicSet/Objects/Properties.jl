@@ -1,5 +1,5 @@
 ################################################################################
-# Avoid computing the reduced structure by using overlying_scheme
+# Avoid computing the reduced structure by using fat_scheme
 ################################################################################
 
-dim(X::AbsAffineAlgebraicSet) = dim(overlying_scheme(X))
+dim(X::AbsAffineAlgebraicSet) = dim(fat_scheme(X))

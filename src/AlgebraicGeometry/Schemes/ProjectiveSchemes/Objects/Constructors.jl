@@ -129,3 +129,7 @@ function reduced_scheme(X::AbsProjectiveScheme)
   set_attribute!(Xred, :is_reduced=>true)
   return Xred
 end
+
+function reduced_scheme(X::AbsProjectiveScheme{S,T}) where {S, T<:MPolyDecRing}
+  return X
+end

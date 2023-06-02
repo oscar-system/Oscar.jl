@@ -6,7 +6,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:M
   io = pretty(io)
   println(io, "Affine algebraic set")  # at least one new line is needed
   println(io, Indent(), "in ", ambient_space(X))
-  print(io, "defined by ", ideal(X))
+  print(io, "defined by ", fat_ideal(X))
   # the last print statement must not add a new line
   print(io, Dedent()) # do not forget to Dedent() every Indent()
 end
@@ -18,7 +18,7 @@ function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   else
     # nested printing allowed, preferably supercompact
     print(io, "V(")
-    join(io, gens(X), ", ")
+    join(io, gens(fat_ideal(X)), ", ")
     print(io,")")
   end
 end

@@ -12,4 +12,4 @@ underlying_scheme(X::AffineVariety) = X.X
 #
 ########################################################################
 
-overlying_scheme(X::AffineVariety) = overlying_scheme(underlying_scheme(X))
+fat_scheme(X::AffineVariety) = fat_scheme(underlying_scheme(X))

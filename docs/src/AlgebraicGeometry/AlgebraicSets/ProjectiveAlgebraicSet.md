@@ -7,17 +7,27 @@ using Oscar
 ```
 
 # Projective Algebraic Sets
-A projective algebraic set over an algebraically closed
-field $\overline{k}$ is the common vanishing locus
-$V\subseteq \mathbb{P}^n_{\overline{k}}$ of
-finitely many homogeneous polynomials $f_1,\dots f_r \in \overline{k}[x_0,\dots x_n]$,
-or equivalently of the homogeneous ideal $I \subseteq \overline{k}[x_0,\dots x_n]$ they generate.
-Properties of $V$ correspond to properties of $I$ and vice versa.
-For instance the projective Nullstellensatz states that $V$ is empty if and only if
-$\sqrt{I}\supseteq (x_0,\dots, x_n)$.
+For finitely many homogeneous polynomials $f_1,\dots f_r \in \overline{k}[x_0,\dots x_n]$,
+and `I` the homogeneous ideal they generate, we denote by $X = V(I) \subseteq \mathbb{P}^n$ the
+projective algebraic set they define and call $k$ its base field.
 
-In Oscar we work with projective algebraic sets over non-closed fields,
-by viewing them as reduced schemes. See [Projective schemes](@ref).
+Let $\mathbb{P}^n(k)=(k^n\setminus\{0\})/k^*$ be the projective space $n$ over a field $k$.
+If $k \subseteq K$ is any field extension, we denote by
+$$\begin{aligned}X(K) &= \{ P \in \mathbb{P}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{P}^n(K) \mid \forall f\in I : f(P)=0\}\end{aligned}$$ the set of $K$-points of $X$.
+Most properties of the projective variety $X$ refer to $X(K)$ where $K$ is an
+algebraically closed field.
+For instance the projective Nullstellensatz states that $X(K)$ is empty if and only if
+$\sqrt{I}\supseteq (x_0,\dots, x_n)$.
+Just like for affine schemes there are some exceptions to this rule,
+for instance whether $X$ is irreducible or not depends on its base field.
+See [is_irreducible(X::AbsProjectiveAlgebraicSet)](@ref)
+and [is_geometrically_irreducible(X::AbsProjectiveAlgebraicSet)](@ref) for details.
+Further exceptions are documented in the individual methods.
+
+# Relation to schemes
+
+Once can view a projective algebraic sets as reduced scheme over its defining field $k$.
+See [Projective schemes](@ref).
 
 More formally they are defined as follows:
 ```@docs
@@ -25,15 +35,15 @@ AbsProjectiveAlgebraicSet
 ```
 
 ## Constructors
-The recommended way to create an algebraic set is as a
-vanishing locus of a homogeneous ideal or polynomial.
+Projective algebraic set can be created from homognenous polynomials and homogeneous ideals
+in standard graded rings.
 ```@docs
-vanishing_locus(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
-vanishing_locus(p::MPolyDecRingElem; check::Bool=true)
+algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
+algebraic_set(p::MPolyDecRingElem; check::Bool=true)
 ```
 Algebraic sets can also be constructed from projective schemes.
 ```@docs
-projective_algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
+algebraic_set(X::AbsProjectiveScheme; check::Bool=true)
 ```
 
 ```@docs
@@ -47,7 +57,7 @@ In addition to the attributes inherited from [Projective schemes](@ref)
 the following are available.
 ```@docs
 vanishing_ideal(X::AbsProjectiveAlgebraicSet)
-ideal(X::AbsProjectiveAlgebraicSet)
+fat_ideal(X::AbsProjectiveAlgebraicSet)
 ```
 
 ## Methods

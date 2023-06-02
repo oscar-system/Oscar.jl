@@ -17,7 +17,7 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
     return X.Xred
   end
   # avoid constructing a morphism
-  I = ambient_closure_ideal(overlying_scheme(X))
+  I = ambient_closure_ideal(fat_scheme(X))
   Irad = radical(I)
   X.Xred = Spec(base_ring(Irad), Irad)
   return X.Xred
@@ -36,21 +36,16 @@ end
 #
 ########################################################################
 @doc raw"""
-    overlying_scheme(X::AffineAlgebraicSet) -> AbsSpec
+    fat_scheme(X::AffineAlgebraicSet) -> AbsSpec
 
 Return a scheme whose reduced subscheme is ``X``.
 
 This does not trigger any computation and is therefore cheap.
 Use this instead of `underlying_scheme` when possible.
 """
-function overlying_scheme(X::AffineAlgebraicSet)
-  # if we know the reduced structure already, we can return that.
-  if isdefined(X, :Xred)
-    return X.Xred
-  end
+function fat_scheme(X::AffineAlgebraicSet)
   return X.X
 end
-
 
 ########################################################################
 #
@@ -69,14 +64,27 @@ Return the radical ideal of all polynomials vanishing in ``X``.
 vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 
 @doc raw"""
-    overlying_ideal(X::AbsAffineAlgebraicSet) -> Ideal
+    fat_ideal(X::AbsAffineAlgebraicSet) -> Ideal
 
 Return an ideal whose radical is the vanishing ideal of `X`.
+
+If `X` is constructed from an ideal `I` this returns `I`.
+```jldoctest
+julia> A2 = affine_space(QQ, :x);
+
+julia> x = coordinates(A2);
+
+julia> I = ideal(x^2, y);
+
+julia> X = algebraic_set(I);
+
+julia> fat_ideal(X) === I
+true
 """
-overlying_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(overlying_scheme(X))
+fat_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(fat_scheme(X))
 
 # avoid computing the underlying scheme
-ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(overlying_scheme(X))
+ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(fat_scheme(X))
 
 
 

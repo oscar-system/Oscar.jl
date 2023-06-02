@@ -31,8 +31,7 @@ export AffineHyperplane
 export AffineNormalToricVariety
 export AffineVariety
 export affine_normal_toric_variety
-export affine_variety
-export affine_algebraic_set
+export algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
@@ -492,6 +491,8 @@ export factorisations
 export fan
 export fano_matroid
 export fano_simplex
+export fat_ideal
+export fat_scheme
 export feasible_region
 export fglm
 export fiber_product
@@ -1109,8 +1110,6 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
-export projective_variety
-export projective_algebraic_set
 export pullback
 export pullback_type
 export pyramid
@@ -1345,6 +1344,7 @@ export vamos_matroid
 export vanishing_sets
 export vanishing_locus
 export vanishing_ideal
+export variety
 export vdim
 export vector_matrix
 export vertex_and_ray_indices
