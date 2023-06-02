@@ -1043,7 +1043,6 @@ export orthogonal_group
 export orthogonal_sign
 export oscar
 export outneighbors
-export overlying_scheme
 export pappus_matroid
 export parallel_extension
 export parent
@@ -1342,7 +1341,6 @@ export valuation_of_roots
 export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets
-export vanishing_locus
 export vanishing_ideal
 export variety
 export vdim
