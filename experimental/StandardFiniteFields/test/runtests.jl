@@ -1,5 +1,3 @@
-using Test
-using Oscar
 GAP.Packages.load("StandardFF")
 
 function MyPoly(p,n)
