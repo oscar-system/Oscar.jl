@@ -79,8 +79,8 @@ positive integers `m_i`, where the `f_i^m_i` are the elementary divisors of
 `x`.
 """
 function pol_elementary_divisors(A::MatElem{T}) where T
-   a,_,c = _rational_canonical_form_setup(A)
-   L = refine_for_jordan(a,c,A)[2]
+   a,_,c = Hecke._rational_canonical_form_setup(A)
+   L = Hecke.refine_for_jordan(a,c,A)[2]
    V = Vector{Tuple{typeof(L[1][2]),Int64}}(undef, length(L))
    for i in 1:length(L)
       V[i] = (L[i][2],L[i][3])
