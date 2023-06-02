@@ -223,11 +223,7 @@ end
 
 # returns the Steinitz number corresponding to the polynomial g(X),
 # where f = X^r + g(X) is the standard irreducible polynomial over FF(p, r^(k-1))
-function steinitz_number_for_prime_degree(
-  p::IntegerUnion,
-  r::IntegerUnion,
-  k::IntegerUnion,
-)::ZZRingElem
+function steinitz_number_for_prime_degree(p::IntegerUnion, r::IntegerUnion, k::IntegerUnion)
   Fp = standard_finite_field(p, 1)
 
   get_steinitz_prime_degree!(Fp, r, k) do
@@ -285,7 +281,7 @@ end
 # NOTE for whatever reason, evaluate(polynomial(), ) is faster than evalpoly()
 function steinitz_number(F::PrimeField, x::PrimeFieldElem)
   @assert parent(x) === F
-  return lift(x)
+  return ZZ(lift(x))
 end
 function steinitz_number(F::FinField, x::FinFieldElem)
   @assert parent(x) === F
@@ -330,9 +326,9 @@ function embed_steinitz(p::IntegerUnion, n::IntegerUnion, m::IntegerUnion, nr::I
     return nr
   end
   l = digits(nr, base = Int(p))
-  m = @view standard_monomial_map(n, m)[1:length(l)]
-  c = zeros(ZZRingElem, m[end])
-  c[m] = l
+  M = @view standard_monomial_map(n, m)[1:length(l)]
+  c = zeros(ZZRingElem, M[end])
+  c[M] = l
   return evaluate(polynomial(ZZ, c), p)
 end
 
@@ -371,7 +367,6 @@ function _extension_with_tower_basis(
 
   dK = absolute_degree(K)
   if dK == 1
-    then
     println("_extension_with_tower_basis is running unoptimized...")
   end
   d = Int(dK * deg)
