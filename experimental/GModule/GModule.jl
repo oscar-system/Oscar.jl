@@ -920,6 +920,9 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       #bad prime...
       continue
     end
+    if length(t[1]) == 0
+      return []
+    end
     pv = [findfirst(!iszero, x) for x = t[1]]
     if any(!isequal(pv[1]), pv)
       continue
@@ -934,9 +937,6 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
     @assert all(i->all(x->x[pv[i]] == 1, t[i]), 1:length(pv))
 
     tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
-    if length(tt) == 0
-      return []
-    end
     @assert base_ring(tt[1]) == k
     if isone(pp)
       pp = ZZRingElem(p)
