@@ -14,7 +14,7 @@ const PrimeFieldMatrix = Union{FpMatrix,fpMatrix}
 function pop_largest_factor!(f::Fac{ZZRingElem})
   D = f.fac
   m = maximum(f)
-  if m[2] == 1
+  if isone(m[2])
     Base.delete!(D, m[1])
   else
     D[m[1]] -= 1
@@ -25,7 +25,7 @@ end
 
 # TODO : Should be fixed in Nemo
 function (k::Nemo.FpField)(a::Vector)
-  @assert length(a) == 1
+  @assert isone(length(a))
   return k(a[1])
 end
 function (k::FqPolyRepField)(a::Vector)
@@ -149,7 +149,7 @@ function element_from_steinitz_number(F::FinField, n::IntegerUnion)
   @req is_standard_finite_field(F) "First input must be a standard finite field"
   p = characteristic(F)
   @req 0 <= n <= order(F) "We need to have 0 <= n <= q"
-  n == 0 && return zero(F)
+  iszero(n) && return zero(F)
 
   # this forms a linear combo of F.towervasis rows using vectorrep as coefficients,
   # and then convert this vector to an element of F.
@@ -162,7 +162,7 @@ end
 function non_rth_root(F::FinField, r::IntegerUnion)
   @assert is_standard_finite_field(F) || is_standard_prime_field(F)
   q = order(F)
-  if mod(q - 1, r) == 0
+  if iszero(mod(q - 1, r))
     i = 0
     a = zero(F)
     k = div(q - 1, r)
@@ -200,7 +200,7 @@ function standard_irreducible_coefficient_list(
   count = 0
   qq = 0
   while !is_irreducible(polynomial(F, l))
-    if mod(count, r) == 0 && d < r - 1
+    if iszero(mod(count, r)) && d < r - 1
       d += inc
       if d >= r
         d = r - 1
@@ -213,7 +213,7 @@ function standard_irreducible_coefficient_list(
     while length(st) < d - 1
       push!(st, 0)
     end
-    for k = 2:d
+    for k in 2:d
       l[k] = element_from_steinitz_number(F, st[k-1])
     end
     count += 1
@@ -307,7 +307,7 @@ function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   res = standard_monomial_degrees(div(n, a))
   m = a^k
   new = map(x -> lcm(x, m), res)
-  for i = 1:a-1
+  for i in 1:a-1
     append!(res, new)
   end
   return res
@@ -315,7 +315,7 @@ end
 # map of monomials for degree n -> monomials of degree m by positions
 function standard_monomial_map(n::IntegerUnion, m::IntegerUnion)
   d = standard_monomial_degrees(m)
-  return [i for i = 1:length(d) if mod(n, d[i]) == 0]
+  return [i for i in 1:length(d) if mod(n, d[i]) == 0]
 end
 
 # Embed an element x of Fp^n into Fp^m by Steinitz numbers
@@ -390,7 +390,7 @@ function _extension_with_tower_basis(
   pmat = zero_matrix(F, d, d)
   poly = Vector{eltype(F)}[]
 
-  for i = 1:d+1
+  for i in 1:d+1
     # println("i: ", i, " vec: ", vec, " v: ", v)
     if i <= d
       pmat[i, :] = vec
