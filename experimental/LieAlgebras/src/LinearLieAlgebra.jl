@@ -88,14 +88,14 @@ end
     (L::LinearLieAlgebra{C})(m::MatElem{C}) -> LieAlgebraElem{C}
 
 Return the Lie algebra element whose matrix representation corresponds to `m`.
-This requires `m` to be a square matrix of size `n` (the dimension of `L`), and
+This requires `m` to be a square matrix of size `n > 1` (the dimension of `L`), and
 to lie in the Lie algebra `L` (i.e. to be in the span of `basis(L)`).
 
 If `m` is a $1 \times \dim(L)` vector, it is assumed to be a coefficient vector in the
 basis `basis(L)`.
 """
 function (L::LinearLieAlgebra{C})(m::MatElem{C}) where {C<:RingElement}
-  if size(m) == (L.n, L.n)
+  if L.n > 1 && size(m) == (L.n, L.n)
     m = coefficient_vector(m, matrix_repr_basis(L))
   end
   @req size(m) == (1, dim(L)) "Invalid matrix dimensions."
