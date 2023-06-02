@@ -1044,9 +1044,7 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of
-GrpAb: Z
-with components [5]
+Element of Z with components [5]
 
 julia> degree(Int, m)
 5
@@ -1130,9 +1128,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> degree(a)
-Element of
-GrpAb: Z
-with components [2]
+Element of Z with components [2]
 ```
 """
 function degree(f::SubQuoHom)
