@@ -18,13 +18,13 @@ Projective scheme
   defined by ideal(x0*x1^2, x2)
 
 julia> Y = algebraic_set(X)
-Vanishing locus
-  in Projective 2-space over QQ
-  of ideal(x2, x0*x1)
+Algebraic set
+  in projective 2-space over QQ
+  defined by ideal(x2, x0*x1)
 
 ```
 """
-function algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=true, check::Bool=true)
+function algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=false, check::Bool=true)
   return ProjectiveAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
@@ -38,9 +38,9 @@ in projective space.
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
 julia> algebraic_set(ideal([x0,x1]))
-Vanishing locus
-  in Projective 1-space over QQ
-  of ideal(x1, x0)
+Algebraic set
+  in projective 1-space over QQ
+  defined by ideal(x1, x0)
 
 ```
 """
@@ -97,19 +97,19 @@ Projective space of dimension 1
 julia> (s0,s1) = homogeneous_coordinates(P1);
 
 julia> X = algebraic_set((s0^2+s1^2)*s1)
-Vanishing locus
-  in Projective 1-space over QQ
-  of ideal(s0^2*s1 + s1^3)
+Algebraic set
+  in projective 1-space over QQ
+  defined by ideal(s0^2*s1 + s1^3)
 
 julia> (X1,X2) = irreducible_components(X)
 2-element Vector{ProjectiveAlgebraicSet{QQField, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
- Vanishing locus in IP^1 of ideal(s0^2 + s1^2)
- Vanishing locus in IP^1 of ideal(s1)
+ V(s0^2 + s1^2)
+ V(s1)
 
 julia> X1  # irreducible but not geometrically irreducible
-Vanishing locus
-  in Projective 1-space over QQ
-  of ideal(s0^2 + s1^2)
+Algebraic set
+  in projective 1-space over QQ
+  defined by ideal(s0^2 + s1^2)
 
 ```
 """

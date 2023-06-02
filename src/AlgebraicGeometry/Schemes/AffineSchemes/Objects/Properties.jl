@@ -12,7 +12,7 @@ Check whether the affine scheme ``X`` is empty.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> isempty(X)
 false
@@ -48,7 +48,7 @@ See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding mor
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -299,7 +299,7 @@ Checks whether ``X`` is openly embedded in ``Y``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -367,7 +367,7 @@ Checks whether ``X`` is closed embedded in ``Y``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3

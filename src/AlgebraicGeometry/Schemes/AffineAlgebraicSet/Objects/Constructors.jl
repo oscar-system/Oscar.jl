@@ -43,16 +43,16 @@ Return the affine algebraic set defined by the multivariate polynomial `p`.
 julia> R, (x,y) = QQ[:x,:y];
 
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
-Vanishing locus
+Affine algebraic set
   in Affine 2-space over QQ
-  of ideal(x^4 + x*y^2 + x*y + x)
+  defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
-Vanishing locus
+Affine algebraic set
   in Affine 2-space over GF(2)
-  of ideal(x^4 + x*y^2 + x*y + x)
+  defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 ```
 """
@@ -74,22 +74,27 @@ Return the set theoretic intersection of `X` and `Y` as an algebraic set.
 julia> A = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational Field
+  over rational field
+
+julia> (x, y) = coordinates(A)
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
 
 julia> X = algebraic_set(ideal([y - x^2]))
-Vanishing locus
-  in Affine 2-space over Rational Field
-  of ideal(-x^2 + y)
+Affine algebraic set
+  in Affine 2-space over QQ
+  defined by ideal(-x^2 + y)
 
 julia> Y = algebraic_set(ideal([y]))
-Vanishing locus
-  in Affine 2-space over Rational Field
-  of ideal(y)
+Affine algebraic set
+  in Affine 2-space over QQ
+  defined by ideal(y)
 
 julia> Zred = set_theoretic_intersection(X, Y)
-Vanishing locus
-  in Affine 2-space over Rational Field
-  of ideal(-x^2 + y, y)
+Affine algebraic set
+  in Affine 2-space over QQ
+  defined by ideal(-x^2 + y, y)
 
 
 ```
@@ -99,13 +104,14 @@ which the scheme theoretic intersection remembers. Therefore they are different.
 ```jldoctest set_theoretic_intersection
 julia> vanishing_ideal(Zred); # computes a radical ideal
 
+
 julia> Zred # now that we know the vanishing ideal, it is used for printing
-Vanishing locus
-  in Affine 2-space over Rational Field
-  of ideal(y, x)
+Affine algebraic set
+  in Affine 2-space over QQ
+  defined by ideal(-x^2 + y, y)
 
 julia> Z = intersect(X,Y) # a non reduced scheme
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y, y)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> Zred == Z
 false

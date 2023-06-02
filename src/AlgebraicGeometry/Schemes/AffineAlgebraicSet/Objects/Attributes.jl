@@ -86,5 +86,6 @@ fat_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(fat_scheme(X))
 # avoid computing the underlying scheme
 ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(fat_scheme(X))
 
+ambient_space(X::AbsAffineAlgebraicSet{S,T}) where {S<:Field, T<:MPolyRing} = X
 
 

@@ -22,7 +22,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -56,7 +56,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -76,7 +76,7 @@ julia> f = inclusion_morphism(X, Y);
 julia> codomain(f)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 ```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
@@ -93,7 +93,7 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -200,7 +200,7 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
