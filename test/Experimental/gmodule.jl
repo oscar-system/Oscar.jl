@@ -99,5 +99,5 @@ end
 
   SS = Oscar.GModuleFromGap.gmodule_over(m2, gmodule(K, S))
 
-  @test degree(base_field(SS)) == 2
+  @test degree(base_ring(SS)) == 2
 end
