@@ -6,7 +6,7 @@ GAP.Packages.load("StandardFF")
   end
 
   function GAPPoly(p, n)
-    poly = GAP.Globals.StandardFiniteField(p, n)
+    poly = GAP.Globals.StandardFiniteField(Integer(p), n)
     poly = GAP.Globalse.DefiningPolynomial(poly)
     poly = GAP.Globals.CoefficientsOfUnivariatePolynomial(poly)
     poly = polynomial(GF(p), map(GF(p), Vector{GAP.FFE}(poly)))
