@@ -5,12 +5,12 @@
 @doc raw"""
     algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=false, check::Bool=true) -> ProjectiveAlgebraicSet
 
-Convert `X` to an `ProjectiveAlgebraicSet` by considering its underlying reduced scheme.
+Convert `X` to a `ProjectiveAlgebraicSet` by considering its underlying reduced scheme.
 
 If `is_reduced` is `true` assume that `X` is already reduced.
 
 ```jldoctest
-julia> P,(x0,x1,x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
+julia> P, (x0, x1, x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 
 julia> X = projective_scheme(ideal([x0*x1^2, x2]))
 Projective scheme

@@ -15,38 +15,37 @@ and $I = (f_1, \dots f_r) \subseteq k[x_1,\dots x_n]$ the ideal they generate,
 we denote by $X = V(I)$ the (affine) algebraic set defined by the ideal $I$
 and call $k$ its base field.
 
-If $k \subseteq K$ is any field extension, we denote by
+If $k \subseteq K$ is any field extension, we denote the set of $K$-points of $X$ by
 
-$$\begin{aligned}X(K) &= \{ P \in \mathbb{A}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{A}^n(K) \mid \forall f\in I : f(P)=0\}\end{aligned}$$
+$$\begin{aligned}X(K) &= \{ P \in \mathbb{A}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{A}^n(K) \mid \forall f\in I : f(P)=0\}.\end{aligned}$$
 
-the set of $K$-points of $X$.
-Most properties of the variety $X$ refer to $X(K)$ where $K$ is an
-algebraically closed field.
-For instance Hilbert's Nullstellensatz implies that $X(K)$ is empty
-if and only if the ideal $I=(1)$. This is decided by computing a
-Gröbner basis of $I$ and is carried out in $k[x_1,\dots x_n]$
-without taking any field extensions.
+Most properties of the algebraic set $X$ refer to $X(K)$ where $K$ is an
+algebraically closed field. For instance `is_empty` returns if $X(K) = \emptyset$.
 
 Exceptions to the rule, that we refer to $X(K)$, are documented in the respective methods.
 For example the property of being irreducible depends on $k$:
 The algebraic set $X = V(x^2+y^2) \subseteq \mathbb{A}^2$ is irreducible over
 $k = \mathbb{R}$. But it is the union of two lines over $K = \mathbb{C}$,
 i.e. $X$ is irreducible but geometrically reducible.
-We refer to the documentation of
+See
 [`is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})`](@ref) for details.
 
 ## Rational points
-To study the $k$-points, also called $k$-rational points, of the variety $X$
+To study the $k$-points, also called $k$-rational points, of the algebraic set $X$
 one first considers the solutions $X(K)$ over an algebraically closed field
 extension $K$ of $k$. Then in a second step one studies $X(k)$ as a subset of $X(K)$.
 
 The first step involves calculations with ideals.
+For instance Hilbert's Nullstellensatz implies that $X(K)$ is empty
+if and only if the ideal $I=(1)$. This is decided by computing a
+Gröbner basis of $I$ and is carried out in $k[x_1,\dots x_n]$
+without taking any field extensions.
 
 The second step involves methods from number theory (if $k$ is a number field)
 or from real algebraic geometry (if $k = \mathbb{R}$).
 
 Algebraic sets in Oscar are designed for the first step.
-Most of their properties should be interpreted as properties
+Most of their properfties should be interpreted as properties
 of the set $X(K)$ of their $K$-points over an algebraic closure $K$.
 
 ## Relation to Schemes
@@ -72,7 +71,7 @@ For example `algebraic_set(intersection(X, Y))`
 is equivalent to `set_theoretic_intersection(X, Y)`.
 
 Internally an `AffineAlgebraicSet` is constructed from a possibly
-non-reduced affine scheme which we refer to as the `fat_scheme` of `X`.
+non-reduced affine scheme which we call the `fat_scheme` of `X`.
 ```@docs
 fat_ideal(X::AffineAlgebraicSet{<:Field})
 fat_scheme(X::AffineAlgebraicSet)
@@ -110,8 +109,8 @@ closure(X::AbsAffineAlgebraicSet{<:Field})
 In addition to the attributes inherited from [Affine schemes](@ref)
 the following are available.
 ```@docs
-irreducible_components(X::AffineAlgebraicSet)
-geometric_irreducible_components(X::AffineAlgebraicSet)
+irreducible_components(X::AbsAffineAlgebraicSet)
+geometric_irreducible_components(X::AbsAffineAlgebraicSet)
 vanishing_ideal(X::AbsAffineAlgebraicSet)
 ```
 

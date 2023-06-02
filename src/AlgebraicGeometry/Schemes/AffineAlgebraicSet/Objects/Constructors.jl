@@ -102,15 +102,7 @@ Note that the set theoretic intersection forgets the intersection multiplicities
 which the scheme theoretic intersection remembers. Therefore they are different.
 
 ```jldoctest set_theoretic_intersection
-julia> vanishing_ideal(Zred); # computes a radical ideal
-
-
-julia> Zred # now that we know the vanishing ideal, it is used for printing
-Affine algebraic set
-  in Affine 2-space over QQ
-  defined by ideal(-x^2 + y, y)
-
-julia> Z = intersect(X,Y) # a non reduced scheme
+julia> Z = intersect(X, Y) # a non reduced scheme
 Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> Zred == Z
