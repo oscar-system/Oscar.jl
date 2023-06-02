@@ -32,8 +32,8 @@ For example the property of being irreducible depends on $k$:
 The algebraic set $X = V(x^2+y^2) \subseteq \mathbb{A}^2$ is irreducible over
 $k = \mathbb{R}$. But it is the union of two lines over $K = \mathbb{C}$,
 i.e. $X$ is irreducible but geometrically reducible.
-We refer to [is_geometrically_irreducible](@ref) and [is_irreducible](@ref)
-for details.
+We refer to the documentation of
+[`is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})`](@ref) for details.
 
 ## Rational points
 To study the $k$-points, also called $k$-rational points, of the variety $X$
@@ -60,8 +60,8 @@ $(x^2, y)$ which can be interpreted as a point of multiplicity $2$ and contains
 the information that the intersection of $X$ and $Y$ is tangential in $(0,0)$.
 
 Therefore we have two methods
-- `set_theoretic_intersection` which can be thought of as $X(K)\cap Y(K)$
-- `intersection` which is the scheme theoretic intersection
+- [`set_theoretic_intersection(::AbsAffineAlgebraicSet)`](@ref) which can be thought of as $X(K)\cap Y(K)$
+- [`intersection(::AbsAffineAlgebraicSet)`](@ref) which is the scheme theoretic intersection
 
 !!! note
     If a construction returns a scheme $Z$, but you want to ignore the scheme
@@ -74,9 +74,9 @@ is equivalent to `set_theoretic_intersection(X, Y)`.
 Internally an `AffineAlgebraicSet` is constructed from a possibly
 non-reduced affine scheme which we refer to as the `fat_scheme` of `X`.
 ```@docs
-fat_ideal(X::AbsAffineAlgebraicSet{<:Field})
-fat_scheme(X::AbsAffineAlgebraicSet)
-underlying_scheme(X::AbsAffineAlgebraicSet)
+fat_ideal(X::AffineAlgebraicSet{<:Field})
+fat_scheme(X::AffineAlgebraicSet)
+underlying_scheme(X::AffineAlgebraicSet)
 ```
 
 ### More general affine algebraic sets

@@ -13,15 +13,17 @@ projective algebraic set they define and call $k$ its base field.
 
 Let $\mathbb{P}^n(k)=(k^n\setminus\{0\})/k^*$ be the projective space $n$ over a field $k$.
 If $k \subseteq K$ is any field extension, we denote by
-$$\begin{aligned}X(K) &= \{ P \in \mathbb{P}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{P}^n(K) \mid \forall f\in I : f(P)=0\}\end{aligned}$$ the set of $K$-points of $X$.
+
+$$\begin{aligned}X(K) &= \{ P \in \mathbb{P}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{P}^n(K) \mid \forall f\in I : f(P)=0\}\end{aligned}$$
+
+the set of $K$-points of $X$.
 Most properties of the projective variety $X$ refer to $X(K)$ where $K$ is an
 algebraically closed field.
 For instance the projective Nullstellensatz states that $X(K)$ is empty if and only if
 $\sqrt{I}\supseteq (x_0,\dots, x_n)$.
 Just like for affine schemes there are some exceptions to this rule,
 for instance whether $X$ is irreducible or not depends on its base field.
-See [is_irreducible(X::AbsProjectiveAlgebraicSet)](@ref)
-and [is_geometrically_irreducible(X::AbsProjectiveAlgebraicSet)](@ref) for details.
+See [`is_irreducible(X::AbsProjectiveScheme)`](@ref) for details.
 Further exceptions are documented in the individual methods.
 
 # Relation to schemes
