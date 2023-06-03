@@ -14,7 +14,7 @@ GAP.Packages.load("StandardFF")
 
   function compare_poly(p, n)
     F = GF(p)
-    F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(Integer(p), n))))
+    F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(p, n))))
   end
 
   small_test_primes = ZZ.([3, 5, 7])
