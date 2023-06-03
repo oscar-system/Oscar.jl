@@ -17,19 +17,19 @@ GAP.Packages.load("StandardFF")
     F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(p, n))))
   end
 
-  small_test_primes = ZZ.([3, 5, 7])
+  small_test_primes = [3, 5, 7]
   # medium_test_primes = ZZ.([3433, 4073])
 
 
-  @testset "characteristic 2 test GF(2^(2^$k))" for k = 3:5
+  @testset "characteristic 2 test GF(2^(2^$k))" for k in 3:5
     @test compare_poly(2, 2^k)
     @test compare_poly(ZZ(2), 2^k)
   end
-  @testset "small primes GF($p^(2^$k))" for p in small_test_primes, k = 3:5
+  @testset "small primes GF($p^(2^$k))" for p in small_test_primes, k in 3:5
     @test compare_poly(p, 2^k)
     @test compare_poly(ZZ(p), 2^k)
   end
-  @testset "small primes GF($p^($p^$k))" for p in small_test_primes, k = 3:5
+  @testset "small primes GF($p^($p^$k))" for p in small_test_primes, k in 3:5
     @test compare_poly(p, p^k)
     @test compare_poly(ZZ(p), p^k)
   end
