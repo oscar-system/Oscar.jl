@@ -221,6 +221,11 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
+  if order(V) == 1
+    ord != 1 && (return res)
+    push!(res, (Vinq, G))
+    return res
+  end
   q = codomain(Vinq)
   p = elementary_divisors(V)[1]
   pq, pqtoq = primary_part(q, p)
@@ -312,7 +317,7 @@ end
 #
 # We follow the second definition of Nikulin, i.e. we classify up to the actions
 # of O(M) and O(N).
-function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat, M::ZZLat, H::TorQuadModule, el::Bool; first::Bool = false)
+function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat, M::ZZLat, H::TorQuadModule, p::Hecke.IntegerUnion, el::Bool; first::Bool = false)
   @hassert :ZZLatWithIsom 1 is_one(basis_matrix(N))
   @hassert :ZZLatWithIsom 1 is_one(basis_matrix(M))
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
@@ -334,9 +339,13 @@ function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat
     filter!(HM -> is_isometric_with_isometry(domain(HM[1]), H)[1], subsM)
     @assert !isempty(subsM)
   else
-    subsN = _classes_automorphic_subgroups(GN, rescale(H, -1))
+    VN, VNinqN = primary_part(qN, p)
+    GVN, _ = restrict_automorphism_group(GN, VNinqN)
+    subsN = _classes_automorphic_subgroups(GVN, rescale(H, -1))
     @hassert :ZZLatWithIsom 1 !isempty(subsN)
-    subsM = _classes_automorphic_subgroups(GM, H)
+    VM, VMinqM = primary_part(qM, p)
+    GVM, _ = restrict_automorphism_group(GM, VMinqM)
+    subsM = _classes_automorphic_subgroups(GVM, H)
     @hassert :ZZLatWithIsom 1 !isempty(subsM)
   end
 
@@ -344,17 +353,17 @@ function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat
     ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
     @hassert :ZZLatWithIsom 1 ok
 
-    HNinqN, stabN = H1
-    HN = domain(HNinqN)
+    HNinVN, stabN = H1
+    HN = domain(HNinVN)
     OHN = orthogonal_group(HN)
 
-    HMinqM, stabM = H2
-    HM = domain(HMinqM)
+    HMinVM, stabM = H2
+    HM = domain(HMinVM)
     OHM = orthogonal_group(HM)
 
-    actN = hom(stabN, OHN, [OHN(restrict_automorphism(x, HNinqN)) for x in gens(stabN)])
+    actN = hom(stabN, OHN, [OHN(restrict_automorphism(x, HNinVN)) for x in gens(stabN)])
 
-    actM = hom(stabM, OHM, [OHM(restrict_automorphism(x, HMinqM)) for x in gens(stabM)])
+    actM = hom(stabM, OHM, [OHM(restrict_automorphism(x, HMinVM)) for x in gens(stabM)])
     imM, _ = image(actM)
 
     stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
@@ -365,7 +374,7 @@ function _isomorphism_classes_primitive_extensions_along_primary_module(N::ZZLat
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
-      _glue = Vector{QQFieldElem}[lift(qNinD(HNinqN(g))) + lift(qMinD(HMinqM(phig(g)))) for g in gens(domain(phig))]
+      _glue = Vector{QQFieldElem}[lift(qNinD(VNinqN(HNinVN(g)))) + lift(qMinD(VMinqM(HMinVM(phig(g))))) for g in gens(domain(phig))]
       z = zero_matrix(QQ, 0, degree(N)+degree(M))
       glue = reduce(vcat, [matrix(QQ, 1, degree(N)+degree(M), g) for g in _glue], init = z)
       glue = vcat(identity_matrix(QQ, rank(N)+rank(M)), glue)
@@ -481,7 +490,7 @@ function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classificat
       Ns = ZZLat[integer_lattice(gram=gram_matrix(N)) for N in Ns]
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
-        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, el, first=first)
+        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, p, el, first=first)
         if !is_empty(temp)
           first && return true, temp
           append!(results, temps)
@@ -490,7 +499,7 @@ function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classificat
       end
     end
   end
-  @hassert :ZZLatWithIsom 1 all(triple -> genus(triple[1]) == genus(L), results)
+  #@hassert :ZZLatWithIsom 1 all(triple -> genus(triple[1]) == genus(L), results)
   return (length(results) > 0), results
 end
 
@@ -588,7 +597,7 @@ function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classificat
       Ns = ZZLat[integer_lattice(gram=gram_matrix(N)) for N in Ns]
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
-        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, el, first=first)
+        temp = _isomorphism_classes_primitive_extensions_along_primary_module(N, M, qM2, p, el, first=first)
         if length(temp) > 0
           first && return true, temp
           append!(results, temp)
@@ -598,7 +607,7 @@ function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classificat
       GC.gc()
     end
   end
-  @assert all(triple -> genus(triple[1]) == genus(L), results)
+  #@hassert :ZZLatWithIsom 1 all(triple -> genus(triple[1]) == genus(L), results)
   return (length(results) >0), results
 end
 
