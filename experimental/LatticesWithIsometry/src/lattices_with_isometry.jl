@@ -699,7 +699,7 @@ If `ambient_representation` is set to true, the isometries in `G` and `H` are se
 as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
 they are considered as honnest isometries of `L`.
 """
-function invariant_coinvariant_pair(L::ZZlat, G::MatrixGroup; ambient_representation::Bool = true)
+function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   F = invariant_lattice(L, G, ambient_representation = ambient_representation)
   C = orthogonal_submodule(L, F)
   gene = QQMatrix[]
@@ -811,10 +811,10 @@ end
 function to_oscar(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
-  println(stdout, "B = matrix(QQ, $(rank(L)), $(degree(L)), " , basis_matrix(L), " );")
-  println(stdout, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), " );")
+  println(stdout, "B = matrix(QQ, $(rank(L)), $(degree(L)), " , basis_matrix(L), ");")
+  println(stdout, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), ");")
   println(stdout, "L = integer_lattice(B, gram = G);")
-  println(stdout, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, " );")
+  println(stdout, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, ");")
   println(stdout, "Lf = lattice_with_isometry(L, f);")
 end
 

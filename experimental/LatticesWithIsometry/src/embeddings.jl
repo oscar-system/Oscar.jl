@@ -120,6 +120,11 @@ end
 #
 ##############################################################################
 
+function _on_subgroup_automorphic(H::Oscar.GAPGroup, g::AutomorphismGroupElem)
+  G = domain(parent(g))
+  return sub(G, g.(gens(H)))[1]
+end
+
 function _on_subgroup_automorphic(T::TorQuadModule, g::AutomorphismGroupElem)
   q = domain(parent(g))
   gene = TorQuadModuleElem[g(q(lift(t))) for t in gens(T)]
@@ -129,8 +134,14 @@ end
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
   @req domain(O) === codomain(i) "Incompatible arguments"
   q = domain(O)
-  N, _ = sub(q, i.(gens(domain(i))))
-  return stabilizer(O, N, _on_subgroup_automorphic)
+  togap = get_attribute(O, :to_gap)
+  tooscar = get_attribute(O, :to_oscar)
+  A = codomain(togap)
+  OA = automorphism_group(A)
+  OinOA, _ = sub(OA, OA.([g.X for g in gens(O)]))
+  N, _ = sub(A, togap.(i.(gens(domain(i)))))
+  stab, _ = stabilizer(OinOA, N, _on_subgroup_automorphic)
+  return sub(O, O.([h.X for h in gens(stab)]))
 end
 
 function _subgroups_orbit_representatives_and_stabilizers(O::AutomorphismGroup{TorQuadModule}; order::Hecke.IntegerUnion = -1)
@@ -690,7 +701,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     end
     qC2 = discriminant_group(C2)
     phi2 = hom(qC2, D, [D(lift(x)) for x in gens(qC2)])
-    @hassert :ZZLatWithIsom 1 _is_isometry(phi2)
+    @hassert :ZZLatWithIsom 1 is_isometry(phi2)
     if is_of_type(lattice_with_isometry(C2, fC2^q, ambient_representation=false), type(C))
       GC = Oscar._orthogonal_group(qC2, [compose(phi2, compose(hom(g), inv(phi2))).map_ab.map for g in gens(GC2)])
       C2fc2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
@@ -707,7 +718,6 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   if min(order(VA), order(VB)) < p^g
     return results
   end
-
   # scale of the dual: any glue kernel must contain the multiples of l of the respective
   # discriminant groups
   l = valuation(level(genus(C)), p)
@@ -752,28 +762,27 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     actB = hom(stabB, OSB, [OSB(restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
     imB, _ = image(actB)
     kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(kernel(actB)[1])]
-    push!(kerB, OqBinOD(one(OqB)))
     fSB = OSB(restrict_automorphism(fqB, SBinqB))
 
     OSBrB = _compute_double_stabilizer(SBinqB, l, spec)
-    (fSB in OSBrB) || continue
+    #elm = gset(OSBrB, ^, OSB)
+    
+    fSB = OSBrB(fSB)
     # phi might not "send" the restriction of fA to this of fB, but at least phi*fA*phi^-1
     # should be conjugate to fB inside O(SB, rho_l(qB)) for the glueing.
     # If not, we try the next potential pair.
     fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
-    (fSAinOSB in OSBrB) || continue
-    fSAinOSBrB = OSBrB(fSAinOSB)
-    bool, g0 = representative_action(OSBrB, fSAinOSBrB, OSBrB(fSB))
+    bool, g0 = representative_action(OSBrB, fSAinOSB, fSB)
     bool || continue
     phi = compose(phi, hom(OSB(g0)))
-    fSAinOSBrB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
+    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
     # Now the new phi is "sending" the restriction of fA to this of fB.
     # So we can glue SA and SB.
     @hassert :ZZLatWithIsom 1 fSAinOSBrB == fSB
 
     # Now it is time to compute generators for O(SB, rho_l(qB), fB), and the induced
     # images of stabA|stabB for taking the double cosets next
-    center, _ = centralizer(OSBrB, OSBrB(fSB))
+    center, _ = stabilizer(OSBrB, fSB)
     center, _ = sub(OSB, [OSB(c) for c in gens(center)])
     stabSAphi, _ = sub(OSB, AutomorphismGroupElem{TorQuadModule}[OSB(compose(inv(phi), compose(hom(g), phi))) for g in gens(imA)])
     stabSAphi, _ = intersect(center, stabSAphi)
@@ -936,11 +945,13 @@ function _find_admissible_gluing(SAinqA, SBinqB, phi, l, spec)
   elseif spec
     ok, phi_0 = is_anti_isometric_with_anti_isometry(rA, rB)
     @hassert :ZZLatWithIsom 1 ok
+    @hassert :ZZLatWithIsom 1 is_anti_isometry(phi_0)
   else
     phi_0 = _anti_isometry_bilinear(rA, rB, p)
   end
-  phiHA, _ = sub(SB, [SB(lift(phi(SA(lift(a))))) for a in gens(HA)])
+  phiHA, _ = sub(SB, [phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
+  @assert is_invariant(OSB, HBinSB)
   g = one(OSB)
   for f in OSB
     g = f

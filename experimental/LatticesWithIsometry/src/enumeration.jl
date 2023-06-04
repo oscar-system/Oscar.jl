@@ -563,6 +563,9 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
     RA = representatives_of_hermitian_type(LA, q^e)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB], inplace=false)
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
+      if !is_empty(E) && (E[1] isa AutomorphismGroup{TorQuadModule})
+        return E
+      end
       GC.gc()
       append!(reps, E)
     end
@@ -699,7 +702,7 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
   is_empty(A) && return reps
   B = splitting_of_pure_mixed_prime_power(B0, p)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B], inplace=false)
-    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, q, p)
+    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, q, p)
     GC.gc()
     append!(reps, E)
   end
@@ -757,7 +760,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
   isempty(A) && return reps
   B = splitting_of_mixed_prime_power(B0, p, 0)
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B], inplace=false)
-    E = admissible_equivariant_primitive_extensions(LA, LB, Lf, p)
+    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, p)
     GC.gc()
     if b == 1
       filter!(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
