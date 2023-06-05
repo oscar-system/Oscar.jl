@@ -267,7 +267,7 @@ end
   @test saturation(K,J) == phiQ2L1(phiQ2(ideal(R,[x-y])))
 end
 
-@test "algebras as vector spaces" begin
+@testset "algebras as vector spaces" begin
   R, (x,y) = QQ["x", "y"]
   I = ideal(R, [x^3- 2, y^2+3*x])
   I = (x-8)^2*I
