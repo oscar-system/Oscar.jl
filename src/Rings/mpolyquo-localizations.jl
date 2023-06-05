@@ -1986,3 +1986,77 @@ function vector_space(kk::Field, W::MPolyQuoLocRing;
   return V, MapFromFunc(v->g(id(v)), a->preimage(id, f(a)), V, W)
 end
 
+function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem, 
+                                                    <:MPolyRing, <:MPolyRingElem,
+                                                    <:MPolyComplementOfKPointIdeal
+                                                   };
+    ordering::MonomialOrdering=negdegrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_shift = shifted_ideal(I)::MPolyIdeal
+
+  # Collect all monomials which are not in the leading ideal as representatives 
+  # of a basis over kk.
+  lead_I = leading_ideal(I_shift, ordering=ordering)
+  @show gens(lead_I)
+  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  V_gens = elem_type(R)[]
+  done = false
+  d = 0
+  while !done
+    inc = [m for m in all_monomials(R, d) if !(m in lead_I)]
+    if iszero(length(inc))
+      done = true
+      break
+    end
+    V_gens = vcat(V_gens, [m for m in all_monomials(R, d) if !(m in lead_I)])
+    d = d + 1
+  end
+
+  n = length(V_gens)
+  V = free_module(kk, n)
+  L = localized_ring(W)::MPolyLocRing
+  shift, backshift = base_ring_shifts(L)
+
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = R(0)
+    for k=1:length(V_gens)
+      c = a[k]
+      if !iszero(c)
+        b += c*V_gens[k]
+      end
+    end
+    return W(backshift(b))
+  end
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(f::MPolyQuoLocRingElem)
+    @assert parent(f) === W
+    isone(denominator(f)) || error("handling of non-trivial denominators not implemented")
+    b = lifted_numerator(f)
+    @show b
+    b = shift(b)
+    @show b
+    # TODO: The normal form command seems to do something unexpected here.
+    # Please investigate!
+    b = normal_form(b, I_shift, ordering=ordering)
+    @show b
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=ordering)
+      c = leading_coefficient(b, ordering=ordering)
+      j = findfirst(n->n==m, V_gens)
+      @show m, c, j
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(im, prim, V, W)
+end
+
