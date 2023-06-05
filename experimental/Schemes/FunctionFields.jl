@@ -34,7 +34,7 @@ Return the function field of the irreducible variety `X`.
 Internally, a rational function is represented by an element in the field of
 fractions of the `ambient_coordinate_ring` of the `representative_patch`.
 """
-function_field(X::CoveredScheme; 
+function_field(X::CoveredScheme;
                check::Bool=true, 
                representative_patch::AbsSpec=default_covering(X)[1]
               ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)

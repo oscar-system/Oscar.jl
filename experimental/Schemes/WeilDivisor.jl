@@ -139,16 +139,12 @@ function Base.show(io::IO, D::WeilDivisor)
     return
   end
   if length(components(D)) == 0
-    println(io, "the zero Weil divisor on $(scheme(D))")
+    print(io, "the zero Weil divisor on $(scheme(D))")
     return
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum")
+  println(io, "Weil divisor on $(scheme(D)) given as the formal sum:")
   comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  out_str = comp[1]
-  for c in comp[2:end]
-    out_str = out_str* " + " * c
-  end
-  println(io, out_str)
+  join(io, comp, " + ")
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
@@ -206,13 +202,14 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
   X === variety(parent(f)) || error("schemes not compatible")
   C = default_covering(X)
   for I in components(D)
-    order_on_divisor(f, I, check=check) >= -D[I] || return false
+    # no check needed because the components of a prime divisor a prime anyways
+    order_on_divisor(f, I, check=false) >= -D[I] || return false
   end
   for U in patches(C)
     # we have to check that f[U] has no poles outside the support of D[U]
     g = numerator(f[U])
     h = denominator(f[U])
-    J = prod([J(U) for J in components(D)])
+    J = intersect([J(U) for J in components(D)])
     incH = ClosedEmbedding(U, J)
     W = complement(incH) # This is a SpecOpen
     is_regular(f, W) || return false
@@ -274,7 +271,7 @@ scheme(L::LinearSystem) = variety(L)
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, return a pair ``(K, A)`` consisting
-of the subsystem of elements in ``|D + P|`` and the representing 
+of the subsystem of elements in ``|D - n P|`` and the representing
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.
 """
@@ -298,7 +295,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
   common_denominator = gcd([denominator(g) for g in loc_rep])
-  numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
+  numerators = [numerator(g)*divexact(denominator(g),common_denominator) for g in loc_rep]
   RP, _ = Localization(R, complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
@@ -325,7 +322,32 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   r, K = left_kernel(A)
-  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:nrows(K)]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
+  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
+  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
+end
+
+function subsystem(L::LinearSystem, P::WeilDivisor, n::Int)
+  @req is_prime(P) "P must be a prime divisor"
+  I = components(P)[1]
+  return subsystem(L, I, n)
+end
+
+@attr Bool function is_prime(D::WeilDivisor)
+  if length(components(D))!=1
+    return false
+  end
+  c = components(D)[1]
+  return coefficient_dict(D)[c] == 1
+end
+
+is_irreducible(D) = is_prime(D)
+
+function order_on_divisor(
+    f::WeilDivisor,
+    D::WeilDivisor;
+    check::Bool=true
+  )
+  @check is_prime(D) || error("divisor must be prime")
+  return order_on_divisor(f, I, check=false)
 end
 
