@@ -294,18 +294,21 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
-  common_denominator = gcd([denominator(g) for g in loc_rep])
-  numerators = [numerator(g)*divexact(denominator(g),common_denominator) for g in loc_rep]
+  common_denominator = lcm([denominator(g) for g in loc_rep])
+  numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
+
+  # compute a symbolic power
   RP, _ = Localization(R, complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
   pPw = saturated_ideal(PP^w) # the symbolic power
+
+  # reduce the numerators modulo P^(w)
   images = elem_type(R)[]
   for a in numerators
     push!(images, normal_form(a, pPw))
   end
-
   # collect a monomial basis in which to represent the results
   all_mons = elem_type(R)[]
   for b in images
