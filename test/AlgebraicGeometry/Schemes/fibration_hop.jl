@@ -82,6 +82,9 @@ function prop217(X::AbsCoveredScheme, E::EllCrv, P::EllCrvPt, k, x, y, t,fiber)
   @assert gcd(yn, yd)==1
   sections = []
   ab = prop217(E, P, k)
+  @assert lifted_denominator(x) == 1
+  @assert lifted_denominator(y) == 1
+  @assert lifted_denominator(t) == 1
   x = lifted_numerator(x)
   y = lifted_numerator(y)
   t = lifted_numerator(t)

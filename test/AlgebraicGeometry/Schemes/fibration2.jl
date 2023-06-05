@@ -1,3 +1,5 @@
+
+
   # TODO:
   # Kill all standard Specs
   # shortcut to get the coefficient(s) of a weil divisor
@@ -6,8 +8,8 @@
   julia> in_linear_system(linsys[1], D,check=false)
 false
  =#
- # subsystem typo |D + P| should be |D - n P|
- # is_subsistem disable check in order_on_divisor
+
+
 
   add_verbosity_scope(:ellipticK3)
   set_verbosity_level(:ellipticK3, 2)
@@ -47,6 +49,29 @@ false
  ((11*t^5 + 22*t^4 + 23*t^3 + 14*t^2 + 17*t + 16)//(t^2 + 24*t + 28),
   (22*t^8 + 6*t^7 + 21*t^6 + 24*t^5 + 4*t^4 + 23*t^3 + 25*t^2 + 15*t + 6)//(t^3 + 7*t^2 + 26*t + 17))]]
 
+
+  gram =  [0,  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+ 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+ 0, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 1, -2, 0, 1, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 1, 1, 1, 1, 1,
+ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 2, 1, 4, 4,
+ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, -2, 3, 1, 2,
+ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, -2, 2, 2,
+ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 1, 2, -2, 2,
+ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 2, 2, 2, -2]
+ NS = integer_lattice(gram=matrix(ZZ,16,16,gram))
+ B = basis_matrix(NS)
+ p = matrix(ZZ, 1, 16, [8, 3, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1])
+ f_new = (B[1,:] - B[11,:]) + p + B[2,:]
+
+
   # The section P used for the fibration hop  Fiber_new = O + P + Vertical
   P = -mwl_basis[1] - mwl_basis[5]
 
@@ -82,10 +107,12 @@ false
   zero_section = IdealSheaf(X, X[1][3], [x,z])
 
   # components of the singular fibers visible on S
+  # E8 over t=0
+  # A1 over s=0
   (x,y,t) = coordinates(UX)
-  A1_0 = IdealSheaf(X, UX, [t, ft])
+  E8_0 = IdealSheaf(X, UX, [t, ft])
   (x,y,s) = ambient_coordinates(X[1][4])
-  E8_0 = IdealSheaf(X,X[1][4], OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
+  A1_0 = IdealSheaf(X,X[1][4], OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
 
 
   # S = K3 --> X ambient space
@@ -152,7 +179,7 @@ false
   end
   # Restrict the exceptional divisors:
   # X > S <- Y0 < X0
-  @vprint :ellipticK3 2 "Pull back divisors to Y0\n"
+  @vprint :ellipticK3 2 "Pulling back divisors to Y0\n"
   # Pulling back the divisors to Y0 may introduce multiplicities
   exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
   divisors_res = [pullback(inc_Y0)(e) for e in divisors0]
@@ -191,7 +218,19 @@ false
   (x, y, t) = coordinates(S[1][1])
   fstar = pullback(f[Y0[1][1]])
   # |D| = | P + O + 1 F|
-  linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t), fstar(t)-1)
-  PonY, OonY, FonY = [WeilDivisor(i, ZZ,check=false) for i in divisors_res[1:3]]
-  D = OonY + PonY + FonY
+  linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t), fstar(t))
+  kY0 = parent(linsys[1])
+  linsys = [kY0(fstar(t),fstar(t)^0)*i for i in linsys]
+  PonY, OonY = [WeilDivisor(i, ZZ,check=false) for i in divisors_res[1:2]]
+  A1_0onY = WeilDivisor(divisors_res[4], ZZ, check=false)
+  A1_1onY = WeilDivisor(ExWeil[9], ZZ, check=false)
+  D = PonY + OonY + A1_0onY + A1_1onY
   L = linear_system(linsys, D, check=false)
+  #@test in_linear_system(gens(L)[1], D) #something is wrong
+  # the following should be a linear system of dimension 2 ... but its dimension is 4 ... something wrong again
+  Lnew, _ = subsystem(L, A1_1onY, 1)
+  # this seems wrong since the elements still seem to have poles in A1_1onY
+  # computing the order of a divisors here seems to flood memory instantly
+  [order_on_divisor(g, components(A1_1onY)[1]) for g in gens(Lnew)]
+
+
