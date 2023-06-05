@@ -3,23 +3,25 @@
 ########################################################
 
 @doc raw"""
-    algebraic_set(X::Spec; is_geometrically_reduced=false, check=true) -> AffineAlgebraicSet
+    algebraic_set(X::Spec; is_reduced=false, check=true) -> AffineAlgebraicSet
 
 Convert `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
-If `is_geometrically_reduced` is set, assume that `X` is already reduced.
-If `is_geometrically_reduced` and `check` are set, check that `X` is actually geometrically reduced as claimed.
+If `is_reduced` is set, assume that `X` is already reduced.
+If `is_reduced` and `check` are set,
+check that `X` is actually geometrically reduced as claimed.
 """
 function algebraic_set(X::Spec; is_reduced::Bool=false, check::Bool=true)
   return AffineAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
 @doc raw"""
-    algebraic_set(I::MPolyIdeal)
+    algebraic_set(I::MPolyIdeal; is_radical::Bool=false, check::Bool=true)
 
 Return the affine algebraic set defined ``I``.
 
-```jldoctest; is_radical::Bool=false, check::Bool=true
+If `is_radical` is set, assume that ``I`` is a radical ideal.
+```jldoctest
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
