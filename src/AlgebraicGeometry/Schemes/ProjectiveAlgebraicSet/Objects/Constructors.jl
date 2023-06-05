@@ -31,8 +31,7 @@ end
 @doc raw"""
     algebraic_set(I::MPolyIdeal{MPolyDecRingElem})
 
-Return the vanishing locus of the homogeneous ideal ``I`` as an algebraic set
-in projective space.
+Return the projrective algebraic set defined by the homogeneous ideal ``I``.
 
 ```jldoctest
 julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
@@ -55,7 +54,7 @@ end
 @doc raw"""
     algebraic_set(p::MPolyDecRingElem; check::Bool=true)
 
-Return the algebraic set defined by the homogeneous polynomial `p`.
+Return the projective algebraic set defined by the homogeneous polynomial `p`.
 """
 algebraic_set(p::MPolyDecRingElem; is_radical::Bool=false, check::Bool=true) = algebraic_set(ideal(parent(p),p), is_radical=is_radical, check=check)
 

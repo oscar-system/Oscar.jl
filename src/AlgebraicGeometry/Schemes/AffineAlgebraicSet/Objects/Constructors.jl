@@ -25,9 +25,9 @@ If `is_radical` is set, assume that ``I`` is a radical ideal.
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
-Vanishing locus
+Affine algebraic set
   in Affine 2-space over GF(2)
-  of ideal(x, y^2 + y + 1)
+  defined by ideal(x^3 + y^2 + y + 1, x)
 
 ```
 """
