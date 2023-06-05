@@ -346,11 +346,12 @@ end
 is_irreducible(D) = is_prime(D)
 
 function order_on_divisor(
-    f::WeilDivisor,
+    f::VarietyFunctionFieldElem,
     D::WeilDivisor;
     check::Bool=true
   )
   @check is_prime(D) || error("divisor must be prime")
+  I = components(D)[1]
   return order_on_divisor(f, I, check=false)
 end
 
