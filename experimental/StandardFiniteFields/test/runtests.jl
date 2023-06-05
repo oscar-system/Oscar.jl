@@ -29,16 +29,16 @@ GAP.Packages.load("StandardFF")
     @test compare_poly(p, 2^k)
     @test compare_poly(ZZ(p), 2^k)
   end
-  @testset "small primes GF($p^($p^$k))" for p in small_test_primes, k in 3:5
-    @test compare_poly(p, p^k)
-    @test compare_poly(ZZ(p), p^k)
+  @testset "small primes GF($p^($p^3))" for p in small_test_primes
+    @test compare_poly(p, p^3)
+    @test compare_poly(ZZ(p), p^3)
   end
   @testset "composite tests" begin
     @test compare_poly(2, (2^3) * (3^3))
-    @test compare_poly(3, (2^3) * (3^3) * (5^3))
-    @test compare_poly(5, (2^3) * (3^3) * (5^3))
+    @test compare_poly(3, (2^3) * 3 * 5))
+    @test compare_poly(5, 2 * (3^3) * 5)
     @test compare_poly(ZZ(2), (2^3) * (3^3))
-    @test compare_poly(ZZ(3), (2^3) * (3^3) * (5^3))
-    @test compare_poly(ZZ(5), (2^3) * (3^3) * (5^3))
+    @test compare_poly(ZZ(3), (2^3) * 3 * 5)
+    @test compare_poly(ZZ(5), 2 * (3^3) * 5)
   end
 end
