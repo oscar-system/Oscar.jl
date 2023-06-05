@@ -82,7 +82,7 @@ julia> A2 = affine_space(QQ, [:x,:y]);
 
 julia> (x, y) = coordinates(A2);
 
-julia> I = ideal(x^2, y);
+julia> I = ideal([x^2, y]);
 
 julia> X = algebraic_set(I);
 
