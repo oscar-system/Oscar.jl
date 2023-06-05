@@ -1,4 +1,4 @@
 ################################################################################
-# Avoid computing the reduced structure by using the overlying_scheme
+# Avoid computing the reduced structure by using the fat_scheme
 ################################################################################
 

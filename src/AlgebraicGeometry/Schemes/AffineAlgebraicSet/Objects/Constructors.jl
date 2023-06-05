@@ -5,7 +5,7 @@
 @doc raw"""
     algebraic_set(X::Spec; is_geometrically_reduced=false, check=true) -> AffineAlgebraicSet
 
-Convert the `X` to an `AffineAlgebraicSet` by considering its reduced structure.
+Convert `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
 If `is_geometrically_reduced` is set, assume that `X` is already reduced.
 If `is_geometrically_reduced` and `check` are set, check that `X` is actually geometrically reduced as claimed.

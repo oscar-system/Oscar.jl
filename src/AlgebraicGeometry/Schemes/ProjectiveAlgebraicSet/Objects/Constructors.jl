@@ -29,7 +29,7 @@ function algebraic_set(X::AbsProjectiveScheme; is_reduced::Bool=false, check::Bo
 end
 
 @doc raw"""
-    (I::MPolyIdeal{MPolyDecRingElem})
+    algebraic_set(I::MPolyIdeal{MPolyDecRingElem})
 
 Return the vanishing locus of the homogeneous ideal ``I`` as an algebraic set
 in projective space.

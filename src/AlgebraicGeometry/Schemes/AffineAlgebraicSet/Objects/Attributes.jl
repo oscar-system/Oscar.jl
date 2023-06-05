@@ -25,8 +25,13 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
     return X.Xred
   end
   # avoid constructing a morphism
-  I = ambient_closure_ideal(fat_scheme(X))
-  Irad = radical(I)
+  F = fat_scheme(X)
+  I = ambient_closure_ideal(F)
+  if has_attribute(F, :is_reduced) && is_reduced(F)
+      Irad = I
+  else
+    Irad = radical(I)
+  end
   X.Xred = Spec(base_ring(Irad), Irad)
   return X.Xred
 end
@@ -57,10 +62,11 @@ end
 @doc raw"""
     vanishing_ideal(X::AbsAffineAlgebraicSet) -> Ideal
 
-Return the radical ideal of all polynomials vanishing in ``X``.
+Return the ideal of all polynomials vanishing in ``X``.
 
+By Hilbert's Nullstellensatz this is a radical ideal.
 !!! note
-    This involves the computation of a radical which is expensive.
+    This triggers the computation of a radical, which is expensive.
 """
 vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
 

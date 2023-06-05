@@ -20,7 +20,7 @@ If $k \subseteq K$ is any field extension, we denote the set of $K$-points of $X
 $$\begin{aligned}X(K) &= \{ P \in \mathbb{A}^n(K) \mid f_1(P)=\dots = f_n(P)=0\}\\&=\{P \in \mathbb{A}^n(K) \mid \forall f\in I : f(P)=0\}.\end{aligned}$$
 
 Most properties of the algebraic set $X$ refer to $X(K)$ where $K$ is an
-algebraically closed field. For instance `is_empty` returns if $X(K) = \emptyset$.
+algebraically closed field. For instance `is_empty` returns whether $X(K) = \emptyset$.
 
 Exceptions to the rule, that we refer to $X(K)$, are documented in the respective methods.
 For example the property of being irreducible depends on $k$:
@@ -37,8 +37,8 @@ extension $K$ of $k$. Then in a second step one studies $X(k)$ as a subset of $X
 
 The first step involves calculations with ideals.
 For instance Hilbert's Nullstellensatz implies that $X(K)$ is empty
-if and only if the ideal $I=(1)$. This is decided by computing a
-Gröbner basis of $I$ and is carried out in $k[x_1,\dots x_n]$
+if and only if the ideal $I=(1)$. This is decided by an ideal membership test relying on a
+Gröbner basis computation of $I$ and can be carried out in $k[x_1,\dots x_n]$
 without taking any field extensions.
 
 The second step involves methods from number theory (if $k$ is a number field)
@@ -49,7 +49,7 @@ Most of their properfties should be interpreted as properties
 of the set $X(K)$ of their $K$-points over an algebraic closure $K$.
 
 ## Relation to Schemes
-One may a view an (affine) algebraic set as a geometrically reduced (affine)
+One may view an (affine) algebraic set as a geometrically reduced (affine)
 scheme over a field $k$.
 
 Many constructions involving varieties lead naturally to schemes.
@@ -71,7 +71,7 @@ For example `algebraic_set(intersection(X, Y))`
 is equivalent to `set_theoretic_intersection(X, Y)`.
 
 Internally an `AffineAlgebraicSet` is constructed from a possibly
-non-reduced affine scheme which we call the `fat_scheme` of `X`.
+non-reduced affine scheme, which we call the `fat_scheme` of `X` as opposed to the `reduced_scheme` of `X` which we refer to as the `underlying_scheme`.
 ```@docs
 fat_ideal(X::AffineAlgebraicSet{<:Field})
 fat_scheme(X::AffineAlgebraicSet)

@@ -27,14 +27,14 @@ end
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
   io = pretty(io)
   println(io, "Reduced subscheme")  # at least one new line is needed
-  print(io, Indent(),"of ", Lowercase(), overlying_scheme(X))
+  print(io, Indent(),"of ", Lowercase(), fat_scheme(X))
   print(io, Dedent())
   # the last print statement must not add a new line
 end
 
 function Base.show(io::IO, X::AffineAlgebraicSet)
   io = pretty(io)
-  println(io, "Reduced subscheme of ", Lowercase(), "overlying_scheme(X)")  # at least one new line is needed
+  println(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))  # at least one new line is needed
   # the last print statement must not add a new line
 end
 

@@ -490,27 +490,31 @@ with coordinates
 ```
 """
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
   Xred, inc = domain(inc), inc
   set_attribute!(Xred, :is_reduced=>true)
   return Xred, inc
-  return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   J = radical(modulus(OO(X)))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
   Xred, inc = domain(inc), inc
   set_attribute!(Xred, :is_reduced=>true)
   return Xred, inc
-  return Spec(base_ring(J), J)
 end
 
 ## to make reduced_scheme agnostic for quotient ring
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
-  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
 function reduced_scheme(X::AbsSpec)

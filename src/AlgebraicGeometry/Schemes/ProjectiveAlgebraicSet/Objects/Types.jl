@@ -10,8 +10,8 @@
       Y.Xred = X
     else
       # unlock the scheme methods for geometrically reduced schemes.
-      set_attribute!(X, :is_geometrically_reduced, true)
-      set_attribute!(X, :is_reduced, true)
+      set_attribute!(Y, :is_geometrically_reduced, true)
+      set_attribute!(Y, :is_reduced, true)
     end
     return Y
   end

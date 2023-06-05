@@ -10,10 +10,11 @@ using Oscar
 An affine variety is an algebraic set such that $X(K)$ is irreducible for $k \subseteq K$ an algebraic closure.
 See [Affine Algebraic Sets](@ref).
 
-In Oscar varieties are schemes as well [Affine schemes](@ref) and more formally defined as follows.
+In Oscar varieties are implemented as special instances of [Affine schemes](@ref) and more formally defined as follows.
 ```@docs
 AbsAffineVariety
 ```
+Functionality which is not (yet) provided by a variety-specific implementation, falls back to the appropriate functionality of schemes.
 
 ## Constructors
 ```@docs
