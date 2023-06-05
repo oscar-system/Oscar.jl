@@ -231,6 +231,6 @@ false
   Lnew, _ = subsystem(L, A1_1onY, 1)
   # this seems wrong since the elements still seem to have poles in A1_1onY
   # computing the order of a divisors here seems to flood memory instantly
-  [order_on_divisor(g, components(A1_1onY)[1]) for g in gens(Lnew)]
+  [order_on_divisor(g, A1_1onY for g in gens(Lnew)]
 
 
