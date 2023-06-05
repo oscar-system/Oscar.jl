@@ -35,7 +35,7 @@ GAP.Packages.load("StandardFF")
   end
   @testset "composite tests" begin
     @test compare_poly(2, (2^3) * (3^3))
-    @test compare_poly(3, (2^3) * 3 * 5))
+    @test compare_poly(3, (2^3) * 3 * 5)
     @test compare_poly(5, 2 * (3^3) * 5)
     @test compare_poly(ZZ(2), (2^3) * (3^3))
     @test compare_poly(ZZ(3), (2^3) * 3 * 5)
