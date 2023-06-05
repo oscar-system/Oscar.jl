@@ -1966,3 +1966,23 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
+
+function vector_space(kk::Field, W::MPolyQuoLocRing;
+    ordering::MonomialOrdering=degrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_sat = saturated_ideal(modulus(W))::MPolyIdeal
+  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  o = ordering
+  # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
+  A, pr = quo(R, I_sat) 
+  f = hom(W, A, gens(A))
+  g = hom(A, W, gens(W))
+  set_attribute!(f, :inverse, g)
+  set_attribute!(g, :inverse, f)
+  V, id = vector_space(kk, A)
+  return V, MapFromFunc(v->g(id(v)), a->preimage(id, f(a)), V, W)
+end
+
