@@ -64,3 +64,40 @@ end
   @test order(preimage(q[2], c)) == 6
 end
 
+@testset "GlobalFundClass" begin
+  k, a = quadratic_field(-101)
+  H = hilbert_class_field(k)
+  G, _ = galois_group(H, QQ)
+  @test describe(G) == "D28"
+
+  r = ray_class_field(49*maximal_order(k), n_quo = 7)
+  G, _ = galois_group(r, QQ)
+  @test describe(G) == "C7 x D14"
+
+  lp = collect(keys(factor(7*maximal_order(k))))
+  s = ray_class_field(lp[1])
+  G, _ = galois_group(s, QQ)
+  @test describe(G) == "C6 x D42"
+
+  @test degree(normal_closure(s)) == 126
+end
+
+@testset "BrauerGroup" begin
+  G = transitive_group(24, 201)
+  T = character_table(G)
+  R = gmodule(T[9])
+  S = gmodule(CyclotomicField, R)
+
+  @test schur_index(T[9]) == 2
+
+  B, mB = relative_brauer_group(base_ring(S), character_field(S))
+  b = B(S)
+
+  C = grunwald_wang(Dict(2*ZZ => 2), Dict(complex_embeddings(QQ)[1] => 2))
+  @test degree(C) == 2
+  K, m1, m2 = compositum(base_ring(S), absolute_simple_field(number_field(C))[1])
+
+  SS = Oscar.GModuleFromGap.gmodule_over(m2, gmodule(K, S))
+
+  @test degree(base_ring(SS)) == 2
+end
