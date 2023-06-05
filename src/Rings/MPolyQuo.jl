@@ -1066,7 +1066,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   # The inverse function. We use the fact that for a chosen monomial ordering 
   # the monomials which are not in the leading ideal, form a basis for the 
   # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
-  function prim(a::MPolyQuoElem)
+  function prim(a::MPolyQuoRingElem)
     @assert parent(a) === Q
     b = lift(a)::MPolyElem
     o = default_ordering(R)
