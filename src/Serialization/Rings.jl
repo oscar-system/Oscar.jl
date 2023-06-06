@@ -238,19 +238,16 @@ end
 
 function save_internal(s::SerializerState, I::MPolyIdeal)
     generators = gens(I)
-    parent_ring = save_type_dispatch(s, base_ring(I))
 
     return Dict(
-        :parent => parent_ring,
         :gens => save_type_dispatch(s, generators),
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
-    parent_ring = load_unknown_type(s, dict[:parent])
     gens = load_type_dispatch(s, Vector, dict[:gens])
 
-    return ideal(parent_ring, gens)
+    return ideal(parent(gens[1]), gens)
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -268,7 +265,7 @@ end
 
 function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(parent(m))),
+        :base_ring => save_as_ref(s, base_ring(parent(m))),
         :matrix => save_type_dispatch(s, Array(m)),
     )
 end
@@ -276,7 +273,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict)
-    entries_ring = load_unknown_type(s, dict[:base_ring])
+    entries_ring = load_ref(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix]; parent=entries_ring)
 
     return matrix(entries_ring, mat)

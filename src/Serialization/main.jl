@@ -80,7 +80,7 @@ end
 macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
     return registerSerializationType(ex, uses_id, str)
 end
-    
+
 
 function encodeType(::Type{T}) where T
     error("unsupported type '$T' for encoding")
@@ -146,27 +146,45 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ################################################################################
 # High level
+
+function load_ref(s::DeserializerState, dict::Dict)
+    if !haskey(dict, :id)
+        return load_unknown_type(s, dict)
+    end
+
+    id = dict[:id]
+
+    if haskey(s.objs, UUID(id))
+        loaded_ref = s.objs[UUID(id)]
+    else
+        ref_dict = s.refs[Symbol(id)]
+        ref_dict[:id] = id
+        loaded_ref = load_unknown_type(s, ref_dict)
+    end
+    return loaded_ref
+end
+
 function save_as_ref(s::SerializerState, obj::T) where T
-    if is_basic_serialization_type(T) && s.depth != 0
-        return save_internal(s, obj)
+    if has_elem_basic_encoding(obj) && s.depth != 0
+        return save_type_dispatch(s, obj)
     end
 
     # find ref or create one
     ref = get(s.objmap, obj, nothing)
-    if ref  !== nothing
+    if ref !== nothing
         return Dict{Symbol, Any}(
             :type => backref_sym,
             :id => string(ref),
         )
     end
-    
+
     ref = s.objmap[obj] = uuid4()
     result = Dict{Symbol, Any}(:type => encodeType(T))
 
     if Base.issingletontype(T)
         return result
     end
-    
+
     # invoke the actual serializer
     result[:data] = save_internal(s, obj)
     s.refs[Symbol(ref)] = result
@@ -183,27 +201,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     if s.depth != 0 && has_basic_encoding(obj)
         return save_internal(s, obj)
     end
-
-    if !isprimitivetype(T) && !Base.issingletontype(T) && serialize_with_id(obj)
-        # if obj is already serialized, just output
-        # a backref
-        ref = get(s.objmap, obj, nothing)
-        if ref !== nothing
-            return Dict{Symbol, Any}(
-              :type => backref_sym,
-              :id => string(ref),
-              )
-        end
-        # otherwise,
-        ref = s.objmap[obj] = uuid4()
-    else
-        ref = nothing
-    end
-
     result = Dict{Symbol, Any}(:type => encodeType(T))
-    if ref !== nothing
-        result[:id] = string(ref)
-    end
+
     if !Base.issingletontype(T)
         s.depth += 1
         # invoke the actual serializer
@@ -305,18 +304,11 @@ end
 # Utility functions for parent tree
 
 # loads parent tree
-function load_parents(s::DeserializerState, parents::Vector)
-    parent_ids = [parent[:id] for parent in parents]
+function load_parents(s::DeserializerState, parent_dicts::Vector)
     loaded_parents = []
-    
-    for id in parent_ids
-        if haskey(s.objs, UUID(id))
-            loaded_parent = s.objs[UUID(id)]
-        else
-            parent_dict = s.refs[Symbol(id)]
-            parent_dict[:id] = id
-            loaded_parent = load_unknown_type(s, parent_dict)
-        end            
+
+    for parent_dict in parent_dicts
+        loaded_parent = load_ref(s, parent_dict)
         push!(loaded_parents, loaded_parent)
     end
     return loaded_parents
@@ -461,7 +453,7 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     if haskey(jsondict, :refs)
         merge!(state.refs, jsondict[:refs])
     end
-    
+
     if type !== nothing
         return load_type_dispatch(state, type, jsondict; parent=parent)
     end

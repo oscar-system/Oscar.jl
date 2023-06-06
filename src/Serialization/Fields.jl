@@ -350,14 +350,14 @@ end
 
 function save_internal(s::SerializerState, K::FracField)
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(K)),
+        :base_ring => save_as_ref(s, base_ring(K)),
     )
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R = load_unknown_type(s, dict[:base_ring])
+    R = load_ref(s, dict[:base_ring])
 
     return fraction_field(R, cached=false)
 end

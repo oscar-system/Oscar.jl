@@ -6,13 +6,13 @@
 
 function save_internal(s::SerializerState, V::Hecke.QuadSpace)
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(V)),
+        :base_ring => save_as_ref(s, base_ring(V)),
         :gram_matrix => save_type_dispatch(s, gram_matrix(V))
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: Hecke.QuadSpace}, dict::Dict)
-    F = load_unknown_type(s, dict[:base_ring])
+    F = load_ref(s, dict[:base_ring])
     gram = load_type_dispatch(s, MatElem, dict[:gram_matrix])
     @assert base_ring(gram)===F
     return quadratic_space(F, gram)
