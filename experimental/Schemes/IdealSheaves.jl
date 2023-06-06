@@ -702,7 +702,7 @@ end
 function match_on_intersections(
       X::AbsCoveredScheme,
       U::AbsSpec,
-      I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
+      I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
       associated_list::Vector{IdDict{AbsSpec,Ideal}},
       check::Bool=true)
 
