@@ -692,7 +692,6 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   t_j = gen(T, j)
   AW = affine_charts(Oscar.covered_scheme(UD))[i]
   BW = affine_charts(Oscar.covered_scheme(VD))[j]
-
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
@@ -725,12 +724,12 @@ function _compute_glueing(gd::ProjectiveGlueingData)
 
   xh = homogenization_map(UD, AW).(OO(AW).(x))
   yh = homogenization_map(VD, BW).(OO(BW).(y))
-
   xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
   yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
 
   phi = dehomogenization_map(VD, BW)
   psi = dehomogenization_map(UD, AW) 
+
   yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
   ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
   ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
