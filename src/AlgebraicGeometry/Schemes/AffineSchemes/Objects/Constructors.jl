@@ -647,8 +647,8 @@ end
 
 
 function closure(
-    X::Spec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
-    Y::Spec{BRT, <:MPolyAnyRing};
+    X::AbsSpec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
+    Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
@@ -656,8 +656,8 @@ function closure(
 end
 
 function closure(
-    X::Spec{BRT, <:MPolyLocRing},
-    Y::Spec{BRT, <:MPolyAnyRing};
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
@@ -665,8 +665,8 @@ function closure(
 end
 
 function closure(
-    X::Spec{BRT, <:MPolyLocRing},
-    Y::Spec{BRT, <:MPolyLocRing};
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
@@ -675,8 +675,8 @@ end
 
 
 function closure(
-    X::Spec{BRT, <:MPolyQuoLocRing},
-    Y::Spec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
@@ -685,8 +685,8 @@ function closure(
 end
 
 function closure(
-    X::Spec{BRT, <:MPolyQuoLocRing},
-    Y::Spec{BRT, <:MPolyLocRing};
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
@@ -696,8 +696,8 @@ function closure(
 end
 
 function closure(
-    X::Spec{BRT, RT},
-    Y::Spec{BRT, RT};
+    X::AbsSpec{BRT, RT},
+    Y::AbsSpec{BRT, RT};
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}

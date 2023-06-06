@@ -1969,3 +1969,18 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
+
+
+# diasambiguate some conversions
+# ... but this needs to be after some type declarations... so here it is
+function (W::MPolyDecRing)(f::MPolyQuoRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyQuoLocRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyLocRingElem)
+  return W(forget_decoration(W)(f))
+end

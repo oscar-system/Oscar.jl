@@ -107,14 +107,16 @@ over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjective
 """
 mutable struct ProjectiveGlueing{
                                  GlueingType<:AbsGlueing,
-                                 IsoType<:ProjectiveSchemeMor,
-                                 IncType<:ProjectiveSchemeMor
+                                 IsoType1<:ProjectiveSchemeMor,
+                                 IncType1<:ProjectiveSchemeMor,
+                                 IsoType2<:ProjectiveSchemeMor,
+                                 IncType2<:ProjectiveSchemeMor,
                                 } <: AbsProjectiveGlueing{GlueingType}
   G::GlueingType # the underlying glueing of the base schemes
-  inc_to_P::IncType
-  inc_to_Q::IncType
-  f::IsoType
-  g::IsoType
+  inc_to_P::IncType1
+  inc_to_Q::IncType2
+  f::IsoType1
+  g::IsoType2
 
   ### 
   # Given two relative projective schemes and a glueing 
@@ -128,10 +130,10 @@ mutable struct ProjectiveGlueing{
   # and isomorphisms over the glueing G in the base schemes.
   function ProjectiveGlueing(
       G::GlueingType, 
-      incP::IncType, incQ::IncType,
-      f::IsoType, g::IsoType;
+      incP::IncType1, incQ::IncType2,
+      f::IsoType1, g::IsoType2;
       check::Bool=true
-    ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
+    ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
     (fb, gb) = glueing_morphisms(G)
@@ -156,15 +158,16 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
-    return new{GlueingType, IsoType, IncType}(G, incP, incQ, f, g)
+    return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end
 
 ### type getters
-
+#=
+TODO: Do we need these?
 glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
 glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
-
+=#
 ### essential getters
 
 base_glueing(PG::ProjectiveGlueing) = PG.G
