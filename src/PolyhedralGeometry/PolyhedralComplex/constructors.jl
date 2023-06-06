@@ -77,7 +77,7 @@ function polyhedral_complex(::Type{T},
                 L::Union{AbstractCollection[RayVector], Nothing} = nothing;
                 non_redundant::Bool = false
             ) where T<:scalar_types
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(vr, 2)) : L
 
     # Rays and Points are homogenized and combined and
     points = homogenize(vr, 1)
@@ -90,13 +90,13 @@ function polyhedral_complex(::Type{T},
     lineality = homogenize(LM, 0)
 
     if non_redundant
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(
             VERTICES = points,
             LINEALITY_SPACE = lineality,
             MAXIMAL_CONES = polyhedra,
         ))
     else
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(
             POINTS = points,
             INPUT_LINEALITY = lineality,
             INPUT_CONES = polyhedra,

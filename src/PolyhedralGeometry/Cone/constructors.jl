@@ -59,13 +59,13 @@ Polyhedral cone in ambient dimension 2
 function positive_hull(::Type{T}, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     inputrays = remove_zero_rows(unhomogenized_matrix(R))
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, _ambient_dim(R))
+        L = Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, _ambient_dim(R))
     end
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),))
+        return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),))
+        return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),))
     end
 end
 # Redirect everything to the above constructor, use QQFieldElem as default for the
@@ -108,12 +108,12 @@ julia> rays(C)
 """
 function cone_from_inequalities(::Type{T}, I::AbstractCollection[LinearHalfspace], E::Union{Nothing, AbstractCollection[LinearHyperplane]} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(FACETS = IM, LINEAR_SPAN = EM))
+        return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
 
@@ -142,7 +142,7 @@ julia> dim(C)
 """
 function cone_from_equations(s::Type{T}, E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) where T<:scalar_types
     EM = linear_matrix_for_polymake(E)
-    IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+    IM = Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(EM, 2))
     return cone_from_inequalities(s, IM, EM; non_redundant = non_redundant)
 end
 

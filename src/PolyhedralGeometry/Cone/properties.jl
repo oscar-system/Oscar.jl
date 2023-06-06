@@ -148,7 +148,7 @@ function faces(C::Cone{T}, face_dim::Int) where T<:scalar_types
 end
 
 function _face_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer; f_dim::Int = 0) where T<:scalar_types
-   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+   return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
 function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
@@ -157,7 +157,7 @@ function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
 end
 
 function _face_cone_facet(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
-   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+   return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
 _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS

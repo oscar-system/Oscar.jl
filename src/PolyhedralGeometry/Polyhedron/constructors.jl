@@ -97,13 +97,13 @@ julia> vertices(P)
 function polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
-        IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+        IM = Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(EM, 2))
     else
         IM = -affine_matrix_for_polymake(I)
-        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
     end
 
-    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
+    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
 end
 
 """
@@ -192,9 +192,9 @@ function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{Abs
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
     if non_redundant
-        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = points, LINEALITY_SPACE = lineality))
+        return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
-        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
+        return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
     end
 end
 

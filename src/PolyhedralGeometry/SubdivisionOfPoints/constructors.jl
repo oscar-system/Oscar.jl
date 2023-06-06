@@ -48,7 +48,7 @@ Subdivision of points in ambient dimension 3
 """
 function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(T)}(
       POINTS = homogenize(points,1),
       MAXIMAL_CELLS = arr,
    ))
@@ -81,7 +81,7 @@ julia> n_maximal_cells(SOP)
 ```
 """
 function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(T)}(
       POINTS = homogenize(points,1),
       WEIGHTS = weights,
    ))

@@ -1,18 +1,25 @@
 ################################################################################
 ######## Scalar types
 ################################################################################
-const scalar_types = Union{QQFieldElem, nf_elem, Float64}
+const scalar_types = Union{QQFieldElem, nf_elem, Float64, FieldElem}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
                                 ("QuadraticExtension<Rational>", nf_elem),
                                 ("Float", Float64)])
 
-const scalar_type_to_polymake = Dict{Type, Type}([(QQFieldElem, Polymake.Rational),
-                                    (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
-                                    (Union{QQFieldElem, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
-                                    (Float64, Float64)])
+# const scalar_type_to_polymake = Dict{Type, Type}([(QQFieldElem, Polymake.Rational),
+#                                     (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
+#                                     (Union{QQFieldElem, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
+#                                     (FieldElem, Polymake.OscarNumber),
+#                                     (Float64, Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
+
+_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{nf_elem}) = Polymake.QuadraticExtension{Polymake.Rational}
+_scalar_type_to_polymake(::Type{Union{QQFieldElem, nf_elem}}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{Float64}) = Float64
 
 ################################################################################
 ######## Vector types
@@ -364,7 +371,7 @@ for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
         function $M(::Val{_empty_access}, P::Polymake.BigObject; homogenized=false)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + homogenized)
         end
     end
@@ -383,7 +390,7 @@ for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
         function $M(::Val{_empty_access}, P::Polymake.BigObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
         end
     end
@@ -395,7 +402,7 @@ for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
         function $M(::Val{_empty_access}, P::Polymake.BigObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
         end
     end

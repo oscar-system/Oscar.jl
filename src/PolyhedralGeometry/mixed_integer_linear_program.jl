@@ -27,7 +27,7 @@ function mixed_integer_linear_program(P::Polyhedron{T}, objective::AbstractVecto
       integer_variables = 1:ambDim
    end
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   milp = Polymake.polytope.MixedIntegerLinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables))
+   milp = Polymake.polytope.MixedIntegerLinearProgram{_scalar_type_to_polymake(T)}(LINEAR_OBJECTIVE=homogenize(objective, k), INTEGER_VARIABLES=Vector(integer_variables))
    if convention == :max
       Polymake.attach(milp, "convention", "max")
    elseif convention == :min

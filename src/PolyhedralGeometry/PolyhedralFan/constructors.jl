@@ -71,18 +71,18 @@ function polyhedral_fan(::Type{T},
                           non_redundant::Bool = false) where T<:scalar_types
   RM = unhomogenized_matrix(Rays)
   if isnothing(LS)
-    LM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(RM, 2))
+    LM = Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(RM, 2))
   else
     LM = unhomogenized_matrix(LS)
   end
   if non_redundant
-    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
       RAYS = RM,
       LINEALITY_SPACE = LM,
       MAXIMAL_CONES = Incidence,
     ))
   else
-    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
       INPUT_RAYS = RM,
       INPUT_LINEALITY = LM,
       INPUT_CONES = Incidence,

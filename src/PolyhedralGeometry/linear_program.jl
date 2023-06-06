@@ -23,7 +23,7 @@ function linear_program(P::Polyhedron{T}, objective::AbstractVector; k = 0, conv
    end
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   lp = Polymake.polytope.LinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k))
+   lp = Polymake.polytope.LinearProgram{_scalar_type_to_polymake(T)}(LINEAR_OBJECTIVE=homogenize(objective, k))
    if convention == :max
       Polymake.attach(lp, "convention", "max")
    elseif convention == :min
