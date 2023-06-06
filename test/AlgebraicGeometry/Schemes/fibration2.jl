@@ -16,6 +16,7 @@ false
   k = GF(29)
   IP1 = projective_space(k, ["s", "t"])
 
+
   O0 = twisting_sheaf(IP1, 0)
   O4 = twisting_sheaf(IP1, -4)
   O6 = twisting_sheaf(IP1, -6)
@@ -231,6 +232,15 @@ false
   Lnew, _ = subsystem(L, A1_1onY, 1)
   # this seems wrong since the elements still seem to have poles in A1_1onY
   # computing the order of a divisors here seems to flood memory instantly
-  [order_on_divisor(g, A1_1onY for g in gens(Lnew)]
+  [order_on_divisor(g, A1_1onY) for g in gens(Lnew)]
+  tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
 
-
+  (x,y,t) = coordinates(S[1][1])
+  Ut = hypersurface_complement(S[1][1],t)
+  Vt = hypersurface_complement(Y0[1][1],fstar(t))
+  fres = restrict(f[Y0[1][1]], Vt, Ut)
+  fresinv = inverse(fres)
+  fresinvstar = pullback(fresinv)
+  n = lifted_numerator(fresinvstar(numerator(tt)))
+  d = lifted_numerator(fresinvstar(denominator(tt)))
+  n//d
