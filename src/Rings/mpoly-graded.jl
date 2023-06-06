@@ -570,7 +570,7 @@ parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, paren
 
 ### Coercion of elements of the underlying polynomial ring 
 # into the graded ring. 
-function (W::MPolyDecRing{S, T})(f::U) where {S, T, U}
+function (W::MPolyDecRing{S, T})(f::U) where {S, T, U<:MPolyRingElem}
   if parent_type(U) === T
     @assert forget_decoration(W) === parent(f)
     return MPolyDecRingElem(f, W)
@@ -578,6 +578,11 @@ function (W::MPolyDecRing{S, T})(f::U) where {S, T, U}
     return W(forget_decoration(W)(f))
   end
 end
+
+function (W::MPolyDecRing)(f)
+  return W(forget_decoration(W)(f))
+end
+
 
 function (W::MPolyDecRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
   return W(forget_decoration(W)(c, e))
