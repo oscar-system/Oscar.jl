@@ -149,6 +149,9 @@ end
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
+
+    # currently we get parent(defining_polynomial(K)) == parent(defining_polynomial(K)) = false
+    # which leads to duplicate refs in the refs section of the file (not in the parent list)
     poly_dict = save_internal(s, polynomial)
     parents = poly_dict[:parents]
     push!(parents, save_as_ref(s, K))
