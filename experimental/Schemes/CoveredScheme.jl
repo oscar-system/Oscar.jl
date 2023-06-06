@@ -100,6 +100,46 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, RT}) where {CRT<:Field, RT<:MPolyRing}
+  kk = base_ring(X)
+  S = ambient_coordinate_ring(X)
+  r = relative_ambient_dimension(X)
+  U = Vector{AbsSpec}()
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
+  s = symbols(S)
+  for i in 0:r
+    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    push!(U, Spec(R))
+  end
+  result = Covering(U)
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(OO(U[i]))
+      y = gens(OO(U[j]))
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      f = SpecMor(Ui, Uj,
+                      vcat([x[k]//x[j-1] for k in 1:i-1],
+                           [1//x[j-1]],
+                           [x[k-1]//x[j-1] for k in i+1:j-1],
+                           [x[k]//x[j-1] for k in j:r],
+                           x[r+1:end]),
+                      check=false
+                     )
+      g = SpecMor(Uj, Ui,
+                      vcat([y[k]//y[i] for k in 1:i-1],
+                           [y[k+1]//y[i] for k in i:j-2],
+                           [1//y[i]],
+                           [y[k]//y[i] for k in j:r],
+                           y[r+1:end]),
+                      check=false
+                     )
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+    end
+  end
+  return result
+end
+
 @attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX, _ = affine_cone(X)
   kk = base_ring(X)

@@ -294,3 +294,9 @@ end
   @test is_geometrically_reduced(Y)
 end
 
+@testset "simple projective spaces" begin
+  # Make sure we don't find complicated qoutient rings if not necessary
+  P = projective_space(QQ, 1)
+  X = covered_scheme(P)
+  @test all(U->(OO(U) isa MPolyRing), affine_charts(X))
+end
