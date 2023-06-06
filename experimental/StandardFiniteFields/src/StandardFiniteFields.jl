@@ -165,7 +165,7 @@ function non_rth_root(F::FinField, r::IntegerUnion)
   if iszero(mod(q - 1, r))
     i = 0
     a = zero(F)
-    k = div(q - 1, r)
+    k = divexact(q - 1, r)
     while iszero(a) || isone(a^k)
       i += 1
       a = element_from_steinitz_number(F, standard_affine_shift(q, i))
@@ -233,7 +233,7 @@ function steinitz_number_for_prime_degree(p::IntegerUnion, r::IntegerUnion, k::I
       # k = 1 we get [(Xr[1])^p - (Xr[1]) -1]
       # k > 1 we get (Xr[k])^p - (Xr[k]) - (prod(Xr[j] : j in [1..k-1]))^(p-1))
       q = ZZ(p)^(p^(k - 1))
-      return (p - 1) * (q + div(q, p))
+      return (p - 1) * (q + divexact(q, p))
     elseif r == 2 && mod(p, 4) == 3
       if k == 1
         # (Xr[1])^2 +1
@@ -304,7 +304,7 @@ function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   end
   # need the largest prime factor a of n
   a, k = largest_factor(n)
-  res = standard_monomial_degrees(div(n, a))
+  res = standard_monomial_degrees(divexact(n, a))
   m = a^k
   new = map(x -> lcm(x, m), res)
   for i in 1:a-1
@@ -483,7 +483,7 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
     l = digits(stn, base = BigInt(q1))
     c = map(y -> element_from_steinitz_number(K, embed_steinitz(p, n1, nK, y)), l)
 
-    d = div(nK, n1)
+    d = divexact(nK, n1)
     b = element_from_steinitz_number(
       K,
       p^(findfirst(x -> x == d, standard_monomial_degrees(nK)) - 1),
