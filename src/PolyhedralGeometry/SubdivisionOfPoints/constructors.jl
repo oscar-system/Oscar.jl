@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-struct SubdivisionOfPoints{T}
+struct SubdivisionOfPoints{T} <: PolyhedralObject{T}
    pm_subdivision::Polymake.BigObject
 
    SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)

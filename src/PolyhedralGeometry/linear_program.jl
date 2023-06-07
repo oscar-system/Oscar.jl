@@ -1,4 +1,4 @@
-struct LinearProgram{T}
+struct LinearProgram{T} <: PolyhedralObject{T}
    feasible_region::Polyhedron{T}
    polymake_lp::Polymake.BigObject
    convention::Symbol

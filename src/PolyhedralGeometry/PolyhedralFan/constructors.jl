@@ -9,7 +9,7 @@
 # used like polyhedral fans without duplicating too much code, concretely we
 # want to be able to directly access rays, maximal_cones, etc for
 # NormalToricVariety's.
-abstract type _FanLikeType{T} end
+abstract type _FanLikeType{T} <: PolyhedralObject{T} end
 
 struct PolyhedralFan{T} <:_FanLikeType{T}
    pm_fan::Polymake.BigObject

@@ -7,7 +7,7 @@
 #TODO: have cone accept exterior description and reserve positive  hull for
 #interior description?
 
-struct Cone{T} #a real polymake polyhedron
+struct Cone{T} <: PolyhedralObject{T} #a real polymake polyhedron
     pm_cone::Polymake.BigObject
     
     # only allowing scalar_types;

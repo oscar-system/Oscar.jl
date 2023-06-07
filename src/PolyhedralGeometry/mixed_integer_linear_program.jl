@@ -1,4 +1,4 @@
-struct MixedIntegerLinearProgram{T}
+struct MixedIntegerLinearProgram{T} <: PolyhedralObject{T}
    feasible_region::Polyhedron{T}
    polymake_milp::Polymake.BigObject
    convention::Symbol

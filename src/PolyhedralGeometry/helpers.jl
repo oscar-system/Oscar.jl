@@ -200,6 +200,7 @@ Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(
 Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymake.unwrap(x))
 
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
+(F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
 Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.Rational}

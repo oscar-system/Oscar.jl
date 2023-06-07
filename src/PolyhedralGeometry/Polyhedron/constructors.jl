@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
+struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
 
     # only allowing scalar_types;

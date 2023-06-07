@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-struct PolyhedralComplex{T}
+struct PolyhedralComplex{T} <: PolyhedralObject{T}
     pm_complex::Polymake.BigObject
     
      PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)

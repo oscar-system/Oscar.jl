@@ -17,7 +17,7 @@ const scalar_types_extended = Union{scalar_types, ZZRingElem}
 
 _scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
 _scalar_type_to_polymake(::Type{nf_elem}) = Polymake.QuadraticExtension{Polymake.Rational}
-_scalar_type_to_polymake(::Type{Union{QQFieldElem, nf_elem}}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{Union{QQFieldElem, nf_elem}}) = Polymake.QuadraticExtension{Polymake.Rational}
 _scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
 _scalar_type_to_polymake(::Type{Float64}) = Float64
 
@@ -213,10 +213,12 @@ end
 ######## SubObjectIterator
 ################################################################################
 
+abstract type PolyhedralObject{T} end
+
 @doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
 
-An iterator over a designated property of `Obj::Polymake.BigObject`.
+An iterator over a designated property of an object `Obj::PolyhedralObject` from Polyhedral Geometry.
 
 `Acc::Function` will be used internally for `getindex`. Further this uniquely
 determines the context the iterator operates in, allowing to extend specific
@@ -232,18 +234,18 @@ Additional data required for specifying the property can be given using
 keyword arguments.
 """
 struct SubObjectIterator{T} <: AbstractVector{T}
-    Obj::Polymake.BigObject
+    Obj::PolyhedralObject
     Acc::Function
     n::Int
     options::NamedTuple
 end
 
 # `options` is empty by default
-SubObjectIterator{T}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
+SubObjectIterator{T}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
 # Force `nf_scalar` for this `Pair` descpription of `Halfspace`s/`Hyperplane`s
 # derived from `nf_elem`templated object
-SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
+SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
@@ -264,7 +266,7 @@ for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_in
     _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
+        $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
@@ -276,7 +278,12 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
         $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
+        function $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}})
+            mat = $_M(Val(iter.Acc), iter.Obj; iter.options...)
+            par = parent(Polymake.unwrap(mat[1, 1]))
+            return matrix(par, mat)
+        end
+        $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
@@ -352,7 +359,7 @@ unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 
 unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
-_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(pm_object(x.Obj))
 
 ################################################################################
 
@@ -361,18 +368,18 @@ _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
 _empty_access() = nothing
 
-function _empty_subobjectiterator(::Type{T}, Obj::Polymake.BigObject) where T
+function _empty_subobjectiterator(::Type{T}, Obj::PolyhedralObject) where T
     return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
 end
 
 for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject; homogenized=false)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+        function $M(::Val{_empty_access}, P::PolyhedralObject; homogenized=false)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(pm_object(P))))
             typename = scalar_regexp[1]
             T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + homogenized)
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized)
         end
     end
 end
@@ -380,14 +387,14 @@ end
 for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
     M = Symbol(f)
     @eval begin
-        $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+        $M(::Val{_empty_access}, P::PolyhedralObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
     end
 end
 
 for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+        function $M(::Val{_empty_access}, P::PolyhedralObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
             T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
@@ -399,7 +406,7 @@ end
 for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+        function $M(::Val{_empty_access}, P::PolyhedralObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
             T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
