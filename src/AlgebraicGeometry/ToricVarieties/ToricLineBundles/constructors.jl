@@ -184,6 +184,7 @@ end
 function Base.hash(l::ToricLineBundle, h::UInt)
     b = 0xa2b0a2cd60a8ffbf % UInt
     h = hash(toric_variety(l), h)
+    h = hash(picard_class(l), h)
     return xor(h, b)
 end
 

@@ -237,7 +237,7 @@ end
 
 
 ######################
-# 6: Display
+# 7: Display
 ######################
 
 function Base.show(io::IO, tm::ToricMorphism)
