@@ -154,3 +154,19 @@ end
   f = KK(u, v) 
   @test !in_linear_system(f, D)
 end
+
+@testset "intersections of weil divisors on surfaces" begin
+  P = projective_space(QQ, 2)
+  X = covered_scheme(P)
+  S = homogeneous_coordinate_ring(P)
+  x = gens(S)
+  I1 = IdealSheaf(P, x[1]^3 + x[2]^3 + x[3]^3)
+  I2 = IdealSheaf(P, x[2])
+  I3 = IdealSheaf(P, x[1] + x[2] + x[3])
+
+  D1 = 7 * weil_divisor(I1)
+  D2 = weil_divisor(I2)
+  D3 = weil_divisor(I3)
+  @test intersect(D1, D2) == intersect(D1, D3) == 21
+  @test intersect(D2, D3) == 1
+end
