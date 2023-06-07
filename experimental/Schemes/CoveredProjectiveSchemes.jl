@@ -733,8 +733,10 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   phi = dehomogenization_map(VD, BW)
   psi = dehomogenization_map(UD, AW) 
 
-  yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
-  ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
+  pb_AW_to_AAW = hom(OO(AW), OO(AAW), gens(OO(AAW)), check=false)
+  pb_BW_to_BBW = hom(OO(BW), OO(BBW), gens(OO(BBW)), check=false)
+  yimgs = [pb_AW_to_AAW(psi(pp))*inv(pb_AW_to_AAW(psi(qq))) for (pp, qq) in yhh]
+  ximgs = [pb_BW_to_BBW(phi(pp))*inv(pb_BW_to_BBW(phi(qq))) for (pp, qq) in xhh]
   ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
   gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
