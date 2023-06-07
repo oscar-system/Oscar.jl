@@ -105,3 +105,15 @@ function Oscar.saturation(I::IdealSheaf, J::IdealSheaf)
   end
   return IdealSheaf(X, K, check=false)
 end
+
+function (f::AbstractAlgebra.Generic.Frac)(t)
+  return numerator(f)(t)//denominator(f)(t)
+end
+
+
+"""
+Transform to y'^2 = g(x')
+"""
+function normalize_quartic(g, x, y)
+
+end

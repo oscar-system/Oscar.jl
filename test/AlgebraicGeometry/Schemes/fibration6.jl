@@ -46,43 +46,44 @@ false
   kt, t = polynomial_ring(k, :t)
   kP1 = fraction_field(kt)
   t = gen(kP1)
-  E = EllipticCurve(kP1, [(21*t^7+6*t^6+11*t^4),(21*t^10+15*t^9+17*t^7+18*t^6+t^5)])
+  E = EllipticCurve(kP1, [3*t^8 + 10*t^7 + 6*t^6 + 17*t^5 + 25*t^4 + 4*t^3 + 23*t^2 + 9*t + 14, 5*t^12 + 25*t^11 + 2*t^10 + 28*t^9 + 28*t^8 + 19*t^7 + 3*t^6 + 17*t^5 + 19*t^4 + 12*t^3 + 25*t^2 + 12*t + 6])
   # A basis for the Mordell-Weil group of E
-  mwl_basis = [E(collect(i)) for i in [(7*t^3 + 24*t^2 + 9, 9*t^5 + 18*t^4 + 12*t^3 + 8*t^2 + 2),
- (13*t^3 + 9*t + 24, 2*t^5 + 7*t^4 + 6*t^3 + 16*t^2 + 16*t + 22),
- (t^3 + 24*t^2 + 22*t + 5, 10*t^5 + 6*t^4 + 6*t^3 + 8*t^2 + 14*t + 3),
- ((17*t^5 + 14*t^4 + 28*t^2 + 2*t + 1)//(t^2 + 11*t + 23),
-  (t^8 + 19*t^7 + 2*t^6 + t^5 + 26*t^4 + 2*t^3 + 26*t + 28)//(t^3 + 2*t^2 + 11*t + 25)),
- ((11*t^5 + 22*t^4 + 23*t^3 + 14*t^2 + 17*t + 16)//(t^2 + 24*t + 28),
-  (22*t^8 + 6*t^7 + 21*t^6 + 24*t^5 + 4*t^4 + 23*t^3 + 25*t^2 + 15*t + 6)//(t^3 + 7*t^2 + 26*t + 17))]]
-  mwl_basis = mwl_basis[[3,1,2,4,5]]
-  mwl_basis[4] = - mwl_basis[4]
+  mwl_basis = [E(collect(i)) for i in [
+ (12*t^4 + 21*t^3 + 5*t^2 + 12*t + 18, 23*t^5 + 7*t^4 + 22*t^3 + 13*t^2),
+(12*t^4 + 20*t^3 + 22*t^2 + 27*t + 18, 15*t^4 + 12*t^3 + 12*t),
+(12*t^4 + 20*t^3 + 27*t^2 + 11*t + 18, -(16*t^4 + 24*t^3 + 3*t^2 + 24*t)),
+(4*t^4 + 5*t^3 + 5*t^2 + 6*t + 13,  9*t^6 + 21*t^5 + 17*t^4 + 12*t^2 + 3*t + 6)]]
 
 
-  gram =  [0,  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
- 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
- 0, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 1, -2, 0, 1, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 0, 1, 0, -2, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 1, 1, 1, 1, 1,
- 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 2, 1, 4, 4,
- 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, -2, 3, 1, 2,
- 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, -2, 2, 2,
- 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 1, 2, -2, 2,
- 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 2, 2, 2, -2]
- NS = integer_lattice(gram=matrix(ZZ,16,16,gram))
+  gram =  [
+ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+ 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
+ 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+ 0, 0, 0, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, -2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+ 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 1, 0,
+ 0, 0, 0, 0, 0, 0, 0, 1, -2, 0, 0, 0, 1, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 1, 1, 1, 0,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 1,
+ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 0, 0, 1, 0,
+ 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, -2, 0, 0, 2,
+ 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, -2, 0, 2,
+ 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, -2, 2,
+ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 2, -2]
+ NS = integer_lattice(gram=matrix(ZZ, 16, 16, gram))
  B = basis_matrix(NS)
- p = matrix(ZZ, 1, 16, [8, 3, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1])
- f_new = (B[1,:] - B[11,:]) + p + B[2,:]
+ fnew = matrix(QQ, 1, 16, [6, 3, -1, -2, -1, -1, -1, -2, -2, -1, 0, -1, -1, 1, -1, 0])*B
+ @assert inner_product(ambient_space(NS), fnew, fnew)==0
+ p = matrix(QQ,1,16, [5, 2, -1, -2, -1, 0, 0, -1, -1, -1, 0, -1, -1, 1, -1, 0])
+ @assert inner_product(ambient_space(NS), p, p)[1,1] == -2
+
 
 
   # The section P used for the fibration hop  Fiber_new = O + P + Vertical
-  P = -mwl_basis[1] - mwl_basis[5]
+  l = length(mwl_basis)
+  P = sum(ZZ(p[1,i+16-l])*mwl_basis[i] for i in 1:l)
 
   # Create the singular Weierstrass model S of the elliptic K3 surface
   a = a_invars(E)
@@ -111,7 +112,7 @@ false
     b = section
     return ideal_sheaf(X,X[1][1],[OO(UX)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
   end
-  sections = [ for b in mwl_basis]
+  sections = [section_to_ideal_sheaf(X, b, UX) for b in mwl_basis]
   PonX = section_to_ideal_sheaf(X, P, UX)
 
   #X = CoveredScheme(C)
@@ -121,18 +122,23 @@ false
   zero_section = IdealSheaf(X, X[1][3], [x,z])
 
   # components of the singular fibers visible on S
-  # E8 over t=0
-  # A1 over s=0
+  # A3 at t=0
+  # A4 at s=0
+  # A1 at t=
+  # A1 at t=
+  # A1 at t=
   (x,y,t) = coordinates(UX)
-  E8_0 = IdealSheaf(X, UX, [t, ft])
+  A3_0 = IdealSheaf(X, UX, [t, ft])
+  A1a_0 = IdealSheaf(X, UX, [t+17, ft])
+  A1b_0 = IdealSheaf(X, UX, [t+1, ft])
+  A1c_0 = IdealSheaf(X, UX, [t+20, ft])
   (x,y,s) = ambient_coordinates(X[1][4])
-  A1_0 = IdealSheaf(X,X[1][4], OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
+  A4_0 = IdealSheaf(X,X[1][4], OO(X[1][4]).([s,gens((modulus(OO(S[1][4]))))[1]]))
 
 
   # S = K3 --> X ambient space
   # all relevant divisors as ideal sheaves on X
-  divisors = vcat([PonX, zero_section, fiber, A1_0, E8_0], sections)
-
+  divisors = vcat([PonX, zero_section, fiber, A3_0, A4_0, A1a_0, A1b_0,A1c_0], sections)
 
   # initialization for the while loop
   X0 = X
@@ -162,6 +168,7 @@ false
     prX1 = blow_up(I_sing_X0_1, covering=Oscar.simplified_covering(X0),
                   var_name=varnames[count])
     X1 = domain(prX1)
+    @vprint :ellipticK3 1 "$(X1)\n"
     E1 = exceptional_divisor(prX1)
 
     @vprint :ellipticK3 2 "computing strict transforms\n"
@@ -218,15 +225,16 @@ false
   # The exceptional Weil divisors have multiplicities
   # this comes from the intersection with Y0
   # Compute the reduced one
+  error("")
   tmp = [collect(keys(coefficient_dict(i))) for i in ExWeil]
   @assert all(length(i)==1 for i in tmp)
   ExWeil = [i[1] for i in tmp]
-  I = [2,9,4,6,5,8,7,3,1]; A[I,I]
-  ExWeil = ExWeil[I]
+  #I = [2,9,4,6,5,8,7,3,1]; A[I,I]
+  #ExWeil = ExWeil[I]
 
 
   # divisors = vcat([PonX, zero_section, fiber, A1_0, E8_0], sections)
-  NSgens = vcat(divisors_res[3], divisors_res[2], ExWeil, divisors_res[end-4:end])
+  NSgens = vcat(divisors_res[3], divisors_res[2], ExWeil, divisors_res[end-3:end])
   NSgens = [WeilDivisor(i,ZZ, check=false) for i in NSgens]
   G = zero_matrix(ZZ,16,16)
   for i in 1:length(NSgens)
