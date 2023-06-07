@@ -1408,9 +1408,7 @@ end
 
 function hilbert_series_reduced(H::HilbertData)
   h, den = hilbert_series(H)
-  c = gcd(h, den)
-  h = divexact(h, c)
-  den = divexact(den, c)
+  _, h, den = gcd_with_cofactors(h, den)
   return den(0)*h, den(0)*den
 end
 
