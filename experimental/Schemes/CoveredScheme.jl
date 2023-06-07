@@ -184,7 +184,7 @@ end
 end
 
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyQuoRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
@@ -247,7 +247,7 @@ end
   return result
 end
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT,<:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
