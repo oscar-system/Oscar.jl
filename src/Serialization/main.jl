@@ -26,10 +26,8 @@ end
 const backref_sym = Symbol("#backref")
 
 @Base.kwdef struct MetaData
-    author::Union{String, Vector{String}, Nothing} = nothing
+    author_orcid::Union{String, Nothing} = nothing
     name::Union{String, Nothing} = nothing
-    email::Union{String, Nothing} = nothing
-    affiliation::Union{String, Nothing} = nothing
 end
 
 function metadata(;args...)
