@@ -113,9 +113,9 @@ Compute the closure of ``U ⊂ Y``.
 """
 function closure(
     U::SpecOpen,
-    Y::AbsSpec 
+    Y::AbsSpec; check::Bool=true
   )
-  issubset(U, Y) || error("the first set is not contained in the second")
+  @check issubset(U, Y) "the first set is not contained in the second"
   X = closure(U)
   return intersect(X, Y)
 end

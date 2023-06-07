@@ -14,7 +14,12 @@ false
   add_verbosity_scope(:ellipticK3)
   set_verbosity_level(:ellipticK3, 2)
   k = GF(29)
-  IP1 = projective_space(k, ["s", "t"])
+  IP1 = projective_space(k, 1)
+  c = standard_covering(IP1)
+  # rename the variables on the affine charts
+  # to a more readable version
+  OO(c[1]).S = [:t]
+  OO(c[2]).S = [:s]
 
 
   O0 = twisting_sheaf(IP1, 0)
@@ -27,6 +32,7 @@ false
 
   # remove some charts not needed to cover S
   X = covered_scheme(X_proj)
+  OO(X[1][1]).S=[:x,:y,:t]
   C = Covering([X[1][i] for i in [1,3,4,6]])
   for U in patches(C)
     for V in patches(C)
@@ -227,11 +233,10 @@ false
   A1_1onY = WeilDivisor(ExWeil[9], ZZ, check=false)
   D = PonY + OonY + A1_0onY + A1_1onY
   L = linear_system(linsys, D, check=false)
-  #@test in_linear_system(gens(L)[1], D) #something is wrong
-  # the following should be a linear system of dimension 2 ... but its dimension is 4 ... something wrong again
+  @test_broken in_linear_system(gens(L)[1], D) #something is wrong
   Lnew, _ = subsystem(L, A1_1onY, 1)
-  # this seems wrong since the elements still seem to have poles in A1_1onY
-  # computing the order of a divisors here seems to flood memory instantly
+  @assert length(gens(Lnew))==2
+
   [order_on_divisor(g, A1_1onY) for g in gens(Lnew)]
   tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
 
@@ -243,4 +248,4 @@ false
   fresinvstar = pullback(fresinv)
   n = lifted_numerator(fresinvstar(numerator(tt)))
   d = lifted_numerator(fresinvstar(denominator(tt)))
-  n//d
+  tt = n//d

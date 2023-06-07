@@ -30,8 +30,8 @@
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
