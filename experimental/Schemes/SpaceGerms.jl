@@ -126,7 +126,8 @@ function rational_point_coordinates(I::MPolyIdeal)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
   vd,vbasis = _vdim_hack(LG)
   vd ==1 || error("Ideal does not describe a single K-point")
-  return [AbstractAlgebra.leading_coefficient(normal_form(v,I)) for v in gens(R)] # TODO does the ordering matter?
+  nf_vec = [normal_form(v,I) for v in gens(R)]
+  return [ a == zero(parent(a)) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
 end
 
 ### _vdim_hack only to be used until vdim of 0-dimensional ideals is implemented properly
