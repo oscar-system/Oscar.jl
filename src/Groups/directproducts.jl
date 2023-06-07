@@ -44,6 +44,7 @@ julia> elements(G)
 ```
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
+  @req length(L) > 0 "the collection of groups must be non-empty"
   X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
   DP = DirectProductGroup(X, L, X, true)
   if morphisms
@@ -57,8 +58,8 @@ function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
   end
 end
 
-function direct_product(L::GAPGroup...; morphisms=false)
-  return direct_product([x for x in L]; morphisms=morphisms)
+function direct_product(L::GAPGroup, Ls::GAPGroup...; morphisms=false)
+  return direct_product([L, Ls...]; morphisms=morphisms)
 end
 
 """
@@ -76,6 +77,7 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 function inner_direct_product(
   L::AbstractVector{T}; morphisms=false
 ) where {T<:Union{PcGroup,FPGroup}}
+  @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
   DP = T(P)
   if morphisms
@@ -90,6 +92,7 @@ function inner_direct_product(
 end
 
 function inner_direct_product(L::AbstractVector{PermGroup}; morphisms=false)
+  @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
     GapObj([G.X for G in L]), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
   )
@@ -106,9 +109,9 @@ function inner_direct_product(L::AbstractVector{PermGroup}; morphisms=false)
 end
 
 function inner_direct_product(
-  L::T...; morphisms=false
+  L::T, Ls::T...; morphisms=false
 ) where {T<:Union{PcGroup,PermGroup,FPGroup}}
-  return inner_direct_product([x for x in L]; morphisms=morphisms)
+  return inner_direct_product([L, Ls...]; morphisms=morphisms)
 end
 
 """
@@ -119,13 +122,12 @@ Return the number of factors of `G`.
 number_of_factors(G::DirectProductGroup) = length(G.L)
 
 """
-    cartesian_power(G::T, n::Int)
+    cartesian_power(G::GAPGroup, n::Int)
 
 Return the direct product of `n` copies of `G`.
 """
 function cartesian_power(G::GAPGroup, n::Int)
-  L = [G for i in 1:n]
-  return direct_product(L)
+  return direct_product(fill(G, n))
 end
 
 """
@@ -138,8 +140,7 @@ the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_cartesian_power(G::T, n::Int; morphisms=false) where {T<:GAPGroup}
-  L = [G for i in 1:n]
-  return inner_direct_product(L; morphisms=morphisms)
+  return inner_direct_product(fill(G, n); morphisms=morphisms)
 end
 
 """
@@ -307,8 +308,8 @@ function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
   return group_element(G, xgap)
 end
 
-function (G::DirectProductGroup)(V::GAPGroupElem...)
-  return G([x for x in V])
+function (G::DirectProductGroup)(v::GAPGroupElem, V::GAPGroupElem...)
+  return G([v, V...])
 end
 
 function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
