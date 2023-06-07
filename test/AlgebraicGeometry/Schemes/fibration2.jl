@@ -111,7 +111,7 @@ false
     b = section
     return ideal_sheaf(X,X[1][1],[OO(UX)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
   end
-  sections = [ for b in mwl_basis]
+  sections = [section_to_ideal_sheaf(X, b, UX) for b in mwl_basis]
   PonX = section_to_ideal_sheaf(X, P, UX)
 
   #X = CoveredScheme(C)
