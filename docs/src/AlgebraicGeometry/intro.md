@@ -21,7 +21,7 @@ Similarly, most algorithms for toric varieties and schemes are are based on
 
 General textbooks offering details on the theory of varieties and schemes include:
 - [Har77](@cite)
-- [stacks-project](@cite)
+- [Aut00](@cite)
 
 
 ## Conventions
