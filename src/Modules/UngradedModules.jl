@@ -1331,8 +1331,17 @@ function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeM
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end
 
-#+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
+Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
+function Base.:*(I::MPolyIdeal{T}, M::SubModuleOfFreeModule{T}) where {T<: MPolyRingElem}
+  F = ambient_free_module(M)
+  newgens = filter( x -> !is_zero(x),[a*b for a in gens(I) for b in gens(M)])
+  return oscar.SubModuleOfFreeModule(F, newgens)
+end
+
+function Base.:*(I::MPolyIdeal{T}, M::FreeMod{T}) where {T<: MPolyRingElem}
+  return oscar.SubModuleOfFreeModule(M,[a*b for a in gens(I) for b in gens(M)])
+end
 ###############################################################################
 # SubquoModule constructors
 ###############################################################################
