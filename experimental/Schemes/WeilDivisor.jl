@@ -345,7 +345,7 @@ end
   return coefficient_dict(D)[c] == 1
 end
 
-is_irreducible(D) = is_prime(D)
+is_irreducible(D::WeilDivisor) = is_prime(D)
 
 function order_on_divisor(
     f::VarietyFunctionFieldElem,
