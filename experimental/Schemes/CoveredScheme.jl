@@ -100,8 +100,7 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  CX, _ = affine_cone(X)
+@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
@@ -144,8 +143,7 @@ affine_refinements(C::Covering) = C.affine_refinements
 end
 
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT,<:MPolyDecRing}) where {CRT<:AbstractAlgebra.Ring}
-  CX, _ = affine_cone(X)
+@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
@@ -154,7 +152,6 @@ end
   s = symbols(S)
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     push!(U, Spec(R))
   end
   result = Covering(U)
@@ -188,7 +185,6 @@ end
 
 
 @attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
-  CX, _ = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
@@ -252,7 +248,6 @@ end
 end
 
 @attr function standard_covering(X::AbsProjectiveScheme{CRT,<:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
-  CX, _ = affine_cone(X)
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
