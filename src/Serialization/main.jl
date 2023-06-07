@@ -246,8 +246,8 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> meta = metadata(author="Douglas Adams", name="the meaning of life the universe and everything", email="douglas@adams.space", affiliation="The Universe")
-Oscar.MetaData("Douglas Adams", "the meaning of life the universe and everything", "douglas@adams.space", "The Universe")
+julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="the meaning of life the universe and everything")
+Oscar.MetaData("0000-0000-0000-0042", "the meaning of life the universe and everything")
 
 julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
 
