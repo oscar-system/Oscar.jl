@@ -1291,27 +1291,13 @@ end
     RingType, 
     RingElemType, 
     MultSetType
-  })(f::BaseRingElemType; check=true) where {
+  })(f::BaseRingElemType; check::Bool=true) where {
     BaseRingType<:Ring, 
     BaseRingElemType<:RingElem, 
     RingType<:Ring, 
     RingElemType<:RingElem, 
     MultSetType<:AbsMultSet
-  } = MPolyLocRingElem(W, fraction_field(base_ring(W))(base_ring(W)(f)), check=false) # not much to be checked
-
-(W::MPolyLocRing{
-    BaseRingType,
-    BaseRingElemType,
-    RingType,
-    RingElemType,
-    MultSetType
-  })(f::MPolyQuoRingElem{RingElemType}, g::MPolyQuoRingElem{RingElemType}; check=true) where {
-    BaseRingType<:Ring,
-    BaseRingElemType<:RingElem,
-    RingType<:Ring,
-    RingElemType<:RingElem,
-    MultSetType<:AbsMultSet
-  } = W(lift(f), lift(g); check=check)
+  } = MPolyLocRingElem(W, fraction_field(base_ring(W))(base_ring(W)(f)), check=check)
 
 # Remove ambiguities
 (W::MPolyLocRing{
