@@ -47,20 +47,20 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
   Rt, t1 = polynomial_ring(R,:t)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
-  b = reduce(+,(ab[1+degb+j]*t1^j for j in 0:degb), init=zero(Rt))
+  b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)
-  _, r = divrem(c, xd(t1))
-
+  r = mod(c, xd(t1))
   # setup the linear equations for coefficients of r to vanish
   # and for the degree of c to be bounded above by
   # k + 2*OP + 4 + degree(xd)
-  eqns = vcat(collect(coefficients(r)),[coeff(c,i) for i in (k + 2*OP + 4 + degree(xd)) + 1:degree(c)])
+  eq1 = collect(coefficients(r))
+  eq2 = [coeff(c,i) for i in (k + 2*OP + 4 + degree(xd) + 1):degree(c)]
+  eqns = vcat(eq1, eq2)
 
   # collect the equations as a matrix
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
   M = matrix(base, cc)
   kerdim, K = kernel(M)
-  @assert kerdim == 2*k + OP # prediced by Riemann-Roch
   result = []
   Bt = base_ring(base_field(E))
   t = gen(Bt)
@@ -68,6 +68,14 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
     aa = reduce(+, (K[i+1,j]*t^i for i in 0:dega), init=zero(Bt))
     bb = reduce(+, (K[dega+i+2,j]*t^i for i in 0:degb), init=zero(Bt))
     push!(result, (aa, bb))
+  end
+  # confirm the computation
+  @assert kerdim == 2*k + OP # prediced by Riemann-Roch
+  for (a,b) in result
+    @assert mod(a*xn - b*yn, xd) == 0
+    @assert degree(a) <= k + 2*OP
+    @assert degree(b) <= k + 2*OP - 2 - 1//2*degree(xd)
+    @assert degree(a*xn - b*yn) <= k + 2*OP + 4 + degree(xd)
   end
   return result
 end
