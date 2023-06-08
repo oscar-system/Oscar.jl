@@ -2000,7 +2000,6 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   # Collect all monomials which are not in the leading ideal as representatives 
   # of a basis over kk.
   lead_I = leading_ideal(I_shift, ordering=ordering)
-  @show gens(lead_I)
   @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
   V_gens = elem_type(R)[]
   done = false
@@ -2039,21 +2038,24 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
     @assert parent(f) === W
     isone(denominator(f)) || error("handling of non-trivial denominators not implemented")
     b = lifted_numerator(f)
-    @show b
     b = shift(b)
-    @show b
     # TODO: The normal form command seems to do something unexpected here.
     # Please investigate!
-    b = normal_form(b, I_shift, ordering=ordering)
-    @show b
+    #b = normal_form(b, I_shift, ordering=ordering)
     result = zero(V)
+    # The following is an ugly hack, because normal_form is currently broken 
+    # for local oderings.
     while !iszero(b)
       m = leading_monomial(b, ordering=ordering)
       c = leading_coefficient(b, ordering=ordering)
-      j = findfirst(n->n==m, V_gens)
-      @show m, c, j
-      result = result + c * V[j]
-      b = b - c * m
+      t = normal_form(c*m, I_shift, ordering=ordering)
+      if t == c*m 
+        j = findfirst(n->n==m, V_gens)
+        result = result + c * V[j]
+        b = b - c * m
+      else
+        b = b - c*m + t
+      end
     end
     return result
   end

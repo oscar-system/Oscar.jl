@@ -289,12 +289,10 @@ end
   A, pr = quo(L, L(I))
   V, id = vector_space(QQ, A)
   @test dim(V) == 6
-  #f = (x*3*y-4)^5
-  f = x^2
+  f = (x*3*y-4)^5
   f = A(f)
   @test id(preimage(id, f)) == f
   v = V[3] - 4*V[5]
-  #TODO: Investigate!
-  @test_broken preimage(id, id(v)) == v
+  @test preimage(id, id(v)) == v
 end
 
