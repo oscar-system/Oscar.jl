@@ -1545,6 +1545,13 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
 end
 
+function vdim(R::MPolyQuoLocRing)
+  I = shifted_ideal(modulus(R))
+  o = negdegrevlex(gens(base_ring(R)))
+  LI=leading_ideal(standard_basis(I, ordering = o))
+  return vdim(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
+end
+
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
