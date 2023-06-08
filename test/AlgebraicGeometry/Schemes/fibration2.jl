@@ -26,9 +26,9 @@ O0 = twisting_sheaf(IP1, 0)
 O4 = twisting_sheaf(IP1, -4)
 O6 = twisting_sheaf(IP1, -6)
 
-E = direct_sum([O0, O4, O6])
+Ebundle = direct_sum([O0, O4, O6])
 
-X_proj = projectivization(E, var_names=["z", "x", "y"])
+X_proj = projectivization(Ebundle, var_names=["z", "x", "y"])
 
 # remove some charts not needed to cover S
 X = covered_scheme(X_proj)
@@ -296,7 +296,7 @@ Fnew = PonY + OonY + A1_0onY
 tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
 
 
-u = map_func(fresinvstar, tt) # the new elliptic parameter
+elliptic_param = map_func(fresinvstar, tt) # the new elliptic parameter
 
 # transform to new coordinates
 
@@ -305,24 +305,34 @@ R = OO(X[1][1])
 # u = (a y + b) / (cy + d)
 # solve for y:
 # y = (b-d*u)/ (c*u - a)
+nu = numerator(elliptic_param)
+du = denominator(elliptic_param)
 g = hom(R,R,R.([x,0,t]))
 b = g(nu)
 a = divexact(nu - b, y)
 d = g(du)
 c = divexact(du - d, y)
-@assert (a*y+b) // (c*y+d) == u
+@assert (a*y+b) // (c*y+d) == elliptic_param
 
 Ru, (t, x, u) = polynomial_ring(base_ring(R), [:t, :x, :u])
 h = hom(R, Ru, [x, 0, t])
 (a,b,c,d) = h.([a,b,c,d])
 Ruloc,_ = localization(Ru, c*u - a)
 phi = hom(R, Ruloc, Ruloc.([x, Ruloc(b-d*u, c*u - a), t]))
-g = SpecMor(Spec(Ruloc), Spec(R), phi)
-U1 = closure(preimage(g,S[1][1]))
 
 f = gens(modulus(OO(S[1][1])))[1]
-fu = gens(modulus(OO(U1)))[1]
+fu = numerator(phi(f))
+
+# fu is not irreducible
+# remove a bad component
+fu1 = divexact(fu, denominator(P[1])(t)*x - numerator(P[1])(t))
+
+kP1_2, t = polynomial_ring(k, "t₁")
+T, (x, y) = polynomial_ring(kP1_2, ["x₁", "y₁"])
+tmp = hom(Ru, T, [t,y,x])
+fxy = tmp(fu1)
+fnew, trafo = normalize_quartic(fxy)
 
 
-Rufrac = fraction_field(Ru)
-helper = hom(Ru,Rufrac, Rufrac.([t,P[1](t),u]))
+
+

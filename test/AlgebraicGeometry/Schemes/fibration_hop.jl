@@ -118,10 +118,67 @@ function (f::AbstractAlgebra.Generic.Frac)(t)
   return numerator(f)(t)//denominator(f)(t)
 end
 
+function my_coeff(g::MPolyRingElem, x, deg)
+  R = parent(g)
+  @req parent(x)=== R "parent missmatch"
+  i = findfirst(==(x), gens(R))
+  c = MPolyBuildCtx(R)
+  for (co, mon) in coefficients_and_exponents(g)
+    if mon[i] == deg
+      mon[i] = 0
+      push_term!(c, co, mon)
+    end
+  end
+  return finish(c)
+end
 
+function my_degree(g::MPolyRingElem, x)
+  R = parent(g)
+  i = findfirst(==(x), gens(R))
+  return maximum(c[i] for c in exponents(g))
+end
 """
-Transform to y'^2 = g(x')
+Transform
+a(x)y^2 + b(x) y = h(x)
+to y'^2 = h(x')
 """
-function normalize_quartic(g, x, y)
+function normalize_quartic(g)
+  R = parent(g)
+  F = fraction_field(R)
+  kt = base_ring(R)
+  (x, y) = gens(R)
 
+  #complete the square
+  a = my_coeff(g, y, 2)
+  b = my_coeff(g, y, 1)
+  u = unit(factor(a))
+  a = inv(u)*a
+  b = inv(u)*b
+  sqa = sqrt(a)
+  # inverse map
+  R1, (x1,y1) = polynomial_ring(kt, [:x, :y])
+  F1 = fraction_field(R1)
+  psi = hom(R1, F, F.([x, (2*a*y + b)//(2*sqa)]))
+  conv = hom(R, R1, [x1, 0])
+  (a1,b1,sqa1) = conv.((a,b,sqa))
+  phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
+  phiF = map_from_func(x-> phi(numerator(x))//phi(denominator(x)), F, F1)
+  psiF = map_from_func(x-> psi(numerator(x))//psi(denominator(x)), F1, F)
+  @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+
+  # absorb squares into y1
+  g1 = numerator(phi(g))
+  ff = factor(hom(R1,R1,[x1,0])(g1))
+  c = prod([p^divexact(i,2) for (p,i) in ff if mod(i,2)==0],init=R1(1))
+  d = sqrt(my_coeff(g1, y1, 2))
+
+  R2, (x2,y2) = polynomial_ring(kt, [:x, :y])
+  F2 = fraction_field(R2)
+  phi1 = hom(R1, F2, [x2, y2*c//d])
+  phiF1 = map_from_func(x-> phi1(numerator(x))//phi1(denominator(x)), F1, F2)
+  phi2 = compose(phi, phiF1)
+  g2 = numerator(phi1(g1))
+  c = my_coeff(g2, y2, 2)
+  g2 = divexact(g2, c)
+  return g2, phi2
 end
