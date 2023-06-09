@@ -1193,6 +1193,7 @@ export saturation_with_index
 export save
 export save_lp
 export save_mps
+export metadata
 export scalar_product
 export scheme
 export schur_index
