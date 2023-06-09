@@ -15,7 +15,7 @@ On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> coordinate_ring(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -61,7 +61,7 @@ its ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational field
+  over rational field
 
 julia> ambient_space(X) == X
 true
@@ -160,7 +160,7 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
 end
 
 @attr function ambient_space(X::Spec{BRT,RT}) where {BRT<:Field, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
-  return affine_variety(Spec(ambient_coordinate_ring(X)), check=false)
+  return variety(Spec(ambient_coordinate_ring(X)), check=false)
 end
 
 @attr function ambient_space(X::Spec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
@@ -181,7 +181,7 @@ Return the embedding of ``X`` in its ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational field
+  over rational field
 
 julia> (x, y) = coordinates(X);
 
@@ -209,7 +209,7 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 julia> X = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational field
+  over rational field
 
 julia> (x,y) = coordinates(X);
 
@@ -237,7 +237,7 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 julia> X = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational field
+  over rational field
 
 julia> (x,y) = coordinates(X);
 
@@ -267,7 +267,7 @@ by the ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Affine space of dimension 2
   with coordinates x y
-  over Rational field
+  over rational field
 
 julia> (x, y) = coordinates(X)
 2-element Vector{QQMPolyRingElem}:
@@ -298,7 +298,7 @@ On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring ``𝕜``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> base_ring(X)
 Rational field
@@ -325,7 +325,7 @@ By definition, this is the Krull dimension of ``R``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> dim(X)
 3
@@ -368,7 +368,7 @@ Throws and error if ``X`` does not have an ambient affine space.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> codim(X)
 0
@@ -407,7 +407,7 @@ This name can be specified via `set_name!`.
 julia> X = affine_space(QQ, 3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> name(X)
 "unnamed affine variety"
@@ -490,23 +490,31 @@ with coordinates
 ```
 """
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
-  return Spec(base_ring(J), J, inverted_set(OO(X)))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   J = radical(modulus(OO(X)))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
-  return Spec(base_ring(J), J)
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
 end
 
 ## to make reduced_scheme agnostic for quotient ring
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
-  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
 function reduced_scheme(X::AbsSpec)
@@ -774,7 +782,7 @@ Return the defining ideal of the closure of ``X`` in its ambient affine space.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
