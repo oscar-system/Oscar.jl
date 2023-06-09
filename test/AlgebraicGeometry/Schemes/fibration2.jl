@@ -246,10 +246,10 @@ end
 
 
 
-# f: Y -- > S the total blowup
-f = projectionsY[1]
+# piY: Y -> S the total blowup
+piY = projectionsY[1]
 for g in projectionsY[2:end]
-  global f = g*f
+  global piY = g*piY
 end
 
 
@@ -263,19 +263,24 @@ function map_func(phi, tt)
   du = lifted_numerator(du)
   return nu//du
 end
-fstar = pullback(f[Y0[1][1]])
+fstar = pullback(piY[Y0[1][1]])
 
 # prepare pushforwards to S
 (x, y, t) = coordinates(S[1][1])
 Ut = hypersurface_complement(S[1][1],t)
 Vt = hypersurface_complement(Y0[1][1],fstar(t))
-fres = restrict(f[Y0[1][1]], Vt, Ut)
+fres = restrict(piY[Y0[1][1]], Vt, Ut)
 fresinv = inverse(fres)
 fresinvstar = pullback(fresinv)
 
 # |D| = | P + O + 1 F|
 @vprint :ellipticK3 2 "computing linear system\n"
-linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t), fstar(t))
+l = 1
+linsys = prop217(Y0, E, P, l, fstar(x), fstar(y), fstar(t), fstar(t))
+# we really want the fiber over s=0 ... so compensate...
+kY0 = parent(linsys[1])
+linsys=[kY0(fstar(t),fstar(t)^0)^(2*l) * i for i in linsys]
+
 kY0 = parent(linsys[1])
 PonY, OonY = [WeilDivisor(i, ZZ,check=false) for i in divisors_res[1:2]]
 v = matrix(QQ,1, 16, [intersect(PonY, i) for i in NSgens])

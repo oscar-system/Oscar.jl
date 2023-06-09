@@ -283,9 +283,9 @@ for i in 2:length(NSgens)
   G[i,i]= -2
 end
 @assert det(G) == -1183
-@assert G == gram_matrix(NS) # apparently I have some mixups
+I = [1,2,9,10,8,4,6,5,3,7,11,12,13,14,15,16];
+@assert G[I,I] == gram_matrix(NS) # apparently I have some mixups
 
-I = [1,2,8,10,9,3,5,6,4,7,11,12,13,14,15,16];
 NSgens = NSgens[I]
 @assert gram_matrix(NS) == G[I,I]
 
@@ -299,7 +299,8 @@ for g in projectionsY[2:end]
   global piY = g*piY
 end
 Fs = ideal_sheaf(S,S[1][3],coordinates(S[1][3])[3:3])
-FsonY = pullback(piY)(Fs)
+FsonYtmp = pullback(piY)(Fs) # not irreducible and therefore not a divisor!
+FsonY = sum([WeilDivisor(i, ZZ, check=false) for i in Oscar.maximal_associated_points(FsonYtmp)])
 (x, y, s) = coordinates(S[1][3])
 fstar = pullback(piY[Y0[1][17]])
 # |D| = | P + O + 1 F|
@@ -317,14 +318,12 @@ Lnew, _ = subsystem(L, NSgens[6], 1)
 @show [[order_on_divisor(g, C) for C in NSgens] for g in gens(Lnew)]
 @show [[order_on_divisor(g, C) for C in [A3_0onY,A4_0onY,A1a_0onY,A1b_0onY,A1c_0onY]] for g in gens(Lnew)]
 Fnew = PonY + OonY + A4_0onY
-@test Fnew == F - A4_0onY - NSgens[6]-NSgens[7]-NSgens[8]-NSgens[9]
-tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
-error("")
+@test Fnew == D - A4_0onY - NSgens[6]-NSgens[7]-NSgens[8]-NSgens[9]
 
-(x,y,t) = coordinates(S[1][1])
-Ut = hypersurface_complement(S[1][1],t)
-Vt = hypersurface_complement(Y0[1][1],fstar(t))
-fres = restrict(piY[Y0[1][1]], Vt, Ut)
+(x,y,t) = coordinates(S[1][3])
+Us = hypersurface_complement(S[1][3],s)
+Vs = hypersurface_complement(Y0[1][17],fstar(s))
+fres = restrict(piY[Y0[1][17]], Vs, Us)
 fresinv = inverse(fres)
 fresinvstar = pullback(fresinv)
 
@@ -342,6 +341,7 @@ tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
 
 
 elliptic_param = map_func(fresinvstar, tt) # the new elliptic parameter
+error("")
 
 # transform to new coordinates
 
