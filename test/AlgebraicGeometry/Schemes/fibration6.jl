@@ -1,7 +1,6 @@
 
 
 # TODO:
-# Kill all standard Specs
 # shortcut to get the coefficient(s) of a weil divisor
 # intersect Weil with Weil on a surface
 #=
@@ -268,11 +267,12 @@ ExWeil = weil_divisor.(Ex)   # too slow to be a test
 tmp = []
 ExWeil = reduce(append!, [components(i) for i in ExWeil], init= tmp)
 
-
 # divisors = vcat([PonX, zero_section, fiber, A3_0, A4_0, A1a_0, A1b_0,A1c_0], sections)
+(PonY,OonY,FonY,A3_0onY,A4_0onY,A1a_0onY,A1b_0onY,A1c_0onY) = [WeilDivisor(i,ZZ,check=false) for i in divisors_res[1:8]]
+
 NSgens = vcat(divisors_res[3], divisors_res[2], ExWeil, divisors_res[end-3:end])
 NSgens = [WeilDivisor(i,ZZ, check=false) for i in NSgens]
-G = zero_matrix(ZZ,16,16)
+G = zero_matrix(ZZ, 16, 16)
 for i in 1:length(NSgens)
   for j in 1:i-1
     G[i,j] = intersect(NSgens[i],NSgens[j])
@@ -284,38 +284,47 @@ for i in 2:length(NSgens)
 end
 @assert det(G) == -1183
 @assert G == gram_matrix(NS) # apparently I have some mixups
-error("")
 
-# f: Y -- > S the total blowup
-f = projectionsY[1]
+I = [1,2,8,10,9,3,5,6,4,7,11,12,13,14,15,16];
+NSgens = NSgens[I]
+@assert gram_matrix(NS) == G[I,I]
+
+# double check that p is is P
+v = matrix(QQ,1, 16, [intersect(PonY, i) for i in NSgens])
+@assert v*inv(transpose(B))*inv(gram_matrix(NS)) == p
+
+# piY: Y -> S the total blowup
+piY = projectionsY[1]
 for g in projectionsY[2:end]
-  global f = g*f
+  global piY = g*piY
 end
-(x, y, t) = coordinates(S[1][1])
-fstar = pullback(f[Y0[1][1]])
+Fs = ideal_sheaf(S,S[1][3],coordinates(S[1][3])[3:3])
+FsonY = pullback(piY)(Fs)
+(x, y, s) = coordinates(S[1][3])
+fstar = pullback(piY[Y0[1][17]])
 # |D| = | P + O + 1 F|
-linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(t), fstar(t))
+@vprint :ellipticK3 2 "computing linear system\n"
+linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(s), fstar(s))
 kY0 = parent(linsys[1])
-linsys = [kY0(fstar(t),fstar(t)^0)*i for i in linsys]
-PonY, OonY = [WeilDivisor(i, ZZ,check=false) for i in divisors_res[1:2]]
 
-error("")
-A1_0onY = WeilDivisor(divisors_res[4], ZZ, check=false)
-A1_1onY = WeilDivisor(ExWeil[9], ZZ, check=false)
-D = PonY + OonY + A1_0onY + A1_1onY
+D = PonY + OonY + FsonY
 L = linear_system(linsys, D, check=false)
 @test_broken in_linear_system(gens(L)[1], D) #something is wrong
-Lnew, _ = subsystem(L, A1_1onY, 1)
+@vprint :ellipticK3 2 "computing subsystem\n"
+Lnew, _ = subsystem(L, NSgens[6], 1)
 @assert length(gens(Lnew))==2
 
-[order_on_divisor(g, A1_1onY) for g in gens(Lnew)]
-Fnew = PonY + OonY + A1_0onY
+@show [[order_on_divisor(g, C) for C in NSgens] for g in gens(Lnew)]
+@show [[order_on_divisor(g, C) for C in [A3_0onY,A4_0onY,A1a_0onY,A1b_0onY,A1c_0onY]] for g in gens(Lnew)]
+Fnew = PonY + OonY + A4_0onY
+@test Fnew == F - A4_0onY - NSgens[6]-NSgens[7]-NSgens[8]-NSgens[9]
 tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
+error("")
 
 (x,y,t) = coordinates(S[1][1])
 Ut = hypersurface_complement(S[1][1],t)
 Vt = hypersurface_complement(Y0[1][1],fstar(t))
-fres = restrict(f[Y0[1][1]], Vt, Ut)
+fres = restrict(piY[Y0[1][1]], Vt, Ut)
 fresinv = inverse(fres)
 fresinvstar = pullback(fresinv)
 
@@ -329,7 +338,10 @@ function map_func(phi, tt)
   return nu//du
 end
 
-u = map_func(fresinvstar, tt) # the new elliptic parameter
+tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
+
+
+elliptic_param = map_func(fresinvstar, tt) # the new elliptic parameter
 
 # transform to new coordinates
 
@@ -338,24 +350,30 @@ R = OO(X[1][1])
 # u = (a y + b) / (cy + d)
 # solve for y:
 # y = (b-d*u)/ (c*u - a)
+nu = numerator(elliptic_param)
+du = denominator(elliptic_param)
 g = hom(R,R,R.([x,0,t]))
 b = g(nu)
 a = divexact(nu - b, y)
 d = g(du)
 c = divexact(du - d, y)
-@assert (a*y+b) // (c*y+d) == u
+@assert (a*y+b) // (c*y+d) == elliptic_param
 
 Ru, (t, x, u) = polynomial_ring(base_ring(R), [:t, :x, :u])
 h = hom(R, Ru, [x, 0, t])
 (a,b,c,d) = h.([a,b,c,d])
 Ruloc,_ = localization(Ru, c*u - a)
 phi = hom(R, Ruloc, Ruloc.([x, Ruloc(b-d*u, c*u - a), t]))
-g = SpecMor(Spec(Ruloc), Spec(R), phi)
-U1 = closure(preimage(g,S[1][1]))
 
 f = gens(modulus(OO(S[1][1])))[1]
-fu = gens(modulus(OO(U1)))[1]
+fu = numerator(phi(f))
 
+# fu is not irreducible
+# remove a bad component
+fu1 = divexact(fu, denominator(P[1])(t)*x - numerator(P[1])(t))
 
-Rufrac = fraction_field(Ru)
-helper = hom(Ru,Rufrac, Rufrac.([t,P[1](t),u]))
+kP1_2, t = polynomial_ring(k, "t₁")
+T, (x, y) = polynomial_ring(kP1_2, ["x₁", "y₁"])
+tmp = hom(Ru, T, [t,y,x])
+fxy = tmp(fu1)
+fnew, trafo = normalize_quartic(fxy)
