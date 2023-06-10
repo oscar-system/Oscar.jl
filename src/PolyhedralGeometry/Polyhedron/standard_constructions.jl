@@ -60,7 +60,7 @@ julia> vertices(pyramid(c,5))
 function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
    pm_in = pm_object(P)
    has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group))
+   return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), get_parent_field(P))
 end
 
 
@@ -94,7 +94,7 @@ julia> vertices(bipyramid(c,2))
 function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:scalar_types
    pm_in = pm_object(P)
    has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
+   return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), get_parent_field(P))
 end
 
 @doc raw"""
@@ -130,7 +130,7 @@ julia> rays(nc)
 function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
     @req 1 <= i <= nvertices(P) "Vertex index out of range"
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
-    return Cone{T}(bigobject)
+    return Cone{T}(bigobject, get_parent_field(P))
 end
 
 
@@ -166,7 +166,7 @@ function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
-   return Polyhedron{QQFieldElem}(pmPolytope)
+   return Polyhedron{QQFieldElem}(pmPolytope, QQ)
 end
 
 @doc raw"""
@@ -184,9 +184,15 @@ julia> normalized_volume(C)
 120
 ```
 """
-cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{_scalar_type_to_polymake(T)}(d))
+function cube(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+end
 cube(d::Int) = cube(QQFieldElem, d)
-cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{_scalar_type_to_polymake(T)}(d, u, l))
+function cube(f::Union{Type{T}, Field}, d::Int, l, u) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field)
+end
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
 @doc raw"""
@@ -302,7 +308,7 @@ julia> rays(PO)
 """
 function intersect(P::Polyhedron{T}...) where T<:scalar_types
     pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.intersection(pmo...))
+    return Polyhedron{T}(Polymake.polytope.intersection(pmo...), get_parent_field(iterate(P)[1]))
 end
 intersect(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = intersect(P...)
 
@@ -328,10 +334,11 @@ julia> nvertices(M)
 ```
 """
 function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{T}; algorithm::Symbol=:standard) where T<:scalar_types
+    parent_field = get_parent_field(P)
    if algorithm == :standard
-      return Polyhedron{T}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)), parent_field)
    elseif algorithm == :fukuda
-      return Polyhedron{T}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)), parent_field)
    else
       throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
    end
@@ -457,7 +464,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k))
+*(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), get_parent_field(P))
 
 
 @doc raw"""
@@ -512,7 +519,7 @@ julia> vertices(S)
 """
 function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
     @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
-    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)))
+    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)), get_parent_field(P))
 end
 
 
@@ -582,9 +589,15 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{_scalar_type_to_polymake(T)}(d,n))
+function simplex(f::Union{Type{T}, Field}, d::Int, n) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d,n), parent_field)
+end
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
-simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{_scalar_type_to_polymake(T)}(d))
+function simplex(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+end
 simplex(d::Int) = simplex(QQFieldElem, d)
 
 
@@ -879,7 +892,7 @@ julia> is_fulldimensional(p)
 true
 ```
 """
-project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)))
+project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)), get_parent_field(P))
 
 @doc raw"""
     gelfand_tsetlin_polytope(lambda::AbstractVector)
@@ -904,7 +917,7 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false), QQ)
 
 @doc raw"""
     fano_simplex(d::Int)
@@ -1032,7 +1045,7 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
     opts[:precision] = convert(Int64, precision)
   end
   pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
-  return Polyhedron{QQFieldElem}(pm_obj)
+  return Polyhedron{QQFieldElem}(pm_obj, QQ)
 end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =

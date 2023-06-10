@@ -118,29 +118,45 @@ $$H(a,b) = \{ x | ax ≤ b \}.$$
 struct AffineHalfspace{T} <: Halfspace{T}
     a::Vector{T}
     b::T
-    
-    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
+    parent_field::Field
+
+    AffineHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
 end
 
-Halfspace(a, b) = AffineHalfspace(a, b)
-Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
+halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
+halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_halfspace(f, a, b)
 
-invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(-normal_vector(H), -negbias(H))
+invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(get_parent_field(H), -normal_vector(H), -negbias(H))
+
+function affine_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+    return AffineHalfspace{scalar_type}(parent_field, a, b)
+end
+
+affine_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_halfspace(QQ, a, b)
 
 ################################################################################
 
 struct LinearHalfspace{T} <: Halfspace{T}
     a::Vector{T}
+    parent_field::Field
     
-    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
+    LinearHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
 end
 
-Halfspace(a) = LinearHalfspace(a)
-Halfspace{T}(a) where T<:scalar_types = LinearHalfspace{T}(a)
+halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
+halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_halfspace(f, a)
 
-invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(-normal_vector(H))
+invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(get_parent_field(H), -normal_vector(H))
+
+function linear_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+    return LinearHalfspace{scalar_type}(parent_field, a)
+end
+
+linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
+
+get_parent_field(h::Halfspace) = h.parent_field
 
 ################################################################################
 
@@ -157,31 +173,47 @@ $$H(a,b) = \{ x | ax = b \}.$$
 struct AffineHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
     b::T
+    parent_field::Field
     
-    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
+    AffineHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
 end
 
-Hyperplane(a, b) = AffineHyperplane(a, b)
-Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
+hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(a, b)
+hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_hyperplane(f, a, b)
+
+function affine_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+    return AffineHyperplane{scalar_type}(parent_field, a, b)
+end
+
+affine_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_hyperplane(QQ, a, b)
 
 ################################################################################
 
 struct LinearHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
+    parent_field::Field
     
-    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
+    LinearHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
 end
 
-Hyperplane(a) = LinearHyperplane(a)
-Hyperplane{T}(a) where T<:scalar_types = LinearHyperplane{T}(a)
+hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(a)
+hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_hyperplane(f, a)
+
+function linear_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+    return LinearHyperplane{scalar_type}(parent_field, a)
+end
+
+linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)
+
+get_parent_field(h::Hyperplane) = h.parent_field
 
 ################################################################################
 
 #  Field access
 negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
-negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
+negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = get_parent_field(H)(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
@@ -214,6 +246,8 @@ end
 ################################################################################
 
 abstract type PolyhedralObject{T} end
+
+get_parent_field(x::PolyhedralObject) =  x.parent_field
 
 @doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
@@ -277,12 +311,8 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
-        function $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}})
-            mat = $_M(Val(iter.Acc), iter.Obj; iter.options...)
-            par = parent(Polymake.unwrap(mat[1, 1]))
-            return matrix(par, mat)
-        end
+        # $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) = matrix(get_parent_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end

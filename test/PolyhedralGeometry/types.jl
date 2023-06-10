@@ -35,6 +35,8 @@
     a = [1, 2, 3]
     b = [8, 6, 4]
 
+    NF, sr2 = quadratic_field(2)
+
     #TODO: RayVector
     @testset "$T" for T in (PointVector, RayVector)
 
@@ -91,16 +93,17 @@
 
 
 
-    @testset "$T" for T in (AffineHalfspace, AffineHyperplane)
+    @testset "$T" for (T, f) in ((AffineHalfspace, affine_halfspace), (AffineHyperplane, affine_hyperplane))
         
-        for U in [QQFieldElem]
-            @test T{U}(a, 0) isa T{U}
-            @test T{U}(permutedims(a), 0) isa T{U}
+        for p in [QQ, NF]
+            U = elem_type(p)
+            @test f(p, a, 0) isa T{U}
+            @test f(p, permutedims(a), 0) isa T{U}
 
-            @test T{U}(a, 0) == T{U}(permutedims(a), 0) == T{U}(a) == T{U}(permutedims(a))
+            @test f(p, a, 0) == f(p, permutedims(a), 0) == f(p, a) == f(p, permutedims(a))
 
-            A = T{U}(a, 0)
-            B = T{U}(b, 2)
+            A = f(p, a, 0)
+            B = f(p, b, 2)
 
             @test A != B
 
@@ -114,20 +117,21 @@
             @test negbias(B) == 2
         end
         
-        @test T(a, 0) isa T{QQFieldElem}
+        @test f(a, 0) isa T{QQFieldElem}
         
     end
     
-    @testset "$T" for T in (LinearHalfspace, LinearHyperplane)
+    @testset "$T" for (T, f) in ((LinearHalfspace, linear_halfspace), (LinearHyperplane, linear_hyperplane))
         
-        for U in [QQFieldElem]
-            @test T{U}(a) isa T{U}
-            @test T{U}(permutedims(a)) isa T{U}
+        for p in [QQ, NF]
+            U = elem_type(p)
+            @test f(p, a) isa T{U}
+            @test f(p, permutedims(a)) isa T{U}
 
-            @test T{U}(a) == T{U}(permutedims(a))
+            @test f(p, a) == f(p, permutedims(a))
 
-            A = T{U}(a)
-            B = T{U}(b)
+            A = f(p, a)
+            B = f(p, b)
 
             @test A != B
 
@@ -141,17 +145,18 @@
             @test negbias(B) == 0
         end
         
-        @test T(a) isa T{QQFieldElem}
+        @test f(a) isa T{QQFieldElem}
         
     end
     
-    for U in [QQFieldElem]
-        let A = LinearHalfspace{U}(a)
+    for p in [QQ, NF]
+        U = elem_type(p)
+        let A = linear_halfspace(p, a)
             @test invert(A) isa LinearHalfspace{U}
             Ai = invert(A)
             @test normal_vector(Ai) == -a
         end
-        let A = AffineHalfspace{U}(a, 8)
+        let A = affine_halfspace(p, a, 8)
             @test invert(A) isa AffineHalfspace{U}
             Ai = invert(A)
             @test normal_vector(Ai) == -a
@@ -159,9 +164,9 @@
         end
     end
     
-    @test Halfspace(a) isa LinearHalfspace{QQFieldElem}
-    @test Hyperplane(a) isa LinearHyperplane{QQFieldElem}
-    @test Halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
-    @test Hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
+    @test halfspace(a) isa LinearHalfspace{QQFieldElem}
+    @test hyperplane(a) isa LinearHyperplane{QQFieldElem}
+    @test halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
+    @test hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
 
 end

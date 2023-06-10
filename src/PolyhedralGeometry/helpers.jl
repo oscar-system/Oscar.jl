@@ -200,6 +200,19 @@ Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(
 Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymake.unwrap(x))
 
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
+
+function (NF::AnticNumberField)(x::Polymake.QuadraticExtension{Polymake.Rational})
+    g = Polymake.generating_field_elements(x)
+    if g.r == 0 || g.b == 0
+        return NF(convert(QQFieldElem, g.a))
+    end
+    isq = Hecke.is_quadratic_type(parent(x))
+    @req isq[2] == g.r "Source and target fields do not match."
+    a = basis(NF)[2]
+    return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
+end
+
+(F::Field)(x::Polymake.Rational) = F(QQ(x))
 (F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
 Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
@@ -341,3 +354,38 @@ end
 
 # TODO: different printing within oscar? if yes, implement the following method
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))
+
+####################################################################
+# Parent Fields
+####################################################################
+
+_common_parent(x::Field, y::Field) = x == QQ ? y : x
+_find_parent_field(x, y...) = _common_parent(_find_parent_field(x), _find_parent_field(y...))
+_find_parent_field(x::AbstractArray{<:FieldElem}) = length(x) == 0 ? QQ : parent(iterate(x)[1])
+_find_parent_field(x::MatElem{<:FieldElem}) = length(x) == 0 ? QQ : base_ring(x)
+_find_parent_field(x::Tuple{<:AnyVecOrMat, <:Any}) = _find_parent_field(x...)
+_find_parent_field(x::FieldElem) = parent(x)
+_find_parent_field(x::Number) = QQ
+_find_parent_field(::Nothing) = QQ
+_find_parent_field() = QQ
+# fallback
+function _find_parent_field(x::AbstractArray)
+    length(x) == 0 && return QQ
+    fe = findall(e -> e isa FieldElem, x)
+    for i in fe
+        parent(x[i]) == QQ || return parent(x[i])
+    end
+    return QQ
+end
+
+_determine_parent_and_scalar(f::Field, x...) = (f, elem_type(f))
+# isempty(x) => standard/trivial field?
+function _determine_parent_and_scalar(::Type{T}, x...) where T <: FieldElem
+    if T == QQFieldElem
+        f = QQ
+    else
+        pf = _find_parent_field(x...)
+        f = pf == QQ ? throw(ArgumentError("Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data.")) : pf
+    end
+    return (f, T)
+end

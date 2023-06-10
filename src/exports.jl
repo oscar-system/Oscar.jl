@@ -30,6 +30,8 @@ export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
 export AffineVariety
+export affine_halfspace
+export affine_hyperplane
 export affine_normal_toric_variety
 export affine_variety
 export affine_algebraic_set
@@ -75,9 +77,11 @@ export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
 export Halfspace
+export halfspace
 export Hecke
 export HilbertData
 export Hyperplane
+export hyperplane
 export IncidenceMatrix
 export K3Chamber
 export K3_surface_automorphism_group
@@ -86,6 +90,8 @@ export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
+export linear_halfspace
+export linear_hyperplane
 export Localization
 export MPolyComplementOfKPointIdeal
 export MPolyComplementOfPrimeIdeal

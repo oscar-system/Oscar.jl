@@ -37,7 +37,7 @@ end
 
 function _face_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
     pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim))[f_ind[i]]
-    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), get_parent_field(P))
 end
 
 function _vertex_indices(::Val{_face_polyhedron}, P::Polyhedron; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
@@ -56,7 +56,7 @@ _incidencematrix(::Val{_face_polyhedron}) = _vertex_and_ray_indices
 
 function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
     pface = pm_object(P).VERTICES_IN_FACETS[_facet_index(pm_object(P), i), :]
-    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), get_parent_field(P))
 end
 
 _vertex_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))])
@@ -813,7 +813,7 @@ julia> rays(recession_cone(P))
  [1, 1]
 ```
 """
-recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polytope.recession_cone(pm_object(P)))
+recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polytope.recession_cone(pm_object(P)), get_parent_field(P))
 
 
 @doc raw"""
@@ -1285,7 +1285,7 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
                         string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
                 else
                     terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < 0 ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
+                        string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
                 end
                 first = false
             end
