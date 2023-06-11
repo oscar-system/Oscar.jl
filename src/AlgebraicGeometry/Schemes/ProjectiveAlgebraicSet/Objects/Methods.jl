@@ -3,20 +3,29 @@
 ########################################################
 
 
-function Base.show(io::IO, ::MIME"text/plain", X::AbsProjectiveAlgebraicSet{<:Field,<:MPolyQuoRing})
-    println(io, "Vanishing locus ")
-    println(io, "  in ", ambient_space(X))
-    print(io, "  of ")
-    Base.show(io, MIME("text/plain"), defining_ideal(X))
+function Base.show(io::IO, ::MIME"text/plain",
+                   X::AbsProjectiveAlgebraicSet{<:Field,<:MPolyQuoRing})
+  io = pretty(io)
+  println(io, "Algebraic set ")
+  println(io, Indent(), "in ", Lowercase(), ambient_space(X))
+  print(io, "defined by ", Lowercase(), defining_ideal(X))
+  print(io, Dedent())
 end
 
 
-function Base.show(io::IO, X::AbsProjectiveAlgebraicSet)
-    if get(io, :supercompact, false)
-      print(io, "Projective algebraic set")
+function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing})
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Projective algebraic set")
+  else
+    print(io, "V(")
+    if isdefined(X, :Xred)
+      I = vanishing_ideal(X)
     else
-      print(io, "Projective algebraic set in ")
-      print(io, ambient_space(X))
+      I = fat_ideal(X)
     end
+    join(io, gens(I), ",")
+    print(io,")")
+  end
 end
 

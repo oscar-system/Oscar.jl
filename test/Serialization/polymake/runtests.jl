@@ -22,7 +22,7 @@
         i = load(joinpath(@__DIR__, "ideal.mv"))
         @test i isa Oscar.Ideal
         @test map(collect, map(coefficients, gens(i))) == [[1, 1], [1, -4]]
-        @test map(collect, map(exponent_vectors, gens(i))) ==
+        @test map(collect, map(exponents, gens(i))) ==
             [[[2, 0], [0, 1]], [[3, 0], [0, 1]]]
     end
 end

@@ -37,6 +37,7 @@ mutable struct CoveringMorphism{DomainType<:Covering,
     # TODO: check domain/codomain compatibility
     # TODO: if check is true, check that all morphisms glue and that the domain patches
     # cover the basic patches of `dom`.
+    @check
     for U in keys(mor)
       U in dom || error("patch $U of the map not found in domain")
       codomain(mor[U]) in cod || error("codomain patch not found")

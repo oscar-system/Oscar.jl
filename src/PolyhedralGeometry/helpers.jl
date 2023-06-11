@@ -1,7 +1,76 @@
 import Polymake: IncidenceMatrix
 
+@doc raw"""
+     IncidenceMatrix
+
+A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
+
+# Examples
+Note that the input and print of an `IncidenceMatrix` lists the non-zero indices for each row.
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> IM[1, 2]
+true
+
+julia> IM[2, 3]
+false
+
+julia> IM[:, 4]
+2-element SparseVectorBool
+[2]
+```
+"""
+IncidenceMatrix
+
 nrows(i::IncidenceMatrix) = Polymake.nrows(i)
 ncols(i::IncidenceMatrix) = Polymake.ncols(i)
+
+@doc raw"""
+     row(i::IncidenceMatrix, n::Int)
+
+Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> row(IM, 2)
+Set{Int64} with 3 elements:
+  5
+  4
+  6
+```
+"""
+row(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
+
+@doc raw"""
+     column(i::IncidenceMatrix, n::Int)
+
+Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> column(IM, 5)
+Set{Int64} with 1 element:
+  2
+```
+"""
+column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
 const nf_scalar = Union{nf_elem, QQFieldElem}
 
@@ -44,6 +113,8 @@ _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{QQFieldElem}, t
 
 linear_matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
+linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) = assure_matrix_polymake(stack(x...))
+
 matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
 nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
@@ -69,9 +140,7 @@ nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
 
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
     isq = Hecke.is_quadratic_type(parent(x))
-    if !isq[1] || isq[2] < 0
-        throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'."))
-    end
+    @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
     r = convert(Polymake.Rational, isq[2])
     c = coordinates(x)
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)

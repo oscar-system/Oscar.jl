@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["grouplib.md"]
-```
-
 # Group libraries
 
 ## Transitive permutation groups of small degree

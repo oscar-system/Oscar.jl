@@ -13,9 +13,9 @@ function lie_algebra_conformance_test(
     @test parent_type(elemT) == parentT
     @test elem_type(parentT) == elemT
 
-    @test parent(x) == L
+    @test parent(x) === L
 
-    @test base_ring(x) == base_ring(L)
+    @test base_ring(x) === base_ring(L)
     @test elem_type(base_ring(L)) == C
 
     # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
@@ -28,6 +28,8 @@ function lie_algebra_conformance_test(
 
     @test iszero(zero(L))
 
+    @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
+    @test all(i -> coeff(x, i) == x[i], 1:dim(L))
     @test sum(x[i] * basis(L, i) for i in 1:dim(L)) == x
 
     @test x == x
@@ -79,7 +81,7 @@ function lie_algebra_conformance_test(
     end
   end
 
-  @testset "lie algebra axioms" begin
+  @testset "Lie algebra axioms" begin
     for _ in 1:num_random_tests
       x = L(rand(-10:10, dim(L)))
       y = L(rand(-10:10, dim(L)))

@@ -14,7 +14,7 @@
 # polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
+function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
   w = (v1, v...)
   str = _make_strings(w)
   strings = vcat(str...)
@@ -24,22 +24,12 @@ function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbo
   Rx, _collect_variables(c, w)...
 end
 
-# To print [1, 2, 3] or (1, 2, 3) as "1, 2, 3"
-function _print_comma_list(i)
-  s = IOBuffer()
-  print(s, i[1])
-  for j in 2:length(i)
-    print(s, ", ", i[j])
-  end
-  return String(take!(s))
-end
-
 # To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
 
 _make_variable(a, i) = _make_variable(String(a), i)
 
 function _make_variable(a::String, i)
-  ii = _print_comma_list(i)
+  ii = join(i, ", ")
   if occursin('#', a)
     aa = replace(a, '#' => "$ii")
   else
@@ -49,19 +39,19 @@ function _make_variable(a::String, i)
       aa = "$a[$ii]"
     end
   end
-  return aa
+  return Symbol(aa)
 end
 
 # Type stable recursive function to create strings from "a" => 1:2 or
 # "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:Union{String, Symbol}, <: Any})
+function _make_strings(v::Pair{<:VarName, <:Any})
   lv = last(v)
   if lv isa Tuple
     p = Iterators.product(lv...)
   else
     p = lv
   end
-  res = String[]
+  res = Symbol[]
   a = first(v)
   for i in p
     push!(res, _make_variable(a, i))
@@ -276,7 +266,7 @@ function Base.getproperty(idealgens::IdealGens, name::Symbol)
   elseif name == :keep_ordering
     return getfield(idealgens, name)
   else
-    error("undefined property: ", string(name))
+    error("undefined property: ", name)
   end
 end
 
@@ -286,7 +276,7 @@ function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
     setfield!(idealgens, name, x)
   else
-    error("undefined property: ", string(name))
+    error("undefined property: ", name)
   end
 end
 
@@ -351,10 +341,13 @@ function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
   return A.gens[Val(:O), i]
 end
 
-function Base.getindex(A::IdealGens, i::Int)
+function gen(A::IdealGens, i::Int)
   oscar_assure(A)
   return A.gens.O[i]
 end
+
+Base.getindex(A::IdealGens, i::Int) = gen(A, i)
+
 
 function Base.length(A::IdealGens)
   return length(A.gens)
@@ -381,6 +374,10 @@ function elements(I::IdealGens)
   return collect(I)
 end
 
+function ordering(G::Oscar.IdealGens)
+    return G.ord
+end
+
 ##############################################################################
 #
 # Conversion to and from Singular: in particular, some Rings are
@@ -393,7 +390,7 @@ end
 #
 # Singular's polynomial rings are not recursive:
 # 1. singular_poly_ring(R::Ring) tries to create a Singular.PolyRing (with
-#    elements of type Singular.spoly) isomorphic to R 
+#    elements of type Singular.spoly) isomorphic to R
 # 2. singular_coeff_ring(R::Ring) tries to create a ring isomorphic to R that is
 #    acceptable to Singular.jl as 'coefficients'
 #
@@ -453,7 +450,7 @@ function singular_coeff_ring(K::AnticNumberField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, map(String, symbols(Qa)))
+  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, symbols(Qa))
   Sminpoly = SQa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SQa(coeff(minpoly, i))*Sa^i
@@ -467,7 +464,7 @@ function singular_coeff_ring(F::fqPolyRepField)
   minpoly = modulus(F)
   Fa = parent(minpoly)
   SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    map(String, symbols(Fa)))
+                                                    symbols(Fa))
   Sminpoly = SFa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SFa(coeff(minpoly, i))*Sa^i
@@ -510,33 +507,33 @@ end
 function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               cached = false)[1]
   end
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              [string(x) for x = Nemo.symbols(Rx)],
+              symbols(Rx),
               ordering = singular(ord),
               cached = false)[1]
 end
@@ -589,6 +586,13 @@ Fields:
   end
 
   function MPolyIdeal(B::IdealGens{T}) where T
+    if length(B) >= 1
+      oscar_assure(B)
+      R = B.gens.Ox
+      if is_graded(R)
+        @req all(is_homogeneous, B.gens.O) "The generators of the ideal must be homogeneous"
+      end
+    end
     r = new{T}()
     r.gens = B
     r.dim = -1
@@ -650,7 +654,7 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   else
       #= singular ideal exists, but the singular ring has the wrong ordering
        = attached, thus we have to create a new singular ring and map the ideal. =#
-      if !isdefined(I, :ord) || I.ord != ordering.o
+      if !isdefined(I, :ord) || I.ord != ordering
           I.ord = ordering
           SR    = singular_poly_ring(I.Ox, ordering)
           f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
@@ -658,7 +662,7 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
           I.gens.Sx  = SR
       end
   end
-end 
+end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens.gens, :O)
@@ -668,7 +672,12 @@ end
 
 function oscar_assure(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
-    B.O = [B.Ox(x) for x = gens(B.S)]
+    if typeof(B.Ox) <: MPolyQuoRing
+      R = oscar_origin_ring(B.Ox)
+    else
+      R = B.Ox
+    end
+    B.O = [R(x) for x = gens(B.S)]
   end
 end
 
@@ -722,7 +731,7 @@ end
 @doc raw"""
     jacobi_matrix(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
+Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyRingElem)
   R = parent(f)
@@ -733,7 +742,7 @@ end
 @doc raw"""
     jacobi_ideal(f::MPolyRingElem)
 
-Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
+Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyRingElem)
   R = parent(f)
@@ -745,7 +754,7 @@ end
     jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
-this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
+return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"
@@ -1149,14 +1158,14 @@ end
 
 ################################################################################
 
-function _is_integral_domain(R::MPolyRing) 
+function _is_integral_domain(R::MPolyRing)
   return true
 end
 
 @doc raw"""
     total_degree(f::MPolyRingElem, w::Vector{Int})
 
-Given a multivariate polynomial `f` and a weight vector `w` 
+Given a multivariate polynomial `f` and a weight vector `w`
 return the total degree of `f` with respect to the weights `w`.
 """
 function weighted_degree(f::MPolyRingElem, w::Vector{Int})

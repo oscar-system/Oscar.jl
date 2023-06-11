@@ -1,3 +1,36 @@
+@doc raw"""
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+
+Given a morphism ``f : T → S`` of the `homogeneous_coordinate_ring`s of `Q` and `P`, respectively, 
+construct the associated morphism of projective schemes.
+"""
+function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+  return ProjectiveSchemeMor(P, Q, f, check=check)
+end
+
+@doc raw"""
+    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+
+Suppose ``P ⊂ ℙʳ_A`` and ``Q ⊂ ℙˢ_B`` are projective schemes, ``h : Spec(A) → Spec(B)`` is a 
+morphism of their `base_scheme`s, and ``f : T → S`` a morphism of the 
+`homogeneous_coordinate_ring`s of `Q` and `P` over ``h^* : B → A``.
+This constructs the associated morphism of projective schemes.
+"""
+function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+  return ProjectiveSchemeMor(P, Q, f, h, check=check)
+end
+
+@doc raw"""
+    morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+
+Suppose ``X ⊂ ℙʳ`` and ``Y ⊂ ℙˢ`` are projective schemes over the same `base_scheme`.
+Construct the morphism of projective schemes associated to the morphism of graded rings 
+which takes the generators of the `homogeneous_coordinate_ring` of ``Y`` to the elements 
+in `a` of the `homogeneous_coordinate_ring` of ``X``.
+"""
+function morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+  return ProjectiveSchemeMor(X, Y, a)
+end
 
 function ProjectiveSchemeMor(
     X::AbsProjectiveScheme, 
@@ -8,7 +41,7 @@ function ProjectiveSchemeMor(
   Q = homogeneous_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
   P = homogeneous_coordinate_ring(Y)
-  return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
+  return ProjectiveSchemeMor(X, Y, hom(P, Q, a, check=false))
 end
 
 function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
@@ -19,16 +52,20 @@ end
 
 function fiber_product(f::Hecke.Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
   R = base_ring(P) 
-  R == domain(f) || error("rings not compatible")
+  R === domain(f) || error("rings not compatible")
   Rnew = codomain(f)
   S = ambient_coordinate_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
-  phi = hom(S, Snew, f, gens(Snew))
+  phi = hom(S, Snew, f, gens(Snew), check=false)
   Q = subscheme(Qambient, ideal(homogeneous_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
   return Q, ProjectiveSchemeMor(Q, P, hom(homogeneous_coordinate_ring(P), 
                                           homogeneous_coordinate_ring(Q), 
-                                          f, gens(homogeneous_coordinate_ring(Q))))
+                                          f, gens(homogeneous_coordinate_ring(Q)),
+                                          check=false
+                                         ),
+                                check=false
+                               )
 end
 
 function fiber_product(
@@ -42,7 +79,8 @@ function fiber_product(
   help_map = hom(ambient_coordinate_ring(P),
                  ambient_coordinate_ring(Q_ambient),
                  pullback(f),
-                 gens(ambient_coordinate_ring(Q_ambient))
+                 gens(ambient_coordinate_ring(Q_ambient)),
+                 check=false
                 )
   SQ = homogeneous_coordinate_ring(Q_ambient)
   I = ideal(SQ, SQ.(help_map.(gens(defining_ideal(P)))))
@@ -53,7 +91,8 @@ function fiber_product(
                                     pullback(f),
                                     gens(homogeneous_coordinate_ring(Q)), 
                                     check=false
-                                   )
+                                   ),
+                                check=false
                                )
 end
 
@@ -80,8 +119,10 @@ function inclusion_morphism(
                              hom(homogeneous_coordinate_ring(Q),
                                  homogeneous_coordinate_ring(P),
                                  pullback(f), 
-                                 gens(homogeneous_coordinate_ring(P))
-                                )
+                                 gens(homogeneous_coordinate_ring(P)),
+                                 check=false
+                                ),
+                             check=false
                             )
 end
 
@@ -92,15 +133,19 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
   return ProjectiveSchemeMor(P, Q, 
                              hom(homogeneous_coordinate_ring(Q),
                                  homogeneous_coordinate_ring(P),
-                                 gens(homogeneous_coordinate_ring(P))
-                                )
+                                 gens(homogeneous_coordinate_ring(P)),
+                                 check=false
+                                ),
+                             check=false
                             )
 end
 
 identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         hom(homogeneous_coordinate_ring(P),
                                                             homogeneous_coordinate_ring(P),
-                                                            gens(homogeneous_coordinate_ring(P))
-                                                           )
+                                                            gens(homogeneous_coordinate_ring(P)),
+                                                            check=false
+                                                           ),
+                                                        check=false
                                                        )
 

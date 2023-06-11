@@ -3,7 +3,7 @@
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = homogeneous_coordinate_ring(P)
-  (u, v) = gens(S)[1], gens(S)[2]
+  (u, v) = gen(S, 1), gen(S, 2)
   h = u^3 
   h = u^3 + u^2
   h = u^3 + (u^2)*v 
@@ -216,4 +216,21 @@ end
   for k in keys(glueings(dom_cov))
       @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
   end
+end
+
+@testset "base change" begin
+  kk, pr = quo(ZZ, 5)
+  IP1 = covered_scheme(projective_space(ZZ, 1))
+  IP1_red, red_map = base_change(pr, IP1)
+  
+  IP2 = projective_space(ZZ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, x^2 + y^2 + z^2)
+  IP2_cov = covered_scheme(IP2)
+  II = IdealSheaf(IP2, I)
+
+  inc_X = oscar.CoveredClosedEmbedding(IP2_cov, II)
+  (a, b, c) = base_change(pr, inc_X)
+  @test compose(a, inc_X) == compose(b, c)
 end

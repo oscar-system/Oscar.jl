@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["NormalToricVarieties.md"]
-```
-
 # Normal Toric Varieties
 
 ## Introduction
@@ -51,8 +47,8 @@ normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 
 ```@docs
 affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-del_pezzo_surface(b::Int; set_attributes::Bool = true)
-hirzebruch_surface(r::Int; set_attributes::Bool = true)
+del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
+hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
 projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
 weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 ```
@@ -60,7 +56,8 @@ weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attribut
 ### Further Constructions
 
 ```@docs
-blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true)
+blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
 normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)

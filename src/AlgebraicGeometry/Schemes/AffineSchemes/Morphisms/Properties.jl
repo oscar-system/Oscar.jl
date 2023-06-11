@@ -33,16 +33,13 @@ This method checks if a morphism is the identity map.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -51,7 +48,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false

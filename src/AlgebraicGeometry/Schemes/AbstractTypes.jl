@@ -28,9 +28,7 @@ abstract type AbsAffineVariety{BaseField<:Field, RingType} <:AbsAffineAlgebraicS
 @doc raw"""
     AbsProjectiveVariety <: AbsProjectiveAlgebraicSet
 
-A projective variety over a field.
-
-That is a geometrically integral subscheme of a projective space over a field.
+A geometrically integral subscheme of a projective space over a field.
 """
 abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, GradedRingType} end
 

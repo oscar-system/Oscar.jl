@@ -47,7 +47,7 @@
 
   for (g,ks,k,n) in from_sage
     g = matrix(ZZ,3,3,g)
-    L = Zlattice(gram=g)
+    L = integer_lattice(gram=g)
     qL = discriminant_group(L)
     @test n == order(orthogonal_group(qL))
     @test order(image_in_Oq(L)[1]) == k

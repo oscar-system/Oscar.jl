@@ -6,7 +6,6 @@ export coefficient_ring_type
 export coefficient_type
 export components
 export divisor
-export ideal_sheaf_type
 export in_linear_system
 export linear_system
 export scheme
@@ -34,7 +33,7 @@ stored as a formal linear combination over some ring ``R`` of
       coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
-    if check
+    @check begin
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
@@ -45,7 +44,7 @@ stored as a formal linear combination over some ring ``R`` of
 
   function WeilDivisor(C::AlgebraicCycle; check::Bool=true)
     X = scheme(C)
-    if check
+    @check begin
       for D in keys(coefficient_dict(C))
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
@@ -80,7 +79,7 @@ in `R`.
 """
 function WeilDivisor(X::AbsCoveredScheme, R::Ring)
   D = IdDict{IdealSheaf, elem_type(R)}()
-  return WeilDivisor(X, R, D)
+  return WeilDivisor(X, R, D, check=false)
 end
 
 function zero(W::WeilDivisor)
@@ -101,9 +100,11 @@ weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring)
+function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
-  D[I] = one(R)
+  @check isprime(I) "ideal sheaf must be prime"
+  @check dim(X) - dim(D) == 1 "components of a divisor must be of codimension one"
+  coefficient_dict(D)[I] = one(R)
   return D
 end
 
@@ -129,7 +130,7 @@ function copy(D::WeilDivisor)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict)
+  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
 function Base.show(io::IO, D::WeilDivisor)
@@ -198,8 +199,7 @@ end
 @doc raw"""
     in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
-Returns `true` if the rational function `f` is in the linear system ``|D|``
-and `false` otherwise.
+Check if the rational function `f` is in the linear system ``|D|``.
 """
 function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
   X = scheme(D) 
@@ -258,6 +258,8 @@ function weil_divisor(L::LinearSystem)
 end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
+gen(L::LinearSystem,i::Int) = L.f[i]
+
 @doc raw"""
     variety(L::LinearSystem)
 
@@ -271,7 +273,7 @@ scheme(L::LinearSystem) = variety(L)
     subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
-and an integer `n`, this returns a pair ``(K, A)`` consisting 
+and an integer `n`, return a pair ``(K, A)`` consisting
 of the subsystem of elements in ``|D + P|`` and the representing 
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.
@@ -323,7 +325,7 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   r, K = left_kernel(A)
-  new_gens = [sum([K[i,j]*gens(L)[j] for j in 1:ncols(K)]) for i in 1:nrows(K)]
+  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:nrows(K)]
   return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
 end
 

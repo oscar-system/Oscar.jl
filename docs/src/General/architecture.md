@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["architecture.md"]
-```
-
 # Architecture
 
 This page aims to give a short technical overview of the architecture of OSCAR.

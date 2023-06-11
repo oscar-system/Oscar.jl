@@ -57,10 +57,8 @@ Concrete instance of an `AbsGlueing` for glueings of affine schemes
      domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
     (OO(domain(f)) === OO(codomain(g)) &&
     OO(domain(g)) ===  OO(codomain(f))) || error("domain/codomain mismatch: maps can not be mutually inverse")
-    if check
-      compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
-      compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
-    end
+    @check compose(f, g) == identity_map(domain(f)) "glueing maps are not inverse of each other"
+    @check compose(g, f) == identity_map(domain(g)) "glueing maps are not inverse of each other"
     return new{typeof(X), typeof(Y),
                typeof(domain(f)), typeof(domain(g)),
                typeof(f), typeof(g)
@@ -110,10 +108,8 @@ Concrete instance of an `AbsGlueing` for glueings of affine schemes
     V = domain(g)
     X === ambient_scheme(U) && Y === ambient_scheme(V) || error("schemes are not compatible")
     domain(f) === codomain(g) && domain(g) === codomain(f) || error("maps are not compatible")
-    if check
-      is_identity_map(compose(f, g)) || error("maps are not inverse to each other")
-      is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
+    @check is_identity_map(compose(f, g)) "maps are not inverse to each other"
+    @check is_identity_map(compose(g, f)) "maps are not inverse to each other"
     set_attribute!(f, :inverse, g)
     set_attribute!(g, :inverse, f)
     return new{typeof(X), typeof(Y),

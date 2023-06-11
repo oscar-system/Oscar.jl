@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["polyhedral_complexes.md"]
-```
-
 # Polyhedral Complexes
 
 ## Introduction
@@ -32,7 +24,7 @@ along with an `IncidenceMatrix` encoding which points generate which
 polyhedron.
 
 ```@docs
-PolyhedralComplex
+polyhedral_complex
 ```
 
 

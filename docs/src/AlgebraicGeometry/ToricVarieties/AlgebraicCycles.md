@@ -2,10 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@contents
-Pages = ["AlgebraicCycles.md"]
-```
-
 # The Chow ring
 
 Algebraic cycles are formal linear sum of irreducible

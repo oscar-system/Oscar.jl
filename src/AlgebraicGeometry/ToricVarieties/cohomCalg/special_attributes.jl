@@ -32,7 +32,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo_surface(3)
+julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
@@ -120,7 +120,7 @@ function all_cohomologies(l::ToricLineBundle)
         # -> Hooray! We found the line bundle cohomologies in question.
         
         # obtain the command string
-        class = vec([ZZRingElem(x) for x in divisor_class(l).coeff])
+        class = vec([ZZRingElem(x) for x in divisor_class(toric_divisor_class(l)).coeff])
         command = command_string(v, class)
         
         # execute cohomCalg
@@ -162,7 +162,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo_surface(3)
+julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)

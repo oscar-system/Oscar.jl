@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["rings.md"]
-```
-
 # Creating Multivariate Rings
 
 In this section, for the convenience of the reader, we recall from the chapters on rings and fields
@@ -33,7 +25,7 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached = true)
+polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
@@ -41,13 +33,13 @@ The input `ordering=:lex` refers to the lexicograpical monomial ordering which s
 order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ in the variables x, y, z with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
 
 ###### Examples
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
 julia> typeof(R)
 ZZMPolyRing
@@ -55,29 +47,31 @@ ZZMPolyRing
 julia> typeof(x)
 ZZMPolyRingElem
 
-julia> S, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Integer Ring, ZZMPolyRingElem[x, y, z])
+julia> S, (a, b, c) = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
 
-julia> R === S
+julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over ZZ, ZZMPolyRingElem[x, y, z])
+
+julia> R === S === T
 true
-
 ```
 
 ```jldoctest
 julia> R1, x = polynomial_ring(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 Vector{QQMPolyRingElem} (alias for Array{QQMPolyRingElem, 1})
 
 julia> R2, (x,) = polynomial_ring(QQ, ["x"])
-(Multivariate Polynomial Ring in x over Rational Field, QQMPolyRingElem[x])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[x])
 
 julia> typeof(x)
 QQMPolyRingElem
 
 julia> R3, x = polynomial_ring(QQ, "x")
-(Univariate Polynomial Ring in x over Rational Field, x)
+(Univariate polynomial ring in x over QQ, x)
 
 julia> typeof(x)
 QQPolyRingElem
@@ -125,17 +119,17 @@ Gröbner and standard bases are implemented for multivariate polynomial rings ov
 
 ```jldoctest
 julia> QQ
-Rational Field
+Rational field
 
 ```
 ### Finite fields $\mathbb{F_p}$, $p$ a prime
 
 ```jldoctest
 julia> GF(3)
-Galois field with characteristic 3
+Finite field of characteristic 3
 
 julia> GF(ZZ(2)^127 - 1)
-Galois field with characteristic 170141183460469231731687303715884105727
+Finite field of characteristic 170141183460469231731687303715884105727
 
 ```
 
@@ -143,7 +137,7 @@ Galois field with characteristic 170141183460469231731687303715884105727
 
 ```jldoctest
 julia> FiniteField(2, 70, "a")
-(Finite field of degree 70 over F_2, a)
+(Finite field of degree 70 over GF(2), a)
 
 ```
 
@@ -151,19 +145,19 @@ julia> FiniteField(2, 70, "a")
 
 ```jldoctest
 julia> T, t = polynomial_ring(QQ, "t")
-(Univariate Polynomial Ring in t over Rational Field, t)
+(Univariate polynomial ring in t over QQ, t)
 
 julia> K, a = number_field(t^2 + 1, "a")
-(Number field over Rational Field with defining polynomial t^2 + 1, a)
+(Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Galois field with characteristic 3
+Finite field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
-(Univariate Polynomial Ring in t over Galois field with characteristic 3, t)
+(Univariate polynomial ring in t over GF(3), t)
 
 julia> K, a = FiniteField(t^2 + 1, "a")
-(Finite field of degree 2 over F_3, a)
+(Finite field of degree 2 over GF(3), a)
 
 ```
 
@@ -171,21 +165,24 @@ julia> K, a = FiniteField(t^2 + 1, "a")
 
 ```jldoctest
 julia> T, t = polynomial_ring(QQ, "t")
-(Univariate Polynomial Ring in t over Rational Field, t)
+(Univariate polynomial ring in t over QQ, t)
 
 julia> QT = fraction_field(T)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> parent(t)
-Univariate Polynomial Ring in t over Rational Field
+Univariate polynomial ring in t over QQ
 
 julia> parent(1//t)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
 julia> T, (s, t) = polynomial_ring(GF(3), ["s", "t"]);
 
 julia> QT = fraction_field(T)
-Fraction field of Multivariate Polynomial Ring in s, t over Galois field with characteristic 3
+Fraction field
+  of multivariate polynomial ring in 2 variables over GF(3)
 
 ```
 
@@ -243,17 +240,16 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
     also meant to eventually model multivariate rings with filtrations
 	and their elements.
 
-
-The following function allows one to distinguish between graded and filtered rings:
+The following function allows one, in particular, to distinguish between graded and filtered rings.
 
 ```@docs
-is_graded(R::MPolyDecRing)
+is_graded(R::MPolyRing)
 ```
 
 ### Constructors for Graded Rings
 
 There are two basic ways of creating multivariate rings with gradings:
-While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
+While the `grade` function allows one to create a graded ring by assigning a grading to a polynomial ring already constructed,
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
@@ -272,6 +268,7 @@ graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
 ## Tests on Graded Rings
+
 
 ```@docs
 is_standard_graded(R::MPolyDecRing)
@@ -302,10 +299,10 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> coefficient_ring(R)
-Rational Field
+Rational field
 
 julia> gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -350,7 +347,7 @@ basic arithmetic as shown below:
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
@@ -359,10 +356,7 @@ julia> typeof(f)
 QQMPolyRingElem
 
 julia> S, (x, y, z) = grade(R)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> g = 3*x^2+y*z
 3*x^2 + y*z
@@ -388,7 +382,7 @@ with exponent vectors given by the elements of `e`.
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 3*x^2+y*z
 3*x^2 + y*z
@@ -405,10 +399,10 @@ An often more effective way to create polynomials is to use the `MPoly` build co
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate Polynomial Ring in x, y over Rational Field
+Builder for an element of Multivariate polynomial ring in 2 variables over QQ
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
@@ -429,6 +423,12 @@ Relevant test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
 Given an element `f` of a multivariate polynomial ring `R` or a graded version of such a ring, 
 - `parent(f)` refers to `R`, and
 - `total_degree(f)` to the total degree of `f`.
+
+!!! note
+    Given a set of variables $x = \{x_1, \ldots, x_n\}$, the *total degree* of a monomial $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)$
+    is the sum of the $\alpha_i$. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. In particular,
+	the notion of total degree ignores the weights given to the variables in the graded case.
+
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
 subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
 
@@ -436,7 +436,7 @@ subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bas
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 5, fpMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over GF(5), fpMPolyRingElem[x, y])
 
 julia> c = map(GF(5), [1, 2, 3])
 3-element Vector{fpFieldElem}:
@@ -454,7 +454,8 @@ julia> f = R(c, e)
 x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
-Multivariate Polynomial Ring in x, y over Galois field with characteristic 5
+Multivariate polynomial ring in 2 variables x, y
+  over finite field of characteristic 5
 
 julia> total_degree(f)
 5

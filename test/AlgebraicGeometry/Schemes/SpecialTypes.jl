@@ -3,7 +3,7 @@
   X = Spec(R)
   h = x^2 - y^2 + z^2 - 1
   U = PrincipalOpenSubset(X, h)
-  @test gens(U)[1] == h
+  @test complement_equations(U)[1] == h
   @test U[1] == U
 
   inc = inclusion_morphism(U, check=true)

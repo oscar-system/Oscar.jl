@@ -5,3 +5,4 @@
 #
 
 ReadPackage( "OscarInterface", "gap/OscarInterface.gi");
+ReadPackage( "OscarInterface", "gap/alnuth.gi");

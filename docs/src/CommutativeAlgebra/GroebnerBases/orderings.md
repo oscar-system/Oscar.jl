@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["orderings.md"]
-```
-
 # Monomial Orderings
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
@@ -59,7 +51,7 @@ Here are some illustrating examples:
 
 ```jldoctest
 julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
-(Multivariate Polynomial Ring in w, x over Rational Field, QQMPolyRingElem[w, x])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
 lex([w, x])
@@ -69,7 +61,7 @@ julia> canonical_matrix(o)
 [0   1]
 
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
@@ -132,7 +124,7 @@ m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
     For orderings such as `lex` and `degrevlex` which are  predefined in OSCAR, using the predefined version is much faster than using a representation as a matrix ordering.
 
 ```@docs
-matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
 ```
 
 As already shown above, OSCAR provides functions to recover defining matrices from given monomial orderings:
@@ -315,7 +307,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
 degrevlex([w, x])*degrevlex([y, z])
@@ -357,6 +349,11 @@ is_local(ord::MonomialOrdering)
 is_mixed(ord::MonomialOrdering)
 ```
 
+## Transferring an ordering from another ring
+
+```@docs
+induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)
+```
 
 ## Module Orderings
 
@@ -403,7 +400,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
 julia> o1 = degrevlex(R)*revlex(gens(F))
 degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])

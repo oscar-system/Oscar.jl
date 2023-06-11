@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["cones.md"]
-```
-
 # Cones
 
 
@@ -37,13 +29,16 @@ reason for keeping cones as a distinct type.
 
 ```@docs
 positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+cone_from_inequalities
+cone_from_equations
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
-contains(C::Cone, v::AbstractVector)
+Base.in(v::AbstractVector, C::Cone)
+Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 f_vector(C::Cone)
 hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)

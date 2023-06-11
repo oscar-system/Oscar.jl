@@ -712,3 +712,84 @@ function iszero(v::SubquoModuleElem{<:AbsLocalizedRingElem})
   return true
 end
 
+########################################################################
+# Special routines for localizations at 𝕜-points
+#
+# In this case, we will use the algorithms based on local orderings. 
+# In particular, the pre_saturated modules need to stay unchanged, 
+# so updating and caching must be disabled. 
+########################################################################
+
+function iszero(
+    v::SubquoModuleElem{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, 
+                               <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal
+                              }}
+  M = parent(v)
+  Mb = pre_saturated_module(M)
+  w = repres(v)
+  b = as_matrix(repres(v))
+  all(x->iszero(x), b) && return true
+
+  (u, d) = clear_denominators(w)
+  iszero(Mb(u)) && return true
+
+  B = relations_matrix(M)
+  success, y = has_solution(B, b)
+  !success && return false
+
+  return true
+end
+
+function coordinates(
+    u::FreeModElem{T}, M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, 
+                               <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal
+                              }}
+  S = base_ring(parent(u))
+  R = base_ring(S)
+  F = ambient_free_module(M)
+  F === parent(u) || error("element does not belong to the correct module")
+
+  # First check, whether this element is already contained in the `pre_saturated_module`
+  (u_clear, d_u) = clear_denominators(u)
+  Mb = pre_saturated_module(M)
+  if represents_element(u_clear, Mb)
+    # yc = as_matrix(coordinates(u_clear, Mb), ngens(Mb))
+    # Tr = pre_saturation_data_gens(M)
+    # # We have yc ⋅ A' ≡ uc with A' = Tr ⋅ generator_matrix(M) and d_u ⋅ u = uc.
+    # # Then (1//d_u) ⋅ yc ⋅ T are the coordinates of u in the original generators 
+    # # generator_matrix(M).
+    # result = S(one(R), d_u)*(yc*Tr) 
+    # return sparse_row(result)
+    return S(one(R), d_u)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
+                                               pre_saturation_data_gens(M))
+  end
+
+  # If u_clear was not yet found in the presaturated module, do the full search.
+  A = generator_matrix(M)
+  r = nrows(A)
+  B = relations_matrix(M)
+  s = nrows(B)
+  (success, x) = has_solution(vcat(A, B), as_matrix(u))
+  success || error("element of FreeMod does not represent an element of the SubquoModule")
+
+  # In the affirmative case we have u = u'//d_u with u' not a representative of an 
+  # element in the `pre_saturated_module(M)`. But the computations yield 
+  #
+  #   u = u'//d_u = y⋅A + z⋅B = v + w = v'//d_v + w'//d_w
+  # 
+  # with x = [y z]. Now we would like to cache v' as a new generator for the 
+  # `pre_saturated_module(M)` and w' as a new relation of it. 
+  y = x[1, 1:r]
+  z = x[1, r+1:r+s]
+  v = y*A
+  w = z*B
+  (v_clear, d_v) = clear_denominators(v)
+  (w_clear, d_w) = clear_denominators(w)
+
+  result = x[1, 1:r]
+  return sparse_row(result)
+end

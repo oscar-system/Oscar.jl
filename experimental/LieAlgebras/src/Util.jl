@@ -1,7 +1,7 @@
 """
     coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T}
 
-Returns the vector of coefficients of the matrix `M` in the basis `basis`.
+Return the vector of coefficients of the matrix `M` in the basis `basis`.
 Requires that `basis` is linearly independent and that `M` lies in the span of `basis`.
 
 # Examples
@@ -32,7 +32,7 @@ end
 """
     is_valid_dynkin(dynkin::Char, n::Int)
 
-Returns true, if there given parameters uniquely define a dynkin diagram,
+Check if there given parameters uniquely define a dynkin diagram,
 i.e. are of one of the forms
   * ``A_n`` for ``n \\geq 1``,
   * ``B_n`` for ``n \\geq 2``,

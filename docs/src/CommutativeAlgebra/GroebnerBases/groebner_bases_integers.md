@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["groebner_bases_integers.md"]
-```
-
 # Gröbner/Standard Bases Over $\mathbb Z$
 
 In this section, we consider a polynomial ring
@@ -61,7 +53,7 @@ We refer to the  textbook [AL94](@cite) for more on this.
 
 ```jldoctest
 julia> R, (x,y) = polynomial_ring(ZZ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Integer Ring, ZZMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over ZZ, ZZMPolyRingElem[x, y])
 
 julia> I = ideal(R, [3*x^2*y+7*y, 4*x*y^2-5*x])
 ideal(3*x^2*y + 7*y, 4*x*y^2 - 5*x)
