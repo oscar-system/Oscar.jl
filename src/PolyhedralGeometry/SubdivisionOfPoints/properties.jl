@@ -17,7 +17,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> points(MOAE)
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -71,7 +71,7 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 [1, 4, 6]
 
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> maximal_cells(MOAE)
 7-element SubObjectIterator{Vector{Int64}}:
@@ -111,7 +111,7 @@ If all points have the same weight, there is only one cell.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> n_maximal_cells(SOP)
 1
@@ -130,7 +130,7 @@ The ambient dimension of the MOAE is 3, independent of the subdivision chosen.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> ambient_dim(SOP)
 3
@@ -148,7 +148,7 @@ Return the number of points of a `SubdivisionOfPoints`.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> npoints(SOP)
 6
@@ -173,7 +173,7 @@ If all points have the same weight, then the 0-vector is minimal.
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> min_weights(SOP)
 6-element Vector{Int64}:
@@ -209,7 +209,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
  1  2  1
  1  1  2
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
 julia> maximal_cells(IncidenceMatrix, SOP)
@@ -237,12 +237,12 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
 
-julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0);
 
 julia> is_regular(MOAE)
 false
 
-julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
 julia> is_regular(SOP)
 true

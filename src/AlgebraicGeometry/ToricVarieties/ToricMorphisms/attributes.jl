@@ -5,7 +5,7 @@ Return the domain of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> domain(toric_identity_morphism(F4))
@@ -22,7 +22,7 @@ Return the codomain of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> codomain(toric_identity_morphism(F4))
@@ -39,7 +39,7 @@ Return the image of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> image(toric_identity_morphism(F4))
@@ -56,7 +56,7 @@ Return the underlying grid morphism of the toric morphism `tm`.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> grid_morphism(toric_identity_morphism(F4))
@@ -80,7 +80,7 @@ map of the torusinvariant Weil divisors.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
@@ -100,7 +100,8 @@ Abelian group with structure: Z^4
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
     mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(d)), 0))
     for i in 1:nrows(images)
-      j = findfirst(x -> x == true, [contains(maximal_cones(cod)[j], [images[i,k] for k in 1:ncols(images)]) for j in 1:n_maximal_cones(cod)])
+      v = [images[i,k] for k in 1:ncols(images)]
+      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
       m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end
@@ -116,7 +117,7 @@ map of the Cartier divisors.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
@@ -147,7 +148,7 @@ map of the Class groups.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
@@ -178,7 +179,7 @@ map of the Picard groups.
 
 # Examples
 ```jldoctest
-julia> F4 = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))

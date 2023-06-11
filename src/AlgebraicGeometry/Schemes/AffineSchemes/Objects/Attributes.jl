@@ -13,16 +13,13 @@ On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> coordinate_ring(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 ```
 We allow the shortcut `OO`
 julia> X = affine_space(QQ,3)
@@ -62,12 +59,9 @@ its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Affine 2-space
- over Rational Field
-with coordinates
-2-element Vector{QQMPolyRingElem}:
- x
- y
+Affine space of dimension 2
+  with coordinates x y
+  over rational field
 
 julia> ambient_space(X) == X
 true
@@ -75,19 +69,19 @@ true
 julia> (x, y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> X == ambient_space(Y)
 true
 
 julia> Z = subscheme(Y, y)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> ambient_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
 
 julia> ambient_space(V) == X
 true
@@ -102,10 +96,10 @@ In each case the ambient affine space is given by `Spec(P)`.
 # Examples
 ```jldoctest ambient_via_spec
 julia> P, (x, y) = polynomial_ring(QQ, [:x, :y])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> X = Spec(P)
-Spec of Multivariate Polynomial Ring in x, y over Rational Field
+Spec of Multivariate polynomial ring in 2 variables over QQ
 
 julia> I = ideal(P, x)
 ideal(x)
@@ -113,7 +107,7 @@ ideal(x)
 julia> RmodI, quotient_map = quo(P, I);
 
 julia> Y = Spec(RmodI)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> ambient_space(Y) == X
 true
@@ -123,18 +117,20 @@ julia> J = ideal(RmodI, y);
 julia> RmodJ, quotient_map2 = quo(RmodI, J);
 
 julia> Z = Spec(RmodJ)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> ambient_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
-powers of QQMPolyRingElem[y]
+Multiplicative subset
+  of multivariate polynomial ring in 2 variables over QQ
+  given by the products of [y]
 
 julia> URmodI, _ = localization(RmodI, U);
 
 julia> V = Spec(URmodI)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[y]
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
 
 julia> ambient_space(V) == X
 true
@@ -163,6 +159,10 @@ function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
+@attr function ambient_space(X::Spec{BRT,RT}) where {BRT<:Field, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+  return variety(Spec(ambient_coordinate_ring(X)), check=false)
+end
+
 @attr function ambient_space(X::Spec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return Spec(ambient_coordinate_ring(X))
 end
@@ -179,12 +179,9 @@ Return the embedding of ``X`` in its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Affine 2-space
- over Rational Field
-with coordinates
-2-element Vector{QQMPolyRingElem}:
- x
- y
+Affine space of dimension 2
+  with coordinates x y
+  over rational field
 
 julia> (x, y) = coordinates(X);
 
@@ -210,20 +207,18 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Affine 2-space
- over Rational Field
-with coordinates
-2-element Vector{QQMPolyRingElem}:
- x
- y
+Affine space of dimension 2
+  with coordinates x y
+  over rational field
 
 julia> (x,y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> ambient_coordinate_ring(Y)
-Multivariate Polynomial Ring in x, y over Rational Field
+Multivariate polynomial ring in 2 variables x, y
+  over rational field
 ```
 """
 function ambient_coordinate_ring(X::AbsSpec)
@@ -240,17 +235,14 @@ See also [`ambient_space(::AbsSpec)`](@ref).
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Affine 2-space
- over Rational Field
-with coordinates
-2-element Vector{QQMPolyRingElem}:
- x
- y
+Affine space of dimension 2
+  with coordinates x y
+  over rational field
 
 julia> (x,y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> coordinates(X) == ambient_coordinates(Y)
 true
@@ -273,12 +265,9 @@ by the ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
-Affine 2-space
- over Rational Field
-with coordinates
-2-element Vector{QQMPolyRingElem}:
- x
- y
+Affine space of dimension 2
+  with coordinates x y
+  over rational field
 
 julia> (x, y) = coordinates(X)
 2-element Vector{QQMPolyRingElem}:
@@ -286,7 +275,7 @@ julia> (x, y) = coordinates(X)
  y
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> (xY, yY) = coordinates(Y)
 2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
@@ -307,16 +296,12 @@ On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring ``𝕜``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> base_ring(X)
-Rational Field
+Rational field
 ```
 """
 function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}
@@ -338,19 +323,15 @@ By definition, this is the Krull dimension of ``R``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> dim(X)
 3
 
 julia> Y = affine_space(ZZ, 2)
-Spec of Multivariate Polynomial Ring in x1, x2 over Integer Ring
+Spec of Multivariate polynomial ring in 2 variables over ZZ
 
 julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
@@ -385,19 +366,16 @@ Throws and error if ``X`` does not have an ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> codim(X)
 0
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -406,7 +384,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> codim(Y)
 1
@@ -427,13 +405,9 @@ This name can be specified via `set_name!`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, 3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> name(X)
 "unnamed affine variety"
@@ -471,41 +445,43 @@ This command relies on [`radical`](@ref).
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
 ideal(x^2 - 2*x*y + y^2)
 
 julia> X = Spec(R,J)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
-complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+Complement
+  of maximal ideal corresponding to rational point with coordinates (0, 0)
+  in multivariate polynomial ring in 2 variables over QQ
 
 julia> Y = Spec(R,J,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 julia> reduced_scheme(X)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y), morphism from
+(Spec of Quotient of multivariate polynomial ring by ideal with 2 generators, morphism from
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y)
+	Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 to
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
+	Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 with coordinates
 
 	y, y)
 
 julia> reduced_scheme(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0], morphism from
+(Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal, morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2, x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+	Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 to
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0]
+	Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 with coordinates
 
@@ -514,23 +490,31 @@ with coordinates
 ```
 """
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
-  return Spec(base_ring(J), J, inverted_set(OO(X)))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
+  if has_attribute(X, :is_reduced) && is_reduced(X)
+    return X, identity_map(X)
+  end
   J = radical(modulus(OO(X)))
-  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
-  return domain(inc), inc
-  return Spec(base_ring(J), J)
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))), check=false)
+  Xred, inc = domain(inc), inc
+  set_attribute!(Xred, :is_reduced=>true)
+  return Xred, inc
 end
 
 ## to make reduced_scheme agnostic for quotient ring
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
-  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
 function reduced_scheme(X::AbsSpec)
@@ -561,59 +545,61 @@ may still be regular at some points of the returned subscheme.
 See also [`is_smooth`](@ref).
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
 ideal(x^2 - y^2 + z^2)
 
 julia> A3 = Spec(R)
-Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
+Spec of Multivariate polynomial ring in 3 variables over QQ
 
 julia> X = Spec(R,I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> singular_locus(A3)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1), morphism from
+(Spec of Quotient of multivariate polynomial ring by ideal with 1 generator, morphism from
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+	Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 to
 
-	Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
+	Spec of Multivariate polynomial ring in 3 variables over QQ
 
 with coordinates
 
 	0, 0, 0)
 
 julia> singular_locus(X)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x), morphism from
+(Spec of Quotient of multivariate polynomial ring by ideal with 4 generators, morphism from
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x)
+	Spec of Quotient of multivariate polynomial ring by ideal with 4 generators
 
 to
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
+	Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 with coordinates
 
 	0, 0, 0)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
-complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
+Complement
+  of maximal ideal corresponding to rational point with coordinates (0, 0, 0)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Y = Spec(R,I,U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
+Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 julia> singular_locus(Y)
-(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0], morphism from
+(Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal, morphism from
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
+	Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 to
 
-	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0]
+	Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 with coordinates
 
@@ -661,37 +647,37 @@ Over non-perfect fields, this command returns the non-smooth locus and
 See also [`is_smooth`](@ref).
 
 # Examples
-``` jldoctest
+```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"]
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])
 ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> X = Spec(R,I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> singular_locus_reduced(X)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), morphism from
+(Spec of Quotient of multivariate polynomial ring by ideal with 4 generators, morphism from
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+	Spec of Quotient of multivariate polynomial ring by ideal with 4 generators
 
 to
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+	Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 with coordinates
 
 	0, 0, 0)
 
 julia> singular_locus(X)
-(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), morphism from
+(Spec of Quotient of multivariate polynomial ring by ideal with 2 generators, morphism from
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2)
+	Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 to
 
-	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+	Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 with coordinates
 
@@ -794,16 +780,13 @@ Return the defining ideal of the closure of ``X`` in its ambient affine space.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -812,7 +795,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, ideal(R, [x1*x2]))
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> I = Oscar.ambient_closure_ideal(Y)
 ideal(x1*x2)

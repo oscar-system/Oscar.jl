@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["creation.md"]
-```
-
 # Creating PBW-Algebras
 
 ## Types
@@ -45,8 +37,7 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 The constructor below returns the algebras equipped with `degrevlex`.
 
 ```@docs
-    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
-                                    AbstractVector{Symbol}, AbstractVector{Char}})
+    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 ```
 
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras
@@ -90,7 +81,7 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 
 julia> coefficient_ring(A)
-Rational Field
+Rational field
 
 julia> gens(A)
 3-element Vector{PBWAlgElem{QQFieldElem, Singular.n_Q}}:

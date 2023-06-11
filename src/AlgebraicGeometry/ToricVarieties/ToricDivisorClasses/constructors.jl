@@ -6,9 +6,7 @@
     toric_variety::AbstractNormalToricVariety
     class::GrpAbFinGenElem
     function ToricDivisorClass(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-        if parent(class) !== class_group(toric_variety)
-            throw(ArgumentError("The class must belong to the class group of the toric variety"))
-        end
+        @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
 end
@@ -87,17 +85,13 @@ end
 ########################
 
 function Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) + divisor_class(tdc2))
 end
 
 
 function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
-    end
+    @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 

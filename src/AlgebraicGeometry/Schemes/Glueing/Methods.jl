@@ -124,3 +124,48 @@ function ==(G::AbsGlueing, H::AbsGlueing)
   return true
 end
 
+########################################################################
+# Base change
+########################################################################
+struct BaseChangeGlueingData{T1, T2}
+  phi::T1
+  G::T2
+  patch_change1::AbsSpecMor
+  patch_change2::AbsSpecMor
+end
+
+function _compute_glueing_base_change(gd::BaseChangeGlueingData)
+  # extraction of the glueing data
+  G = gd.G
+  pc1 = gd.patch_change1
+  pc2 = gd.patch_change2
+  phi = gd.phi
+
+  # computation of the new glueing
+  (X, Y) = patches(G)
+  (U, V) = glueing_domains(G)
+  (f, g) = glueing_morphisms(G)
+  
+  XX = domain(pc1)
+  YY = domain(pc2)
+
+  UU, map_U = base_change(phi, U, ambient_map=pc1)
+  VV, map_V = base_change(phi, V, ambient_map=pc2)
+
+  # TODO: The following will not yet work for glueings along SpecOpens.
+  U isa PrincipalOpenSubset && V isa PrincipalOpenSubset || error("base change not implemented for glueings along SpecOpens")
+
+  _, ff, _ = base_change(phi, f, domain_map=map_U, codomain_map=map_V)
+  _, gg, _ = base_change(phi, g, domain_map=map_V, codomain_map=map_U)
+
+  return Glueing(XX, YY, ff, gg)
+end
+
+function base_change(phi::Any, G::AbsGlueing;
+    patch_change1::AbsSpecMor=base_change(phi, glueing_domains(G)[1])[2], # The base change morphism for 
+    patch_change2::AbsSpecMor=base_change(phi, glueing_domains(G)[2])[2]  # the two glueing patches
+  )
+  gd = BaseChangeGlueingData{typeof(phi), typeof(G)}(phi, G, patch_change1, patch_change2)
+  return LazyGlueing(domain(patch_change1), domain(patch_change2), _compute_glueing_base_change, gd)
+end
+

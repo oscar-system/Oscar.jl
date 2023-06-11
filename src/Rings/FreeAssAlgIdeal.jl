@@ -124,7 +124,7 @@ function singular_assure(I::IdealGens{T}, deg_bound::Int) where T <: FreeAssAlgE
       deg_bound = max(deg_bound, mapreduce(total_degree, max, I.O, init = deg_bound))
     end
     I.Sx = Singular.FreeAlgebra(singular_coeff_ring(coefficient_ring(I.Ox)),
-                                map(String, symbols(I.Ox)),
+                                symbols(I.Ox),
                                 deg_bound)[1]
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x in I.O])
   end

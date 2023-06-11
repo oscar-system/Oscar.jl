@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["homological_algebra.md"]
-```
-
 # Homological Algebra
 
 Some OSCAR functions which are fundamental to homological algebra such as the `kernel` function
@@ -24,6 +16,12 @@ supporting computations in homological algebra.
 
 ```@docs
 presentation(M::ModuleFP)
+```
+
+## Representation as Cokernel
+
+```@docs
+present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 ```
 
 ## Syzygies and Free Resolutions
@@ -48,7 +46,7 @@ homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ## Hom and Ext
 
 ```@docs
-hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 ```
 
 ```@docs

@@ -18,7 +18,7 @@ scalar_type(::Union{Polyhedron{T}, Cone{T}, Hyperplane{T}, Halfspace{T}}) where 
 # Matrices with rational only elements
 for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("affine_inequality_matrix", "Affine Inequality Matrix"), ("linear_equation_matrix", "Linear Equation Matrix"), ("affine_equation_matrix", "Affine Equation Matrix"))
     M = Symbol(sym)
-    _M = Symbol(string("_", sym))
+    _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}}) = matrix(QQ, Matrix{QQFieldElem}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = Matrix{T}($_M(Val(iter.Acc), iter.Obj; iter.options...))
@@ -52,4 +52,17 @@ function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end
+end
+
+for fun in (
+    cones,
+    faces,
+    facets,
+    maximal_cones,
+    maximal_polyhedra,
+    rays,
+    vertices,
+    )
+    F = Symbol(fun)
+    @eval $F(::Type{IncidenceMatrix}, x...) = IncidenceMatrix($F(x...))
 end

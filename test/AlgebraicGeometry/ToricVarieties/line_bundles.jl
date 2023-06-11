@@ -3,8 +3,8 @@ using Test
 
 @testset "Line bundles (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    dP1 = del_pezzo_surface(1; set_attributes)
-    dP3 = del_pezzo_surface(3; set_attributes)
+    dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
     
     l = toric_line_bundle(dP3, [1, 2, 3, 4])
     l2 = canonical_bundle(dP3)
@@ -27,7 +27,7 @@ using Test
         @test degree(l) == -6
         @test degree(l^(-1)) == 6
         @test degree(l*l) == -12
-        @test divisor_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
+        @test picard_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
         @test dim(toric_variety(l)) == 2
     end
     

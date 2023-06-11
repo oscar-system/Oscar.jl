@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["K3Surfaces.md"]
-```
-
 # Automorphism Groups of  K3 surfaces
 
 A complex K3 surface is a compact complex surface $X$
@@ -25,7 +17,7 @@ See [Huy16](@cite) for the theory of K3 surfaces.
 ## Automorphisms
 
 ```@docs
-K3_surface_automorphism_group(S::ZLat)
+K3_surface_automorphism_group(S::ZZLat)
 borcherds_method
 K3Chamber
 chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0))
@@ -36,7 +28,7 @@ rays(::K3Chamber)
 aut(::K3Chamber)
 hom(::K3Chamber,::K3Chamber)
 adjacent_chamber(D::K3Chamber, v::ZZMatrix)
-separating_hyperplanes(S::ZLat, v::QQMatrix, h::QQMatrix, d)
+separating_hyperplanes(S::ZZLat, v::QQMatrix, h::QQMatrix, d)
 has_zero_entropy
 ```
 

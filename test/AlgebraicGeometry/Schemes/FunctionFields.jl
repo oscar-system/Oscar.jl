@@ -111,7 +111,7 @@ end
 
   P2 = projective_space(QQ,2)
   S = homogeneous_coordinate_ring(P2)
-  s0 = gens(S)[1]
+  s0 = gen(S, 1)
   X = subscheme(P2, ideal(S, s0))
   Xc = covered_scheme(X)
   KX = function_field(Xc)

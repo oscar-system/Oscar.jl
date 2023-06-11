@@ -1,6 +1,3 @@
-
-
-
 ####################################################################################
 # (1) Check if a scheme is empty
 ####################################################################################
@@ -8,19 +5,14 @@
 @doc raw"""
     is_empty(X::AbsSpec)
 
-This method returns `true` if the affine scheme ``X`` is empty.
-Otherwise, `false` is returned.
+Check whether the affine scheme ``X`` is empty.
 
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> isempty(X)
 false
@@ -48,22 +40,19 @@ is_empty(X::EmptyScheme) = true
 @doc raw"""
     is_subset(X::AbsSpec, Y::AbsSpec)
 
-Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
+Check whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding morphism.
 
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -72,7 +61,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_subset(X, Y)
 false
@@ -308,16 +297,13 @@ Checks whether ``X`` is openly embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -326,13 +312,13 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_open_embedding(Y, X)
 false
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
+Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
 
 julia> is_open_embedding(Z, X)
 true
@@ -379,16 +365,13 @@ Checks whether ``X`` is closed embedded in ``Y``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine 3-space
- over Rational Field
-with coordinates
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -397,13 +380,13 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_closed_embedding(Y, X)
 true
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of QQMPolyRingElem[x1]
+Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
 
 julia> is_closed_embedding(Z, X)
 false
@@ -526,7 +509,7 @@ end
 @doc raw"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
 
-Return whether a scheme `X` is equidimensional.
+Check whether the scheme `X` is equidimensional.
 
 Currently this command is available for affine schemes and space germs.
 
@@ -535,7 +518,7 @@ This command relies on [`equidimensional_decomposition_radical`](@ref).
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
 ideal(x - y)
@@ -544,10 +527,10 @@ julia> J = ideal(R,[x-1,y-2])
 ideal(x - 1, y - 2)
 
 julia> X = Spec(R,I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> Y = Spec(R,I*J)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> is_equidimensional(X)
 true
@@ -577,8 +560,7 @@ end
 @doc raw"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return the boolean value whether an affine scheme `X` is reduced.
-
+Check whether the affine scheme `X` is reduced.
 """
 @attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
@@ -613,7 +595,7 @@ end
 @doc raw"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return whether a scheme `X` is smooth.
+Check whether the scheme `X` is smooth.
 
 Note that smoothness and regularity do not coincide over non-perfect fields. 
 Smoothness implies regularity, but regular non-smooth schemes exist.
@@ -628,7 +610,7 @@ is locally free over 𝒪(X).
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
 ideal(x - y^2)
@@ -637,22 +619,24 @@ julia> J = ideal(R,[x^2-y^2])
 ideal(x^2 - y^2)
 
 julia> X = Spec(R, I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_smooth(X)
 true
 
 julia> Y = Spec(R, J)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_smooth(Y)
 false
 
 julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
-complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
+Complement
+  of maximal ideal corresponding to rational point with coordinates (1, 1)
+  in multivariate polynomial ring in 2 variables over QQ
 
 julia> Z = Spec(R, J, U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[1, 1]
+Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
 
 julia> is_smooth(Z)
 true
@@ -693,7 +677,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 @doc raw"""
    is_irreducible(X::AbsSpec)
 
-Return whether the affine scheme `X` is irreducible.
+Check whether the affine scheme `X` is irreducible.
 
 !!! note
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
@@ -709,8 +693,7 @@ end
 @doc raw"""
    is_integral(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is integral, i.e. irreducible and reduced.
-
+Check whether the affine scheme `X` is integral, i.e. irreducible and reduced.
 """
 @attr Bool function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
@@ -723,7 +706,7 @@ end
 @doc raw"""
     is_geometrically_integral(X::AbsSpec)
 
-Return if ``X/k`` is geometrically integral.
+Test if ``X/k`` is geometrically integral.
 
 That is if ``X`` is integral when base changed to any field extension of ``k``.
 """
@@ -746,8 +729,7 @@ end
 @doc raw"""
    is_connected(X::AbsSpec)
 
-Return the boolean value whether an affine scheme `X` is connected.
-
+Check whether the affine scheme `X` is connected.
 """
 @attr Bool function is_connected(X::AbsSpec)
   error("not implemented yet")

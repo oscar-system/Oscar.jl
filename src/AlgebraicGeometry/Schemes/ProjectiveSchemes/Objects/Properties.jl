@@ -8,23 +8,6 @@
   return is_one(saturation(I, J))
 end
 
-@attr Int function dim(P::AbsProjectiveScheme{<:Field})
-  return dim(defining_ideal(P))-1
-end
-
-@attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
-  return hilbert_polynomial(homogeneous_coordinate_ring(P))
-end
-
-@attr ZZRingElem function degree(P::AbsProjectiveScheme{<:Field})
-  return degree(homogeneous_coordinate_ring(P))
-end
-
-@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
-  h = hilbert_polynomial(P)
-  return (-1)^dim(P) * (first(coefficients(h)) - 1)
-end
-
 # TODO: Jacobi criterion
 function is_smooth(P::AbsProjectiveScheme; algorithm=:covered)
   get_attribute!(P, :is_smooth) do

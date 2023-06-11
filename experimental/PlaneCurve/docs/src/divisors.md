@@ -2,14 +2,6 @@
 CurrentModule = Oscar
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["divisors.md"]
-```
-
 # Divisors
 
 In order to consider divisors on curves, we restrict our attention to smooth and irreducible curves.

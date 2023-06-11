@@ -14,14 +14,14 @@ using Test
     sv2 = closed_subvariety_of_toric_variety(ntv, [xx1^2+xx1*xx2+xx2^2, yy2])
     ac0 = rational_equivalence_class(toric_line_bundle(ntv, [1, 1]))
     
-    F5 = hirzebruch_surface(5; set_attributes)
+    F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
     ac1 = rational_equivalence_class(divisor_of_character(F5, [1, 2]))
     
-    dP1 = del_pezzo_surface(1; set_attributes)
+    dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)
     (u1, u2, u3, u4) = gens(cohomology_ring(dP1))
     ac2 = rational_equivalence_class(cohomology_class(dP1, u1))
     
-    dP3 = del_pezzo_surface(3; set_attributes)
+    dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
     ac3 = rational_equivalence_class(canonical_bundle(dP3))
     ac4 = rational_equivalence_class(toric_divisor_class(dP3, [4, 3, 2, 1]))

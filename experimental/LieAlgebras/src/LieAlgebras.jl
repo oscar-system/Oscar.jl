@@ -11,10 +11,15 @@ using Base: deepcopy_internal
 
 # functions with new methods
 import ..Oscar:
+  _iso_oscar_gap,
   action,
   base_ring,
   basis,
+  coeff,
+  coefficients,
   dim,
+  direct_sum,
+  dual,
   elem_type,
   expressify,
   exterior_power,
@@ -23,7 +28,10 @@ import ..Oscar:
   ngens,
   parent_type,
   symbols,
-  symmetric_power
+  symmetric_power,
+  tensor_product,
+  ⊕,
+  ⊗
 
 import Base: getindex, iszero, parent, zero
 
@@ -34,16 +42,21 @@ export LinearLieAlgebra, LinearLieAlgebraElem
 
 export abstract_module
 export base_lie_algebra
+export base_module
+export base_modules
 export bracket
 export coefficient_vector
 export combinations
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export is_direct_sum
+export is_dual
 export is_exterior_power
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
 export matrix_repr_basis
 export multicombinations
@@ -61,6 +74,8 @@ include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
 include("LieAlgebraModule.jl")
+include("iso_oscar_gap.jl")
+include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
 
 end
@@ -74,14 +89,19 @@ export LinearLieAlgebra, LinearLieAlgebraElem
 
 export abstract_module
 export base_lie_algebra
+export base_module
+export base_modules
 export bracket
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export is_direct_sum
+export is_dual
 export is_exterior_power
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
 export matrix_repr_basis
 export special_linear_lie_algebra

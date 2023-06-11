@@ -2,36 +2,39 @@
 # (1) Display
 ########################################################
 
+function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
+  io = pretty(io)
+  println(io, "Affine algebraic set")  # at least one new line is needed
+  println(io, Indent(), "in ", ambient_space(X))
+  print(io, "defined by ", fat_ideal(X))
+  # the last print statement must not add a new line
+  print(io, Dedent()) # do not forget to Dedent() every Indent()
+end
+
+function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Affine algebraic set")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "V(")
+    join(io, gens(fat_ideal(X)), ", ")
+    print(io,")")
+  end
+end
+
+# special case for Zariski opens
+function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
+  io = pretty(io)
+  println(io, "Reduced subscheme")  # at least one new line is needed
+  print(io, Indent(),"of ", Lowercase(), fat_scheme(X))
+  print(io, Dedent())
+  # the last print statement must not add a new line
+end
+
 function Base.show(io::IO, X::AffineAlgebraicSet)
-  d = dim(ambient_space(X))
-  println(io, "Affine algebraic set in $(ambient_space(X))")
+  io = pretty(io)
+  println(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))  # at least one new line is needed
+  # the last print statement must not add a new line
 end
 
-########################################################
-# (2) Irreducible Components
-########################################################
-
-@doc raw"""
-    irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
-
-Return the irreducible components of `X` defined over the same base field.
-
-Note that this is not the same as the geometric irreducible components.
-"""
-function irreducible_components(X::AffineAlgebraicSet)
-  throw(NotImplementedError())
-end
-
-
-@doc raw"""
-    geometric_irreducible_components(X::AffineAlgebraicSet) -> Vector{AffineVariety}
-
-Return the geometric irreducible components of `X`.
-
-They are the irreducible components of `X` seen over an algebraically closed field.
-
-This is expensive and involves taking field extensions.
-"""
-function geometric_irreducible_components(X::AffineAlgebraicSet)
-  throw(NotImplementedError())
-end

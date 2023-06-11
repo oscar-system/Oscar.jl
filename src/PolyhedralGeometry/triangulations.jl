@@ -248,7 +248,7 @@ function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=fals
     is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
     is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
-    @req contains(P, zero) "Input polyhedron must contain origin."
+    @req zero in P "Input polyhedron must contain origin."
     V = vertices(P)
     V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
@@ -460,7 +460,7 @@ true
 ```
 """
 function isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
-    as_sop = SubdivisionOfPoints(pts,cells)
+    as_sop = subdivision_of_points(pts,cells)
     is_regular(as_sop)
 end
 
@@ -469,7 +469,7 @@ end
 
 
 @doc raw"""
-    SubdivisionOfPoints(P::Polyhdron, cells::IncidenceMatrix)
+    subdivision_of_points(P::Polyhdron, cells::IncidenceMatrix)
 
 # Arguments
 - `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
@@ -486,15 +486,15 @@ julia> C = cube(2);
 
 julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
 
-julia> S = SubdivisionOfPoints(C, cells)
+julia> S = subdivision_of_points(C, cells)
 Subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, cells::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), cells)
+subdivision_of_points(P::Polyhedron, cells::IncidenceMatrix) = subdivision_of_points(vertices(P), cells)
 
 
 @doc raw"""
-    SubdivisionOfPoints(P::Polyhdron, weights::AbstractVector)
+    subdivision_of_points(P::Polyhdron, weights::AbstractVector)
 
 # Arguments
 - `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
@@ -511,15 +511,15 @@ julia> C = cube(2);
 
 julia> weights = [0,0,1,2];
 
-julia> S = SubdivisionOfPoints(C, weights)
+julia> S = subdivision_of_points(C, weights)
 Subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, weights::AbstractVector) = SubdivisionOfPoints(vertices(P), weights)
-SubdivisionOfPoints(P::Polyhedron, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(vertices(P), IncidenceMatrix(cells))
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), cells)
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), weights)
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(cells))
+subdivision_of_points(P::Polyhedron, weights::AbstractVector) = subdivision_of_points(vertices(P), weights)
+subdivision_of_points(P::Polyhedron, cells::Vector{Vector{Int64}}) = subdivision_of_points(vertices(P), IncidenceMatrix(cells))
+subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) = subdivision_of_points(point_matrix(Iter), cells)
+subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) = subdivision_of_points(point_matrix(Iter), weights)
+subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}) = subdivision_of_points(point_matrix(Iter), IncidenceMatrix(cells))
 
 
 
@@ -534,7 +534,7 @@ Compute the gkz vector of one of the two regular triangulations of the square.
 ```jldoctest
 julia> C = cube(2);
 
-julia> Triang = SubdivisionOfPoints(C,[[1,2,3],[2,3,4]])
+julia> Triang = subdivision_of_points(C,[[1,2,3],[2,3,4]])
 Subdivision of points in ambient dimension 2
 
 julia> gkz_vector(Triang)

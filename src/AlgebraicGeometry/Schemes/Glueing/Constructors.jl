@@ -23,13 +23,13 @@ julia> f = SpecMor(V1, V2, [1//x, y//x]); # The glueing isomorphism
 julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
-Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map morphism from
+Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map morphism from
 
-	Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the powers of QQMPolyRingElem[x]
+	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
 
 to
 
-	Spec of localization of Multivariate Polynomial Ring in u, v over Rational Field at the powers of QQMPolyRingElem[u]
+	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
 
 with coordinates
 
@@ -47,7 +47,7 @@ julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
 julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
 julia> H = Glueing(U1, U2, h1, h2)
-Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map Morphism from complement of zero locus of QQMPolyRingElem[x] in Spec of Multivariate Polynomial Ring in x, y over Rational Field to complement of zero locus of QQMPolyRingElem[u] in Spec of Multivariate Polynomial Ring in u, v over Rational Field
+Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map Morphism from complement of zero locus of QQMPolyRingElem[x] in Spec of Multivariate polynomial ring in 2 variables over QQ to complement of zero locus of QQMPolyRingElem[u] in Spec of Multivariate polynomial ring in 2 variables over QQ
 
 julia> typeof(H)<:Glueing
 true
@@ -100,10 +100,8 @@ end
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
-  if check
-    is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
-    is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
-  end
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   Ures = intersect(X, U, check=false)
   Vres = intersect(Y, V, check=false)
   return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
@@ -112,10 +110,8 @@ end
 function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
-  if check
-    is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
-    is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
-  end
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   UX = PrincipalOpenSubset(X, OO(X)(lifted_numerator(complement_equation(U))))
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
   f_res = restrict(f, UX, VY, check=check)
@@ -149,12 +145,10 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
   return Glueing(X2, Y2, 
                  compose(restrict(finv, U2, domain(h1), check=check), 
-                         compose(h1, restrict(g, domain(h2), V2, check=check), check=check),
-                         check=check
+                         compose(h1, restrict(g, domain(h2), V2, check=check))
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
-                         compose(h2, restrict(f, domain(h1), U2, check=check), check=check), 
-                         check=check
+                         compose(h2, restrict(f, domain(h1), U2, check=check))
                         ),
                  check=check
                 )

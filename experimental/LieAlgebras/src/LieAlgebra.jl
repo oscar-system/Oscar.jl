@@ -46,11 +46,19 @@ function zero(L::LieAlgebra{C}) where {C<:RingElement}
 end
 
 function iszero(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return iszero(Generic._matrix(x))
+  return iszero(coefficients(x))
 end
 
 @inline function Generic._matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
   return (x.mat)::dense_matrix_type(C)
+end
+
+function coefficients(x::LieAlgebraElem{C}) where {C<:RingElement}
+  return collect(Generic._matrix(x))[1, :]
+end
+
+function coeff(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
+  return Generic._matrix(x)[1, i]
 end
 
 @doc raw"""
@@ -59,7 +67,7 @@ end
 Return the $i$-th coefficient of the module element $x$.
 """
 function getindex(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
-  return Generic._matrix(x)[1, i]
+  return coeff(x, i)
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem{C}, dict::IdDict) where {C<:RingElement}
@@ -80,7 +88,7 @@ function expressify(
   v::LieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(Generic._matrix(v))
+  for (i, c) in enumerate(coefficients(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -175,35 +183,14 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}
-  return L1 === L2
-end
-
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return Generic._matrix(x1) == Generic._matrix(x2)
+  return coefficients(x1) == coefficients(x2)
 end
 
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
-  return xor(hash(Generic._matrix(x), hash(parent(x), h)), b)
-end
-
-###############################################################################
-#
-#   Attribute accessors
-#
-###############################################################################
-
-function _gap_object(L::LieAlgebra{C}) where {C<:RingElement}
-  # later change to storing an isomorphism instead
-  get_attribute!(L, :gap_object) do
-    gap_lie_algebra_by_struct_consts(L)
-  end
-end
-
-function _set_gap_object!(L::LieAlgebra{C}, gapL::GAP.Obj) where {C<:RingElement}
-  set_attribute!(L, :gap_object => gapL)
+  return xor(hash(coefficients(x), hash(parent(x), h)), b)
 end
 
 ###############################################################################
@@ -212,34 +199,18 @@ end
 #
 ###############################################################################
 
-function general_linear_lie_algebra(R::Ring, n::Int)
-  basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
-  s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
-  L = lie_algebra(R, n, basis, s)
-  set_attribute!(L, :type => :general_linear)
-  return L
-end
-
-function special_linear_lie_algebra(R::Ring, n::Int)
-  basis_e = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n]
-  basis_f = [(b = zero_matrix(R, n, n); b[j, i] = 1; b) for i in 1:n for j in (i + 1):n]
-  basis_h = [
-    (b = zero_matrix(R, n, n); b[i, i] = 1; b[i + 1, i + 1] = -1; b) for i in 1:(n - 1)
-  ]
-  s_e = ["e_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  s_h = ["h_$(i)" for i in 1:(n - 1)]
-  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h])
-  set_attribute!(L, :type => :special_linear)
-  return L
-end
-
-function special_orthogonal_lie_algebra(R::Ring, n::Int)
-  basis = [
-    (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
-  ]
-  s = ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  L = lie_algebra(R, n, basis, s)
-  set_attribute!(L, :type => :special_orthogonal)
-  return L
+function lie_algebra(
+  gapL::GAP.GapObj,
+  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
+  cached::Bool=true,
+)
+  @req GAPWrap.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
+  if GAPWrap.IsFiniteDimensional(gapL)
+    if GAPWrap.IsLieObjectCollection(gapL)
+      return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
+    else
+      return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
+    end
+  end
+  error("Not implemented.")
 end

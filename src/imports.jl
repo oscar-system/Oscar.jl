@@ -1,9 +1,7 @@
 # standard packages
-using Markdown
 using Pkg
 using Random
 using RandomExtensions
-using Test
 
 # our packages
 import AbstractAlgebra
@@ -21,14 +19,17 @@ import Singular
 # import stuff from Base for which we want to provide extra methods
 import Base:
     +,
+    -,
     *,
     ^,
     ==,
     conj,
     convert,
+    deepcopy_internal,
     eltype,
     exponent,
     getindex,
+    hash,
     intersect,
     inv,
     isfinite,
@@ -58,6 +59,7 @@ import AbstractAlgebra:
     canonical_unit,
     codomain,
     data,
+    Dedent,
     degree,
     dim,
     domain,
@@ -79,6 +81,9 @@ import AbstractAlgebra:
     get_attribute,
     get_attribute!,
     Ideal,
+    Indent,
+    Lowercase,
+    LowercaseOff,
     Map,
     map,
     MatElem,
@@ -95,6 +100,7 @@ import AbstractAlgebra:
     PolyRingElem,
     polynomial_ring,
     PolyRing,
+    pretty,
     Ring,
     RingElem,
     RingElement,
@@ -161,7 +167,8 @@ import Nemo:
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
     :genus_symbol, :data, :narrow_class_group, :perm, :SymmetricGroup,
     :coefficients, :leading_coefficient, :coefficients_and_exponents,
-    :exponents, :monomials, :leading_monomial, :terms, :leading_term, :tail, :Partition]
+    :exponents, :exponent_vectors, :monomials, :leading_monomial, :terms,
+    :leading_term, :tail, :Partition]
 
 for i in names(Hecke)
   (i in exclude || !isdefined(Hecke, i)) && continue

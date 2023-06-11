@@ -98,7 +98,7 @@ end
 @doc raw"""
     rational_point_coordinates(I::MPolyIdeal)
 
-Returns the $k$-coordinates of the point corresponding to a maximal ideal 
+Return the $k$-coordinates of the point corresponding to a maximal ideal
 $I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
 or does not describe a point with coordinates in the field $k$, an error 
 exception results.
@@ -106,7 +106,7 @@ exception results.
 # Examples
 ```jldoctest
 julia> R, (x, y) = QQ["x","y"]
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x-1,y-3])
 ideal(x - 1, y - 3)
@@ -142,7 +142,7 @@ function _vdim_hack(I::MPolyIdeal)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
-  while dim(J) != length(gens(R))
+  while dim(J) != ngens(R)
     Jtemp = leer
     JN=gens(J)
     for i in 1:length(JN)

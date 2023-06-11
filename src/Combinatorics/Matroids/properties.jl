@@ -124,7 +124,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector{T} where T}:
+16-element Vector{Vector}:
  Any[]
  [1]
  [2]
@@ -143,7 +143,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector{T} where T}:
+7-element Vector{Vector}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -187,7 +187,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> cyclic_flats(M)
-9-element Vector{Vector{T} where T}:
+9-element Vector{Vector}:
  Any[]
  [1, 2, 3]
  [1, 4, 5]
@@ -199,7 +199,7 @@ julia> cyclic_flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> cyclic_flats(M, 2)
-7-element Vector{Vector{T} where T}:
+7-element Vector{Vector}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]

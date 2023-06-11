@@ -106,7 +106,6 @@ often as people think.
 
 
 The infrastructure is incomplete, e.g. we do not have
- - varieties, (we've started with curves recently)
  - combinatorial manifolds
  - surfaces
  - tropical polytopes
@@ -152,9 +151,4 @@ together.
     expect this - it is always done this way" will make your function
     impossible to be used by outsiders. Feel free to add the other "expert"
     definition layer if you need.
-
-### Adding new dependencies
-Unless really really necessary, don't add new dependencies. Every new
-dependency complicates the development workflow, in that we will need to stay
-compatible with this package. 
 

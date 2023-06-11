@@ -1,7 +1,3 @@
-```@contents
-Pages = ["serialization.md"]
-```
-
 # Serialization
 
 ## Introduction
