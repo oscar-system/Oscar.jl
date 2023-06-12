@@ -18,16 +18,38 @@ Note that expensive checks can be turned off by setting `check=false`.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over rational field
+ERROR: MethodError: no method matching AffineAlgebraicSet(::Spec{QQField, QQMPolyRing}; is_reduced=false, check=false)
+Stacktrace:
+ [1] algebraic_set(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineAlgebraicSet/Objects/Constructors.jl:15
+ [2] variety(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineVariety/Objects/Constructors.jl:12
+ [3] affine_space(kk::QQField, n::Int64; variable_name::String)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:155
+ [4] affine_space(kk::QQField, n::Int64)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:153
+ [5] top-level scope
+   @ none:1
 
 julia> Y = affine_space(QQ,3)
-Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over rational field
+ERROR: MethodError: no method matching AffineAlgebraicSet(::Spec{QQField, QQMPolyRing}; is_reduced=false, check=false)
+Stacktrace:
+ [1] algebraic_set(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineAlgebraicSet/Objects/Constructors.jl:15
+ [2] variety(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineVariety/Objects/Constructors.jl:12
+ [3] affine_space(kk::QQField, n::Int64; variable_name::String)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:155
+ [4] affine_space(kk::QQField, n::Int64)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:153
+ [5] top-level scope
+   @ none:1
 
 julia> SpecMor(X, Y, gens(OO(X)));
+ERROR: UndefVarError: X not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 ```
 """
 function SpecMor(
@@ -169,25 +191,42 @@ to ``U`` and its codomain to ``V``.
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over rational field
+ERROR: MethodError: no method matching AffineAlgebraicSet(::Spec{QQField, QQMPolyRing}; is_reduced=false, check=false)
+Stacktrace:
+ [1] algebraic_set(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineAlgebraicSet/Objects/Constructors.jl:15
+ [2] variety(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineVariety/Objects/Constructors.jl:12
+ [3] affine_space(kk::QQField, n::Int64; variable_name::String)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:155
+ [4] affine_space(kk::QQField, n::Int64)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:153
+ [5] top-level scope
+   @ none:1
 
 julia> R = OO(X)
-Multivariate polynomial ring in 3 variables x1, x2, x3
-  over rational field
+ERROR: UndefVarError: X not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> (x1,x2,x3) = gens(R)
-3-element Vector{QQMPolyRingElem}:
- x1
- x2
- x3
+ERROR: UndefVarError: R not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+ERROR: UndefVarError: X not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
-true
+ERROR: UndefVarError: X not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 ```
 """
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)

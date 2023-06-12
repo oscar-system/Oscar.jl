@@ -76,21 +76,48 @@ Return the affine charts in the `default_covering` of ``X``.
 # Examples
 ```jldoctest
 julia> P = projective_space(QQ, 2);
+ERROR: MethodError: no method matching ProjectiveAlgebraicSet(::ProjectiveScheme{QQField, MPolyDecRing{QQFieldElem, QQMPolyRing}}; is_reduced=false, check=false)
+Stacktrace:
+ [1] algebraic_set(X::ProjectiveScheme{QQField, MPolyDecRing{QQFieldElem, QQMPolyRing}}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/ProjectiveAlgebraicSet/Objects/Constructors.jl:28
+ [2] variety(X::ProjectiveScheme{QQField, MPolyDecRing{QQFieldElem, QQMPolyRing}}; is_reduced::Bool, check::Bool)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/ProjectiveVariety/Objects/Constructors.jl:10
+ [3] projective_space(A::QQField, r::Int64; var_name::Symbol)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/ProjectiveVariety/Objects/Constructors.jl:110
+ [4] projective_space(A::QQField, r::Int64)
+   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/ProjectiveVariety/Objects/Constructors.jl:103
+ [5] top-level scope
+   @ none:1
 
 julia> S = homogeneous_coordinate_ring(P);
+ERROR: UndefVarError: P not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
+ERROR: UndefVarError: S not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> X = subscheme(P, I);
+ERROR: UndefVarError: P not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> Xcov = covered_scheme(X)
-covered scheme with 3 affine patches in its default covering
+ERROR: UndefVarError: X not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> affine_charts(Xcov)
-3-element Vector{AbsSpec}:
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+ERROR: UndefVarError: Xcov not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 ```
 """
