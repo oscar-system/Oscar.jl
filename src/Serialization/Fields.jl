@@ -243,17 +243,7 @@ end
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::FqField)
     loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
-    try
-        return parent_ring(loaded_terms)
-    catch err
-        # hack untill we get updates in nemo
-        if err isa ErrorException
-            if err.msg == "Polynomial has wrong coefficient ring" && absolute_degree(coefficient_ring(parent(loaded_terms))) == 1
-                return parent_ring.forwardmap(loaded_terms)
-            end
-        end
-        throw(err)
-    end
+    return parent_ring(loaded_terms)
 end
 
 function load_internal_with_parent(s::DeserializerState,
