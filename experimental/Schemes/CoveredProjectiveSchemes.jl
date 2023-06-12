@@ -7,7 +7,7 @@ export blow_up
 export controlled_transform
 export covered_scheme
 export empty_covered_projective_scheme
-export glueing_type
+#export glueing_type
 export projective_patches
 export strict_transform
 export weak_transform
