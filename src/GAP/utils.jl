@@ -3,9 +3,9 @@ function _write_gap_file(relpath::String, content::String)
   path = joinpath(gaproot, relpath)
   mkpath(dirname(path))
   # write to a temporary file and move later to avoid race conditions
-  tmpfile = tempname(; cleanup=false)
+  tmpfile = tempname(dirname(path); cleanup=false)
   open(tmpfile, "w") do file
     write(file, content)
   end
-  Base.Filesystem.mv(tmpfile, path; force=true)
+  Base.Filesystem.rename(tmpfile, path)
 end
