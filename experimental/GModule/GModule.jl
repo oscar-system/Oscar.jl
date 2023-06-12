@@ -915,10 +915,28 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
     for i=1:length(z1)
       push!(t, hom_base(z1[i], z2[i]))
     end
-    tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
-    if length(tt) == 0
+    #should actually compute an rref of the hom base to make sure
+    if any(x->length(x) != length(t[1]), t)
+      #bad prime...
+      continue
+    end
+    if length(t[1]) == 0
       return []
     end
+    pv = [findfirst(!iszero, x) for x = t[1]]
+    if any(!isequal(pv[1]), pv)
+      continue
+    end
+    for i=1:length(pv)
+      for j=1:length(t)
+        if !isone(t[j][i][pv[i]])
+          t[j][i] *= inv(t[j][i][pv[i]])
+        end
+      end
+    end
+    @assert all(i->all(x->x[pv[i]] == 1, t[i]), 1:length(pv))
+
+    tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
     @assert base_ring(tt[1]) == k
     if isone(pp)
       pp = ZZRingElem(p)
@@ -929,7 +947,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       pp *= p
       S = []
       for t = T
-        fl, s = induce_rational_reconstruction(t, pp)
+        fl, s = induce_rational_reconstruction(t, pp)# , ErrorTolerant = true)
         fl || break
         push!(S, s)
       end
@@ -992,7 +1010,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
           reco *= 2
         end
         for t = T
-          fl, s = induce_rational_reconstruction(t, pp)
+          fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
           fl || break
           push!(S, s)
         end
@@ -1228,22 +1246,22 @@ function Hecke.induce_crt(a::Generic.MatSpaceElem{nf_elem}, b::Generic.MatSpaceE
   return c
 end
 
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{nf_elem}, pg::ZZRingElem)
+function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{nf_elem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
   c = parent(a)()
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)
+      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
       fl || return fl, c
     end
   end
   return true, c
 end
 
-function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem)
+function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
   c = zero_matrix(QQ, nrows(a), ncols(a))
   for i=1:nrows(a)
     for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = true)
+      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
       fl || return fl, c
       c[i,j] = n//d
     end
