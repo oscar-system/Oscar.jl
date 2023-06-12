@@ -164,24 +164,49 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
   R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
   
   # otherwise check whether we can find the ring of h among the affine patches
-  R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
-  # allocate a variable for the patch in which a and be are living
-  V = representative_patch(KK)
-  X = variety(KK)
-  C = default_covering(X)
-  for i in 1:npatches(C)
-    if ambient_coordinate_ring(C[i]) === R
-      V = C[i]
-      break
+  if R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] 
+    # allocate a variable for the patch in which a and be are living
+    V = representative_patch(KK)
+    X = variety(KK)
+    C = default_covering(X)
+    for i in 1:npatches(C)
+      if ambient_coordinate_ring(C[i]) === R
+        V = C[i]
+        break
+      end
+    end
+
+    # convert it 
+    U = representative_patch(KK)
+    h_generic = move_representative(a, b, V, U, C)
+    return VarietyFunctionFieldElem(KK, numerator(h_generic),
+                                    denominator(h_generic)
+                                   )
+  else
+    # go through the registered coverings and look for the ring
+    X = variety(KK)
+    for C in coverings(X)
+      for U in patches(C)
+        if R === ambient_coordinate_ring(U)
+          iso = _flatten_open_subscheme(U, default_covering(X))
+          pb = pullback(inverse(iso))
+          pb_num = fraction(pb(OO(U)(a)))
+          pb_den = fraction(pb(OO(U)(b)))
+          h = pb_num//pb_den # a representative on an affine chart of X
+          V = representative_patch(KK)
+          W = ambient_scheme(codomain(iso))
+          if ambient_coordinate_ring(V) === base_ring(parent(h))
+            return VarietyFunctionFieldElem(KK, numerator(h), denominator(h))
+          else
+            hh = move_representative(numerator(h), denominator(h), W, V, default_covering(X))
+            return VarietyFunctionFieldElem(KK, numerator(hh), denominator(hh))
+          end
+        end
+      end
     end
   end
 
-  # convert it 
-  U = representative_patch(KK)
-  h_generic = move_representative(a, b, V, U, C)
-  return VarietyFunctionFieldElem(KK, numerator(h_generic),
-                                  denominator(h_generic)
-                                  )
+  error("no open subset found with admissible ring")
 end
 
 @doc raw"""
@@ -242,12 +267,27 @@ end
 
 function getindex(f::VarietyFunctionFieldElem, V::AbsSpec)
   C = default_covering(variety(parent(f))) 
-  V in C || error("patch not found")
-  return move_representative(numerator(f), denominator(f), 
-                             representative_patch(parent(f)),
-                             V, C
-                            )
+  if any(x->x===V, patches(C))
+    return move_representative(numerator(f), denominator(f), 
+                               representative_patch(parent(f)),
+                               V, C
+                              )
+  else
+    KK = parent(f)
+    X = variety(KK)
+    iso = _flatten_open_subscheme(V, C)
+    VV = codomain(iso)
+    W = ambient_scheme(VV)
+    g = f[W] # Will go to the first case above
+    num = pullback(iso)(OO(VV)(numerator(g)))
+    den = pullback(iso)(OO(VV)(denominator(g)))
+    return fraction(num)//fraction(den)
+  end
 end
+
+# some dummy methods for compatibility
+fraction(a::MPolyQuoRingElem) = lift(a)//one(lift(a))
+fraction(a::MPolyRingElem) = a//one(a)
 
 ########################################################################
 # Implementation of the rest of the interfaces                         #
@@ -361,10 +401,10 @@ function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
     phi = pullback(fcov[U])
     return function_field(domain(f))(phi(OO(V)(numerator(a))), 
                                      phi(OO(V)(denominator(a))))
-  else
+  else 
     U = first(patches(domain(fcov)))
     W = codomain(fcov[U])
-    (any(x->x===V, affine_charts(codomain(f))) && any(x->x===W, affine_charts(codomain(f)))) || error("method not implemented for too complicated transitions")
+    #(any(x->x===V, affine_charts(codomain(f))) && any(x->x===W, affine_charts(codomain(f)))) || error("method not implemented for too complicated transitions")
     b = a[W]
     phi = pullback(fcov[U])
     return function_field(domain(f))(phi(OO(W)(numerator(b))), 
