@@ -29,12 +29,11 @@ function truncw(
     inw::Vector{T},
 ) where {T<:MPolyRingElem}
     while !checkInt32(w)
-        R = base_ring(G)
         for i = 1:length(w)
             w[i] = round(w[i] * 0.10)
         end
         w = convert_bounding_vector(w)
-        if inw != initials(R, gens(G), w)
+        if inw != initials(G, w)
             # initials are different - return unrounded weight
             return w, false
         end
@@ -116,28 +115,28 @@ function pertubed_vector(G::Oscar.IdealGens, M::Matrix{Int}, p::Integer)
 end
 
 # returns 'true' if the leading terms of G w.r.t the matrixorder T are the same as the leading terms of G w.r.t the weighted monomial order with weight vector t and matrix T.
-function inCone(G::Oscar.IdealGens, T::Matrix{Int}, t::Vector{Int})
-    R = change_order(G.base_ring, T)
-    I = Singular.Ideal(R, [change_ring(x, R) for x in gens(G)])
-    cvzip = zip(Singular.gens(I), initials(R, Singular.gens(I), t))
-    for (g, ing) in cvzip
-        if !isequal(Singular.leading_exponent_vector(g), Singular.leading_exponent_vector(ing))
-            return false
-        end
-    end
-    return true
-end
+#function inCone(G::Oscar.IdealGens, T::Matrix{Int}, t::Vector{Int})
+#    R = change_order(G.base_ring, T)
+#    I = Singular.Ideal(R, [change_ring(x, R) for x in gens(G)])
+#    cvzip = zip(Singular.gens(I), initials(R, Singular.gens(I), t))
+#    for (g, ing) in cvzip
+#        if !isequal(Singular.leading_exponent_vector(g), Singular.leading_exponent_vector(ing))
+#            return false
+#        end
+#    end
+#    return true
+#end
 
 # returns 'true' if the leading terms of G w.r.t the matrixordering T are the same as the leading terms of G w.r.t the weighted monomial order with weight vector t and the matrix order T.
-function inCone(G::Oscar.IdealGens, t::Vector{Int})
-    cvzip = zip(Singular.gens(G), initials(base_ring(G), Singular.gens(G), t))
-    for (g, ing) in cvzip
-        if !isequal(Singular.leading_exponent_vector(g), Singular.leading_exponent_vector(ing))
-            return false
-        end
-    end
-    return true
-end
+#function inCone(G::Oscar.IdealGens, t::Vector{Int})
+#    cvzip = zip(Singular.gens(G), initials(base_ring(G), gens(G), t))
+#    for (g, ing) in cvzip
+#        if !isequal(leading_exponent_vector(g), leading_exponent_vector(ing))
+#            return false
+#        end
+#    end
+#    return true
+#end
 
 # returns 'true' if the leading terms of G w.r.t the matrixordering T are the same as the leading terms of G with the current ordering.
 function same_cone(G::Oscar.IdealGens, T::Matrix{Int})
@@ -158,7 +157,6 @@ function lift(
     H::Oscar.IdealGens,
     ordering::MonomialOrdering
 )
-
     G = Oscar.IdealGens(
         [
             gen - Oscar.IdealGens([reduce(gen, gens(G), ordering=orderingAlt)], ordering)[1]
@@ -173,25 +171,19 @@ end
 # lifts the Groebner basis G to the Groebner basis w.r.t. the Ring Rn like it´s done in Collart et al. (1997).
 function liftGW2(
     G::Oscar.IdealGens,
-    R::MPolyRing,
-    inG::Vector{T},
+    orderingAlt::MonomialOrdering,
+    inG::MPolyIdeal{T},
     H::Oscar.IdealGens,
-    Rn::MPolyRing,
+    ordering::MonomialOrdering
 ) where {T<:MPolyRingElem}
-
-    gH = collect(gens(H))
-    gG = collect(gens(G))
-    inG = [change_ring(x, R) for x in inG]
-    for i = 1:length(gH)
-        q = division_algorithm(change_ring(gH[i], R), inG, R)
-        gH[i] = Rn(0)
-        for j = 1:length(inG)
-            gH[i] =
-                change_ring(gH[i], Rn) +
-                change_ring(q[j], Rn) * change_ring(gG[j], Rn)
+    for i = 1:length(gens(H))
+        q = divrem(gens(Oscar.IdealGens([H[i]], orderingAlt)), gens(inG))
+        gens(H)[i] = base_ring(G)(0)
+        for j = 1:length(gens(inG))
+            gens(H)[i] = Oscar.IdealGens([gens(H)[i] +q[j] * gens(G)[j]], ordering)
         end
     end
-    G = Singular.Ideal(Rn, [x for x in gH])
+    G = Oscar.IdealGens(H, ordering)
     G.isGB = true
     return G
 end

@@ -211,7 +211,7 @@ function standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int})
     #check if no entry of w is bigger than Int32. If it´s bigger multiply it by 0.1 and round.
     if !checkInt32(w)
         Gw = ideal(initials(G, w))
-        w, b = truncw(G, w, Gw)
+        w, b = truncw(G, w, gens(Gw))
         if !b
             throw(
                 error(
@@ -224,7 +224,7 @@ function standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int})
     end
     ordNew = create_order(R,w,T)
     H = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
-    #H = liftGW2(G, R, Gw, H, Rn)
+    #H = liftGW2(G, ordAlt, Gw, H, ordNew)
     H = lift(G, ordAlt, H, ordNew)
     return interreduce_walk(H)
 end
@@ -428,11 +428,11 @@ ordAlt = G.ord
 
             # handling the current weight with regards to Int32-entries. If an entry of w is bigger than Int32 use the Buchberger-algorithm.
             if !checkInt32(w)
-                w, b = truncw(G, w, Gw)
+                w, b = truncw(G, w, gens(Gw))
                 if !b
-                    ordNew = create_order(R,T)
+                    ordNew = matrix_ordering(R,T)
                     w = T[1, :]
-                    G = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
+                    G = groebner_basis(ideal(G), ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
     
                     if !inCone(G, T, pTargetWeights, p)
                         global pTargetWeights =
@@ -445,7 +445,6 @@ ordAlt = G.ord
                 end
             end
             ordNew = create_order(R,w,T)
-
             # converting the Groebner basis
             if (p == nvars(R) || isbinomial(gens(Gw)))
                 H = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
@@ -470,7 +469,7 @@ ordAlt = G.ord
                 global firstStepMode = false
             end
         end
-        #H = liftGW2(G, R, Gw, H, Rn)
+        #H = liftGW2(G, ordAlt, Gw,H, ordNew)
         H = lift_fractal_walk(G, H, ordNew)
         G = interreduce_walk(H)
         ordAlt = ordNew
@@ -555,9 +554,9 @@ function fractal_recursiv(
 
         # Handling the current weight with regards to Int32-entries. If an entry of w is bigger than Int32 use the Buchberger-algorithm.
         if !checkInt32(w)
-            w, b = truncw(G, w, Gw)
+            w, b = truncw(G, w, gens(Gw))
             if !b
-                ordNew = create_order(R,T)
+                ordNew = matrix_ordering(R,T)
                 w = T[1, :]
                 G = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
 
@@ -699,9 +698,9 @@ function fractal_walk_recursiv_startorder(
 
         # Handling the current weight with regards to Int32-entries. If an entry of w is bigger than Int32 use the Buchberger-algorithm.
       if !checkInt32(w)
-            w, b = truncw(G, w, Gw)
+            w, b = truncw(G, w, gens(Gw))
             if !b
-                ordNew = create_order(R,T)
+                ordNew = matrix_ordering(R,T)
                 w = T[1, :]
                 G = groebner_basis(Gw, ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
 
@@ -768,7 +767,7 @@ function tran_walk(
     currweight = S[1, :]
     tarweight = T[1, :]
     R = base_ring(G)
-    if !ismonomial(initials(R, Singular.gens(G), currweight))
+    if !ismonomial(initials(G, currweight))
         currweight = pertubed_vector(G, S, nvars(R))
     end
 
@@ -777,7 +776,7 @@ function tran_walk(
 
         # return the Groebner basis if an entry of w is bigger than int32.
         if !checkInt32(w)
-            w, b = truncw(G, w, initials(R, gens(G), w))
+            w, b = truncw(G, w, initials(G, w))
             if !b
                 return G
             end
@@ -789,7 +788,7 @@ function tran_walk(
                     println("Cones crossed: ", counter)
                 end
                 return G
-            elseif inSeveralCones(initials(base_ring(G), gens(G), tarweight))
+            elseif inSeveralCones(initials(G, tarweight))
                 tarweight = representation_vector(G, T)
                 continue
             end
@@ -817,10 +816,11 @@ function standard_step_without_int32_check(
     T::Matrix{Int},
 )
     R = base_ring(G)
-    Rn = change_order(R, w, T)
-    Gw = initials(Rn, gens(G), w)
-    H = Singular.std(Singular.Ideal(Rn, Gw), complete_reduction = true)
+    ordAlt = G.ord
+    ordNew = create_order(R, w, T)
+    Gw = initials(G, w)
+    H = groebner_basis(ideal(Gw), ordering = ordNew, complete_reduction = true, algorithm = :buchberger)
     #H = liftGW2(G, R, Gw, H, Rn)
-    H = lift(G, R, H, Rn)
+    H = lift(G, ordAlt, H, ordNew)
     return interreduce_walk(H)
 end

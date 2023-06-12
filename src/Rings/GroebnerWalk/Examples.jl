@@ -23,7 +23,7 @@ function katsura5()
     ve = [1, 1, 1, 1, 1, 1]
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (x0, x1, x2, x3, x4, x5) = polynomial_ring(
-        QQ,
+        GF(32003),
         ["x0", "x1", "x2", "x3", "x4", "x5"],
         ordering= :degrevlex,
     )
@@ -43,9 +43,9 @@ function katsura6()
     ve = [1, 1, 1, 1, 1, 1,1]
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (x0,x1,x2,x3,x4,x5,x6) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["x0","x1","x2","x3","x4","x5","x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
     f1 = x0+2*x1+2*x2+2*x3+2*x4+2*x5+2*x6-1
     f2 = 2*x2*x3+2*x1*x4+2*x0*x5+2*x1*x6-x5
@@ -65,9 +65,9 @@ function katsura7()
     ve = [1, 1, 1, 1, 1, 1, 1,1]
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (u0, u1, u2, u3, u4, u5, u6, u7) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["u0","u1","u2","u3", "u4","u5","u6", "u7"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 f1=    u0+2*u1+2*u2+2*u3+2*u4+2*u5+2*u6+2*u7-1
 f2=    u3^2+2*u2*u4+2*u1*u5+2*u0*u6+2*u1*u7-u6
@@ -86,9 +86,9 @@ function katsura8()
     ve = [1, 1, 1, 1, 1, 1,1,1,1]
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (u0,u1,u2,u3,u4,u5,u6,u7,u8) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["u0","u1","u2","u3","u4","u5","u6","u7","u8"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
     f1 = u0+2*u1+2*u2+2*u3+2*u4+2*u5+2*u6+2*u7+2*u8-1
     f2 = 2*u3*u4+2*u2*u5+2*u1*u6+2*u0*u7+2*u1*u8-u7
@@ -110,9 +110,9 @@ function cyclic7()
     example = "Cyclic7"
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (x1, x2, x3, x4, x5, x6, x7) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
     f1 = x1 + x2 + x3 + x4 + x5 + x6 + x7
     f2 = x1 * x2 + x2 * x3 + x3 * x4 + x4 * x5 + x5 * x6 + x1 * x7 + x6 * x7
@@ -160,9 +160,9 @@ function cyclic6()
     example = "Cyclic6"
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (x1, x2, x3, x4, x5, x6) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = x1 + x2 + x3 + x4 + x5 + x6
@@ -199,9 +199,9 @@ function cyclic5()
     example = "Cyclic5"
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (v, w, x, y, z) = polynomial_ring(
-        Singular.n_ZpField(32003),
+        GF(32003),
         ["v", "w", "x", "y", "z"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = v + w + x + y + z
@@ -224,9 +224,9 @@ function cyclic4()
     example = "Cyclic4"
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (w, x, y, z) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["w", "x", "y", "z"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = w + x + y + z
@@ -242,9 +242,9 @@ function cyclic8()
     example = "Cyclic8"
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     R, (x1,x2,x3,x4,x5,x6,x7,x8) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["x1","x2", "x3","x4","x5","x6","x7","x8"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = x1+x2+x3+x4+x5+x6+x7+x8
@@ -267,7 +267,7 @@ function eco6()
     R, (x1, x2, x3, x4, x5, x6) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
 
@@ -289,7 +289,7 @@ function eco7()
     R, (x1, x2, x3, x4, x5, x6) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = x1 + x2 + x3 + x4 + x5 + x6 + 1
@@ -318,7 +318,7 @@ function noon5()
     R, (x1, x2, x3, x4, x5) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 =
@@ -348,7 +348,7 @@ function noon6()
     R, (x1, x2, x3, x4, x5, x6) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 =
@@ -399,7 +399,7 @@ function noon7()
     R, (x1, x2, x3, x4, x5, x6, x7) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 =
@@ -463,7 +463,7 @@ function noon8()
     R, (x1, x2, x3, x4, x5, x6, x7, x8) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 =
@@ -542,7 +542,7 @@ function redeco7()
     R, (x1, x2, x3, x4, u7, x5, x6) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "u7", "x5", "x6"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = -6 * u7 + x6
@@ -564,7 +564,7 @@ function redeco8()
     R, (x1, x2, x3, x4, u8, x5, x6, x7) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3", "x4", "u8", "x5", "x6", "x7"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = -7 * u8 + x7
@@ -587,7 +587,7 @@ function wang91()
     R, (x3, x2, x1, x0, b, a) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x3", "x2", "x1", "x0", "b", "a"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = 3 * x2 * x1 * a + 3 * x0^2
@@ -606,7 +606,7 @@ function cohn4()
     R, (x, y, z, t) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x", "y", "z", "t"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 =
@@ -661,7 +661,7 @@ function oberfr()
     R, (x1, x2, x3) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x1", "x2", "x3"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
     f1 = x2^3 + x1 * x2 * x3 + x2^2 * x3 + x1 * x3^3
     f2 = 3 + x1 * x2 + x1^2 * x2 + x2^2 * x3
@@ -677,7 +677,7 @@ function trinks1()
     R, (x, y, z, t, u, v) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["x", "y", "z", "t", "u", "v"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     f1 = 45 * y + 35 * u - 165 * v - 36
@@ -699,7 +699,7 @@ function ex1()
     R, (a, b, c, d) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["a", "b", "c", "d"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
     S = change_order(R, TarOrd)
 
@@ -725,7 +725,7 @@ function ex2()
     R, (a, b, c, d) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["a", "b", "c", "d"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     S = change_order(R, TarOrd)
@@ -766,7 +766,7 @@ function v3g7d50()
     R, (a, b, c) = polynomial_ring(
         Singular.N_ZpField(32003),
         ["a", "b", "c"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     S = change_order(R, TarOrd)
@@ -780,9 +780,9 @@ function v4g3()
     StartOrd = ordering_as_matrix(:degrevlex, dim)
     TarOrd = ordering_as_matrix(:lex, dim)
     R, (a, b, c, d) = polynomial_ring(
-        Singular.N_ZpField(32003),
+        GF(32003),
         ["a", "b", "c", "d"],
-        ordering = Singular.ordering_M(StartOrd),
+        ordering= :degrevlex,
     )
 
     S = change_order(R, TarOrd)
