@@ -47,20 +47,20 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
   Rt, t1 = polynomial_ring(R,:t)
   a = reduce(+,(ab[i+1]*t1^i for i in 0:dega), init=zero(Rt))
-  b = reduce(+,(ab[1+degb+j]*t1^j for j in 0:degb), init=zero(Rt))
+  b = reduce(+,(ab[2+dega+j]*t1^j for j in 0:degb), init=zero(Rt))
   c = a*xn(t1) - b*yn(t1)
-  _, r = divrem(c, xd(t1))
-
+  r = mod(c, xd(t1))
   # setup the linear equations for coefficients of r to vanish
   # and for the degree of c to be bounded above by
   # k + 2*OP + 4 + degree(xd)
-  eqns = vcat(collect(coefficients(r)),[coeff(c,i) for i in (k + 2*OP + 4 + degree(xd)) + 1:degree(c)])
+  eq1 = collect(coefficients(r))
+  eq2 = [coeff(c,i) for i in (k + 2*OP + 4 + degree(xd) + 1):degree(c)]
+  eqns = vcat(eq1, eq2)
 
   # collect the equations as a matrix
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
   M = matrix(base, cc)
   kerdim, K = kernel(M)
-  @assert kerdim == 2*k + OP # prediced by Riemann-Roch
   result = []
   Bt = base_ring(base_field(E))
   t = gen(Bt)
@@ -68,6 +68,14 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
     aa = reduce(+, (K[i+1,j]*t^i for i in 0:dega), init=zero(Bt))
     bb = reduce(+, (K[dega+i+2,j]*t^i for i in 0:degb), init=zero(Bt))
     push!(result, (aa, bb))
+  end
+  # confirm the computation
+  @assert kerdim == 2*k + OP # prediced by Riemann-Roch
+  for (a,b) in result
+    @assert mod(a*xn - b*yn, xd) == 0
+    @assert degree(a) <= k + 2*OP
+    @assert degree(b) <= k + 2*OP - 2 - 1//2*degree(xd)
+    @assert degree(a*xn - b*yn) <= k + 2*OP + 4 + degree(xd)
   end
   return result
 end
@@ -104,4 +112,73 @@ function Oscar.saturation(I::IdealSheaf, J::IdealSheaf)
     K[U] = saturation(I(U),J(U))
   end
   return IdealSheaf(X, K, check=false)
+end
+
+function (f::AbstractAlgebra.Generic.Frac)(t)
+  return numerator(f)(t)//denominator(f)(t)
+end
+
+function my_coeff(g::MPolyRingElem, x, deg)
+  R = parent(g)
+  @req parent(x)=== R "parent missmatch"
+  i = findfirst(==(x), gens(R))
+  c = MPolyBuildCtx(R)
+  for (co, mon) in coefficients_and_exponents(g)
+    if mon[i] == deg
+      mon[i] = 0
+      push_term!(c, co, mon)
+    end
+  end
+  return finish(c)
+end
+
+function my_degree(g::MPolyRingElem, x)
+  R = parent(g)
+  i = findfirst(==(x), gens(R))
+  return maximum(c[i] for c in exponents(g))
+end
+"""
+Transform
+a(x)y^2 + b(x) y = h(x)
+to y'^2 = h(x')
+"""
+function normalize_quartic(g)
+  R = parent(g)
+  F = fraction_field(R)
+  kt = base_ring(R)
+  (x, y) = gens(R)
+
+  #complete the square
+  a = my_coeff(g, y, 2)
+  b = my_coeff(g, y, 1)
+  u = unit(factor(a))
+  a = inv(u)*a
+  b = inv(u)*b
+  sqa = sqrt(a)
+  # inverse map
+  R1, (x1,y1) = polynomial_ring(kt, [:x, :y])
+  F1 = fraction_field(R1)
+  psi = hom(R1, F, F.([x, (2*a*y + b)//(2*sqa)]))
+  conv = hom(R, R1, [x1, 0])
+  (a1,b1,sqa1) = conv.((a,b,sqa))
+  phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
+  phiF = map_from_func(x-> phi(numerator(x))//phi(denominator(x)), F, F1)
+  psiF = map_from_func(x-> psi(numerator(x))//psi(denominator(x)), F1, F)
+  @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+
+  # absorb squares into y1
+  g1 = numerator(phi(g))
+  ff = factor(hom(R1,R1,[x1,0])(g1))
+  c = prod([p^divexact(i,2) for (p,i) in ff if mod(i,2)==0],init=R1(1))
+  d = sqrt(my_coeff(g1, y1, 2))
+
+  R2, (x2,y2) = polynomial_ring(kt, [:x, :y])
+  F2 = fraction_field(R2)
+  phi1 = hom(R1, F2, [x2, y2*c//d])
+  phiF1 = map_from_func(x-> phi1(numerator(x))//phi1(denominator(x)), F1, F2)
+  phi2 = compose(phi, phiF1)
+  g2 = numerator(phi1(g1))
+  c = my_coeff(g2, y2, 2)
+  g2 = divexact(g2, c)
+  return g2, phi2
 end
