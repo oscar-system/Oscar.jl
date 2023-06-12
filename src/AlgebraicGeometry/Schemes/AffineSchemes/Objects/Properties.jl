@@ -46,48 +46,28 @@ See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding mor
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
-ERROR: MethodError: no method matching AffineAlgebraicSet(::Spec{QQField, QQMPolyRing}; is_reduced=false, check=false)
-Stacktrace:
- [1] algebraic_set(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
-   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineAlgebraicSet/Objects/Constructors.jl:15
- [2] variety(X::Spec{QQField, QQMPolyRing}; is_reduced::Bool, check::Bool)
-   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineVariety/Objects/Constructors.jl:12
- [3] affine_space(kk::QQField, n::Int64; variable_name::String)
-   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:155
- [4] affine_space(kk::QQField, n::Int64)
-   @ Oscar ~/Kaiserslautern/neuer_Oscar_Klon/Oscar.jl/src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Constructors.jl:153
- [5] top-level scope
-   @ none:1
+Affine space of dimension 3
+  with coordinates x1 x2 x3
+  over rational field
 
 julia> R = OO(X)
-ERROR: UndefVarError: X not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
-ERROR: UndefVarError: R not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-ERROR: UndefVarError: x1 not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_subset(X, Y)
-ERROR: UndefVarError: X not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+false
 
 julia> is_subset(Y, X)
-ERROR: UndefVarError: Y not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+true
 ```
 """
 function issubset(X::AbsSpec, Y::AbsSpec)
