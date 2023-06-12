@@ -24,28 +24,16 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
-Graded free module Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> G = grading_group(R)
 GrpAb: Z
 
 julia> graded_free_module(R, [G[1], 2*G[1]])
-Graded free module Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^1([-1]) + Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^1([-2]) of rank 2 over Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]
+Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
 function graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
@@ -109,41 +97,17 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = graded_free_module(R, [1, 2])
-Graded free module Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^1([-1]) + Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^1([-2]) of rank 2 over Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]
+Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 
 ```jldoctest
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1 0 1; 0 1 1]);
 
 julia> FF = graded_free_module(S, [[1, 2], [-1, 3]])
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([-1 -2]) + Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([1 -3]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]
+Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
 
 julia> FFF = graded_free_module(S, [1 -1; 2 3])
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([-1 -2]) + Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([1 -3]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]
+Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
 
 julia> FF == FFF
 true
@@ -196,51 +160,22 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
-(Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 
 julia> F = free_module(S, 3)
-Free module of rank 3 over Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1]
+Free module of rank 3 over S
 
 julia> FF = grade(F)
-Graded free module Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1]^3([0 0]) of rank 3 over Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1]
+Graded free module S^3([0 0]) of rank 3 over S
 
 julia> F
-Free module of rank 3 over Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1]
+Free module of rank 3 over S
 ```
 """
 function grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
@@ -288,71 +223,31 @@ Return the new module.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]
+Free module of rank 2 over R
 
 julia> FF = grade(F,  [[1, 0], [0, 1]])
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([-1 0]) + Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([0 -1]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]
+Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
 
 julia> FFF = grade(F,  [1 0; 0 1])
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([-1 0]) + Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]^1([0 -1]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1]
+Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
 ```
 
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y), Map from
-Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] to Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+R to S defined by a julia-function with inverse)
 
 julia> F = free_module(S, 2)
-Free module of rank 2 over Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y)
+Free module of rank 2 over S
 
 julia> FF = grade(F, [1, 2])
-Graded free module Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y)^1([-1]) + Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y)^1([-2]) of rank 2 over Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y)
+Graded free module S^1([-1]) + S^1([-2]) of rank 2 over S
 ```
 """
 function grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
@@ -394,11 +289,7 @@ Return the grading group of `base_ring(F)`.
 julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> grading_group(F)
 GrpAb: Z
@@ -409,7 +300,7 @@ function grading_group(M::FreeMod)
 end
 
 
-# Dangereous: Only for internal use with care!!!
+# Dangerous: Only for internal use with care!!!
 @doc raw"""
     set_grading!(F::FreeMod, W::Vector{GrpAbFinGenElem})
 
@@ -473,13 +364,7 @@ Return the degrees of the generators of `F`.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 2)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^2([0]) of rank 2 over R
 
 julia> degrees_of_generators(F)
 2-element Vector{GrpAbFinGenElem}:
@@ -571,22 +456,10 @@ Given an element `f` of a graded free module, return `true` if `f` is homogeneou
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [2]
-  z -> [3]
+Free module of rank 2 over R
 
 julia> FF = grade(F, [1,4])
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [2]
-  z -> [3]^1([-1]) + Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [2]
-  z -> [3]^1([-4]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [2]
-  z -> [3]
+Graded free module R^1([-1]) + R^1([-4]) of rank 2 over R
 
 julia> f = y^2*2*FF[1]-x*FF[2]
 2*y^2*e[1] - x*e[2]
@@ -646,7 +519,7 @@ end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
   @assert is_zm_graded(parent(f))
-  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  d = degree(f)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -765,22 +638,10 @@ If `a` is graded, return the degree of `a`.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> G = graded_free_module(R, 2)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^2([0]) of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -789,13 +650,7 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0])
+F -> G
 e[1] -> y*e[1]
 e[2] -> x*e[1] + y*e[2]
 e[3] -> z*e[2]
@@ -846,22 +701,10 @@ Return `true` if `a` is graded, `false` otherwise.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> G = graded_free_module(R, 2)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^2([0]) of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -870,13 +713,7 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0])
+F -> G
 e[1] -> y*e[1]
 e[2] -> x*e[1] + y*e[2]
 e[3] -> z*e[2]
@@ -900,22 +737,10 @@ If `a` is graded, return the grading group of `a`.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> G = graded_free_module(R, 2)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^2([0]) of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -924,13 +749,7 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0])
+F -> G
 e[1] -> y*e[1]
 e[2] -> x*e[1] + y*e[2]
 e[3] -> z*e[2]
@@ -960,22 +779,10 @@ is graded of degree `zero(G)`.
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(R, 3)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) of rank 3 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^3([0]) of rank 3 over R
 
 julia> G = graded_free_module(R, 2)
-Graded free module Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0]) of rank 2 over Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
+Graded free module R^2([0]) of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -984,13 +791,7 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^3([0]) -> Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^2([0])
+F -> G
 e[1] -> y*e[1]
 e[2] -> x*e[1] + y*e[2]
 e[3] -> z*e[2]
@@ -1114,15 +915,9 @@ julia> M = subquotient(a1,a2);
 
 julia> degrees_of_generators(M)
 3-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z
-with components [2]
- Element of
-GrpAb: Z
-with components [2]
- Element of
-GrpAb: Z
-with components [2]
+ Element of Z with components [2]
+ Element of Z with components [2]
+ Element of Z with components [2]
 
 julia> gens(M)
 3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -1143,15 +938,70 @@ end
     is_homogeneous(m::SubquoModuleElem)
 
 Return  `true` if `m` is homogeneous, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> m1 = x*M[1]+y*M[2]+z*M[3]
+(2*x*y + y^2)*e[1] + (y^2 + z^2)*e[2]
+
+julia> is_homogeneous(m1)
+true
+
+julia> is_homogeneous(zero(M))
+true
+
+julia> m2 = M[1]+x*M[2]
+(x^2 + x*y + y)*e[1] + x*y*e[2]
+
+julia> is_homogeneous(m2)
+false
+
+julia> m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia> is_homogeneous(m3)
+true
+
+julia> simplify(m3)
+x*e[1] + (y - z)*e[2]
+```
 """
 function is_homogeneous(el::SubquoModuleElem)
-  error("Not implemented yet.")
+  if iszero(el.coeffs)
+      return is_homogeneous(repres(el))
+  else
+      degree = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      if degree === nothing
+          reduced_el = simplify(el)
+          degree_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          return degree_reduced !== nothing
+      else
+          return true
+      end
+  end
 end
-###Will be fixed by Janko
-
-# function degree(el::SubquoModuleElem)
-#   return degree(repres(el))
-# end
 
 @doc raw"""
     degree(m::SubquoModuleElem)
@@ -1200,12 +1050,25 @@ with components [5]
 
 julia> degree(Int, m)
 5
+
+julia> m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia> degree(m3)
+Element of Z with components [2]
 ```
 """
 function degree(el::SubquoModuleElem)
-  ###isa(degree(ambient_representative(el)), GrpAbFinGenElem) || error("The specified element is not homogeneous.")
   if !iszero(el.coeffs)
-      return determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      result = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      if result === nothing
+          reduced_el = simplify(el)
+          result_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          @assert result_reduced !== nothing "The specified element is not homogeneous."
+          return result_reduced
+      else
+          return result
+      end
   else
       return degree(repres(el))
   end
@@ -1261,31 +1124,7 @@ julia> N = M;
 julia> V = [y^2*N[1], x^2*N[2]];
 
 julia> a = hom(M, N, V)
-Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+M -> M
 x*e[1] -> x*y^2*e[1]
 y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
@@ -1358,31 +1197,7 @@ julia> N = M;
 julia> V = [y^2*N[1], x^2*N[2]];
 
 julia> a = hom(M, N, V)
-Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+M -> M
 x*e[1] -> x*y^2*e[1]
 y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
@@ -1421,31 +1236,7 @@ julia> N = M;
 julia> V = [y^2*N[1], x^2*N[2]];
 
 julia> a = hom(M, N, V)
-Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+M -> M
 x*e[1] -> x*y^2*e[1]
 y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
@@ -1487,31 +1278,7 @@ julia> N = M;
 julia> V = [y^2*N[1], x^2*N[2]];
 
 julia> a = hom(M, N, V)
-Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1] -> Graded subquotient of submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x*e[1]
-2 -> y*e[1]
-by submodule of Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]^1([0]) generated by
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+M -> M
 x*e[1] -> x*y^2*e[1]
 y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
@@ -1741,16 +1508,10 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
-Decorated free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1]^3([0])
+Decorated free module of rank 3 over RR^3([0])
 
 ```
 """

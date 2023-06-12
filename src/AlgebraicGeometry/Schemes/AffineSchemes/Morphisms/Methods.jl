@@ -45,7 +45,7 @@ function product(X::AbsSpec, Y::AbsSpec;
   Xstd = standard_spec(X)
   Ystd = standard_spec(Y)
   XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)))), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd))))
+  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)), check=false)), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd)), check=false))
 end
 
 function product(X::StdSpec, Y::StdSpec;
@@ -74,8 +74,8 @@ function product(X::StdSpec, Y::StdSpec;
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(S)]))
   end
   RS, z = polynomial_ring(k, new_symb)
-  inc1 = hom(R, RS, gens(RS)[1:m])
-  inc2 = hom(S, RS, gens(RS)[m+1:m+n])
+  inc1 = hom(R, RS, gens(RS)[1:m], check=false)
+  inc2 = hom(S, RS, gens(RS)[m+1:m+n], check=false)
   IX = ideal(RS, inc1.(gens(modulus(underlying_quotient(OO(X))))))
   IY = ideal(RS, inc2.(gens(modulus(underlying_quotient(OO(Y))))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
@@ -164,8 +164,8 @@ function base_change(phi::Any, f::AbsSpecMor;
   # For the pullback of F no explicit coeff_map is necessary anymore 
   # since both rings in domain and codomain have the same (extended/reduced)
   # coefficient ring by now.
-  pbF = hom(RR, SS, img_gens, check=true) # TODO: Set to false after testing
+  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
 
-  return domain_map, SpecMor(XX, YY, pbF, check=true), codomain_map # TODO: Set to false after testing
+  return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
 end
 

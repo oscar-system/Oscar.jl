@@ -35,7 +35,7 @@ This method checks if a morphism is the identity map.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -48,7 +48,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false

@@ -537,7 +537,7 @@ ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
-  G = groebner_basis(I, ordering=ordering)
+  G = standard_basis(I, ordering=ordering)
   return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
 

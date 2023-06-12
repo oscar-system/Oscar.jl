@@ -270,7 +270,7 @@ function Base.hash(f::VarietyFunctionFieldElem, h::UInt)
   return xor(r, hash(representative(f), h))
 end
 
-function deepcopy_internal(f::VarietyFunctionFieldElem, dict::IdDict)
+function Base.deepcopy_internal(f::VarietyFunctionFieldElem, dict::IdDict)
   return parent(f)(deepcopy_internal(numerator(representative(f)), dict), 
                    deepcopy_internal(denominator(representative(f)), dict), 
                    check=false)

@@ -96,7 +96,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bo
   end
   T = domain(aut)
   g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
-  return aut(g)
+  return aut(g, check = false)
 end
 
 @doc raw"""

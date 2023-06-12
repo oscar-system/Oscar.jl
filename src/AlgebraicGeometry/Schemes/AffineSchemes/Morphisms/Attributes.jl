@@ -22,7 +22,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -35,12 +35,12 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 
 julia> domain(f)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
@@ -56,7 +56,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -69,14 +69,14 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 
 julia> codomain(f)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 ```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
@@ -93,7 +93,7 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -106,7 +106,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> pullback(inclusion_morphism(X, Y))
 Map with following data
@@ -115,7 +115,7 @@ Domain:
 Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
@@ -200,7 +200,7 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -213,7 +213,7 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(x1)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(X, Y);
 

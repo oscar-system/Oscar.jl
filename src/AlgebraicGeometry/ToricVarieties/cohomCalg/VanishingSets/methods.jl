@@ -37,7 +37,7 @@ function contains(tvs::ToricVanishingSet, l::ToricLineBundle)
     if toric_variety(l) !== toric_variety(tvs)
         return false
     end
-    class = divisor_class(l).coeff
+    class = divisor_class(toric_divisor_class(l)).coeff
     class = [class[1, i] for i in 1:ncols(class)]
     for p in polyhedra(tvs)
         if class in p

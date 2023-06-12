@@ -71,10 +71,7 @@ julia> default_ordering(F)
 degrevlex([x, y, z])*lex([gen(1), gen(2)])
 
 julia> S, _ = grade(R, [1, 2, 3])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [2]
-  z -> [3], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])

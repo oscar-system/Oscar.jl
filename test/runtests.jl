@@ -1,7 +1,5 @@
 using Oscar
 using Test
-using Aqua
-using Documenter
 
 import Random
 
@@ -98,22 +96,16 @@ include("Groups/runtests.jl")
 include("Rings/runtests.jl")
 
 include("NumberTheory/nmbthy.jl")
-
-if Oscar.is_dev
-  include("Experimental/GITFans.jl")
-end
+include("NumberTheory/galthy.jl")
 
 # Will automatically include all experimental packages following our
 # guidelines.
 include("../experimental/runtests.jl")
 
-include("Experimental/galois.jl")
 include("Experimental/gmodule.jl")
 include("Experimental/ModStdQt.jl")
 include("Experimental/ModStdNF.jl")
-include("Experimental/MPolyRingSparse.jl")
 include("Experimental/MatrixGroups.jl")
-include("Experimental/JuLie.jl")
 include("Experimental/ExteriorAlgebra.jl")
 
 include("Rings/ReesAlgebra.jl")
@@ -124,8 +116,9 @@ include("InvariantTheory/runtests.jl")
 
 include("AlgebraicGeometry/Schemes/runtests.jl")
 include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+include("TropicalGeometry/runtests.jl")
 
 include("Serialization/runtests.jl")
 

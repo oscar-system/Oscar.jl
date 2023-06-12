@@ -212,7 +212,7 @@ function restriction_map(
   end
 
   # do the checks
-  if check
+  @check begin
     X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -302,7 +302,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -326,7 +326,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -341,7 +341,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -372,9 +372,7 @@ end
 
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   Y = ambient_scheme(U)
-  if check
-    all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
-  end
+  @check all(V->issubset(V, X), affine_patches(U)) "$U is not a subset of $X"
   function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
@@ -382,9 +380,7 @@ function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
 end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  if check
-    issubset(V, U) || error("$V is not a subset of $U")
-  end
+  @check issubset(V, U) "$V is not a subset of $U"
 
   if U === V
     function mymap(f::SpecOpenRingElem)
@@ -422,7 +418,7 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   Y = scheme(T)
   R = ambient_coordinate_ring(X)
   R == ambient_coordinate_ring(Y) || error("rings can not be canonically compared")
-  if check
+  @check begin
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
   end
 

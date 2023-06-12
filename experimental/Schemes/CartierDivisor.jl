@@ -174,7 +174,7 @@ function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPo
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
 
-### Decompostion of an effective Cartier Divisor into irreducible components
+### Decomposition of an effective Cartier Divisor into irreducible components
 ### (specialized variant of associated_points, using pure codimension 1
 ###  and taking multiplicities into account)
 @doc raw"""
@@ -217,15 +217,22 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
 end
 
 ### Conversion into WeilDivisors
-function weil_divisor(C::EffectiveCartierDivisor)
+function weil_divisor(C::EffectiveCartierDivisor;
+    is_prime::Bool=false # Indicate whether this divisor is already prime
+  )
   X = scheme(C)
   OOX = OO(X)
 
-  decomp = irreducible_decomposition(C)
+  decomp = Vector{Tuple{typeof(ideal_sheaf(C)), Int}}()
+  if is_prime
+    push!(decomp, (ideal_sheaf(C), 1))
+  else
+    decomp = irreducible_decomposition(C)
+  end
   result = WeilDivisor(X, ZZ)
 
   for (I,k) in decomp
-    result = result + k*WeilDivisor(I,ZZ)
+    result = result + k*WeilDivisor(I,ZZ, check=false)
   end
 
   return result

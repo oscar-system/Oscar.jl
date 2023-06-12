@@ -1,18 +1,128 @@
 {
-    "arxiv_id": "1109.3454",
-    "doi": "10.1016/j.nuclphysb.2011.12.013",
-    "version": "2",
-    "equ_nr": "3.5",
-    "description": "SU(5)xU(1) restricted Tate model",
-    "link": "https://export.arxiv.org/pdf/1109.3454",
-    "dim": 3,
-    "variables": ["a10", "a21", "a32", "a43", "a65", "w"],
-    "a1": [[1, 1]],
-    "a2": [[2, 1], [6, 1]],
-    "a3": [[3, 1], [6, 2]],
-    "a4": [[4, 1], [6, 3]],
-    "a6": [],
-    "resolutions": [[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"], ["e1", "e4", "e2", "e3", "s"]],
-                    [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"], ["s", "w", "e3", "e1", "e2"]]]
-
+    "arxiv_data": {
+        "id": "1109.3454",
+        "doi": "10.48550/arXiv.1109.3454",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1109.3454v2"
+    },
+    "journal_data": {
+        "doi": "10.1016/j.nuclphysb.2011.12.013",
+        "journal": "Nucl. Phys. B",
+        "volume": "858",
+        "pages": "1--47",
+        "year": "2012",
+        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+    },
+    "paper_metadata": {
+        "authors": ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"],
+        "title": "$G_4$ flux, chiral matter and singularity resolution in F-theory compactifications",
+        "description": "SU(5)xU(1) restricted Tate model",
+        "buzzwords": ["GUT model", "Tate", "U(1)", "SU(5)"]
+    },
+    "model_location": {
+        "section": "3",
+        "equation": "3.1",
+        "page": "10"
+    },
+    "model_data": {
+        "type": "tate",
+        "description": "SU(5)xU(1) restricted Tate model",
+        "gauge_algebra": ["su(5)", "u(1)"],
+        "base_dim": 3,
+        "base_coordinates": ["a1", "a21", "a32", "a43", "w"],
+        "a1": "a1",
+        "a2": "a21*w",
+        "a3": "a32*w^2",
+        "a4": "a43*w^3",
+        "a6": "0",
+        "auxiliary_base_grading": [
+            [1, 2, 3, 4, 0],
+            [0, -1, -2, -3, 1]
+        ],
+        "generating_sections": [[["0", "0", "1"]]],
+        "resolutions": [
+            [
+                [
+                    ["x", "y", "w"],
+                    ["y", "e1"],
+                    ["x", "e4"],
+                    ["y", "e2"],
+                    ["x", "y"]
+                ],
+                ["e1", "e4", "e2", "e3", "s"]
+            ]
+        ],
+        "resolution_zero_section": [
+            [
+                ["1", "1", "0"],
+                ["1", "1", "w"],
+                ["1", "1"],
+                ["1", "1"],
+                ["1", "1"],
+                ["1", "1"]
+            ]
+        ],
+        "resolution_generating_sections": [
+            [
+                [
+                    ["0", "0", "1"],
+                    ["0", "0", "1"],
+                    ["0", "1"],
+                    ["0", "1"],
+                    ["0", "1"],
+                    ["a32", "-a43"]
+                ]
+            ]
+        ],
+        "weighted_resolutions": [
+            [
+                [
+                    [
+                        ["x", "y", "w"],
+                        [1, 1, 1]
+                    ],
+                    [
+                        ["x", "y", "w"],
+                        [1, 2, 1]
+                    ],
+                    [
+                        ["x", "y", "w"],
+                        [2, 2, 1]
+                    ],
+                    [
+                        ["x", "y", "w"],
+                        [2, 3, 1]
+                    ],
+                    [
+                        ["x", "y"],
+                        [1, 1]
+                    ]
+                ],
+                ["e1", "e4", "e2", "e3", "s"]
+            ]
+        ],
+        "weighted_resolution_zero_section": [
+            [
+                ["1", "1", "0"],
+                ["1", "1", "w"],
+                ["1", "1", "w"],
+                ["1", "1", "w"],
+                ["1", "1", "w"],
+                ["1", "1"]
+            ]
+        ],
+        "weighted_resolution_generating_sections": [
+            [
+                [
+                    ["0", "0", "1"],
+                    ["0", "0", "1"],
+                    ["0", "0", "1"],
+                    ["0", "0", "1"],
+                    ["0", "0", "1"],
+                    ["a32", "-a43"]
+                ]
+            ]
+        ]
+    }
 }

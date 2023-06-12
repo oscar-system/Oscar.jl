@@ -344,10 +344,7 @@ Return the Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -403,9 +400,7 @@ Domain:
 Abelian group with structure: Z
 Codomain:
 =========
-(General) abelian group with relation matrix
-[1 -1]
-with structure of Abelian group with structure: Z
+G
 ```
 """
 function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
@@ -533,10 +528,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -592,9 +584,7 @@ Domain:
 Abelian group with structure: Z
 Codomain:
 =========
-(General) abelian group with relation matrix
-[1 -1]
-with structure of Abelian group with structure: Z
+G
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
@@ -647,10 +637,7 @@ of $A$, and return the value $H(A, g)$ as above.
 julia> W = [1 1 1; 0 0 -1];
 
 julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  x[3] -> [1 -1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
@@ -1121,16 +1108,18 @@ julia> size(LL)
 (3,)
 
 julia> LL[1][1]
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ
+  by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+A
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+Quotient of multivariate polynomial ring by ideal with 4 generators
 
 julia> LL[1][3]
 (y, ideal(x, y))

@@ -26,9 +26,9 @@
     R = base_ring(S)
     kk = coefficient_ring(R)
     S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
-    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
-    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
     return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
                                                      S_to_S_flat, S_flat_to_S,
                                                      R_to_S_flat
@@ -46,15 +46,15 @@
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
     T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
-    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
     S_flat, pr = quo(T_flat, I_flat)
 
-    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end])
+    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
 
-    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(A))))
+    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(A))), check=false)
 
     return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
                                                      S_to_S_flat, S_flat_to_S,
@@ -76,18 +76,18 @@
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
     T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
-    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
-    L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end])
+    L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end], check=false)
 
     I_flat = ideal(T_flat_loc, L_to_T_flat_loc.(gens(I)))
     S_flat, pr = quo(T_flat_loc, I_flat)
 
-    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end])
+    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
 
-    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))))
+    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))), check=false)
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
                                                      S_to_S_flat, S_flat_to_S,
@@ -106,15 +106,15 @@
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
     T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
-    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end])
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
-    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end])
+    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
 
-    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
 
-    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
+    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
 
     return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
@@ -134,9 +134,9 @@
     P_flat = codomain(P_flattening)
     S_flat, _ = quo(P_flat, P_flattening(modulus(S)))
 
-    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end])
-    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))))
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
     return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
                                                      S_to_S_flat, S_flat_to_S,
                                                      R_to_S_flat
@@ -155,10 +155,10 @@
     mod_flat = P_flattening(modulus(S))
     S_flat, _ = quo(P_flat, mod_flat)
 
-    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end])
+    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
 
-    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)])
-    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(P.(gens(A)))))
+    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(P.(gens(A)))), check=false)
 
     return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
                                                      S_to_S_flat, S_flat_to_S,
@@ -179,14 +179,14 @@
     mod_flat = P_flattening(modulus(S))
     S_flat, _ = quo(P_flat, mod_flat)
 
-    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end])
-    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)])
+    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
 
     # The common type of homomorphisms from a localization to S
     # involves computation of the inverse of elements in S. 
     # This has no computational backend. Hence, we need to cheat here. 
     B = base_ring(S_flat)
-    psi = hom(B, S, vcat(gens(S), S.(gens(Q))))
+    psi = hom(B, S, vcat(gens(S), S.(gens(Q))), check=false)
     v = vcat([zero(Q) for i in 1:ngens(S)], gens(Q))
     function my_map(a::RingElem) 
       p = lifted_numerator(a)
@@ -196,7 +196,7 @@
       return pp*qq
     end
 
-    #S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))))
+    #S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))), check=false)
     S_flat_to_S = MapFromFunc(my_map, S_flat, S)
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
@@ -217,14 +217,14 @@
     mod_flat = P_flattening(modulus(S))
     S_flat, _ = quo(P_flat, mod_flat)
 
-    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end])
-    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)])
+    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
 
     # The common type of homomorphisms from a localization to S
     # involves computation of the inverse of elements in S. 
     # This has no computational backend. Hence, we need to cheat here. 
     B = base_ring(S_flat)
-    psi = hom(B, S, vcat(gens(S), S.(gens(L))))
+    psi = hom(B, S, vcat(gens(S), S.(gens(L))), check=false)
     v = vcat([zero(L) for i in 1:ngens(S)], gens(L))
     function my_map(a::RingElem) 
       p = lifted_numerator(a)
@@ -302,7 +302,7 @@ end
   flat_T = flatten(T)
   imgs = flat_T.(f.(gens(S))) # The first half of the images
   imgs = vcat(imgs, flat_T.(gens(coefficient_ring(S)))) # the ones from the base ring
-  return hom(codomain(flat_S), codomain(flat_T), imgs)
+  return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
 @attr function flatten(
@@ -322,7 +322,7 @@ end
   
   imgs = flat_T.(f.(gens(S))) # The first half of the images
   imgs = vcat(imgs, flat_T.(coefficient_map(f).(gens(RS)))) # the ones from the base ring
-  return hom(codomain(flat_S), codomain(flat_T), imgs)
+  return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
 ### Deflecting some of the basic methods for ideals in towers of polynomial rings
@@ -384,7 +384,7 @@ function kernel(
                                 }
           }
   phi = flatten(domain(f))
-  f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))))
+  f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))), check=false)
   K_flat = kernel(f_flat)
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
   set_attribute!(K, :flat_counterpart, K_flat) # TODO: Support attribute storage?
@@ -402,7 +402,7 @@ function kernel(
                                 }
           }
   phi = flatten(codomain(f))
-  f_flat = hom(domain(f), codomain(phi), phi.(f.(gens(domain(f)))))
+  f_flat = hom(domain(f), codomain(phi), phi.(f.(gens(domain(f)))), check=false)
   return kernel(f_flat)
 end
 

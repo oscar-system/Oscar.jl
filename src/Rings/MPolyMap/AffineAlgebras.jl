@@ -161,7 +161,7 @@ Domain:
 Multivariate polynomial ring in 1 variable over QQ
 Codomain:
 =========
-Quotient of Multivariate polynomial ring in 3 variables over QQ by ideal(-x^2 + y, -x^3 + z)
+D
 
 julia> G(t)
 x

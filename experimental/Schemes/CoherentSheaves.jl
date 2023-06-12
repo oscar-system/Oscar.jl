@@ -1662,12 +1662,23 @@ function projectivization(E::AbsCoherentSheaf;
     SPUV = homogeneous_coordinate_ring(PUV)
     # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
     # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
-    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))
-    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)]))
+    fup = ProjectiveSchemeMor(PUV, QVU, 
+                              hom(SQVU, SPUV, pullback(f), 
+                                  [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)],
+                                  check=false), 
+                              check=false
+                            )
+    gup = ProjectiveSchemeMor(QVU, PUV, 
+                              hom(SPUV, SQVU, pullback(g), 
+                                  [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)],
+                                  check=false
+                                 ),
+                              check=false
+                             )
 
-    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup)
+    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
   end
-  return CoveredProjectiveScheme(X, C, on_patches, projective_glueings)
+  return CoveredProjectiveScheme(X, C, on_patches, projective_glueings, check=false)
 end
 
 

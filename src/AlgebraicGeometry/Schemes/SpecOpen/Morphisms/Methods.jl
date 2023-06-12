@@ -13,9 +13,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  if check
-    issubset(Cf, V) || error("maps are not compatible")
-  end
+  @check issubset(Cf, V) "maps are not compatible"
   W = codomain(g)
   X = ambient_scheme(U)
   Y = ambient_scheme(V)
@@ -63,9 +61,7 @@ end
 function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
   X = ambient_scheme(U)
-  if check
-    is_closed_embedding(Z, ambient_scheme(codomain(f))) || error("second argument must be closed in the codomain")
-  end
+  @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
   Y = X 
@@ -91,7 +87,7 @@ function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
 end
 
 
-function preimage(f::SpecOpenMor, V::SpecOpen)
+function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
   U = domain(f)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)

@@ -13,19 +13,47 @@ export local_index
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+_can_cache_aut(::FlintPadicField) = nothing
+function _can_cache_aut(k) 
+  a = get_attribute(k, :AutGroup)
+  if a === nothing
+    a = Dict{Tuple, Map}()
+    set_attribute!(k, :AutGroup => a)
+  end
+  return a
+end
 #not type restricted: used for number fields as well as
 #LocalFields
 #could be extended to allow more group types
 function Oscar.automorphism_group(::Type{PermGroup}, k)
+  a = _can_cache_aut(k)
+  if a !== nothing && haskey(a, (PermGroup, ))
+    mG = a[(PermGroup, )]
+    return domain(mG), mG
+  end
   G, mG = automorphism_group(k)
   mH = isomorphism(PermGroup, G)
-  return codomain(mH), inv(mH)*mG
+  mmH = inv(mH)*mG
+  if a !== nothing 
+    a[(PermGroup, )] = mmH
+  end
+  return codomain(mH), mmH
 end
 
 function Oscar.automorphism_group(::Type{PermGroup}, K, k)
+  a = _can_cache_aut(k)
+  if a !== nothing && haskey(a, (PermGroup, k))
+    mG = a[(PermGroup, k)]
+    return domain(mG), mG
+  end
+
   G, mG = automorphism_group(K, k)
   mH = isomorphism(PermGroup, G)
-  return codomain(mH), inv(mH)*mG
+  mmH = inv(mH)*mG
+  if a !== nothing 
+    a[(PermGroup, k)] = mmH
+  end
+  return codomain(mH), mmH
 end
 
 
@@ -45,11 +73,17 @@ end
 The natural `ZZ[G]` module where `G`, the
   automorphism group, acts on the ideal group defining the class field.
 """
-function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2])
+function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2]; check::Bool = true)
   k = base_field(R)
   G = domain(mG)
   mR = R.rayclassgroupmap
   mq = R.quotientmap
+  if check
+    c, mc = conductor(R)
+    @req all(x -> c == Hecke.induce_image(mG(x), c), gens(G)) "field is not normal"
+    s1 = Set(mc)
+    @req all(x -> s1 == Set(Hecke.induce_image(mG(x), y) for y = s1), gens(G)) "field is not normal"
+  end
 
   ac = Hecke.induce_action(mR, [image(mG, g) for g = gens(G)], mq)
   return GModule(G, ac)
@@ -636,7 +670,7 @@ mutable struct IdelParent
   mU::Map #S-unit group map
   M::GrpAbFinGen  # the big module, direct product from
     # infinite gmodule x finite ones
-  mq::Map # "projection" of M -> the acutal module in the end
+  mq::Map # "projection" of M -> the actual module in the end
 
   data
 
@@ -655,8 +689,13 @@ or Ali,
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
 of the idel-class group. The primes in `s` will always be used.
 """
-function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
-  @vprint :GaloisCohomology 1 "Ideal class group cohomology for $k\n"
+function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::Bool=false)
+  @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
+  I = get_attribute(k, :IdelClassGmodule)
+  if !redo && I !== nothing
+    return I
+  end
+
   I = IdelParent()
   I.k = k
   G, mG = automorphism_group(PermGroup, k)
@@ -799,7 +838,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     W, pro, inj = direct_product(V, F, task = :both)
     @assert isdefined(W, :hnf)
 
-    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
+    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, GrpAbFinGenElem[inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
     Et = gmodule(G_inf, [ac])
     @assert is_consistent(Et)
     mq = pseudo_inv(psi)*inj[1]
@@ -857,6 +896,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
   I.data = (q, F[1])
+  set_attribute!(k, :IdelClassGmodule=>I)
   return I
 end
 
@@ -905,6 +945,12 @@ end
 function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl, Nothing})
   a = preimage(I.mq, a)
   zk = maximal_order(I.k)
+  o_zk = zk
+  if coprime !== nothing && order(coprime) !== zk
+    o_zk = order(coprime)
+    coprime = zk*coprime
+    @assert order(coprime) === zk
+  end
   id = 1*zk
   for p = I.S
     lp = prime_decomposition(zk, minimum(p))
@@ -922,7 +968,7 @@ function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl,
       end
     end
   end
-  return id
+  return o_zk*id
 end
 
 function Oscar.galois_group(A::ClassField)
@@ -964,6 +1010,14 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = 
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
+  @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
+  if !Hecke.is_normal(A)
+    A = normal_closure(A)
+    mR = A.rayclassgroupmap
+    mQ = A.quotientmap
+    m0, m_inf = defining_modulus(A)
+    @assert length(m_inf) == 0
+  end
   qI = cohomology_group(idel_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
@@ -1683,7 +1737,7 @@ end
 Tries to find the canonical generator of `H^2(C)` the  2nd
 cohomology group of the idel-class group.
 
-Currently only works if this can be infered from the local data in
+Currently only works if this can be inferred from the local data in
 the field, ie. if the `lcm` of the degrees of the completions is the
 full field degree.
 """    

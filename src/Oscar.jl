@@ -151,7 +151,7 @@ function build()
   system("Build.jl")
 end
 
-
+include("assertions.jl")
 
 include("exports.jl")
 
@@ -205,9 +205,6 @@ if is_dev
 #  include("../examples/ModStdQ.jl")
 #  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
-#  include("../examples/GaloisGrp.jl")
-
-#  include("../examples/PlaneCurve.jl")
 end
 
 include("Serialization/main.jl")

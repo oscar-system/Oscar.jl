@@ -110,7 +110,7 @@ affine_refinements(C::Covering) = C.affine_refinements
   s = symbols(S)
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
+    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     push!(U, Spec(quo(R, I)[1]))
   end
@@ -158,7 +158,7 @@ end
   if r == 0
     result = Covering(Y)
     pU[Y] = identity_map(Y)
-    covered_projection = CoveringMorphism(result, result, pU)
+    covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
     return result
   end
@@ -202,7 +202,7 @@ end
       add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
-  covered_projection = CoveringMorphism(result, Covering(Y), pU)
+  covered_projection = CoveringMorphism(result, Covering(Y), pU, check=false)
   set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
@@ -409,7 +409,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              MorphismType<:ClosedEmbedding,
              BaseMorType
             }
-    ff = CoveredSchemeMorphism(X, Y, f, check=check)
+    ff = CoveredSchemeMorphism(X, Y, f)
     #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
     return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
   end
@@ -424,7 +424,7 @@ image_ideal(phi::CoveredClosedEmbedding) = phi.I
 ### user facing constructors
 function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf; 
         covering::Covering=default_covering(X), check::Bool=true)
-  space(I) == X || error("ideal sheaf is not defined on the correct scheme")
+  space(I) === X || error("ideal sheaf is not defined on the correct scheme")
   mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
   rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
   patch_list = Vector{AbsSpec}()
