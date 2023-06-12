@@ -34,10 +34,7 @@ Return the function field of the irreducible variety `X`.
 Internally, a rational function is represented by an element in the field of
 fractions of the `ambient_coordinate_ring` of the `representative_patch`.
 """
-function_field(X::CoveredScheme;
-               check::Bool=true, 
-               representative_patch::AbsSpec=default_covering(X)[1]
-              ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)
+@attr VarietyFunctionField function_field(X::CoveredScheme) = VarietyFunctionField(X)
 
 
 @doc raw"""
@@ -125,6 +122,14 @@ function *(a::RingElem, b::T) where {T<:VarietyFunctionFieldElem}
   return (parent(b))(a * representative(b), check=false)
 end
 function *(b::T, a::RingElem) where {T<:VarietyFunctionFieldElem}
+  return a*b
+end
+
+function *(a::Integer, b::T) where {T<:VarietyFunctionFieldElem}
+  return coefficient_ring(parent(b))(a)*b
+end
+
+function *(b::T, a::Integer) where {T<:VarietyFunctionFieldElem}
   return a*b
 end
 
@@ -341,5 +346,29 @@ end
 
 function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
   return all(U->is_regular(f, U), affine_patches(W))
+end
+
+function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+end
+
+function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+  fcov = covering_morphism(f)
+  KK = parent(a)
+  V = representative_patch(KK)
+  if any(U->codomain(fcov[U])===V, patches(domain(fcov)))
+    j = findfirst(U->codomain(fcov[U])===V, patches(domain(fcov)))
+    U = patches(domain(fcov))[j]
+    phi = pullback(fcov[U])
+    return function_field(domain(f))(phi(OO(V)(numerator(a))), 
+                                     phi(OO(V)(denominator(a))))
+  else
+    U = first(patches(domain(fcov)))
+    W = codomain(fcov[U])
+    (any(x->x===V, affine_charts(codomain(f))) && any(x->x===W, affine_charts(codomain(f)))) || error("method not implemented for too complicated transitions")
+    b = a[W]
+    phi = pullback(fcov[U])
+    return function_field(domain(f))(phi(OO(W)(numerator(b))), 
+                                     phi(OO(W)(denominator(b))))
+  end
 end
 
