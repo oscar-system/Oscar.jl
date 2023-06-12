@@ -118,3 +118,27 @@ end
   @test is_irreducible(Xc) #fails
 
 end
+
+@testset "pullbacks for function fields" begin
+  P = projective_space(QQ, ["x", "y", "z"])
+  (x, y, z) = gens(homogeneous_coordinate_ring(P))
+  Y = covered_scheme(P)
+  II = ideal_sheaf(P, [x,y])
+  p = blow_up(II)
+  X = domain(p)
+  KY = function_field(Y)
+  KX = function_field(X)
+  U1 = first(affine_charts(Y))
+  R1 = OO(U1)
+  a = KY(R1[1], R1[2])
+  b = pullback(projection(p))(a)
+  U2 = affine_charts(Y)[2]
+  R2 = OO(U2)
+  a2 = KY(R2[1], R2[2])
+  b2 = pullback(projection(p))(a2)
+  V = representative_patch(KX)
+  c = 5*a-a2^2
+  pbc = pullback(projection(p))(c)
+  d = 5*b - b2^2
+  @test OO(V)(numerator(pbc)*denominator(d)) == OO(V)(numerator(d)*denominator(pbc))
+end
