@@ -24,7 +24,9 @@ end
 # Auxiliary methods for compatibility                                  #
 ########################################################################
 lifted_numerator(f::MPolyRingElem) = f
+lifted_denominator(f::MPolyRingElem) = one(f)
 lifted_numerator(f::MPolyQuoRingElem) = lift(f)
+lifted_denominator(f::MPolyQuoRingElem) = one(lift(f))
 
 function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   X = domain(f)

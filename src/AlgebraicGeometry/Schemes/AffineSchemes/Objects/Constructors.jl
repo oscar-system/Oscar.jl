@@ -638,7 +638,7 @@ julia> H = subscheme(X,ideal(R,[x1]))
 Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> closure(H, X)
-Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
 function closure(X::AbsSpec, Y::AbsSpec, check= true)

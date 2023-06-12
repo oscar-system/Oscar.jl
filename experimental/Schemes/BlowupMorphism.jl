@@ -404,11 +404,11 @@ Spec of Multivariate polynomial ring in 3 variables over QQ
 
 =====================================
 Affine charts of the blown up scheme:
-Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
 
-Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
 
-Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
 
 =====================================
 Data of center:
