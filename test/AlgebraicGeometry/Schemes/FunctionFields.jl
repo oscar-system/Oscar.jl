@@ -142,3 +142,39 @@ end
   d = 5*b - b2^2
   @test OO(V)(numerator(pbc)*denominator(d)) == OO(V)(numerator(d)*denominator(pbc))
 end
+
+@testset "refinements" begin
+  P = projective_space(QQ, ["x", "y", "z"])
+  S = homogeneous_coordinate_ring(P)
+  (x, y, z) = gens(S)
+  Y = covered_scheme(P)
+  I = ideal(S,[x^2-y*z])
+  Q = subscheme(P, I)
+  X = covered_scheme(Q)
+  C = oscar.simplified_covering(X)
+  KK = function_field(X)
+  for U in patches(C)
+    x = first(gens(OO(U)))
+    a = lifted_numerator(x)
+    b = KK(a, one(a))
+    invb = KK(one(a), a)
+    @test isone(b*invb)
+  end
+  P1 = projective_space(QQ, ["a", "b"])
+  S1 = homogeneous_coordinate_ring(P1)
+  (a, b) = gens(S1)
+  Phi = ProjectiveSchemeMor(P1, Q, [a*b, a^2, b^2])
+  phi = covered_scheme_morphism(Phi)
+  phi_cov = covering_morphism(phi)
+  rho = X[codomain(phi_cov), C]
+  psi_cov = compose(phi_cov, rho)
+  L = domain(phi)
+  psi = CoveredSchemeMorphism(L, X, psi_cov)
+
+  U = first(patches(C))
+  a = first(gens(OO(U)))
+  a = lifted_numerator(a)
+  h = KK(a, one(a))
+  pullback(psi)(h)
+end
+
