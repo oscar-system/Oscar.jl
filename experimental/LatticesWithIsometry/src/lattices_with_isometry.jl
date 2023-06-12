@@ -20,12 +20,24 @@ Given a lattice with isometry $(L, f)$, return the underlying isometry `f`.
 isometry(Lf::ZZLatWithIsom) = Lf.f
 
 @doc raw"""
+    ambient_space(Lf::ZZLatWithIsom) -> QuadSpaceWithIsom
+
+Given a lattice with isometry $(L, f)$, return the pair $(V, g)$ where
+`V` is the ambient quadratic space of `L` and `g` is an isometry of `V`
+inducing `f` on `L`.
+
+Note that `g` might not be unique and we fix such a global isometry
+together with `V` into a container type `QuadSpaceWithIsom`.
+"""
+ambient_space(Lf::ZZLatWithIsom) = Lf.Vf
+
+@doc raw"""
    ambient_isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
-Given a lattice with isometry $(L, f)$, return an isometry of underlying isometry
-of the ambient space of `L` inducing `f` on `L`
+Given a lattice with isometry $(L, f)$, return an isometry of the ambient
+space of `L` inducing `f` on `L`
 """
-ambient_isometry(Lf::ZZLatWithIsom) = Lf.f_ambient
+ambient_isometry(Lf::ZZLatWithIsom) = isometry(ambient_space(Lf))
 
 @doc raw"""
     order_of_isometry(Lf::ZZLatWithIsom) -> Integer
@@ -74,14 +86,6 @@ lattice `L` (see [`genus(::ZZLat)`](@ref)).
 genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
 
 @doc raw"""
-    ambient_space(Lf::ZZLatWithIsom) -> QuadSpace
-
-Given a lattice with isometry $(L, f)$, return the ambient space of the underlying
-lattice `L` (see [`ambient_space(::ZZLat)`](@ref)).
-"""
-ambient_space(Lf::ZZLatWithIsom) = ambient_space(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
-
-@doc raw"""
     basis_matrix(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
@@ -99,12 +103,13 @@ of lattice `L` associted to `B` with respect to $\Phi$.
 gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 
 @doc raw"""
-    rational_span(Lf::ZZLatWithIsom) -> QuadSpace
+    rational_span(Lf::ZZLatWithIsom) -> QuadSpaceWithIsom
 
-Given a lattice with isometry $(L, f)$, return the rational span $L \otimes \mathbb{Q}$
-of the underlying lattice `L`.
+Given a lattice with isometry $(L, f)$, return the rational span
+$L \otimes \mathbb{Q}$ of the underlying lattice `L` together with the
+underlying isometry of `L`.
 """
-rational_span(Lf::ZZLatWithIsom) = rational_span(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, QQMatrix}
+rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(lattice(Lf)), isometry(Lf))::QuadSpaceWithIsom
 
 @doc raw"""
     det(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -209,12 +214,12 @@ signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, In
 
 ###############################################################################
 #
-#  Constructor
+#  Constructors
 #
 ###############################################################################
 
 @doc raw"""
-    lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
+    integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
                                                 ambient_representation = true)
 				                                                             -> ZZLatWithIsom
 
@@ -226,10 +231,11 @@ ambient space of `L` and the induced isometry on `L` is automatically computed.
 Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
 on the complement of the rational span of `L` if it is not of full rank.
 """
-function lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
-                                                     ambient_representation::Bool = true)
+function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
+                                                              ambient_representation::Bool = true)
   if rank(L) == 0
-    return ZZLatWithIsom(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
+    Vf = quadratic_space_with_isometry(ambient_space(L))
+    return ZZLatWithIsom(Vf, L, matrix(QQ,0,0,[]), -1)
   end
 
   if check
@@ -238,6 +244,7 @@ function lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
 
   if ambient_representation
     f_ambient = f
+    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient, check=check)
     B = basis_matrix(L)
     ok, f = can_solve_with_solution(B, B*f_ambient, side = :left)
     @req ok "Isometry does not restrict to L"
@@ -248,35 +255,78 @@ function lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
     C = vcat(B, B2)
     f_ambient = block_diagonal_matrix([f, identity_matrix(QQ, nrows(B2))])
     f_ambient = inv(C)*f_ambient*C
+    Vf = quadratic_space_with_isometry(V, f_ambient, check=check)
   end
 
   n = multiplicative_order(f)
 
   if check
     @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
-    @req f_ambient*gram_matrix(ambient_space(L))*transpose(f_ambient) == gram_matrix(ambient_space(L)) "f_ambient is not an isometry of the ambient space of L"
     @hassert :ZZLatWithIsom 1 basis_matrix(L)*f_ambient == f*basis_matrix(L)
   end
 
-  return ZZLatWithIsom(L, f, f_ambient, n)::ZZLatWithIsom
+  return ZZLatWithIsom(Vf, L, f, n)::ZZLatWithIsom
 end
 
-
 @doc raw"""
-    lattice_with_isometry(L::ZZLat; neg::Bool = false) -> ZZLatWithIsom
+    integer_lattice_with_isometry(L::ZZLat; neg::Bool = false) -> ZZLatWithIsom
 
 Given a $\mathbb Z$-lattice `L` return the lattice with isometry pair $(L, f)$,
 where `f` corresponds to the identity mapping of `L`.
 
 If `neg` is set to `true`, then the isometry `f` is negative the identity of `L`.
 """
-function lattice_with_isometry(L::ZZLat; neg::Bool = false)
+function integer_lattice_with_isometry(L::ZZLat; neg::Bool = false)
   d = degree(L)
   f = identity_matrix(QQ, d)
   if neg
     f = -f
   end
-  return lattice_with_isometry(L, f, check = false, ambient_representation = true)::ZZLatWithIsom
+  return integer_lattice_with_isometry(L, f, check = false, ambient_representation = true)::ZZLatWithIsom
+end
+
+@doc raw"""
+    lattice(Vf::QuadSpaceWithIsom) -> ZZLatWithIsom
+
+Given a quadratic space with isometry $(V, f)$, return the full rank lattice `L`
+in `V` with basis the standard basis, together with the induced action of `f`
+on `L`
+"""
+lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(Vf), order_of_isometry(Vf))::ZZLatWithIsom
+
+@doc raw"""
+    lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion};
+                                   isbasis::Bool = true, check::Bool = true)
+                                                              -> ZZLatWithIsom
+
+Given a quadratic space with isometry $(V, f)$ and a matrix `B` generating a
+lattice `L` in `V`, if `L` is preserved under the action of `f`, return the
+lattice with isometry $(L, f_L)$ where $f_L$ is induced by the action of `f`
+on `L`.
+"""
+function lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion}; isbasis::Bool = true, check::Bool = true)
+  L = lattice(space(Vf), B, isbasis=isbasis, check=check)
+  ok, fB = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*isometry(Vf), side = :left)
+  n = is_zero(fB) ? -1 : multiplicative_order(fB)
+  @req ok "The lattice defined by B is not preserved under the action of the isometry of Vf"
+  return ZZLatWithIsom(Vf, L, fB, n)
+end
+
+@doc raw"""
+    lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem;
+                                                    check::Bool = true)
+                                                            -> ZZLatWithIsom
+
+Given a lattice with isometry $(L, f)$ and a matrix `B` whose rows define a free
+system of vectors in the ambient space `V` of `L`, if the lattice `M` in `V` defined
+by `B` is preserved under the fixed isometry `g` of `V` inducing `f` on `L`, return
+the lattice with isometry pair $(M, f_M)$ where $f_M$ is induced by the action of
+`g` on `M`.
+"""
+function lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem; check::Bool = true)
+  @req !check || (rank(B) == nrows(B)) "The rows of B must define a free system of vectors"
+  Vf = ambient_space(L)
+  return lattice(Vf, B, check = check)
 end
 
 ###############################################################################
@@ -292,7 +342,7 @@ Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lat
 with isometry $(L(a), f)$ (see [`rescale(::ZZLat, ::RationalUnion)`](@ref)).
 """
 function rescale(Lf::ZZLatWithIsom, a::Hecke.RationalUnion)
-  return lattice_with_isometry(rescale(lattice(Lf), a), ambient_isometry(Lf), check=false)
+  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf), check=false)
 end
 
 @doc raw"""
@@ -305,7 +355,7 @@ induced by `g`.
 """
 function dual(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
-  return lattice_with_isometry(dual(lattice(Lf)), ambient_isometry(Lf), check = false)
+  return lattice_in_same_ambient_space(Lf, basis_matrix(dual(lattice(Lf))), check = false)
 end
 
 @doc raw"""
@@ -318,10 +368,13 @@ on the associated gram matrix of `L` (see [`gram_matrix(::ZZLat)`](@ref)).
 Note that matrix representing the action of `f` on `L` changes but the global action
 on the ambient space of `L` stays the same.
 """
-function lll(Lf::ZZLatWithIsom)
-  f = ambient_isometry(Lf)
-  L2 = lll(lattice(Lf), same_ambient=true)
-  return lattice_with_isometry(L2, f, ambient_representation = true)
+function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
+  L2 = lll(lattice(Lf), same_ambient = same_ambient)
+  if same_ambient
+    return lattice_in_same_ambient_space(Lf, basis_matrix(L2), check=false)
+  else
+    return integer_lattice_with_isometry(L2, isometry(Lf), check=false, ambient_representation=false)
+  end
 end
 
 @doc raw"""
@@ -341,10 +394,9 @@ If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ a
 the projections $L \to L_i$, one should call `biproduct(x)`.
 """
 function direct_sum(x::Vector{ZZLatWithIsom})
-  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
-  W, inj = direct_sum(lattice.(x))
-  f = block_diagonal_matrix(ambient_isometry.(x))
-  return lattice_with_isometry(W, f, check=false), inj
+  Vf, inj = direct_sum(ambient_space.(x))
+  Bs = diagonal_matrix(basis_matrix.(x))
+  return lattice(Vf, Bs, check=false), inj
 end
 
 direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
@@ -366,10 +418,9 @@ If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ a
 the projections $L \to L_i$, one should call `biproduct(x)`.
 """
 function direct_product(x::Vector{ZZLatWithIsom})
-  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
-  W, proj = direct_product(lattice.(x))
-  f = block_diagonal_matrix(ambient_isometry.(x))
-  return lattice_with_isometry(W, f, check=false), proj
+  Vf, proj = direct_product(ambient_space.(x))
+  Bs = diagonal_matrix(basis_matrix.(x))
+  return lattice(Vf, Bs, check=false), proj
 end
 
 direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
@@ -392,13 +443,28 @@ If one wants to obtain $(L, f)$ as a direct product with the projections $L \to 
 one should call `direct_product(x)`.
 """
 function biproduct(x::Vector{ZZLatWithIsom})
-  @req length(x) >= 2 "Input must consist of at least 2 lattices with isometries"
-  W, inj, proj = biproduct(lattice.(x))
-  f = block_diagonal_matrix(ambient_isometry.(x))
-  return lattice_with_isometry(W, f, check=false), inj, proj
+  Vf, inj, proj = biproduct(ambient_space.(x))
+  Bs = diagonal_matrix(basis_matrix.(x))
+  return lattice(Vf, Bs, check=false), inj, proj
 end
 
 biproduct(x::Vararg{ZZLatWithIsom}) = biproduct(collect(x))
+
+###############################################################################
+#
+#  Equality and hash
+#
+###############################################################################
+
+function Base.:(==)(L1::ZZLatWithIsom, L2::ZZLatWithIsom)
+  ambient_space(L1) == ambient_space(L2) || return false
+  return lattice(L1) == lattice(L2)
+end
+
+function Base.hash(L::ZZLatWithIsom, u::UInt)
+  u = Base.hash(ambient_space(L), u)
+  return Base.hash(lattice(L), u)
+end
 
 ###############################################################################
 #
@@ -588,14 +654,14 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
   M = p(f)
   d = denominator(M)
   k, K = left_kernel(change_base_ring(ZZ, d*M))
-  L2 = lattice_in_same_ambient_space(L, K*basis_matrix(L))
-  f2 = solve_left(change_base_ring(QQ, K), K*f)
-  @hassert :ZZLatWithIsom 1 f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
-  chi = parent(p)(collect(coefficients(minpoly(f2))))
-  chif = parent(p)(collect(coefficients(minpoly(Lf))))
-  _chi = gcd(p, chif)
-  @hassert :ZZLatWithIsom 1 (rank(L2) == 0) || (chi == _chi)
-  return lattice_with_isometry(L2, f2, ambient_representation = false)
+  return lattice(ambient_space(Lf), K*basis_matrix(L))
+  #f2 = solve_left(change_base_ring(QQ, K), K*f)
+  #@hassert :ZZLatWithIsom 1 f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
+  #chi = parent(p)(collect(coefficients(minpoly(f2))))
+  #chif = parent(p)(collect(coefficients(minpoly(Lf))))
+  #_chi = gcd(p, chif)
+  #@hassert :ZZLatWithIsom 1 (rank(L2) == 0) || (chi == _chi)
+  #return integer_lattice_with_isometry(L2, f2, ambient_representation = false)
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -677,7 +743,7 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
       mL = matrix(g)
       m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
       mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
-      push!(gene, mc)
+      push!(gene, mC)
     else
       push!(gene, matrix(g))
     end
@@ -708,7 +774,7 @@ function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representa
       mL = matrix(g)
       m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
       mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
-      push!(gene, mc)
+      push!(gene, mC)
     else
       push!(gene, matrix(g))
     end
@@ -815,6 +881,6 @@ function to_oscar(Lf::ZZLatWithIsom)
   println(stdout, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), ");")
   println(stdout, "L = integer_lattice(B, gram = G);")
   println(stdout, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, ");")
-  println(stdout, "Lf = lattice_with_isometry(L, f);")
+  println(stdout, "Lf = integer_lattice_with_isometry(L, f);")
 end
 

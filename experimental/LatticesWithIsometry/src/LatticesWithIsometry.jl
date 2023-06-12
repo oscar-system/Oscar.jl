@@ -5,6 +5,7 @@ end
 
 include("exports.jl")
 include("types.jl")
+include("spaces_with_isometry.jl")
 include("lattices_with_isometry.jl")
 include("hermitian_miranda_morrison.jl")
 include("enumeration.jl")

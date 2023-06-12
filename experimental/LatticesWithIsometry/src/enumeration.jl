@@ -381,7 +381,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     repre = representatives(G)
     @vprint :ZZLatWithIsom 1 "$(length(repre)) representative(s)\n"
     for LL in repre
-      is_of_same_type(Lf, lattice_with_isometry(LL, f^m, check=false)) && push!(reps, lattice_with_isometry(LL, f, check=false))
+      is_of_same_type(Lf, integer_lattice_with_isometry(LL, f^m, check=false)) && push!(reps, integer_lattice_with_isometry(LL, f, check=false))
     end
     return reps
   end
@@ -425,105 +425,22 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     @vprint :ZZLatWithIsom 1 "$H\n"
     M, fM = Hecke.trace_lattice_with_isometry(H)
     det(M) == d || continue
-    M = lattice_with_isometry(M, fM)
+    M = integer_lattice_with_isometry(M, fM)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(M)
     @hassert :ZZLatWithIsom 1 order_of_isometry(M) == n*m
     if is_even(M) != is_even(Lf)
       continue
     end
-    if !is_of_same_type(Lf, lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
+    if !is_of_same_type(Lf, integer_lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
       continue
     end
     gr = genus_representatives(H)
     for HH in gr
       M, fM = Hecke.trace_lattice_with_isometry(HH)
-      push!(reps, lattice_with_isometry(M, fM))
+      push!(reps, integer_lattice_with_isometry(M, fM))
     end
   end
   return reps
-end
-
-@doc raw"""
-    representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
-                                                             -> Vector{ZZLatWithIsom}
-
-Given a hermitian type `t` for lattices with isometry (i.e. the minimal
-polymomial of the associated isometry is irreducible cyclotomic) and an intger
-`m` (set to 1 by default), return a set of representatives of isomorphism
-classes of lattices with isometry of hermitian type $(L, f)$ such that the
-type of $(L, f^m)$ is equal to `t`.
-
-If `check === true`, then `t` is checked to be hermitian. Note that `n` can be 1.
-
-See Algorithm 3 of [BH22].
-"""
-function representatives_of_hermitian_type(t::Dict, m::Int = 1; check::Bool = true)
-  M = _representative(t, check = check)
-  M === nothing && return ZZLatWithIsom[]
-  return representatives_of_hermitian_type(M, m)
-end
-
-function _representative(t::Dict; check::Bool = true)
-  !check || is_hermitian(t) || error("t must be hermitian")
-  
-  ke = collect(keys(t))
-  n = maximum(ke)
-
-  G = t[n][2]
-  s1, s2 = signature_tuple(G)
-  rk = s1+s2
-  d = det(G)
-
-  if n < 3
-    L = representative(G)
-    return trace_lattice(L, order = n)
-  end
-
-  ok, rk = Hecke.divides(rk, euler_phi(n))
-
-  ok || reps
-  
-  gene = HermGenus[]
-  E, b = cyclotomic_field_as_cm_extension(n, cached=false)
-  Eabs, EabstoE = absolute_simple_field(E)
-  DE = EabstoE(different(maximal_order(Eabs)))
-
-  ndE = d*inv(QQ(absolute_norm(DE)))^rk
-  detE = _ideals_of_norm(E, ndE)
-
-  @vprint :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))\n"
-
-  signatures = _possible_signatures(s1, s2, E)
-
-  @vprint :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))\n"
-
-  for dd in detE, sign in signatures
-    append!(gene, hermitian_genera(E, rk, sign, dd, min_scale = inv(DE), max_scale = numerator(DE*dd)))
-  end
-  gene = unique(gene)
-
-  for g in gene
-    H = representative(g)
-    if !is_integral(DE*scale(H))
-      continue
-    end
-    if iseven(Lf) && !is_integral(different(fixed_ring(H))*norm(H))
-      continue
-    end
-    H = H
-    M = trace_lattice(H)
-    det(M) == d || continue
-    @hassert :ZZLatWithIsom 1 is_of_hermitian_type(M)
-    @hassert :ZZLatWithIsom 1 order_of_isometry(M) == n
-    if iseven(M) != iseven(G)
-      continue
-    end
-    if !is_of_type(M, t)
-      continue
-    end
-    return M
-  end
-  return nothing
 end
 
 @doc raw"""
@@ -554,12 +471,12 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
   atp = admissible_triples(Lf, p, pA = pA, pB = pB)
   @vprint :ZZLatWithIsom 1 "$(length(atp)) admissible triple(s)\n"
   for (A, B) in atp
-    LB = lattice_with_isometry(representative(B))
+    LB = integer_lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^e)
     if is_empty(RB)
       continue
     end
-    LA = lattice_with_isometry(representative(A))
+    LA = integer_lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^e)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB], inplace=false)
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
@@ -571,26 +488,6 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
     end
   end
   return reps
-end
-
-@doc raw"""
-    splitting_of_hermitian_prime_power(t::Dict, p::Int) -> Vector{ZZLatWithIsom}
-
-Given a hermitian type `t` of lattice with isometry $(L, f)$ with `f` of order
-$q^e$ for some prime number `q`, and given another prime number $p \neq q$,
-return a set of representatives of the isomorphisms classes of lattices with
-isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to `t`.
-
-Note that `e` can be 0.
-
-See Algorithm 4 of [BH22].
-"""
-function splitting_of_hermitian_prime_power(t::Dict, p::Int)
-  @req is_prime(p) "p must be a prime number"
-  @req is_hermitian(t) "t must be hermitian"
-  Lf = _representative(t)
-  Lf === nothing && return ZZLatWithIsom[]
-  return splitting_of_hermitian_prime_power(Lf, p)
 end
 
 @doc raw"""
@@ -786,7 +683,7 @@ Note that currently we support only orders which admit at most 2 prime divisors.
 function enumerate_classes_of_lattices_with_isometry(L::ZZLat, order::Hecke.IntegerUnion)
   @req is_finite(order) && order >= 1 "order must be positive and finite"
   if order == 1
-    return representatives_of_hermitian_type(lattice_with_isometry(L))
+    return representatives_of_hermitian_type(integer_lattice_with_isometry(L))
   end
   pd = prime_divisors(order)
   @req length(pd) in [1,2] "order must have at most two prime divisors"
@@ -814,7 +711,7 @@ enumerate_classes_of_lattices_with_isometry(G::ZZGenus, order::Hecke.IntegerUnio
 function _enumerate_prime_power(L::ZZLat, q::Hecke.IntegerUnion, vq::Hecke.IntegerUnion)
   @hassert :ZZLatWithIsom 1 is_prime(q)
   @hassert :ZZLatWithIsom 1 vq >= 1
-  Lq = splitting_of_prime_power(lattice_with_isometry(L), q, 1)
+  Lq = splitting_of_prime_power(integer_lattice_with_isometry(L), q, 1)
   vq == 1 && return Lq
   reps = ZZLatWithIsom[]
   while !is_empty(Lq)
