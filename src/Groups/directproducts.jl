@@ -10,7 +10,7 @@
 
 Return the direct product of the groups in the collection `L`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then
+The keyword argument `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 
@@ -43,7 +43,7 @@ julia> elements(G)
  (1,3)(4,5)
 ```
 """
-function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
+function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
   X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
   DP = DirectProductGroup(X, L, X, true)
@@ -58,7 +58,7 @@ function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
   end
 end
 
-function direct_product(L::GAPGroup, Ls::GAPGroup...; morphisms=false)
+function direct_product(L::GAPGroup, Ls::GAPGroup...; morphisms::Bool=false)
   return direct_product([L, Ls...]; morphisms=morphisms)
 end
 
@@ -70,12 +70,12 @@ Return a direct product of groups of the same type `T` as a group of type
 `T`. It works for `T` of the following types:
 - `PermGroup`, `PcGroup`, `FPGroup`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then
+The keyword argument `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(
-  L::AbstractVector{T}; morphisms=false
+  L::AbstractVector{T}; morphisms::Bool=false
 ) where {T<:Union{PcGroup,FPGroup}}
   @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
@@ -91,7 +91,7 @@ function inner_direct_product(
   end
 end
 
-function inner_direct_product(L::AbstractVector{PermGroup}; morphisms=false)
+function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
     GapObj([G.X for G in L]), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
@@ -109,7 +109,7 @@ function inner_direct_product(L::AbstractVector{PermGroup}; morphisms=false)
 end
 
 function inner_direct_product(
-  L::T, Ls::T...; morphisms=false
+  L::T, Ls::T...; morphisms::Bool=false
 ) where {T<:Union{PcGroup,PermGroup,FPGroup}}
   return inner_direct_product([L, Ls...]; morphisms=morphisms)
 end
@@ -135,11 +135,11 @@ end
 
 Return the direct product of `n` copies of `G` as group of type `T`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then
+The keyword argument `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
-function inner_cartesian_power(G::T, n::Int; morphisms=false) where {T<:GAPGroup}
+function inner_cartesian_power(G::T, n::Int; morphisms::Bool=false) where {T<:GAPGroup}
   return inner_direct_product(fill(G, n); morphisms=morphisms)
 end
 
