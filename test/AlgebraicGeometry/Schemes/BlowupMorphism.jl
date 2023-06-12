@@ -33,3 +33,17 @@ end
   CD_trans = strict_transform(p, CD)
   @test weil_divisor(CD_trans) == weil_divisor(5*C_trans + 7*D_trans)
 end
+
+@testset "isomorphism on complement of center" begin
+  P = projective_space(QQ, ["x", "y", "z"])
+  S = homogeneous_coordinate_ring(P)
+  (x, y, z) = gens(S)
+  II = IdealSheaf(P, [x, y])
+  p = blow_up(II)
+  f = oscar.isomorphism_on_complement_of_center(p)
+  h = inverse(f)
+  U = domain(f)
+  @test compose(f, h) == identity_map(U)
+  V = codomain(f)
+  @test compose(h, f) == identity_map(V)
+end
