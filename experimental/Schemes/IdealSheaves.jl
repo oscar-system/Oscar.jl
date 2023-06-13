@@ -483,15 +483,23 @@ function order_on_divisor(
   complexity = inf
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
-    one(base_ring(I(U))) in I(U) && continue
+    is_one(I(U)) && continue
     tmp = sum([total_degree(lifted_numerator(g)) for g in gens(I(U)) if !iszero(g)]) # /ngens(Oscar.pre_image_ideal(I(U)))
-    if tmp < complexity 
+    if tmp < complexity
       complexity = tmp
       V = U
     end
   end
+  flag = false
   if complexity == inf
-    error("divisor is empty")
+    for U in X[1]
+      is_one(I(U)) && continue
+      # no chart has been computed, so we just take the first one
+      flag = true
+      V = U
+      break
+    end
+    flag || error("divisor is empty")
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
@@ -694,7 +702,7 @@ end
 function match_on_intersections(
       X::AbsCoveredScheme,
       U::AbsSpec,
-      I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
+      I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
       associated_list::Vector{IdDict{AbsSpec,Ideal}},
       check::Bool=true)
 

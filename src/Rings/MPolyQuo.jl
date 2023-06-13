@@ -435,6 +435,17 @@ end
   return J
 end
 
+# TODO: Replace by a more efficient method!
+@attr Bool function is_radical(I::MPolyQuoIdeal)
+  return is_radical(saturated_ideal(I))
+end
+
+# TODO: Replace by a more efficient method!
+function radical(I::MPolyQuoIdeal)
+  Irad = radical(saturated_ideal(I))
+  return ideal(base_ring(I), gens(Irad))
+end
+
 @doc raw"""
     is_zero(a::MPolyQuoIdeal)
 
@@ -887,6 +898,7 @@ end
 
 lift(a::MPolyQuoRingElem) = a.f
 
+
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
 function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
@@ -897,8 +909,14 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   end
 end
 
+function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}) where {T}
+  @req base_ring(parent(a)) === Q "parent missmatch"
+  return lift(a)
+end
+
+
 function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  @req base_ring(Q) === parent(a) "Parent mismatch"
+  @req base_ring(Q) === parent(a) "parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 

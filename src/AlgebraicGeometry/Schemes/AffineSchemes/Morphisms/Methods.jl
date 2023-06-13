@@ -31,6 +31,37 @@ end
 # (2) The direct product of two affine schemes
 ###########################################################
 
+# First the product of the ambient spaces. Documented below.
+function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
+    change_var_names_to::Vector{String}=["", ""]
+  ) where {BRT, RT<:MPolyRing}
+  K = OO(X)
+  L = OO(Y)
+  # V = localized_ring(K)
+  # W = localized_ring(L)
+  k = base_ring(K)
+  k == base_ring(L) || error("varieties are not defined over the same base ring")
+
+  m = ngens(K)
+  n = ngens(L)
+  new_symb = Symbol[]
+  if length(change_var_names_to[1]) == 0
+    new_symb = symbols(K)
+  else
+    new_symb = Symbol.([change_var_names_to[1]*"$i" for i in 1:ngens(L)])
+  end
+  if length(change_var_names_to[2]) == 0
+    new_symb = vcat(new_symb, symbols(L))
+  else
+    new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
+  end
+  KL, z = polynomial_ring(k, new_symb)
+  XxY = Spec(KL)
+  pr1 = SpecMor(XxY, X, gens(KL)[1:m], check=false)
+  pr2 = SpecMor(XxY, Y, gens(KL)[m+1:m+n], check=false)
+  return XxY, pr1, pr2
+end
+
 @doc raw"""
     product(X::AbsSpec, Y::AbsSpec)
     
@@ -41,13 +72,20 @@ the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 function product(X::AbsSpec, Y::AbsSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
+  # take the product of the ambient spaces and restrict
   base_ring(X) == base_ring(Y) || error("schemes are not defined over the same base ring")
-  Xstd = standard_spec(X)
-  Ystd = standard_spec(Y)
-  XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)), check=false)), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd)), check=false))
+  A = ambient_space(X)
+  B = ambient_space(Y)
+  AxB,prA, prB  = product(A, B, change_var_names_to=change_var_names_to)
+  XxY = intersect(preimage(prA, X, check=false), preimage(prB, Y,check=false))
+  prX = restrict(prA, XxY, X, check=false)
+  prY = restrict(prB, XxY, Y, check=false)
+  return XxY, prX, prY
 end
 
+
+
+#=
 function product(X::StdSpec, Y::StdSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
@@ -85,6 +123,9 @@ function product(X::StdSpec, Y::StdSpec;
   pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
+=#
+
+
 
 
 ########################################
