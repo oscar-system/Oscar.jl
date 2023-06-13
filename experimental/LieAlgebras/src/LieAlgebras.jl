@@ -7,8 +7,6 @@ import Oscar: GAPWrap
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
 
-using Base: deepcopy_internal
-
 # functions with new methods
 import ..Oscar:
   _iso_oscar_gap,
@@ -33,7 +31,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, iszero, parent, zero
+import Base: getindex, deepcopy_internal, hash, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
