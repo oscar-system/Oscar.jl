@@ -1404,19 +1404,17 @@ mutable struct HilbertData
   end
 end
 
-function hilbert_series(H::HilbertData, i::Int= 1)
+function hilbert_series(H::HilbertData)
   Zt, t = ZZ["t"]
   den = prod([1-t^w for w in H.weights])
-  if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
-    return Zt(map(ZZRingElem, H.data[1:end-1])), den
-  elseif i==2   ### the reduced Hilbert series
-    h = hilbert_series(H, 1)[1]
-    c = gcd(h, den)
-    h = divexact(h, c)
-    den = divexact(den, c)
-    return den(0)*h, den(0)*den
-  end
-  error("2nd parameter must be 1 or 2")
+  h = Zt(map(ZZRingElem, H.data[1:end-1]))
+  return h, den
+end
+
+function hilbert_series_reduced(H::HilbertData)
+  h, den = hilbert_series(H)
+  _, h, den = gcd_with_cofactors(h, den)
+  return den(0)*h, den(0)*den
 end
 
 #Decker-Lossen, p23/24
@@ -1424,7 +1422,7 @@ function hilbert_polynomial(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
   
-  q, dn = hilbert_series(H, 2)
+  q, dn = hilbert_series_reduced(H)
   a = QQFieldElem[]
   nf = QQFieldElem(1)
   d = degree(dn)-1
@@ -1434,10 +1432,9 @@ function hilbert_polynomial(H::HilbertData)
     q = derivative(q)
   end
   Qt, t = QQ["t"]
-  t = gen(Qt)
-  bin = one(parent(t))
+  d==-1 && return zero(Qt)
+  bin = one(Qt)
   b = QQPolyRingElem[]
-  if d==-1 return zero(parent(t)) end
   for i=0:d
     push!(b, (-1)^(d-i)*a[d-i+1]*bin)
     bin *= (t+i+1)*QQFieldElem(1, i+1)
@@ -1451,7 +1448,7 @@ function Oscar.degree(H::HilbertData)
   
   P = hilbert_polynomial(H)
   if iszero(P)
-     q, _ = hilbert_series(H, 2)
+     q, _ = hilbert_series_reduced(H)
      return q(1)
   end
   deg = leading_coefficient(P)*factorial(ZZ(degree(P)))
@@ -1460,11 +1457,11 @@ function Oscar.degree(H::HilbertData)
 end
 
 function (P::QQRelPowerSeriesRing)(H::HilbertData)
-  n, d = hilbert_series(H, 2)
+  n, d = hilbert_series_reduced(H)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
-  gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
+  gg, ee, _ = gcdx(dd, t^max_precision(P))
   @assert isone(gg)
   nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
