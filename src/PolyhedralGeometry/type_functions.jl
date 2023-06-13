@@ -38,21 +38,22 @@ end
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
     try
+        f = get_parent_field(iter.Obj)
         h = affine_matrix_for_polymake(iter)
-        return (A = Matrix{T}(h[:, 2:end]), b = Vector{T}(-h[:, 1]))
+        return (A = Matrix{T}(f.(h[:, 2:end])), b = Vector{T}(f.(-h[:, 1])))
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end
 end
 
-function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}})
-    try
-        h = affine_matrix_for_polymake(iter)
-        return (A = Matrix{nf_scalar}(h[:, 2:end]), b = Vector{nf_scalar}(-h[:, 1]))
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
-end
+# function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}})
+#     try
+#         h = affine_matrix_for_polymake(iter)
+#         return (A = Matrix{nf_scalar}(h[:, 2:end]), b = Vector{nf_scalar}(-h[:, 1]))
+#     catch e
+#         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+#     end
+# end
 
 for fun in (
     cones,

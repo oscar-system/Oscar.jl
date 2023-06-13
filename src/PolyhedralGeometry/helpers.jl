@@ -206,8 +206,8 @@ function (NF::AnticNumberField)(x::Polymake.QuadraticExtension{Polymake.Rational
     if g.r == 0 || g.b == 0
         return NF(convert(QQFieldElem, g.a))
     end
-    isq = Hecke.is_quadratic_type(parent(x))
-    @req isq[2] == g.r "Source and target fields do not match."
+    isq = Hecke.is_quadratic_type(NF)
+    @req isq[2] == base_field(NF)(g.r) "Source and target fields do not match."
     a = basis(NF)[2]
     return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
 end

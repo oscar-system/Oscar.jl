@@ -46,7 +46,7 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
-PointVector{nf_elem}(p::AbstractVector) = PointVector{nf_scalar}(p)
+# PointVector{nf_elem}(p::AbstractVector) = PointVector{nf_scalar}(p)
 
 PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
 
@@ -83,7 +83,7 @@ Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
 
-RayVector{nf_elem}(p::AbstractVector) = RayVector{nf_scalar}(p)
+# RayVector{nf_elem}(p::AbstractVector) = RayVector{nf_scalar}(p)
 
 RayVector{U}(n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(zeros(U, n))
 
@@ -229,17 +229,17 @@ Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
 ################################################################################
 
-for T in [LinearHalfspace, LinearHyperplane]
-    @eval begin
-        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $T{nf_scalar}(a)
-    end
-end
+# for T in [LinearHalfspace, LinearHyperplane]
+#     @eval begin
+#         $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $T{nf_scalar}(a)
+#     end
+# end
 
-for T in [AffineHalfspace, AffineHyperplane]
-    @eval begin
-        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $T{nf_scalar}(a, b)
-    end
-end
+# for T in [AffineHalfspace, AffineHyperplane]
+#     @eval begin
+#         $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $T{nf_scalar}(a, b)
+#     end
+# end
 
 ################################################################################
 ######## SubObjectIterator
@@ -277,9 +277,9 @@ end
 # `options` is empty by default
 SubObjectIterator{T}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
-# Force `nf_scalar` for this `Pair` descpription of `Halfspace`s/`Hyperplane`s
-# derived from `nf_elem`templated object
-SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
+# # Force `nf_scalar` for this `Pair` descpription of `Halfspace`s/`Hyperplane`s
+# # derived from `nf_elem`templated object
+# SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 

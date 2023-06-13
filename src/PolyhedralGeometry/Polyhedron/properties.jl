@@ -200,7 +200,7 @@ julia> vertices(PointVector, P)
 vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, P)
 _vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = PointVector{T}(@view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end])
+_vertex_polyhedron(::Type{PointVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = PointVector{T}(get_parent_field(P).(@view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end]))
 
 _point_matrix(::Val{_vertex_polyhedron}, P::Polyhedron; homogenized=false) = @view pm_object(P).VERTICES[_vertex_indices(pm_object(P)), (homogenized ? 1 : 2):end]
 
@@ -314,7 +314,7 @@ julia> rays(RayVector, PO)
 rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, P)
 _rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end])
+_ray_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(get_parent_field(P).(@view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end]))
 
 _facet_indices(::Val{_ray_polyhedron}, P::Polyhedron) = pm_object(P).FACETS_THRU_RAYS[_ray_indices(pm_object(P)), _facet_indices(pm_object(P))]
 
@@ -410,13 +410,18 @@ x₃ ≦ 1
 """
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{T}, P::Polyhedron, i::Base.Integer) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}}}
+function _facet_polyhedron(::Type{AffineHalfspace{S}}, P::Polyhedron, i::Base.Integer) where S<:scalar_types
     h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
-    return T(h[1], h[2][])
+    return affine_halfspace(get_parent_field(P), h[1], h[2][])
+end
+function _facet_polyhedron(::Type{Pair{R, S}}, P::Polyhedron, i::Base.Integer) where {R, S<:scalar_types}
+    f = get_parent_field(P)
+    h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
+    return Pair{R, S}(f.(h[1]), f(h[2][]))
 end
 function _facet_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
     h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
-    return polyhedron(T, h[1], h[2][])
+    return polyhedron(get_parent_field(P), h[1], h[2][])
 end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polyhedron) = -_remove_facet_at_infinity(pm_object(P))
@@ -526,9 +531,7 @@ julia> volume(C)
 4
 ```
 """
-volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, (pm_object(P)).VOLUME)
-
-volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, pm_object(P).VOLUME)
+volume(P::Polyhedron{T}) where T<:scalar_types = get_parent_field(P)((pm_object(P)).VOLUME)
 
 
 @doc raw"""
@@ -560,9 +563,7 @@ julia> normalized_volume(C)
 8
 ```
 """
-normalized_volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, factorial(dim(P))*(pm_object(P)).VOLUME)
-
-normalized_volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, factorial(dim(P))*(pm_object(P)).VOLUME)
+normalized_volume(P::Polyhedron{T}) where T<:scalar_types = get_parent_field(P)(factorial(dim(P))*(pm_object(P)).VOLUME)
 
 
 @doc raw"""
@@ -753,7 +754,7 @@ julia> lineality_space(UH)
 """
 lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(P, _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view pm_object(P).LINEALITY_SPACE[i, 2:end])
+_lineality_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(get_parent_field(P).(@view pm_object(P).LINEALITY_SPACE[i, 2:end]))
 
 _generator_matrix(::Val{_lineality_polyhedron}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).LINEALITY_SPACE : @view pm_object(P).LINEALITY_SPACE[:, 2:end]
 
@@ -781,7 +782,7 @@ affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHy
 
 function _affine_hull(::Type{AffineHyperplane{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
     h = decompose_hdata(-view(pm_object(P).AFFINE_HULL, [i], :))
-    return AffineHyperplane{T}(h[1], h[2][])
+    return affine_hyperplane(get_parent_field(P), h[1], h[2][])
 end
 
 _affine_equation_matrix(::Val{_affine_hull}, P::Polyhedron) = pm_object(P).AFFINE_HULL
@@ -1213,7 +1214,7 @@ julia> matrix(QQ, vertices(square))
 [ 1    1]
 ```
 """
-relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
+relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(get_parent_field(P).(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT))))
 
 
 @doc raw"""

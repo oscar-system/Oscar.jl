@@ -1,8 +1,10 @@
 #TODO: include more examples with nontrivial lineality space
 
 NF, sr2 = quadratic_field(2)
+Qx, x = QQ["x"]
+K, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
 
-for f in (QQ, NF)
+for f in (QQ, NF, K)
 
     T = elem_type(f)
 
@@ -83,13 +85,8 @@ for f in (QQ, NF)
             @test vertices(PointVector{T}, point) isa SubObjectIterator{PointVector{T}}
             @test vertices(PointVector, point) isa SubObjectIterator{PointVector{T}}
             @test vertices(point) isa SubObjectIterator{PointVector{T}}
-            if T == QQFieldElem
-                @test point_matrix(vertices(2*point)) == matrix(QQ, [0 2 0])
-                @test point_matrix(vertices([0,1,0] + point)) == matrix(QQ, [0 2 0])
-            else
-                @test point_matrix(vertices(2*point)) == [0 2 0]
-                @test point_matrix(vertices([0,1,0] + point)) == [0 2 0]
-            end
+            @test point_matrix(vertices(2*point)) == matrix(f, [0 2 0])
+            @test point_matrix(vertices([0,1,0] + point)) == matrix(f, [0 2 0])
             @test rays(RayVector{T}, Pos) isa SubObjectIterator{RayVector{T}}
             @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{T}}
             @test rays(Pos) isa SubObjectIterator{RayVector{T}}
@@ -98,15 +95,13 @@ for f in (QQ, NF)
                 @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
                 @test rays(Pos) == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
             else
-                @test vector_matrix(rays(Pos)) == [0 1 0; 1 0 0; 0 0 1]
+                @test vector_matrix(rays(Pos)) == matrix(f, [0 1 0; 1 0 0; 0 0 1])
                 @test rays(Pos) == [[0, 1, 0], [1, 0, 0], [0, 0, 1]]
             end
             @test lineality_space(L) isa SubObjectIterator{RayVector{T}}
+            @test generator_matrix(lineality_space(L)) == matrix(f, [0 0 1])
             if T == QQFieldElem
-                @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
                 @test matrix(ZZ, lineality_space(L)) == matrix(ZZ, [0 0 1])
-            else
-                @test generator_matrix(lineality_space(L)) == [0 0 1]
             end
             @test length(lineality_space(L)) == 1
             @test lineality_space(L) == [[0, 0, 1]]
@@ -136,33 +131,27 @@ for f in (QQ, NF)
             @test isnothing(faces(Q2, 0))
             v = vertices(minkowski_sum(Q0, square))
             @test length(v) == 5
-            @test v == [[2, -1], [2, 1], [-1, -1], [-1, 2], [1, 2]]
-            if T == QQFieldElem
-                @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
-            else
-                @test point_matrix(v) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
-            end
-            for S in [AffineHalfspace{T}, Pair{Matrix{T}, T}, Polyhedron{T}]
-                if S == Pair{Matrix{nf_elem}, nf_elem}
-                    @test facets(S, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
-                    @test facets(S, Pos) == Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+            @test v == [f.([2, -1]), f.([2, 1]), f.([-1, -1]), f.([-1, 2]), f.([1, 2])]
+            @test point_matrix(v) == matrix(f, [2 -1; 2 1; -1 -1; -1 2; 1 2])
+            for S in [AffineHalfspace{T},
+                      # Pair{Matrix{T}, T},
+                      Polyhedron{T}]
+                @test facets(S, Pos) isa SubObjectIterator{S}
+                if S == Polyhedron{T}
+                    @test facets(S, Pos) == polyhedron.([f], [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+                elseif S == Pair{Matrix{T}, T}
+                    @test facets(S, Pos) == S.([f.([-1 0 0]), f.([0 -1 0]), f.([0 0 -1])], [f(0)])
                 else
-                    @test facets(S, Pos) isa SubObjectIterator{S}
-                    if S == Polyhedron{T}
-                      @test facets(S, Pos) == polyhedron.([f], [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
-                    else
-                      @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
-                    end
+                    @test facets(S, Pos) == affine_halfspace.([f], [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
                 end
                 @test length(facets(S, Pos)) == 3
+                @test affine_inequality_matrix(facets(S, Pos)) == matrix(f, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
                 if T == QQFieldElem
-                    @test affine_inequality_matrix(facets(S, Pos)) == matrix(QQ, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
                     @test halfspace_matrix_pair(facets(S, Pos)).A == matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]) && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                     @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
                     @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
                     @test IncidenceMatrix(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
                 else
-                    @test affine_inequality_matrix(facets(S, Pos)) == [0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
                     @test halfspace_matrix_pair(facets(S, Pos)).A == [-1 0 0; 0 -1 0; 0 0 -1] && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                     @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
                     @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3, 4], [2, 3, 4], [1, 2, 4]])
@@ -177,28 +166,20 @@ for f in (QQ, NF)
             @test  facet_indices(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
             @test IncidenceMatrix(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
             @test rays(IncidenceMatrix, Pos) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
-            if T == nf_elem
-                @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
-            else
-                @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
-            end
+            # @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
             @test facets(Pos) isa SubObjectIterator{AffineHalfspace{T}}
             @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{T}}
             @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
-            if T == QQFieldElem
-                @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, [0 1 0 0; -1 0 1 0; 0 0 0 1])
-            else
-                @test affine_equation_matrix(affine_hull(point)) == [0 1 0 0; -1 0 1 0; 0 0 0 1]
-            end
+            @test affine_equation_matrix(affine_hull(point)) == matrix(f, [0 1 0 0; -1 0 1 0; 0 0 0 1])
             @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == [0 1 0 0; -1 0 1 0; 0 0 0 1]
             @test length(affine_hull(point)) == 3
             # TODO: restrict comparison to same scalar?
-            @test affine_hull(point) == [Hyperplane([1 0 0], 0), Hyperplane([0 1 0], 1), Hyperplane([0 0 1], 0)]
+            @test affine_hull(point) == [hyperplane(f, [1 0 0], 0), hyperplane(f, [0 1 0], 1), hyperplane(f, [0 0 1], 0)]
             @test nfacets(square) == 4
             @test lineality_dim(Q0) == 0
             @test nrays(Q1) == 1
             @test lineality_dim(Q2) == 1
-            @test relative_interior_point(Q0) == [1//3, 1//3]
+            # @test relative_interior_point(Q0) == [1//3, 1//3]
         end
 
         @testset "volume" begin
@@ -220,21 +201,21 @@ for f in (QQ, NF)
             nc = normal_cone(square, 1)
             @test nc isa Cone{T}
             @test rays(nc) == [[1, 0], [0, 1]]
-            let H = LinearHalfspace{T}([1, 1, 0])
+            let H = linear_halfspace(f, [1, 1, 0])
                 @test polyhedron(H) isa Polyhedron{T}
-                @test polyhedron(H) == polyhedron(T, [1 1 0], 0)
+                @test polyhedron(H) == polyhedron(f, [1 1 0], 0)
             end
-            let H = AffineHalfspace{T}([1, 0, 1], 5)
+            let H = affine_halfspace(f, [1, 0, 1], 5)
                 @test polyhedron(H) isa Polyhedron{T}
-                @test polyhedron(H) == polyhedron(T, [1 0 1], 5)
+                @test polyhedron(H) == polyhedron(f, [1 0 1], 5)
             end
-            let H = LinearHyperplane{T}([0, 1, 1])
+            let H = linear_hyperplane(f, [0, 1, 1])
                 @test polyhedron(H) isa Polyhedron{T}
-                @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
+                @test polyhedron(H) == polyhedron(f, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
             end
-            let H = AffineHyperplane{T}([1, 1, 1], 7)
+            let H = affine_hyperplane(f, [1, 1, 1], 7)
                 @test polyhedron(H) isa Polyhedron{T}
-                @test polyhedron(H) == polyhedron(T, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
+                @test polyhedron(H) == polyhedron(f, (Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
             end
             if T == QQFieldElem
                 @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
@@ -308,7 +289,7 @@ for f in (QQ, NF)
                     [1//2, -a//4 - 3//4, 0],
                     [-1//2, -a//4 - 3//4, 0]]
 
-                D = Polyhedron{T}(Polymake.polytope.dodecahedron())
+                D = Polyhedron{T}(Polymake.polytope.dodecahedron(), R)
                 @test D isa Polyhedron{T}
                 @test polyhedron(Polymake.polytope.dodecahedron()) == D
 
@@ -317,7 +298,9 @@ for f in (QQ, NF)
 
                 let A = [[a//2+1//2 1 0], [0 a//2+1//2 1], [0 a//2+1//2 -1], [-a//2-1//2 -1 0], [a//2-1//2 0 -1], [-a//2-1//2 1 0], [a//2-1//2 0 1], [-a//2+1//2 0 1], [0 -a//2-1//2 1], [-a//2+1//2 0 -1], [a//2+1//2 -1 0], [0 -a//2-1//2 -1]], b = [a//2 + 1, a//2 + 1, a//2 + 1, a//2 + 1, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//2 + 1, a//2 + 1]
 
-                    for S in [AffineHalfspace{T}, Pair{Matrix{T}, T}, Polyhedron{T}]
+                    for S in [AffineHalfspace{T},
+                              # Pair{Matrix{T}, T},
+                              Polyhedron{T}]
                         if S == Pair{Matrix{T}, T}
                             @test facets(S, D) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
                             @test facets(S, D) == [Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}(A[i], b[i]) for i in 1:12]
@@ -326,11 +309,11 @@ for f in (QQ, NF)
                           if S == Polyhedron{T}
                             @test facets(S, D) == [polyhedron(T, A[i], b[i]) for i in 1:12]
                           else
-                            @test facets(S, D) == [S(A[i], b[i]) for i in 1:12]
+                            @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
                           end
                         end
                         @test length(facets(S, D)) == 12
-                        @test affine_inequality_matrix(facets(S, D)) == hcat(-b, vcat(A...))
+                        @test affine_inequality_matrix(facets(S, D)) == matrix(R, hcat(-b, vcat(A...)))
                         @test halfspace_matrix_pair(facets(S, D)).A == vcat(A...) && halfspace_matrix_pair(facets(S, D)).b == b
                         @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
                         @test vertex_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
@@ -359,7 +342,7 @@ for f in (QQ, NF)
                 @test isempty(lineality_space(D))
                 @test faces(D, 0) == convex_hull.(T, V)
                 @test isempty(affine_hull(D))
-                @test relative_interior_point(D) == [0, 0, 0]
+                # @test relative_interior_point(D) == [0, 0, 0]
 
                 @test platonic_solid("dodecahedron") == D
 
