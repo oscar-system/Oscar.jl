@@ -33,11 +33,3 @@ export semistandard_tableaux
 export shape
 export standard_tableaux
 export weight
-
-# deprecated in 0.12.*
-
-@deprecate Partition(parts::IntegerUnion...) partition(parts...)
-@deprecate Partition(p::Vector) partition(p)
-
-# deprecation does not work
-# @deprecate Partition{T}(parts::IntegerUnion...) where {T<:IntegerUnion} partition(T, parts...)
