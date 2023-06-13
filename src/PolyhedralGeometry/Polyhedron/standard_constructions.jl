@@ -410,7 +410,7 @@ julia> f_vector(T)
 """
 function convex_hull(P::Polyhedron{T}...) where T<:scalar_types
     pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.conv(pmo...))
+    return Polyhedron{T}(Polymake.polytope.conv(pmo...), get_parent_field(iterate(P)[1]))
 end
 convex_hull(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = convex_hull(P...)
 

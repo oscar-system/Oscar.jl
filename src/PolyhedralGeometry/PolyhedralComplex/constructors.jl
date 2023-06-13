@@ -6,8 +6,9 @@
 
 struct PolyhedralComplex{T} <: PolyhedralObject{T}
     pm_complex::Polymake.BigObject
+    parent_field::Field
     
-     PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+    PolyhedralComplex{T}(pm::Polymake.BigObject, p::Field) where T<:scalar_types = new{T}(pm, p)
 end
 
 
@@ -70,14 +71,15 @@ julia> lineality_dim(PC)
 1
 ```
 """
-function polyhedral_complex(::Type{T},
-                polyhedra::IncidenceMatrix, 
-                vr::AbstractCollection[PointVector], 
-                far_vertices::Union{Vector{Int}, Nothing} = nothing, 
-                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
-                non_redundant::Bool = false
-            ) where T<:scalar_types
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(vr, 2)) : L
+function polyhedral_complex(f::Union{Type{T}, Field},
+                            polyhedra::IncidenceMatrix, 
+                            vr::AbstractCollection[PointVector], 
+                            far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                            L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                            non_redundant::Bool = false
+                            ) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, vr, L)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(vr, 2)) : L
 
     # Rays and Points are homogenized and combined and
     points = homogenize(vr, 1)
@@ -90,17 +92,17 @@ function polyhedral_complex(::Type{T},
     lineality = homogenize(LM, 0)
 
     if non_redundant
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(
+        return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
             VERTICES = points,
             LINEALITY_SPACE = lineality,
             MAXIMAL_CONES = polyhedra,
-        ))
+        ), parent_field)
     else
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(
+        return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
             POINTS = points,
             INPUT_LINEALITY = lineality,
             INPUT_CONES = polyhedra,
-        ))
+        ), parent_field)
     end
 end
 # default scalar type: `QQFieldElem`

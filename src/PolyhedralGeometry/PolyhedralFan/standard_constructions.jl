@@ -28,7 +28,7 @@ julia> rays(NF)
 function normal_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmnf = Polymake.fan.normal_fan(pmp)
-   return PolyhedralFan{T}(pmnf)
+   return PolyhedralFan{T}(pmnf, get_parent_field(P))
 end
 
 """
@@ -53,7 +53,7 @@ true
 function face_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmff = Polymake.fan.face_fan(pmp)
-   return PolyhedralFan{T}(pmff)
+   return PolyhedralFan{T}(pmff, get_parent_field(P))
 end
 
 

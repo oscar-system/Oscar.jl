@@ -5,9 +5,10 @@
 ###############################################################################
 
 struct SubdivisionOfPoints{T} <: PolyhedralObject{T}
-   pm_subdivision::Polymake.BigObject
+    pm_subdivision::Polymake.BigObject
+    parent_field::Field
 
-   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+    SubdivisionOfPoints{T}(pm::Polymake.BigObject, p::Field) where T<:scalar_types = new{T}(pm, p)
 end
 
 
@@ -46,12 +47,13 @@ julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
 Subdivision of points in ambient dimension 3
 ```
 """
-function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
+function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, points)
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(T)}(
+   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
       POINTS = homogenize(points,1),
       MAXIMAL_CELLS = arr,
-   ))
+   ), parent_field)
 end
 
 
@@ -80,11 +82,12 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(T)}(
+function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
+   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
       POINTS = homogenize(points,1),
       WEIGHTS = weights,
-   ))
+   ), parent_field)
 end
 
 """

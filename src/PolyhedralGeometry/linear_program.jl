@@ -1,13 +1,14 @@
 struct LinearProgram{T} <: PolyhedralObject{T}
-   feasible_region::Polyhedron{T}
-   polymake_lp::Polymake.BigObject
-   convention::Symbol
+    feasible_region::Polyhedron{T}
+    polymake_lp::Polymake.BigObject
+    convention::Symbol
+    parent_field::Field
    
-   LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, lp, c)
+    LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol, p) where T<:scalar_types = new{T}(fr, lp, c, p)
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
-linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c)
+linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c, get_parent_field(p))
 
 
 @doc raw"""
@@ -30,12 +31,12 @@ function linear_program(P::Polyhedron{T}, objective::AbstractVector; k = 0, conv
       Polymake.attach(lp, "convention", "min")
    end
    Polymake.add(pm_object(P), "LP", lp)
-   LinearProgram{T}(P, lp, convention)
+   LinearProgram{T}(P, lp, convention, get_parent_field(P))
 end
 
 
-linear_program(::Type{T}, A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T<:scalar_types =
-   linear_program(polyhedron(T, A, b), c;  k = k, convention = convention)
+linear_program(f::Union{Type{T}, Field}, A::AbstractCollection[AffineHalfspace], b, c::AbstractVector; k = 0, convention = :max) where T<:scalar_types =
+    linear_program(polyhedron(f, A, b), c;  k = k, convention = convention)
 
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
@@ -140,7 +141,7 @@ function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
       opt_vert = lp.polymake_lp.MINIMAL_VERTEX
    end
    if opt_vert != nothing
-      return PointVector{T}(dehomogenize(opt_vert))
+      return PointVector{T}(get_parent_field(lp), dehomogenize(opt_vert))
    else
       return nothing
    end

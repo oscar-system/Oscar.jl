@@ -36,7 +36,7 @@ function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) 
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
     result = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
-    return PolyhedralComplex{T}(result)
+    return PolyhedralComplex{T}(result, get_parent_field(PC1))
 end
 
 
@@ -67,7 +67,7 @@ Polyhedral complex in ambient dimension 2
 function k_skeleton(PC::PolyhedralComplex{T},k::Int) where T<:scalar_types
     pm_PC = pm_object(PC)
     ksk = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(Polymake.fan.k_skeleton(pm_PC,k))
-    return PolyhedralComplex{T}(ksk)
+    return PolyhedralComplex{T}(ksk, get_parent_field(PC))
 end
 
 

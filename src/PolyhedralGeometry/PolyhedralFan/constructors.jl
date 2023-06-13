@@ -12,9 +12,10 @@
 abstract type _FanLikeType{T} <: PolyhedralObject{T} end
 
 struct PolyhedralFan{T} <:_FanLikeType{T}
-   pm_fan::Polymake.BigObject
+    pm_fan::Polymake.BigObject
+    parent_field::Field
    
-   PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+    PolyhedralFan{T}(pm::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(pm, f)
 end
 
 
@@ -64,32 +65,33 @@ julia> lineality_dim(PF)
 1
 ```
 """
-function polyhedral_fan(::Type{T},
-                          Rays::AbstractCollection[RayVector], 
-                          LS::Union{AbstractCollection[RayVector], Nothing}, 
-                          Incidence::IncidenceMatrix; 
-                          non_redundant::Bool = false) where T<:scalar_types
-  RM = unhomogenized_matrix(Rays)
-  if isnothing(LS)
-    LM = Polymake.Matrix{_scalar_type_to_polymake(T)}(undef, 0, size(RM, 2))
-  else
-    LM = unhomogenized_matrix(LS)
-  end
-  if non_redundant
-    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
-      RAYS = RM,
-      LINEALITY_SPACE = LM,
-      MAXIMAL_CONES = Incidence,
-    ))
-  else
-    return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
-      INPUT_RAYS = RM,
-      INPUT_LINEALITY = LM,
-      INPUT_CONES = Incidence,
-    ))
-  end
+function polyhedral_fan(f::Union{Type{T}, Field},
+                        Rays::AbstractCollection[RayVector], 
+                        LS::Union{AbstractCollection[RayVector], Nothing},
+                        Incidence::IncidenceMatrix; 
+                        non_redundant::Bool = false) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, Rays, LS)
+    RM = unhomogenized_matrix(Rays)
+    if isnothing(LS)
+        LM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(RM, 2))
+    else
+        LM = unhomogenized_matrix(LS)
+    end
+    if non_redundant
+        return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
+            RAYS = RM,
+            LINEALITY_SPACE = LM,
+            MAXIMAL_CONES = Incidence,
+        ), parent_field)
+    else
+        return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
+            INPUT_RAYS = RM,
+            INPUT_LINEALITY = LM,
+            INPUT_CONES = Incidence,
+        ), parent_field)
+    end
 end
-polyhedral_fan(::Type{T}, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types = polyhedral_fan(T, Rays, nothing, Incidence; non_redundant=non_redundant)
+polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types = polyhedral_fan(f, Rays, nothing, Incidence; non_redundant=non_redundant)
 polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
 polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
 
@@ -100,18 +102,18 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(PF::PolyhedralFan) = PF.pm_fan
 
-polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...))
+polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...), get_parent_field(iterate(itr)[1]))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-polyhedral_fan(::Type{T}, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
-  polyhedral_fan(T, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
-polyhedral_fan(::Type{T}, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
-  polyhedral_fan(T, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
+  polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
+  polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 
 
 function polyhedral_fan(C::Cone{T}) where T<:scalar_types
     pmfan = Polymake.fan.check_fan_objects(pm_object(C))
-    return PolyhedralFan{T}(pmfan)
+    return PolyhedralFan{T}(pmfan, get_parent_field(C))
 end
 
 ###############################################################################

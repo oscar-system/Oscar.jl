@@ -46,13 +46,13 @@ julia> matrix(QQ, rays(NF))
 rays(PF::_FanLikeType{T}) where T<:scalar_types = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{T}, PF)
 _rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(PF, _ray_fan, _nrays(PF))
 
-_ray_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(pm_object(PF).RAYS, i, :))
+_ray_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(get_parent_field(PF), view(pm_object(PF).RAYS, i, :))
 
 _vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).RAYS, 0) : pm_object(PF).RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
-_maximal_cone(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1))
+_maximal_cone(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1), get_parent_field(PF))
 
 
 @doc raw"""                                                 
@@ -159,7 +159,7 @@ function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
 end
 
 function _cone_of_dim(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
-    return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)),:], LINEALITY_SPACE = pm_object(PF).LINEALITY_SPACE))
+    return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)),:], LINEALITY_SPACE = pm_object(PF).LINEALITY_SPACE), get_parent_field(PF))
 end
 
 _ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int = 0) = Polymake.fan.cones_of_dim(pm_object(PF), c_dim)
@@ -385,7 +385,7 @@ julia> lineality_space(PF)
 """
 lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(PF, _lineality_fan, lineality_dim(PF))
 
-_lineality_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(pm_object(PF).LINEALITY_SPACE, i, :))
+_lineality_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(get_parent_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))
 
 _generator_matrix(::Val{_lineality_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).LINEALITY_SPACE, 0) : pm_object(PF).LINEALITY_SPACE
 
