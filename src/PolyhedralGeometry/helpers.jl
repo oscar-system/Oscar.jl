@@ -72,8 +72,6 @@ Set{Int64} with 1 element:
 """
 column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
-const nf_scalar = Union{nf_elem, QQFieldElem}
-
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
     a, b = size(m)
     if a > 0
@@ -90,8 +88,6 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     return m
 end
 
-assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.QuadraticExtension{Polymake.Rational}}(m)
-
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
@@ -103,8 +99,6 @@ function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{Fie
     v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
     return v
 end
-
-assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
 
@@ -134,14 +128,6 @@ end
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-Base.zero(::Type{nf_scalar}) = QQFieldElem()
-# Base.one(::Type{nf_scalar}) = QQFieldElem(1)
-
-Base.convert(::Type{nf_scalar}, x::Number) = convert(QQFieldElem, x)
-Base.convert(::Type{nf_scalar}, x::nf_elem) = x
-
-nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
-
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
     isq = Hecke.is_quadratic_type(parent(x))
     @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
@@ -151,15 +137,6 @@ function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x:
 end
 
 Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::QQFieldElem) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
-
-function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake.Rational})
-    g = Polymake.generating_field_elements(x)
-    if g.r == 0 || g.b == 0
-        return convert(QQFieldElem, g.a)
-    end
-    R, a = quadratic_field(convert(ZZRingElem,  g.r))
-    return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
-end
 
 Base.convert(T::Type{<:Polymake.Matrix}, x::Union{ZZMatrix,QQMatrix}) = Base.convert(T, Matrix(x))
 

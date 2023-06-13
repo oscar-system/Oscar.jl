@@ -11,26 +11,6 @@
         @test column(im, 2) == Set{Int}([1])
         
     end
-    
-    @testset "nf_scalar" begin
-        
-        qe = Polymake.QuadraticExtension{Polymake.Rational}(123, 456, 789)
-        @test convert(Oscar.nf_scalar, qe) isa nf_elem
-        nfe = convert(Oscar.nf_scalar, qe)
-        @test coordinates(nfe) == [123, 456]
-        p = defining_polynomial(parent(nfe))
-        @test p == parent(p)([-789, 0, 1])
-        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, nfe) == qe
-        
-        qet = Polymake.QuadraticExtension{Polymake.Rational}(9)
-        @test convert(Oscar.nf_scalar, qet) isa QQFieldElem
-        @test convert(Oscar.nf_scalar, qet) == 9
-        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, convert(Oscar.nf_scalar, qet)) == qet
-        
-        @test convert(Oscar.nf_scalar, 5) isa QQFieldElem
-        @test convert(Oscar.nf_scalar, 5) == 5
-        
-    end
 
     a = [1, 2, 3]
     b = [8, 6, 4]
@@ -42,49 +22,54 @@
 
         @test T(a) isa T{QQFieldElem}
 
-        @testset "$T{$U}" for U in (ZZRingElem, QQFieldElem, Oscar.nf_scalar)
+        for f in (ZZ, QQ, NF)
 
-            @test T{U} <: AbstractVector
-            @test T{U} <: AbstractVector{U}
+            U = elem_type(f)
+            @testset "$T{$U}" begin
 
-            @test T{U}(a) isa T
-            @test T{U}(a) isa T{U}
+                @test T{U} <: AbstractVector
+                @test T{U} <: AbstractVector{U}
 
-            @test T{U}(7) == zeros(7)
+                @test T{U}(f.(a)) isa T
+                @test T{U}(f.(a)) isa T{U}
 
-            A = T{U}(a)
+                @test T{U}(f, 7) == f.(zeros(Int, 7))
 
-            @test A[1] isa U
-            @test A[2] == 2
-            @test A[begin] == 1
-            @test A[end] == 3
-            A[3] = 7
-            @test A[end] == 7
-            A[3] = 3
+                A = T{U}(f.(a))
 
-            @test size(A) == (3,)
+                @test A[1] isa U
+                @test A[2] == 2
+                @test A[begin] == 1
+                @test A[end] == 3
+                A[3] = f(7)
+                @test A[end] == 7
+                A[3] = f(3)
 
-            @test_throws BoundsError A[0]
-            @test_throws BoundsError A[4]
+                @test size(A) == (3,)
 
-            for V in [ZZRingElem, QQFieldElem, Oscar.nf_scalar]
-            
-                B = T{V}(b)
-            
-                for op in [+, -]
-                    @test op(A, B) isa T
-            
-                    @test op(A, B) == op(a, b)
+                @test_throws BoundsError A[0]
+                @test_throws BoundsError A[4]
+
+                for g in (ZZ, QQ, NF)
+                V = elem_type(g)
+
+                    B = T{V}(g.(b))
+
+                    for op in [+, -]
+                        @test op(A, B) isa T
+
+                        @test op(A, B) == op(a, b)
+                    end
+
+                    @test *(g(3), A) isa T
+
+                    @test *(g(3), A) == 3 * a
+
+                    @test [A; B] == [a; b]
+
                 end
-            
-                @test *(V(3), A) isa T
-                
-                @test *(V(3), A) == 3 * a
-                
-                @test [A; B] == [a; b]
-            
-            end
 
+            end
         end
 
     end
