@@ -3,10 +3,10 @@
 
 # builds parent tree
 function get_parents(parent_ring::Ring)
-    base = base_ring(parent_ring)
-    if has_elem_basic_encoding(base)
-        return Any[parent_ring]
+    if has_elem_basic_encoding(parent_ring)
+        return Any[]
     end
+    base = base_ring(parent_ring)
 
     parents = get_parents(base)
     push!(parents, parent_ring)

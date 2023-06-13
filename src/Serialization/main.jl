@@ -68,7 +68,7 @@ function registerSerializationType(ex::Any,
             encodeType(::Type{<:$ex}) = $str
             # use_id is necessary for now since has_elem_basic_encoding is false for all types
             # and not just parent types, this will have to be reworked in future
-            serialize_with_id(obj::T) where T <: $ex = !has_elem_basic_encoding(obj) && $uses_id
+            serialize_with_id(obj::T) where T <: $ex = $uses_id && !has_elem_basic_encoding(obj)
             serialize_with_id(T::Type{<:$ex}) = $uses_id && !has_elem_basic_encoding(T)
         end)
 end
