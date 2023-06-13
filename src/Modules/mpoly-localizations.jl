@@ -176,4 +176,19 @@ the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the orig
   return result, a, b
 end
 
+@attr function shifted_module(
+    M::SubModuleOfFreeModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal}}
 
+  R = base_ring(M)::MPolyLocRing
+  P = base_ring(R)::MPolyRing
+  FL = ambient_free_module(M)
+  F = base_ring_module(FL)
+  (A,D) = clear_denominators(M.matrix)
+  Mp = SubModuleOfFreeModule(F,A)
+  F_shifted, shift, shift_back = shifted_module(FL)
+  Mp_gens_shift = shift.(gens(Mp))
+  result = SubModuleOfFreeModule(F_shifted,Mp_gens_shift)
+  return result
+end
