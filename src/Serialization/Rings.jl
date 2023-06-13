@@ -530,43 +530,7 @@ end
 @registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
 @registerSerializationType(ZZLaurentSeriesRingElem)
 
-function save_internal(s::SerializerState, r:: ZZLaurentSeriesRingElem)
-    v = valuation(r)
-    pl = pol_length(r)
-    encoded_terms = []
-    parents = []
-    parent_ring = parent(r)
-    base = base_ring(parent_ring)
-    for exponent in v: v + pl
-        coefficient = coeff(r, exponent)
-        #collect only non trivial values
-        if is_zero(coefficient)
-            continue
-        end
-
-        encoded_coeff = save_internal(s, coefficient)
-        if has_elem_basic_encoding(base)
-            push!(encoded_terms,  (exponent, encoded_coeff))
-        else
-            parents = encoded_coeff[:parents]
-            push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
-        end
-    end
-    parent_ring = save_as_ref(s, parent_ring)
-    # end of list should be loaded last
-    push!(parents, parent_ring)
-
-    return Dict(
-        :parents => parents,
-        :terms => encoded_terms,
-        :valuation => save_type_dispatch(s, v),
-        :pol_length => save_type_dispatch(s, pl),
-        :precision => save_type_dispatch(s, precision(r)),
-        :scale => save_type_dispatch(s, Nemo.scale(r))
-    )
-end
-
-function save_internal(s::SerializerState, r:: Generic.LaurentSeriesElem)
+function save_internal(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem})
     v = valuation(r)
     pl = pol_length(r)
     encoded_terms = []
