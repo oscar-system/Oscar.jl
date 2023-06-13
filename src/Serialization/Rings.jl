@@ -105,9 +105,6 @@ function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPoly
     encoded_terms = []
 
     for i in 1:length(p)
-        if coeff == parent_ring(0)
-            continue
-        end
         encoded_coeff = save_internal(s, coeff(p, i))
         if has_elem_basic_encoding(base)
             push!(encoded_terms,  (exponent_vector(p, i), encoded_coeff))
