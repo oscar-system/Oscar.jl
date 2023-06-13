@@ -154,8 +154,8 @@
 		end
 	end
 	@test check==true
-	@test standard_tableaux(Partition(Int[])) == [Tableau(Array{Int,1}[])]
-	@test standard_tableaux([3,2,1]) == standard_tableaux(Partition([3,2,1]))
+	@test standard_tableaux(partition(Int[])) == [Tableau(Array{Int,1}[])]
+	@test standard_tableaux([3,2,1]) == standard_tableaux(partition([3,2,1]))
 
 	# standard_tableaux(n::Integer)
 	check = true
@@ -184,14 +184,14 @@
 	@test check==true
 
 	# hook_length
-	@test hook_length(Partition([1]),1,1) == 1
-	@test hook_length(Partition([4,3,1,1]),1,1) == 7
+	@test hook_length(partition([1]),1,1) == 1
+	@test hook_length(partition([4,3,1,1]),1,1) == 7
 	@test hook_length(Tableau([[1,2,3,4],[5,6,7],[8],[9]]),1,1) == 7
 
 	# hook_lengths
-	@test hook_lengths(Partition([4,3,1,1])) == Tableau([[7,4,3,1],[5,2,1],[2],[1]])
-	@test hook_lengths(Partition([1])) == Tableau([[1]])
-	@test hook_lengths(Partition([])) == Tableau(Array{Int,1}[])
+	@test hook_lengths(partition([4,3,1,1])) == Tableau([[7,4,3,1],[5,2,1],[2],[1]])
+	@test hook_lengths(partition([1])) == Tableau([[1]])
+	@test hook_lengths(partition([])) == Tableau(Array{Int,1}[])
 
 	# schensted
 	@test schensted([6,2,7,3,5,4,1]) == (Tableau([[1,3,4],[2,7],[5],[6]]),Tableau([[1,3,5],[2,4],[6],[7]]))
