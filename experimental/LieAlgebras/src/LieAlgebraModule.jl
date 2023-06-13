@@ -660,12 +660,11 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
     -transpose(transformation_matrix(V, i))
   end
 
-  if is_standard_module(V)
-    parentheses = identity
+  s = if is_standard_module(V)
+    [Symbol("$(s)*") for s in symbols(V)]
   else
-    parentheses = x -> "($x)"
+    [Symbol("($(s))*") for s in symbols(V)]
   end
-  s = [Symbol("$(parentheses(s))*") for s in symbols(V)]
 
   pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
   set_attribute!(pow_V, :type => :dual, :base_module => V, :show => show_dual)
@@ -688,14 +687,13 @@ function direct_sum(
   transformation_matrices = map(1:dim(L)) do i
     block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in [V, Vs...]])
   end
-  parentheses = x -> "($x)"
 
-  if length(Vs) == 0
-    s = symbols(V)
+  s = if length(Vs) == 0
+    symbols(V)
   else
-    s = [
+    [
       Symbol("$s^($j)") for (j, Vj) in enumerate([V, Vs...]) for
-      s in (is_standard_module(Vj) ? symbols(Vj) : parentheses.(symbols(Vj)))
+      s in (is_standard_module(Vj) ? symbols(Vj) : (x -> "($x)").(symbols(Vj)))
     ]
   end
 
@@ -736,15 +734,14 @@ function tensor_product(
     )
   end
 
-  if length(Vs) == 0
-    s = symbols(V)
+  s = if length(Vs) == 0
+    symbols(V)
   else
-    parentheses = x -> "($x)"
-    s = [
+    [
       Symbol(join(s, " ⊗ ")) for s in
       reverse.(
         ProductIterator([
-          is_standard_module(Vi) ? symbols(Vi) : parentheses.(symbols(Vi)) for
+          is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
           Vi in reverse([V, Vs...])
         ])
       )
@@ -790,15 +787,12 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     basis_change_T2E * transformation_matrix(T, i) * basis_change_E2T
   end
 
-  if k == 1
-    s = symbols(V)
+  s = if k == 1
+    symbols(V)
+  elseif is_standard_module(V)
+    [Symbol(join(s, " ∧ ")) for s in combinations(symbols(V), k)]
   else
-    if is_standard_module(V)
-      parentheses = identity
-    else
-      parentheses = x -> "($x)"
-    end
-    s = [Symbol(join(parentheses.(s), " ∧ ")) for s in combinations(symbols(V), k)]
+    [Symbol(join((x -> "($x)").(s), " ∧ ")) for s in combinations(symbols(V), k)]
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
@@ -836,26 +830,27 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     basis_change_T2S * transformation_matrix(T, i) * basis_change_S2T
   end
 
-  if k == 1
-    s = symbols(V)
-  else
-    if is_standard_module(V)
-      parentheses = identity
-    else
-      parentheses = x -> "($x)"
-    end
+  s = if k == 1
+    symbols(V)
+  elseif is_standard_module(V)
     s = [
       Symbol(
         join(
           (
-            begin
-              e = count(==(i), inds)
-              if e == 1
-                parentheses(s)
-              else
-                "$(parentheses(s))^$e"
-              end
-            end for (i, s) in enumerate(symbols(V)) if in(i, inds)
+            (e = count(==(i), inds)) == 1 ? s : "$(s)^$e" for
+            (i, s) in enumerate(symbols(V)) if in(i, inds)
+          ),
+          "*",
+        ),
+      ) for inds in ind_map
+    ]
+  else
+    s = [
+      Symbol(
+        join(
+          (
+            (e = count(==(i), inds)) == 1 ? "($(s))" : "($(s))^$e" for
+            (i, s) in enumerate(symbols(V)) if in(i, inds)
           ),
           "*",
         ),
@@ -890,17 +885,12 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     sum(reduce(kronecker_product, (j == i ? y : one(y) for j in 1:k)) for i in 1:k)
   end
 
-  if k == 1
-    s = symbols(V)
+  s = if k == 1
+    symbols(V)
+  elseif is_standard_module(V)
+    [Symbol(join(s, " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
   else
-    if is_standard_module(V)
-      parentheses = identity
-    else
-      parentheses = x -> "($x)"
-    end
-    s = [
-      Symbol(join(parentheses.(s), " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))
-    ]
+    [Symbol(join((x -> "($x)").(s), " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
