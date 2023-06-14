@@ -109,13 +109,6 @@ import AbstractAlgebra:
   symbols,
   total_degree
 
-# FIXME/TODO: clean up the following once AbstractAlgebra provides the new name
-if isdefined(AbstractAlgebra, :MPolyRingElem)
-  import AbstractAlgebra: MPolyRingElem
-else
-  @alias MPolyRingElem MPolyRingElem
-end
-
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
   hasgens,
