@@ -51,9 +51,8 @@
    end
 end
 
-@testset "Matrix manipulation" begin
-   F = GF(5, 1)
-   
+@testset "Matrix manipulation" for F in (GF(5), GF(5,1)[1])
+
    I = identity_matrix(F,6)
    x = matrix(F,2,2,[2,3,4,0])
    I1 = deepcopy(I)
