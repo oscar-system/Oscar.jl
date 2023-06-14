@@ -417,7 +417,7 @@ end
 function _facet_polyhedron(::Type{Pair{R, S}}, P::Polyhedron, i::Base.Integer) where {R, S<:scalar_types}
     f = get_parent_field(P)
     h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
-    return Pair{R, S}(f.(h[1]), f(h[2][]))
+    return Pair{R, S}(f.(view(h[1], :, :)), f(h[2][])) # view_broadcast
 end
 function _facet_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
     h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
@@ -1214,7 +1214,7 @@ julia> matrix(QQ, vertices(square))
 [ 1    1]
 ```
 """
-relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(get_parent_field(P).(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT))))
+relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(get_parent_field(P).(view(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)), :))) #view_broadcast
 
 
 @doc raw"""

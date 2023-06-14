@@ -4,7 +4,7 @@ NF, sr2 = quadratic_field(2)
 Qx, x = QQ["x"]
 K, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
 
-for f in (QQ, NF)
+for f in (QQ, NF, K)
 
     T = elem_type(f)
 
@@ -134,7 +134,7 @@ for f in (QQ, NF)
             @test v == [f.([2, -1]), f.([2, 1]), f.([-1, -1]), f.([-1, 2]), f.([1, 2])]
             @test point_matrix(v) == matrix(f, [2 -1; 2 1; -1 -1; -1 2; 1 2])
             for S in [AffineHalfspace{T},
-                      # Pair{Matrix{T}, T},
+                      Pair{Matrix{T}, T},
                       Polyhedron{T}]
                 @test facets(S, Pos) isa SubObjectIterator{S}
                 if S == Polyhedron{T}
@@ -166,7 +166,7 @@ for f in (QQ, NF)
             @test  facet_indices(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
             @test IncidenceMatrix(rays(Pos)) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
             @test rays(IncidenceMatrix, Pos) == ((T==QQFieldElem) ? IncidenceMatrix([[2, 3],[1, 3],[1, 2]]) : IncidenceMatrix([[1, 3],[2, 3],[1, 2]]))
-            # @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
+            @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
             @test facets(Pos) isa SubObjectIterator{AffineHalfspace{T}}
             @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{T}}
             @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
@@ -179,7 +179,7 @@ for f in (QQ, NF)
             @test lineality_dim(Q0) == 0
             @test nrays(Q1) == 1
             @test lineality_dim(Q2) == 1
-            # @test relative_interior_point(Q0) == [1//3, 1//3]
+            @test relative_interior_point(Q0) == [1//3, 1//3]
         end
 
         @testset "volume" begin
@@ -294,18 +294,16 @@ for f in (QQ, NF)
                 let A = [[a//2+1//2 1 0], [0 a//2+1//2 1], [0 a//2+1//2 -1], [-a//2-1//2 -1 0], [a//2-1//2 0 -1], [-a//2-1//2 1 0], [a//2-1//2 0 1], [-a//2+1//2 0 1], [0 -a//2-1//2 1], [-a//2+1//2 0 -1], [a//2+1//2 -1 0], [0 -a//2-1//2 -1]], b = [a//2 + 1, a//2 + 1, a//2 + 1, a//2 + 1, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//2 + 1, a//2 + 1]
 
                     for S in [AffineHalfspace{T},
-                              # Pair{Matrix{T}, T},
+                              Pair{Matrix{T}, T},
                               Polyhedron{T}]
+                        
+                        @test facets(S, D) isa SubObjectIterator{S}
                         if S == Pair{Matrix{T}, T}
-                            @test facets(S, D) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
-                            @test facets(S, D) == [Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}(A[i], b[i]) for i in 1:12]
+                            @test facets(S, D) == [Pair(A[i], b[i]) for i in 1:12]
+                        elseif S == Polyhedron{T}
+                            @test facets(S, D) == [polyhedron(R, A[i], b[i]) for i in 1:12]
                         else
-                            @test facets(S, D) isa SubObjectIterator{S}
-                          if S == Polyhedron{T}
-                            @test facets(S, D) == [polyhedron(T, A[i], b[i]) for i in 1:12]
-                          else
                             @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
-                          end
                         end
                         @test length(facets(S, D)) == 12
                         @test affine_inequality_matrix(facets(S, D)) == matrix(R, hcat(-b, vcat(A...)))
@@ -337,7 +335,7 @@ for f in (QQ, NF)
                 @test isempty(lineality_space(D))
                 @test faces(D, 0) == convex_hull.(T, V)
                 @test isempty(affine_hull(D))
-                # @test relative_interior_point(D) == [0, 0, 0]
+                @test relative_interior_point(D) == [0, 0, 0]
 
                 @test platonic_solid("dodecahedron") == D
 
