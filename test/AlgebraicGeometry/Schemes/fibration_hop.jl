@@ -1,3 +1,11 @@
+# TODO:
+# shortcut to get the coefficient(s) of a weil divisor
+# einsetzen von VarietyFunctionFieldElem in univariate polynome
+# in_linear_system hakt noch total
+#=
+julia> in_linear_system(linsys[1], D,check=false)
+false
+=#
 
 
 """
@@ -80,30 +88,32 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
   return result
 end
 
-function prop217(X::AbsCoveredScheme, E::EllCrv, P::EllCrvPt, k, x, y, t,fiber)
-  FX = VarietyFunctionField(X)
+function prop217(X::AbsCoveredScheme, E::EllCrv, P::EllCrvPt, k, x::VarietyFunctionFieldElem, y::VarietyFunctionFieldElem, t::VarietyFunctionFieldElem,fiber::VarietyFunctionFieldElem)
+  FX = function_field(X)
+  all(FX === parent(i) for i in (x,y,t,fiber)) || error("x,y,t must be functions on X=$(X)")
+  sections = typeof(x)[]
+  (x,y,t,fiber) = [representative(i) for i in (x,y,t,fiber)]
   xn = numerator(P[1])
   xd = denominator(P[1])
   yn = numerator(P[2])
   yd = denominator(P[2])
   @assert gcd(xn, xd)==1
   @assert gcd(yn, yd)==1
-  sections = []
   ab = prop217(E, P, k)
-  x = lift(x)
-  y = lift(y)
-  t = lift(t)
+  #x = lift(x)
+  #y = lift(y)
+  #t = lift(t)
   d = divexact(yd, xd)(t)
-  den = lifted_numerator(fiber)^k*(x*xd(t) - xn(t))
+  den = fiber^k*(x*xd(t) - xn(t))
+  deninv = inv(den)
   #t^degree(d)
   for (a,b) in ab
     c = divexact(b*yn - a*xn, xd)
     num = a(t)*x+b(t)*d*y + c(t)
-    push!(sections, FX(num,den))
+    push!(sections, FX(num*deninv))
   end
   return sections
 end
-
 
 function Oscar.saturation(I::IdealSheaf, J::IdealSheaf)
   X = scheme(I)
@@ -181,4 +191,104 @@ function normalize_quartic(g)
   c = my_coeff(g2, y2, 2)
   g2 = divexact(g2, c)
   return g2, phi2
+end
+
+
+function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{T};
+    return_inverse::Bool=false
+  ) where {T<:FieldElem}
+#    r"""
+#    y^2 - quartic(x)
+#    """
+#    assert g.degree(y)==2
+#    assert g.degree(x)==4
+#    assert g.coefficient({y:1}) == 0
+#    assert g.coefficient({y:2}) == 1
+    R = parent(g)
+    kk = coefficient_ring(R)
+    S, X = polynomial_ring(kk, "X", cached=false)
+    length(P) == 2 || error("need precisely two point coordinates")
+    (px, py) = P
+#    assert g.subs({x:px,y:py})==0
+    @assert iszero(evaluate(g, P)) "point does not lay on the hypersurface"
+    gx = -evaluate(g, [X + px, zero(X)])
+    coeff_gx = collect(coefficients(gx))
+    E, D, C, B, A = coeff_gx
+    q = E
+    if is_square(q)
+      q = sqrt(q)
+    else
+      KK, q = extension_field(X^2-E, "√a₄")
+    end
+    if !iszero(q)
+      b = py
+      a4, a3, a2, a1, a0 = A,B,C,D,E
+      A = b
+      B = a1//(2*b)
+      C = (4*a2*b^2-a1^2)//(8*b^3)
+      D = -2*b
+
+      x1 = x//y
+      y1 = (A*y^2+B*x*y+C*x^2+D*x^3)//y^2
+      x1 = x1+px
+
+      x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+      y2 = x2//x
+      x2 = evaluate(x2, [x-px, y])
+      y2 = evaluate(y2, [x-px, y])
+      #        #Q = 2*q  # outside of char 2 ??
+      #        #x1 = (Q*(y + q) + D*x)/x^2
+      #        #y1 = (Q^2*(y+q)+ Q*(C*x^2 + D*x) - D^2*x^2/Q)/x^3
+      #        #y1 = (Q^2*(y+q)+ Q*(C*x^2 + D*x) - D^2*x^2/Q)/x^3
+      @assert x == evaluate(x1, [x2, y2])
+      @assert y == evaluate(y1, [x2, y2])
+    else
+      x1 = 1//x
+      y1 = y//x^2
+      g1 = numerator(evaluate(g, [x1, y1]))
+      @show g1
+      c = coeff(g1, [x], [3])
+      @show c
+      x1 = evaluate(x1, [-x//c, y//c])
+      y1 = evaluate(y1, [-x//c, y//c])
+      x1 = x1+px
+      @assert x == evaluate(x1, [x2, y2])
+      @assert y == evaluate(y1, [x2, y2])
+    end
+    if return_inverse
+      return x1, y1, x2, y2
+    else
+      return x1, y1
+    end
+end
+
+function is_isomorphic_with_map(G1::Graph, G2::Graph)
+  f12 = Polymake.graph.find_node_permutation(G1.pm_graph, G2.pm_graph)
+  if isnothing(f12)
+    return false, Vector{Int}()
+  end
+  return true, Polymake.to_one_based_indexing(f12)
+end
+
+function graph(G::MatElem)
+  n = nrows(G)
+  g = Graph{Undirected}(n)
+  for i in 1:n
+    # small hack to single out the fiber
+    if G[i,i]==0
+      add_edge!(g,i,i)
+    end
+    for j in 1:i-1
+      if G[i,j] == 1
+        add_edge!(g,i,j)
+      end
+    end
+  end
+  return g
+end
+
+function is_isomorphic_with_permutation(A1::MatElem, A2::MatElem)
+  b, T = is_isomorphic_with_map(graph(A1),graph(A2))
+  @assert b || A1[T] == A2
+  return b, T
 end

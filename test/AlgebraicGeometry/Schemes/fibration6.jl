@@ -1,14 +1,5 @@
 
 
-# TODO:
-# shortcut to get the coefficient(s) of a weil divisor
-# intersect Weil with Weil on a surface
-#=
-julia> in_linear_system(linsys[1], D,check=false)
-false
-=#
-
-
 add_verbosity_scope(:ellipticK3)
 set_verbosity_level(:ellipticK3, 2)
 k = GF(29)
@@ -283,8 +274,13 @@ for i in 2:length(NSgens)
   G[i,i]= -2
 end
 @assert det(G) == -1183
-I = [1,2,9,10,8,4,6,5,3,7,11,12,13,14,15,16];
-@assert G[I,I] == gram_matrix(NS) # apparently I have some mixups
+mwl_rank = Int(sum(gram_matrix(NS)[1,:])-1)
+# sort the singular fibers so that they match our model for NS
+b, I = is_isomorphic_with_permutation(G, gram_matrix(NS))
+@assert G[I,I] == gram_matrix(NS)
+@assert I[1:2] == [1,2]
+rho = length(NSgens)
+@assert I[rho-mwl_rank+1:rho] == (rho-mwl_rank+1):rho
 
 NSgens = NSgens[I]
 @assert gram_matrix(NS) == G[I,I]
@@ -301,16 +297,19 @@ end
 Fs = ideal_sheaf(S,S[1][3],coordinates(S[1][3])[3:3])
 FsonYtmp = pullback(piY)(Fs) # not irreducible and therefore not a divisor!
 FsonY = sum([WeilDivisor(i, ZZ, check=false) for i in Oscar.maximal_associated_points(FsonYtmp)])
-(x, y, s) = coordinates(S[1][3])
-fstar = pullback(piY[Y0[1][17]])
+# but the multiplicities are missing in general ... here they are all one because it is an I_5, i.e. A_4 fiber.
+kS = function_field(S)
+(x, y, s) = [kS(i,i^0) for i in coordinates(S[1][3])]
+piYpb = pullback(piY)
 # |D| = | P + O + 1 F|
 @vprint :ellipticK3 2 "computing linear system\n"
-linsys = prop217(Y0, E, P, 1, fstar(x), fstar(y), fstar(s), fstar(s))
+(x1,y1,s1) = piYpb.((x,y,s))
+linsys = prop217(Y0, E, P, 1, x1, y1, s1, s1)
 kY0 = parent(linsys[1])
 
 D = PonY + OonY + FsonY
 L = linear_system(linsys, D, check=false)
-@test_broken in_linear_system(gens(L)[1], D) #something is wrong
+#@test_broken in_linear_system(gens(L)[1], D) #something is wrong
 @vprint :ellipticK3 2 "computing subsystem\n"
 Lnew, _ = subsystem(L, NSgens[6], 1)
 @assert length(gens(Lnew))==2
