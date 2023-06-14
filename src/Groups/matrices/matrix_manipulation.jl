@@ -170,14 +170,6 @@ end
 #
 ########################################################################
 
-
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
-Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)
-
-# evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*x*transpose(u.v))[1]
-
-
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
 Base.:*(x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = matrix(x)*transpose(u.v)
 
@@ -196,5 +188,3 @@ end
 
 # evaluation of the form x into the vectors v and u
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*matrix(x)*transpose(u.v))[1]
-
-map(f::Function, v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = v.parent(map(f,v.v))
