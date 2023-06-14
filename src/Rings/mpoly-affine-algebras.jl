@@ -116,7 +116,7 @@ function hilbert_series(A::MPolyQuoRing)
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
-   return hilbert_series(H,1)
+   return hilbert_series(H)
 end
 
 
@@ -156,7 +156,7 @@ function hilbert_series_reduced(A::MPolyQuoRing)
       return hilbert_series(A)
    end
    H = HilbertData(A.I)
-   return hilbert_series(H,2)
+   return hilbert_series_reduced(H)
 end
 
 @doc raw"""

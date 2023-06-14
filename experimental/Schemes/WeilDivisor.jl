@@ -139,16 +139,12 @@ function Base.show(io::IO, D::WeilDivisor)
     return
   end
   if length(components(D)) == 0
-    println(io, "the zero Weil divisor on $(scheme(D))")
+    print(io, "the zero Weil divisor on $(scheme(D))")
     return
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum")
+  println(io, "Weil divisor on $(scheme(D)) given as the formal sum:")
   comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  out_str = comp[1]
-  for c in comp[2:end]
-    out_str = out_str* " + " * c
-  end
-  println(io, out_str)
+  join(io, comp, " + ")
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
@@ -174,11 +170,18 @@ function ==(D::WeilDivisor, E::WeilDivisor)
   return underlying_cycle(D) == underlying_cycle(E)
 end
 
-#function intersection(D::T, E::T) where {T<:WeilDivisor}
-#  X = scheme(D)
-#  X == scheme(E) || error("divisors do not live on the same scheme")
-#  R = coefficient_ring(D)
-#  R == coefficient_ring(E) || error("divisors do not have the same coefficient ring")
+@doc raw"""
+    intersect(D::WeilDivisor, E::WeilDivisor)
+
+For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
+as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
+"""
+function intersect(D::WeilDivisor, E::WeilDivisor)
+  X = scheme(D)
+  @assert dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
+  X === scheme(E) || error("divisors do not live on the same scheme")
+  R = coefficient_ring(D)
+  R === coefficient_ring(E) || error("divisors do not have the same coefficient ring")
 #  # prepare a copy of the divisors
 #  D_copy = WeilDivisor(X, R)
 #  E_copy = WeilDivisor(X, R)
@@ -193,8 +196,59 @@ end
 #    D_copy = D
 #    E_copy = E
 #  end
-#  # TODO: Work out the intersection
-#end
+  # TODO: Work out the intersection
+  result = zero(R)
+  for c1 in components(D)
+    a1 = D[c1]
+    for c2 in components(E)
+      a2 = E[c2]
+      I = c1 + c2
+      @assert dim(I) <= 0 "divisors have nontrivial self intersection"
+      result = result + a1 * a2 * colength(I)
+    end
+  end
+  return result
+end
+
+function colength(I::IdealSheaf)
+  X = scheme(I)
+  C = default_covering(X)
+  patches_todo = copy(affine_charts(X))
+  patches_done = AbsSpec[]
+  result = 0
+  while length(patches_todo) != 0
+    U = pop!(patches_todo)
+    J = I(U)
+    # To avoid overcounting, throw away all components that 
+    # were already visible in other charts.
+    for V in patches_done
+      if !haskey(glueings(C), (U, V))
+        continue
+      end
+      G = C[U, V]
+      (UV, VU) = glueing_domains(G)
+      UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
+      f = complement_equation(UV) 
+      # Find a sufficiently high power of f such that it throws 
+      # away all components away from the horizon, but does not affect 
+      # those on the horizon itself.
+      k = 0
+      while !(f^(k) in ideal(OO(U), f^(k+1)) + J)
+        k = k + 1
+      end
+      J = J + ideal(OO(U), f^k)
+      isone(J) && break
+    end
+    if !isone(J)
+      JJ = leading_ideal(saturated_ideal(J))
+      A, _ = quo(base_ring(JJ), JJ)
+      result = result + ngens(vector_space(coefficient_ring(base_ring(A)), A)[1])
+    end
+    push!(patches_done, U)
+  end
+  return result
+end
+
 
 @doc raw"""
     in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
@@ -206,13 +260,14 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
   X === variety(parent(f)) || error("schemes not compatible")
   C = default_covering(X)
   for I in components(D)
-    order_on_divisor(f, I, check=check) >= -D[I] || return false
+    # no check needed because the components of a prime divisor a prime anyways
+    order_on_divisor(f, I, check=false) >= -D[I] || return false
   end
   for U in patches(C)
     # we have to check that f[U] has no poles outside the support of D[U]
     g = numerator(f[U])
     h = denominator(f[U])
-    J = prod([J(U) for J in components(D)])
+    J = intersect([J(U) for J in components(D)])
     incH = ClosedEmbedding(U, J)
     W = complement(incH) # This is a SpecOpen
     is_regular(f, W) || return false
@@ -274,7 +329,7 @@ scheme(L::LinearSystem) = variety(L)
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, return a pair ``(K, A)`` consisting
-of the subsystem of elements in ``|D + P|`` and the representing 
+of the subsystem of elements in ``|D - n P|`` and the representing
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.
 """
@@ -297,18 +352,21 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
-  common_denominator = gcd([denominator(g) for g in loc_rep])
+  common_denominator = lcm([denominator(g) for g in loc_rep])
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
+
+  # compute a symbolic power
   RP, _ = Localization(R, complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
   pPw = saturated_ideal(PP^w) # the symbolic power
+
+  # reduce the numerators modulo P^(w)
   images = elem_type(R)[]
   for a in numerators
     push!(images, normal_form(a, pPw))
   end
-
   # collect a monomial basis in which to represent the results
   all_mons = elem_type(R)[]
   for b in images
@@ -325,7 +383,33 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   end
 
   r, K = left_kernel(A)
-  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:nrows(K)]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
+  new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
+  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
+end
+
+function subsystem(L::LinearSystem, P::WeilDivisor, n::Int)
+  @req is_prime(P) "P must be a prime divisor"
+  I = components(P)[1]
+  return subsystem(L, I, n)
+end
+
+@attr Bool function is_prime(D::WeilDivisor)
+  if length(components(D))!=1
+    return false
+  end
+  c = components(D)[1]
+  return coefficient_dict(D)[c] == 1
+end
+
+is_irreducible(D::WeilDivisor) = is_prime(D)
+
+function order_on_divisor(
+    f::VarietyFunctionFieldElem,
+    D::WeilDivisor;
+    check::Bool=true
+  )
+  @check is_prime(D) || error("divisor must be prime")
+  I = components(D)[1]
+  return order_on_divisor(f, I, check=false)
 end
 

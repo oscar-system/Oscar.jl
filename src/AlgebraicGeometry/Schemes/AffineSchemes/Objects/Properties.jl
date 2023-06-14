@@ -690,6 +690,9 @@ Check whether the affine scheme `X` is irreducible.
   return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
 end
 
+is_irreducible(X::AbsSpec{<:Field,<:MPolyRing}) = true
+is_irreducible(X::AbsSpec{<:Field,<:MPolyLocRing}) = true
+
 @doc raw"""
    is_integral(X::AbsSpec)
 

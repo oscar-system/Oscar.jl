@@ -30,8 +30,8 @@
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
@@ -153,4 +153,20 @@ end
   u, v = gens(OO(U))
   f = KK(u, v) 
   @test !in_linear_system(f, D)
+end
+
+@testset "intersections of weil divisors on surfaces" begin
+  P = projective_space(QQ, 2)
+  X = covered_scheme(P)
+  S = homogeneous_coordinate_ring(P)
+  x = gens(S)
+  I1 = IdealSheaf(P, x[1]^3 + x[2]^3 + x[3]^3)
+  I2 = IdealSheaf(P, x[2])
+  I3 = IdealSheaf(P, x[1] + x[2] + x[3])
+
+  D1 = 7 * weil_divisor(I1)
+  D2 = weil_divisor(I2)
+  D3 = weil_divisor(I3)
+  @test intersect(D1, D2) == intersect(D1, D3) == 21
+  @test intersect(D2, D3) == 1
 end
