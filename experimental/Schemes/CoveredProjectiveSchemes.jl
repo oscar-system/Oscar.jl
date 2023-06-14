@@ -382,13 +382,13 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   # Cache the isomorphism on the complement of the center
   p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
   for i in 1:ngens(I)
-    UW = PrincipalOpenSubset(U, gens(I, i))
+    UW = PrincipalOpenSubset(W, gens(I)[i])
     V = affine_charts(Y)[i]
-    VW = PrincipalOpenSubset(V, E[V])
-    p_res_dict[VW] = restrict(p_cov[V], UW, VW, check=false)
-    g = OO(VW).(gens(I))
+    VW = PrincipalOpenSubset(V, E(V))
+    p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+    g = OO(UW).(gens(I))
     set_attribute!(p_res_dict[VW], :inverse, 
-                   SpecMor(VW, UW, vcat([g[j]//g[i] for j in 1:ngens(I) if j != i], gens(OO(VW))))
+                   SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))))
                   )
   end
   set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
