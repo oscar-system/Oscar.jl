@@ -150,7 +150,6 @@ function has_du_val_singularities(J::MPolyIdeal{<:MPolyDecRingElem})
 ## Question: The following line is ugly, what is the nice way to move a matrix through change of coeff. field
       JM_changed = matrix(r_changed, ncharts, ngens(J), [change_coefficient_ring(kk,a) for a=dehom_dict[i][:,:]])
       J_changed = ideal(r_changed, [change_coefficient_ring(kk,a) for a=gens(Jdehom_dict[i])])
-
       _check_duval_at_point(I2,JM_changed,J_changed)
     end
   end
@@ -158,6 +157,9 @@ function has_du_val_singularities(J::MPolyIdeal{<:MPolyDecRingElem})
   return true
 end
 
+## CAUTION!!!
+## The following needs to be cleaned up properly after vdim for modules is available in Oscar
+##
 function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomog::MPolyIdeal)  
   ## go to chosen affine chart
   r = base_ring(I_r)
@@ -207,12 +209,16 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
 
   # we are in E/J series
 #  tau = vdim(SubquoModule(F,F1)[1])
-  F4 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^3 + I_max^4)]
+  F4 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^3)]
   F4_red = filter(x -> !is_zero(x),F4)
+  F5 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^4)]
+  F5_red = filter(x -> !is_zero(x),F5)
+  F6 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^5)]
+  F5_red = filter(x -> !is_zero(x),F6)
 
   # tau > 8 implies at least J_10, not du Val   
   # worksaround for missing vdim: 
-  length(F4_red) < (9-5) || return false             
+  length(F4_red) + length(F5_red) + length(F6_red) < (9-5) || return false             
   # E_k, k \in {6,7,8}
   return true                          
 end
