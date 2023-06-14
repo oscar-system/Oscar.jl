@@ -1680,7 +1680,8 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLoc
   return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
 end 
 
-function vdim(R::MPolyQuoLocRing)
+function vdim(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
+                                 <:MPolyComplementOfKPointIdeal})
   I = shifted_ideal(modulus(R))
   o = negdegrevlex(gens(base_ring(R)))
   LI=leading_ideal(standard_basis(I, ordering = o))
