@@ -159,6 +159,8 @@ end
 
 ## CAUTION!!!
 ## The following needs to be cleaned up properly after vdim for modules is available in Oscar
+## in particular corank and cubiccount should be vdims and all auxiliary modules from F4 on
+## are unnecessary once we can check the Tjurina number (vdim(quo(F_shifted,F1)))
 ##
 function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomog::MPolyIdeal)  
   ## go to chosen affine chart
@@ -177,11 +179,11 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
     F = ambient_free_module(Jm)
     Jm_shifted = Oscar.shifted_module(Jm)
     F_shifted = ambient_free_module(Jm_shifted)
-    Jm_shifted = Jm_shifted + Oscar.shifted_ideal(loc_map(J_dehomog)) * F_shifted
+    Jm_shifted = Jm_shifted + Oscar.times(Oscar.shifted_ideal(loc_map(J_dehomog)), F_shifted)
   else
     Jm_shifted = Oscar.SubModuleOfFreeModule(JM_dehomog)
     F_shifted = ambient_free_module(Jm_shifted)
-    Jm_shifted = Jm_shifted + J_dehomog * F_shifted
+    Jm_shifted = Jm_shifted + Oscar.times(J_dehomog, F_shifted)
   end
 
   o = negdegrevlex(r)*lex(F_shifted)
@@ -217,7 +219,7 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
   F6_red = filter(x -> !is_zero(x),F6)
 
   # tau > 8 implies at least J_10, not du Val   
-  # worksaround for missing vdim: 
+  # worksaround for missing vdim (counting monomials degree by degree, 5 were already present before)
   length(F4_red) + length(F5_red) + length(F6_red) < (9-5) || return false             
   # E_k, k \in {6,7,8}
   return true                          

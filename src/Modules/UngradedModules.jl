@@ -1551,7 +1551,8 @@ function Base.:*(I::MPolyIdeal{T}, M::SubModuleOfFreeModule{T}) where {T<: MPoly
   return oscar.SubModuleOfFreeModule(F, newgens)
 end
 
-function Base.:*(I::MPolyIdeal{T}, M::FreeMod{T}) where {T<: MPolyRingElem}
+function times(I::MPolyIdeal, M::FreeMod)
+  base_ring(I) === base_ring(M) || error("base_ring mismatch")
   return oscar.SubModuleOfFreeModule(M,[a*b for a in gens(I) for b in gens(M)])
 end
 ###############################################################################
