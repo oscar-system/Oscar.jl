@@ -564,7 +564,13 @@ end
 
 *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
+  if b >= 0
+    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+  else
+    return inv(a)^(-b)
+  end
+end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
