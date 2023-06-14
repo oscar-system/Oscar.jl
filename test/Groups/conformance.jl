@@ -5,7 +5,7 @@ import Oscar.AbstractAlgebra: Group
 
 include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl"))
 
-@testset "GAPGroups_interface_conformance for $(G)" for G in L
+@testset "GAPGroups_interface_conformance $G of type $(typeof(G))" for G in L
 
    test_Group_interface(G)
    test_GroupElem_interface(rand(G, 2)...)
