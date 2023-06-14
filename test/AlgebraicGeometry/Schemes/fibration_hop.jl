@@ -31,14 +31,18 @@ julia> E = EllipticCurve(ktfield,[3*t^8+24*t^7+22*t^6+15*t^5+28*t^4+20*t^3+16*t^
 
 julia> bk = [E(collect(i)) for i in bk];
 
-julia> prop217(E,bk[1],2)
-(dega, degb) = (2, 0)
-4-element Vector{Any}:
+julia> prop217(E,bk[2],2)
+5-element Vector{Any}:
+ (t^2 + 12*t + 7, 0)
+ (t^3 + 8*t + 3, 0)
+ (t^4 + 23*t + 2, 0)
+ (25*t + 22, 1)
+ (12*t + 28, t)
+
+julia> prop217(E,bk[1],1)
+2-element Vector{Any}:
  (1, 0)
  (t, 0)
- (t^2, 0)
- (0, 1)
-
 ```
 """
 function prop217(E::EllCrv, P::EllCrvPt, k)
@@ -67,7 +71,8 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
 
   # collect the equations as a matrix
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
-  M = matrix(base, cc)
+  M = matrix(base, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
+  # @assert M == matrix(base, cc) # does not work if length(eqns)==0
   kerdim, K = kernel(M)
   result = []
   Bt = base_ring(base_field(E))
@@ -88,29 +93,30 @@ function prop217(E::EllCrv, P::EllCrvPt, k)
   return result
 end
 
-function prop217(X::AbsCoveredScheme, E::EllCrv, P::EllCrvPt, k, x::VarietyFunctionFieldElem, y::VarietyFunctionFieldElem, t::VarietyFunctionFieldElem,fiber::VarietyFunctionFieldElem)
+function prop217(X::AbsCoveredScheme, Weierstrasschart::AbsSpec, E::EllCrv, P::EllCrvPt, k)
   FX = function_field(X)
-  all(FX === parent(i) for i in (x,y,t,fiber)) || error("x,y,t must be functions on X=$(X)")
-  sections = typeof(x)[]
-  (x,y,t,fiber) = [representative(i) for i in (x,y,t,fiber)]
+  U = Weierstrasschart
+  (x,y,t) = ambient_coordinates(Weierstrasschart)
+
+  sections = elem_type(FX)[]
   xn = numerator(P[1])
   xd = denominator(P[1])
   yn = numerator(P[2])
   yd = denominator(P[2])
+
+  I = Oscar.ambient_closure_ideal(U)
+  IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
+  issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
+
   @assert gcd(xn, xd)==1
   @assert gcd(yn, yd)==1
   ab = prop217(E, P, k)
-  #x = lift(x)
-  #y = lift(y)
-  #t = lift(t)
   d = divexact(yd, xd)(t)
-  den = fiber^k*(x*xd(t) - xn(t))
-  deninv = inv(den)
-  #t^degree(d)
+  den = t^k(x*xd(t) - xn(t))
   for (a,b) in ab
     c = divexact(b*yn - a*xn, xd)
     num = a(t)*x+b(t)*d*y + c(t)
-    push!(sections, FX(num*deninv))
+    push!(sections, FX(num//den))
   end
   return sections
 end

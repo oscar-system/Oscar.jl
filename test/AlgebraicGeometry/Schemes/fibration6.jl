@@ -294,53 +294,49 @@ piY = projectionsY[1]
 for g in projectionsY[2:end]
   global piY = g*piY
 end
+
+#=
+This did not work out in the end
+projectionsXinv = Oscar.isomorphism_on_complement_of_center.(projectionsX)
+piXinv = projectionsXinv[1]
+for g in projectionsXinv[2:end]
+  global piXinv = piXinv*g
+end
+=#
+
+
 Fs = ideal_sheaf(S,S[1][3],coordinates(S[1][3])[3:3])
 FsonYtmp = pullback(piY)(Fs) # not irreducible and therefore not a divisor!
 FsonY = sum([WeilDivisor(i, ZZ, check=false) for i in Oscar.maximal_associated_points(FsonYtmp)])
 # but the multiplicities are missing in general ... here they are all one because it is an I_5, i.e. A_4 fiber.
 kS = function_field(S)
-(x, y, s) = [kS(i,i^0) for i in coordinates(S[1][3])]
-piYpb = pullback(piY)
-# |D| = | P + O + 1 F|
+# |D| = | P + O + l F|
+l = 1
 @vprint :ellipticK3 2 "computing linear system\n"
-(x1,y1,s1) = piYpb.((x,y,s))
-linsys = prop217(Y0, E, P, 1, x1, y1, s1, s1)
-kY0 = parent(linsys[1])
+(x,y,t) = coordinates(S[1][1])
+# multiply by t = 1//s to get the desired pole on the A4 fiber (s=0)
+linsysS = [kS(t,t^0)*i for i in prop217(S, S[1][1], E, P, l)]
+
+piYpb = pullback(piY)
+kY0 = function_field(Y0)
 
 D = PonY + OonY + FsonY
-L = linear_system(linsys, D, check=false)
+L = linear_system(piYpb.(linsysS), D, check=false)
+@test any(order_on_divisor(g,PonY)==-1 for g in gens(L))
 #@test_broken in_linear_system(gens(L)[1], D) #something is wrong
 @vprint :ellipticK3 2 "computing subsystem\n"
-Lnew, _ = subsystem(L, NSgens[6], 1)
-@assert length(gens(Lnew))==2
+LsubY, Tmat = subsystem(L, NSgens[6], 1)
+Tmat = Tmat[1:rank(Tmat),:]
+LsubS = [sum(Tmat[i,j]*linsysS[j] for j in 1:ncols(Tmat)) for i in 1:nrows(Tmat)]
+#
+@assert length(gens(LsubY))==2
 
 @show [[order_on_divisor(g, C) for C in NSgens] for g in gens(Lnew)]
 @show [[order_on_divisor(g, C) for C in [A3_0onY,A4_0onY,A1a_0onY,A1b_0onY,A1c_0onY]] for g in gens(Lnew)]
 Fnew = PonY + OonY + A4_0onY
 @test Fnew == D - A4_0onY - NSgens[6]-NSgens[7]-NSgens[8]-NSgens[9]
 
-(x,y,t) = coordinates(S[1][3])
-Us = hypersurface_complement(S[1][3],s)
-Vs = hypersurface_complement(Y0[1][17],fstar(s))
-fres = restrict(piY[Y0[1][17]], Vs, Us)
-fresinv = inverse(fres)
-fresinvstar = pullback(fresinv)
-
-function map_func(phi, tt)
-  nu = fresinvstar(numerator(tt))
-  @assert lifted_denominator(nu)==1
-  nu = lifted_numerator(nu)
-  du = fresinvstar(denominator(tt))
-  @assert lifted_denominator(du)==1
-  du = lifted_numerator(du)
-  return nu//du
-end
-
-tt = gens(Lnew)[1]//gens(Lnew)[2] # the new elliptic coordinate
-
-
-elliptic_param = map_func(fresinvstar, tt) # the new elliptic parameter
-error("")
+elliptic_param = representative(LsubS[1]//LsubS[2]) # the new elliptic coordinate
 
 # transform to new coordinates
 
