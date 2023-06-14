@@ -214,7 +214,7 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
   F5 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^4)]
   F5_red = filter(x -> !is_zero(x),F5)
   F6 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^5)]
-  F5_red = filter(x -> !is_zero(x),F6)
+  F6_red = filter(x -> !is_zero(x),F6)
 
   # tau > 8 implies at least J_10, not du Val   
   # worksaround for missing vdim: 
