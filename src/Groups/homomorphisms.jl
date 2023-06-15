@@ -543,7 +543,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
        return group_element(G, res)
      end
 
-     return GroupIsomorphismFromFunc(f, finv, G, A)
+     return GroupIsomorphismFromFunc(G, A, f, finv)
    end::GroupIsomorphismFromFunc{typeof(G), GrpAbFinGen}
 end
 
@@ -619,7 +619,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        return Aindep_to_A(Aindep(exp))
      end
 
-     return GroupIsomorphismFromFunc(f, finv, A, G)
+     return GroupIsomorphismFromFunc(A, G, f, finv)
    end::GroupIsomorphismFromFunc{GrpAbFinGen, T}
 end
 
@@ -628,12 +628,12 @@ mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFr
     map::MapFromFunc{R, T}
 end
 
-function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
+function GroupIsomorphismFromFunc{R, T}(D::R, C::T, f, g) where {R, T}
   return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end
 
-function GroupIsomorphismFromFunc(f, g, D, C)
-  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(f, g, D, C)
+function GroupIsomorphismFromFunc(D, C, f, g)
+  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(D, C, f, g)
 end
 
 # install the same methods as for `MapFromFunc`,
