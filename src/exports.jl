@@ -143,6 +143,7 @@ export ProjectiveAlgebraicSet
 export QQ
 export RationalEquivalenceClass
 export RayVector
+# export SIM_body
 export SL
 export SLPoly
 export SLPolyRing
@@ -242,6 +243,7 @@ export archimedean_solid
 export as_gset
 export as_perm_group
 export as_polycyclic_group
+export associahedron
 export atlas_group
 export atlas_irrationality
 export atlas_program
@@ -1369,3 +1371,4 @@ export witt_index
 export wreath_product
 export write_as_full
 export write_as_linear_combination
+

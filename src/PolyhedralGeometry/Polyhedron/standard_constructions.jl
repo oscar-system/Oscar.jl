@@ -1024,14 +1024,14 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
   else
     throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))
   end
-  opts = Dict{Symbol,Any}( :template_parameters => [type] )
+  opts = Dict{Symbol,Any}( :template_parameters => [type] ) # creating the Optionset, the :template_parameters are for templating functions in C++
   if seed != nothing
     opts[:seed] = convert(Int64, seed)
   end
   if precision != nothing
     opts[:precision] = convert(Int64, precision)
   end
-  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
+  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
   return Polyhedron{QQFieldElem}(pm_obj)
 end
 
@@ -1070,3 +1070,65 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
   return Polyhedron{T}(pm_obj)
 end
+
+
+# SIM_body(alpha::Vector{Int}) = polyhedron(Polymake.polytope.SIM_body(alpha))
+
+
+# function SIM_body(alpha::Vector{Number})
+#     pm_obj = Polymake.call_function(:polytope, :SIM_body, alpha;)::Polymake.BigObject
+#     return polyhedron{QQFieldElem}(pm_obj)
+# end
+
+
+@doc raw"""
+associahedron(d::Int, group=nothing)
+
+Produce a $d$-dimensional associahedron (or Stasheff polytope). We use the facet description given in section 9.2. of 
+G.M. Ziegler: Lectures on polytopes. Vol. 152. Springer Science & Business Media, 2012.
+
+# Keywords
+- `d::Int`: the dimension 
+- `group::Int64`: Compute the combinatorial symmetry group of the polytope. 
+                  It has two generators, as it is induced by the symmetry group of a $d+3$-gon, the dihedral group of degree $d+3$. 
+                  For details, see C. Ceballos, F. Santos, and G.M. Ziegler: Many non-equivalent realizations of the associahedron, 
+                  in Combinatorica 35.5, 2015: 513-551.
+
+
+# Examples
+The $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices and $5$ facets.
+```jldoctest
+julia> A =  associahedron(2)
+Polyhedron in ambient dimension 4
+
+julia> vertices(A)
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [9, 4, 1, 10]
+ [10, 1, 4, 9]
+ [1, 10, 1, 9]
+ [1, 4, 9, 6]
+ [4, 1, 10, 6]
+
+julia> facets(A)
+5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+-x₁ ≦ -1
+-2*x₁ - 2*x₂ ≦ -10
+-x₂ ≦ -1
+-2*x₂ - 2*x₃ ≦ -10
+-x₃ ≦ -1
+```
+"""
+
+function associahedron(d::Int, group=nothing)
+    opts = Dict{Symbol, Any}()
+    if group != nothing
+        opts[:group] = convert(Int64, group)
+    end
+    pm_obj = Polymake.call_function(:polytope, :associahedron, d; opts...)::Polymake.BigObject
+    return Polyhedron{QQFieldElem}(pm_obj)
+end
+
+
+#the above code works fine, however the one below does not. where is the mistake?
+# associahedron(d::Int; group::Int64= nothing) = polyhedron(Polymake.polytope.associahedron(d,group=>group)) 
+
