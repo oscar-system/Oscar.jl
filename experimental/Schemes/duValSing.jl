@@ -36,7 +36,7 @@ function has_du_val_singularities(F::MPolyDecRingElem)::Bool
 
     ## make sure to do only the geometrically irreducible points first
     ## and postpone all geometrically reducible points
-    if vdim(quo(base_ring(I_dehomog),I_dehomog)[1]) > 1 
+    if vector_space_dimension(quo(base_ring(I_dehomog),I_dehomog)[1]) > 1 
       push!(not_over_k, (I_dehomog,i))
       continue
     end
@@ -75,14 +75,14 @@ function _check_duval_at_point(I_r::MPolyIdeal,I_sl_r::MPolyIdeal)::Bool
     o = negdegrevlex(gens(r))
 
     ## do quick version of beginning of Arnold's classifier
-    tau=vdim(quo(rl,I_loc)[1])
+    tau=vector_space_dimension(quo(rl,I_loc)[1])
 
-    corank = vdim(quo(rl,I_loc+loc_map(I_r)^2)[1]) - 1
+    corank = vector_space_dimension(quo(rl,I_loc+loc_map(I_r)^2)[1]) - 1
                                          # only count degree 1 monomials
     corank < 3 || return false           # at least T_3,3,3, not duVal
     corank > 1 || return true            # A series
 
-    cubiccount = vdim(quo(rl,I_loc+loc_map(I_r)^3)[1]) - corank - 1
+    cubiccount = vector_space_dimension(quo(rl,I_loc+loc_map(I_r)^3)[1]) - corank - 1
                                          # only count degree 2 monomials
     cubiccount < 3 || return false       # at least X_9, not duVal 
     cubiccount > 1 || return true        # D series
@@ -132,7 +132,7 @@ function has_du_val_singularities(J::MPolyIdeal{<:MPolyDecRingElem})
     end
 
     ## make sure to do the geometrically irreducible points first
-    if vdim(quo(base_ring(I_dehomog),I_dehomog)[1]) > 1
+    if vector_space_dimension(quo(base_ring(I_dehomog),I_dehomog)[1]) > 1
       push!(not_over_k, (I_dehomog,i))
       continue
     end
@@ -159,8 +159,8 @@ end
 
 ## CAUTION!!!
 ## The following needs to be cleaned up properly after vdim for modules is available in Oscar
-## in particular corank and cubiccount should be vdims and all auxiliary modules from F4 on
-## are unnecessary once we can check the Tjurina number (vdim(quo(F_shifted,F1)))
+## in particular corank and cubiccount should be vector_space_dimensions and all auxiliary modules from F4 on
+## are unnecessary once we can check the Tjurina number (vector_space_dimension(quo(F_shifted,F1)))
 ##
 function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomog::MPolyIdeal)  
   ## go to chosen affine chart
@@ -210,7 +210,7 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
   cubiccount > 1 || return true        
 
   # we are in E/J series
-#  tau = vdim(SubquoModule(F,F1)[1])
+#  tau = vector_space_dimension(SubquoModule(F,F1)[1])
   F4 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^3)]
   F4_red = filter(x -> !is_zero(x),F4)
   F5 = [reduce(a*gen(F_shifted,i),F1) for i in 1:ngens(F_shifted) for a in gens(I_max^4)]
@@ -219,7 +219,7 @@ function _check_duval_at_point(I_r::MPolyIdeal, JM_dehomog::MatrixElem, J_dehomo
   F6_red = filter(x -> !is_zero(x),F6)
 
   # tau > 8 implies at least J_10, not du Val   
-  # worksaround for missing vdim (counting monomials degree by degree, 5 were already present before)
+  # worksaround for missing vector_space_dimension (counting monomials degree by degree, 5 were already present before)
   length(F4_red) + length(F5_red) + length(F6_red) < (9-5) || return false             
   # E_k, k \in {6,7,8}
   return true                          

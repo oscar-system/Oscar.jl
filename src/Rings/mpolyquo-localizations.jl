@@ -1680,12 +1680,12 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLoc
   return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
 end 
 
-function vdim(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
+function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
                                  <:MPolyComplementOfKPointIdeal})
   I = shifted_ideal(modulus(R))
   o = negdegrevlex(gens(base_ring(R)))
   LI=leading_ideal(standard_basis(I, ordering = o))
-  return vdim(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
+  return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
 ### Conversion of ideals in the original ring to localized ideals
