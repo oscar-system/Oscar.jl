@@ -76,7 +76,7 @@ inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extension of the localization function
 function Localization(S::NmodComplementOfPrimeIdeal) 
   L = NmodLocalizedRing(S)
-  return L, MapFromFunc(x->(L(x)), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->(L(x)))
 end
 
 

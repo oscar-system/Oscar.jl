@@ -1872,7 +1872,7 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   if task == :none
     return F
   end
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 
@@ -1919,7 +1919,7 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
     return FreeModElem_dec(undecorated_v, GH)
   end
 
-  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = MapFromFunc(GH, X, im, pre)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end

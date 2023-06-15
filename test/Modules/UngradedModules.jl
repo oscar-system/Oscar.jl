@@ -1020,7 +1020,7 @@ end
   MS, mapM = change_base_ring(S, M)
   @test iszero(mapM(M[1]))
 
-  f = MapFromFunc(x->S(x), R, S)
+  f = MapFromFunc(R, S, x->S(x))
   MS, mapM = change_base_ring(f, M)
   @test iszero(mapM(M[1]))
 end

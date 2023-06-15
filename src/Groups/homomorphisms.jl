@@ -629,7 +629,7 @@ mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFr
 end
 
 function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
-  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end
 
 function GroupIsomorphismFromFunc(f, g, D, C)
@@ -726,9 +726,9 @@ function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
       @assert is_finite(A) == is_finite(F)
       is_finite(A) && @assert order(A) == order(F)
       return MapFromFunc(
+        A, F,
         y->F([i => y[i] for i=1:ngens(A)]),
-        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),
-        A, F)
+        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)))
    end::MapFromFunc{GrpAbFinGen, FPGroup}
 end
 
@@ -788,7 +788,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
        finv = function(g)
          return bwd[g]
        end
-       return MapFromFunc(f, finv, A, GP)
+       return MapFromFunc(A, GP, f, finv)
      else
        m = isomorphism(T, GP)
 
@@ -800,7 +800,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
          return bwd[preimage(m, g)]
        end
 
-       return MapFromFunc(f, finv, A, codomain(m))
+       return MapFromFunc(A, codomain(m), f, finv)
      end
    end::MapFromFunc{GrpGen, T}
 end
