@@ -66,10 +66,13 @@ function registerSerializationType(ex::Any,
         quote
             registerSerializationType($ex, $str)
             encodeType(::Type{<:$ex}) = $str
-            # use_id is necessary for now since has_elem_basic_encoding is false for all types
-            # and not just parent types, this will have to be reworked in future
-            serialize_with_id(obj::T) where T <: $ex = $uses_id && !has_elem_basic_encoding(obj)
-            serialize_with_id(T::Type{<:$ex}) = $uses_id && !has_elem_basic_encoding(T)
+            # There exists types where equality cannot be discerned from the serialization
+            # these types require an id so that equalities can be forced upon load.
+            # The ids are only necessary for parent types, checking for element type equality
+            # can be done once the parents are known to be equal.
+
+            serialize_with_id(obj::T) where T <: $ex = $uses_id 
+            serialize_with_id(T::Type{<:$ex}) = $uses_id 
         end)
 end
 

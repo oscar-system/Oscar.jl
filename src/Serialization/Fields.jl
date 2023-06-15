@@ -11,8 +11,8 @@ function get_parents(parent_ring::Field)
 end
 
 function get_parents(parent_ring::T) where T <: Union{NfAbsNS, NfRelNS}
-    ngens = length(gens(parent_ring))
-    base = polynomial_ring(base_field(parent_ring), ngens)[1]
+    n = ngens(parent_ring)
+    base = polynomial_ring(base_field(parent_ring), n)[1]
     parents = get_parents(base)
     push!(parents, parent_ring)
     return parents
