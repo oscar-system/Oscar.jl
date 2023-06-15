@@ -1344,7 +1344,7 @@ export vamos_matroid
 export vanishing_sets
 export vanishing_ideal
 export variety
-export vdim
+export vector_space_dimension
 export vector_matrix
 export vertex_and_ray_indices
 export vertex_indices
