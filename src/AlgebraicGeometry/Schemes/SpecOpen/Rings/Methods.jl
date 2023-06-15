@@ -215,6 +215,7 @@ function restriction_map(
   @check begin
     X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
@@ -305,6 +306,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   L = localized_ring(OO(X))
   D = denominators(inverted_set(L))
@@ -329,6 +331,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
   @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -344,6 +347,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
   @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
+    true
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -420,6 +424,7 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   R == ambient_coordinate_ring(Y) || error("rings can not be canonically compared")
   @check begin
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
+    true
   end
 
   pb_to_Vs = [restriction_map(domain(S), V) for V in affine_patches(domain(T))]

@@ -2,7 +2,7 @@
 ########################################################################
 # Principal open subsets of affine schemes                             #
 ########################################################################
-@attributes mutable struct PrincipalOpenSubset{BRT, RT, AmbientType} <: AbsSpec{BRT, RT}
+@attributes mutable struct PrincipalOpenSubset{BRT, RT<:Ring, AmbientType} <: AbsSpec{BRT, RT}
   X::AmbientType
   U::Spec{BRT, RT}
   f::RingElem

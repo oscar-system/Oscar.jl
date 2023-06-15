@@ -83,6 +83,7 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
   @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
+    true
   end
 
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
@@ -137,6 +138,7 @@ end
 
 # The two main evaluation methods
 function (F::MPolyAnyMap{<: MPolyQuoRing})(g)
+  @req parent(g) === domain(F) "g not in domain"
   if g isa elem_type(domain(F))
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)

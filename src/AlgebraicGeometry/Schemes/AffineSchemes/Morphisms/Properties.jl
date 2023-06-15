@@ -55,3 +55,8 @@ false
 ```
 """
 is_identity_map(f::AbsSpecMor) = (domain(f) == codomain(f)) && all(x->(pullback(f)(x) == x), gens(OO(domain(f))))
+
+@attr Bool function is_birational(f::AbsSpecMor)
+  error("verification of birationality not implemented")
+end
+
