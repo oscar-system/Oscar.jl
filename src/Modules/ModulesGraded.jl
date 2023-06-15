@@ -1470,6 +1470,42 @@ function Base.show(io::IO, b::BettiTable)
 end
 
 
+###############################################################################
+# data structure for table as in
+# https://www.singular.uni-kl.de/Manual/4-3-1/sing_1827.htm#SEC1908
+###############################################################################
+
+mutable struct sheafCohTable
+  twist_range::UnitRange{Int}
+  n::Int
+  values::Matrix{Int}
+end
+
+function Base.show(io::IO, table::sheafCohTable)
+  # pad every value in the table to this length
+  val_space_length = maximum(_ndigits, table.values)
+  nrows = size(table.values, 1)
+
+  print_rows = [pushfirst!([lpad(v, val_space_length, " ") for v in row], "$(nrows - i): ")
+                for (i, row) in enumerate(eachrow(table.values))]
+  header = [lpad(v, val_space_length, " ") for v in table.twist_range]
+  pushfirst!(header, repeat(" ", nrows))
+
+  println(io, prod(header))
+  size_row = sum(length, first(print_rows))
+  println(io, repeat("-", size_row))
+  for rw in print_rows
+    println(io, prod(rw))
+  end
+  println(io, repeat("-", size_row))
+end
+
+# to be used only in the above show function
+function _ndigits(val::Int)
+  iszero(val) && return 3
+  val == -1 && return 4
+  return Int(floor(log10(val))) + 3
+end
 
 ##################################
 ### Tests on graded modules
