@@ -77,3 +77,77 @@ end=#
     
 subquo_type(::Type{RingType}) where {RingType<:Ring} = SubquoModule{elem_type(RingType)}
 subquo_type(R::RingType) where {RingType<:Ring} = subquo_type(typeof(R))
+
+function _kbase(I::SubModuleOfFreeModule{<:MPolyRingElem{<:FieldElem}};
+    ordering::ModuleOrdering=default_ordering(ambient_free_module(I))
+  )
+  @show gens(I)
+  @show groebner_basis(I)
+  lead_I = leading_module(I, ordering)
+  @show gens(lead_I)
+  F = ambient_free_module(I)
+  R = base_ring(F)
+  # Iterate through all components until we have everything
+  result = elem_type(F)[]
+  for i in 1:ngens(F)
+    m = ideal(R, gens(R))
+    pom = ideal(R, one(R))
+    while true
+      new_mons = [x for x in gens(pom) if !(x*F[i] in lead_I)]
+      iszero(length(new_mons)) && break
+      result = vcat(result, [x*F[i] for x in new_mons])
+      pom = pom * m
+    end
+  end
+  return result
+end
+
+function vector_space(
+    K::AbstractAlgebra.Field, M::SubQuo{<:MPolyRingElem{<:FieldElem}};
+    ordering::ModuleOrdering=default_ordering(ambient_free_module(M))
+  )
+  R = base_ring(M)
+  @assert K === coefficient_ring(R)
+
+  C = presentation(M)
+  F0 = C[0]
+  F1 = C[1]
+  # TODO: Is there a way to access this directly? If yes, do so.
+  I = SubModuleOfFreeModule(F0, map(C, 1).(gens(F1)))
+  gb_I = groebner_basis(I, ordering)
+  mons = _kbase(I, ordering=ordering)
+  @show mons
+  l = length(mons)
+  V = free_module(K, l)
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = zero(F0)
+    for k=1:l
+      c = a[k]
+      if !iszero(c)
+        b += c*mons[k]
+      end
+    end
+    return map(C, 0)(b)
+  end
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(a::SubquoModuleElem)
+    @assert parent(a) === M
+    b = preimage(map(C, 0), a)
+    @show b
+    b = normal_form(b, gb_I) #TODO: Is this normal_form reduced?
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=ordering)
+      c = leading_coefficient(b, ordering=ordering)
+      j = findfirst(n->n==m, mons)
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(im, prim, V, M)
+end

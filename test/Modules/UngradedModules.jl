@@ -1077,3 +1077,16 @@ end
   fr = free_resolution(Mk1)
   @test rank(domain(map(fr.C,1))) == 0
 end
+
+@testset "quotients as vector spaces" begin
+  R, (x, y) = QQ["x", "y"]
+  F2 = free_module(R, 2)
+  I, inc_I = sub(F2, [x^3*F2[1], y*F2[1], x^2*F2[1]-y*F2[2], x*F2[2], y^2*F2[2]])
+  M, pr_M = quo(F2, I)
+  V, i = vector_space(QQ, M)
+  v = gens(V)
+  a = i.(v)
+  iinv = x->preimage(i, x)
+  @test iinv.(a) == v
+  @test i.(iinv.(a)) == a
+end
