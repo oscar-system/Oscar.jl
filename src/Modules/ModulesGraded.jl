@@ -1489,7 +1489,7 @@ function Base.show(io::IO, table::sheafCohTable)
   print_rows = [pushfirst!([lpad(v, val_space_length, " ") for v in row], "$(nrows - i): ")
                 for (i, row) in enumerate(eachrow(table.values))]
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, repeat(" ", nrows))
+  pushfirst!(header, repeat(" ", length("$(nrows - 1): ")))
 
   println(io, prod(header))
   size_row = sum(length, first(print_rows))
