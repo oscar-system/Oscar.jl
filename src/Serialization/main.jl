@@ -168,7 +168,7 @@ function load_ref(s::DeserializerState, dict::Dict)
 end
 
 function save_as_ref(s::SerializerState, obj::T) where T
-    if has_elem_basic_encoding(obj) && s.depth != 0
+    if !serialize_with_id(T)
         return save_type_dispatch(s, obj)
     end
 
