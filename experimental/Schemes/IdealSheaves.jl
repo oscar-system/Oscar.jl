@@ -428,7 +428,9 @@ end
 #  return W, spec_dict
 #end
 #
-
+function isone(I::IdealSheaf)
+  return all(x->isone(I(x)), affine_charts(scheme(X)))
+end
 function is_prime(I::IdealSheaf) 
   return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
 end
