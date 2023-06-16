@@ -35,7 +35,7 @@ stored as a formal linear combination over some ring ``R`` of
     ) where {CoefficientRingType, CoefficientRingElemType}
     @check begin
       for D in keys(coefficients)
-        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        isone(D) || isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
@@ -46,7 +46,7 @@ stored as a formal linear combination over some ring ``R`` of
     X = scheme(C)
     @check begin
       for D in keys(coefficient_dict(C))
-        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        isone(D) || isprime(D) || error("components of a divisor must be sheaves of prime ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end

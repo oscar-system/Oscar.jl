@@ -430,7 +430,7 @@ end
 #
 
 function is_prime(I::IdealSheaf) 
-  return all(U->is_prime(I(U)), basic_patches(default_covering(space(I))))
+  return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
 end
 
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
