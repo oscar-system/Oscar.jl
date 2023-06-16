@@ -195,15 +195,11 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::Union{MPolyRing, UniversalPolyRing})
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
-    for term in terms
-        e, coeff = term
+    for (e, coeff) in terms
         if length(parents) == 1
             coeff_type = elem_type(base)
-            if has_elem_basic_encoding(base)
-                c = load_type_dispatch(s, coeff_type, coeff, parent=base)
-            else
-                c = base(c)
-            end
+            @assert has_elem_basic_encoding(base)
+            c = load_type_dispatch(s, coeff_type, coeff, parent=base)
         else
             c = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
         end
