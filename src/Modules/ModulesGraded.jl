@@ -1482,14 +1482,26 @@ mutable struct sheafCohTable
 end
 
 function Base.show(io::IO, table::sheafCohTable)
+  chi = [any(v -> v == -1, col) ? -1 : sum(col) for col in eachcol(table.values)]
   # pad every value in the table to this length
-  val_space_length = maximum(_ndigits, table.values)
+  val_space_length = max(maximum(_ndigits, table.values), maximum(_ndigits, chi))
   nrows = size(table.values, 1)
 
-  print_rows = [pushfirst!([lpad(v, val_space_length, " ") for v in row], "$(nrows - i): ")
-                for (i, row) in enumerate(eachrow(table.values))]
+  # rows to print
+  print_rows = [[_shcoh_string_rep(v, val_space_length) for v in row]
+                for row in eachrow(table.values)]
+  chi_print =  [_shcoh_string_rep(v, val_space_length) for v in chi]
+
+  # row labels
+  row_label_length = max(_ndigits(nrows - 1), 3) + 2
+  for i in 1:nrows
+    pushfirst!(print_rows[i], rpad("$(i-1): ", row_label_length, " "))
+  end
+  pushfirst!(chi_print, rpad("chi: ", row_label_length, " "))  
+
+  # header
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, repeat(" ", length("$(nrows - 1): ")))
+  pushfirst!(header, rpad(" ", row_label_length, " "))
 
   println(io, prod(header))
   size_row = sum(length, first(print_rows))
@@ -1498,12 +1510,19 @@ function Base.show(io::IO, table::sheafCohTable)
     println(io, prod(rw))
   end
   println(io, repeat("-", size_row))
+  println(io, prod(chi_print))
 end
 
-# to be used only in the above show function
+# helper functions
+function _shcoh_string_rep(val::Int, padlength::Int)
+  iszero(val) && return lpad("-", padlength, " ")
+  val == -1 && return lpad("*", padlength, " ")
+  return lpad(val, padlength, " ")
+end
+
 function _ndigits(val::Int)
   iszero(val) && return 3
-  val == -1 && return 4
+  val == -1 && return 3
   return Int(floor(log10(val))) + 3
 end
 
