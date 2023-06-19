@@ -90,6 +90,8 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
+assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
 assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rational, Polymake.QuadraticExtension, Float64}, U, V, W} = Polymake.Matrix{T}(m)
@@ -196,6 +198,8 @@ Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.I
 Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.Rational}
 Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
 Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
+Polymake.convert_to_pm_type(::Type{T}) where T<:FieldElem = Polymake.OscarNumber
+# Polymake.convert_to_pm_type(::Type{Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
