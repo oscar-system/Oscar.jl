@@ -100,10 +100,8 @@ end
 
 # standard basis for non-global orderings #############################
 @doc raw"""
-    standard_basis(I::MPolyIdeal;
-      ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger,
-      weights::Vector{E} = ones(ngens(base_ring(I)))) where {E <: Integer}
+    standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
 
 Return a standard basis of `I` with respect to `ordering`.
 
