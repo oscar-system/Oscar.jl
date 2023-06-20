@@ -109,8 +109,8 @@ end
    @test_throws ArgumentError number_perfect_groups(0) # invalid argument
    @test_throws ArgumentError number_perfect_groups(ZZRingElem(60)^10)  # result not known
 
-   # lazy artifact loading
-   @test perfect_group(1376256, 1) isa PermGroup
+   # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
+   #@test perfect_group(1376256, 1) isa PermGroup
 end
 
 @testset "Small groups" begin
