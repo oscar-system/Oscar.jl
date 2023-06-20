@@ -104,7 +104,7 @@ end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}) = v
 
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
@@ -130,13 +130,13 @@ end
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
-    isq = Hecke.is_quadratic_type(parent(x))
-    @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
-    r = convert(Polymake.Rational, isq[2])
-    c = coordinates(x)
-    return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
-end
+# function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
+#     isq = Hecke.is_quadratic_type(parent(x))
+#     @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
+#     r = convert(Polymake.Rational, isq[2])
+#     c = coordinates(x)
+#     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
+# end
 
 Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::QQFieldElem) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
 
@@ -179,13 +179,15 @@ Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(
 Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymake.unwrap(x))
 
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
+(Z::ZZRing)(x::Polymake.Rational) = convert(ZZRingElem, x)
 
-function (NF::AnticNumberField)(x::Polymake.QuadraticExtension{Polymake.Rational})
+function (NF::Union{AnticNumberField, Hecke.EmbeddedNumField})(x::Polymake.QuadraticExtension{Polymake.Rational})
     g = Polymake.generating_field_elements(x)
     if g.r == 0 || g.b == 0
         return NF(convert(QQFieldElem, g.a))
     end
     isq = Hecke.is_quadratic_type(NF)
+    @req isq[1] "Can not construct non-trivial QuadraticExtension in non-quadratic number field."
     @req isq[2] == base_field(NF)(g.r) "Source and target fields do not match."
     a = basis(NF)[2]
     return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
@@ -337,8 +339,36 @@ end
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))
 
 ####################################################################
+# Prepare interface for objects to be defined later
+####################################################################
+
+abstract type PolyhedralObject{T} end
+
+get_parent_field(x::PolyhedralObject) =  x.parent_field
+
+################################################################################
+######## Scalar types
+################################################################################
+const scalar_types = Union{FieldElem, Float64}
+
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
+                                ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                ("Float", Float64)])
+
+const scalar_types_extended = Union{scalar_types, ZZRingElem}
+
+_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{Float64}) = Float64
+
+####################################################################
 # Parent Fields
 ####################################################################
+
+function _embedded_quadratic_field(r::ZZRingElem)
+    R, = quadratic_field(r)
+    return Hecke.embedded_field(R, real_embeddings(R)[2])
+end
 
 _common_parent(x::Field, y::Field) = x == QQ ? y : x
 _find_parent_field(x, y...) = _common_parent(_find_parent_field(x), _find_parent_field(y...))
@@ -373,7 +403,7 @@ function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     return (f, T)
 end
 
-function _detect_default_field(::Type{nf_elem}, p::Polymake.BigObject)
+function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
     propnames = propertynames(p)
@@ -394,7 +424,7 @@ function _detect_default_field(::Type{nf_elem}, p::Polymake.BigObject)
         iszero(r) || break
         i = findnext(f, propnames, i + 1)
     end
-    return iszero(r) ? QQ : quadratic_field(convert(Int, r))[1] # Int -> ZZRingElem? || QQ -> ??
+    return iszero(r) ? rationals_as_number_field()[1] : _embedded_quadratic_field(ZZ(r))[1]
 end
 
 _detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ

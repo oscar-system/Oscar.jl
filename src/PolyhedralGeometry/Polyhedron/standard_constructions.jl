@@ -276,13 +276,9 @@ function newton_polytope(f)
 end
 
 
-polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(T, normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(get_parent_field(H), normal_vector(H), negbias(H))
 
-polyhedron(H::Halfspace{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, normal_vector(H), negbias(H))
-
-polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(T, nothing, (normal_vector(H), [negbias(H)]))
-
-polyhedron(H::Hyperplane{Union{QQFieldElem, nf_elem}}) = polyhedron(nf_elem, nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(get_parent_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
     intersect(P::Polyhedron, Q::Polyhedron)

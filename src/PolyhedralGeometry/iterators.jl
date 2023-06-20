@@ -1,27 +1,4 @@
 ################################################################################
-######## Scalar types
-################################################################################
-const scalar_types = Union{QQFieldElem, nf_elem, Float64, FieldElem}
-
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                ("QuadraticExtension<Rational>", nf_elem),
-                                ("Float", Float64)])
-
-# const scalar_type_to_polymake = Dict{Type, Type}([(QQFieldElem, Polymake.Rational),
-#                                     (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
-#                                     (Union{QQFieldElem, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
-#                                     (FieldElem, Polymake.OscarNumber),
-#                                     (Float64, Float64)])
-
-const scalar_types_extended = Union{scalar_types, ZZRingElem}
-
-_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
-_scalar_type_to_polymake(::Type{nf_elem}) = Polymake.QuadraticExtension{Polymake.Rational}
-_scalar_type_to_polymake(::Type{Union{QQFieldElem, nf_elem}}) = Polymake.QuadraticExtension{Polymake.Rational}
-_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
-_scalar_type_to_polymake(::Type{Float64}) = Float64
-
-################################################################################
 ######## Vector types
 ################################################################################
 
@@ -238,10 +215,6 @@ Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 ################################################################################
 ######## SubObjectIterator
 ################################################################################
-
-abstract type PolyhedralObject{T} end
-
-get_parent_field(x::PolyhedralObject) =  x.parent_field
 
 @doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
