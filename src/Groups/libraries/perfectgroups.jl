@@ -180,18 +180,18 @@ end
 
 # TODO: add all_perfect_groups() iterator
 
-function __init_hulpke_extraperfect()
+function __init_extraperfect()
   for i in [27, 33]
     _write_gap_file(
       "grp/perf$(i).grp",
-      "Read(JuliaToGAP(IsString, Oscar._path_hulpke_extraperfect($(i))));\n",
+      "Read(JuliaToGAP(IsString, Oscar._path_extraperfect($(i))));\n",
     )
   end
 end
 
-function _path_hulpke_extraperfect(i::Int)
+function _path_extraperfect(i::Int)
   return joinpath(
-    artifact"gap_hulpke_extraperfect/extraperfect-80c0cf27bf98ba3eabd287db5ab4fd0f249e0559",
-    "perf$(i).grp",
+    artifact"gap_extraperfect/extraperfect",
+    "perf$(i).grp.gz",
   )
 end
