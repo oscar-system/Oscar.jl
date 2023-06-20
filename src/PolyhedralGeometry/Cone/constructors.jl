@@ -21,7 +21,10 @@ cone(x...; kwargs...) = Cone{QQFieldElem}(x...; kwargs...)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
+function cone(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(Cone, p)
+    return Cone{T}(p, f)
+end
 
 @doc raw"""
     positive_hull([::Type{T} = QQFieldElem,] R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types

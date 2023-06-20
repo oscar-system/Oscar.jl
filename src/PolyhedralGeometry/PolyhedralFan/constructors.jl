@@ -21,7 +21,10 @@ end
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-polyhedral_fan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(PolyhedralFan, p)}(p)
+function polyhedral_fan(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(PolyhedralFan, p)
+    return PolyhedralFan{T}(p, f)
+end
 
 @doc raw"""
     polyhedral_fan(T, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix) where T<:scalar_types

@@ -12,7 +12,10 @@ struct PolyhedralComplex{T} <: PolyhedralObject{T}
 end
 
 
-polyhedral_complex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
+function polyhedral_complex(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(PolyhedralComplex, p)
+    return PolyhedralComplex{T}(p, f)
+end
 
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 

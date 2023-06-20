@@ -26,7 +26,10 @@ polyhedron(A) = polyhedron(QQFieldElem, A)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, QQ) # TODO
+function polyhedron(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(Polyhedron, p)
+    return Polyhedron{T}(p, f)
+end
 
 @doc raw"""
     polyhedron(::Type{T}, A::AnyVecOrMat, b) where T<:scalar_types

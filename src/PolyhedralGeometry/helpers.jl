@@ -361,12 +361,46 @@ end
 
 _determine_parent_and_scalar(f::Field, x...) = (f, elem_type(f))
 # isempty(x) => standard/trivial field?
-function _determine_parent_and_scalar(::Type{T}, x...) where T <: FieldElem
+function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     if T == QQFieldElem
         f = QQ
+    elseif T == Float64
+        f = AbstractAlgebra.Floats{Float64}()
     else
         pf = _find_parent_field(x...)
         f = pf == QQ ? throw(ArgumentError("Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data.")) : pf
     end
     return (f, T)
+end
+
+function _detect_default_field(::Type{nf_elem}, p::Polymake.BigObject)
+    # we only want to check existing properties
+    f = x -> Polymake.exists(p, string(x))
+    propnames = propertynames(p)
+    i = findfirst(f, propnames)
+    # find first QuadraticExtension with root != 0
+    r = 0
+    while !isnothing(i)
+        prop = getproperty(p, propnames[i])
+        # relevant properties can be QuadraticExtension or a container with QuadraticExtension elements
+        if prop isa Polymake.QuadraticExtension
+            r = Polymake.generating_field_elements(prop).r
+        elseif hasmethod(length, (typeof(prop),)) && eltype(prop) <: Polymake.QuadraticExtension
+            for el in prop
+                r = Polymake.generating_field_elements(el).r
+                iszero(r) || break
+            end
+        end
+        iszero(r) || break
+        i = findnext(f, propnames, i + 1)
+    end
+    return iszero(r) ? QQ : quadratic_field(convert(Int, r))[1] # Int -> ZZRingElem? || QQ -> ??
+end
+
+_detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ
+_detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.Floats{Float64}()
+
+function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
+    T = detect_scalar_type(U, p)
+    return (T, _detect_default_field(T, p))
 end

@@ -20,7 +20,10 @@ subdivision_of_points(points::AbstractCollection[PointVector], weights::Abstract
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
-subdivision_of_points(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
+function subdivision_of_points(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(SubdivisionOfPoints, p)
+    return SubdivisionOfPoints{T}(p, f)
+end
 
 @doc raw"""
     subdivision_of_points(points, cells)
