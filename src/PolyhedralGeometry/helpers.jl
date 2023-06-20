@@ -181,15 +181,15 @@ Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymak
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
 (Z::ZZRing)(x::Polymake.Rational) = convert(ZZRingElem, x)
 
-function (NF::Union{AnticNumberField, Hecke.EmbeddedNumField})(x::Polymake.QuadraticExtension{Polymake.Rational})
+function (NF::Hecke.EmbeddedNumField)(x::Polymake.QuadraticExtension{Polymake.Rational})
     g = Polymake.generating_field_elements(x)
     if g.r == 0 || g.b == 0
         return NF(convert(QQFieldElem, g.a))
     end
-    isq = Hecke.is_quadratic_type(NF)
+    isq = Hecke.is_quadratic_type(number_field(NF))
     @req isq[1] "Can not construct non-trivial QuadraticExtension in non-quadratic number field."
-    @req isq[2] == base_field(NF)(g.r) "Source and target fields do not match."
-    a = basis(NF)[2]
+    @req isq[2] == base_field(number_field(NF))(g.r) "Source and target fields do not match."
+    a = NF(basis(number_field(NF))[2])
     return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
 end
 
