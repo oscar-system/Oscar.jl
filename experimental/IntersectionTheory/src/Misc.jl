@@ -63,10 +63,10 @@ function partitions(n::Int, k::Int=n, m::Int=-1)
   ans = Partition[]
   (n > 0 && k == 0) && return ans
   if m < 0 m = n end
-  n <= m && push!(ans, Partition(n > 0 ? [n] : Int[]))
+  n <= m && push!(ans, partition(n > 0 ? [n] : Int[]))
   for v in Int(min(n-1,m)):-1:1
     for p in partitions(n-v, k-1, v)
-      push!(ans, Partition(pushfirst!(collect(p), v)))
+      push!(ans, partition(pushfirst!(collect(p), v)))
     end
   end
   ans

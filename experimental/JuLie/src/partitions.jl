@@ -16,8 +16,8 @@ export conjugate
 export dominates
 export getindex_safe
 export num_partitions
-export partitions 
-
+export partition
+export partitions
 
 ################################################################################
 # Partition type
@@ -37,14 +37,16 @@ partitions rather than simply using arrays. The parametric type allows to increa
 performance by using smaller integer types. For efficiency, the `Partition` constructor does
 not check whether the given array is indeed a decreasing sequence.
 
+A partition can be created by either calling `partition` on an array of integers or by
+calling `partition` with arguments being the sequence of parts, with the possibility
+to provide the element type as the first argument.
+
 # Examples
-A partition can be created by either calling `Partition` on an array of integers or by
-calling `Partition` with arguments being the sequence of parts.
 ```jldoctest
-julia> P = Partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
+julia> P = partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
 [6, 4, 4, 2]
 
-julia> P = Partition(6,4,4,2) #Same as above but less to type
+julia> P = partition(6,4,4,2) #Same as above but less to type
 [6, 4, 4, 2]
 
 julia> length(P)
@@ -57,7 +59,7 @@ Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function
 arrays already exists and returns the *dimension* of an array. Instead, you can use the
 Julia function `sum` to get the sum of the parts.
 ```jldoctest
-julia> P = Partition(6,4,4,2)
+julia> P = partition(6,4,4,2)
 [6, 4, 4, 2]
 
 julia> sum(P) 
@@ -65,19 +67,19 @@ julia> sum(P)
 ```
 You can create partitions with smaller integer types as follows.
 ```jldoctest
-julia> P = Partition{Int8}(6,4,4,2) #Or Partition(Int8[6,4,4,2])
+julia> P = partition(Int8,6,4,4,2) #Or partition(Int8[6,4,4,2])
 Int8[6, 4, 4, 2]
 ```
 There is a unique partition of 0, namely the **empty partition** (of length 0). It can be
 created as follows.
 ```jldoctest
-julia> P = Partition() #Or Partition([])
+julia> P = partition() #Or partition([])
 Int64[]
 julia> sum(P)
 0
 julia> length(P)
 0
-julia> P = Partition{Int8}() #Or Partition(Int8[])
+julia> P = partition(Int8) #Or partition(Int8[])
 Int8[]
 ```
 
@@ -87,6 +89,24 @@ Int8[]
 """
 struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
+end
+
+function partition(parts::IntegerUnion...)
+  return partition(Int, parts...)
+end
+
+function partition(T::Type{<:IntegerUnion}, parts::IntegerUnion...)
+  return partition(collect(T, parts))
+end
+
+function partition(parts::Vector{T}) where {T<:IntegerUnion}
+  return Partition{T}(parts)
+end
+
+# The empty array is of "Any" type, and this is not what we want. 
+# We want it to be an array of integers of the default type Int64. 
+function partition(p::Vector{Any})
+  return partition(Vector{Int}(p))
 end
 
 # The following are functions to make the Partition struct array-like.
@@ -110,20 +130,6 @@ function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
   return setindex!(P.p,x,Int(i))
 end
 
-function Partition(parts::IntegerUnion...)
-  return Partition(collect(Int, parts))
-end
-
-function Partition{T}(parts::IntegerUnion...) where T<:IntegerUnion
-  return Partition(collect(T, parts))
-end
-
-# The empty array is of "Any" type, and this is not what we want. 
-# We want it to be an array of integers of the default type Int64. 
-function Partition(p::Vector{Any})
-  return Partition(Vector{Int64}(p))
-end
-
 function Base.copy(P::Partition{T}) where T<:IntegerUnion
   return Partition{T}(copy(P.p))
 end
@@ -141,7 +147,7 @@ If you are sure that `P[i]` exists, use `getindex` because this will be faster.
 
 # Examples
 ```jldoctest
-julia> P=Partition([3,2,1])
+julia> P = partition([3,2,1])
 [3, 2, 1]
 
 julia> getindex_safe(P, 3)
@@ -224,9 +230,9 @@ function partitions(n::IntegerUnion)
 
   # Some trivial cases
   if n == 0
-    return Partition{T}[ Partition{T}([]) ]
+    return Partition{T}[ partition(T[]) ]
   elseif n == 1
-    return Partition{T}[ Partition{T}([1]) ]
+    return Partition{T}[ partition(T[1]) ]
   end
 
   # Now, the algorithm starts
@@ -235,7 +241,7 @@ function partitions(n::IntegerUnion)
   q = 1
   d = fill( T(1), n )
   d[1] = n
-  push!(P, Partition{T}(d[1:1]))
+  push!(P, partition(d[1:1]))
   while q != 0
     if d[q] == 2
       k += 1
@@ -260,7 +266,7 @@ function partitions(n::IntegerUnion)
         end
       end
     end
-    push!(P, Partition{T}(d[1:k]))
+    push!(P, partition(d[1:k]))
   end
   return P
 
@@ -447,10 +453,10 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
     end
     return p
 
-  # Otherwise, use recurrence.
-  # The following is taken from the GAP code in lib/combinat.gi
-  # It uses the standard recurrence relation but in a more intelligent
-  # way without recursion.
+    # Otherwise, use recurrence.
+    # The following is taken from the GAP code in lib/combinat.gi
+    # It uses the standard recurrence relation but in a more intelligent
+    # way without recursion.
   else
     n = Int(n)
     k = Int(k)
@@ -510,7 +516,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 
   # Some trivial cases
   if m == 0 && n == 0
-    return Partition{T}[ Partition{T}([]) ]
+    return Partition{T}[ partition(T[]) ]
   end
 
   if n == 0 || n > m
@@ -552,14 +558,14 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
       end
 
       x[i] = y[i] + m
-      push!(P, Partition{T}(x[1:n]))
+      push!(P, partition(x[1:n]))
 
       if i < n && m > 1
         m = 1
         x[i] = x[i] - 1
         i += 1
         x[i] = y[i] + 1
-        push!(P, Partition{T}(x[1:n]))
+        push!(P, partition(x[1:n]))
       end
 
       lcycle = false
@@ -611,11 +617,11 @@ function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
 
   # Special cases
   if m == n
-    return [ Partition(T[ 1 for i in 1:m]) ]
+    return [ partition(T[ 1 for i in 1:m]) ]
   elseif m < n || n == 0
     return Partition{T}[]
   elseif n == 1
-    return [ Partition(T[m]) ]
+    return [ partition(T[m]) ]
   end
 
   return partitions(m,n,1,m; only_distinct_parts = false)
@@ -671,9 +677,9 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   if isempty(mu)
     return Partition{T}[]
   end
-  
+
   #This will be the list of all partitions found.
-  P = Partition{T}[] 
+  P = Partition{T}[]
 
   # Now, we get to the partb algorithm. This is a hell of an algorithm and the
   # published code has several issues.
@@ -721,13 +727,13 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       k = mu[j]
       ll = v[j]
     end
-    if i == 1 
+    if i == 1
       break
     else
       i = i - 1
     end
   end #for i
-  
+
   lr = v[r]
   ll = v[1]
 
@@ -743,7 +749,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
   if m == 0 && x[1] != 0
-    push!(P,Partition{T}(copy(x)))
+    push!(P, partition(copy(x)))
     return P
   end
 
@@ -789,7 +795,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       if m == lr
         x[i] = lr
         if i <= n # Added, otherwise get out of bounds
-          push!(P, Partition{T}(copy(x))) #need copy here!
+          push!(P, partition(copy(x))) #need copy here!
         else
           break
         end
@@ -834,7 +840,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       end
     end #if gotob2
   end #while
-  
+
   return P
 end
 
@@ -984,10 +990,10 @@ not.
 
 # Examples
 ```jldoctest
-julia> dominates( Partition(3,1), Partition(2,2) )
+julia> dominates( partition(3,1), partition(2,2) )
 true
 
-julia> dominates( Partition(4,1), Partition(3,3) )
+julia> dominates( partition(4,1), partition(3,3) )
 false
 ```
 
@@ -1032,7 +1038,7 @@ The **conjugate** of a partition is obtained by considering its Young diagram
 
 # Examples
 ```jldoctest
-julia> conjugate(Partition(8,8,8,7,2,1,1))
+julia> conjugate(partition(8,8,8,7,2,1,1))
 [7, 5, 4, 4, 4, 4, 4, 3]
 ```
 # References
@@ -1052,5 +1058,5 @@ function conjugate(lambda::Partition{T}) where T<:IntegerUnion
     end
   end
 
-  return Partition(mu)
+  return partition(mu)
 end

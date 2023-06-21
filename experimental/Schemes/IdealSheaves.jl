@@ -428,9 +428,13 @@ end
 #  return W, spec_dict
 #end
 #
+function isone(I::IdealSheaf)
+  return all(x->isone(I(x)), affine_charts(scheme(I)))
+end
 
 function is_prime(I::IdealSheaf) 
-  return all(U->is_prime(I(U)), basic_patches(default_covering(space(I))))
+  !isone(I) || return false
+  return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
 end
 
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
@@ -586,6 +590,7 @@ More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent s
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
 function maximal_associated_points(I::IdealSheaf)
+  !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
 
@@ -650,6 +655,7 @@ If ``U = Spec(A)`` is an affine open on a locally noetherian scheme ``X``, ``x \
 
 """
 function associated_points(I::IdealSheaf)
+  !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
   charts_todo = copy(affine_charts(X))            ## todo-list of charts
