@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components
 
 @attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
   Y::CoveredScheme{BaseField}
@@ -61,7 +61,7 @@ function algebraic_lattice(S::EllipticSurface, mwl_gens::Vector{<:EllCrvPt})
   gensA = vcat(basis, sections)
   @vprint :ellipticK3 2 "computing intersection numbers"
   for i in 1:n
-    @vprint :ellipticK3 2 "\n$row (i): \n"
+    @vprint :ellipticK3 2 "\nrow $(i): \n"
     for j in max(i + 1, r + 1):n
       @vprint :ellipticK3 2 "$(j) "
       GA[i,j] = intersect(gensA[i],gensA[j])
@@ -370,7 +370,7 @@ end
   for (pt, ft) in f
     @vprint :ellipticK3 2 "normalizing fiber: "
     rt, f0, f1, G = standardize_fiber(S, ft)
-    @vprint :ellipticK3 2 "rt \n"
+    @vprint :ellipticK3 2 "$rt \n"
     append!(basisT , f1)
     push!(grams,G)
     push!(fiber_components_meeting_O, (pt, rt, f0))
@@ -392,8 +392,11 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   end
   r = length(f)
   G = -2*identity_matrix(ZZ, r)
+  @vprint :ellipticK3 2 "computing intersection numbers:"
   for i in 1:r
+    @vprint :ellipticK3 2 "\nrow $(i): \n"
     for j in 1:i-1
+      @vprint :ellipticK3 2 "$(j) "
       G[i,j] = intersect(f[i],f[j])
       G[j,i] = G[i,j]
     end
@@ -409,7 +412,7 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
 end
 
 
-function fiber_cartier(S::EllipticSurface, P::Vector{<:RingElem}=ZZ.([0,1]))
+function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
   _ = relatively_minimal_model(S) # cache stuff
   D = IdDict{AbsSpec, RingElem}()
@@ -463,6 +466,7 @@ end
 function fiber_components(S::EllipticSurface, P=[0,1])
   @vprint :ellipticK3 2 "computing fiber components over $(P)\n"
   F = fiber_cartier(S, P)
+  @vprint :ellipticK3 2 "decomposing fiber\n"
   comp = maximal_associated_points(ideal_sheaf(F))
   return [weil_divisor(c) for c in comp]
 end
