@@ -150,15 +150,17 @@ end
 
 function my_degree(g::MPolyRingElem, x)
   R = parent(g)
+  @req R === parent(x) "g and x must have the same parent"
   i = findfirst(==(x), gens(R))
   return maximum(c[i] for c in exponents(g))
 end
+
 """
 Transform
 a(x)y^2 + b(x) y = h(x)
 to y'^2 = h(x')
 """
-function normalize_quartic(g)
+function normalize_quartic(g::MPolyRingElem, parent_out=nothing)
   R = parent(g)
   F = fraction_field(R)
   kt = base_ring(R)
@@ -172,7 +174,13 @@ function normalize_quartic(g)
   b = inv(u)*b
   sqa = sqrt(a)
   # inverse map
-  R1, (x1,y1) = polynomial_ring(kt, [:x, :y])
+  if parent_out isa Nothing
+    R1, (x1,y1) = polynomial_ring(kt, [:x, :y])
+  else
+    R1 = parent_out
+    @assert base_ring(R1) == base_ring(R)
+    (x1, y1) = gens(R1)
+  end
   F1 = fraction_field(R1)
   psi = hom(R1, F, F.([x, (2*a*y + b)//(2*sqa)]))
   conv = hom(R, R1, [x1, 0])
@@ -188,13 +196,11 @@ function normalize_quartic(g)
   c = prod([p^divexact(i,2) for (p,i) in ff if mod(i,2)==0],init=R1(1))
   d = sqrt(my_coeff(g1, y1, 2))
 
-  R2, (x2,y2) = polynomial_ring(kt, [:x, :y])
-  F2 = fraction_field(R2)
-  phi1 = hom(R1, F2, [x2, y2*c//d])
-  phiF1 = map_from_func(x-> phi1(numerator(x))//phi1(denominator(x)), F1, F2)
+  phi1 = hom(R1, F1, [x1, (c//d)*y1])
+  phiF1 = map_from_func(x-> phi1(numerator(x))//phi1(denominator(x)), F1, F1)
   phi2 = compose(phi, phiF1)
   g2 = numerator(phi1(g1))
-  c = my_coeff(g2, y2, 2)
+  c = my_coeff(g2, y1, 2)
   g2 = divexact(g2, c)
   return g2, phi2
 end
@@ -206,27 +212,21 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
 #    r"""
 #    y^2 - quartic(x)
 #    """
-#    assert g.degree(y)==2
-#    assert g.degree(x)==4
-#    assert g.coefficient({y:1}) == 0
-#    assert g.coefficient({y:2}) == 1
+    @assert my_degree(g, y)== 2
+    @assert my_degree(g, x)== 4
+    @assert my_coeff(g, y, 1) == 0
+    @assert my_coeff(g, y, 2) == 1
     R = parent(g)
     kk = coefficient_ring(R)
     S, X = polynomial_ring(kk, "X", cached=false)
     length(P) == 2 || error("need precisely two point coordinates")
     (px, py) = P
 #    assert g.subs({x:px,y:py})==0
-    @assert iszero(evaluate(g, P)) "point does not lay on the hypersurface"
+    @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
     gx = -evaluate(g, [X + px, zero(X)])
     coeff_gx = collect(coefficients(gx))
     E, D, C, B, A = coeff_gx
-    q = E
-    if is_square(q)
-      q = sqrt(q)
-    else
-      KK, q = extension_field(X^2-E, "√a₄")
-    end
-    if !iszero(q)
+    if !iszero(E)
       b = py
       a4, a3, a2, a1, a0 = A,B,C,D,E
       A = b
@@ -242,19 +242,16 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
       y2 = x2//x
       x2 = evaluate(x2, [x-px, y])
       y2 = evaluate(y2, [x-px, y])
-      #        #Q = 2*q  # outside of char 2 ??
-      #        #x1 = (Q*(y + q) + D*x)/x^2
-      #        #y1 = (Q^2*(y+q)+ Q*(C*x^2 + D*x) - D^2*x^2/Q)/x^3
-      #        #y1 = (Q^2*(y+q)+ Q*(C*x^2 + D*x) - D^2*x^2/Q)/x^3
+
       @assert x == evaluate(x1, [x2, y2])
       @assert y == evaluate(y1, [x2, y2])
     else
+      error("formulas to be confirmed before use")
+      # TODO compute the inverse transformation (x2,y2)
       x1 = 1//x
       y1 = y//x^2
       g1 = numerator(evaluate(g, [x1, y1]))
-      @show g1
       c = coeff(g1, [x], [3])
-      @show c
       x1 = evaluate(x1, [-x//c, y//c])
       y1 = evaluate(y1, [-x//c, y//c])
       x1 = x1+px
@@ -266,6 +263,26 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
     else
       return x1, y1
     end
+end
+
+function elliptic_curve(f::MPolyRingElem, x,y)
+  # asserts
+  k = coefficient_ring(f)
+  c = coeff(f, [x,y], [3,0])
+  c = c(k(0),k(0))
+  @assert parent(c)===k
+  f = inv(c)*f
+  @assert coeff(f, [x,y], [0,2]) == -1
+  a6 = coeff(f, [x,y], [0,0])
+  a4 = coeff(f, [x,y], [1,0])
+  a2 = coeff(f, [x,y], [2,0])
+  a3 = -coeff(f, [x,y], [0,1])
+  a1 = -coeff(f, [x,y], [1,1])
+  a_invars = [i(k(0),k(0)) for i in (a1,a2,a3,a4,a6)]
+  (a1,a2,a3,a4,a6) = a_invars
+  @assert f  == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
+  E = EllipticCurve(k, [a1,a2,a3,a4,a6])
+  return E
 end
 
 function is_isomorphic_with_map(G1::Graph, G2::Graph)
@@ -298,3 +315,18 @@ function is_isomorphic_with_permutation(A1::MatElem, A2::MatElem)
   @assert b || A1[T] == A2
   return b, T
 end
+
+function extend_domain(phi::Map, K::Field)
+  F = codomain(phi)
+  @assert base_ring(K) == domain(phi)
+  return map_from_func(x-> phi(numerator(x))*inv(phi(denominator(x))), K, F)
+end
+
+function hom(dom::FracField, cod::FracField, imgs::Vector)
+  imgs = cod.(imgs)
+  phi = hom(base_ring(dom), cod, imgs)
+  return extend_domain(phi, cod)
+end
+
+
+

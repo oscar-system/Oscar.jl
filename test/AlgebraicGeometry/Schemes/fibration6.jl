@@ -18,7 +18,12 @@ mwl_basis = [E(collect(i)) for i in [
 (12*t^4 + 20*t^3 + 27*t^2 + 11*t + 18, -(16*t^4 + 24*t^3 + 3*t^2 + 24*t)),
 (4*t^4 + 5*t^3 + 5*t^2 + 6*t + 13,  9*t^6 + 21*t^5 + 17*t^4 + 12*t^2 + 3*t + 6)]]
 
-
+# intersection matrix for the corresponding K3 surfaces
+# consisting of
+# fiber
+# zero section
+# components of reducible fibers not meeting the zero sections they result from resolving ADE singularities of the weierstrass model
+# mwl_basis
 gram =  [
 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,6 +41,8 @@ gram =  [
 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, -2, 0, 2,
 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, -2, 2,
 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 2, 2, -2]
+
+# A3 (at t=0), A4 (at t=infinity), A1, A1, A1
 NS = integer_lattice(gram=matrix(ZZ, 16, 16, gram))
 B = basis_matrix(NS)
 fnew = matrix(QQ, 1, 16, [6, 3, -1, -2, -1, -1, -1, -2, -2, -1, 0, -1, -1, 1, -1, 0])*B
@@ -43,13 +50,14 @@ fnew = matrix(QQ, 1, 16, [6, 3, -1, -2, -1, -1, -1, -2, -2, -1, 0, -1, -1, 1, -1
 p = matrix(QQ,1,16, [5, 2, -1, -2, -1, 0, 0, -1, -1, -1, 0, -1, -1, 1, -1, 0])
 @assert inner_product(ambient_space(NS), p, p)[1,1] == -2
 
+
+
 # The section P used for the fibration hop  Fiber_new = O + P + Vertical
 l = length(mwl_basis)
 P = sum(ZZ(p[1,i+16-l])*mwl_basis[i] for i in 1:l)
 
 delta = factor(discriminant(E), kt).fac
 reducible_singular_fibers = [p for p in keys(delta) if delta[p]>1]
-
 
 
 IP1 = projective_space(k, 1)
@@ -101,13 +109,15 @@ I_sing_X = radical(pushforward(inc_S)(I_sing))
 
 
 # Refine the covering over the reducible singular fibers
+# to make sure that there is only a single singular point in each chart
 refined_charts = AbsSpec[]
 U = X[1][1]
 Ising = I_sing_X(U)
 if isone(Ising)
   push!(refined_charts, U)
 else
-  # reducible singular fibers
+  # there is at most one singularity in every fiber
+  # project the singular locus to an affine chart of P1
   disc = gens(eliminate(Ising, coordinates(U)[1:2]))[1]
   redfib = collect(keys(factor(disc).fac))
   for i in 1:length(redfib)
@@ -116,7 +126,10 @@ else
     push!(refined_charts, PrincipalOpenSubset(U, r))
   end
 end
-# add the fiber at s=0 and remove all other singular fibers
+
+# Create a chart which contains only the singular fiber over s=0 and no other reducible singular fibers
+# these are visible in the charts that we have already
+# i.e. we add the fiber at s=0 and remove all other singular fibers
 V = X[1][3]
 IsingV = I_sing_X(V)
 if isone(IsingV)
@@ -132,8 +145,9 @@ else
   redfib = collect(keys(factor(disc).fac))
   push!(refined_charts, PrincipalOpenSubset(V, redfib))
 end
-# no extra singularities at Z = 0
-# therefore we just exclude the singularities visible here
+
+# no extra singularities on the zero section at Z = 0
+# therefore we just exclude all the singularities visible here
 for U in [X[1][2],X[1][4]]
   local Ising = I_sing_X(U)
   if isone(Ising)
@@ -150,12 +164,19 @@ end
 Cref = Covering(refined_charts)
 Oscar.inherit_glueings!(Cref, C)
 push!(X.coverings, Cref)
+# Now we have an extra covering where each chart just contains a single singularity
 
 @test scheme(I_sing) === S
 @test scheme(I_sing_X) === X
 
-# The mwl_basis as ideal sheaves
+# Prepare the divisors visible on S for pullback to the smooth model
+# Create the mwl_basis as ideal sheaves
 UX = X[1][1]
+"""
+  section_to_ideal_sheaf(X, section::EllCrvPt, U::AbsSpec) -> IdealSheaf
+
+U a weierstrass chart
+"""
 function section_to_ideal_sheaf(X, section, U)
   (x,y,t) = coordinates(U)
   b = section
@@ -189,12 +210,17 @@ A4_0 = IdealSheaf(X,X[1][3], OO(X[1][3]).([s,gens((modulus(OO(S[1][3]))))[1]]))
 # all relevant divisors as ideal sheaves on X
 divisors = vcat([PonX, zero_section, fiber, A3_0, A4_0, A1a_0, A1b_0,A1c_0], sections)
 
+# Blow up singular points (one at a time) until smooth
+# and compute the strict transforms of the `divisors`
+# collect the exceptional divisors
+# blowup ambient spaces: X0 -> X
+# blowup (K3 = Y0) -> (S singular weierstrass model)
+#
 # initialization for the while loop
 X0 = X
 Y0 = S
 inc_Y0 = inc_S
 
-# blow up points (one at a time) until smooth
 exceptionals = []
 divisors0 = divisors
 count = 0
@@ -250,6 +276,7 @@ end
 exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
 divisors_res = [pullback(inc_Y0)(e) for e in divisors0]
 
+#=
 # Compute the intersection matrix of the exceptional divisors:
 Ex = exceptionals_res
 @vprint :ellipticK3 2 "Exceptional Cartier to Weil divisors\n"
@@ -257,10 +284,14 @@ ExWeil = weil_divisor.(Ex)   # too slow to be a test
 @vprint :ellipticK3 2 "done\n"
 tmp = []
 ExWeil = reduce(append!, [components(i) for i in ExWeil], init= tmp)
+=#
 
 # divisors = vcat([PonX, zero_section, fiber, A3_0, A4_0, A1a_0, A1b_0,A1c_0], sections)
+# ideal sheaves to divisors on Y0
 (PonY,OonY,FonY,A3_0onY,A4_0onY,A1a_0onY,A1b_0onY,A1c_0onY) = [WeilDivisor(i,ZZ,check=false) for i in divisors_res[1:8]]
 
+# Assemble the generators for the Neron-Severi-lattice as given above
+# but the fibers may come in a different ordering (depending on the blowup)
 NSgens = vcat(divisors_res[3], divisors_res[2], ExWeil, divisors_res[end-3:end])
 NSgens = [WeilDivisor(i,ZZ, check=false) for i in NSgens]
 G = zero_matrix(ZZ, 16, 16)
@@ -273,7 +304,7 @@ end
 for i in 2:length(NSgens)
   G[i,i]= -2
 end
-@assert det(G) == -1183
+@assert det(G) == det(NS)
 mwl_rank = Int(sum(gram_matrix(NS)[1,:])-1)
 # sort the singular fibers so that they match our model for NS
 b, I = is_isomorphic_with_permutation(G, gram_matrix(NS))
@@ -286,6 +317,7 @@ NSgens = NSgens[I]
 @assert gram_matrix(NS) == G[I,I]
 
 # double check that p is is P
+# by making sure that their intersection numbers agree
 v = matrix(QQ,1, 16, [intersect(PonY, i) for i in NSgens])
 @assert v*inv(transpose(B))*inv(gram_matrix(NS)) == p
 
@@ -338,8 +370,7 @@ Fnew = PonY + OonY + A4_0onY
 
 elliptic_param = representative(LsubS[1]//LsubS[2]) # the new elliptic coordinate
 
-# transform to new coordinates
-
+# Transform to the coordinates to obtain an equation for S of the form y^2 = quartic(x)
 R = OO(X[1][1])
 (x,y,t) = gens(R)
 # u = (a y + b) / (cy + d)
@@ -347,18 +378,25 @@ R = OO(X[1][1])
 # y = (b-d*u)/ (c*u - a)
 nu = numerator(elliptic_param)
 du = denominator(elliptic_param)
-g = hom(R,R,R.([x,0,t]))
+g = hom(R, R, R.([x,0,t]))
 b = g(nu)
 a = divexact(nu - b, y)
 d = g(du)
 c = divexact(du - d, y)
 @assert (a*y+b) // (c*y+d) == elliptic_param
 
+KY0 = fraction_field(R)
+
 Ru, (t, x, u) = polynomial_ring(base_ring(R), [:t, :x, :u])
 h = hom(R, Ru, [x, 0, t])
 (a,b,c,d) = h.([a,b,c,d])
 Ruloc,_ = localization(Ru, c*u - a)
 phi = hom(R, Ruloc, Ruloc.([x, Ruloc(b-d*u, c*u - a), t]))
+
+KRu = fraction_field(Ru)
+KY0_to_KRu = extend_domain(hom(R, KRu, [KRu(numerator(phi(i)),denominator(phi(i))) for i in gens(R)]), KY0)
+
+
 
 f = gens(modulus(OO(S[1][1])))[1]
 fu = numerator(phi(f))
@@ -367,8 +405,68 @@ fu = numerator(phi(f))
 # remove a bad component
 fu1 = divexact(fu, denominator(P[1])(t)*x - numerator(P[1])(t))
 
-kP1_2, t = polynomial_ring(k, "t₁")
-T, (x, y) = polynomial_ring(kP1_2, ["x₁", "y₁"])
-tmp = hom(Ru, T, [t,y,x])
-fxy = tmp(fu1)
-fnew, trafo = normalize_quartic(fxy)
+kt1, t1 = polynomial_ring(k, "t1")
+kPt1 = fraction_field(kt1)
+
+T, (x1, y1) = polynomial_ring(kPt1, ["x1", "y1"])
+KT = fraction_field(T)
+T_to_KT = hom(T, KT, KT.(gens(T)))
+
+#=
+Ru_to_T = hom(Ru, T, [t1,y1,x1])
+
+KRu_toKT = extend_domain(Ru_to_T * T_to_KT, KRu)
+
+fxy = Ru_to_T(fu1)
+ft1, trafo = normalize_quartic(fxy, T)
+
+KT_quartic_KT = extend_domain(trafo, KT)
+=#
+
+
+
+Ru_to_T = hom(Ru, T, [x1,y1,t1])
+
+KRu_toKT = extend_domain(Ru_to_T * T_to_KT, KRu)
+
+fxy = Ru_to_T(fu1)
+ft1, trafo = normalize_quartic(fxy, T)
+
+KT_quartic_KT = extend_domain(trafo, KT)
+
+
+
+
+# Find a point by hand
+# x1 = 0 works
+P1x = kPt1(0)
+tmp = hom(T, T, [P1x, y1])(ft1)
+tmp_fac = collect(factor(tmp))
+@assert length(tmp_fac) == 2
+tmp = tmp_fac[1][1]
+P1y = evaluate(coeff(s,[x1,y1],[0,0])//coeff(s,[x1,y1],[0,1]), [kPt1(0),kPt1(0)])
+Pt1 = ideal(T, [x1 - P1x, y1 - P1y])
+@assert ft1 in Pt1
+P1 = (P1x, P1y)
+@assert ft1(P1x,P1y) == 0
+# transform to weierstrass form
+(x2of1,y2of1, x1of2,y1of2) = transform_to_weierstrass(ft1, x1, y1, collect(P1),return_inverse=true)
+f2t1 = numerator(ft1(x2of1,y2of1))
+f2t1 = [f[1] for f in factor(f2t1) if f[2]==1]
+length(f2t1) == 1 || error("more factors than expected, which one is the elliptic curve? Check it")
+f2t1 = f2t1[1]
+
+E2 = elliptic_curve(f2t1,x1,y1)
+
+KT_to_weier_KT = hom(KT, KT, [x2of1,y2of1])
+
+
+R2, (x2,y2,t1) = polynomial_ring(k, [:x2,:y2,:t])
+K2 = fraction_field(R2)
+coeff_map = map_from_func(f->numerator(f)(t1)*inv(denominator(f)(t1)), kPt1, K2)
+isoKT_to_K2 = extend_domain(hom(T, K2, coeff_map, K2.([x2, y2])),KT)
+
+
+phi_rat = KY0_to_KRu*KRu_toKT*KT_quartic_KT*KT_to_weier_KT*isoKT_to_K2
+
+

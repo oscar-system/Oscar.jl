@@ -1,9 +1,6 @@
 
 
 # TODO:
-# Kill all standard Specs
-# shortcut to get the coefficient(s) of a weil divisor
-# intersect Weil with Weil on a surface
 #=
 julia> in_linear_system(linsys[1], D,check=false)
 false
