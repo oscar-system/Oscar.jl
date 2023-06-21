@@ -97,32 +97,20 @@ See the documentation for `WeilDivisor`.
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
 @doc raw"""
-    WeilDivisor(I::IdealSheaf, R::Ring)
+    WeilDivisor(I::IdealSheaf, R::Ring=ZZ)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
+function WeilDivisor(I::IdealSheaf, R::Ring=ZZ; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check isprime(I) "ideal sheaf must be prime"
-  @check dim(X) - dim(D) == 1 "components of a divisor must be of codimension one"
+  @check dim(space(I)) - dim(I) == 1 "components of a divisor must be of codimension one"
   coefficient_dict(D)[I] = one(R)
   return D
 end
 
-weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
-
-@doc raw"""
-    WeilDivisor(I::IdealSheaf)
-
-Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
-in ``ℤ`` for a sheaf of prime ideals ``I``.
-"""
-function WeilDivisor(I::IdealSheaf)
-  D = WeilDivisor(space(I), ZZ)
-  D[I] = one(ZZ)
-  return D
-end
+weil_divisor(I::IdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
 
 weil_divisor(I::IdealSheaf) = WeilDivisor(I)
 

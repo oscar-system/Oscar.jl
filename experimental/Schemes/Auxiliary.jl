@@ -126,6 +126,16 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
 end
 
+function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
+  R = coefficient_ring(C)
+  C = CartierDivisor(domain(f), R)
+  pb = pullback(f)
+  for (c,D) in coefficient_dict(C)
+    C += c*pb(C)
+  end
+  return C
+end
+
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
   psi = restrict(f, CC)
   return domain(psi)
