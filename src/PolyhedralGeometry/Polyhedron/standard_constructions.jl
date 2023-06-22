@@ -1158,3 +1158,22 @@ julia> facets(A)
 #the above code works fine, however this one is shorter
 associahedron(d::Int, group::Bool= false) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d,group=group)) 
 
+@doc raw""" 
+binary_markov_graph(observation::Array{Bool}) -> Polyhedron
+
+Defines a very simple graph for a polytope propagation related to a Hidden Markov Model. 
+The propagated polytope is always a polygon. For a detailed description see [Jos05]@cite
+
+# Examples
+julia> P = binary_markov_graph([100,345,12,17])
+Polyhedron in ambient dimension 2
+
+julia> vertices(P)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [3, 0]
+ [1, 1]
+ [0, 2]
+ [0, 7]
+"""
+binary_markov_graph(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(observation))
+
