@@ -1072,27 +1072,39 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
 end
 
 
-# SIM_body(alpha::Vector{Int}) = polyhedron(Polymake.polytope.SIM_body(alpha))
+
+@doc raw"""
+SIM_body(alpha::AbstractVector)
+
+Produce an $n$-dimensional SIM-body as generalized permutahedron in $(n+1)$-space. 
+SIM-bodies are defined in
+Y. Giannakopoulos, and E. Koutsoupias: Duality and optimality of auctions for uniform distributions. Proceedings of the fifteenth ACM conference on Economics and computation (2014), 
+but the input needs to be descending instead of ascending, as used in 
+M. Joswig, M. Klimm, and S. Spitz: Generalized permutahedra and optimal auctions. SIAM Journal on Applied Algebra and Geometry 6.4 (2022): 711-739.
+"""
 
 
-# function SIM_body(alpha::Vector{Number})
-#     pm_obj = Polymake.call_function(:polytope, :SIM_body, alpha;)::Polymake.BigObject
+# function SIM_body(alpha::AbstractVector)
+#     pm_obj = Polymake.call_function(:polytope, :sim_body, Polymake.Vector{Polymake.Rational}(alpha))::Polymake.BigObject
 #     return polyhedron{QQFieldElem}(pm_obj)
 # end
+
+# The above code does not work. Why? 
+
+SIM_body(alpha::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 
 
 @doc raw"""
 associahedron(d::Int, group=nothing)
 
-Produce a $d$-dimensional associahedron (or Stasheff polytope). We use the facet description given in section 9.2. of 
-G.M. Ziegler: Lectures on polytopes. Vol. 152. Springer Science & Business Media, 2012.
+Produce a $d$-dimensional associahedron (or Stasheff polytope). 
+We use the facet description given in section 9.2. of [Zie95](@cite).
 
 # Keywords
 - `d::Int`: the dimension 
-- `group::Int64`: Compute the combinatorial symmetry group of the polytope. 
+- `group::Bool`: Compute the combinatorial symmetry group of the polytope. 
                   It has two generators, as it is induced by the symmetry group of a $d+3$-gon, the dihedral group of degree $d+3$. 
-                  For details, see C. Ceballos, F. Santos, and G.M. Ziegler: Many non-equivalent realizations of the associahedron, 
-                  in Combinatorica 35.5, 2015: 513-551.
+                  For details, see [CSZ15](@cite).
 
 
 # Examples
@@ -1119,16 +1131,15 @@ julia> facets(A)
 ```
 """
 
-function associahedron(d::Int, group=nothing)
-    opts = Dict{Symbol, Any}()
-    if group != nothing
-        opts[:group] = convert(Int64, group)
-    end
-    pm_obj = Polymake.call_function(:polytope, :associahedron, d; opts...)::Polymake.BigObject
-    return Polyhedron{QQFieldElem}(pm_obj)
-end
+# function associahedron(d::Int, group=false)
+#     opts = Dict{Symbol, Any}()
+#     if group !=false
+#         opts[:group] = convert(Int64, group)
+#     end
+#     pm_obj = Polymake.call_function(:polytope, :associahedron, d; opts...)::Polymake.BigObject
+#     return Polyhedron{QQFieldElem}(pm_obj)
+# end
 
-
-#the above code works fine, however the one below does not. where is the mistake?
-# associahedron(d::Int; group::Int64= nothing) = polyhedron(Polymake.polytope.associahedron(d,group=>group)) 
+#the above code works fine, however this one is shorter
+associahedron(d::Int, group::Bool= false) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d,group=group)) 
 
