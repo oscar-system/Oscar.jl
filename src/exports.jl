@@ -143,7 +143,7 @@ export ProjectiveAlgebraicSet
 export QQ
 export RationalEquivalenceClass
 export RayVector
-export sim_body
+export SIM_body
 export SL
 export SLPoly
 export SLPolyRing

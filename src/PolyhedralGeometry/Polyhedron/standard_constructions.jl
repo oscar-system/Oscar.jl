@@ -1076,22 +1076,35 @@ end
 @doc raw"""
 SIM_body(alpha::AbstractVector)
 
-Produce an $n$-dimensional SIM-body as generalized permutahedron in $(n+1)$-space. 
-SIM-bodies are defined in
-Y. Giannakopoulos, and E. Koutsoupias: Duality and optimality of auctions for uniform distributions. Proceedings of the fifteenth ACM conference on Economics and computation (2014), 
-but the input needs to be descending instead of ascending, as used in 
-M. Joswig, M. Klimm, and S. Spitz: Generalized permutahedra and optimal auctions. SIAM Journal on Applied Algebra and Geometry 6.4 (2022): 711-739.
+Produce an $n$-dimensional SIM-body as generalized permutahedron in 
+$(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
+be descending instead of ascending, as used in [JKS22](@cite).
+
+# Keywords
+- `alpha::AbstractVector`: Vector with the parameters 
+$(a_1,\dots,a_n)$ such that $a_1 \geq \dots \geq a_n \geq 0$. 
+
+# Examples
+To produce a $2$-dimensional SIM-body, use for example the following code. 
+Note that the polytope lives in $3$-space, so we project it down to $2$-space 
+by eliminating the last coordinate. 
+
+```jldoctest
+julia> p = SIM_body([3,1])
+Polyhedron in ambient dimension 3
+
+julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
+Polyhedron in ambient dimension 2
+```
 """
 
-
 # function SIM_body(alpha::AbstractVector)
-#     pm_obj = Polymake.call_function(:polytope, :sim_body, Polymake.Vector{Polymake.Rational}(alpha))::Polymake.BigObject
-#     return polyhedron{QQFieldElem}(pm_obj)
+#     pm_obj = Polymake.call_function(:polytope, :SIM_body, Polymake.Vector{Polymake.Rational}(alpha))::Polymake.BigObject
+#     return Polyhedron{QQFieldElem}(pm_obj)
 # end
 
-# The above code does not work. Why? 
-
-SIM_body(alpha::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
+#the above code works fine, however this one is shorter
+SIM_body(alpha::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 
 
 @doc raw"""
@@ -1103,12 +1116,14 @@ We use the facet description given in section 9.2. of [Zie95](@cite).
 # Keywords
 - `d::Int`: the dimension 
 - `group::Bool`: Compute the combinatorial symmetry group of the polytope. 
-                  It has two generators, as it is induced by the symmetry group of a $d+3$-gon, the dihedral group of degree $d+3$. 
+                  It has two generators, as it is induced by the symmetry group 
+                  of a $d+3$-gon, the dihedral group of degree $d+3$. 
                   For details, see [CSZ15](@cite).
 
 
 # Examples
-The $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices and $5$ facets.
+The $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices
+and $5$ facets.
 ```jldoctest
 julia> A =  associahedron(2)
 Polyhedron in ambient dimension 4
