@@ -764,6 +764,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
     @hassert :GaloisCohomology 1 is_consistent(Et)
     iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, id_hom(U))
   else
+    #TODO: failing on x^8 + 70*x^4 + 15625
     @vprint :GaloisCohomology 2 " .. complex field, hard case ..\n"
     mG_inf = Oscar.decomposition_group(k, complex_embeddings(k)[1], mG)
     G_inf = domain(mG_inf)
@@ -787,8 +788,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
     #theta:
     theta = U[1] #should be a generator for torsion, torsion is even,
                  #hence this elem cannot be a square
-    T = abelian_group([order(U[1]), 0])             
-    ac_T = hom(T, T, [sigma(U[1])[1]*T[1], T[1]+T[2]])
 
     x = [preimage(mq, i) for i = x]
     y = [preimage(mq, i) for i = y]
@@ -811,13 +810,14 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
         push!(not_inv, i)
       end
     end
-    
+
     @assert length(not_inv) > 0
     @assert length(not_inv) + length(inv) == length(x)
     x = vcat(x[not_inv], x[inv]) #reordering
     theta_i = vcat(theta_i[not_inv], theta_i[inv])
     
     U_t, mU_t = sub(U, [U[1]])
+    
     sm1 = hom(U_t, U, [sigma(mU_t(g)) - mU_t(g) for g = gens(U_t)])
     eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
 
@@ -826,10 +826,12 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
     im_psi = [U[1], x[1]+ eta_i[1]]
     for i=2:length(not_inv)
       push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
+      @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
     end
     for i=length(not_inv)+1:length(x)
       push!(im_psi, x[i])
+      @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
     end
     for i=1:length(y)
@@ -837,13 +839,16 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
       push!(im_psi, sigma(y[i]))
     end
     psi = hom(V, U, im_psi)
+    @assert all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
     @assert is_bijective(psi)
     F = abelian_group([0 for i=2:length(x)])
     Hecke.assure_has_hnf(F)
     W, pro, inj = direct_product(V, F, task = :both)
     @assert isdefined(W, :hnf)
 
-    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, GrpAbFinGenElem[inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
+    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1]) +
+         GrpAbFinGenMap(pro[2]*hom(F, W, GrpAbFinGenElem[inj[1](V[i+1]) - inj[2](F[i-1]) for i=2:length(x)]))
+
     Et = gmodule(G_inf, [ac])
     @assert is_consistent(Et)
     mq = pseudo_inv(psi)*inj[1]
@@ -1012,6 +1017,9 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = 
 
   m0, m_inf = defining_modulus(A)
   @assert length(m_inf) == 0
+  if !is_normal(A)
+    A = normal_closure(A)
+  end
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
@@ -1026,12 +1034,14 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = 
   qI = cohomology_group(idel_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
+  @assert Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idel_parent.mG)
   qA = cohomology_group(gA, 2)
   aa = map_entries(a, parent = gA) do x
     J = ideal(idel_parent, x, coprime = m0)
     mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
   end
+  @assert Oscar.GrpCoh.istwo_cocycle(aa)
   return permutation_group(aa), (aa, gA)
 end
 
