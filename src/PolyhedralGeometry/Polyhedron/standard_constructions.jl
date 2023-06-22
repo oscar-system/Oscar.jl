@@ -1164,7 +1164,7 @@ binary_markov_graph(observation::Array{Bool}) -> Polyhedron
 Defines a very simple graph for a polytope propagation related to a Hidden Markov Model. 
 The propagated polytope is always a polygon. For a detailed description see [Jos05]@cite
 
-# Examples
+# Example
 julia> P = binary_markov_graph([100,345,12,17])
 Polyhedron in ambient dimension 2
 
@@ -1177,3 +1177,34 @@ julia> vertices(P)
 """
 binary_markov_graph(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(observation))
 
+@doc raw"""
+cyclic_caratheodory(d::Int, n::Int) -> Polyhedron
+
+Produce a d-dimensional cyclic polytope with n points. Prototypical example of a neighborly polytope. 
+Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the trigonometric moment curve. 
+For cyclic polytopes from other curves, see cyclic.
+
+# Examples
+>julia C = cyclic_caratheodory(4,5)
+Polyhedron in ambient dimension 4
+
+julia> f_vector(C)
+4-element Vector{ZZRingElem}:
+ 5
+ 10
+ 10
+ 5
+"""
+function cyclic_caratheodory(d::Int, n::Int)
+    if d < 2
+        throw(ArgumentError("The dimension has to be greater or equal to 2."))
+    end
+    if !iseven(d)
+        throw(ArgumentError("The dimension d (first argument) has to be even."))
+    end
+    if d >= n
+        throw(ArgumentError("The dimension d has to be strictly smaller than the number of points."))
+    end
+    P = Polymake.polytope.cyclic_caratheodory(d, n) 
+    return Polyhedron{QQFieldElem}(P)
+end
