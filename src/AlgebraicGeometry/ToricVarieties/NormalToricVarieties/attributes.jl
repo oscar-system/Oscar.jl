@@ -949,7 +949,7 @@ julia> fan(p2)
 Polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v))
+@attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v), QQ)
 
 
 @doc raw"""

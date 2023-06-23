@@ -360,7 +360,7 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)))
+product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)), get_parent_field(P))
 
 @doc raw"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -636,9 +636,15 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d,n))
+function cross_polytope(f::Union{Type{T}, Field}, d::Int64, n) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field)
+end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d))
+function cross_polytope(f::Union{Type{T}, Field}, d::Int64) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+end
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
@@ -664,7 +670,7 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-Polyhedron in ambient dimension 3 with nf_elem type coefficients
+Polyhedron in ambient dimension 3 with Hecke.EmbeddedNumFieldElem{nf_elem} type coefficients
 
 julia> nfacets(T)
 20
@@ -838,7 +844,7 @@ julia> f_vector(BL)
 
 ```
 """
-billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)))
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)), QQ)
 
 @doc raw"""
     polarize(P::Polyhedron)
@@ -863,7 +869,7 @@ julia> vertices(P)
 ```
 """
 function polarize(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)))
+    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), get_parent_field(P))
 end
 
 
@@ -933,7 +939,7 @@ julia> is_smooth(X)
 true
 ```
 """
-fano_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.fano_simplex(d))
+fano_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.fano_simplex(d), QQ)
 
 @doc raw"""
     del_pezzo_polytope(d::Int)
@@ -954,7 +960,7 @@ julia> f_vector(DP)
  30
 ```
 """
-del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.delpezzo(d))
+del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.delpezzo(d), QQ)
 
 @doc raw"""
     cyclic_polytope(d::Int, n::Int)
@@ -1077,5 +1083,5 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
   pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
-  return Polyhedron{T}(pm_obj)
+  return Polyhedron{T}(pm_obj, get_parent_field(P))
 end

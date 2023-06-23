@@ -11,8 +11,7 @@ end
 ## Introduction
 
 Let $\mathbb{F}$ be an ordered field; the default is that
-$\mathbb{F}=\mathbb{Q}$ is the field of rational numbers and other fields are
-not yet supported everywhere in the implementation.
+$\mathbb{F}=\mathbb{Q}$ is the field of rational numbers.
 
 A set $C \subseteq \mathbb{F}^n$ is called a *(polyhedral) cone* if it can be
 written as the set of nonnegative linear combinations of finitely many vectors

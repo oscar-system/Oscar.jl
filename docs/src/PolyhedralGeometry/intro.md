@@ -16,6 +16,11 @@ General textbooks offering details on theory and algorithms include:
 - [JT13](@cite)
 - [Zie95](@cite)
 
+## Scalar types
+
+The objects from polyhedral geometry operate on a given type, which (usually) resembles a field. This is indicated by the template parameter, e.g. the properties of a `Polyhedron{QQFieldElem}` are rational numbers of type `QQFieldElem`, if applicable.
+Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
+When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
 
 ## Type compatibility
 

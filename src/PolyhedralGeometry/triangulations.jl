@@ -439,7 +439,7 @@ Polyhedron in ambient dimension 8
 ```
 """
 function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
+    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)), get_parent_field(P))
 end
 
 @doc raw"""

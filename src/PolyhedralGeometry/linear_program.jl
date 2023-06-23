@@ -123,7 +123,7 @@ julia> LP=linear_program(C,[1,2,-3])
 Linear program
    max{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.Rational[1 2 -3]
+   c=Polymake.LibPolymake.Rational[1 2 -3]
    k=0
 
 julia> optimal_vertex(LP)
@@ -165,7 +165,7 @@ julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program
    min{c⋅x + k | x ∈ P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.Rational[1 2 -3]
+   c=Polymake.LibPolymake.Rational[1 2 -3]
    k=0
 
 julia> optimal_value(LP)

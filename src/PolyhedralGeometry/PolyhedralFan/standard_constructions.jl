@@ -165,7 +165,7 @@ julia> normal_fan(simplex(2))*normal_fan(simplex(3))
 Polyhedral fan in ambient dimension 5
 ```
 """
-function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan) # TODO: can product promote types? <=> allow different scalar types?
     prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
-    return PolyhedralFan{detect_scalar_type(PolyhedralFan, prod)}(prod)
+    return PolyhedralFan{detect_scalar_type(PolyhedralFan, prod)}(prod, get_parent_field(PF1))
 end
