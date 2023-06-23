@@ -185,6 +185,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element
+  primitive_element,
+  conjugate
 
 import cohomCalg_jll
