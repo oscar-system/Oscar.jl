@@ -1097,13 +1097,6 @@ julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
 Polyhedron in ambient dimension 2
 ```
 """
-
-# function SIM_body(alpha::AbstractVector)
-#     pm_obj = Polymake.call_function(:polytope, :SIM_body, Polymake.Vector{Polymake.Rational}(alpha))::Polymake.BigObject
-#     return Polyhedron{QQFieldElem}(pm_obj)
-# end
-
-#the above code works fine, however this one is shorter
 SIM_body(alpha::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 
 
@@ -1145,17 +1138,6 @@ julia> facets(A)
 -x₃ ≦ -1
 ```
 """
-
-# function associahedron(d::Int, group=false)
-#     opts = Dict{Symbol, Any}()
-#     if group !=false
-#         opts[:group] = convert(Int64, group)
-#     end
-#     pm_obj = Polymake.call_function(:polytope, :associahedron, d; opts...)::Polymake.BigObject
-#     return Polyhedron{QQFieldElem}(pm_obj)
-# end
-
-#the above code works fine, however this one is shorter
 associahedron(d::Int, group::Bool= false) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d,group=group)) 
 
 
@@ -1210,7 +1192,6 @@ julia> vertices(c)
  [0, 1, 1//2]
 ```
 """
-
 dwarfed_cube(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
 
 
@@ -1243,6 +1224,4 @@ julia> vertices(p)
  [3, 9, 0, 0]
 ```
 """
-
 dwarfed_product_polygons(d::Int, s::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
-

@@ -136,10 +136,15 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
+SIM_body
+associahedron
 billera_lee_polytope
+binary_markov_graph
 birkhoff_polytope
 cyclic_polytope
 del_pezzo_polytope
+dwarfed_cube
+dwarfed_product_polygons
 fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
