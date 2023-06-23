@@ -268,6 +268,7 @@ export betti_number
 export betti_numbers
 export betti_table
 export billera_lee_polytope
+export binary_markov_graph
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
@@ -460,6 +461,8 @@ export dual_continued_fraction_hirzebruch_jung
 export dual_matroid
 export dual_subdivision
 export dualgraph
+export dwarfed_cube
+export dwarfed_product_polygons
 export edgegraph
 export edges
 export ehrhart_polynomial

@@ -1074,7 +1074,7 @@ end
 
 
 @doc raw"""
-SIM_body(alpha::AbstractVector)
+SIM_body(alpha::AbstractVector) -> Polyhedron
 
 Produce an $n$-dimensional SIM-body as generalized permutahedron in 
 $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
@@ -1108,7 +1108,7 @@ SIM_body(alpha::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Pol
 
 
 @doc raw"""
-associahedron(d::Int, group=nothing)
+associahedron(d::Int, group=nothing) -> Polyhedron
 
 Produce a $d$-dimensional associahedron (or Stasheff polytope). 
 We use the facet description given in section 9.2. of [Zie95](@cite).
@@ -1158,13 +1158,16 @@ julia> facets(A)
 #the above code works fine, however this one is shorter
 associahedron(d::Int, group::Bool= false) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d,group=group)) 
 
+
 @doc raw""" 
 binary_markov_graph(observation::Array{Bool}) -> Polyhedron
 
-Defines a very simple graph for a polytope propagation related to a Hidden Markov Model. 
-The propagated polytope is always a polygon. For a detailed description see [Jos05]@cite
+Defines a very simple graph for a polytope propagation related to a Hidden 
+Markov Model. The propagated polytope is always a polygon. For a detailed 
+description see [Jos05](@cite).
 
-# Example
+# Examples
+```jldoctest
 julia> P = binary_markov_graph([100,345,12,17])
 Polyhedron in ambient dimension 2
 
@@ -1174,37 +1177,72 @@ julia> vertices(P)
  [1, 1]
  [0, 2]
  [0, 7]
+ ```
 """
 binary_markov_graph(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(observation))
 
 @doc raw"""
-cyclic_caratheodory(d::Int, n::Int) -> Polyhedron
+dwarfed_cube(d::Int) -> Polyhedron
 
-Produce a d-dimensional cyclic polytope with n points. Prototypical example of a neighborly polytope. 
-Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the trigonometric moment curve. 
-For cyclic polytopes from other curves, see cyclic.
+Produce a $d$-dimensional dwarfed cube as defined in [Jos03](@cite). 
+
+# Keywords
+- `d::Int`: the dimension 
 
 # Examples
->julia C = cyclic_caratheodory(4,5)
+The $3$-dimensional dwarfed cube is illustrated in [Jos03](@cite).
+
+```jldoctest
+julia> c = dwarfed_cube(3)
+Polyhedron in ambient dimension 3
+
+julia> vertices(c)
+10-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1//2, 0, 1]
+ [1//2, 1, 0]
+ [1, 0, 1//2]
+ [1, 1//2, 0]
+ [1, 0, 0]
+ [0, 0, 0]
+ [0, 1, 0]
+ [0, 1//2, 1]
+ [0, 0, 1]
+ [0, 1, 1//2]
+```
+"""
+
+dwarfed_cube(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
+
+
+@doc raw"""
+dwarfed_cube(d::Int) -> Polyhedron
+
+Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [Jos03](@cite). 
+
+# Keywords
+- `d::Int`: the dimension. It must be $d\geq4$ and even. 
+- `s::Int`: the size. It must be $s\geq 3$
+
+# Examples
+```jldoctest
+julia> p = dwarfed_product_polygons(4,3)
 Polyhedron in ambient dimension 4
 
-julia> f_vector(C)
-4-element Vector{ZZRingElem}:
- 5
- 10
- 10
- 5
+julia> vertices(p)
+11-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [5, 3, 0, 0]
+ [5, 0, 0, 0]
+ [2, 0, 3, 9]
+ [0, 0, 5, 3]
+ [0, 0, 3, 9]
+ [2, 6, 3, 9]
+ [0, 0, 5, 0]
+ [0, 0, 0, 0]
+ [3, 9, 2, 6]
+ [3, 9, 2, 0]
+ [3, 9, 0, 0]
+```
 """
-function cyclic_caratheodory(d::Int, n::Int)
-    if d < 2
-        throw(ArgumentError("The dimension has to be greater or equal to 2."))
-    end
-    if !iseven(d)
-        throw(ArgumentError("The dimension d (first argument) has to be even."))
-    end
-    if d >= n
-        throw(ArgumentError("The dimension d has to be strictly smaller than the number of points."))
-    end
-    P = Polymake.polytope.cyclic_caratheodory(d, n) 
-    return Polyhedron{QQFieldElem}(P)
-end
+
+dwarfed_product_polygons(d::Int, s::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
+
