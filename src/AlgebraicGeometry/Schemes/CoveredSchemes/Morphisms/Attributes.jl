@@ -42,3 +42,6 @@ function isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
   return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
 end
 
+@attr AbsCoveredSchemeMorphism function inverse(f::AbsCoveredSchemeMorphism)
+  error("method not implemented")
+end

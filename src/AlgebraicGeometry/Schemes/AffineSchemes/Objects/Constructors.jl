@@ -184,6 +184,26 @@ end
 standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
+#@doc raw"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> X = Spec(R, I)
+#Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[1]
+#```
+#"""
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
   A = OO(X)
   R = base_ring(A)
@@ -191,8 +211,53 @@ function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
 end
 
 
+#@doc raw"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> U = complement_of_prime_ideal(I);
+#
+#julia> X = Spec(R, U)
+#Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
+#```
+#"""
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
+
+#@doc raw"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> U = complement_of_prime_ideal(ideal(R, [y]));
+#
+#julia> X = Spec(R, I, U)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+#```
+#"""
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
 
 
@@ -363,7 +428,7 @@ defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over rational field
+  over Rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -645,7 +710,6 @@ function closure(X::AbsSpec, Y::AbsSpec, check= true)
   error("not implemented")
 end
 
-
 function closure(
     X::AbsSpec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
     Y::AbsSpec{BRT, <:MPolyAnyRing};
@@ -701,8 +765,8 @@ function closure(
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
-  issubset(X, Y) || error("the first argument is not a subset of the second")
-  is_closed_embedding(X, Y) && return X
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  #is_closed_embedding(X, Y) && return X
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
@@ -710,9 +774,3 @@ function closure(
   return Spec(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
 end
 
-@doc raw"""
-    closure(X::AbsSpec) -> AbsSpec
-
-Return the closure of `X` in its ambient affine space.
-"""
-closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)

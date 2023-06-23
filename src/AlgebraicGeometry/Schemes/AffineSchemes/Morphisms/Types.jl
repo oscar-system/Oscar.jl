@@ -72,6 +72,7 @@ over the same `base_ring`, with underlying ring homomorphism
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     @check begin
       # do some more expensive tests
+      true
     end
     return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
