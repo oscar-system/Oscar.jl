@@ -551,7 +551,6 @@ identifications given by the glueings in the `default_covering`.
           end
         end
       end
-      true
     end
     return I
   end
