@@ -7,45 +7,34 @@ include("groebner_basis.jl")
 include("groebner_polyhedron.jl")
 include("points.jl")
 
-# Temporarily we will turn tropical polynomials into strings. This will be
-# removed once Polymake.jl wraps its tropical polynomials and tropical numbers
-#
-# Warning: This function ignores all boundary cases!
-function tropical_polynomial_to_polymake(f)
-    fstr = ""
-    if convention(base_ring(f)) == min
-        fstr *= "min("
-    else
-        fstr *= "max("
-    end
-    td = total_degree(f)
-    for i in 1:length(f)
-        fstr *= repr(coeff(f,i).data)
-        e = exponent_vector(f,i)
-        if td - sum(e) != 0
-            fstr *= "+"
-            fstr *= repr(td-sum(e))
-            fstr *= "x_0"
-        end
-        if !iszero(e)
-            for j in 1:length(e)
-                if !iszero(e[j])
-                    fstr *= "+"
-                    fstr *= repr(e[j])
-                    fstr *= "*x_"
-                    fstr *= repr(j)
-                end
-            end
-        end
-        if i != length(f)
-            fstr *= ","
-        end
-    end
-    fstr *= ")"
-    result = ["x_"*repr(i) for i in 0:nvars(parent(f))]
-    prepend!(result, [fstr])
-    return result
+# Decompose a tropical polynomial into parts that Polymake can eat.
+# First function deals with the coefficients,
+# Second function then deals with the entire polynomial.
+function homogenize_and_convert_to_pm(t::Oscar.TropicalSemiringElem{S}) where S<:Union{typeof(max), typeof(min)}
+   Add = S == typeof(max) ? Polymake.Max : Polymake.Min
+   if isinf(t)
+      return Polymake.TropicalNumber{Add}()
+   else
+      return Polymake.TropicalNumber{Add}(Polymake.new_rational_from_fmpq(data(t)))
+   end
 end
+
+function homogenize_and_convert_to_pm(f::Oscar.MPolyRingElem{Oscar.TropicalSemiringElem{S}}) where S<:Union{typeof(max), typeof(min)}
+   Add = S == typeof(max) ? Polymake.Max : Polymake.Min
+   coeffs = (Polymake.TropicalNumber{Add})[]
+   td = total_degree(f)
+   exps = (Vector{Int})[]
+   for term in terms(f)
+      push!(coeffs, homogenize_and_convert_to_pm(leading_coefficient(term)))
+      exp = leading_exponent_vector(term)
+      prepend!(exp, td-sum(exp))
+      push!(exps, exp)
+   end
+   exps = matrix(ZZ, exps)
+   coeffs = Polymake.Vector{Polymake.TropicalNumber{Add, Polymake.Rational}}(coeffs)
+   return coeffs, exps
+end
+
 
 
 ###
