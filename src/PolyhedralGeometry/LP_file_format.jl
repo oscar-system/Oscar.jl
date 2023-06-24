@@ -96,7 +96,7 @@ julia> save_mps(stdout, milp)
 * Columns:	2
 * Format:	MPS
 *
-Name          unnamed#0
+NAME          unnamed#0
 ROWS
  N  C0000000
  G  R0000000
