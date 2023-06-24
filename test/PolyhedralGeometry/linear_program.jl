@@ -94,7 +94,7 @@ for f in (QQ, ENF)
                       * Columns:	2
                       * Format:	MPS
                       *
-                      Name          unnamed#2
+                      NAME          unnamed#2
                       ROWS
                        N  C0000000
                        G  R0000000
