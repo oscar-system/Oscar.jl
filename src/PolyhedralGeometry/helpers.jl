@@ -433,6 +433,7 @@ _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
     T = detect_scalar_type(U, p)
     return (T, _detect_default_field(T, p))
+end
 
 # oscarnumber helpers
 
