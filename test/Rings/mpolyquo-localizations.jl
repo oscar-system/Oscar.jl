@@ -266,3 +266,33 @@ end
   K = phiQ2L1(phiQ2(I2*I3*I4*I5))
   @test saturation(K,J) == phiQ2L1(phiQ2(ideal(R,[x-y])))
 end
+
+@testset "algebras as vector spaces" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, [x^3- 2, y^2+3*x])
+  I = (x-8)^2*I
+  L, _ = localization(R, powers_of_element(x-8))
+  A, pr = quo(L, L(I))
+  V, id = vector_space(QQ, A)
+  @test dim(V) == 6
+  @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
+  f = (x*3*y-4)^5
+  f = A(f)
+  @test id(preimage(id, f)) == f
+  v = V[3] - 4*V[5]
+  @test preimage(id, id(v)) == v
+
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, [x^3, (y-1)^2+3*x])
+  I = (x-8)^2*I
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
+  A, pr = quo(L, L(I))
+  V, id = vector_space(QQ, A)
+  @test dim(V) == 6
+  f = (x*3*y-4)^5
+  f = A(f)
+  @test id(preimage(id, f)) == f
+  v = V[3] - 4*V[5]
+  @test preimage(id, id(v)) == v
+end
+

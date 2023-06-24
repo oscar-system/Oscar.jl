@@ -24,7 +24,9 @@ end
 # Auxiliary methods for compatibility                                  #
 ########################################################################
 lifted_numerator(f::MPolyRingElem) = f
+lifted_denominator(f::MPolyRingElem) = one(f)
 lifted_numerator(f::MPolyQuoRingElem) = lift(f)
+lifted_denominator(f::MPolyQuoRingElem) = one(lift(f))
 
 function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   X = domain(f)
@@ -95,3 +97,18 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
   YY = domain(codomain_map)
   return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
 end
+
+function _register_birationality!(f::AbsCoveredSchemeMorphism, 
+    g::AbsSpecMor, ginv::AbsSpecMor)
+  set_attribute!(g, :inverse, ginv)
+  set_attribute!(ginv, :inverse, g)
+  return _register_birationality(f, g)
+end
+
+function _register_birationality!(f::AbsCoveredSchemeMorphism, 
+    g::AbsSpecMor
+  )
+  set_attribute!(f, :is_biraional, true)
+  set_attribute!(f, :iso_on_open_subset, g)
+end
+

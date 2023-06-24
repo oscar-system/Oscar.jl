@@ -1,3 +1,4 @@
 ################################################################################
-# Everything is inherited from AbsSpec
+# Avoid computing the reduced structure by using the fat_scheme
 ################################################################################
+

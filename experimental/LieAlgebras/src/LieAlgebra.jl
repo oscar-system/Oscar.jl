@@ -32,19 +32,46 @@ gens(L::LieAlgebra{C}) where {C<:RingElement} = basis(L)
 
 gen(L::LieAlgebra{C}, i::Int) where {C<:RingElement} = basis(L, i)
 
+@doc raw"""
+    dim(L::LieAlgebra{C}) -> Int
+
+Return the dimension of the Lie algebra `L`.
+"""
+dim(_::LieAlgebra{C}) where {C<:RingElement} = error("Should be implemented by subtypes.")
+
+@doc raw"""
+    basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
+
+Return a basis of the Lie algebra `L`.
+"""
 basis(L::LieAlgebra{C}) where {C<:RingElement} =
   [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 
+@doc raw"""
+    basis(L::LieAlgebra{C}, i::Int) -> LieAlgebraElem{C}
+
+Return the `i`-th basis element of the Lie algebra `L`.
+"""
 function basis(L::LieAlgebra{C}, i::Int) where {C<:RingElement}
   R = base_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
 
+@doc raw"""
+    zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
+
+Return the zero element of the Lie algebra `L`.
+"""
 function zero(L::LieAlgebra{C}) where {C<:RingElement}
   mat = zero_matrix(base_ring(L), 1, dim(L))
   return elem_type(L)(L, mat)
 end
 
+@doc raw"""
+    iszero(x::LieAlgebraElem{C}) -> Bool
+
+Check whether the Lie algebra element `x` is zero.
+"""
 function iszero(x::LieAlgebraElem{C}) where {C<:RingElement}
   return iszero(coefficients(x))
 end
@@ -53,18 +80,28 @@ end
   return (x.mat)::dense_matrix_type(C)
 end
 
+@doc raw"""
+    coefficients(x::LieAlgebraElem{C}) -> Vector{C}
+
+Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
+"""
 function coefficients(x::LieAlgebraElem{C}) where {C<:RingElement}
   return collect(Generic._matrix(x))[1, :]
 end
 
+@doc raw"""
+    coeff(x::LieAlgebraElem{C}, i::Int) -> C
+
+Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
+"""
 function coeff(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
   return Generic._matrix(x)[1, i]
 end
 
 @doc raw"""
-    getindex(x::LieAlgebraElem{C}, i::Int) where C <: RingElement
+    getindex(x::LieAlgebraElem{C}, i::Int) -> C
 
-Return the $i$-th coefficient of the module element $x$.
+Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
 function getindex(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
   return coeff(x, i)
@@ -84,6 +121,14 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    symbols(L::LieAlgebra{C}) -> Vector{Symbol}
+
+Return the symbols used for printing basis elements of the Lie algebra `L`.
+"""
+symbols(_::LieAlgebra{C}) where {C<:RingElement} =
+  error("Should be implemented by subtypes.")
+
 function expressify(
   v::LieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
 ) where {C<:RingElement}
@@ -102,33 +147,65 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    (L::LieAlgebra{C})() -> LieAlgebraElem{C}
+
+Return the zero element of the Lie algebra `L`.
+"""
 function (L::LieAlgebra{C})() where {C<:RingElement}
   return zero(L)
 end
 
+@doc raw"""
+    (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficent vector `v`.
+Fail, if `Int` cannot be coerced into the base ring of `L`.
+"""
 function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
   return L(base_ring(L).(v))
 end
 
+@doc raw"""
+    (L::LieAlgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficent vector `v`.
+"""
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(base_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
 end
 
+@doc raw"""
+    (L::LieAlgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector equivalent to
+the $1 \times \dim(L)$ matrix `mat`.
+"""
 function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
   @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
 end
 
+@doc raw"""
+    (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficent vector `v`.
+"""
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(L))
   return elem_type(L)(L, mat)
 end
 
-function (L::LieAlgebra{C})(v::LieAlgebraElem{C}) where {C<:RingElement}
-  @req L == parent(v) "Incompatible modules."
-  return v
+@doc raw"""
+    (L::LieAlgebra{C})(x::LieAlgebraElem{C}) -> LieAlgebraElem{C}
+
+Return `x`. Fails if `x` is not an element of `L`.
+"""
+function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:RingElement}
+  @req L == parent(x) "Incompatible modules."
+  return x
 end
 
 ###############################################################################
@@ -190,7 +267,9 @@ end
 
 function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
   b = 0x6724cbedbd860982 % UInt
-  return xor(hash(coefficients(x), hash(parent(x), h)), b)
+  h = hash(parent(x), h)
+  h = hash(coefficients(x), h)
+  return xor(h, b)
 end
 
 ###############################################################################
@@ -199,6 +278,16 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    lie_algebra(gapL::GAP.GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
+
+Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
+or by `x_i` by default.
+We require `gapL` to be a finite-dimensional GAP Lie algebra. The return type is dependent on
+properties of `gapL`, in particular, whether GAP knows about a matrix representation.
+
+If `cached` is `true`, the constructed Lie algebra is cached.
+"""
 function lie_algebra(
   gapL::GAP.GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];

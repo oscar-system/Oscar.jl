@@ -1966,3 +1966,114 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
+
+function vector_space(kk::Field, W::MPolyQuoLocRing;
+    ordering::MonomialOrdering=degrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_sat = saturated_ideal(modulus(W))::MPolyIdeal
+  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  o = ordering
+  # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
+  A, pr = quo(R, I_sat) 
+  f = hom(W, A, gens(A))
+  g = hom(A, W, gens(W))
+  set_attribute!(f, :inverse, g)
+  set_attribute!(g, :inverse, f)
+  V, id = vector_space(kk, A)
+  return V, MapFromFunc(v->g(id(v)), a->preimage(id, f(a)), V, W)
+end
+
+function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem, 
+                                                    <:MPolyRing, <:MPolyRingElem,
+                                                    <:MPolyComplementOfKPointIdeal
+                                                   };
+    ordering::MonomialOrdering=negdegrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_shift = shifted_ideal(I)::MPolyIdeal
+
+  # Collect all monomials which are not in the leading ideal as representatives 
+  # of a basis over kk.
+  lead_I = leading_ideal(I_shift, ordering=ordering)
+  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  V_gens = elem_type(R)[]
+  done = false
+  d = 0
+  while !done
+    inc = [m for m in all_monomials(R, d) if !(m in lead_I)]
+    if iszero(length(inc))
+      done = true
+      break
+    end
+    V_gens = vcat(V_gens, [m for m in all_monomials(R, d) if !(m in lead_I)])
+    d = d + 1
+  end
+
+  n = length(V_gens)
+  V = free_module(kk, n)
+  L = localized_ring(W)::MPolyLocRing
+  shift, backshift = base_ring_shifts(L)
+
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = R(0)
+    for k=1:length(V_gens)
+      c = a[k]
+      if !iszero(c)
+        b += c*V_gens[k]
+      end
+    end
+    return W(backshift(b))
+  end
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(f::MPolyQuoLocRingElem)
+    @assert parent(f) === W
+    isone(denominator(f)) || error("handling of non-trivial denominators not implemented")
+    b = lifted_numerator(f)
+    b = shift(b)
+    # TODO: The normal form command seems to do something unexpected here.
+    # Please investigate!
+    #b = normal_form(b, I_shift, ordering=ordering)
+    result = zero(V)
+    # The following is an ugly hack, because normal_form is currently broken 
+    # for local oderings.
+    while !iszero(b)
+      m = leading_monomial(b, ordering=ordering)
+      c = leading_coefficient(b, ordering=ordering)
+      t = normal_form(c*m, I_shift, ordering=ordering)
+      if t == c*m 
+        j = findfirst(n->n==m, V_gens)
+        result = result + c * V[j]
+        b = b - c * m
+      else
+        b = b - c*m + t
+      end
+    end
+    return result
+  end
+  return V, MapFromFunc(im, prim, V, W)
+end
+
+
+# diasambiguate some conversions
+# ... but this needs to be after some type declarations... so here it is
+function (W::MPolyDecRing)(f::MPolyQuoRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyQuoLocRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyLocRingElem)
+  return W(forget_decoration(W)(f))
+end
+

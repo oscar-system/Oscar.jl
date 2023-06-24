@@ -519,7 +519,7 @@ end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
   @assert is_zm_graded(parent(f))
-  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  d = degree(f)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
