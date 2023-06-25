@@ -21,13 +21,13 @@ If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ,n)`.
 ```jldoctest
 julia> R,x = polynomial_ring(ZZ, ["a","b","c"]);
 
-julia> schur_polynomial(R, Partition([2,1]))
+julia> schur_polynomial(R, partition([2,1]))
 a^2*b + a*b^2
 
-julia> schur_polynomial(R, Partition([2,1]), 3)
+julia> schur_polynomial(R, partition([2,1]), 3)
 a^2*b + a^2*c + a*b^2 + 2*a*b*c + a*c^2 + b^2*c + b*c^2
 
-julia> schur_polynomial(Partition([2]))
+julia> schur_polynomial(partition([2]))
 x1^2
 ```
 

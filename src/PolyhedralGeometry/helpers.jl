@@ -345,6 +345,7 @@ end
 abstract type PolyhedralObject{T} end
 
 get_parent_field(x::PolyhedralObject) =  x.parent_field
+get_parent_field(x::PolyhedralObject{QQFieldElem}) = QQ
 
 ################################################################################
 ######## Scalar types
@@ -443,4 +444,23 @@ _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
     T = detect_scalar_type(U, p)
     return (T, _detect_default_field(T, p))
+end
+
+# oscarnumber helpers
+
+function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{nf_elem})
+   return Rational{BigInt}(QQ(data(e)))
+end
+
+function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{nf_elem})
+   return is_rational(data(e))
+end
+
+function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{NfAbsNSElem})
+   return degree(data(e)) <= 1
+end
+
+function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{NfAbsNSElem})
+   c = coefficients(minpoly(data(e)))
+   return Rational{BigInt}(-c[0]//c[1])
 end

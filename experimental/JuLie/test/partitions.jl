@@ -3,17 +3,17 @@
 	############################################################################
 	# Partition constructor
 	############################################################################
-	@test Partition{Int8}(2,2,1) == Partition(Int8[2,2,1])
-	@test typeof(Partition{Int8}(2,2,1)) == typeof(Partition(Int8[2,2,1]))
-	@test Partition{Int8}(1) == Partition(Int8[1])
-	@test typeof(Partition{Int8}(1)) == typeof(Partition(Int8[1]))
-	@test Partition{Int8}() == Partition(Int8[])
-	@test typeof(Partition{Int8}()) == typeof(Partition(Int8[]))
+	@test partition(Int8,2,2,1) == partition(Int8[2,2,1])
+	@test typeof(partition(Int8,2,2,1)) == typeof(partition(Int8[2,2,1]))
+	@test partition(Int8,1) == partition(Int8[1])
+	@test typeof(partition(Int8,1)) == typeof(partition(Int8[1]))
+	@test partition(Int8,) == partition(Int8[])
+	@test typeof(partition(Int8,)) == typeof(partition(Int8[]))
 
-	@test Partition(2,2,1) == Partition([2,2,1])
-	@test Partition(1) == Partition([1])
-	@test Partition() == Partition([])
-	@test Partition{Int8}() == Partition(Int8[])
+	@test partition(2,2,1) == partition([2,2,1])
+	@test partition(1) == partition([1])
+	@test partition() == partition([])
+	@test partition(Int8) == partition(Int8[])
 
 	############################################################################
 	# num_partitions(n)
@@ -217,7 +217,7 @@
 
 	# Issues from https://github.com/oscar-system/Oscar.jl/issues/2043
 	@test length(partitions(17, 3, [1,4], [1,4])) == 0
-	@test partitions(17, 5, [1,4], [1,4]) == [ Partition(4,4,4,4,1) ]
+	@test partitions(17, 5, [1,4], [1,4]) == [ partition(4,4,4,4,1) ]
 	@test length(partitions(17,6,[1,2], [1,7])) == 0
 	@test length(partitions(20,5,[1,2,3],[1,3,6])) == 0
 
@@ -268,26 +268,26 @@
 	############################################################################
 	# dominates(P)
 	############################################################################
-	@test dominates(Partition([4,2]), Partition([3,2,1])) == true
-	@test dominates(Partition([4,1,1]), Partition([3,3])) == false
-	@test dominates(Partition([3,3]), Partition([4,1,1])) == false
-	@test dominates(Partition([5]), Partition([2,2,2])) == false
+	@test dominates(partition([4,2]), partition([3,2,1])) == true
+	@test dominates(partition([4,1,1]), partition([3,3])) == false
+	@test dominates(partition([3,3]), partition([4,1,1])) == false
+	@test dominates(partition([5]), partition([2,2,2])) == false
 
 	# Ful97, page 26
-	@test dominates( Partition(3,1), Partition(2,2) ) == true
-	@test dominates( Partition(4,1), Partition(3,3) ) == false
+	@test dominates( partition(3,1), partition(2,2) ) == true
+	@test dominates( partition(4,1), partition(3,3) ) == false
 
 	############################################################################
 	# conjugate(P)
 	############################################################################
 	
 	# From Knu11, page 394
-	@test conjugate(Partition(8,8,8,7,2,1,1)) == Partition([7, 5, 4, 4, 4, 4, 4, 3])
+	@test conjugate(partition(8,8,8,7,2,1,1)) == partition([7, 5, 4, 4, 4, 4, 4, 3])
 	
 	# From Ful97, page 2
-	@test conjugate(Partition([6,4,3,1])) == Partition([4, 3, 3, 2, 1, 1])
+	@test conjugate(partition([6,4,3,1])) == partition([4, 3, 3, 2, 1, 1])
 
-	@test conjugate(Partition([])) == Partition([])
+	@test conjugate(partition([])) == partition([])
 
 	# Check if conjugate is an involution
 	check = true

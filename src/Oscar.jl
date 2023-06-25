@@ -20,6 +20,7 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 module Oscar
 
 using Preferences
+using LazyArtifacts
 
 include("imports.jl")
 
@@ -94,8 +95,9 @@ function __init__()
     add_assert_scope(:K3Auto)
 
     add_verbose_scope(:GlobalTateModel)
-    add_verbose_scope(:GlobalWeierstrassModel)
-
+    add_verbose_scope(:WeierstrassModel)
+    add_verbose_scope(:HypersurfaceModel)
+    
     add_verbosity_scope(:LinearQuotients)
 end
 

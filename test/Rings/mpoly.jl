@@ -197,6 +197,11 @@ end
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
   d = absolute_primary_decomposition(I)
   @test length(d) == 5
+
+  # is_prime
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, [one(R)])
+  @test is_prime(I) == false
 end
 
 @testset "Groebner" begin

@@ -9,6 +9,7 @@ struct PolyhedralComplex{T} <: PolyhedralObject{T}
     parent_field::Field
     
     PolyhedralComplex{T}(pm::Polymake.BigObject, p::Field) where T<:scalar_types = new{T}(pm, p)
+    PolyhedralComplex{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
 end
 
 

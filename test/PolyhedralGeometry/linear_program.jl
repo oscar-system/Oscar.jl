@@ -36,11 +36,11 @@ for f in (QQ, ENF)
             @test solve_lp(LP1)==(4,[1,1])
             @test solve_lp(LP2)==(-1,[-1,-1])
             if T == QQFieldElem
-                str = ""
+                @test string(solve_lp(LP3))==string("(inf, nothing)")
             else
-                str = "pm::QuadraticExtension<pm::Rational>\n"
+                str = "common::OscarNumber\n"
+                @test string(solve_lp(LP3))==string("(", str, "(inf), nothing)")
             end
-            @test string(solve_lp(LP3))==string("(", str, "inf, nothing)")
         end
         
         if T == QQFieldElem
@@ -55,12 +55,7 @@ for f in (QQ, ENF)
                 
                 @test solve_milp(MILP1)==(11//2,[1,3//2])
                 @test solve_milp(MILP2)==(-1,[-1,-1])
-                if T == QQFieldElem
-                    str = ""
-                else
-                    str = "pm::QuadraticExtension<pm::Rational>\n"
-                end
-                @test string(solve_milp(MILP3))==string("(", str, "inf, nothing)")
+                @test string(solve_milp(MILP3))==string("(inf, nothing)")
             end
             
             @testset "LinearProgram: lp and mps files" begin
@@ -94,7 +89,7 @@ for f in (QQ, ENF)
                       * Columns:	2
                       * Format:	MPS
                       *
-                      Name          unnamed#2
+                      NAME          unnamed#2
                       ROWS
                        N  C0000000
                        G  R0000000

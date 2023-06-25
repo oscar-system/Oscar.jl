@@ -177,6 +177,9 @@ end
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
+
+  S, t = graded_polynomial_ring(QQ, ["t"], [1])
+  @test_throws ErrorException R(gen(S, 1))
 end
 
 @testset "Evaluation" begin

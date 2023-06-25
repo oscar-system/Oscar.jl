@@ -735,30 +735,35 @@ julia> (v1, v2) = normal_toric_varieties_from_star_triangulations(P)
  Normal toric variety
 
 julia> stanley_reisner_ideal(v1)
-ideal(x2*x4)
+ideal(x1*x4)
 
 julia> stanley_reisner_ideal(v2)
-ideal(x1*x3)
+ideal(x2*x3)
 ```
 """
 function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
-    # triangulate the polyhedron
-    trias = star_triangulations(P)
     
-    # Currently, the rays in trias[1]
-    # (a) are encoded as QQMatrix (ZZRingElem expected)
-    # (b) contain the origin as first element (not a rays, so to be removed)
-    rays = trias[1]
-    integral_rays = zeros(ZZ, nrows(rays)-1, ncols(rays))
-    for i in 2:nrows(rays)
-        integral_rays[i-1, 1:ncols(rays)] = [ZZ(c) for c in rays[i, 1:ncols(rays)]]
-    end
+    # find position of origin in the lattices points of the polyhedron P
+    pts = matrix(ZZ, lattice_points(P))
+    zero = [0 for i in 1:ambient_dim(P)]
+    indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+    @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
     
-    # trias[2] contains the max_cones as list of lists
+    # change order of lattice points s.t. zero is the first point
+    tmp = pts[1,:]
+    pts[1,:] = pts[indices[1],:]
+    pts[indices[1],:] = tmp
+    
+    # triangulate the points - note that we enforce full, i.e. want all points to be rays
+    trias = star_triangulations(pts; full = true)
+    
+    # rays are all but the zero vector at the first position of pts
+    integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+    
+    # trias contains the max_cones as list of lists
     # (a) needs to be converted to incidence matrix
     # (b) one has to remove origin from list of indices (as removed above)
-    max_cones = trias[2]
-    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
+    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in trias]
     
     # construct the varieties
     return [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
@@ -802,6 +807,19 @@ julia> charges = [[1, 1, 1]]
 julia> normal_toric_varieties_from_glsm(charges)
 1-element Vector{NormalToricVariety}:
  Normal toric variety
+
+julia> varieties = normal_toric_varieties_from_glsm(matrix(ZZ, [1 2 3 4 6 0; -1 -1 -2 -2 -3 1]))
+1-element Vector{NormalToricVariety}:
+ Normal toric variety
+
+julia> cox_ring(varieties[1])
+Multivariate polynomial ring in 6 variables over QQ graded by 
+  x1 -> [1 -1]
+  x2 -> [2 -1]
+  x3 -> [3 -2]
+  x4 -> [4 -2]
+  x5 -> [6 -3]
+  x6 -> [0 1]
 ```
 
 For convenience, we also support:
@@ -809,19 +827,16 @@ For convenience, we also support:
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
 function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
-    # compute the map from Div_T -> Cl
+    
+    # find the ray generators
     source = free_abelian_group(ncols(charges))
     range = free_abelian_group(nrows(charges))
     map = hom(source, range, transpose(charges))
-    
-    # compute the map char -> Div_T
     ker = kernel(map)
     embedding = snf(ker[1])[2] * ker[2]
-    
-    # identify the rays
     rays = transpose(embedding.map)
     
-    # construct vertices of polyhedron
+    # identify the points to be triangulated
     pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
     for i in 1:nrows(rays)
         pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
@@ -829,9 +844,23 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     zero = [0 for i in 1:ncols(charges)-nrows(charges)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
     
-    # construct polyhedron
-    p = convex_hull(pts)
-    return normal_toric_varieties_from_star_triangulations(p; set_attributes = set_attributes)
+    # construct varieties
+    integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
+    varieties = [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    
+    # set the map from Div_T -> Cl to the desired matrix
+    for v in varieties
+      G1 = free_abelian_group(ncols(charges))
+      G2 = free_abelian_group(nrows(charges))
+      grading_of_cox_ring = hom(G1, G2, transpose(charges))
+      set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+      set_attribute!(v, :class_group, G2)
+      set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
+    end
+    
+    # return the varieties
+    return varieties
 end
 normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
 

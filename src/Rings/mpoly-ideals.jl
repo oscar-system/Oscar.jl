@@ -445,7 +445,7 @@ end
 @doc raw"""
     primary_decomposition(I::MPolyIdeal; algorithm = :GTZ, cache=true)
 
-Return a minimal primary decomposition of `I`. If `I` is the unit ideal, return `[ideal(1)]`.
+Return a minimal primary decomposition of `I`.
 
 The decomposition is returned as a vector of tuples $(Q_1, P_1), \dots, (Q_t, P_t)$, say,
 where each $Q_i$ is a primary ideal with associated prime $P_i$, and where the intersection of
@@ -533,14 +533,18 @@ function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   else
     error("base ring not implemented")
   end
-  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
+  V = [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
+  if length(V) == 1 && is_one(gen(V[1][1], 1))
+    return Tuple{typeof(I), typeof(I)}[]
+  end
+  return V
 end
 
 ########################################################
 @doc raw"""
     absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
 
-If `I` is an ideal in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of `I`.
+Given an ideal `I` in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of `I`.
 
 Return the decomposition as a vector of tuples $(Q_i, P_i, P_{ij}, d_{ij})$, say,
 where $(Q_i, P_i)$ is a (primary, prime) tuple as returned by `primary_decomposition(I)`,
@@ -625,11 +629,14 @@ Multivariate polynomial ring in 2 variables over number field graded by
   decomp = d[:primary_decomp]
   absprimes = d[:absolute_primes]
   @assert length(decomp) == length(absprimes)
-  return [(_map_last_var(R, decomp[i][1], 1, one(QQ)),
-           _map_last_var(R, decomp[i][2], 1, one(QQ)),
-           _map_to_ext(R, absprimes[i][1]),
-           absprimes[i][2]::Int)
-          for i in 1:length(decomp)]
+  V =  [(_map_last_var(R, decomp[i][1], 1, one(QQ))) for i in 1:length(decomp)]
+  if length(V) == 1 && is_one(gen(V[1], 1))
+    return Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}, Int64}[]
+  end 
+  return [(V[i], _map_last_var(R, decomp[i][2], 1, one(QQ)),
+         _map_to_ext(R, absprimes[i][1]),
+         absprimes[i][2]::Int)
+         for i in 1:length(decomp)]
 end
 
 # the ideals in QQbar[x] come back in QQ[x,a] with an extra variable a added
@@ -670,7 +677,6 @@ end
     minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 
 Return a vector containing the minimal associated prime ideals of `I`.
-If `I` is the unit ideal, return `[ideal(1)]`.
 
 # Implemented Algorithms
 
@@ -739,7 +745,11 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   else
     error("base ring not implemented")
   end
-  return [ideal(R, i) for i in l]
+  V = [ideal(R, i) for i in l]
+  if length(V) == 1 && is_one(gen(V[1], 1))
+    return typeof(I)[]
+  end
+  return V
 end
 #######################################################
 @doc raw"""
@@ -749,7 +759,7 @@ Return a vector of equidimensional ideals where the last entry is the
 equidimensional hull of `I`, that is, the intersection of the primary
 components of `I` of maximal dimension. Each of the previous entries
 is an ideal of lower dimension whose associated primes are exactly the associated
-primes of `I` of that dimension. If `I` is the unit ideal, return `[ideal(1)]`.
+primes of `I` of that dimension.
 
 # Implemented Algorithms
 
@@ -777,7 +787,11 @@ julia> L = equidimensional_decomposition_weak(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
-  return [ideal(R, i) for i in l]
+  V = [ideal(R, i) for i in l]
+  if length(V) == 1 && is_one(gen(V[1], 1))
+    return typeof(I)[]
+  end
+  return V
 end
 
 @doc raw"""
@@ -785,7 +799,7 @@ end
 
 Return a vector of equidimensional radical ideals increasingly ordered by dimension.
 For each dimension, the returned radical ideal is the intersection of the associated primes
-of `I` of that dimension. If `I` is the unit ideal, return `[ideal(1)]`.
+of `I` of that dimension. 
 
 # Implemented Algorithms
 
@@ -813,7 +827,11 @@ julia> L = equidimensional_decomposition_radical(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
-  return [ideal(R, i) for i in l]
+  V = [ideal(R, i) for i in l]
+  if length(V) == 1 && is_one(gen(V[1], 1))
+    return typeof(I)[]
+  end
+  return V
 end
 #######################################################
 @doc raw"""

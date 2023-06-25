@@ -7,7 +7,7 @@ export blow_up
 export controlled_transform
 export covered_scheme
 export empty_covered_projective_scheme
-export glueing_type
+#export glueing_type
 export projective_patches
 export strict_transform
 export weak_transform
@@ -107,14 +107,16 @@ over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjective
 """
 mutable struct ProjectiveGlueing{
                                  GlueingType<:AbsGlueing,
-                                 IsoType<:ProjectiveSchemeMor,
-                                 IncType<:ProjectiveSchemeMor
+                                 IsoType1<:ProjectiveSchemeMor,
+                                 IncType1<:ProjectiveSchemeMor,
+                                 IsoType2<:ProjectiveSchemeMor,
+                                 IncType2<:ProjectiveSchemeMor,
                                 } <: AbsProjectiveGlueing{GlueingType}
   G::GlueingType # the underlying glueing of the base schemes
-  inc_to_P::IncType
-  inc_to_Q::IncType
-  f::IsoType
-  g::IsoType
+  inc_to_P::IncType1
+  inc_to_Q::IncType2
+  f::IsoType1
+  g::IsoType2
 
   ### 
   # Given two relative projective schemes and a glueing 
@@ -128,10 +130,10 @@ mutable struct ProjectiveGlueing{
   # and isomorphisms over the glueing G in the base schemes.
   function ProjectiveGlueing(
       G::GlueingType, 
-      incP::IncType, incQ::IncType,
-      f::IsoType, g::IsoType;
+      incP::IncType1, incQ::IncType2,
+      f::IsoType1, g::IsoType2;
       check::Bool=true
-    ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
+    ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
     (fb, gb) = glueing_morphisms(G)
@@ -156,15 +158,16 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
-    return new{GlueingType, IsoType, IncType}(G, incP, incQ, f, g)
+    return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end
 
 ### type getters
-
+#=
+TODO: Do we need these?
 glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
 glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
-
+=#
 ### essential getters
 
 base_glueing(PG::ProjectiveGlueing) = PG.G
@@ -692,7 +695,6 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   t_j = gen(T, j)
   AW = affine_charts(Oscar.covered_scheme(UD))[i]
   BW = affine_charts(Oscar.covered_scheme(VD))[j]
-
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
@@ -725,14 +727,16 @@ function _compute_glueing(gd::ProjectiveGlueingData)
 
   xh = homogenization_map(UD, AW).(OO(AW).(x))
   yh = homogenization_map(VD, BW).(OO(BW).(y))
-
   xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
   yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
 
   phi = dehomogenization_map(VD, BW)
   psi = dehomogenization_map(UD, AW) 
-  yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
-  ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
+
+  pb_AW_to_AAW = hom(OO(AW), OO(AAW), gens(OO(AAW)), check=false)
+  pb_BW_to_BBW = hom(OO(BW), OO(BBW), gens(OO(BBW)), check=false)
+  yimgs = [pb_AW_to_AAW(psi(pp))*inv(pb_AW_to_AAW(psi(qq))) for (pp, qq) in yhh]
+  ximgs = [pb_BW_to_BBW(phi(pp))*inv(pb_BW_to_BBW(phi(qq))) for (pp, qq) in xhh]
   ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
   gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 

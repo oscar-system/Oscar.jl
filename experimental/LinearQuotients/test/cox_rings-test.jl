@@ -19,7 +19,7 @@
     @test Oscar.ab_g_degree(GtoA, RtoS(gen(R, i)), Oscar.fixed_root_of_unity(L)) == degree(gen(R, i))
   end
 
-  K, a = CyclotomicField(60, "a")
+  K, a = cyclotomic_field(60, "a")
   b = a^15
   M1 = matrix(K, 2, 2, [ b, 0, 0, inv(b) ])
   c = a^6
@@ -30,6 +30,21 @@
   L = linear_quotient(I)
   R, RtoS = cox_ring(L, algo_rels = :linear_algebra)
   @test is_trivial(grading_group(R))
+  A, GtoA = class_group(L)
+  @test A === grading_group(R)
+  for i = 1:ngens(R)
+    @test Oscar.ab_g_degree(GtoA, RtoS(gen(R, i)), Oscar.fixed_root_of_unity(L)) == degree(gen(R, i))
+  end
+
+  K, a = cyclotomic_field(12, "a")
+  g1 = matrix(K, 4, 4, [ 1 0 0 0; 0 a^4 0 0; 0 0 1 0; 0 0 0 a^-4 ])
+  g2 = 1//3*matrix(K, 4, 4, [ 2*a^4 + 1 a^4 - 1 0 0; 2*a^4 - 2 a^4 + 2 0 0;
+                              0 0 -2*a^4 - 1 -2*a^4 - 4; 0 0 -a^4 - 2 -a^4 + 1 ])
+  G = matrix_group(g1, g2) # symplectic reflection representation of reflection group G_4
+  L = linear_quotient(G)
+  R, RtoS = cox_ring(L, algo_rels = :linear_algebra)
+  @test ngens(R) == 18
+  @test grading_group(R).snf == ZZRingElem[ 3 ]
   A, GtoA = class_group(L)
   @test A === grading_group(R)
   for i = 1:ngens(R)

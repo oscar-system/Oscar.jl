@@ -132,7 +132,7 @@ end
 ########################################################################
 # Simplified Spectra                                                   #
 ########################################################################
-@attributes mutable struct SimplifiedSpec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} 
+@attributes mutable struct SimplifiedSpec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
   X::AbsSpec
   Y::AbsSpec
   f::AbsSpecMor

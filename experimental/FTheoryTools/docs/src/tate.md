@@ -214,7 +214,7 @@ More background information is available
 The following attributes are currently only supported in a toric setting:
 ```@docs
 calabi_yau_hypersurface(t::GlobalTateModel)
-global_weierstrass_model(t::GlobalTateModel)
+weierstrass_model(t::GlobalTateModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
 (cf. [Wei18](@cite) and references therein). Consequently the discriminant

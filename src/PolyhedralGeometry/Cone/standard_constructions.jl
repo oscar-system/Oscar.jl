@@ -28,7 +28,7 @@ julia> dim(C01)
 """
 function intersect(C::Cone{T}...) where T<:scalar_types
     pmo = [pm_object(c) for c in C]
-    return Cone{T}(Polymake.polytope.intersection(pmo...), get_parent_field(C[1]))
+    return Cone{T}(Polymake.polytope.intersection(pmo...), get_parent_field(first(C)))
 end
 intersect(C::AbstractVector{Cone{T}}) where T<:scalar_types = intersect(C...)
 
