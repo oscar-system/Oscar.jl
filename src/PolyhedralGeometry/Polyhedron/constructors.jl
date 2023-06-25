@@ -18,6 +18,7 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
     The type parameter `T` is optional but recommended for type stability.
     """
     Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(p, f)
+    Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
 end
 
 # default scalar type: `QQFieldElem`

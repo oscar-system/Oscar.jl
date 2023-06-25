@@ -14,6 +14,7 @@ struct Cone{T} <: PolyhedralObject{T} #a real polymake polyhedron
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
     Cone{T}(c::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(c, f)
+    Cone{QQFieldElem}(c::Polymake.BigObject) = new{QQFieldElem}(c, QQ)
 end
 
 # default scalar type: `QQFieldElem`

@@ -166,7 +166,7 @@ function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
-   return Polyhedron{QQFieldElem}(pmPolytope, QQ)
+   return Polyhedron{QQFieldElem}(pmPolytope)
 end
 
 @doc raw"""
@@ -360,7 +360,7 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)))
+product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)), get_parent_field(P))
 
 @doc raw"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -636,9 +636,15 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d,n))
+function cross_polytope(f::Union{Type{T}, Field}, d::Int64, n) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d,n), parent_field)
+end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d))
+function cross_polytope(f::Union{Type{T}, Field}, d::Int64) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+end
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
@@ -863,7 +869,7 @@ julia> vertices(P)
 ```
 """
 function polarize(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)))
+    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), get_parent_field(P))
 end
 
 
@@ -913,7 +919,7 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false), QQ)
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
 @doc raw"""
     fano_simplex(d::Int)
@@ -1041,7 +1047,7 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
     opts[:precision] = convert(Int64, precision)
   end
   pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
-  return Polyhedron{QQFieldElem}(pm_obj, QQ)
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
@@ -1077,5 +1083,5 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
   pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
-  return Polyhedron{T}(pm_obj)
+  return Polyhedron{T}(pm_obj, get_parent_field(P))
 end

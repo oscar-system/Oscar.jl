@@ -345,6 +345,7 @@ end
 abstract type PolyhedralObject{T} end
 
 get_parent_field(x::PolyhedralObject) =  x.parent_field
+get_parent_field(x::PolyhedralObject{QQFieldElem}) = QQ
 
 ################################################################################
 ######## Scalar types
