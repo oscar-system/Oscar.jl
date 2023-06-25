@@ -370,21 +370,31 @@ function _embedded_quadratic_field(r::ZZRingElem)
     return Hecke.embedded_field(R, real_embeddings(R)[2])
 end
 
-_common_parent(x::Field, y::Field) = x == QQ ? y : x
-_find_parent_field(x, y...) = _common_parent(_find_parent_field(x), _find_parent_field(y...))
-_find_parent_field(x::AbstractArray{<:FieldElem}) = length(x) == 0 ? QQ : parent(iterate(x)[1])
-_find_parent_field(x::MatElem{<:FieldElem}) = length(x) == 0 ? QQ : base_ring(x)
-_find_parent_field(x::Tuple{<:AnyVecOrMat, <:Any}) = _find_parent_field(x...)
-_find_parent_field(x::FieldElem) = parent(x)
-_find_parent_field(x::Number) = QQ
-_find_parent_field(::Nothing) = QQ
-_find_parent_field() = QQ
-# fallback
-function _find_parent_field(x::AbstractArray)
-    length(x) == 0 && return QQ
-    fe = findall(e -> e isa FieldElem, x)
-    for i in fe
-        parent(x[i]) == QQ || return parent(x[i])
+function _find_parent_field(::Type{T}, x, y...) where T <: scalar_types
+    f = _find_parent_field(T, x)
+    elem_type(f) == T && return f
+    return _find_parent_field(T, y...)
+end
+function _find_parent_field(::Type{T}, x::AbstractArray{<:FieldElem}) where T <: scalar_types
+    for el in x
+        el isa T && return parent(el)
+    end
+    return QQ
+end
+function _find_parent_field(::Type{T}, x::MatElem{<:FieldElem}) where T <: scalar_types
+    f = base_ring(x)
+    elem_type(f) == T && return f
+    return QQ
+end
+_find_parent_field(::Type{T}, x::Tuple{<:AnyVecOrMat, <:Any}) where T <: scalar_types = _find_parent_field(T, x...)
+_find_parent_field(::Type{T}, x::FieldElem) where T <: scalar_types = x isa T ? parent(x) : QQ
+_find_parent_field(::Type{T}, x::Number) where T <: scalar_types = QQ
+_find_parent_field(::Type{T}) where T <: scalar_types = QQ
+# _find_parent_field() = QQ
+_find_parent_field(::Type{T}, x::AbstractArray{<:AbstractArray}) where T <: scalar_types = _find_parent_field(T, x...)
+function _find_parent_field(::Type{T}, x::AbstractArray) where T <: scalar_types
+    for el in x
+        el isa T && return parent(el)
     end
     return QQ
 end
@@ -397,7 +407,7 @@ function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     elseif T == Float64
         f = AbstractAlgebra.Floats{Float64}()
     else
-        pf = _find_parent_field(x...)
+        pf = _find_parent_field(T, x...)
         f = pf == QQ ? throw(ArgumentError("Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data.")) : pf
     end
     return (f, T)

@@ -147,13 +147,16 @@ for f in (QQ, ENF)
                 end
                 @test length(facets(S, Pos)) == 3
                 @test affine_inequality_matrix(facets(S, Pos)) == matrix(f, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
+                let hmp = halfspace_matrix_pair(facets(S, Pos))
+                    @test hmp isa NamedTuple{(:A, :b), Tuple{elem_type(matrix_space(f, 0, 0)), Vector{elem_type(f)}}}
+                    @test hmp.A == matrix(f, [-1 0 0; 0 -1 0; 0 0 -1])
+                    @test hmp.b == f.([0, 0, 0])
+                end
                 if T == QQFieldElem
-                    @test halfspace_matrix_pair(facets(S, Pos)).A == matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]) && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                     @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
                     @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
                     @test IncidenceMatrix(facets(S, Pos)) == IncidenceMatrix([[2, 3, 4], [1, 3, 4], [1, 2, 4]])
                 else
-                    @test halfspace_matrix_pair(facets(S, Pos)).A == [-1 0 0; 0 -1 0; 0 0 -1] && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
                     @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
                     @test vertex_and_ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3, 4], [2, 3, 4], [1, 2, 4]])
                     @test IncidenceMatrix(facets(S, Pos)) == IncidenceMatrix([[1, 3, 4], [2, 3, 4], [1, 2, 4]])
