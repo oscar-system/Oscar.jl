@@ -170,9 +170,11 @@ function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
 end
 
 @doc raw"""
-    cube([::Type{T} = QQFieldElem,] d::Int , [l::Rational = -1, u::Rational = 1])
+    cube([::Union{Type{T}, Field} = QQFieldElem,] d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 In this example the 5-dimensional unit cube is constructed to ask for one of its
@@ -190,7 +192,7 @@ function cube(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
 end
 cube(d::Int) = cube(QQFieldElem, d)
 function cube(f::Union{Type{T}, Field}, d::Int, l, u) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    parent_field, scalar_type = _determine_parent_and_scalar(f, l, u)
     return Polyhedron{scalar_type}(Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field)
 end
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
@@ -548,10 +550,12 @@ julia> vertices(S)
 +(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
 
 @doc raw"""
-    simplex([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
+    simplex([::Union{Type{T}, Field} = QQFieldElem,] d::Int [,n])
 
 Construct the simplex which is the convex hull of the standard basis vectors
 along with the origin in $\mathbb{R}^d$, scaled by $n$.
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
@@ -586,7 +590,7 @@ x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
 function simplex(f::Union{Type{T}, Field}, d::Int, n) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    parent_field, scalar_type = _determine_parent_and_scalar(f, n)
     return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d,n), parent_field)
 end
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
@@ -598,10 +602,12 @@ simplex(d::Int) = simplex(QQFieldElem, d)
 
 
 @doc raw"""
-    cross_polytope([::Type{T} = QQFieldElem,] d::Int [,n::Rational])
+    cross_polytope([::Union{Type{T}, Field} = QQFieldElem,] d::Int [,n])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 Here we print the facets of a non-scaled and a scaled 3-dimensional cross
@@ -637,7 +643,7 @@ x₁ - x₂ - x₃ ≦ 2
 ```
 """
 function cross_polytope(f::Union{Type{T}, Field}, d::Int64, n) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
+    parent_field, scalar_type = _determine_parent_and_scalar(f, n)
     return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field)
 end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)

@@ -588,4 +588,4 @@ Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v
 Compute a point in the relative interior point of `C`, i.e. a point in `C` not
 contained in any facet.
 """
-relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(Polymake.common.dense(pm_object(C).REL_INT_POINT))
+relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(get_parent_field(C), view(Polymake.common.dense(pm_object(C).REL_INT_POINT), :)) # broadcast_view

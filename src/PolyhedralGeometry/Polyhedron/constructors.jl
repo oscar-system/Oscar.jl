@@ -15,7 +15,6 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
         Polyhedron{T}(P::Polymake.BigObject, F::Field) where T<:scalar_types
 
     Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope` with scalars from `Field` `F`.
-    The type parameter `T` is optional but recommended for type stability.
     """
     Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(p, f)
     Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
@@ -25,21 +24,27 @@ end
 polyhedron(A, b) = polyhedron(QQFieldElem, A, b)
 polyhedron(A) = polyhedron(QQFieldElem, A)
 
-# Automatic detection of corresponding OSCAR scalar type;
-# Avoid, if possible, to increase type stability
+@doc raw"""
+    polyhedron(P::Polymake.BigObject)
+
+Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`. Scalar type and parent field will be detected automatically. To improve type stability and performance, please use [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref) instead, where possible.
+"""
 function polyhedron(p::Polymake.BigObject)
     T, f = _detect_scalar_and_field(Polyhedron, p)
     return Polyhedron{T}(p, f)
 end
 
 @doc raw"""
-    polyhedron(::Type{T}, A::AnyVecOrMat, b) where T<:scalar_types
+    polyhedron([::Union{Type{T}, Field},] A::AnyVecOrMat, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
 see Def. 3.35 and Section 4.1. of [JT13](@cite)
+
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -65,10 +70,12 @@ polyhedron(f::Union{Type{T}, Field}, A::AbstractVector{<:AbstractVector}, b::Abs
 polyhedron(f::Union{Type{T}, Field}, A::AnyVecOrMat, b::Any) where T<:scalar_types = polyhedron(f, A, [b])
 
 @doc raw"""
-    polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+    polyhedron(::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 
 The (convex) polyhedron obtained intersecting the halfspaces `I` (inequalities)
 and the hyperplanes `E` (equations).
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -130,12 +137,14 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc raw"""
-    convex_hull([::Type{T} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull([::Union{Type{T}, Field} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
+- The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 - `V::AbstractCollection[PointVector]`: Points whose convex hull is to be computed.
 - `R::AbstractCollection[RayVector]`: Rays completing the set of points.
 - `L::AbstractCollection[RayVector]`: Generators of the Lineality space.

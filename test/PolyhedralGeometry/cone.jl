@@ -146,6 +146,7 @@ for f in (QQ, NF, K)
             @test lineality_dim(Cone2) == 1
 
             @test nfacets(Cone5) == 4
+            @test relative_interior_point(Cone1) == f.([1//2, 1//2])
         end
 
         @testset "constructors" begin

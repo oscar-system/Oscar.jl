@@ -27,9 +27,11 @@ function subdivision_of_points(p::Polymake.BigObject)
 end
 
 @doc raw"""
-    subdivision_of_points(points, cells)
+    subdivision_of_points([f = QQFieldElem,] points, cells)
 
 # Arguments
+- `f::Union{Type{T}, Field}`: either specifies the `Type` of its coefficients or their
+parent `Field`.
 - `points::AbstractCollection[PointVector]`: Points generating the cells of the
   subdivision; encoded row-wise as representative vectors.
 - `cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j)
@@ -62,9 +64,11 @@ end
 
 
 @doc raw"""
-    subdivision_of_points(points, weights)
+    subdivision_of_points([f = QQFieldElem,] points, weights)
 
 # Arguments
+- `f::Union{Type{T}, Field}`: either specifies the `Type` of its coefficients or their
+parent `Field`.
 - `points::AbstractCollection[PointVector]`: Points generating the cells of the
   subdivision; encoded row-wise as representative vectors.
 - `weights::AbstractVector`: A vector with one entry for every point indicating
@@ -103,12 +107,12 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 #Same construction for when the user provides maximal cells
-function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}}) where T<:scalar_types
+function subdivision_of_points(::Union{Type{T}, Field}, points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}}) where T<:scalar_types
    subdivision_of_points(T, points, IncidenceMatrix(cells))
 end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function subdivision_of_points(::Type{T}, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}) where T<:scalar_types
+function subdivision_of_points(::Union{Type{T}, Field}, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}) where T<:scalar_types
    subdivision_of_points(T, points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 

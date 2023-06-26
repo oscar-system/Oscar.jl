@@ -25,7 +25,7 @@ pm_object(pc::PolyhedralComplex) = pc.pm_complex
     polyhedral_complex(::T, polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments
-- `T`: Type of scalar to use, defaults to `QQFieldElem`.
+- `T`: `Type` or parent `Field` of scalar to use, defaults to `QQFieldElem`.
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
   (i,j) if the ith polytope contains point j and 0 otherwise.
 - `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up

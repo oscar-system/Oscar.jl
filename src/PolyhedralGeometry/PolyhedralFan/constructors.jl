@@ -34,7 +34,7 @@ Assemble a polyhedral fan from ray generators, lineality generators, and an
 `IncidenceMatrix` indicating which rays form a cone.
 
 # Arguments
-- `T`: Type of scalar to use, defaults to `QQFieldElem`.
+- `T`: `Type` or parent `Field` of scalar to use, defaults to `QQFieldElem`.
 - `Rays::AbstractCollection[RayVector]`: Rays generating the cones of the fan;
   encoded row-wise as representative vectors.
 - `LS::AbstractCollection[RayVector]`: Contains row-wise generators of the
@@ -126,11 +126,13 @@ end
 ###############################################################################
 ###############################################################################
 @doc raw"""
-    polyhedral_fan_from_rays_action(::Type{T}, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
+    polyhedral_fan_from_rays_action([::Union{Type{T}, Field} = QQFieldElem,] Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
 
 Construct a polyhedral fan with a group action.
 
 # Arguments
+- The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 - `Rays`: The rays of the fan
 - `MC_reps`: `IncidenceMatrix` whose rows give the indices of the rays forming
   representatives of the maximal cones under the group action.
