@@ -107,7 +107,6 @@ function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = t
   @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
-    true
   end
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
 end
@@ -120,7 +119,6 @@ function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
   @check begin
     _check_imgs(S, imgs)
     _check_homo(S, imgs) # defined in MPolyAnyMap.jl
-    true
   end
   return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
 end

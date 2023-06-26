@@ -83,7 +83,6 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
   @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
-    true
   end
 
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655

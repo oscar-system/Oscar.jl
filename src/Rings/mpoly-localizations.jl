@@ -2631,7 +2631,6 @@ mutable struct MPolyLocalizedRingHom{
       for f in U
         is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
       end
-      true
     end
     return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end
