@@ -165,7 +165,7 @@ of order `n` (possibly infinite), return the corresponding quadratic space with
 isometry pair $(V, f)$.
 """
 function quadratic_space_with_isometry(V::Hecke.QuadSpace, f::QQMatrix;
-                                                     check::Bool = true)
+                                                           check::Bool = true)
   if rank(V) == 0
     return QuadSpaceWithIsom(V, zero_matrix(QQ, 0, 0), -1)
   end
@@ -209,6 +209,16 @@ See [`rescale(::QuadSpace, ::Hecke.RationalUnion)`](@ref).
 """
 function rescale(Vf::QuadSpaceWithIsom, a::Hecke.RationalUnion)
   return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf), check = false)
+end
+
+@doc raw"""
+    Base.:^(Vf::QuadSpaceWithIsom, n::Int)
+
+Given a quadratic space with isometry $(V, f)$ and an integer $n$, return the pair
+$(V, f^n)$.
+"""
+function Base.:^(Vf::QuadSpaceWithIsom, n::Int)
+  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n, check=false)
 end
 
 @doc raw"""

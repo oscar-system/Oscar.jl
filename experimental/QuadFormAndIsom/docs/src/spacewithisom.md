@@ -86,6 +86,7 @@ Similarly, some basic operations on quadratic spaces are available for quadratic
 spaces with isometry.
 
 ```@docs
+Base.:^(::QuadSpaceWithIsom, ::Int)
 biproduct(::Vector{QuadSpaceWithIsom})
 direct_product(::Vector{QuadSpaceWithIsom})
 direct_sum(::Vector{QuadSpaceWithIsom})

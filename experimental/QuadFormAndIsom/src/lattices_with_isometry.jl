@@ -379,6 +379,16 @@ function rescale(Lf::ZZLatWithIsom, a::Hecke.RationalUnion)
 end
 
 @doc raw"""
+    Base.:^(Lf::ZZLatWithIsom, n::Int)
+
+Given a lattice with isometry $(L, f)$ and an integer $n$, return the pair
+$(L, f^n)$.
+"""
+function Base.:^(Lf::ZZLatWithIsom, n::Int)
+  return lattice(ambient_space(Lf)^n, basis_matrix(Lf))
+end
+
+@doc raw"""
     dual(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that

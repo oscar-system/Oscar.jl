@@ -110,6 +110,7 @@ Similarly, some basic operations on $\mathbb Z$-lattices are available for
 lattices with isometry.
 
 ```@docs
+Base.:^(::ZZLatWithIsom, ::Int)
 biproduct(::Vector{ZZLatWithIsom})
 direct_product(::Vector{ZZLatWithIsom})
 direct_sum(::Vector{ZZLatWithIsom})
