@@ -718,8 +718,6 @@ function closure(
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
   return X
-<<<<<<<<< Temporary merge branch 1
-=========
 end
 
 function closure(
@@ -738,12 +736,10 @@ function closure(
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
   return Y
->>>>>>>>> Temporary merge branch 2
 end
 
 
 function closure(
-<<<<<<<<< Temporary merge branch 1
     X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
@@ -752,19 +748,8 @@ function closure(
   return Y
 end
 
-function closure(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing};
-    check::Bool=true
-  ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
-  return Y
-end
-
 
 function closure(
-=========
->>>>>>>>> Temporary merge branch 2
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
