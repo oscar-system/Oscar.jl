@@ -267,7 +267,7 @@ morphism_type(X::AbsSpec, Y::AbsSpec) = morphism_type(typeof(X), typeof(Y))
     isomorphism_on_open_subsets(f::AbsSpecMor)
 
 For a birational morphism ``f : X → Y`` of `AbsSpec`s this 
-returns an isomorphism of affine schemes ``fᵣₑₛ : U → V`` which is 
+returns an isomorphism of affine schemes ``f' : U → V`` which is 
 the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
 ``V ⊂ Y``.
 """

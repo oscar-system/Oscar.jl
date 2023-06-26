@@ -740,8 +740,7 @@ function match_on_intersections(
     end
 
 ## make sure we are working on consistent data
-    @check
-    if check
+    @check begin
       if match_found && match_contradicted
         error("contradictory matching result!!")                     ## this should not be reached for ass. points
       end

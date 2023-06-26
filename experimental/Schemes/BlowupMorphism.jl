@@ -491,8 +491,7 @@ end
 
   # Assemble the inverse
   iso_inv_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for U in keys(iso_dict)
-    q = iso_dict[U]
+  for (U, q) in keys(iso_dict)
     V = codomain(q)
     iso_inv_dict[V] = inverse(q)
   end
