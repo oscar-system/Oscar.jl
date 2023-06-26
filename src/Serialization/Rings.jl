@@ -4,13 +4,33 @@
 # builds parent tree
 function get_parents(parent_ring::Ring)
     if has_elem_basic_encoding(parent_ring)
-        return Any[]
+        return Any[parent_ring]
     end
     base = base_ring(parent_ring)
 
     parents = get_parents(base)
     push!(parents, parent_ring)
     return parents
+end
+
+function get_parent_dicts(s::DeserializerState, parent_ref::Dict)
+    if !haskey(parent_ref, :id)
+        return [parent_ref]
+    end
+    parent_dicts = []
+    parent_id = parent_ref[:id]
+    parent_dict = s.refs[Symbol(parent_id)]
+    parent_dict[:id] = parent_id
+    
+    if haskey(parent_dict[:data], :base_ring)
+        base_dict = parent_dict[:data][:base_ring]
+    elseif haskey(parent_dict[:data], :base_field)
+        base_dict = parent_dict[:data][:base_field]
+    end
+    parent_dicts = get_parent_dicts(s, base_dict)
+    push!(parent_dicts, parent_dict)
+
+    return parent_dicts
 end
 
 
@@ -37,14 +57,21 @@ end
 #elements
 @registerSerializationType(zzModRingElem)
 
-function save_internal(s::SerializerState, r::zzModRingElem)
+function save_internal(s::SerializerState, r::zzModRingElem; include_parent::Bool=true)
+    class_rep = string(r)
+    if include_parent
+        return Dict(
+            :parent => save_as_ref(s, parent(r)),
+            :class_rep => class_rep
+        )
+    end
     return string(r)
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
     parent_ring = load_type_dispatch(s, Nemo.zzModRing, dict[:parent])
-    class_val = load_type_dispatch(s, ZZRingElem, dict[:class_val])
-    return parent_ring(class_val)
+    class_rep = load_type_dispatch(s, ZZRingElem, dict[:class_rep])
+    return parent_ring(class_rep)
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -98,29 +125,25 @@ end
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
 
-function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
+function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem};
+                       include_parent::Bool=true)
     parent_ring = parent(p)
     base = base_ring(parent_ring)
-    parents = []
     encoded_terms = []
 
     for i in 1:length(p)
-        encoded_coeff = save_internal(s, coeff(p, i))
-        if has_elem_basic_encoding(base)
-            push!(encoded_terms,  (exponent_vector(p, i), encoded_coeff))
-        else
-            parents = encoded_coeff[:parents]
-            push!(encoded_terms, (exponent_vector(p, i), encoded_coeff[:terms]))
-        end
+        encoded_coeff = save_internal(s, coeff(p, i); include_parent=false)
+        push!(encoded_terms,  (exponent_vector(p, i), encoded_coeff))
     end
     parent_ring = save_as_ref(s, parent_ring)
-    # end of list should be loaded last
-    push!(parents, parent_ring)
 
-    return Dict(
-        :terms => encoded_terms,
-        :parents => parents,
-    )
+    if include_parent
+        return Dict(
+            :terms => encoded_terms,
+            :parent => parent_ring,
+        )
+    end
+    return encoded_terms
 end
 
 
@@ -129,14 +152,12 @@ end
 
 @registerSerializationType(PolyRingElem)
 
-function save_internal(s::SerializerState, p::PolyRingElem)
+function save_internal(s::SerializerState, p::PolyRingElem; include_parent::Bool=true)
     # store a polynomial over a ring provided we can store elements in that ring
     parent_ring = parent(p)
     base = base_ring(parent_ring)
     coeffs = coefficients(p)
     encoded_terms = []
-    # flattened tree required for coefficients having parents
-    parents = []
     exponent = 0
     for coeff in coeffs
         # collect only non trivial terms
@@ -145,23 +166,19 @@ function save_internal(s::SerializerState, p::PolyRingElem)
             continue
         end
         
-        encoded_coeff = save_internal(s, coeff)
-        if has_elem_basic_encoding(base)
-            push!(encoded_terms,  (exponent, encoded_coeff))
-        else
-            parents = encoded_coeff[:parents]
-            push!(encoded_terms,  (exponent, encoded_coeff[:terms]))
-        end
+        encoded_coeff = save_internal(s, coeff; include_parent=false)
+        push!(encoded_terms,  (exponent, encoded_coeff))
         exponent += 1
     end
     parent_ring = save_as_ref(s, parent_ring)
-    # end of list should be loaded last
 
-    push!(parents, parent_ring)
-    return Dict(
-        :parents => parents,
-        :terms =>  encoded_terms
-    )
+    if include_parent
+        return Dict(
+            :parent => parent_ring,
+            :terms => encoded_terms
+        )
+    end
+    return encoded_terms
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
@@ -212,7 +229,8 @@ end
 
 function load_internal(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict)
-    loaded_parents = load_parents(s, dict[:parents])
+    parent_dicts = get_parent_dicts(s, dict[:parent])
+    loaded_parents = load_parents(s, parent_dicts)
     return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
 end
 

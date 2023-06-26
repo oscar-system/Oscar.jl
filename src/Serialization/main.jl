@@ -150,6 +150,7 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 ################################################################################
 # High level
 
+function load_parent(s::DeserializerState, )
 function load_ref(s::DeserializerState, dict::Dict)
     if !haskey(dict, :id)
         return load_unknown_type(s, dict)
@@ -311,7 +312,11 @@ function load_parents(s::DeserializerState, parent_dicts::Vector)
     loaded_parents = []
 
     for parent_dict in parent_dicts
-        loaded_parent = load_ref(s, parent_dict)
+        if haskey(parent_dict, :id)
+            loaded_parent = load_ref(s, parent_dict)
+        else
+            loaded_parent = load_unknown_type(s, parent_dict)
+        end
         push!(loaded_parents, loaded_parent)
     end
     return loaded_parents

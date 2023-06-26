@@ -10,22 +10,16 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     if is_basic_serialization_type(T)
         d[:entry_type] = encodeType(T)
     end
+    return d
+end
 
-    if !(T <: RingElem)
-        return d
-    end
-    entry_parent = parent(vec[1])
-    if has_elem_basic_encoding(entry_parent)
-        d[:parent] = save_type_dispatch(s, entry_parent)
-
-        # handled vector or vectors, this should be updated
-        # to handle any depth
-        if d[:vector][1] isa Dict && haskey(d[:vector][1], :vector)
-            d[:vector] = [v[:vector] for v in d[:vector]]
-        end
-    else
-        d[:parents] = d[:vector][1][:data][:parents]
-        d[:vector] = [v[:data][:terms] for v in d[:vector]]
+function save_internal(s::SerializerState, vec::Vector{T}) where T <: RingElem
+    d = Dict(
+        :parent => save_as_ref(s, parent(vec[1])),
+        :vector => [save_internal(s, x; include_parent=false) for x in vec]
+    )
+    if is_basic_serialization_type(T)
+        d[:entry_type] = encodeType(T)
     end
 
     return d
@@ -79,14 +73,16 @@ end
 
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
-
     if haskey(dict, :parent)
-        parent_ring = load_unknown_type(s, dict[:parent])
-        return [load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
-                    x in dict[:vector]]
-    elseif haskey(dict, :parents)
-        parents = load_parents(s, dict[:parents])
-        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
+        parent_dicts = get_parent_dicts(s, dict[:parent])
+        loaded_parents = load_parents(s, parent_dicts)
+        parent = loaded_parents[end]
+        if has_elem_basic_encoding(parent_ring)
+            return [load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring)
+                    for x in dict[:vector]]
+        else
+            return [load_terms]
+            
     elseif haskey(dict, :entry_type)
         T = decodeType(dict[:entry_type])
         

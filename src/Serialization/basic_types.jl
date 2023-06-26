@@ -41,7 +41,14 @@ end
 # QQFieldElem
 @registerSerializationType(QQFieldElem)
 
-function save_internal(s::SerializerState, q::QQFieldElem)
+function save_internal(s::SerializerState, q::QQFieldElem; include_parent::Bool=true)
+    q_str = string(q)
+    if include_parent
+        return Dict(
+            :parent => save_internal(s, QQ),
+            :str => q_str
+        )
+    end
     return string(q)
 end
 
