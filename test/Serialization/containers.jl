@@ -42,15 +42,15 @@
             end
         end
 
-        @testset "Vector{Any}" begin
+        @testset "Tuple" begin
             c = cube(3)
             LP0 = linear_program(c, [2,2,-3])
-            v = [c, LP0]
+            v = (c, LP0)
             test_save_load_roundtrip(path, v) do loaded
               @test length(v) == length(loaded)
               @test loaded[1] isa Polyhedron
               @test loaded[2] isa LinearProgram
-              @test loaded isa Vector{Any}
+              @test loaded isa Tuple
             end
         end
         
