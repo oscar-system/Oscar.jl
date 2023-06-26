@@ -2064,7 +2064,6 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   return V, MapFromFunc(im, prim, V, W)
 end
 
-
 # diasambiguate some conversions
 # ... but this needs to be after some type declarations... so here it is
 function (W::MPolyDecRing)(f::MPolyQuoRingElem)
@@ -2078,3 +2077,4 @@ end
 function (W::MPolyDecRing)(f::MPolyLocRingElem)
   return W(forget_decoration(W)(f))
 end
+

@@ -428,7 +428,7 @@ defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -710,6 +710,7 @@ function closure(X::AbsSpec, Y::AbsSpec, check= true)
   error("not implemented")
 end
 
+
 function closure(
     X::AbsSpec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
     Y::AbsSpec{BRT, <:MPolyAnyRing};
@@ -717,9 +718,32 @@ function closure(
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
   return X
+<<<<<<<<< Temporary merge branch 1
+=========
 end
 
 function closure(
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyAnyRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  return Y
+end
+
+function closure(
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  return Y
+>>>>>>>>> Temporary merge branch 2
+end
+
+
+function closure(
+<<<<<<<<< Temporary merge branch 1
     X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
@@ -739,6 +763,8 @@ end
 
 
 function closure(
+=========
+>>>>>>>>> Temporary merge branch 2
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
@@ -774,3 +800,9 @@ function closure(
   return Spec(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
 end
 
+@doc raw"""
+    closure(X::AbsSpec) -> AbsSpec
+
+Return the closure of `X` in its ambient affine space.
+"""
+closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)
