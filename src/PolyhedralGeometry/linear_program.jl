@@ -5,6 +5,7 @@ struct LinearProgram{T} <: PolyhedralObject{T}
     parent_field::Field
    
     LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol, p) where T<:scalar_types = new{T}(fr, lp, c, p)
+    LinearProgram{QQFieldElem}(fr::Polyhedron{QQFieldElem}, lp::Polymake.BigObject, c::Symbol) = new{QQFieldElem}(fr, lp, c, QQ)
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
