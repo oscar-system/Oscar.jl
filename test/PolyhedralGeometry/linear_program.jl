@@ -38,8 +38,7 @@ for f in (QQ, ENF)
             if T == QQFieldElem
                 @test string(solve_lp(LP3))==string("(inf, nothing)")
             else
-                str = "common::OscarNumber\n"
-                @test string(solve_lp(LP3))==string("(", str, "(inf), nothing)")
+                @test string(solve_lp(LP3))==string("((inf), nothing)")
             end
         end
         
