@@ -1250,6 +1250,32 @@ julia> codim(I)
 """
 codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
 
+#######################################################
+#######################################################
+@doc raw"""
+    degree(I::MPolyIdeal)
+
+Return the degree of `I` if it is homogeneous. Otherwise return the degree
+of its `homogenization`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia> degree(I)
+6
+```
+"""
+@attr Int function degree(I::MPolyIdeal)
+  J = homogenization(I, "_h")
+  A, _ = quo(base_ring(J), J)
+  return Int(degree(A))
+end
+
 ################################################################################
 #
 #  iszero and isone functions
