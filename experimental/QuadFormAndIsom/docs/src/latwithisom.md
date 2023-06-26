@@ -9,44 +9,60 @@ lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
 about integer lattices of the documentation for new users.
 
 On Oscar, such a pair is contained into a type called `ZZLatWithIsom`:
+
 ```@docs
 ZZLatWithIsom
 ```
 
-and it is seen as a quadruple $(L, f, f_a, n)$ where $n$ is the order of $f$ and
-$f_a$ is an isometry of the ambient quadratic space of $L$ inducing $f$ on $L$.
-Note that $f_a$ might not always be of order $n$.
+and it is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists on
+the ambient rational quadratic space $V$ of $L$ and an isometry $f_a$ of $V$
+preversing $L$ and inducing $f$ on $L$. $n$ is the order of $f$, which is a
+divisor of the order of the isometry $f_a\in O(V)$.
 
 Given a lattice with isometry $(L, f)$, we provide the following accessors to the
 elements of the previously described quadruple:
 
 ```@docs
-lattice(::ZZLatWithIsom)
-isometry(::ZZLatWithIsom)
 ambient_isometry(::ZZLatWithIsom)
+ambient_space(::ZZLatWithIsom)
+isometry(::ZZLatWithIsom)
+lattice(::ZZLatWithIsom)
 order_of_isometry(::ZZLatWithIsom)
 ```
 
 Note that for some computations, it is more convenient to work either with the
-isometry of the lattice itself, or with an isometry of the ambient quadratic
-space inducing it on the lattice.
+isometry of the lattice itself, or with the fixed isometry of the ambient
+quadratic space inducing it on the lattice.
 
 ## Constructor
 
-For simplicity, we have gathered the main constructors under the same name
-`lattice_with_isometry`. The user has then the choice on the parameters
-depending on what they attend to do:
+We provide two ways to construct a pair $Lf = (L,f)$ consisting on an integer
+lattice endowed with an isometry. One way to construct an object of type
+`ZZLatWithIsom` is through the methods `integer_lattice_with_isometry`. These
+two methods does not require as input an ambient quadratic space with isometry.
 
 ```@docs
-lattice_with_isometry(::ZZLat, ::QQMatrix)
-lattice_with_isometry(::ZZLat)
+integer_lattice_with_isometry(::ZZLat, ::QQMatrix)
+integer_lattice_with_isometry(::ZZLat)
 ```
 
 By default, the first constructor will always check whether the entry matrix
 defines an isometry of the lattice, or its ambient space. We recommend not to
-disable this parameter to avoid any further issues. Both isometries of *finite
+disable this parameter to avoid any further issues. Note that as in the case of
+quadratic space with isometries, both isometries of integer lattices of *finite
 order* and *infinite order* are supported.
 
+Another way of constructing such lattices with isometry is by fixing an ambient
+quadratic space with isometry, of type `QuadSpaceWithIsom`, and specify a basis
+for an integral lattice in that space. If this lattice is preserved by the fixed
+isometry of the quadratic space considered, then we endow it with the induced
+action.
+
+```@docs
+lattice(::QuadSpaceWithIsom)
+lattice(::QuadSpaceWithIsom, ::MatElem{ <:RationalUnion})
+lattice_in_same_ambient_space(::ZZLatWithIsom, ::MatElem)
+```
 ### Examples
 
 ```@repl 2
@@ -58,7 +74,7 @@ f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
                        1  0  0  0  0  0;
                       -1 -1 -1  0  0 -1;
                        0  0  1  1  0  1]);
-Lf = lattice_with_isometry(L, f)
+Lf = integer_lattice_with_isometry(L, f)
 ```
 
 ## Attributes and first operations
@@ -69,9 +85,8 @@ instance, in order to know the genus of $L$, one can simply call `genus(Lf)`.
 Here is a list of what are the current accessible attributes:
 
 ```@docs
-ambient_space(::ZZLatWithIsom)
 basis_matrix(::ZZLatWithIsom)
-charpoly(::ZZLatWithIsom)
+characteristic_polynomial(::ZZLatWithIsom)
 degree(::ZZLatWithIsom)
 det(::ZZLatWithIsom)
 discriminant(::ZZLatWithIsom)
@@ -83,7 +98,7 @@ is_integral(::ZZLatWithIsom)
 is_positive_definite(::ZZLatWithIsom)
 is_negative_definite(::ZZLatWithIsom)
 minimum(::ZZLatWithIsom)
-minpoly(::ZZLatWithIsom)
+minimal_polynomial(::ZZLatWithIsom)
 norm(::ZZLatWithIsom)
 rank(::ZZLatWithIsom)
 rational_span(::ZZLatWithIsom)
@@ -134,7 +149,7 @@ f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
                        1  0  0  0  0  0;
                       -1 -1 -1  0  0 -1;
                        0  0  1  1  0  1]);
-Lf = lattice_with_isometry(L, f)
+Lf = integer_lattice_with_isometry(L, f)
 type(Lf)
 ```
 
@@ -240,6 +255,14 @@ hermitian structure associated to $(L, f)$ via the trace equivalence.
 ```@docs
 signatures(::ZZLatWithIsom)
 ```
+
+## Equality
+
+We choose as a convention that two pairs $(L, f)$ and $(L', f')$ of integer
+lattices with isometries are *equal* if their ambient quadratic space with
+isometry of type `QuadSpaceWithIsom` are equal, and if the underlying lattices
+$L$ and $L'$ are equal as $\mathbb Z$-modules in the common ambient quadratic
+space.
 
 ## Tips for users
 

@@ -1,3 +1,9 @@
+###############################################################################
+#
+#  Lattices with isometry
+#
+###############################################################################
+
 function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
   io = AbstractAlgebra.pretty(io)
   println(io, lattice(Lf))
@@ -25,6 +31,12 @@ function Base.show(io::IO, Lf::ZZLatWithIsom)
     end
   end
 end
+
+###############################################################################
+#
+#  Quadratic space with isometry
+#
+###############################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", Vf::QuadSpaceWithIsom)
   io = AbstractAlgebra.pretty(io)

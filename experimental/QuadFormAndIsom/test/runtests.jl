@@ -1,0 +1,168 @@
+using test
+using Oscar
+
+@testset "Spaces with isometry" begin
+  D5 = root_lattice(:D, 5)
+  V = ambient_space(D5)
+  Vf = @inferred quadratic_space_with_isometry(V, neg=true)
+  @test is_one(-isometry(Vf))
+  @test order_of_isometry(Vf) == 2
+  @test space(Vf) === V
+
+  for func in [rank, dim. gram_matrix, det, discriminant, is_positive_definite,
+              is_negative_definite, is_definite, diagonal, signature_tuple]
+    k = @inferred func(Vf)
+    @test k == func(V)
+  end
+
+  @test evaluate(minimal_polynomial(Vf), -1) == 0
+  @test evaluate(characteristic_polynomial(Vf), 0) == 1
+
+  G = matrix(FlintQQ, 6, 6 ,[3, 1, -1, 1, 0, 0, 1, 3, 1, 1, 1, 1, -1, 1, 3, 0, 0, 1, 1, 1, 0, 4, 2, 2, 0, 1, 0, 2, 4, 2, 0, 1, 1, 2, 2, 4])
+  V = quadratic_space(QQ, G)
+  f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 0 -1 0 0 0; -1 1 -1 0 0 0; 0 0 0 1 0 -1; 0 0 0 0 0 -1; 0 0 0 0 1 -1])
+  Vf = @inferred quadratic_space_with_isometry(V, f)
+  @test order_of_isometry(Vf) == 3
+  @test order_of_isometry(rescale(Vf, -3)) == 3
+  L = lattice(rescale(Vf, -2))
+  @test is_even(L)
+  @test is_negative_definite(L) == is_positive_definite(Vf)
+
+  @test rank(biproduct(Vf, Vf)[1]) == 12
+  @test order_of_isometry(direct_sum(Vf, Vf, Vf)[1]) == 3
+  @test det(direct_product(Vf, Vf)[1]) == det(Vf)^2
+
+  @test Vf != quadratic_space_with_isometry(V, neg=true)
+  @test length(unique([Vf, quadratic_space_with_isometry(V, isometry(Vf))])) == 1
+end
+
+@testset "Lattices with isometry" begin
+  A4 = root_lattice(:A, 4)
+  agg = = automorphism_group_generators(A4, ambient_representation = false)
+  agg_ambient = automorphism_group_generators(A4, ambient_representation = true)
+  f = rand(agg)
+  g_ambient = rand(agg_ambient)
+
+  L = @inferred integer_lattice_with_isometry(A4)
+  @test ambient_space(L) isa QuadSpaceWithIsom
+  @test isone(isometry(L))
+  @test isone(ambient_isometry(L))
+  @test isone(order_of_isometry(L))
+  @test order(image_centralizer_in_Oq(L)) == 2
+
+  for func in [rank, genus, ambient_space, basis_matrix, is_positive_definite,
+               gram_matrix, det, scale, norm, is_integral, is_negative_definite,
+               degree, is_even, discriminant, signature_tuple, is_definite]
+    k = @inferred func(L)
+    @test k == func(A4)
+  end
+
+  LfQ = @inferred rational_span(L)
+  @test LfQ isa QuadSpaceWithIsom
+  @test evaluate(minimal_polynomial(L), 1) == 0
+  @test evaluate(characteristic_polynomial(L), 0) == 1
+
+  @test minimum(rescale(L, -1)) == 2
+  @test !is_positive_definite(L)
+  @test is_definite(L)
+
+  nf = multiplicative_order(f)
+  @test_throws ArgumentError integer_lattice_with_isometry(A4, zero_matrix(QQ, 0, 0))
+
+  L2 = @inferred integer_lattice_with_isometry(A4, f, ambient_representation = false)
+  @test order_of_isometry(L2) == nf
+  L2v = @inferred dual(L2)
+  @test order_of_isometry(L2v) == nf
+  @test ambient_isometry(L2v) == ambient_isometry(L2)
+  
+  L3 = @inferred integer_lattice_with_isometry(A4, g_ambient, ambient_representation = true)
+  @test order_of_isometry(L2) == multiplicative_order(g_ambient)
+
+  L4 = @inferred rescale(L3, QQ(1//4))
+  @test !is_integral(L4)
+  @test order_of_isometry(L4) == order_of_isometry(L3)
+  @test_throws ArgumentError dual(L4)
+  @test ambient_isometry(lll(L4)) == ambient_isometry(L4)
+
+  @test order_of_isometry(biproduct(L2, L3)[1]) == lcm(order_of_isometry(L2), order_of_isometry(L3))
+  @test rank(direct_sum(L2, L3)[1]) == rank(L2) + rank(L3)
+  @test genus(direct_product(L2, L3)[1]) == genus(L2) + genus(L3)
+
+  L5 = @inferred lattice(ambient_space(L2))
+  @test (L2 == L5) == (is_one(f))
+
+  B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
+  G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
+  Lf = integer_lattice_with_isometry(L, f);
+
+  GLf = @inferred image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 600
+
+  M = @inferred coinvariant_lattice(Lf)
+  @test is_of_hermitian_type(M)
+  H = @inferred hermitian_structure(M)
+  @test H isa HermLat
+
+  qL, fqL = @inferred discriminant_group(Lf)
+  @test divides(order_of_isometry(M), order(fqL))[1]
+  @test is_elementary(qL, 2)
+
+  S = @inferred collect(values(signatures(M)))
+  @test S[1] .+ S[2] == signature_pair(genus(M))
+
+  @test rank(invariant_lattice(M)) == 0
+  @test rank(invariant_lattice(Lf)) == rank(Lf) - rank(M)
+
+  t = @inferred type(Lf)
+  @test length(collect(keys(t))) == 2
+  @test is_of_type(Lf, t)
+  @test !is_of_same_type(Lf, M)
+  @test is_hermitian(type(M))
+
+  # Add more image_centralizer_in_Oq for indefinite and test with comparison to
+  # Sage results
+  
+  E8 = root_lattice(:E, 8)
+  OE8 = orthogonal_group(E8)
+  F, C, _ = @inferred invariant_coinvariant_pair(E8, OE8)
+  @test rank(F) == 0
+  @test C == E8
+
+  D5 = lll(root_lattice(:D, 5))
+  OD5 = matrix_group(automorphism_group_generators(D5, ambient_representation = false))
+  C, gene = @inferred coinvariant_lattice(D5, OD5, ambient_representation = false)
+  G = gram_matrix(C)
+  @test all(g -> g*G*transpose(g) == G, gene)
+
+end
+
+@testset "Enumeration of lattices with finite isometries" begin
+  E6 = root_lattice(:E, 6)
+  OE6 = orthogonal_group(E6)
+  cc = conjugacy_classes(E6)
+
+  D = Oscar._test_isometry_enumeration(E6)
+  for n in collect(keys(D))
+    @test length(D[n]) == length(filter(c -> order(representative(c)) == n, cc))
+  end
+  
+  for N in D[12]
+    ONf = image_centralizer_in_Oq(integer_lattice_with_isometry(lattice(N), ambient_isometry(N)))
+    # for N, the image in OqN of the centralizer of fN in ON is directly
+    # computing during the construction of the admissible primitive extension.
+    # We compare if at least we obtain the same orders (we can't directly
+    # compare the groups since they do not act exactly on the same module...
+    # and isomorphism test might be slow)
+    @test order(ONf) == order(image_centralizer_in_Oq(N))
+  end
+
+  E8 = root_lattice(:E, 8)
+  @test length(enumerate_classes_of_lattices_with_isometry(E8, 20)) == 3
+end
+
+@testset "Primitive embeddings" begin
+
+end
+

@@ -1,6 +1,7 @@
 [
-  "Lattices with isometry" => [
+  "Quadratic forms and isometries" => [
       "introduction.md",
+      "spacewithisom.md",
       "latwithisom.md",
       "enumeration.m",
       "primembed.md"

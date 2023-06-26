@@ -58,30 +58,34 @@ order_of_isometry(Lf::ZZLatWithIsom) = Lf.n
 
 Given a lattice with isometry $(L, f)$, return the rank of the underlying lattice
 `L`.
+
+See [`rank(::ZZLat)`](@ref).
 """
 rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))::Integer
 
 @doc raw"""
-    charpoly(Lf::ZZLatWithIsom) -> QQPolyRingElem
+    characteristic_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the characteristic polynomial of the
 underlying isometry `f`.
 """
-charpoly(Lf::ZZLatWithIsom) = charpoly(isometry(Lf))::QQPolyRingElem
+characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))::QQPolyRingElem
 
 @doc raw"""
-    minpoly(Lf::ZZLatWithIsom) -> QQPolyRingElem
+    minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
 underlying isometry `f`.
 """
-minpoly(Lf::ZZLatWithIsom) = minpoly(isometry(Lf))::QQPolyRingElem
+minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))::QQPolyRingElem
 
 @doc raw"""
     genus(Lf::ZZLatWithIsom) -> ZZGenus
 
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
-lattice `L` (see [`genus(::ZZLat)`](@ref)).
+lattice `L`.
+
+See [`genus(::ZZLat)`](@ref).
 """
 genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
 
@@ -89,16 +93,19 @@ genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
     basis_matrix(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
-lattice `L` (see [`basis_matrix(::ZZLat)`](@ref)).
+lattice `L`.
+
+See [`basis_matrix(::ZZLat)`](@ref).
 """
 basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
 
 @doc raw"""
     gram_matrix(Lf::ZZLatWithIsom) -> QQMatrix
 
-Given a lattice with isometry $(L, f)$ with basis matric `B` (see [`basis_matrix(Lf::ZZLatWithIsom)`](@ref))
-inside the space $(V, \Phi)$ (see [`ambient_space(Lf::ZZLatWithIsom)`](@ref)), return the gram matrix
-of lattice `L` associted to `B` with respect to $\Phi$.
+Given a lattice with isometry $(L, f)$, return the gram matrix of the underlying
+lattice `L` with respect to its basis matrix.
+
+See [`gram_matrix(::ZZLat)`](@ref).
 """
 gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 
@@ -108,6 +115,8 @@ gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 Given a lattice with isometry $(L, f)$, return the rational span
 $L \otimes \mathbb{Q}$ of the underlying lattice `L` together with the
 underlying isometry of `L`.
+
+See [`rational_span(::ZZLat)`](@ref).
 """
 rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(lattice(Lf)), isometry(Lf))::QuadSpaceWithIsom
 
@@ -115,7 +124,9 @@ rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(l
     det(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the determinant of the
-underlying lattice `L` (see [`det(::ZZLat)`](@ref)).
+underlying lattice `L`.
+
+See [`det(::ZZLat)`](@ref).
 """
 det(Lf::ZZLatWithIsom) = det(lattice(Lf))::QQFieldElem
 
@@ -123,7 +134,9 @@ det(Lf::ZZLatWithIsom) = det(lattice(Lf))::QQFieldElem
     scale(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
-lattice `L` (see [`scale(::ZZLat)`](@ref)).
+lattice `L`.
+
+See [`scale(::ZZLat)`](@ref).
 """
 scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))::QQFieldElem
 
@@ -131,7 +144,9 @@ scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))::QQFieldElem
     norm(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the norm of the underlying
-lattice `L` (see [`norm(::ZZLat)`](@ref)).
+lattice `L`.
+
+See [`norm(::ZZLat)`](@ref).
 """
 norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))::QQFieldElem
 
@@ -139,7 +154,9 @@ norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))::QQFieldElem
     is_positive_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is positive definite (see [`is_positive_definite(::ZZLat)`](@ref)).
+lattice `L` is positive definite.
+
+See [`is_positive_definite(::ZZLat)`](@ref).
 """
 is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))::Bool
 
@@ -147,7 +164,9 @@ is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))::Boo
     is_negative_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is negative definite (see [`is_positive_definite(::ZZLat)`](@ref)).
+lattice `L` is negative definite.
+
+See [`is_positive_definite(::ZZLat)`](@ref).
 """
 is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))::Bool
 
@@ -155,7 +174,9 @@ is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))::Boo
     is_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is definite (see [`is_definite(::ZZLat)`](@ref)).
+lattice `L` is definite.
+
+See [`is_definite(::ZZLat)`](@ref).
 """
 is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))::Bool
 
@@ -163,7 +184,9 @@ is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))::Bool
     minimum(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a positive definite lattice with isometry $(L, f)$, return the minimum
-of the underlying lattice `L` (see [`minimum(::ZZLat)`](@ref)).
+of the underlying lattice `L`.
+
+See [`minimum(::ZZLat)`](@ref).
 """
 function minimum(Lf::ZZLatWithIsom)
   @req is_positive_definite(Lf) "Underlying lattice must be positive definite"
@@ -174,15 +197,19 @@ end
     is_integral(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
-is integral, i.e. whether its scale is an integer (see [`scale(::ZZLatWithIsom)`](@ref)).
+`L` is integral.
+
+See [`is_integral(::ZZLat)`](@ref).
 """
 is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))::Bool
 
 @doc raw"""
     degree(Lf::ZZLatWithIsom) -> Int
 
-Given a lattice with isometry $(L, f)$ inside the quadratic space $(V, \Phi)$,
-return the dimension of `V` as a $\mathbb Q$ vector space.
+Given a lattice with isometry $(L, f)$, return the degree of the underlying
+lattice `L`.
+
+See [`degree(::ZZLat)`](@ref).
 """
 degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))::Int
 
@@ -190,9 +217,9 @@ degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))::Int
     is_even(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
-`L` is even, i.e. whether its norm is an even integer ([`norn(::ZZLatWithIsom)`](@ref)).
+`L` is even.
 
-Note that to be even, `L` must be integral (see [`is_integral(::ZZLat)`](@ref)).
+See [`is_even(::ZZLat)`](@ref).
 """
 is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))::Bool
 
@@ -200,7 +227,9 @@ is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))::Bool
     discriminant(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
-lattice `L` (see [`discriminant(::ZZLat)`](@ref)).
+lattice `L`.
+
+See [`discriminant(::ZZLat)`](@ref).
 """
 discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
 
@@ -208,7 +237,9 @@ discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
     signature_tuple(Lf::ZZLatWithIsom) -> Tuple{Int, Int, Int}
 
 Given a lattice with isometry $(L, f)$, return the signature tuple of the
-underlying lattice `L` (see [`signature_tuple(::ZZLat)`](@ref)).
+underlying lattice `L`.
+
+See [`signature_tuple(::ZZLat)`](@ref).
 """
 signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
 
@@ -338,8 +369,10 @@ end
 @doc raw"""
     rescale(Lf::ZZLatWithIsom, a::RationalUnion) -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ and a rational number `a`, return the lattice
-with isometry $(L(a), f)$ (see [`rescale(::ZZLat, ::RationalUnion)`](@ref)).
+Given a lattice with isometry $(L, f)$ and a rational number `a`, return the
+lattice with isometry $(L(a), f)$.
+
+See [`rescale(::ZZLat, ::RationalUnion)`](@ref).
 """
 function rescale(Lf::ZZLatWithIsom, a::Hecke.RationalUnion)
   return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf), check=false)
@@ -348,10 +381,12 @@ end
 @doc raw"""
     dual(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that `f` is
-induced by an isometry `g` of $(V, \Phi)$, return the lattice with isometry $(L^{\vee}, h)$
-where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$ (see [`dual(::ZZLat)`](@ref)) and `h` is
-induced by `g`.
+Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that
+`f` is induced by an isometry `g` of $(V, \Phi)$, return the lattice with
+isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$
+and `h` is induced by `g`.
+
+See [`dual(::ZZLat)`](@ref).
 """
 function dual(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -361,12 +396,14 @@ end
 @doc raw"""
     lll(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$, return the same lattice with isometry with a different
-basis matrix for `L` (see [`basis_matrix(::ZZLat)`](@ref)) obtained by performing an LLL-reduction
-on the associated gram matrix of `L` (see [`gram_matrix(::ZZLat)`](@ref)).
+Given a lattice with isometry $(L, f)$, return the same lattice with isometry
+with a different basis matrix for `L`  obtained by performing an LLL-reduction
+on the associated gram matrix of `L`.
 
 Note that matrix representing the action of `f` on `L` changes but the global action
 on the ambient space of `L` stays the same.
+
+See [`lll(::ZZLat)`](@ref).
 """
 function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
   L2 = lll(lattice(Lf), same_ambient = same_ambient)
@@ -378,8 +415,10 @@ function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
 end
 
 @doc raw"""
-    direct_sum(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}
-    direct_sum(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}
+    direct_sum(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                       Vector{AbstractSpaceMor}
+    direct_sum(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                       Vector{AbstractSpaceMor}
 
 Given a collection of lattices with isometries $(L_1, f_1) \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the injections $L_i \to L$,
@@ -402,8 +441,10 @@ end
 direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
 
 @doc raw"""
-    direct_product(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}
-    direct_product(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}
+    direct_product(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                       Vector{AbstractSpaceMor}
+    direct_product(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                       Vector{AbstractSpaceMor}
 
 Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the projections $L \to L_i$,
@@ -426,8 +467,12 @@ end
 direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
 
 @doc raw"""
-    biproduct(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
-    biproduct(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom, Vector{AbstractSpaceMor}, Vector{AbstractSpaceMor}
+    biproduct(x::Vector{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                      Vector{AbstractSpaceMor},
+                                                      Vector{AbstractSpaceMor}
+    biproduct(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom,
+                                                      Vector{AbstractSpaceMor},
+                                                      Vector{AbstractSpaceMor}
 
 Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the injections
@@ -476,30 +521,27 @@ end
     is_of_hermitian_type(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the minimal polynomial of
-the underlying isometry `f` is (irreducible) cyclotomic.
+the underlying isometry `f` is irreducible.
 
-Note that if $(L, f)$ is of hermitian type with `f` of order `n`, then `L` can
-be seen as a hermitian lattice over the order $\mathbb{Z}[\zeta_n]$ where
-$\zeta_n$ is a primitive $n$-th root of unity.
+Note that if $(L, f)$ is of hermitian type with `f` of minimal polynomial $\chi$,
+then `L` can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
 """
 function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
-  n = order_of_isometry(Lf)
-  if n == -1 || !is_finite(n)
-    return false
-  end
-  return is_cyclotomic_polynomial(minpoly(isometry(Lf)))
+  return is_irreducible(minimal_polynomial(Lf))
 end
 
 @doc raw"""
     hermitian_structure(Lf::ZZLatWithIsom) -> HermLat
 
 Given a lattice with isometry $(L, f)$ such that the minimal polynomial of the
-underlying isometry `f` is cyclotomic, return the hermitian structure of the
-underlying lattice `L` over the $n$th cyclotomic field, where $n$ is the
-order of `f`.
+underlying isometry `f` is irreducible, return the hermitian structure of the
+underlying lattice `L` over the equation order of the minimal polynomial of
+`f`.
 
-If it exists, the hermitian structure is stored.
+If it exists, the hermitian structure is stored. For now, we only cover the case
+where the equation order is maximal (which is always the case when the order is
+finite, for instance, since the minimal polynomial is cyclotomic).
 """
 @attr HermLat function hermitian_structure(Lf::ZZLatWithIsom)
   @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
@@ -523,6 +565,8 @@ end
 Given an integral lattice with isometry $(L, f)$, return the discriminant group `q`
 of the underlying lattice `L` as well as this image of the underlying isometry
 `f` inside $O(q)$.
+
+See [`discriminant_group(::ZZLat)`](@ref).
 """
 function discriminant_group(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -540,6 +584,8 @@ Given an integral lattice with isometry $(L, f)$, return the image $G_L$ in
 $O(q_L, \bar{f})$ of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$
 denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
 $q_L$ induced by `f`.
+
+See [`image_in_Oq(::ZZLat)`](@ref).
 """
 @attr AutomorphismGroup{TorQuadModule} function image_centralizer_in_Oq(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -608,7 +654,7 @@ the $i$-th signature of $(L, f)$ is given by the signatures of the real quadrati
 form $\Ker(f + f^{-1} - z^i - z^{-i})$.
 """
 function signatures(Lf::ZZLatWithIsom)
-  @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
+  @req is_cyclotomic_polynomial(minimal_polynomial(Lf)) "Lf must be of finite hermitian type"
   L = lattice(Lf)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
@@ -657,8 +703,8 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
   return lattice(ambient_space(Lf), K*basis_matrix(L))
   #f2 = solve_left(change_base_ring(QQ, K), K*f)
   #@hassert :ZZLatWithIsom 1 f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
-  #chi = parent(p)(collect(coefficients(minpoly(f2))))
-  #chif = parent(p)(collect(coefficients(minpoly(Lf))))
+  #chi = parent(p)(collect(coefficients(minimal_polynomial(f2))))
+  #chif = parent(p)(collect(coefficients(minimal_polynomial(Lf))))
   #_chi = gcd(p, chif)
   #@hassert :ZZLatWithIsom 1 (rank(L2) == 0) || (chi == _chi)
   #return integer_lattice_with_isometry(L2, f2, ambient_representation = false)
@@ -712,7 +758,7 @@ The coinvariant lattice $L_f$ of $(L, f)$ is the orthogonal complement in
 `L` of the invariant lattice $L_f$.
 """
 function coinvariant_lattice(Lf::ZZLatWithIsom)
-  chi = minpoly(Lf)
+  chi = minimal_polynomial(Lf)
   if chi(1) == 0
     R = parent(chi)
     x = gen(R)

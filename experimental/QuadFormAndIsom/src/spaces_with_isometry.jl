@@ -39,6 +39,8 @@ order_of_isometry(Vf::QuadSpaceWithIsom) = Vf.n
 
 Given a quadratic space with isometry $(V, f)$, return the rank of the underlying
 space `V`.
+
+See ['rank(::QuadSpace)'](@ref).
 """
 rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))::Integer
 
@@ -46,31 +48,35 @@ rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))::Integer
     dim(Vf::QuadSpaceWithIsom) -> Integer
 
 Given a quadratic space with isometry $(V, f)$, return the dimension of the
-underlying space of `V`
+underlying space of `V`.
+
+See [`dim(::QuadSpace)`](@ref).
 """
 dim(Vf::QuadSpaceWithIsom) = dim(space(Vf))::Integer
 
 @doc raw"""
-    charpoly(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
+    characteristic_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
 
 Given a quadratic space with isometry $(V, f)$, return the characteristic
-polynomial of the underlying isometry `f`
+polynomial of the underlying isometry `f`.
 """
-charpoly(Vf::QuadSpaceWithIsom) = charpoly(isometry(Vf))::QQPolyRingElem
+characteristic_polynomial(Vf::QuadSpaceWithIsom) = characteristic_polynomial(isometry(Vf))::QQPolyRingElem
 
 @doc raw"""
-    minpoly(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
+    minimal_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
 
 Given a quadratic space with isometry $(V, f)$, return the minimal
 polynomial of the underlying isometry `f`.
 """
-minpoly(Vf) = minpoly(isometry(Vf))::QQPolyRingElem
+minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))::QQPolyRingElem
 
 @doc raw"""
     gram_matrix(Vf::QuadSpaceWithIsom) -> QQMatrix
 
 Given a quadratic space with isometry $(V, f)$, return the Gram matrix
 of the underlying space `V` with respect to its standard basis.
+
+See [`gram_matrix(::QuadSpace)`](@ref).
 """
 gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))::QQMatrix
 
@@ -79,6 +85,8 @@ gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))::QQMatrix
 
 Given a quadratic space with isometry $(V, f)$, return the determinant
 of the underlying space `V`.
+
+See [`det(::QuadSpace)`](@ref).
 """
 det(Vf::QuadSpaceWithIsom) = det(space(Vf))::QQFieldElem
 
@@ -87,6 +95,8 @@ det(Vf::QuadSpaceWithIsom) = det(space(Vf))::QQFieldElem
 
 Given a quadratic space with isometry $(V, f)$, return the discriminant
 of the underlying space `V`.
+
+See [`discriminant(::QuadSpace)`](@ref).
 """
 discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))::QQFieldElem
 
@@ -95,6 +105,8 @@ discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))::QQFieldElem
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is positive definite.
+
+See [`is_positive_definite(::QuadSpace)`](@ref).
 """
 is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))::Bool
 
@@ -103,6 +115,8 @@ is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))::B
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is negative definite.
+
+See [`is_negative_definite(::QuadSpace)`](@ref).
 """
 is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))::Bool
 
@@ -111,6 +125,8 @@ is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))::B
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is definite.
+
+See [`is_definite(::QuadSpace)`](@ref).
 """
 is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))::Bool
 
@@ -118,9 +134,9 @@ is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))::Bool
     diagonal(Vf::QuadSpaceWithIsom) -> Vector{QQFieldElem}
 
 Given a quadratic space with isometry $(V, f)$, return the diagonal of the
-underlying space `V`, that is a list of rational numbers $a_1, \ldots a_n$
-such that `V` is isometric to the space whose Gram matrix is diagonal with
-entries $a_1,\ldots, a_n$.
+underlying space `V`.
+
+See [`diagonal(::QuadSpace)`](@ref).
 """
 diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))::Vector{QQFieldElem}
 
@@ -129,6 +145,8 @@ diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))::Vector{QQFieldElem}
 
 Given a quadratic space with isometry $(V, f)$, return the signature
 tuple of the underlying space `V`.
+
+See [`signature_tuple(::QuadSpace)`](@ref).
 """
 signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))::Tuple{Int, Int, Int}
 
@@ -186,6 +204,8 @@ end
 
 Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$) where
 $V^a$ is the same space as `V` with the associated quadratic form rescaled by `a`.
+
+See [`rescale(::QuadSpace, ::Hecke.RationalUnion)`](@ref).
 """
 function rescale(Vf::QuadSpaceWithIsom, a::Hecke.RationalUnion)
   return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf), check = false)
@@ -207,7 +227,6 @@ one should call `direct_product(x)`.
 If one wants to obtain $(V, f)$ as a biproduct with the injections $V_i \to V$ and
 the projections $V \to V_i$, one should call `biproduct(x)`.
 """
-
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj = direct_sum(space.(x))
   f = block_diagonal_matrix(isometry.(x))
@@ -232,7 +251,6 @@ one should call `direct_sum(x)`.
 If one wants to obtain $(V, f)$ as a biproduct with the injections $V_i \to V$ and
 the projections $V \to V_i$, one should call `biproduct(x)`.
 """
-
 function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, proj = direct_product(space.(x))
   f = block_diagonal_matrix(isometry.(x))
@@ -258,7 +276,6 @@ one should call `direct_sum(x)`.
 If one wants to obtain $(V, f)$ as a direct product with the projections $V \to V_i$,
 one should call `direct_product(x)`.
 """
-
 function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj, proj = biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
@@ -281,5 +298,20 @@ end
 function Base.hash(V::QuadSpaceWithIsom, u::UInt)
   u = Base.hash(space(V), u)
   return Base.hash(isometry(V), u)
+end
+
+###############################################################################
+#
+#  Useful
+#
+###############################################################################
+
+function to_oscar(Vf::QuadSpaceWithIsom)
+  V = space(Vf)
+  f = isometry(Vf)
+  println(stdout, "G = matrix(QQ, $(dim(V)), $(dim(V)), ", gram_matrix(V), ");")
+  println(stdout, "V = quadratic_space(QQ, G);")
+  println(stdout, "f = matrix(QQ, $(dim(V)), $(dim(V)), ", f, ");")
+  println(stdout, "Vf = quadratic_space_with_isometry(V, f);")
 end
 

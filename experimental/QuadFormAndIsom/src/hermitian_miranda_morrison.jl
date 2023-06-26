@@ -1,7 +1,6 @@
-
 ###############################################################################
 #
-#  Computations of the finite quotients E_0/E^i: subsection 6.8. of BH23
+#  Computations of the finite quotients E_0/E^i: subsection 6.8. of [BH23]
 #  ============================================================================
 #
 #  The 5 following functions are an import of identical functions written by
@@ -267,7 +266,7 @@ end
 # We collect all the prime ideals p for which the local quotient
 # (D^{-1}L^#/L)_p is not unimodular.
 #
-# According to BH23, the quotient D^{-1}L^#/L is unimodular at p
+# According to [BH23], the quotient D^{-1}L^#/L is unimodular at p
 # if and only if 
 #  - either L is unimodular at p, and D and p are coprime
 #  - or D^{-1}L^# is P^a-modular where P is largest prime ideal

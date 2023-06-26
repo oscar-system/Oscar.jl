@@ -1,28 +1,35 @@
-# Integer lattices with isometry
+# Quadratic forms and isometries
 
 This project is a complement to the code about *hermitian lattices* available
 on Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
-methods regarding integer lattices with their isometries. In particular,
+methods regarding quadratic forms with their isometries. In particular,
 the integration of this code to Oscar is necessary to benefit all the
 performance of GAP with respect to computations with groups and automorphisms in
 general.
 
+For now, the project covers methods regarding rational and integral quadratic
+forms.
+
 ## Content
 
-We introduce the new type `ZZLatWithIsom` which parametrizes pairs $(L, f)$ where
-$L$ is a non-denegerate $\mathbb{Z}$-lattice and $f$ is an isometry of $L$. One
-of the main feature of this project is the enumeration of isomorphism classes of
-pairs $(L, f)$ where $f$ is an isometry of finite order with at most two prime
-divisors. The methods we resort to for this purpose are developed in the paper
-[BH23].
+We introduce two new structures
+* `QuadSpaceWithIsom`
+* `ZZLatWithIsom`
+The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
+and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
+$L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
+is an isometry of $L$. One of the main feature of this project is the
+enumeration of isomorphism classes of pairs $(L, f)$ where $f$ is an isometry
+of finite order with at most two prime divisors. The methods we resort to
+for this purpose are developed in the paper [BH23].
 
 We also provide some algorithms computing isomorphism classes of primitive
-embeddings of even lattices following [Nikulin]. More precisely, the two
+embeddings of even lattices following Nikulin's theory. More precisely, the two
 functions `primitive_embeddings_in_primary_lattice` and
 `primitive_embeddings_of_primary_lattice` offer, under certain conditions,
-the possibility of obtaining representatives of such classes of primitive
-embeddings. Note nonetheless that these functions are not efficient in the case
-were the discriminant groups are large.
+the possibility to compute representatives of primitive embeddings and classify
+them in different ways. Note nonetheless that these functions are not efficient
+in the case were the discriminant groups have a large number of subgroups.
 
 ## Status
 
@@ -34,18 +41,16 @@ Among the possible improvements and extensions:
 * Implement methods about for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
-* Implement methods for all kinds of equivariant primitive extensions (not
-  necessarily admissibles);
-* Import the methods for extending trivial discriminant actions on lattice whose
-  discriminant group is an abelian $p$-group.
+* Implement methods for primitive embeddings in odd integral lattices;
+* Implement methods for more kinds of (equivariant) primitive extensions.
 
 ## Currently application of this project
 
 The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use
 this code, and further extension of it, to classify finite subgroups of
-automorphisms and birational transformations on *hyperkaehler manifolds*, which
-are a higher dimensional analog of K3 surface.
+bimeromorphic self-maps of *hyperkaehler manifolds*, which are a higher
+dimensional analog of K3 surface.
 
 ## Tutorials
 
@@ -57,9 +62,9 @@ report all the bugs you may have found. Any suggestions for improvements or
 extensions are more than welcome. Refer to the next section to know who you
 should contact and how.
 
-One may expect many things to vary within the next months: name of the functions,
-available features, performance. This is due to the fact that the current
-version of the code is still at an experimental stage.
+One may expect many things to vary within the next months: name of the
+functions, available features, performance. This is due to the fact that the
+current version of the code is still at an experimental stage.
 
 ## Contact
 

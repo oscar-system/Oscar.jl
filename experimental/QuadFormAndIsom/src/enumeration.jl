@@ -1,7 +1,7 @@
 
 ##################################################################################
 #
-# This is an import to Oscar of the methods written following the paper [BH22] on
+# This is an import to Oscar of the methods written following the paper [BH23] on
 # "Finite subgroups of automorphisms of K3 surfaces".
 #
 ##################################################################################
@@ -198,8 +198,16 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   if !represents(C, AperpB)
     return false
   end 
-  
-  return true
+
+  qA, qB, qC = discriminant_group.([A, B, C])
+  spec = (p == 2) && (_is_free(qA, p, l+1)) && (_is_free(qB, p, l+1)) && (_is_even(qC, p, l))
+  rA = Oscar._rho_functor(qA, p, l+1)
+  rB = Oscar._rho_functor(qB, p, l+1)
+  if spec
+    return is_anti_isometric_with_anti_isometry(rA, rB)[1]
+  else
+    return Oscar._anti_isometry_bilinear(rA, rB)[1]
+  end
 end
 
 function is_admissible_triple(A::T, B::T, C::T, p::Integer) where T <: Union{ZZLat, ZZLatWithIsom}
@@ -579,7 +587,7 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
     e = 0
   end
 
-  phi = minpoly(Lf)
+  phi = minimal_polynomial(Lf)
   chi = prod([cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e])
 
   @req Hecke.divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
@@ -650,7 +658,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
 
   reps = ZZLatWithIsom[]
 
-  x = gen(parent(minpoly(Lf)))
+  x = gen(parent(minimal_polynomial(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod([cyclotomic_polynomial(p^d*q^i) for i in 0:e]))
   A = splitting_of_pure_mixed_prime_power(A0, p)
@@ -752,4 +760,65 @@ function _split_prime_power(N::ZZLatWithIsom, p::Hecke.IntegerUnion, vp::Hecke.I
     end
   end
   return reps
+end
+
+###############################################################################
+#
+#  Testing functions
+#
+###############################################################################
+
+function _get_isometry_prime_power!(D, L, p, j)
+  if !haskey(D, p)
+    Dp = splitting_of_prime_power(integer_lattice_with_isometry(L), p, 1)
+    D[p] = Dp
+  end
+  for i in 2:j
+    if !haskey(D, p^i)
+      Dp = D[p^(i-1)]
+      Dpi = ZZLatWithIsom[]
+      for N in Dp
+        Np = splitting_of_mixed_prime_power(N, p)
+        filter!(NN -> valuation(order_of_isometry(NN), p) == i, Np)
+        append!(Dpi, Np)
+      end
+      D[p^i] = Dpi
+    end
+  end
+  return nothing
+end
+
+function _get_isometry_composite!(D, n)
+  p, q = sort(prime_divisors(n))
+  i, j = valuation(n, p), valuation(n, q)
+  for k in 1:i
+    Dq = D[p^(k-1)*q^j]
+    Dn = ZZLatWithIsom[]
+    for N in Dq
+      Np = splitting_of_mixed_prime_power(N, p)
+      filter!(NN -> order_of_isometry(NN) == p^k*q^j, Np)
+      append!(Dn, Np)
+    end
+    D[p^k*q^j] = Dn
+  end
+  return nothing
+end
+
+function _test_isometry_enumeration(L::ZZLat)
+  n = rank(L)
+  ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:2*n^2)
+  pds = union(reduce(vcat, prime_divisors.(ord)))
+  vals = [maximum([valuation(x, p) for x in ord]) for p in pds]
+  D = Dict{Int, Vector{ZZLatWithIsom}}()
+  D[1] = ZZLatWithIsom[integer_lattice_with_isometry(L)]
+  for i in 1:length(vals)
+    p = pds[i]
+    j = vals[i]
+    _get_isometry_prime_power!(D, L, p, j)
+  end
+  for n in ord
+    is_prime_power_with_data(n)[1] && continue
+    _get_isometry_composite!(D, n)
+  end
+  return D
 end
