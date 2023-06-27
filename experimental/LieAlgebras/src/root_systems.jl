@@ -51,7 +51,6 @@ mutable struct RootSystem
   end
 =======
 # LieAlg.jl : Implements root systems (by copying most structures from GAP)
-#TODO: implement Weyl groups. Is it possible to give groups by generatrs and relations in Oscar?
 using Oscar
 
 GAP.Packages.load("sla")
