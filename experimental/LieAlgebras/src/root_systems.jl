@@ -96,7 +96,7 @@ function root_system(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
   # S is a symbol detailing the type of the indecomposable root system 
   # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
-  return RootSystem(S,n)
+  return RootSystem(S, n)
 end
 ###############################################################################
 #
@@ -219,7 +219,7 @@ end
    dynkin_diagram(R::RootSystem)
 
  Return the Dynkin diagram of the root system `R`
-  """
+"""
 function dynkin_diagram(R::RootSystem)
   S = R.root_system_type
   return dynkin_diagram(S[1],S[2])
