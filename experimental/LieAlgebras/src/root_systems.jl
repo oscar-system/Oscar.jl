@@ -221,7 +221,7 @@ end
  Return the Dynkin diagram of the root system `R`
   """
 function dynkin_diagram(R::RootSystem)
-	S = R.root_system_type
-	return dynkin_diagram(S[1],S[2])
+  S = R.root_system_type
+  return dynkin_diagram(S[1],S[2])
 end
 
