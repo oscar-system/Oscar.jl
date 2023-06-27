@@ -207,20 +207,20 @@ end
 #####################################################
 
 @doc raw"""
-    global_weierstrass_model(t::GlobalTateModel)
+    weierstrass_model(t::GlobalTateModel)
 
-Return the global Weierstrass model which is equivalent to the given Tate model.
+Return the Weierstrass model which is equivalent to the given Tate model.
 
 ```jldoctest
 julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> global_weierstrass_model(t)
-Global Weierstrass model over a not fully specified base
+julia> weierstrass_model(t)
+Weierstrass model over a not fully specified base
 ```
 """
-@attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into global Weierstrass model is currently only supported for toric varieties/schemes as base space"
+@attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties/schemes as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
@@ -230,7 +230,7 @@ Global Weierstrass model over a not fully specified base
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  model = GlobalWeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
   set_attribute!(model, :base_fully_specified, base_fully_specified(t))
   return model
 end
@@ -254,7 +254,7 @@ julia> discriminant(t);
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
   @req typeof(base_space(t)) <: ToricCoveredScheme "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
-  return discriminant(global_weierstrass_model(t))
+  return discriminant(weierstrass_model(t))
 end
 
 
@@ -319,7 +319,7 @@ julia> singular_loci(t)[2]
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
   @req typeof(base_space(t)) <: ToricCoveredScheme "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
-  return singular_loci(global_weierstrass_model(t))
+  return singular_loci(weierstrass_model(t))
 end
 
 

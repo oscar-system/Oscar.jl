@@ -1045,7 +1045,7 @@ julia> conjugate(partition(8,8,8,7,2,1,1))
 1. [Ful97](@cite), page 2
 2. [Knu11](@cite), Section 7.2.1.4, page 394.
 """
-function conjugate(lambda::Partition{T}) where T<:IntegerUnion
+function Oscar.conjugate(lambda::Partition{T}) where T<:IntegerUnion
   if isempty(lambda)
     return copy(lambda)
   end
