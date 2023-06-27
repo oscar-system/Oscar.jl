@@ -159,4 +159,34 @@ const pm = Polymake
         @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
         @test cone_from_equations(T, [0 1 0]) == cone_from_inequalities(T, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
     end
+
+  @testset "transform" begin
+    pts = [1 0 0 0; 1 1 0 0; 1 1 1 0; 1 0 1 0]
+    lin = [0 0 0 1]
+    A = [ -6    3   1    3;
+         -24    7   4   13;
+         -31    9   5   17;
+         -37   11   6   20]
+    # We also put inverse here, since inversion in Julia produces float errors
+    # and we don't want to do complicated matrix conversions here.
+    invA = [1   2   3   -4;
+            1   0   1   -1;
+            1   9   0   -6;
+            1   1   5   -5]
+    C = positive_hull(T, pts, lin)
+    Ctarget = positive_hull(T, pts*transpose(A), lin*transpose(A))
+    for props in (["RAYS", "LINEALITY_SPACE"],
+                  ["FACETS", "LINEAR_SPAN"])
+      Ccopy = Polymake.polytope.Cone{Oscar.scalar_type_to_polymake[T]}()
+      for prop in props
+        Polymake.take(Ccopy, prop, Polymake.give(Oscar.pm_object(C), prop))
+      end
+      Ccopy = Cone{T}(Ccopy)
+      Ccopyt = transform(Ccopy, A)
+      Ccopytt = transform(Ccopyt, invA)
+      @test Ccopy == C
+      @test Ctarget == Ccopyt
+      @test Ccopytt == C
+    end
+  end
 end
