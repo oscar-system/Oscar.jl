@@ -57,6 +57,7 @@ weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attribut
 
 ```@docs
 blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+blow_up(v::AbstractNormalToricVariety, new_ray::Vector{Int64}; coordinate_name::String = "e", set_attributes::Bool = true)
 blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
 normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
