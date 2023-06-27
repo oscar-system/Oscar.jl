@@ -168,7 +168,7 @@ function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem,
     # which leads to duplicate refs in the refs section of the file (not in the parent list)
     terms = save_internal(s, polynomial; include_parent=false)
     parent_field = save_as_ref(s, K)
-
+    
     if include_parent
         return Dict(
             :parent => parent_field,
@@ -317,13 +317,13 @@ function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSEl
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
     polynomial_parent = parent(polynomial)
-    poly_dict = save_internal(s, polynomial; include_parent=false)
+    terms = save_internal(s, polynomial; include_parent=false)
     parent_field = save_as_ref(s, K)
 
     if include_parent
         return Dict(
             :parent => parent_field,
-            :terms => poly_dict[:terms]
+            :terms => terms
         )
     end
     return terms

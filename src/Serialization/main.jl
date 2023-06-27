@@ -150,7 +150,6 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 ################################################################################
 # High level
 
-function load_parent(s::DeserializerState, )
 function load_ref(s::DeserializerState, dict::Dict)
     if !haskey(dict, :id)
         return load_unknown_type(s, dict)
@@ -306,6 +305,30 @@ end
 
 ################################################################################
 # Utility functions for parent tree
+
+function get_parent_dicts(s::DeserializerState, parent_ref::Dict)
+    if !haskey(parent_ref, :id)
+        return []
+    end
+    parent_dicts = []
+    parent_id = parent_ref[:id]
+    parent_dict = s.refs[Symbol(parent_id)]
+    parent_dict[:id] = parent_id
+    
+    if haskey(parent_dict[:data], :base_ring)
+        base_dict = parent_dict[:data][:base_ring]
+    elseif haskey(parent_dict[:data], :base_field)
+        base_dict = parent_dict[:data][:base_field]
+    elseif haskey(parent_dict[:data], :def_pols)
+        base_dict = parent_dict[:data][:def_pols][:data][:parent]
+    elseif haskey(parent_dict[:data], :def_pol)
+        base_dict = parent_dict[:data][:def_pol][:data][:parent] 
+    end
+    parent_dicts = get_parent_dicts(s, base_dict)
+    push!(parent_dicts, parent_dict)
+
+    return parent_dicts
+end
 
 # loads parent tree
 function load_parents(s::DeserializerState, parent_dicts::Vector)

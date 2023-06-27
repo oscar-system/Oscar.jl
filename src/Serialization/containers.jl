@@ -28,15 +28,14 @@ end
 # deserialize with specific content type
 function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
     if isconcretetype(T)
-        # vector of basic parametrized type 
         if haskey(dict, :parent)
-            parent_ring = load_unknown_type(s, dict[:parent])
-            return [
-                load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
-                    x in dict[:vector]
-                    ]
-        # vector of types that depend on polynomial serialization
-        elseif haskey(dict, :parents)
+            parent = load_parent(s, dict[:parent])
+            if has_elem_basic_encoding(parent)
+                return [
+                    load_internal_with_parent(s, elem_type(parent), x, parent)
+                    for x in dict[:vector]
+                        ]
+            end
             parents = load_parents(s, dict[:parents])
             return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
         # vector of basic types    
@@ -55,11 +54,12 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring) where T
     if isconcretetype(T)
         if haskey(dict, :parent)
-            return [
-                load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring) for
-                    x in dict[:vector]
-                    ]
-        elseif haskey(dict, :parents)
+            if has_elem_basic_encoding(parent_ring)
+                return [
+                    load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring)
+                    for x in dict[:vector]
+                        ]
+            end
             parents = get_parents(parent_ring)
             return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
         elseif haskey(dict, :entry_type)
@@ -74,18 +74,17 @@ end
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
     if haskey(dict, :parent)
-        parent_dicts = get_parent_dicts(s, dict[:parent])
-        loaded_parents = load_parents(s, parent_dicts)
-        parent = loaded_parents[end]
-        if has_elem_basic_encoding(parent_ring)
-            return [load_internal_with_parent(s, elem_type(parent_ring), x, parent_ring)
+        parent = load_parent(s, dict[:parent])
+        if has_elem_basic_encoding(parent)
+            return [load_internal_with_parent(s, elem_type(parent), x, parent)
                     for x in dict[:vector]]
-        else
-            return [load_terms]
-            
+        end
+        parent_dicts = get_parent_dicts(s, dict[:parent])
+        parents = load_parents(s, parent_dicts)
+
+        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
     elseif haskey(dict, :entry_type)
         T = decodeType(dict[:entry_type])
-        
         return [load_type_dispatch(s, T, x) for x in dict[:vector]]
     end
     
