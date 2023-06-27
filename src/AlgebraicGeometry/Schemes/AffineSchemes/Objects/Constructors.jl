@@ -198,10 +198,10 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 julia> I = ideal(R, [x]);
 
 julia> X = Spec(R, I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
 ```
 """
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
@@ -227,10 +227,10 @@ julia> I = ideal(R, [x]);
 julia> U = complement_of_prime_ideal(I);
 
 julia> X = Spec(R, U)
-Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
+Spec of Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal
 
 julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
+Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
@@ -252,10 +252,10 @@ julia> I = ideal(R, [x]);
 julia> U = complement_of_prime_ideal(ideal(R, [y]));
 
 julia> X = Spec(R, I, U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 
 julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
