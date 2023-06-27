@@ -230,7 +230,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   C = default_covering(Y)
   #U = C[1]
   #ST = affine_patch_type(Y)
-  pp = Dict{AbsSpec, AbsProjectiveScheme}()
+  pp = IdDict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
   tr = Dict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
@@ -290,6 +290,20 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
+
+    # Cache the isomorphism on the complement of the center
+    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for i in 1:ngens(I)
+      UW = PrincipalOpenSubset(W, gen(I, i))
+      V = affine_charts(Y)[i]
+      VW = PrincipalOpenSubset(V, E(V))
+      p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+      g = OO(UW).(gens(I))
+      set_attribute!(p_res_dict[VW], :inverse, 
+                     SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                    )
+    end
+    set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
     return IPY
   else
     # construct the blowup by elimination.
@@ -319,6 +333,19 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
+    # Cache the isomorphism on the complement of the center
+    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for i in 1:ngens(I)
+      UW = PrincipalOpenSubset(W, gen(I, i))
+      V = affine_charts(Y)[i]
+      VW = PrincipalOpenSubset(V, E(V))
+      p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+      g = OO(UW).(gens(I))
+      set_attribute!(p_res_dict[VW], :inverse, 
+                     SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                    )
+    end
+    set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
     return IPY
   end
 end
@@ -351,6 +378,20 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
+  
+  # Cache the isomorphism on the complement of the center
+  p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for i in 1:ngens(I)
+    UW = PrincipalOpenSubset(W, gen(I, i))
+    V = affine_charts(Y)[i]
+    VW = PrincipalOpenSubset(V, E(V))
+    p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+    g = OO(UW).(gens(I))
+    set_attribute!(p_res_dict[VW], :inverse, 
+                   SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                  )
+  end
+  set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
   return Bl_W
 end
 
@@ -612,8 +653,17 @@ function blow_up(
   )
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
+  comp_iso_dict = IdDict{AbsSpec, AbsSpecMor}()
   for U in patches(covering)
     local_blowups[U] = blow_up_chart(U, I(U), var_name=var_name)
+    # Gather the information on the isomorphism on the complement
+    p = covered_projection_to_base(local_blowups[U])
+    isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
+    # manual merge becaus `merge` does not preserve IdDicts.
+    for x in keys(isos_on_complement_of_center)
+      comp_iso_dict[x] = isos_on_complement_of_center[x]
+    end
+    #comp_iso_dict = merge(comp_iso_dict, isos_on_complement_of_center)
   end
   projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
 
@@ -642,6 +692,8 @@ function blow_up(
     ID[U] = first(E_loc(U))
   end
   pr = BlowupMorphism(Bl_I, I)
+  # Store the information for the isomorphism on the complement
+  set_attribute!(pr, :isos_on_complement_of_center, comp_iso_dict)
   pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   return pr
 end

@@ -29,7 +29,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
       check::Bool=true,
       representative_patch::AbsSpec=default_covering(X)[1]
     )
-    check && (is_irreducible(X) || error("variety is not irreducible"))
+    @check is_irreducible(X) "variety is not irreducible"
     representative_patch in default_covering(X) || error("representative patch not found")
     KK = fraction_field(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
@@ -533,7 +533,7 @@ identifications given by the glueings in the `default_covering`.
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
-    if check
+    @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is

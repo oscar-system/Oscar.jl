@@ -263,3 +263,18 @@ end
 
 morphism_type(X::AbsSpec, Y::AbsSpec) = morphism_type(typeof(X), typeof(Y))
 
+@doc raw"""
+    isomorphism_on_open_subsets(f::AbsSpecMor)
+
+For a birational morphism ``f : X → Y`` of `AbsSpec`s this 
+returns an isomorphism of affine schemes ``f' : U → V`` which is 
+the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
+``V ⊂ Y``.
+"""
+function isomorphism_on_open_subsets(f::AbsSpecMor)
+  if !has_attribute(f, :iso_on_open_subset)
+    is_birational(f) # Should compute and store the attribute
+  end
+  return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
+end
+
