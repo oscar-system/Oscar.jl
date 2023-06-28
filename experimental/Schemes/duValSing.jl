@@ -41,7 +41,7 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   characteristic(kk) == 0 || error("only available in characteristic zero")
   base_ring(OOX) === R || error("base rings need to be identical")
 
-  dim(I) == 0 || error("second argument is not a point")
+  dim(I) == 0 || error("second argument does not describe a 0-dimensional scheme")
   if get_attribute(I,:is_absolutely_prime, false)
     return _check_duval_at_point(J,I)[1]
   end
@@ -146,7 +146,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   cubiccount > 1 || return  (true, (:D,tau))                            ## D_series
 
   # it is definitely in the E/J series
-  tau < 9 || return(false, typeof(smooth))                          ## at least J_10
+  tau < 9 || return(false, typeof(smooth))                              ## at least J_10
   return (true, (:E,tau))                                               ## E_6, E_7, E_8
 end
 
@@ -187,6 +187,44 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   LM = leading_module(Mq,o)
 
   return length([x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
+end
+  
+function vector_space_basis(M::SubquoModule)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  has_monomials_on_all_axes(LM) || error("not a finite dimensional vector space")
+  
+  d = 0
+  all_mons=[]
+  temp_mons = vector_space_basis(M,0)
+
+  while length(temp_mons) > 0
+    append!(all_mons,temp_mons)
+    d = d+1
+    temp_mons=vector_space_basis(M,d)
+  end
+
+  return all_mons
+end
+
+function vector_space_basis(M::SubquoModule,d::Int64)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  return [x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
 end
   
 function has_monomials_on_all_axes(M::SubquoModule)
