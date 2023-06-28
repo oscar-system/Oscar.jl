@@ -1687,16 +1687,20 @@ with 2 generators
 julia> intersect(I,J,K)
 Ideal
   of localized ring
-with 2 generators
-  x*y
-  x^2
+with 4 generators
+  x*y*w - x*y
+  x^2*w - x^2
+  x^2*y + x*y^2 + x*y*z
+  x^3 + x^2*z - x*y^2 - x*y*z
 
 julia> intersect([I,J,K])
 Ideal
   of localized ring
-with 2 generators
-  x*y
-  x^2
+with 4 generators
+  x*y*w - x*y
+  x^2*w - x^2 + x*y*w - x*y
+  x^2*y + x*y^2 + x*y*z
+  x^3 + x^2*z - x*y^2 - x*y*z
 ```
 """
 function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
