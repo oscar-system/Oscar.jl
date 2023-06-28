@@ -40,12 +40,11 @@
     let pc = polyhedral_complex(E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant = true)
         @test maximal_polyhedra(pc) == faces(sd, 2)
     end
-    # error in minkowski_sum
-    # let c = convex_hull(E, permutedims([0]), permutedims([r]))
-    #     ms = minkowski_sum(sd, c)
-    #     @test f_vector(ms) == [0, 8, 18, 12]
-    #     @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
-    # end
+    let c = convex_hull(E, permutedims([0]), permutedims([r]))
+        ms = product(sd, c)
+        @test f_vector(ms) == [0, 8, 18, 12]
+        @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
+    end
 
     @testset "Detection" begin
         let j = johnson_solid(12)
