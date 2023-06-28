@@ -114,6 +114,13 @@ polyhedral_complex(polyhedra::IncidenceMatrix,
                 non_redundant::Bool = false) =
   polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
 
+function polyhedral_complex(f::Union{Type{T}, Field}, v::AbstractCollection[PointVector], vi::IncidenceMatrix, r::AbstractCollection[RayVector], ri::IncidenceMatrix, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+    vr = [unhomogenized_matrix(v); unhomogenized_matrix(r)]
+    far_vertices = collect((size(v, 1) + 1):size(vr, 1))
+    polyhedra = hcat(vi, ri)
+    return polyhedral_complex(f, polyhedra, vr, far_vertices, L; non_redundant = non_redundant)
+end
+
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`
 # Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
 # This makes sure that polyhedral_complex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,

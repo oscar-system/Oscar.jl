@@ -34,6 +34,13 @@ for f in (QQ, NF, K)
      
         @test k_skeleton(PC, 1) isa PolyhedralComplex{T}
         PCK = k_skeleton(PC, 1)
+
+        # test constructor with re-arranged arguments
+        let PCF2 = polyhedral_complex(f, -P[1:3, :], I[:, 1:3], -P[4:4, :], I[:, 4:4])
+            @test vertices(PCF) == vertices(PCF2)
+            @test rays(PCF) == rays(PCF2)
+            @test IncidenceMatrix(maximal_polyhedra(PCF)) == IncidenceMatrix(maximal_polyhedra(PCF2))
+        end
      
         @testset "core functionality" begin
          
