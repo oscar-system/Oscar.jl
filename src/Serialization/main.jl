@@ -126,6 +126,12 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
+
+# Objects have a elements that have a basic encoding are fundamental objects. They are "atomic"
+# with regards to the available types in Oscar (maybe in general), they are base cases when
+# a parent tree is constructed via recursion, and they can be decoded from a string or array of
+# strings provided their parent is known.
+
 function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
 end

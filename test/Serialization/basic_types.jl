@@ -46,6 +46,7 @@ end
                 Float16, Float32, Float64,
                 BigInt,
                 ZZRingElem,
+                QQFieldElem
             )
             original = T(1)
             test_save_load_roundtrip(path, original) do loaded
