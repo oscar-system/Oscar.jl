@@ -1,12 +1,21 @@
 # Tropical Semiring
 @registerSerializationType(TropicalSemiring{typeof(min)})
 @registerSerializationType(TropicalSemiring{typeof(max)})
+has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
 
-function save_internal(s::SerializerState, t::TropicalSemiringElem)
-  return string(data(t))
+function save_internal(s::SerializerState, t::TropicalSemiringElem;
+                       include_parents::Bool=true)
+    encoded_t = string(data(t))
+    if include_parents
+        return Dict(
+            :parent => parent(t),
+            :str => encoded_t
+        )
+    end
+    return encoded_t
 end
 
 function load_internal(s::DeserializerState,
@@ -22,7 +31,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent::TropicalSemiring{S}) where S
   return parent(load_type_dispatch(s, QQFieldElem, str))
 end
-
 
 # Tropical Hypersurfaces
 @registerSerializationType(TropicalHypersurface, true)

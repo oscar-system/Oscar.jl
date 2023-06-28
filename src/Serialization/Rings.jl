@@ -27,6 +27,7 @@ end
 ################################################################################
 #  non simpleton base rings
 @registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
+has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
     return Dict(

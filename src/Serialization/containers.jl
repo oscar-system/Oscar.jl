@@ -13,19 +13,25 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     return d
 end
 
-function save_internal(s::SerializerState, vec::Vector{T}) where T <: RingElem
-    entries_parent = parent(vec[1])
+function save_internal(s::SerializerState, vec::Vector{T};
+                       include_parents::Bool=true) where T <: RingElem
+    encoded_vec = [save_internal(s, x; include_parents=false) for x in vec]
 
-    if has_elem_basic_encoding(entries_parent)
+    if include_parents
+        entries_parent = parent(vec[1])
+
+        if has_elem_basic_encoding(entries_parent)
+            return Dict(
+                :parent => save_as_ref(s, entries_parent),
+                :vector => encoded_vec
+            )
+        end
         return Dict(
-            :parent => save_as_ref(s, entries_parent),
+            :parents => get_parent_refs(s, entries_parent),
             :vector => [save_internal(s, x; include_parents=false) for x in vec]
         )
     end
-    return Dict(
-        :parents => get_parent_refs(s, entries_parent),
-        :vector => [save_internal(s, x; include_parents=false) for x in vec]
-    )
+    return encoded_vec
 end
 
 # deserialize with specific content type

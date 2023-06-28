@@ -1,6 +1,10 @@
 ################################################################################
 # Utility functions for parent tree
 function get_parents(parent_ring::Field)
+    if has_elem_basic_encoding(parent_ring)
+        return Any[]
+    end
+
     if absolute_degree(parent_ring) == 1
         return Any[]
     end
@@ -39,6 +43,7 @@ end
 # non-ZZRingElem variant
 @registerSerializationType(Nemo.fpFieldElem)
 @registerSerializationType(Nemo.fpField)
+has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
     return Dict(
@@ -86,6 +91,7 @@ end
 # ZZRingElem variant
 @registerSerializationType(Nemo.FpFieldElem)
 @registerSerializationType(Nemo.FpField)
+has_elem_basic_encoding(obj::Nemo.FpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.FpField)
     return Dict(
@@ -203,6 +209,7 @@ end
 # FqField
 @registerSerializationType(FqField, true)
 @registerSerializationType(FqFieldElem)
+has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 
 function save_internal(s::SerializerState, K::FqField)
     if absolute_degree(K) == 1
@@ -504,6 +511,7 @@ end
 # ArbField
 @registerSerializationType(ArbField)
 @registerSerializationType(arb)
+has_elem_basic_encoding(obj::ArbField) = true
 
 function save_internal(s::SerializerState, RR::Nemo.ArbField)
     return Dict(
@@ -523,7 +531,6 @@ function save_internal(s::SerializerState, r::arb; include_parents::Bool=true)
 
     # free memory
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
-
     if include_parents
         return Dict(
             :parents => get_parent_refs(s, parent(r)),
@@ -557,9 +564,9 @@ end
 
 ################################################################################
 # AcbField
-
 @registerSerializationType(AcbField)
 @registerSerializationType(acb)
+has_elem_basic_encoding(obj::AcbField) = true
 
 function save_internal(s::SerializerState, CC::AcbField)
     return Dict(
@@ -573,11 +580,15 @@ function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, c::acb)
-    return Dict(
-        :vector => save_internal(s, [real(c), imag(c)])[:vector],
-        :parents => get_parent_refs(s, parent(c))
-    )
+function save_internal(s::SerializerState, c::acb; include_parents::Bool=true)
+    encoded_acb = save_internal(s, [real(c), imag(c)]; include_parents=false)
+    if include_parents
+        return Dict(
+            :parent => save_as_ref(s, parent(c)),
+            :vector => encoded_acb
+        )
+    end
+    return encoded_acb
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -599,16 +610,15 @@ function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
     K = number_field(E)
     g = gen(K)
     g_ball = E(g)
-    
     return Dict(
         :num_field => save_type_dispatch(s, K),
-        :gen_ball => save_type_dispatch(s, g_ball)
+        :gen_ball => save_internal(s, g_ball)
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
     K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
-    parent = load_parents(s, dict[:gen_ball][:parents])[end]
+    parent = load_type_dispatch(s, AcbField, dict[:gen_ball][:parent])
     gen_ball = load_internal_with_parent(s, acb, dict[:gen_ball][:vector], parent)
 
     return complex_embedding(K, gen_ball)
@@ -635,9 +645,9 @@ end
 
 ################################################################################
 # Padic Field
-
 @registerSerializationType(FlintPadicField)
 @registerSerializationType(padic)
+has_elem_basic_encoding(obj::FlintPadicField) = true
 
 function save_internal(s::SerializerState, P::FlintPadicField)
     return Dict(

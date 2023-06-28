@@ -137,15 +137,6 @@ function has_basic_encoding(obj::T) where T <: RingElem
 end
 
 has_elem_basic_encoding(obj::T) where T = false
-has_elem_basic_encoding(obj::ArbField) = true
-has_elem_basic_encoding(obj::AcbField) = true
-has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
-has_elem_basic_encoding(obj::Nemo.fpField) = true
-has_elem_basic_encoding(obj::Nemo.FpField) = true
-has_elem_basic_encoding(obj::Nemo.zzModRing) = true
-has_elem_basic_encoding(obj::FlintPadicField) = true
-has_elem_basic_encoding(obj::TropicalSemiring) = true
-
 
 ################################################################################
 # High level

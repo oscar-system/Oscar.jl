@@ -22,7 +22,7 @@ end
 # ZZRingElem
 @registerSerializationType(ZZRingElem)
 
-function save_internal(s::SerializerState, z::ZZRingElem)
+function save_internal(s::SerializerState, z::ZZRingElem; kwargs...)
     return string(z)
 end
 
@@ -41,15 +41,8 @@ end
 # QQFieldElem
 @registerSerializationType(QQFieldElem)
 
-function save_internal(s::SerializerState, q::QQFieldElem; include_parents::Bool=true)
-    q_str = string(q)
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, QQ),
-            :str => q_str
-        )
-    end
-    return q_str
+function save_internal(s::SerializerState, q::QQFieldElem; kwargs...)
+    return string(q)
 end
 
 function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
