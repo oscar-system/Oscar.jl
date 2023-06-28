@@ -244,7 +244,9 @@ identifications given by the glueings in the `default_covering`.
         pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) === OV || error("element does not belong to the correct domain")
-          return pullback(incU)(restrict(pbg(domain(pbg)(x)), U_flat)) # should probably be tuned to avoid checks.
+          y = pbg(domain(pbg)(x, check=false))
+          yy = restrict(y, U_flat, check=false)
+          return pullback(incU)(yy)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
@@ -316,9 +318,9 @@ identifications given by the glueings in the `default_covering`.
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
           y = pullback(inverse(inc_V_flat))(x)
-          y = restrict(y, VV_flat)
+          y = restrict(y, VV_flat, check=false)
           y = pullback(fres)(y)
-          y = restrict(y, U_flat)
+          y = restrict(y, U_flat, check=false)
           return pullback(inc_U_flat)(y)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
@@ -338,7 +340,7 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
-          return restrict(pullback(g)(OO(domain(f))(a)), W)
+          return restrict(pullback(g)(OO(domain(f))(a)), W, check=false)
         end
         return MapFromFunc(rho_func, OV, OW)
       end

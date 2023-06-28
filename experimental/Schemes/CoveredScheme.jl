@@ -120,22 +120,18 @@ affine_refinements(C::Covering) = C.affine_refinements
       y = gens(base_ring(OO(U[j])))
       Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
       Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
-      f = SpecMor(Ui, Uj,
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecMor(Uj, Ui,
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
+      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
+                  [1//x[j-1]],
+                  [x[k-1]//x[j-1] for k in i+1:j-1],
+                  [x[k]//x[j-1] for k in j:r],
+                  x[r+1:end])
+      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
+                    [y[k+1]//y[i] for k in i:j-2],
+                    [1//y[i]],
+                    [y[k]//y[i] for k in j:r],
+                    y[r+1:end])
+      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
       add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
@@ -223,22 +219,18 @@ end
       y = gens(base_ring(OO(U[j])))
       Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
       Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
-      f = SpecMor(Ui, Uj,
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecMor(Uj, Ui,
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
+      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
+                  [1//x[j-1]],
+                  [x[k-1]//x[j-1] for k in i+1:j-1],
+                  [x[k]//x[j-1] for k in j:r],
+                  x[r+1:end])
+      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
+                    [y[k+1]//y[i] for k in i:j-2],
+                    [1//y[i]],
+                    [y[k]//y[i] for k in j:r],
+                    y[r+1:end])
+      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
       add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
@@ -548,8 +540,8 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
     end
   end
 
-  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=check))
-  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=check)
-  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=check)
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=false))
+  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=false)
+  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
 end
 

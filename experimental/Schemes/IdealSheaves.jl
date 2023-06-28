@@ -331,7 +331,7 @@ function extend!(
       if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
         # if not, extend D to this patch
         f, _ = glueing_morphisms(C[V, U])
-        pbI_gens = pullback(f).(OO(codomain(f)).(gens(D[U])))
+        pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
         J = ideal(OO(V), lifted_numerator.(pbI_gens))
         J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
         D[V] = J_sat

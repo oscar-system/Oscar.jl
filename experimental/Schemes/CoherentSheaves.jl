@@ -689,8 +689,8 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*identity_matrix(OO(VV), 1)
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*identity_matrix(OO(UU), 1)
+    MG[(U, V)] = diagonal_matrix((d>= 0 ? (x->OO(VV)(x, check=false))(h_V^d) : (inv((x->OO(VV)(x, check=false))(h_V))^(-d))), 1)
+    MG[(V, U)] = diagonal_matrix((d>= 0 ? (x->OO(UU)(x, check=false))(h_U^d) : (inv((x->OO(UU)(x, check=false))(h_U))^(-d))), 1)
   end
 
   M = SheafOfModules(X, MD, MG)
