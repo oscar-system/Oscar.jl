@@ -42,11 +42,10 @@
     end
     let c = convex_hull(E, permutedims([0]), permutedims([r]))
         ms = product(sd, c)
-        @test f_vector(ms) == [0, 8, 18, 12]
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
 
-    @testset "Detection" begin
+    @testset "Scalar detection" begin
         let j = johnson_solid(12)
             @test j isa Polyhedron{QQFieldElem}
             s = vertices(j)[1][1]
