@@ -59,7 +59,7 @@ end
 function save_internal(s::SerializerState, elem::fpFieldElem; include_parents::Bool=true)
     if include_parents
         return Dict(
-            :parents => get_parent_refs(s, parent(elem)),
+            :parent => save_as_ref(s, parent(elem)),
             :class_rep => string(elem)
         )
     end
@@ -67,8 +67,8 @@ function save_internal(s::SerializerState, elem::fpFieldElem; include_parents::B
 end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
-    F = load_type_dispatch(s, Nemo.fpField, dict[:parents])[end]
-    return F(UInt64(dict[:data]))
+    F = load_ref(s, dict[:parent])
+    return F(UInt64(dict[:class_rep]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -107,13 +107,17 @@ end
 function save_internal(s::SerializerState, elem::FpFieldElem; include_parents::Bool=true)
     if include_parents
         return Dict(
-            :parents => get_parent_refs(s, parent(elem))
+            :parent => save_as_ref(s, parent(elem)),
             :class_rep => string(Nemo.data(elem))
         )
     end
     return string(Nemo.data(elem))
 end
 
+function load_internal(s::DeserializerState, z::Type{FpFieldElem}, dict::Dict)
+    F = load_ref(s, dict[:parent])
+    return F(ZZRingElem(dict[:class_rep]))
+end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{FpFieldElem},
@@ -669,7 +673,7 @@ function save_internal(s::SerializerState, n::padic; include_parents::Bool=true)
     rational_rep = string(lift(QQ, n))
     if include_parents
         return Dict(
-            :parents => save_parent_refs(parent(n)),
+            :parent => save_as_ref(s, parent(n)),
             :rational_rep => rational_rep
         )
     end

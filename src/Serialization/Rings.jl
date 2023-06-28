@@ -47,7 +47,7 @@ function save_internal(s::SerializerState, r::zzModRingElem; include_parents::Bo
     class_rep = string(r)
     if include_parents
         return Dict(
-            :parents => get_parent_refs(s, parent(r)),
+            :parent => save_as_ref(s, parent(r)),
             :class_rep => class_rep
         )
     end
@@ -55,8 +55,7 @@ function save_internal(s::SerializerState, r::zzModRingElem; include_parents::Bo
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
-    parents = load_parents(s, dict[:parents])
-    parent_ring = parents[end]
+    parent_ring = load_ref(s, dict[:parent])
     class_rep = load_type_dispatch(s, ZZRingElem, dict[:class_rep])
     return parent_ring(class_rep)
 end

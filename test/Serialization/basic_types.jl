@@ -46,14 +46,19 @@ end
                 Float16, Float32, Float64,
                 BigInt,
                 ZZRingElem,
-                QQFieldElem
+                QQFieldElem,
+                residue_ring(ZZ, 6),
+                Nemo.fpField(UInt(7)),
+                Nemo.FpField(ZZRingElem(7)),
+                PadicField(7, 30),
+                TropicalSemiring()
             )
             original = T(1)
             test_save_load_roundtrip(path, original) do loaded
               @test loaded == original
             end
         end
-
+        
         @testset "String" begin
             original = "original"
             test_save_load_roundtrip(path, original) do loaded

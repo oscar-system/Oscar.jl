@@ -11,7 +11,7 @@ function save_internal(s::SerializerState, t::TropicalSemiringElem;
     encoded_t = string(data(t))
     if include_parents
         return Dict(
-            :parent => parent(t),
+            :parent => save_as_ref(s, parent(t)),
             :str => encoded_t
         )
     end
@@ -20,9 +20,16 @@ end
 
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem{S}},
-                       dict::Dict) where S
-  parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+                              dict::Dict) where S
+  parent = load_ref(s, dict[:parent])
+  return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{TropicalSemiringElem},
+                              dict::Dict) 
+  parent = load_ref(s, dict[:parent])
+  return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
