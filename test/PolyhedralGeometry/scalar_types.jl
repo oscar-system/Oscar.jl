@@ -17,7 +17,6 @@
     Ky, y = K["y"]
     L, = number_field(y^2 - (2-r^2)//2, "q")
     Lz, z = L["z"]
-    E = Hecke.embedded_field(L, real_embeddings(L)[2])
     E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
     pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
     pq2 = E(roots(z^2 - (3 - r^2))[1])
@@ -38,7 +37,41 @@
     @test _edge_length_for_test.(faces(sd, 1)) == repeat([4], 18)
     # scaling the Polyhedron by 3 yields edge lengths of 6
     @test _edge_length_for_test.(faces(3*sd, 1)) == repeat([36], 18)
-    ff = face_fan(sd)
-    @test vector_matrix(rays(ff)) == V
+    let pc = polyhedral_complex(E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant = true)
+        @test maximal_polyhedra(pc) == faces(sd, 2)
+    end
+    # error in minkowski_sum
+    # let c = convex_hull(E, permutedims([0]), permutedims([r]))
+    #     ms = minkowski_sum(sd, c)
+    #     @test f_vector(ms) == [0, 8, 18, 12]
+    #     @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
+    # end
+
+    @testset "Detection" begin
+        let j = johnson_solid(12)
+            @test j isa Polyhedron{QQFieldElem}
+            s = vertices(j)[1][1]
+            @test s isa QQFieldElem
+            @test s == 2//3
+        end
+        let j = johnson_solid(64)
+            @test j isa Polyhedron{Float64}
+            s = vertices(j)[1][1]
+            @test s isa Float64
+            @test s == 0.05987265245410669
+        end
+        let a = archimedean_solid("truncated_cube")
+            @test a isa Polyhedron{Hecke.EmbeddedNumFieldElem{nf_elem}}
+            s = vertices(a)[1][2]
+            @test s isa Hecke.EmbeddedNumFieldElem{nf_elem}
+            f = Oscar.get_parent_field(a)
+            F = number_field(f)
+            isq = Hecke.is_quadratic_type(F)
+            @test isq[1]
+            @test isq[2] == 2
+            sr2 = f(basis(F)[2])
+            @test s == 1 + sr2
+        end
+    end
 
 end

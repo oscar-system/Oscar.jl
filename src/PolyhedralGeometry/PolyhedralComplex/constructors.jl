@@ -83,28 +83,25 @@ function polyhedral_complex(f::Union{Type{T}, Field},
                             non_redundant::Bool = false
                             ) where T<:scalar_types
     parent_field, scalar_type = _determine_parent_and_scalar(f, vr, L)
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(vr, 2)) : L
+    points = homogenized_matrix(vr, 1)
+    LM = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points, 2)) : homogenized_matrix(L, 0)
 
     # Rays and Points are homogenized and combined and
-    points = homogenize(vr, 1)
     # If some vertices are far vertices, give them a leading 0
     if !isnothing(far_vertices)
         points[far_vertices,1] .= 0
     end
 
-    # Lineality is homogenized
-    lineality = homogenize(LM, 0)
-
     if non_redundant
         return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
             VERTICES = points,
-            LINEALITY_SPACE = lineality,
+            LINEALITY_SPACE = LM,
             MAXIMAL_CONES = polyhedra,
         ), parent_field)
     else
         return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
             POINTS = points,
-            INPUT_LINEALITY = lineality,
+            INPUT_LINEALITY = LM,
             INPUT_CONES = polyhedra,
         ), parent_field)
     end
