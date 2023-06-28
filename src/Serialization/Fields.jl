@@ -51,10 +51,10 @@ function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, elem::fpFieldElem; include_parent::Bool=true)
-    if include_parent
+function save_internal(s::SerializerState, elem::fpFieldElem; include_parents::Bool=true)
+    if include_parents
         return Dict(
-            :parent => save_type_dispatch(s, parent(elem)),
+            :parents => get_parent_refs(s, parent(elem)),
             :class_rep => string(elem)
         )
     end
@@ -62,7 +62,7 @@ function save_internal(s::SerializerState, elem::fpFieldElem; include_parent::Bo
 end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
-    F = load_type_dispatch(s, Nemo.fpField, dict[:parent])
+    F = load_type_dispatch(s, Nemo.fpField, dict[:parents])[end]
     return F(UInt64(dict[:data]))
 end
 
@@ -98,10 +98,10 @@ function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, elem::FpFieldElem; include_parent::Bool=true)
-        if include_parent
+function save_internal(s::SerializerState, elem::FpFieldElem; include_parents::Bool=true)
+    if include_parents
         return Dict(
-            :parent => save_type_dispatch(s, parent(elem)),
+            :parents => get_parent_refs(s, parent(elem))
             :class_rep => string(Nemo.data(elem))
         )
     end
@@ -160,18 +160,17 @@ end
 @registerSerializationType(Hecke.NfRelElem)
 
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem};
-                       include_parent::Bool=true)
+                       include_parents::Bool=true)
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
 
     # currently we get parent(defining_polynomial(K)) == parent(defining_polynomial(K)) = false
     # which leads to duplicate refs in the refs section of the file (not in the parent list)
-    terms = save_internal(s, polynomial; include_parent=false)
-    parent_field = save_as_ref(s, K)
+    terms = save_internal(s, polynomial; include_parents=false)
     
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => parent_field,
+            :parents => get_parent_refs(s, K),
             :terms => terms
         )
     end
@@ -228,16 +227,15 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-function save_internal(s::SerializerState, k::FqFieldElem; include_parent::Bool=true)
+function save_internal(s::SerializerState, k::FqFieldElem; include_parents::Bool=true)
     K = parent(k)
-    parent_field = save_as_ref(s, K)
     
     if absolute_degree(K) == 1
         class_rep = string(lift(ZZ, k))
 
-        if include_parent
+        if include_parents
             return Dict(
-                :parent => parent_field,
+                :parents => get_parent_refs(s, K),
                 :class_rep => class_rep
             )
         end
@@ -249,12 +247,12 @@ function save_internal(s::SerializerState, k::FqFieldElem; include_parent::Bool=
     # currently this lift won't work for the given types
     # but is necessary for serialization
     polynomial = lift(poly_base_ring, k)
-    terms = save_internal(s, polynomial; include_parent=false)
+    terms = save_internal(s, polynomial; include_parents=false)
     
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => parent_field,
-            :terms => terms
+        :parents => load_parent_refs
+        :terms => terms
         )
     end
     return terms
@@ -312,17 +310,15 @@ end
 @registerSerializationType(Hecke.NfRelNSElem)
 
 function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem};
-                       include_parent::Bool=true)
-    
+                       include_parents::Bool=true)
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
     polynomial_parent = parent(polynomial)
-    terms = save_internal(s, polynomial; include_parent=false)
-    parent_field = save_as_ref(s, K)
+    terms = save_internal(s, polynomial; include_parents=false)
 
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => parent_field,
+            :parents => get_parent_refs(s, K),
             :terms => terms
         )
     end
@@ -339,7 +335,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
                        dict::Dict)
-    K = load_unknown_type(s, dict[:parent_field])
+    K = load_parents(s, dict[:parents])[end]
     polynomial = load_unknown_type(s, dict[:polynomial])
     polynomial = evaluate(polynomial, gens(K))
 
@@ -391,15 +387,15 @@ end
 # elements
 @registerSerializationType(FracElem)
 
-function save_internal(s::SerializerState, f::FracElem; include_parent::Bool=true)
-    encoded_denominator = save_internal(s, denominator(f))
-    encoded_numerator = save_internal(s, numerator(f))
-    parent_field = save_as_ref(s, parent(f))
-
-    if include_parent
+function save_internal(s::SerializerState, f::FracElem; include_parents::Bool=true)
+    encoded_denominator = save_internal(s, denominator(f); include_parents=false)
+    encoded_numerator = save_internal(s, numerator(f); include_parents=false)
+    terms = (encoded_numerator, encoded_denominator)
+    
+    if include_parents
         return Dict(
-            :parent => parent_field,
-            :terms => (encoded_numerator[:terms], encoded_denominator[:terms]),
+            :parents => get_parent_refs(s, parent(f)),
+            :terms => terms
         )
     end
     return terms
@@ -463,15 +459,15 @@ end
                            "RationalFunctionFieldElem")
 
 function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem;
-                       include_parent::Bool=true)
-    encoded_denominator = save_internal(s, denominator(f); include_parent=false)
-    encoded_numerator = save_internal(s, numerator(f); include_parent=false)
-    parent_field = save_as_ref(s, parent(f))
+                       include_parents::Bool=true)
+    encoded_denominator = save_internal(s, denominator(f); include_parents=false)
+    encoded_numerator = save_internal(s, numerator(f); include_parents=false)
+    terms = (encoded_numerator, encoded_denominator)
 
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => parent_field,
-            :terms => (encoded_numerator[:terms], encoded_denominator[:terms])
+            :parents => get_parent_refs(s, parent(f)),
+            :terms => terms
         )
     end
     return terms
@@ -521,16 +517,16 @@ function load_internal(s::DeserializerState, ::Type{Nemo.ArbField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, r::arb; include_parent::Bool=true)
+function save_internal(s::SerializerState, r::arb; include_parents::Bool=true)
     c_str = ccall((:arb_dump_str, Nemo.Arb_jll.libarb), Ptr{UInt8}, (Ref{arb},), r)
     arb_unsafe_str = unsafe_string(c_str)
 
     # free memory
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => save_internal(s, parent(r)),
+            :parents => get_parent_refs(s, parent(r)),
             :arb_str => arb_unsafe_str
         )
     end
@@ -542,7 +538,7 @@ function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
     ccall((:arb_load_str, Nemo.Arb_jll.libarb),
           Int32, (Ref{arb}, Ptr{UInt8}), r, dict[:arb_str])
 
-    parent = load_type_dispatch(s, Nemo.ArbField, dict[:parent])
+    parent = load_parents(s, dict[:parents])[end]
     r.parent = parent
     return r
 end
@@ -580,7 +576,7 @@ end
 function save_internal(s::SerializerState, c::acb)
     return Dict(
         :vector => save_internal(s, [real(c), imag(c)])[:vector],
-        :parent => save_type_dispatch(s, parent(c))
+        :parents => get_parent_refs(s, parent(c))
     )
 end
 
@@ -612,7 +608,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
     K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
-    parent = load_type_dispatch(s, AcbField, dict[:gen_ball][:parent])
+    parent = load_parents(s, dict[:gen_ball][:parents])[end]
     gen_ball = load_internal_with_parent(s, acb, dict[:gen_ball][:vector], parent)
 
     return complex_embedding(K, gen_ball)
@@ -659,11 +655,11 @@ end
 
 #elements
 
-function save_internal(s::SerializerState, n::padic; include_parent::Bool=true)
+function save_internal(s::SerializerState, n::padic; include_parents::Bool=true)
     rational_rep = string(lift(QQ, n))
-    if include_parent
+    if include_parents
         return Dict(
-            :parent => save_as_ref(s, parent(n)),
+            :parents => save_parent_refs(parent(n)),
             :rational_rep => rational_rep
         )
     end
