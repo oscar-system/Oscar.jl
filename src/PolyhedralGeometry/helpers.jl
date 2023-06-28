@@ -464,3 +464,16 @@ function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{NfAbsNSEl
    c = coefficients(minpoly(data(e)))
    return Rational{BigInt}(-c[0]//c[1])
 end
+
+function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{<:Hecke.NfRelElem})
+   degree(minpoly(data(e))) > 1 && return false
+   c = coefficients(minpoly(data(e)))
+   num = -c[0]//c[1]
+   return is_rational(num)
+end
+
+function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{<:Hecke.NfRelElem})
+   c = coefficients(minpoly(data(e)))
+   num = -c[0]//c[1]
+   return Rational{BigInt}(QQ(num))
+end
