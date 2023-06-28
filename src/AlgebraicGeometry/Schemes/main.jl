@@ -115,6 +115,7 @@ include("CoveredSchemes/Objects/Methods.jl")
 include("CoveredSchemes/Morphisms/Constructors.jl")
 include("CoveredSchemes/Morphisms/Attributes.jl")
 include("CoveredSchemes/Morphisms/Methods.jl")
+include("CoveredSchemes/Morphisms/Properties.jl")
 
 ########################################################################
 # Affine Algebraic Sets                                                #
@@ -147,3 +148,4 @@ include("ProjectiveVariety/Objects/Constructors.jl")
 include("ProjectiveVariety/Objects/Properties.jl")
 include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
+

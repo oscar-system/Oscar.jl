@@ -74,7 +74,7 @@ Projective space of dimension 2
 julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
-Spec of Quotient of Multivariate polynomial ring in 2 variables over QQ by ideal()
+Spec of Multivariate polynomial ring in 2 variables over QQ
 
 julia> phi = dehomogenization_map(P, U);
 
@@ -96,7 +96,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   S = homogeneous_coordinate_ring(X)
   C = default_covering(covered_scheme(X))
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -117,7 +117,7 @@ function dehomogenization_map(
   end
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), pullback(p[U]), s)
+  phi = hom(S, OO(U), pullback(p[U]), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -148,7 +148,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
     return cache[U]
   end
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), s)
+  phi = hom(S, OO(U), s, check=false)
   cache[U] = phi
   return phi
 end
@@ -186,7 +186,7 @@ julia> X = covered_scheme(P);
 
 
 julia> U = first(affine_charts(X))
-Spec of Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal() at the multiplicative set powers of QQMPolyRingElem[1]
+Spec of Multivariate polynomial ring in 4 variables over QQ
 
 julia> phi = homogenization_map(P, U);
 

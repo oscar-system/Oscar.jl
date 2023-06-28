@@ -40,6 +40,48 @@ Cohomology class on a normal toric variety given by 2//3*x2^2
 julia> integrate(c)
 2
 ```
+
+The following example constructs the Fano variety 2-36
+(cf. https://www.fanography.info/2-36) and verifies
+that the triple self-intersection number of its anticanonical
+bundle is 62.
+
+# Examples
+```jldoctest
+julia> e1 = [1,0,0];
+
+julia> e2 = [0,1,0];
+
+julia> e3 = [0,0,1];
+
+julia> m = 2;
+
+julia> ray_generators = [e1, -e1, e2, e3, - e2 - e3 - m * e1];
+
+julia> max_cones = [[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]];
+
+julia> X = normal_toric_variety(ray_generators, max_cones; non_redundant = true)
+Normal toric variety
+
+julia> cox_ring(X)
+Multivariate polynomial ring in 5 variables over QQ graded by
+  x1 -> [1 0]
+  x2 -> [1 2]
+  x3 -> [0 -1]
+  x4 -> [0 -1]
+  x5 -> [0 -1]
+
+julia> cohomology_ring(X)
+Quotient
+  of graded multivariate polynomial ring in 5 variables over QQ
+  by ideal(x1 - x2 - 2*x5, x3 - x5, x4 - x5, x1*x2, x3*x4*x5)
+
+julia> integrate(cohomology_class(anticanonical_divisor(X))^3)
+62
+
+julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
+62
+```
 """
 function integrate(c::CohomologyClass)::QQFieldElem
     # can only integrate if the variety is simplicial, complete

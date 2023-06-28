@@ -8,15 +8,14 @@
 Return `true` is the Tate model has a concrete base space and `false` otherwise.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equ_nr = "3.5")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arxiv paper 1109.3454 (equ. 3.5)
+julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_fully_specified(t)
 false
 ```
 """
 base_fully_specified(t::GlobalTateModel) = get_attribute(t, :base_fully_specified)
-
 
 
 #####################################################
@@ -26,6 +25,6 @@ base_fully_specified(t::GlobalTateModel) = get_attribute(t, :base_fully_specifie
 has_doi(t::GlobalTateModel) = has_attribute(t, :doi)
 has_arxiv_id(t::GlobalTateModel) = has_attribute(t, :arxiv_id)
 has_version(t::GlobalTateModel) = has_attribute(t, :version)
-has_equ_nr(t::GlobalTateModel) = has_attribute(t, :equ_nr)
+has_equation_number(t::GlobalTateModel) = has_attribute(t, :equation_number)
 has_description(t::GlobalTateModel) = has_attribute(t, :description)
 has_link(t::GlobalTateModel) = has_attribute(t, :link)

@@ -66,7 +66,7 @@ function multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 end
 
 function permutations(n::Integer)
-  return map(p -> convert(Vector{Int}, p), AbstractAlgebra.SymmetricGroup(n))
+  return map(p -> Vector{Int}(p), AbstractAlgebra.SymmetricGroup(n))
 end
 
 @doc raw"""
@@ -92,7 +92,7 @@ function permutations(v::AbstractVector{T}) where {T}
 end
 
 function permutations_with_sign(n::Integer)
-  return map(p -> (convert(Vector{Int}, p), sign(p)), AbstractAlgebra.SymmetricGroup(n))
+  return map(p -> (Vector{Int}(p), sign(p)), AbstractAlgebra.SymmetricGroup(n))
 end
 
 @doc raw"""

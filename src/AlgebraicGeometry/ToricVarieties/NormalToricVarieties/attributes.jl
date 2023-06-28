@@ -394,11 +394,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
     @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
     @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
-
-    indeterminates = gens(R)
-    d = rank(character_lattice(v))
-    generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
-    return ideal(generators)
+    return ideal(transpose(matrix(ZZ, rays(v))) * gens(R))
 end
 
 
@@ -536,7 +532,9 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
 
 julia> coordinate_ring_of_torus(p2)
-Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(y1*y1_ - 1, y2*y2_ - 1)
+Quotient
+  of multivariate polynomial ring in 4 variables over QQ
+  by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
 @attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
@@ -910,7 +908,13 @@ julia> dim(nef)
 1
 ```
 """
-@attr Cone nef_cone(v::NormalToricVariety) = cone(pm_object(v).NEF_CONE)
+@attr Cone{QQFieldElem} function nef_cone(v::NormalToricVariety)
+  result = cone(pm_object(v).NEF_CONE)
+  oscar_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(v).map
+  polymake_lift = matrix(ZZ, pm_object(v).RATIONAL_DIVISOR_CLASS_GROUP.LIFTING)
+  A = convert(Polymake.PolymakeType, transpose(polymake_lift * oscar_projection))
+  return transform(result, A)
+end
 
 
 """
@@ -930,7 +934,7 @@ julia> dim(mori)
 1
 ```
 """
-@attr Cone mori_cone(v::NormalToricVariety) = cone(pm_object(v).MORI_CONE)
+@attr Cone{QQFieldElem} mori_cone(v::NormalToricVariety) = polarize(nef_cone(v))
 
 
 @doc raw"""

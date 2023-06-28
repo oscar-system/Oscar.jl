@@ -60,18 +60,28 @@ end
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
     @test sprint(show, "text/plain", K) == "Abelian closure of Q"
-    @test get_variable(K) == "ζ"
+
+    @test get_variable(K) == "z"
     s = sprint(show, "text/plain", z)
 
     a = z(1)
     sprint(show, "text/plain", a) == "1"
     a = z(4)
-    sprint(show, "text/plain", a) == "ζ(4)"
-
-    t = set_variable!(K, "z")
-    @test t == "ζ"
-    @test get_variable(K) == "z"
     sprint(show, "text/plain", a) == "z(4)"
+    Oscar.with_unicode() do
+      @test get_variable(K) == "ζ"
+      s = sprint(show, "text/plain", z)
+
+      a = z(1)
+      sprint(show, "text/plain", a) == "1"
+      a = z(4)
+      sprint(show, "text/plain", a) == "ζ(4)"
+    end
+
+    t = set_variable!(K, "zz")
+    @test t == "z"
+    @test get_variable(K) == "zz"
+    sprint(show, "text/plain", a) == "zz(4)"
 
     zz = gen(K, "ω")
     @test get_variable(K) == "ω"
@@ -81,7 +91,7 @@ end
     @test isone(a^4) && !isone(a) && !isone(a^2)
 
     # reset variable for any subsequent (doc-)tests
-    set_variable!(K, "ζ")
+    @test set_variable!(K, "z") == "ω"
   end
 
   @testset "Coercion" begin

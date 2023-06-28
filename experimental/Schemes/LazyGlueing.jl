@@ -13,12 +13,20 @@
   Y::RightSpecType
   GD::GlueingDataType
   compute_function::Function
+  compute_glueing_domains::Function
   G::AbsGlueing
 
   function LazyGlueing(X::AbsSpec, Y::AbsSpec, 
       compute_function::Function, GD::GlueingDataType
     ) where {GlueingDataType}
     return new{typeof(X), typeof(Y), GlueingDataType}(X, Y, GD, compute_function)
+  end
+  function LazyGlueing(X::AbsSpec, Y::AbsSpec, 
+      compute_function::Function, compute_glueing_domains::Function, 
+      GD::GlueingDataType
+    ) where {GlueingDataType}
+    return new{typeof(X), typeof(Y), GlueingDataType}(X, Y, GD, compute_function, 
+                                                      compute_glueing_domains)
   end
 end
 
@@ -30,6 +38,14 @@ function underlying_glueing(G::LazyGlueing)
     G.G = G.compute_function(G.GD)
   end
   return G.G
+end
+
+@attr function glueing_domains(G::LazyGlueing) # TODO: Type annotation
+  if isdefined(G, :compute_glueing_domains)
+    return compute_glueing_domains(G)
+  end
+  # If no extra function was provided, fall back to computing the full glueing.
+  return glueing_domains(underlying_glueing(G))
 end
 
 

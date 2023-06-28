@@ -30,7 +30,7 @@ end
 function eval_poly(s::String, R)
   symR = symbols(R) # Symbol[]
   genR = gens(R)
-  return _eval_poly(Meta.parse(s), Dict(symR[i] => genR[i] for i in 1:length(symR)))
+  return R(_eval_poly(Meta.parse(s), Dict(symR[i] => genR[i] for i in 1:length(symR))))
 end
 
 # Example

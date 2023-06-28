@@ -117,13 +117,13 @@ const testlist = [
   "Rings/runtests.jl",
 
   "NumberTheory/nmbthy.jl",
+  "NumberTheory/galthy.jl",
 
 # Will automatically include all experimental packages following our
 # guidelines.
 
   "../experimental/runtests.jl",
 
-  "Experimental/galois.jl",
   "Experimental/gmodule.jl",
   "Experimental/ModStdQt.jl",
   "Experimental/ModStdNF.jl",

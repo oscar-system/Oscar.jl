@@ -6,6 +6,16 @@
 ###############################################################################
 ###############################################################################
 
+################################################################################
+#
+#  DocTestSetup
+#
+################################################################################
+
+# Oscar needs some complicated setup to get the printing right. This provides a
+# helper function to set this up consistently.
+doctestsetup() = :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
   global docsproject = path
@@ -24,6 +34,26 @@ function doc_init(;path=mktempdir())
   end
 end
 
+function get_document(set_meta::Bool)
+  if !isdefined(Main, :Documenter)
+    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
+  end
+
+  if isdefined(Main.Documenter, :Document)
+    Document = Main.Documenter.Document
+  else
+    Document = Main.Documenter.Documents.Document
+  end
+  doc = Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+
+  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
+    #ugly: needs to be in sync with the docs/make_docs.jl file
+    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
+  end
+
+  return doc
+end
+
 """
     doctest_fix(f::Function; set_meta::Bool = false)
 
@@ -31,20 +61,10 @@ Fixes all doctests for the given function `f`.
 """
 function doctest_fix(f::Function; set_meta::Bool = false)
   S = Symbol(f)
-  mod = Oscar
-  if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
-  end
-
-  doc = Main.Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
-
-  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    #ugly: needs to be in sync with the docs/make_docs.jl file
-    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
-  end
+  doc = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(mod)
+  bm = Main.Documenter.DocSystem.getmeta(Oscar)
   md = bm[Base.Docs.Binding(Oscar, S)]
   for s in md.order
     Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
@@ -58,20 +78,10 @@ Fixes all doctests for the file `n`, ie. all files in Oscar where
   `n` occurs in the full pathname of.
 """
 function doctest_fix(n::String; set_meta::Bool = false)
-  mod = Oscar
-  if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
-  end
-
-  doc = Main.Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
-
-  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    #ugly: needs to be in sync with the docs/make_docs.jl file
-    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
-  end
+  doc = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(mod)
+  bm = Main.Documenter.DocSystem.getmeta(Oscar)
   for (k, md) = bm
     for s in md.order
       if occursin(n, md.docs[s].data[:path])

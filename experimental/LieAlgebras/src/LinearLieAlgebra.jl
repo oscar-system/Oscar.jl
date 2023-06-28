@@ -43,10 +43,22 @@ base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.dim
 
+@doc raw"""
+    matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}
+
+Return the basis `basis(L)` of the Lie algebra `L` in the underlying matrix
+representation.
+"""
 function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:RingElement}
   return Vector{dense_matrix_type(C)}(L.basis)
 end
 
+@doc raw"""
+    matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) -> MatElem{C}
+
+Return the `i`-th element of the basis `basis(L)` of the Lie algebra `L` in the
+underlying matrix representation.
+"""
 function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:RingElement}
   return (L.basis[i])::dense_matrix_type(C)
 end
@@ -72,8 +84,18 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    (L::LinearLieAlgebra{C})(m::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the Lie algebra element whose matrix representation corresponds to `m`.
+This requires `m` to be a square matrix of size `n > 1` (the dimension of `L`), and
+to lie in the Lie algebra `L` (i.e. to be in the span of `basis(L)`).
+
+If `m` is a $1 \times \dim(L)` vector, it is assumed to be a coefficient vector in the
+basis `basis(L)`.
+"""
 function (L::LinearLieAlgebra{C})(m::MatElem{C}) where {C<:RingElement}
-  if size(m) == (L.n, L.n)
+  if L.n > 1 && size(m) == (L.n, L.n)
     m = coefficient_vector(m, matrix_repr_basis(L))
   end
   @req size(m) == (1, dim(L)) "Invalid matrix dimensions."
@@ -86,6 +108,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    matrix_repr(x::LinearLieAlgebraElem{C}) -> Mat{C}
+
+Return the Lie algebra element `x` in the underlying matrix representation.
+"""
 function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:RingElement}
   return sum(c * b for (c, b) in zip(x.mat, matrix_repr_basis(parent(x))))
 end
@@ -106,12 +133,47 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    lie_algebra(R::Ring, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
+
+Construct the Lie algebra over the ring `R` with basis `basis` and basis element names
+given by `s`. The basis elements must be square matrices of size `n`.
+We require `basis` to be linearly independent, and to contain the Lie bracket of any
+two basis elements in its span.
+
+If `cached` is `true`, the constructed Lie algebra is cached.
+"""
 function lie_algebra(
   R::Ring, n::Int, basis::Vector{<:MatElem{C}}, s::Vector{<:VarName}; cached::Bool=true
 ) where {C<:RingElement}
   return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
 end
 
+@doc raw"""
+    general_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+
+Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
+
+# Examples
+```jldoctest
+julia> L = general_linear_lie_algebra(QQ, 2)
+LinearLieAlgebra (⊆ gl_2) over Rational field
+
+julia> basis(L)
+4-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ x_1_1
+ x_1_2
+ x_2_1
+ x_2_2
+
+julia> matrix_repr_basis(L)
+4-element Vector{QQMatrix}:
+ [1 0; 0 0]
+ [0 1; 0 0]
+ [0 0; 1 0]
+ [0 0; 0 1]
+```
+"""
 function general_linear_lie_algebra(R::Ring, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
@@ -120,6 +182,29 @@ function general_linear_lie_algebra(R::Ring, n::Int)
   return L
 end
 
+@doc raw"""
+    special_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+
+Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2)
+LinearLieAlgebra (⊆ gl_2) over Rational field
+
+julia> basis(L)
+3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ e_1_2
+ f_1_2
+ h_1
+
+julia> matrix_repr_basis(L)
+3-element Vector{QQMatrix}:
+ [0 1; 0 0]
+ [0 0; 1 0]
+ [1 0; 0 -1]
+```
+"""
 function special_linear_lie_algebra(R::Ring, n::Int)
   basis_e = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n]
   basis_f = [(b = zero_matrix(R, n, n); b[j, i] = 1; b) for i in 1:n for j in (i + 1):n]
@@ -134,6 +219,29 @@ function special_linear_lie_algebra(R::Ring, n::Int)
   return L
 end
 
+@doc raw"""
+    special_orthogonal_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+
+Return the special orthogonal Lie algebra $\mathfrak{so}_n(R)$.
+
+# Examples
+```jldoctest
+julia> L = special_orthogonal_lie_algebra(QQ, 3)
+LinearLieAlgebra (⊆ gl_3) over Rational field
+
+julia> basis(L)
+3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ x_1_2
+ x_1_3
+ x_2_3
+
+julia> matrix_repr_basis(L)
+3-element Vector{QQMatrix}:
+ [0 1 0; -1 0 0; 0 0 0]
+ [0 0 1; 0 0 0; -1 0 0]
+ [0 0 0; 0 0 1; 0 -1 0]
+```
+"""
 function special_orthogonal_lie_algebra(R::Ring, n::Int)
   basis = [
     (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
