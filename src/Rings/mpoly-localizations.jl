@@ -155,7 +155,7 @@ function simplify(S::MPolyPowersOfElement)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
     for a in factor(d)
-      !(a in new_denom) && push!(new_denom, a[1])
+      !(a[1] in new_denom) && push!(new_denom, a[1])
     end
   end
   return MPolyPowersOfElement(R, new_denom)
