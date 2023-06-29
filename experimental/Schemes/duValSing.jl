@@ -40,8 +40,8 @@ end
 @doc_raw"""
     is_du_val_singularity(X::AbsSpec, I::Ideal)
 
-Return whether the given 'X' has at most du Val (surface) singularities at the geometric points
-specified by the ideal 'I'.
+Return whether the given X has at most du Val (surface) singularities at the geometric points
+specified by the ideal I.
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
 """
@@ -94,7 +94,8 @@ single tuple T, with the following values:
 - T[4] = 1
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
-""" function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
+""" 
+function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -302,7 +303,12 @@ function vector_space_basis(M::SubquoModule,d::Int64)
 
   return [x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
 end
-  
+
+@doc raw"""
+    has_monomials_on_all_axes(M::SubquoModule)
+
+Internal function to test whether M is finite-dimensional vector space. Do not use directly
+"""
 function has_monomials_on_all_axes(M::SubquoModule)
   R = base_ring(M)
 
