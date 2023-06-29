@@ -68,7 +68,7 @@ end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
     F = load_ref(s, dict[:parent])
-    return F(UInt64(dict[:class_rep]))
+    return F(parse(UInt64, dict[:class_rep]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
