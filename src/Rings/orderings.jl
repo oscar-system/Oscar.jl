@@ -169,16 +169,12 @@ end
 """
 Orderings actually applied to polynomial rings (as opposed to variable indices)
 """
-@attributes mutable struct MonomialOrdering{S}
+mutable struct MonomialOrdering{S}
   R::S
   o::AbsGenOrdering
   is_total::Bool
   is_total_is_known::Bool
-
-  # default constructor for @attributes
-  function MonomialOrdering{S}(R::S, o::AbsGenOrdering, is_total::Bool, is_total_is_known::Bool) where S
-    return new{S}(R, o, is_total, is_total_is_known)
-  end
+  canonical_matrix::ZZMatrix
 end
 
 function MonomialOrdering(R::S, o::AbsGenOrdering) where S
@@ -1317,8 +1313,11 @@ julia> canonical_matrix(o2)
 [0   -1   0]
 ```
 """
-@attr ZZMatrix function canonical_matrix(M::MonomialOrdering)
-  return canonical_matrix(nvars(base_ring(M)), M.o)
+function canonical_matrix(M::MonomialOrdering)
+  if !isdefined(M, :canonical_matrix)
+    M.canonical_matrix = canonical_matrix(nvars(base_ring(M)), M.o)
+  end
+  return M.canonical_matrix
 end
 
 import Base.==
