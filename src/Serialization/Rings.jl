@@ -55,7 +55,7 @@ function save_internal(s::SerializerState, r::zzModRingElem; include_parents::Bo
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
-    parent_ring = load_ref(s, dict[:parent])
+    parent_ring = load_unknown_type(s, dict[:parent])
     class_rep = load_type_dispatch(s, ZZRingElem, dict[:class_rep])
     return parent_ring(class_rep)
 end
@@ -261,7 +261,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict)
-    entries_ring = load_ref(s, dict[:base_ring])
+    entries_ring = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix]; parent=entries_ring)
 
     return matrix(entries_ring, mat)

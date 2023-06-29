@@ -148,13 +148,7 @@ has_elem_basic_encoding(obj::T) where T = false
 ################################################################################
 # High level
 
-function load_ref(s::DeserializerState, dict::Dict)
-    if !haskey(dict, :id)
-        return load_unknown_type(s, dict)
-    end
-
-    id = dict[:id]
-
+function load_ref(s::DeserializerState, id::String)
     if haskey(s.objs, UUID(id))
         loaded_ref = s.objs[UUID(id)]
     else
@@ -173,10 +167,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
     # find ref or create one
     ref = get(s.objmap, obj, nothing)
     if ref !== nothing
-        return Dict{Symbol, Any}(
-            :type => backref_sym,
-            :id => string(ref),
-        )
+        return string(ref)
     end
 
     ref = s.objmap[obj] = uuid4()
@@ -190,10 +181,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
     result[:data] = save_internal(s, obj)
     s.refs[Symbol(ref)] = result
 
-    return Dict{Symbol, Any}(
-        :type => backref_sym,
-        :id => string(ref),
-    )
+    return string(ref)
 end
 
 function save_type_dispatch(s::SerializerState, obj::T) where T
@@ -269,13 +257,14 @@ end
 function load_unknown_type(s::DeserializerState,
                            dict::Dict;
                            parent=nothing)
-    if dict[:type] == string(backref_sym)
-        return s.objs[UUID(dict[:id])]
-    end
-
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
     return load_type_dispatch(s, T, dict; parent=parent)
+end
+
+# sole purpose of this function is to catch when obj is a ref
+function load_unknown_type(s::DeserializerState, str::String)
+    return load_ref(s, str)
 end
 
 
@@ -305,15 +294,11 @@ end
 # Utility functions for parent tree
 
 # loads parent tree
-function load_parents(s::DeserializerState, parent_dicts::Vector)
+function load_parents(s::DeserializerState, parent_ids::Vector)
     loaded_parents = []
 
-    for parent_dict in parent_dicts
-        if haskey(parent_dict, :id)
-            loaded_parent = load_ref(s, parent_dict)
-        else
-            loaded_parent = load_unknown_type(s, parent_dict)
-        end
+    for id in parent_ids
+        loaded_parent = load_ref(s, id)
         push!(loaded_parents, loaded_parent)
     end
     return loaded_parents

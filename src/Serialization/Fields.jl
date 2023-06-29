@@ -67,7 +67,7 @@ function save_internal(s::SerializerState, elem::fpFieldElem; include_parents::B
 end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
-    F = load_ref(s, dict[:parent])
+    F = load_type_dispatch(s, Nemo.fpField, dict[:parent])
     return F(parse(UInt64, dict[:class_rep]))
 end
 
@@ -115,7 +115,7 @@ function save_internal(s::SerializerState, elem::FpFieldElem; include_parents::B
 end
 
 function load_internal(s::DeserializerState, z::Type{FpFieldElem}, dict::Dict)
-    F = load_ref(s, dict[:parent])
+    F = load_type_dispatch(s, Nemo.FpField, dict[:parent])
     return F(ZZRingElem(dict[:class_rep]))
 end
 
@@ -390,7 +390,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R = load_ref(s, dict[:base_ring])
+    R = load_unknown_type(s, dict[:base_ring])
 
     return fraction_field(R, cached=false)
 end

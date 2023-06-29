@@ -21,15 +21,15 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem{S}},
                               dict::Dict) where S
-  parent = load_ref(s, dict[:parent])
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+    parent = load_unknown_type(s, dict[:parent])
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem},
                               dict::Dict) 
-  parent = load_ref(s, dict[:parent])
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+    parent = load_unknown_type(s, dict[:parent])
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
