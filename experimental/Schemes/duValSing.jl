@@ -3,8 +3,25 @@
 
 Return whether the given `X` has at most du Val (surface) singularities.
 
-# Examples:
+# Example:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
 
+julia> I = ideal(R,[w,x^2+y^3+z^4])
+ideal(w, x^2 + y^3 + z^4)
+
+julia> Rq,_ = quo(R,I)
+(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+
+julia> X = Spec(Rq)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+
+julia> has_du_val_singularities(X)
+true
+
+```
 """
 function has_du_val_singularities(X::AbsProjectiveScheme{<:Field,<:Any})
   return has_du_val_singularities(covered_scheme(X))
@@ -15,6 +32,7 @@ function has_du_val_singularities(X::AbsSpec{<:Field,<:Any})
   I = modulus(R)
   
   J = image_ideal(singular_locus(X)[2])
+  J = ideal(base_ring(I), lift.(gens(J))) + I
   dim(J) == 0 || return false                            ## non-isolated
   return is_du_val_singularity(X,J)
 end
@@ -44,8 +62,28 @@ Return whether the given X has at most du Val (surface) singularities at the geo
 specified by the ideal I.
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+
+# Example:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
+
+julia> I = ideal(R,[w,x^2+y^3+z^4])
+ideal(w, x^2 + y^3 + z^4)
+
+julia> Rq,_ = quo(R,I)
+(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+
+julia> J = ideal(R,[x,y,z,w])
+ideal(x, y, z, w)
+
+julia> is_du_val_singularity(X,J)
+true
+
+```
 """
-function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
+function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Ideal)
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -63,8 +101,9 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   end
 
   decomp = absolute_primary_decomposition(I)
+
   for (_,_,I2,mult) in decomp
-    set_attribute!(I,:is_absolutely_prime,true)
+    set_attribute!(I2,:is_absolutely_prime,true)
     ## pass to algebraic extension
     r_changed = base_ring(I2)
     kk = coefficient_ring(r_changed)
@@ -94,8 +133,27 @@ single tuple T, with the following values:
 - T[4] = 1
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+# Example:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
+
+julia> I = ideal(R,[w,x^2+y^3+z^4])
+ideal(w, x^2 + y^3 + z^4)
+
+julia> Rq,_ = quo(R,I)
+(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+
+julia> J = ideal(R,[x,y,z,w])
+ideal(x, y, z, w)
+
+julia> decide_du_val_singularity(X,J)
+1-element Vector{Tuple{Bool, MPolyIdeal{QQMPolyRingElem}, Tuple{Symbol, Int64}, Int64}}:
+ (1, ideal(x, y, z, w), (:E, 6), 1)
+
 """ 
-function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
+function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -121,7 +179,7 @@ function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
     r_changed = base_ring(I2)
     kk = coefficient_ring(r_changed)
     J_changed = ideal(r_changed,  [change_coefficient_ring(kk,a, parent = r_changed) for a=gens(J)])
-    tempvec = decide_duval_at_point(Spec(quo(r_changed,J_changed)[1]),I2)
+    tempvec = decide_du_val_singularity(Spec(quo(r_changed,J_changed)[1]),I2)
     for x in tempvec
       x[1] || return [x]
       x[4] = mult
@@ -212,6 +270,26 @@ the one of each generator of the ambient free module of M as zero.
 If M happens to be finite-dimensional as a kk-vectorspace, this returns its dimension.
 
 # Examples:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_dimension(M,1)
+2
+
+julia> vector_space_dimension(M,2)
+2
+
+julia> vector_space_dimension(M,3)
+1
+
+julia> vector_space_dimension(M)
+6
+
+```
 """
 function vector_space_dimension(M::SubquoModule)
   
@@ -265,6 +343,32 @@ the one of each generator of the ambient free module of M as zero.
 If M happens to be finite-dimensional as a kk-vectorspace, this returns a monomial basis of it.
 
 # Examples:
+```jldoctest
+ulia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_basis(M,2)
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
+ x*y*e[2]
+ y^2*e[2]
+
+julia> vector_space_basis(M,0)
+1-element Vector{FreeModElem{QQMPolyRingElem}}:
+ e[2]
+
+julia> vector_space_basis(M)
+6-element Vector{Any}:
+ e[2]
+ x*e[2]
+ y*e[2]
+ x*y*e[2]
+ y^2*e[2]
+ x*y^2*e[2]
+
+```
 """
 function vector_space_basis(M::SubquoModule)
   R = base_ring(M)
