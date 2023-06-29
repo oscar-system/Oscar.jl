@@ -3,7 +3,7 @@
 
 Return whether the given `X` has at most du Val (surface) singularities.
 
-#Examples:
+# Examples:
 
 """
 function has_du_val_singularities(X::AbsProjectiveScheme{<:Field,<:Any})
@@ -37,7 +37,7 @@ function has_du_val_singularities(X::AbsCoveredScheme{<:Field})
   return true
 end
 
-@doc_raw"""
+@doc raw"""
     is_du_val_singularity(X::AbsSpec, I::Ideal)
 
 Return whether the given X has at most du Val (surface) singularities at the geometric points
@@ -75,7 +75,7 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   return true
 end
 
-@doc_raw"""
+@doc raw"""
     decide_du_val_singularity(X::AbsSpec, I::Ideal)
 
 Return a vector of tuples T with the following data:
