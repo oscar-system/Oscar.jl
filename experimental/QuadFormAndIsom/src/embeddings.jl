@@ -166,7 +166,7 @@ function _overlattice(gamma::TorQuadModuleMor,
   B = relations(HB)
   D = codomain(HAinD)
   if same_ambient
-    _glue = Vector{QQFieldElem}[lift(g) + lift(gamma(g)) for g in gens(HA)]
+    _glue = Vector{QQFieldElem}[lift(g) + lift(gamma(g)) for g in gens(domain(gamma))]
     z = zero_matrix(QQ, 0, degree(A))
     glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue], init=z)
     glue = vcat(basis_matrix(A+B), glue)
@@ -178,7 +178,7 @@ function _overlattice(gamma::TorQuadModuleMor,
     _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C))
     fC = _B*fC*inv(_B)
   else
-    _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(HA)]
+    _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(domain(gamma))]
     z = zero_matrix(QQ, 0, degree(cover(D)))
     glue = reduce(vcat, [matrix(QQ, 1, degree(cover(D)), g) for g in _glue], init=z)
     glue = vcat(block_diagonal_matrix(basis_matrix.([A, B])), glue)

@@ -609,12 +609,12 @@ See [`image_in_Oq(::ZZLat)`](@ref).
     f = OL(f)
     UL = QQMatrix[matrix(OL(s)) for s in gens(centralizer(OL, f)[1])]
     qL = discriminant_group(L)
-    UL = ZZMatrix[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in UL]
+    UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)])) for g in UL]
     unique!(UL)
     GL = Oscar._orthogonal_group(qL, UL, check = false)
   elseif rank(L) == euler_phi(n)
     qL = discriminant_group(L)
-    UL = ZZMatrix[hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)]).map_ab.map for g in [-f^0, f]]
+    UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(-lift(t)) for t in gens(qL)]))]
     unique!(UL)
     GL = Oscar._orthogonal_group(qL, UL, check = false)
   else

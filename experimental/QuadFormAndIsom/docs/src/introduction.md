@@ -38,11 +38,11 @@ currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non optimized algorithms.
 
 Among the possible improvements and extensions:
-* Implement methods about for lattices with isometries of infinite order;
+* Implement methods for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
-* Implement methods for primitive embeddings in odd integral lattices;
-* Implement methods for more kinds of equivariant primitive extensions.
+* Implement methods for more kinds of (equivariant) primitive embeddings;
+* Implement methods for more kinds of (equivariant) primitive extensions.
 
 ## Currently application of this project
 

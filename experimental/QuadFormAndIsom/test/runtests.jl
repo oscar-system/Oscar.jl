@@ -34,6 +34,11 @@ using Oscar
 
   @test Vf != quadratic_space_with_isometry(V, neg=true)
   @test length(unique([Vf, quadratic_space_with_isometry(V, isometry(Vf))])) == 1
+  @test Vf^(order_of_isometry(V)+1) == Vf
+
+  V = quadratic_space(QQ, matrix(QQ, 0, 0, []))
+  Vf = @inferred quadratic_space_with_isometry(V)
+  @test order_of_isometry(Vf) == -1
 end
 
 @testset "Lattices with isometry" begin
@@ -42,6 +47,10 @@ end
   agg_ambient = automorphism_group_generators(A4, ambient_representation = true)
   f = rand(agg)
   g_ambient = rand(agg_ambient)
+
+  L = integer_lattice(gram = matrix(QQ, 0, 0, []))
+  Lf = integer_lattice_with_isometry(L, neg = true)
+  @test order_of_isometry(Lf) == -1
 
   L = @inferred integer_lattice_with_isometry(A4)
   @test ambient_space(L) isa QuadSpaceWithIsom
@@ -56,6 +65,9 @@ end
     k = @inferred func(L)
     @test k == func(A4)
   end
+
+  GL = image_centralizer_in_Oq(L)
+  @test order(GL) == 2
 
   LfQ = @inferred rational_span(L)
   @test LfQ isa QuadSpaceWithIsom
@@ -76,7 +88,8 @@ end
   @test ambient_isometry(L2v) == ambient_isometry(L2)
   
   L3 = @inferred integer_lattice_with_isometry(A4, g_ambient, ambient_representation = true)
-  @test order_of_isometry(L2) == multiplicative_order(g_ambient)
+  @test order_of_isometry(L3) == multiplicative_order(g_ambient)
+  @test L3^(order_of_isometry(L3)+1) == L3
 
   L4 = @inferred rescale(L3, QQ(1//4))
   @test !is_integral(L4)
@@ -123,7 +136,22 @@ end
 
   # Add more image_centralizer_in_Oq for indefinite and test with comparison to
   # Sage results
-  
+  B = matrix(QQ, 4, 8, [0 0 0 0 3 0 0 0; 0 0 0 0 1 1 0 0; 0 0 0 0 1 0 1 0; 0 0 0 0 2 0 0 1]);
+  G = matrix(QQ, 8, 8, [-2 1 0 0 0 0 0 0; 1 -2 0 0 0 0 0 0; 0 0 2 -1 0 0 0 0; 0 0 -1 2 0 0 0 0; 0 0 0 0 -2 -1 0 0; 0 0 0 0 -1 -2 0 0; 0 0 0 0 0 0 2 1; 0 0 0 0 0 0 1 2]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 -1 1 0 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 -1 1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GL = image_centralizer_in_Oq(Lf)
+  @test order(GL) == 72
+
+  B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
+  G = matrix(QQ, 6, 6, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 -1 0 0 1; 0 0 0 -1 1 -1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GL = image_centralizer_in_Oq(Lf)
+  @test order(GL) == 2
+
   E8 = root_lattice(:E, 8)
   OE8 = orthogonal_group(E8)
   F, C, _ = @inferred invariant_coinvariant_pair(E8, OE8)
@@ -135,7 +163,6 @@ end
   C, gene = @inferred coinvariant_lattice(D5, OD5, ambient_representation = false)
   G = gram_matrix(C)
   @test all(g -> g*G*transpose(g) == G, gene)
-
 end
 
 @testset "Enumeration of lattices with finite isometries" begin

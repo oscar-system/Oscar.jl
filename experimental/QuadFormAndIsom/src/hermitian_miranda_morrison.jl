@@ -311,19 +311,39 @@ end
 function _local_determinants_morphism(Lf::ZZLatWithIsom)
   @hassert :ZZLatWithIsom 1 is_of_hermitian_type(Lf)
 
+  # We want to compute the image of the centralizer as a subgroup of OqL. For
+  # this, if Lf is not full, we need to consider an isomorphic pair Lf2 of full
+  # rank and then transport the generators along an appropriate map.
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
+  if rank(Lf) != degree(Lf)
+    Lf2 = integer_lattice_with_isometry(integer_lattice(gram = gram_matrix(Lf)), isometry(Lf), ambient_representation = false)
+    qL2, fqL2 = discriminant_group(Lf2)
+    OqL2 = orthogonal_group(qL2)
+    ok, phi12 = is_isometric_with_isometry(qL, qL2)
+    @hassert :ZZLatWithIsom 1 ok
+    ok, g0 = representative_action(OqL, fqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12)))))
+    @hassert :ZZLatWithIsom 1 ok
+    phi12 = compose(hom(OqL(g0)), phi12)
+    @hassert :ZZLatWithIsom 1 is_isometry(phi12)
+  else
+    Lf2 = Lf
+    qL2, fqL2, OqL2 = qL, fqL, OqL
+    phi12 = id_hom(qL)
+  end
 
   # Since any isometry of L centralizing f induces an isometry of qL centralising
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH22.
-  G, _ = centralizer(OqL, fqL)
+  G2, _ = centralizer(OqL2, fqL2)
+  G, _ = sub(OqL, [OqL(compose(phi12, compose(hom(g), inv(phi12)))) for g in gens(G2)])
+  GtoG2 = hom(G, G2, gens(G), gens(G2))
 
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
   # where D is the absolute different of the base algebra of H (a cyclotomic
   # field).
-  H = hermitian_structure(Lf)
+  H = hermitian_structure(Lf2)
 
   E = base_field(H)
   OE = maximal_order(E)
@@ -339,8 +359,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # transfer between the quadratic world in which we study (L, f) and the
   # hermitian world in which H lives. In particular, the trace lattice of H2
   # with respect to res will be exactly the dual of L.
-  res = get_attribute(Lf, :transfer_data)
-
+  res = get_attribute(Lf2, :transfer_data)
   # We want only the prime ideal in O_K which divides the quotient H2/H. For
   # this, we collect all the primes dividing DEQ or for which H is not locally
   # unimodular. Then, we check for which prime ideals p, the local quotient
@@ -429,7 +448,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # consider up to now, and then map the corresponding determinant adeles inside
   # Q. Since our matrices were approximate lifts of the generators of G, we can
   # create the map we wanted from those data.
-  for g in gens(G)
+  for g in gens(G2)
     ds = elem_type(E)[]
     for p in S
       lp = prime_decomposition(OE, p)
@@ -444,7 +463,8 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   end
 
   GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
-  f = hom(G, GSQ, gens(G), SQtoGSQ.(imgs), check=false)
+  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs), check=false)
+  f = compose(GtoG2, f2)
 
   return f
 end
