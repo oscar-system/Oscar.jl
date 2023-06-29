@@ -78,6 +78,9 @@ Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-fun
 julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)
 
+julia> X = Spec(Rq)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+
 julia> is_du_val_singularity(X,J)
 true
 
@@ -344,7 +347,7 @@ If M happens to be finite-dimensional as a kk-vectorspace, this returns a monomi
 
 # Examples:
 ```jldoctest
-ulia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
 
 julia> F = free_module(R,2);
 
