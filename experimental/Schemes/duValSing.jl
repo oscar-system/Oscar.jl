@@ -1,3 +1,11 @@
+@doc raw"""
+    has_du_val_singularities(X::Scheme)
+
+Return whether the given `X` has at most du Val (surface) singularities.
+
+#Examples:
+
+"""
 function has_du_val_singularities(X::AbsProjectiveScheme{<:Field,<:Any})
   return has_du_val_singularities(covered_scheme(X))
 end
@@ -29,6 +37,14 @@ function has_du_val_singularities(X::AbsCoveredScheme{<:Field})
   return true
 end
 
+@doc_raw"""
+    is_du_val_singularity(X::AbsSpec, I::Ideal)
+
+Return whether the given 'X' has at most du Val (surface) singularities at the geometric points
+specified by the ideal 'I'.
+
+**Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+"""
 function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
@@ -59,7 +75,26 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   return true
 end
 
-function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
+@doc_raw"""
+    decide_du_val_singularity(X::AbsSpec, I::Ideal)
+
+Return a vector of tuples T with the following data:
+- T[1]::Bool answers 'X' has at most du Val (surface) singularities at the geometric points
+specified by the ideal 'I'.
+- T[2]::Ideal I_P associated prime of I (possibly over a suitable field extension)
+  describing some geometrically irreducible point
+- T[3]::Tuple type of the singularity at P
+- T[4]::Int number of conjugate points
+
+If X has a least one singularity which is not du Val, the returned vector contains a
+single tuple T, with the following values:
+- T[1] = false
+- T[2] = point at which some non-du-Val singularity is present
+- T[3] = empty tuple
+- T[4] = 1
+
+**Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+""" function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -74,7 +109,7 @@ function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   dim(I) == 0 || error("second argument is not a point")
   if get_attribute(I,:is_absolutely_prime, false)
     li = _check_duval_at_point(J,I)
-    return [(li[1], I, li[2])]
+    return [(li[1], I, li[2],1)]
   end
 
   result_vector = []
@@ -88,6 +123,7 @@ function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
     tempvec = decide_duval_at_point(Spec(quo(r_changed,J_changed)[1]),I2)
     for x in tempvec
       x[1] || return [x]
+      x[4] = mult
       push!(result_vector,x)
     end
   end
@@ -96,6 +132,18 @@ function decide_duval_at_point(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MP
   return result_vector
 end
 
+@doc raw"""
+    _check_du_val_at_point(IX:Ideal,Ipt::Ideal))
+
+Returns a tuple T with the following data:
+- T[1]::Bool has V(IX) at most a du Val singularity at V(Ipt)
+- T[2]::Tuple Type of du Val singularity at V(Ipt)
+
+**Note**: Assumes Ipt to be absolutely irreducible.
+
+**Note**: Do not call directly, only via the higher level functions is_du_Val_singularity and decide_du_Val_singularity.
+
+"""
 function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   R = base_ring(IX)
   R == base_ring(Ipt) || error("basering mismatch")
@@ -150,6 +198,20 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   return (true, (:E,tau))                                               ## E_6, E_7, E_8
 end
 
+@doc raw"""
+    vector_space_dimension(M::SubquoModule, d::Int)
+
+Let R be a MPolyAnyRing over a field kk and let M be a subquotient module over R.
+Then the command returns the dimension of the kk-vectorspace corresponding to the
+degree d slice of M, where the degree of each variable of R is counted as one and
+the one of each generator of the ambient free module of M as zero.
+
+    vector_space_dimension(M::SubquoModule)
+
+If M happens to be finite-dimensional as a kk-vectorspace, this returns its dimension.
+
+# Examples:
+"""
 function vector_space_dimension(M::SubquoModule)
   
   R = base_ring(M)
@@ -189,6 +251,20 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   return length([x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
 end
   
+@doc raw"""
+    vector_space_basis(M::SubquoModule, d::Int)
+
+Let R be a MPolyAnyRing over a field kk and let M be a subquotient module over R.
+Then the command returns a monomial basis of the kk-vectorspace corresponding to the
+degree d slice of M, where the degree of each generator of R is counted as one and
+the one of each generator of the ambient free module of M as zero.
+
+    vector_space_basis(M::SubquoModule)
+
+If M happens to be finite-dimensional as a kk-vectorspace, this returns a monomial basis of it.
+
+# Examples:
+"""
 function vector_space_basis(M::SubquoModule)
   R = base_ring(M)
   F = ambient_free_module(M)
