@@ -108,7 +108,7 @@ end
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
     g::AbsSpecMor
   )
-  set_attribute!(f, :is_biraional, true)
+  set_attribute!(f, :is_birational, true)
   set_attribute!(f, :iso_on_open_subset, g)
 end
 

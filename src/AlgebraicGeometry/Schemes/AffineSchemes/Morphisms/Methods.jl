@@ -210,3 +210,17 @@ function base_change(phi::Any, f::AbsSpecMor;
   return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
 end
 
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor, ginv::AbsSpecMor)
+  set_attribute!(g, :inverse, ginv)
+  set_attribute!(ginv, :inverse, g)
+  return _register_birationality(f, g)
+end
+
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor
+  )
+  set_attribute!(f, :is_birational, true)
+  set_attribute!(f, :iso_on_open_subset, g)
+end
+

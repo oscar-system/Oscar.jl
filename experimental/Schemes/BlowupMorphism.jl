@@ -9,9 +9,9 @@ export projection
 #
 # A datastructure to maintain all information necessary to effectively 
 # handle blowups. This is work in progress and will one day serve as 
-# a building blow for sequences of blowups
+# a building block for sequences of blowups
 ########################################################################
-mutable struct BlowupMorphism{
+@attributes mutable struct BlowupMorphism{
                               CodomainType<:AbsCoveredScheme
                              } # TODO: Derive this from AbsCoveredSchemeMorphism ? 
   projective_bundle::CoveredProjectiveScheme 
@@ -473,5 +473,33 @@ function show_details(io::IO, Bl::BlowupMorphism)
   println(io,"=====================================")
   println(io,"Exceptional divisor:")
   show_details(io,exceptional_divisor(Bl))
+end
+
+@attr AbsCoveredSchemeMorphism function isomorphism_on_complement_of_center(f::BlowupMorphism)
+  iso_dict = get_attribute(f, :isos_on_complement_of_center)
+  p = projection(f)
+  X = domain(f)
+  Y = codomain(f)
+  dom_cov = Covering([U for U in keys(iso_dict)])
+  inherit_glueings!(dom_cov, default_covering(X))
+  cod_cov = Covering([codomain(p) for p in values(iso_dict)])
+  inherit_glueings!(cod_cov, default_covering(Y))
+  XU = CoveredScheme(dom_cov)
+  YV = CoveredScheme(cod_cov)
+  p_res_cov = CoveringMorphism(dom_cov, cod_cov, iso_dict)
+  p_res = CoveredSchemeMorphism(XU, YV, p_res_cov)
+
+  # Assemble the inverse
+  iso_inv_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for (U, q) in keys(iso_dict)
+    V = codomain(q)
+    iso_inv_dict[V] = inverse(q)
+  end
+  p_res_inv_cov = CoveringMorphism(cod_cov, dom_cov, iso_inv_dict)
+  p_res_inv = CoveredSchemeMorphism(YV, XU, p_res_inv_cov)
+
+  set_attribute!(p_res, :inverse, p_res_inv)
+  set_attribute!(p_res_inv, :inverse, p_res)
+  return p_res
 end
 

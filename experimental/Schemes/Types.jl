@@ -29,7 +29,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
       check::Bool=true,
       representative_patch::AbsSpec=default_covering(X)[1]
     )
-    check && (is_irreducible(X) || error("variety is not irreducible"))
+    @check is_irreducible(X) "variety is not irreducible"
     representative_patch in default_covering(X) || error("representative patch not found")
     KK = fraction_field(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
@@ -244,7 +244,9 @@ identifications given by the glueings in the `default_covering`.
         pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) === OV || error("element does not belong to the correct domain")
-          return pullback(incU)(restrict(pbg(domain(pbg)(x)), U_flat)) # should probably be tuned to avoid checks.
+          y = pbg(domain(pbg)(x, check=false))
+          yy = restrict(y, U_flat, check=false)
+          return pullback(incU)(yy)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
@@ -316,9 +318,9 @@ identifications given by the glueings in the `default_covering`.
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
           y = pullback(inverse(inc_V_flat))(x)
-          y = restrict(y, VV_flat)
+          y = restrict(y, VV_flat, check=false)
           y = pullback(fres)(y)
-          y = restrict(y, U_flat)
+          y = restrict(y, U_flat, check=false)
           return pullback(inc_U_flat)(y)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
@@ -338,7 +340,7 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
-          return restrict(pullback(g)(OO(domain(f))(a)), W)
+          return restrict(pullback(g)(OO(domain(f))(a)), W, check=false)
         end
         return MapFromFunc(rho_func, OV, OW)
       end
@@ -533,7 +535,7 @@ identifications given by the glueings in the `default_covering`.
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
-    if check
+    @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is

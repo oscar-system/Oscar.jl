@@ -420,7 +420,7 @@ mutable struct MPolyQuoLocRingElem{
     S = inverted_set(L)
     R = base_ring(L)
     parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
-    check && (b in S || error("denominator is not admissible"))
+    @check b in S || error("denominator is not admissible")
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(L, a, b, is_reduced)
   end
 end
@@ -480,7 +480,7 @@ function Base.deepcopy_internal(f::MPolyQuoLocRingElem, dict::IdDict)
 end
 
 ### required conversions
-(L::MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType, is_reduced::Bool=false) where {BaseRingType, BaseRingElemType, RingType, RingElemType<:RingElem, MultSetType} = MPolyQuoLocRingElem(L, f, one(f), check=false, is_reduced=is_reduced)
+(L::MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType; is_reduced::Bool=false, check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType<:RingElem, MultSetType} = MPolyQuoLocRingElem(L, f, one(f), check=false, is_reduced=is_reduced)
 
 function (L::MPolyQuoLocRing{
                                    BaseRingType, 
@@ -500,8 +500,9 @@ function (L::MPolyQuoLocRing{
                                              RingElemType, 
                                              MultSetType
                                             } 
-  check || return MPolyQuoLocRingElem(L, a, b, check=false, is_reduced=is_reduced)
-  b in inverted_set(L) || return convert(L, a//b)
+  @check begin
+    b in inverted_set(L) || return convert(L, a//b)
+  end
   return MPolyQuoLocRingElem(L, a, b, check=false, is_reduced=is_reduced)
 end
 
@@ -529,8 +530,10 @@ end
 
 function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoRingElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
   base_ring(parent(f)) == base_ring(L) || error("the given element does not belong to the correct ring") 
-  check && (parent(f) == underlying_quotient(L) || all(x->(iszero(L(x))), gens(modulus(parent(f)))) || error("coercion is not well defined"))
-  return L(lift(f))
+  if parent(f) !== underlying_quotient(L) 
+    @check all(x->(iszero(L(x))), gens(modulus(parent(f)))) "coercion is not well defined"
+  end
+  return L(lift(f), check=check)
 end
 
 ### additional functionality
@@ -540,7 +543,7 @@ end
 Given ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return a representative
 ``a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]`` of the fraction. 
 """
-lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
+lift(f::MPolyQuoLocRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f), check=false)
 
 
 @doc raw"""
@@ -641,6 +644,10 @@ function inv(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BR
 end
 
 function inv(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
+  isone(f) && return f
+  return parent(f)(denominator(f), numerator(f))
+  return convert(parent(f), lifted_denominator(f)//lifted_numerator(f))
+  # The following was the original line:
   return parent(f)(denominator(f), numerator(f))
 end
 
@@ -686,7 +693,7 @@ function convert(
       lower = middle
     end
   end
-  return L(lift(coefficient), upper)
+  return L(lift(coefficient), upper, check=false)
 end
 
 function _is_regular_fraction(R::RingType, p::MPolyRingElem, q::MPolyRingElem) where {RingType<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}}
@@ -1047,6 +1054,7 @@ end
 # uncommon implementation of the numerator and denominator methods
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
+  isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
   return codomain(f)(restricted_map(f)(lifted_numerator(a)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(a))))
 end
 
@@ -1668,7 +1676,7 @@ function coordinates(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
   parent(a) == L || return coordinates(L(a), I)
   a in I || error("the given element is not in the ideal")
-  x = coordinates(lift(a), pre_image_ideal(I))
+  x = coordinates(lift(a), pre_image_ideal(I), check=false)
   return map_entries(L, x[1, 1:ngens(I)])
 end
 
