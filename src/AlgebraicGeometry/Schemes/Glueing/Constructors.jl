@@ -97,6 +97,14 @@ function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   return restrict(underlying_glueing(G), X, Y, check=check)
 end
 
+function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec,
+    Ures::Scheme, Vres::Scheme;
+    check::Bool=true
+  )
+  return restrict(underlying_glueing(G), X, Y, Ures, Vres, check=check)
+end
+
+
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)

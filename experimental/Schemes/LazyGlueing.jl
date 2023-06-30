@@ -90,12 +90,12 @@ function _compute_domains(GD::RestrictionDataClosedEmbedding)
   end
   (U, V) = glueing_domains(GD.G)
   if U isa PrincipalOpenSubset
-    GD.UX = PrincipalOpenSubset(X, OO(X)(lifted_numerator(complement_equation(U))))
-    GD.VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
+    GD.UX = PrincipalOpenSubset(GD.X, OO(GD.X)(lifted_numerator(complement_equation(U))))
+    GD.VY = PrincipalOpenSubset(GD.Y, OO(GD.Y)(lifted_numerator(complement_equation(V))))
     return GD.UX, GD.VY
   elseif U isa SpecOpen
-    GD.UX = intersect(X, U, check=false)
-    GD.VY = intersect(Y, V, check=false)
+    GD.UX = intersect(GD.X, U, check=false)
+    GD.VY = intersect(GD.Y, V, check=false)
     return GD.UX, GD.VY
   end
 end
