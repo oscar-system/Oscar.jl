@@ -46,3 +46,29 @@ function glueing_graph(C::Covering)
   return C.glueing_graph
 end
 
+@doc raw"""
+    decomposition_info(C::Covering)
+
+Return an `IdDict` `D` with the `patches` of `C` as keys and values `D[U]` a list 
+of elements ``f₁,…,fᵣ ∈ 𝒪(U)``. These elements are chosen so that for 
+``Xᵤ = V(f₁,…,fᵣ) ⊂ U`` the scheme ``X`` covered by ``C`` decomposes as a 
+disjoint union ``X = ∪ Xᵤ``.
+
+!!! note This attribute might not be defined!
+"""
+function decomposition_info(C::Covering)
+  return C.decomp_info
+end
+
+function set_decomposition_info!(C::Covering, U::AbsSpec, f::Vector{<:RingElem})
+  if !isdefined(C, :decomp_info)
+    C.decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  end
+  all(x->parent(x) === OO(U), f) || error("elements do not belong to the correct ring")
+  decomp_info(C)[U] = f
+end
+
+function set_decomposition_info!(C::Covering, D::IdDict{<:AbsSpec, <:Vector{<:RingElem}})
+  C.decomp_info = D
+end
+
