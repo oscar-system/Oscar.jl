@@ -119,6 +119,30 @@ function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   return SimpleGlueing(X, Y, f_res, g_res, check=check)
 end
 
+function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec,
+    Ures::SpecOpen, Vres::SpecOpen;
+    check::Bool=true
+  )
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
+  return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
+end
+
+function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec,
+    UX::PrincipalOpenSubset, VY::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
+  f_res = restrict(f, UX, VY, check=check)
+  g_res = restrict(g, VY, UX, check=check)
+  return SimpleGlueing(X, Y, f_res, g_res, check=check)
+end
+
 ########################################################################
 # Identification of glueings under isomorphisms of patches             #
 ########################################################################
@@ -149,6 +173,35 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
                          compose(h2, restrict(f, domain(h1), U2, check=check))
+                        ),
+                 check=check
+                )
+end
+
+function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor,
+    f_res::SchemeMor, g_res::SchemeMor;
+    check::Bool=true
+  )
+  (X1, Y1) = patches(G)
+  X1 === domain(f) || error("maps not compatible")
+  X2 = codomain(f)
+  finv = inverse(f)
+
+  Y1 === domain(g) || error("maps not compatible")
+  Y2 = codomain(g)
+  ginv = inverse(g)
+
+  (h1, h2) = glueing_morphisms(G)
+
+  U2 = codomain(f_res)
+  V2 = codomain(f_res)
+
+  return Glueing(X2, Y2, 
+                 compose(inverse(f_res), 
+                         compose(h1, g_res)
+                        ),
+                 compose(inverse(g_res), 
+                         compose(h2, f_res)
                         ),
                  check=check
                 )
