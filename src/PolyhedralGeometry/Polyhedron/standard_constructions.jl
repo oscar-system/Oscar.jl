@@ -912,6 +912,12 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polym
 Construct a lattice simplex such that the origin is the unique interior lattice point.
 The normal toric variety associated with its face fan is smooth.
 
+# Keywords
+- `d::Int`: the dimension.
+
+Note that in polymake, this function has an optional Boolean parameter `group`, to
+also construct the symmetry group of the simplex.  
+
 # Examples
 ```jldoctest
 julia> S = fano_simplex(3)
@@ -1074,7 +1080,7 @@ end
 
 
 @doc raw"""
-SIM_body(alpha::AbstractVector) -> Polyhedron
+    SIM_body(alpha::AbstractVector)
 
 Produce an $n$-dimensional SIM-body as generalized permutahedron in 
 $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
@@ -1101,17 +1107,16 @@ SIM_body(alpha::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Pol
 
 
 @doc raw"""
-associahedron(d::Int, group=nothing) -> Polyhedron
+    associahedron(d::Int)
 
 Produce a $d$-dimensional associahedron (or Stasheff polytope). 
 We use the facet description given in section 9.2. of [Zie95](@cite).
 
 # Keywords
 - `d::Int`: the dimension 
-- `group::Bool`: Compute the combinatorial symmetry group of the polytope. 
-                  It has two generators, as it is induced by the symmetry group 
-                  of a $d+3$-gon, the dihedral group of degree $d+3$. 
-                  For details, see [CSZ15](@cite).
+
+Note that in polymake, this function has an optional Boolean parameter `group`, to
+also construct the symmetry group of the polytope. For details, see [CSZ15](@cite).
 
 
 # Examples
@@ -1138,11 +1143,11 @@ julia> facets(A)
 -x₃ ≦ -1
 ```
 """
-associahedron(d::Int, group::Bool= false) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d,group=group)) 
+associahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d)) 
 
 
 @doc raw""" 
-binary_markov_graph(observation::Array{Bool}) -> Polyhedron
+    binary_markov_graph(observation::Array{Bool})
 
 Defines a very simple graph for a polytope propagation related to a Hidden 
 Markov Model. The propagated polytope is always a polygon. For a detailed 
@@ -1159,14 +1164,14 @@ julia> vertices(P)
  [1, 1]
  [0, 2]
  [0, 7]
- ```
+```
 """
 binary_markov_graph(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(observation))
 
 @doc raw"""
-dwarfed_cube(d::Int) -> Polyhedron
+    dwarfed_cube(d::Int)
 
-Produce a $d$-dimensional dwarfed cube as defined in [Jos03](@cite). 
+Produce a $d$-dimensional dwarfed cube as defined in [ABS97](@cite). 
 
 # Keywords
 - `d::Int`: the dimension 
@@ -1196,9 +1201,9 @@ dwarfed_cube(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d)
 
 
 @doc raw"""
-dwarfed_cube(d::Int) -> Polyhedron
+    dwarfed_product_polygons(d::Int, s::Int)
 
-Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [Jos03](@cite). 
+Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [ABS97](@cite). 
 
 # Keywords
 - `d::Int`: the dimension. It must be $d\geq4$ and even. 
@@ -1225,3 +1230,59 @@ julia> vertices(p)
 ```
 """
 dwarfed_product_polygons(d::Int, s::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
+
+@doc raw"""
+    lecture_hall_simplex(d::Int)
+
+Produce the $d$-dimensional lecture hall simplex for the sequence $(s_i)=i$ for $1\geq i \geq d$
+as defined in [SS12](@cite).
+
+# Keywords
+- `d::Int`: the dimension 
+
+Note that in polymake, this function has an optional Boolean parameter `group`, to
+also construct the symmetry group of the simplex.  
+
+# Examples
+A $3$-dimensional lecture hall simplex:
+```jldoctest
+julia> S = lecture_hall_simplex(3) 
+Polyhedron in ambient dimension 3
+
+julia> vertices(S)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+ [0, 0, 3]
+ [0, 2, 3]
+ [1, 2, 3]
+```
+"""
+lecture_hall_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d)) 
+
+# @doc raw"""
+#     explicit_zonotope(d::Int)
+
+# Produce the points of a zonotope as the iterated Minkowski sum of all intervals [-x,x], 
+# where x ranges over the rows of the input matrix `zones`. 
+
+# # Keywords
+# - `zones::Matrix`: the input vectors 
+
+# Note that in polymake, this function has an optional Boolean parameter `group`, to
+# also construct the symmetry group of the simplex.  
+
+# # Examples
+# A $3$-dimensional lecture hall simplex:
+# ```jldoctest
+# julia> S = lecture_hall_simplex(3) 
+# Polyhedron in ambient dimension 3
+
+# julia> vertices(S)
+# 4-element SubObjectIterator{PointVector{QQFieldElem}}:
+#  [0, 0, 0]
+#  [0, 0, 3]
+#  [0, 2, 3]
+#  [1, 2, 3]
+# ```
+# """
+# explicit_zonotope(zones::Matrix{QQFieldElem})  = Polyhedron(Polymake.polytope.explicit_zonotope(zones)) 

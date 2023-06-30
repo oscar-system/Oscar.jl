@@ -481,6 +481,7 @@ export equidimensional_hull
 export equidimensional_hull_radical
 export euler_characteristic
 export euler_phi
+export explicit_zonotope
 export exponent, has_exponent, set_exponent
 export exponents
 export ext
@@ -854,6 +855,7 @@ export leading_ideal
 export leading_module
 export leading_monomial
 export leading_term
+export lecture_hall_simplex
 export left_acting_group
 export left_coset
 export left_cosets

@@ -145,10 +145,12 @@ cyclic_polytope
 del_pezzo_polytope
 dwarfed_cube
 dwarfed_product_polygons
+explicit_zonotope
 fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+lecture_hall_simplex
 newton_polytope
 orbit_polytope
 rand_spherical_polytope
