@@ -1,3 +1,5 @@
+export homogenization2  # !!TEMPORARY!!
+
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
@@ -2071,44 +2073,141 @@ end
 
 # To homogenize an ideal we look for some additional simple elements
 # (as redundant generators), and then apply the standard algorithm.
+# Seems wasteful, but in many cases leads to faster overall computation.
 
-# Internal function: used only in gens_for_homog (immediately below)
-function num_terms(f)
-    return length(collect(coefficients(f)));
-end;
 
 # Internal function: used only in homogenization (immediately below)
 # This function is an "empirical hack": usually makes homogenization faster.
 # Return gens(I) and some further "small" polys in I.
 function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
-    @req  !is_zero(I)  "Ideal must be non-zero"
-    @req  !is_one(I)   "Ideal must not be whole ring"
+##    @req  !is_zero(I)  "Ideal must be non-zero"
+##    @req  !is_one(I)   "Ideal must not be whole ring"
+    if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
+#    if isempty(I.gb)  return gens(I); end # JAA still thinks it is better to compute a DegRevLex GB even if none already exists
+        # G=gens(I); for GB in values(I.gb)  G=vcat(G, filter(f -> (length(f) < 2*AveNumTerms), GB)); end; return G;
     OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
     # Next few lines: we adjoin some more small, redundant gens.
     # !!HEURISTIC!!  We use AveNumTerms as size limit for redundant gens we shall adjoin.
-    AveNumTerms = sum([num_terms(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
+    AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
     GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
-    GB1 = filter(f -> (num_terms(f) < 2*AveNumTerms), GB1)
+    GB1 = filter(f -> (length(f) < 2*AveNumTerms), GB1)
     GB2 = elements(groebner_basis(I, ordering=deglex(OrigR)))  # or degrevlex with vars in reverse order?
-    GB2 = filter(f -> (num_terms(f) < 2*AveNumTerms), GB2)
+    GB2 = filter(f -> (length(f) < 2*AveNumTerms), GB2)
     return vcat(gens(I), GB1, GB2)
 end
 
 function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1) where {T <: MPolyRingElem}
-    if is_zero(I) || is_one(I)
-        return I
-    end
-    # SLUG:  should check if W is a row of 1s; if so, delegate to standard graded code (presumably faster)
-    ### ??? How to check if W is a row of 1s ???
-    Hgens = homogenization(gens_for_homog(I), W, var, pos)
+  # [W.Decker] TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
+    if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
+        P = parent(I);
+        tmp = homogenization(one(P), W, var, pos);
+        R = parent(tmp);
+        return ideal(R); # no gens, so it is the zero ideal
+    end # of special handling for zero ideal
+    # SPECIAL CASE:  check if W is a single row, delegate to specialized ZZ^1-graded code (presumably faster)?
+    Hgens = homogenization(gens_for_homog(I), W, var, pos)  # ??? possibly use gens(I) instead of gens_for_homog(I) ???
     R = parent(Hgens[1])
-    prod_h = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
-    IH = saturation(ideal(R, Hgens), ideal(R,prod_h))
-    return IH
+    prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
+    Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars))
+    return Ih
 ######  There is a problem/bug with Singular.satstd: so disable this version
-######  Y = ideal(R, [gens(R)[i]  for i = pos:(pos+size(W, 1)-1)])
-######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S,Y.gens.S)
+######  IH = ideal(R, Hgens);  Y = ideal(R, prod_h_vars);
+######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S, Y.gens.S)
 end
+
+# ============================================
+# 2023-06-30 START: New impl of homogenization
+# ============================================
+
+# sat_poly and kronecker_delta are internal functions
+# homogenization2 is intended as "drop-in replacement" for homogenization
+# homogenization2 seems to be usefully faster with ZZ^m-grading for m > 1
+
+# Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
+function sat_poly(f,h)
+    # Is there a better way to implement this?
+    Ih = ideal([h]);
+    while ideal_membership(f, Ih)
+        f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
+    end #=while=#
+    return f;
+    # This loop is slower (presumably because it computes the remainder always)
+    # while true #=do=#
+    #     q,r = divrem(f,h);
+    #     if !is_zero(r) #=then=#
+    #         return q;
+    #     end #=if=#
+    #     f = q;
+    # end #=while=#
+end #=function=#
+
+# This function should be a file of utilities (JAA thinks)
+function kronecker_delta(i::Int, j::Int)
+    return (i == j) ? 1 : 0;
+end #=function=#
+
+
+function homogenization2(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int = 1) where {T <: MPolyRingElem}
+    ## ASSUME NumCols(W) = nvars(P)
+    if size(W,1) == 1 #=then=#
+        # Grading is over ZZ^1, so delegate to faster special-case function
+        return homogenization(I, h, pos);
+    end #=if=#
+    P = base_ring(I); # initial polynomial ring
+    if  is_zero(I)  #=then=#
+        return ideal(homogenization(zero(P),W,"h",1+ngens(P))); # zero ideal in correct ring (I hope)
+    end #=if=#
+    G = homogenization(gens(I), W, h, 1+ngens(P)); # h come last
+    Ph = parent(G[1]);  # Ph is graded ring, "homog-extn" of P.
+    N = ngens(Ph);
+    num_x = ngens(P);
+    num_h = ngens(Ph) - num_x;
+    Id = reduce(hcat,[[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h]);
+    RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)]);
+    M = hcat(W, Id);
+
+    for j in 1:num_h #=do=#
+        M_complete = vcat(M, RevLexMat);
+        JohnsOrdering = matrix_ordering(Ph, M_complete);
+        Ih = ideal(G);
+        G = groebner_basis(Ih; ordering=JohnsOrdering, complete_reduction=true);
+        G = elements(G);
+        h_j = gen(Ph,ngens(Ph)+1-j);
+        G = [sat_poly(g,h_j)  for g in G];
+        # Loop below: rotate cols in RevLexMat which corr to the "h" variables:
+        for i in 1:num_h #=do=#
+            col1 = (i+j > num_h+1) ? (N+2+num_h-i-j) : (N+2-i-j);
+            col2 = (col1 == N-num_h+1) ? N : col1-1;
+            RevLexMat[i, col1] = 0;
+            RevLexMat[i, col2] = -1;
+        end #=for=#
+    end #=for=#
+    if pos != 1+num_x
+        # Caller wants the homogenizing variables in a non-standard place,
+        # so permute the variables appropriately.  Is there a cleaner way to do this?
+        junk = homogenization(gen(I,1), W, h, pos); # I just want the ring
+        Ph2 = parent(junk); # should be the desired graded ring
+        images = [zero(Ph2)  for i in 1:N];
+        for i in 1:pos-1 #=do=#
+            images[i] = gen(Ph2,i);
+        end #=for=#
+        for i in pos:num_x #=do=#
+            images[i] = gen(Ph2,i+num_h);
+        end #=for=#
+        for i in 1:num_h #=do=#
+            images[num_x+i] = gen(Ph2, pos+i-1);
+        end #=for=#
+        reorder_variables = hom(Ph, Ph2, images);
+        G = [reorder_variables(g)  for g in G];
+    end #=if=#
+    return ideal(G) # in ring Ph
+end #=function=#
+
+# ============================================
+# 2023-06-30 END: New impl of homogenization
+# ============================================
+
+
 
 @doc raw"""
     homogenization(f::MPolyRingElem, var::VarName, pos::Int = 1)
