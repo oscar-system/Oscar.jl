@@ -25,7 +25,7 @@ Currently, the only supported valuations are:
 
 # Examples
 
-$p$-adic valuation on $\mathbb{Q}$:
+ $p$-adic valuation on $\mathbb{Q}$:
 ```jldoctest
 julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
 
@@ -41,7 +41,7 @@ julia> val_2(1//4)
 (2)
 ```
 
-$t$-adic valuation on $\mathbb{Q}(t)$:
+ $t$-adic valuation on $\mathbb{Q}(t)$:
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 

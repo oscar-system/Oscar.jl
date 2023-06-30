@@ -113,9 +113,9 @@ Compute the closure of ``U ⊂ Y``.
 """
 function closure(
     U::SpecOpen,
-    Y::AbsSpec 
+    Y::AbsSpec; check::Bool=true
   )
-  issubset(U, Y) || error("the first set is not contained in the second")
+  @check issubset(U, Y) "the first set is not contained in the second"
   X = closure(U)
   return intersect(X, Y)
 end
@@ -125,9 +125,7 @@ end
 ########################################################################
 
 function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
-  if check
-    issubset(codomain(f), ambient_scheme(V)) || error("set is not guaranteed to be open in the codomain")
-  end
+  @check issubset(codomain(f), ambient_scheme(V)) "set is not guaranteed to be open in the codomain"
   new_gens = pullback(f).(complement_equations(V))
   return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
 end

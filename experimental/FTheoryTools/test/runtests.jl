@@ -60,7 +60,7 @@ t_nm = global_tate_model([a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]
 # 1: Global Weierstrass models over concrete base space
 #############################################################
 
-w = global_weierstrass_model(sample_toric_variety(); completeness_check = false)
+w = weierstrass_model(sample_toric_variety(); completeness_check = false)
 Base.show(w)
 
 @testset "Attributes of global Weierstrass models over concrete base spaces" begin
@@ -75,7 +75,7 @@ Base.show(w)
 end
 
 @testset "Error messages in global Weierstrass models over concrete base spaces" begin
-  @test_throws ArgumentError global_weierstrass_model(sec_f, sec_g, base; completeness_check = false)
+  @test_throws ArgumentError weierstrass_model(sec_f, sec_g, base; completeness_check = false)
 end
 
 
@@ -84,7 +84,7 @@ end
 #############################################################
 
 auxiliary_base_ring, (f, g, u) = QQ["f", "g", "u"]
-w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
+w2 = weierstrass_model(f, g, auxiliary_base_ring, 3)
 
 @testset "Attributes of global Weierstrass models over generic base space" begin
   @test parent(weierstrass_section_f(w2)) == cox_ring(base_space(w2))
@@ -99,9 +99,9 @@ w2 = global_weierstrass_model(f, g, auxiliary_base_ring, 3)
 end
 
 @testset "Error messages in global Weierstrass models over generic base space" begin
-  @test_throws ArgumentError global_weierstrass_model(f, sec_f, auxiliary_base_ring, 3)
-  @test_throws ArgumentError global_weierstrass_model(f, g, auxiliary_base_ring, 0)
-  @test_throws ArgumentError global_weierstrass_model(f, g, auxiliary_base_ring, 4)
+  @test_throws ArgumentError weierstrass_model(f, sec_f, auxiliary_base_ring, 3)
+  @test_throws ArgumentError weierstrass_model(f, g, auxiliary_base_ring, 0)
+  @test_throws ArgumentError weierstrass_model(f, g, auxiliary_base_ring, 4)
 end
 
 
@@ -123,7 +123,7 @@ Base.show(t)
   @test dim(base_space(t)) == 3
   @test dim(ambient_space(t)) == 5
   @test base_fully_specified(t) == true
-  @test base_fully_specified(t) == base_fully_specified(global_weierstrass_model(t))
+  @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == underlying_toric_variety(ambient_space(t))
 end
@@ -149,7 +149,7 @@ end
   @test dim(base_space(t_i5_s)) == 3
   @test dim(ambient_space(t_i5_s)) == 5
   @test base_fully_specified(t_i5_s) == false
-  @test base_fully_specified(t_i5_s) == base_fully_specified(global_weierstrass_model(t_i5_s))
+  @test base_fully_specified(t_i5_s) == base_fully_specified(weierstrass_model(t_i5_s))
   @test is_smooth(ambient_space(t_i5_s)) == false
   @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == underlying_toric_variety(ambient_space(t_i5_s))
 end

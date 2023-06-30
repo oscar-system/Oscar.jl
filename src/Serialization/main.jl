@@ -1,7 +1,6 @@
 using JSON
 using UUIDs
 
-
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -26,6 +25,15 @@ function DeserializerState()
 end
 
 const backref_sym = Symbol("#backref")
+
+@Base.kwdef struct MetaData
+    author_orcid::Union{String, Nothing} = nothing
+    name::Union{String, Nothing} = nothing
+end
+
+function metadata(;args...)
+    return MetaData(;args...)
+end
 
 ################################################################################
 # Version info
@@ -337,8 +345,8 @@ end
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any)
-    save(filename::String, obj::Any)
+    save(io::IO, obj::Any; metadata::MetaData=nothing)
+    save(filename::String, obj::Any, metadata::MetaData=nothing)
 
 Save an object `T` to the given io stream
 respectively to the file `filename`.
@@ -348,23 +356,35 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("/tmp/fourtitwo.json", 42);
+julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="the meaning of life the universe and everything")
+Oscar.MetaData("0000-0000-0000-0042", "the meaning of life the universe and everything")
+
+julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
 
 julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
-function save(io::IO, obj::Any)
+function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
+    if !isnothing(metadata)
+        meta_dict = Dict()
+        for key in fieldnames(MetaData)
+            if !isnothing(getfield(metadata, key))
+                meta_dict[key] = getfield(metadata, key)
+            end
+        end
+        jsoncompatible[:meta] = meta_dict
+    end
     jsonstr = json(jsoncompatible)
     write(io, jsonstr)
     return nothing
 end
 
-function save(filename::String, obj::Any)
+function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     open(filename, "w") do file
-        save(file, obj)
+        save(file, obj; metadata=metadata)
     end
 end
 

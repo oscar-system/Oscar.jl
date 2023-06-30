@@ -109,3 +109,71 @@ function _minimal_power_such_that(f::RingElemType, P::PropertyType) where {RingE
   return upper
 end
 
+########################################################################
+# Background material to make the use of local orderings available     #
+########################################################################
+@doc raw"""
+    shifted_module(
+        F::FreeMod{T}
+      ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                                   <:MPolyComplementOfKPointIdeal}}
+
+For a free module ``F`` over a localized polynomial ring ``Rₘ`` at a maximal ideal ``𝔪`` 
+of a rational point this returns a triple ``(F♭, φ, φ⁻¹)`` where ``F♭`` is the 
+corresponding free module over ``R`` and ``φ : F♭ → F♭`` is the isomorphism over 
+the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
+"""
+@attr function shifted_module(
+    F::FreeMod{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+
+  (a, b) = base_ring_shifts(F)
+  return base_ring_module(F), a, b
+end
+
+@attr function base_ring_shifts(
+    F::FreeMod{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  Fb = base_ring_module(F)
+  L = base_ring(F)
+  R = base_ring(L)
+  shift, back_shift = base_ring_shifts(L)
+  F_shift = hom(Fb, Fb, gens(Fb), shift)
+  F_backshift = hom(Fb, Fb, gens(Fb), back_shift)
+  return F_shift, F_backshift
+end
+
+@doc raw"""
+    shifted_module(
+        M::SubquoModule{T}
+      ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                                   <:MPolyComplementOfKPointIdeal}}
+
+For a subquotient module ``M`` over a localized polynomial ring ``Rₘ`` at a maximal ideal ``𝔪`` 
+of a rational point and a `pre_saturated_module` ``N`` over ``R``, this returns a triple 
+``(N', φ, φ⁻¹)`` where ``N'`` is a module over ``R``, and ``φ : N → N'`` is an isomorphism over 
+the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
+"""
+@attr function shifted_module(
+    M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+
+  R = base_ring(M)::MPolyLocRing
+  P = base_ring(R)::MPolyRing
+
+  Mp = pre_saturated_module(M)
+  F = ambient_free_module(M)
+  shift, backshift = base_ring_shifts(R)
+  Fb, F_shift, F_backshift = shifted_module(ambient_free_module(M))
+  Mp_sub = F_shift.(ambient_representatives_generators(Mp))
+  Mp_rel = F_shift.(relations(Mp))
+  result = quo(sub(Fb, Mp_sub)[1], Mp_rel)[1]
+  a = hom(Mp, result, gens(result), shift)
+  b = hom(result, Mp, gens(Mp), backshift)
+  return result, a, b
+end
+
+

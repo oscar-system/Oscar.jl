@@ -655,8 +655,8 @@ julia> cellular_associated_primes(I)
 5-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}:
  ideal(x[5], x[6])
  ideal(x[1] - x[2], x[5], x[6])
- ideal(x[1] - ζ(3)*x[2], x[5], x[6])
- ideal(x[1] + (ζ(3) + 1)*x[2], x[5], x[6])
+ ideal(x[1] - z(3)*x[2], x[5], x[6])
+ ideal(x[1] + (z(3) + 1)*x[2], x[5], x[6])
  ideal(x[3] - x[4], x[5], x[6])
 ```
 """
@@ -815,8 +815,8 @@ julia> cellular_primary_decomposition(I)
 5-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
  (ideal(x[6], x[5]), ideal(x[5], x[6]))
  (ideal(x[6], x[1] - x[2], x[5]^2), ideal(x[1] - x[2], x[5], x[6]))
- (ideal(x[6], x[1] - ζ(3)*x[2], x[5]^2), ideal(x[1] - ζ(3)*x[2], x[5], x[6]))
- (ideal(x[6], x[1] + (ζ(3) + 1)*x[2], x[5]^2), ideal(x[1] + (ζ(3) + 1)*x[2], x[5], x[6]))
+ (ideal(x[6], x[1] - z(3)*x[2], x[5]^2), ideal(x[1] - z(3)*x[2], x[5], x[6]))
+ (ideal(x[6], x[1] + (z(3) + 1)*x[2], x[5]^2), ideal(x[1] + (z(3) + 1)*x[2], x[5], x[6]))
  (ideal(x[5], x[3] - x[4], x[6]^2), ideal(x[3] - x[4], x[5], x[6]))
 ```
 """
@@ -883,8 +883,8 @@ ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
 3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
- (ideal(z, y - ζ(3), x - ζ(3)), ideal(y - ζ(3), x - ζ(3), z))
- (ideal(z, y + ζ(3) + 1, x + ζ(3) + 1), ideal(y + ζ(3) + 1, x + ζ(3) + 1, z))
+ (ideal(z, y - z(3), x - z(3)), ideal(y - z(3), x - z(3), z))
+ (ideal(z, y + z(3) + 1, x + z(3) + 1), ideal(y + z(3) + 1, x + z(3) + 1, z))
  (ideal(y - 1, x - 1), ideal(y - 1, x - 1, x*y - 1))
 ```
 """

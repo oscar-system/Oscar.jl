@@ -24,9 +24,7 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
 Graded free module R^3([0]) of rank 3 over R
@@ -168,12 +166,7 @@ julia> g = gens(G)
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
-(Multivariate polynomial ring in 5 variables over QQ graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
 
 julia> F = free_module(S, 3)
 Free module of rank 3 over S
@@ -230,10 +223,7 @@ Return the new module.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1])
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1 0]
-  y -> [0 1]
-  z -> [1 1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -247,14 +237,10 @@ Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
 
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1] by ideal(x*y), Map from
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
 R to S defined by a julia-function with inverse)
 
 julia> F = free_module(S, 2)
@@ -314,7 +300,7 @@ function grading_group(M::FreeMod)
 end
 
 
-# Dangereous: Only for internal use with care!!!
+# Dangerous: Only for internal use with care!!!
 @doc raw"""
     set_grading!(F::FreeMod, W::Vector{GrpAbFinGenElem})
 
@@ -533,7 +519,7 @@ end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
   @assert is_zm_graded(parent(f))
-  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  d = degree(f)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -952,15 +938,70 @@ end
     is_homogeneous(m::SubquoModuleElem)
 
 Return  `true` if `m` is homogeneous, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia> V2 = [z*G[2]+y*G[1]];
+
+julia> a1 = hom(F1, G, V1);
+
+julia> a2 = hom(F2, G, V2);
+
+julia> M = subquotient(a1,a2);
+
+julia> m1 = x*M[1]+y*M[2]+z*M[3]
+(2*x*y + y^2)*e[1] + (y^2 + z^2)*e[2]
+
+julia> is_homogeneous(m1)
+true
+
+julia> is_homogeneous(zero(M))
+true
+
+julia> m2 = M[1]+x*M[2]
+(x^2 + x*y + y)*e[1] + x*y*e[2]
+
+julia> is_homogeneous(m2)
+false
+
+julia> m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia> is_homogeneous(m3)
+true
+
+julia> simplify(m3)
+x*e[1] + (y - z)*e[2]
+```
 """
 function is_homogeneous(el::SubquoModuleElem)
-  error("Not implemented yet.")
+  if iszero(el.coeffs)
+      return is_homogeneous(repres(el))
+  else
+      degree = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      if degree === nothing
+          reduced_el = simplify(el)
+          degree_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          return degree_reduced !== nothing
+      else
+          return true
+      end
+  end
 end
-###Will be fixed by Janko
-
-# function degree(el::SubquoModuleElem)
-#   return degree(repres(el))
-# end
 
 @doc raw"""
     degree(m::SubquoModuleElem)
@@ -1009,12 +1050,25 @@ with components [5]
 
 julia> degree(Int, m)
 5
+
+julia> m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia> degree(m3)
+Element of Z with components [2]
 ```
 """
 function degree(el::SubquoModuleElem)
-  ###isa(degree(ambient_representative(el)), GrpAbFinGenElem) || error("The specified element is not homogeneous.")
   if !iszero(el.coeffs)
-      return determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      result = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+      if result === nothing
+          reduced_el = simplify(el)
+          result_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          @assert result_reduced !== nothing "The specified element is not homogeneous."
+          return result_reduced
+      else
+          return result
+      end
   else
       return degree(repres(el))
   end
@@ -1454,9 +1508,7 @@ The string `name` specifies how the basis vectors are printed.
 # Examples
 ```jldoctest
 julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
-(Multivariate polynomial ring in 2 variables over QQ graded by
-  x -> [1]
-  y -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
+(Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
 Decorated free module of rank 3 over RR^3([0])

@@ -1,4 +1,4 @@
-@testset "Experimental.galois_group" begin
+@testset "galois_group" begin
 
   Zx, x = ZZ["x"]
   k, a = number_field(x^5-2)
@@ -64,11 +64,3 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   end
 
 end
-
-@testset "SolveByRadicals" begin
-  Qx, x = QQ["x"]
-  K, r = solve(x^3+3*x+5)
-  @test absolute_degree(K) == 12
-  @test length(r) == 3
-end
-

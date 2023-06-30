@@ -54,7 +54,7 @@ space over the same ring with the identity on the base.
     T = homogeneous_coordinate_ring(P)
     S = homogeneous_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    if check
+    @check begin
       #TODO: Check map on ideals (not available yet)
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
@@ -73,7 +73,7 @@ space over the same ring with the identity on the base.
     T = homogeneous_coordinate_ring(P)
     S = homogeneous_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    if check
+    @check begin
       #TODO: Check map on ideals (not available yet)
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
@@ -98,10 +98,8 @@ space over the same ring with the identity on the base.
     pbh = pullback(h)
     OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
     OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
-    if check
-      T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) || error("maps not compatible")
-      coefficient_map(f) == pbh || error("maps not compatible")
-    end
+    @check T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) "maps not compatible"
+    @check coefficient_map(f) == pbh "maps not compatible"
     return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
   end
 end

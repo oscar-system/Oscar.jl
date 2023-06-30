@@ -55,7 +55,7 @@ function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; com
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _ambient_space_from_base(base)
+  ambient_space = _tate_ambient_space_from_base(base)
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
@@ -167,7 +167,7 @@ function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::In
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   
   # construct model
-  auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+  auxiliary_ambient_space = _tate_ambient_space_from_base(auxiliary_base_space)
   pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
   model = GlobalTateModel(a1, a2, a3, a4, a6, pt, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)
@@ -186,14 +186,14 @@ function Base.show(io::IO, t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_attribute(t, :description)
+  if has_description(t)
     push!(properties_string, "-- " * string(get_attribute(t, :description)))
   end
-  if has_attribute(t, :arxiv_id)
-    push!(properties_string, "based on arxiv paper " * string(get_attribute(t, :arxiv_id)))
+  if has_arxiv_id(t)
+    push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))
   end
-  if has_attribute(t, :equ_nr)
-    push!(properties_string, "(equ. " * string(get_attribute(t, :equ_nr)) * ")")
+  if has_equation_number(t)
+    push!(properties_string, "Eq. (" * string(get_attribute(t, :equation_number)) * ")")
   end
   join(io, properties_string, " ")
 end

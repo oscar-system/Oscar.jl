@@ -152,10 +152,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
@@ -271,10 +268,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
@@ -354,10 +348,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
@@ -568,10 +559,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> T, _ = grade(S)
-(Multivariate polynomial ring in 3 variables over QQ graded by
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational field

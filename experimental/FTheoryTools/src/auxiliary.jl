@@ -16,7 +16,102 @@ end
 
 _ambient_space_from_base(base::ToricCoveredScheme) = _ambient_space_from_base(underlying_toric_variety(base))
 
+_ambient_space_from_base(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass) = _ambient_space_from_base(underlying_toric_variety(base), underlying_toric_variety(fiber_ambient_space), D1, D2)
+
 function _ambient_space_from_base(base::AbstractNormalToricVariety)
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  D1 = 2 * anticanonical_divisor_class(base)
+  D2 = 3 * anticanonical_divisor_class(base)
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  return _ambient_space(base, fiber_ambient_space, D1, D2)
+end
+
+function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
+  
+  # Consistency checks
+  @req ((toric_variety(D1) === base) && (toric_variety(D2) === base)) "The divisors must belong to the base space"
+  
+  # Extract information about the toric base
+  base_rays = matrix(ZZ, rays(base))
+  base_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
+  
+  # Extract information about the fiber ambient space
+  fiber_rays = matrix(ZZ, rays(fiber_ambient_space))
+  fiber_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_ambient_space)))
+  
+  # Compute the u-matrix
+  base_weights = transpose(vcat([elem.coeff for elem in cox_ring(base).d]))
+  m1 = transpose(vcat([divisor_class(D1).coeff, divisor_class(D2).coeff]))
+  m2 = fiber_rays[1:2,:]
+  u_matrix = solve(base_weights,(-1)*m1*m2)
+  
+  # Form the rays of the toric ambient space
+  new_base_rays = hcat(base_rays, u_matrix)
+  new_fiber_rays = hcat(zero_matrix(ZZ, nrows(fiber_rays), ncols(base_rays)), fiber_rays)
+  ambient_space_rays = vcat(new_base_rays, new_fiber_rays)
+  ambient_space_rays = vcat([[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)]...)
+  
+  # Construct the incidence matrix for the maximal cones of the ambient space
+  ambient_space_max_cones = []
+  for i in 1:nrows(base_cones)
+    for j in 1:nrows(fiber_cones)
+      push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [c for c in fiber_cones[j,:]])])
+    end
+  end
+  ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
+  
+  # Construct the ambient space
+  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  
+  # Compute torusinvariant weil divisor group and the class group
+  ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
+  ambient_space_class_group = free_abelian_group(nrows(base_weights) + rank(class_group(fiber_ambient_space)))
+  
+  # Construct grading matrix of ambient space
+  ambient_space_grading = zero_matrix(ZZ,rank(ambient_space_torusinvariant_weil_divisor_group),rank(ambient_space_class_group))
+  for i in 1:ncols(base_weights)
+    for j in 1:nrows(base_weights)
+      ambient_space_grading[i,j] = base_weights[j,i]
+    end
+  end
+  fiber_weights = transpose(vcat([elem.coeff for elem in cox_ring(fiber_ambient_space).d]))
+  for i in 1:ncols(fiber_weights)
+    for j in 1:nrows(fiber_weights)
+      ambient_space_grading[i + nrows(base_rays),j + nrows(base_weights)] = fiber_weights[j,i]
+    end
+  end
+  for i in 1:ncols(divisor_class(D1).coeff)
+    ambient_space_grading[1 + nrows(base_rays),i] = divisor_class(D1).coeff[i]
+  end
+  for i in 1:ncols(divisor_class(D2).coeff)
+    ambient_space_grading[2 + nrows(base_rays),i] = divisor_class(D2).coeff[i]
+  end
+  
+  # Construct the grading map for the ambient space
+  ambient_space_grading = hom(ambient_space_torusinvariant_weil_divisor_group, ambient_space_class_group, ambient_space_grading)
+  
+  set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], [string(k) for k in gens(cox_ring(fiber_ambient_space))]))
+  set_attribute!(ambient_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, ambient_space_grading)
+  set_attribute!(ambient_space, :class_group, ambient_space_class_group)
+  set_attribute!(ambient_space, :torusinvariant_weil_divisor_group, ambient_space_torusinvariant_weil_divisor_group)
+  
+  # Return the constructed space
+  return ambient_space
+  
+end
+
+
+################################################################
+# 3: Construct the Weierstrass/Tate ambient space
+################################################################
+
+_tate_ambient_space_from_base(base::NormalToricVariety) = _weierstrass_ambient_space_from_base(base)
+
+_tate_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
+
+_weierstrass_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
+
+function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)
   
   # Extract information about the toric base
   base_rays = matrix(ZZ, rays(base))
@@ -53,7 +148,7 @@ end
 
 
 ################################################################
-# 3: Construct the Weierstrass polynomial
+# 4: Construct the Weierstrass polynomial
 ################################################################
 
 function _weierstrass_sections(base::AbstractNormalToricVariety)

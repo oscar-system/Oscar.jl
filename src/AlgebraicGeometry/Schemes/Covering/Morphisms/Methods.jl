@@ -7,7 +7,7 @@ function compose(f::CoveringMorphism, g::CoveringMorphism)
   for U in patches(domain(f))
     morphism_dict[U] = compose(f[U], g[codomain(f[U])])
   end
-  return CoveringMorphism(domain(f), codomain(g), morphism_dict)
+  return CoveringMorphism(domain(f), codomain(g), morphism_dict, check=false)
 end
 
 ########################################################################
@@ -23,7 +23,7 @@ resulting covering ``C'`` and the identifying isomorphism
 """
 function simplify(C::Covering)
   n = npatches(C)
-  new_patches = [simplify(X) for X in patches(C)]
+  new_patches = AbsSpec[simplify(X) for X in patches(C)]
   GD = glueings(C)
   new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
@@ -43,9 +43,9 @@ function simplify(C::Covering)
     iDict[new_patches[i]] = identification_maps(new_patches[i])[1]
     jDict[C[i]] = identification_maps(new_patches[i])[2]
   end
-  Cnew = Covering([ U for U in new_patches], new_glueings, check=false)
-  i_cov_mor = CoveringMorphism(Cnew, C, iDict)
-  j_cov_mor = CoveringMorphism(C, Cnew, jDict)
+  Cnew = Covering(new_patches, new_glueings, check=false)
+  i_cov_mor = CoveringMorphism(Cnew, C, iDict, check=false)
+  j_cov_mor = CoveringMorphism(C, Cnew, jDict, check=false)
   return Cnew, i_cov_mor, j_cov_mor
 end
 

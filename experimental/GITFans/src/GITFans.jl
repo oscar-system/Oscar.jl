@@ -269,9 +269,54 @@ function as_permutation(element, set, action::Function, compare::Function)
     return perm(permlist)
 end
 
-function matrix_action_on_cones(C::Cone, M::QQMatrix)
-    rayscone = matrix(QQ, rays(C))
-    return positive_hull(rayscone * M)
+"""
+    matrix_action_on_cones(C::Cone{QQFieldElem}, M::QQMatrix)
+
+Return the cone defined by transforming the rays and lineality conditions
+of `C` by multiplication with `M`.
+
+```jldoctest
+julia> R = [0 1];
+
+julia> L = [1 0];
+
+julia> M = matrix(QQ, [0 1; -1 0])
+[ 0   1]
+[-1   0]
+
+julia> C1 = positive_hull([0 1]);
+
+julia> img = Oscar.GITFans.matrix_action_on_cones(C1, M);
+
+julia> data = rays_modulo_lineality(img);
+
+julia> data.rays_modulo_lineality
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [-1, 0]
+
+julia> data.lineality_basis
+0-element SubObjectIterator{RayVector{QQFieldElem}}
+
+julia> C2 = positive_hull([0 1], [1 0]);
+
+julia> img = Oscar.GITFans.matrix_action_on_cones(C2, M);
+
+julia> data = rays_modulo_lineality(img);
+
+julia> data.rays_modulo_lineality
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [-1, 0]
+
+julia> data.lineality_basis
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1]
+```
+"""
+function matrix_action_on_cones(C::Cone{QQFieldElem}, M::QQMatrix)
+    data = rays_modulo_lineality(C)
+    rayscone = matrix(QQ, data.rays_modulo_lineality)
+    linescone = matrix(QQ, data.lineality_basis)
+    return positive_hull(rayscone * M, linescone * M)
 end
 
 function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) where T

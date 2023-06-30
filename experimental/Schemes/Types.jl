@@ -132,7 +132,7 @@ end
 ########################################################################
 # Simplified Spectra                                                   #
 ########################################################################
-@attributes mutable struct SimplifiedSpec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} 
+@attributes mutable struct SimplifiedSpec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
   X::AbsSpec
   Y::AbsSpec
   f::AbsSpecMor
@@ -146,14 +146,12 @@ end
     domain(g) === Y || error("map is not compatible")
     codomain(g) === X || error("map is not compatible")
 
-    if check
-      is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
+    @check is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) "maps are not inverse to each other"
 
     result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
     # We need to rewrap the identification maps so that the (co-)domains match
-    fwrap = SpecMor(result, Y, pullback(f))
-    gwrap = SpecMor(Y, result, pullback(g))
+    fwrap = SpecMor(result, Y, pullback(f), check=false)
+    gwrap = SpecMor(Y, result, pullback(g), check=false)
     set_attribute!(fwrap, :inverse, gwrap)
     set_attribute!(gwrap, :inverse, fwrap)
     result.f = fwrap
@@ -306,13 +304,13 @@ identifications given by the glueings in the `default_covering`.
 
       if A === B
         return hom(OV, OU, 
-                   pullback(inc_U_flat).(pullback(inclusion_morphism(U_flat, V_flat)).(pullback(inverse(inc_V_flat)).(gens(OV)))), check=false
+                   pullback(inc_U_flat).(pullback(inclusion_morphism(U_flat, V_flat, check=false)).(pullback(inverse(inc_V_flat)).(gens(OV)))), check=false
                   )
       else
         G = default_covering(X)[A, B]
         f, g = glueing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
-        VU = preimage(f, VV_flat)
+        VU = preimage(f, VV_flat, check=false)
         fres = restrict(f, VU, VV_flat, check=false)
         inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
@@ -364,9 +362,9 @@ identifications given by the glueings in the `default_covering`.
         G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
-        preV = preimage(g, VG)
+        preV = preimage(g, VG, check=false)
         gres = restriction(g, preV, VG, check=false)
-        inc = inclusion_morphism(W, preV)
+        inc = inclusion_morphism(W, preV, check=false)
         function rho_func2(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return pullback(inc)(pullback(gres)(OO(preV)(a)))
@@ -378,16 +376,16 @@ identifications given by the glueings in the `default_covering`.
       OV = F(V)
       OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
-        inc = inclusion_morphism(W, V)
+        inc = inclusion_morphism(W, V, check=false)
         return MapFromFunc(pullback(inc), OV, OW)
       else
         G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
-        inc0 = inclusion_morphism(VG, V)
-        preV = preimage(g, VG)
+        inc0 = inclusion_morphism(VG, V, check=false)
+        preV = preimage(g, VG, check=false)
         gres = restrict(g, preV, VG, check=false)
-        inc = inclusion_morphism(W, preV)
+        inc = inclusion_morphism(W, preV, check=false)
         return MapFromFunc(x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))),
                            OV, OW)
       end

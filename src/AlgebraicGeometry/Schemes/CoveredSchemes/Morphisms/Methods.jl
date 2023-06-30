@@ -24,7 +24,9 @@ end
 # Auxiliary methods for compatibility                                  #
 ########################################################################
 lifted_numerator(f::MPolyRingElem) = f
+lifted_denominator(f::MPolyRingElem) = one(f)
 lifted_numerator(f::MPolyQuoRingElem) = lift(f)
+lifted_denominator(f::MPolyQuoRingElem) = one(lift(f))
 
 function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   X = domain(f)
@@ -39,7 +41,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
       mor_dict[U] = compose(cf[U], cg[codomain(cf[U])])
     end
     cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc, check=false)
+    return CoveredSchemeMorphism(X, Z, cc)
   else
     haskey(refinements(Y), (codomain(cf), domain(cg))) || error("composition of this complicated case is not yet implemented")
     ref_mor = Y[codomain(cf), domain(cg)] # the refinement `CoveringMorphism`
@@ -50,7 +52,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
       mor_dict[U] = compose(compose(cf[U], ref_mor[V]), cg[W])
     end
     cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc, check=false)
+    return CoveredSchemeMorphism(X, Z, cc)
   end
 end
 
@@ -93,5 +95,20 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
   Y = codomain(f)
   XX = domain(domain_map)
   YY = domain(codomain_map)
-  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map, check=true), codomain_map #TODO: Set to false after testing.
+  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
 end
+
+function _register_birationality!(f::AbsCoveredSchemeMorphism, 
+    g::AbsSpecMor, ginv::AbsSpecMor)
+  set_attribute!(g, :inverse, ginv)
+  set_attribute!(ginv, :inverse, g)
+  return _register_birationality(f, g)
+end
+
+function _register_birationality!(f::AbsCoveredSchemeMorphism, 
+    g::AbsSpecMor
+  )
+  set_attribute!(f, :is_biraional, true)
+  set_attribute!(f, :iso_on_open_subset, g)
+end
+

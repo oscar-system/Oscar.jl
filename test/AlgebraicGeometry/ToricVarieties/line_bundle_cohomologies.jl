@@ -7,9 +7,14 @@ using Test
     dP3 = del_pezzo_surface(NormalToricVariety, 3; set_attributes)
     F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
     
+    ray_generators = [[1, 0, 0,-2,-3], [0, 1, 0,-2,-3], [0, 0, 1,-2,-3], [-1,-1,-1,-2,-3], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 0, 0,-2,-3]]
+    max_cones = [[1, 2, 3, 5, 6], [1, 2, 3, 5, 7], [1, 2, 3, 6, 7], [2, 3, 4, 5, 6], [2, 3, 4, 5, 7], [2, 3, 4, 6, 7], [1, 3, 4, 5, 6], [1, 3, 4, 5, 7], [1, 3, 4, 6, 7], [1, 2, 4, 5, 6], [1, 2, 4, 5, 7], [1, 2, 4, 6, 7]]
+    weierstrass_over_p3 = normal_toric_variety(ray_generators, max_cones; non_redundant = true)
+    
     l = toric_line_bundle(dP3, [1, 2, 3, 4])
     l2 = toric_line_bundle(divisor_of_character(F5, [1, 2]))
     l3 = toric_line_bundle(P2, [1])
+    l4 = anticanonical_bundle(weierstrass_over_p3)
     
     vs = vanishing_sets(dP3)
     vs2 = vanishing_sets(P2)
@@ -62,5 +67,10 @@ using Test
         @test length(basis_of_global_sections(canonical_bundle(dP3))) == 0
         @test length(basis_of_global_sections_via_rational_functions(l)) == 0
         @test length(basis_of_global_sections(l)) == 0
+    end
+    
+    @testset "Sections of anticanonical bundle" begin
+        @test all_cohomologies(l4) == [4551, 0, 0, 0, 0, 0]
+        @test length(basis_of_global_sections(l4)) == 4551
     end
 end

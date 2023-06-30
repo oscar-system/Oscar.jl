@@ -117,3 +117,17 @@ end
   @test all(g->(g in B1), gens(B0))
   @test all(g->(g in B0), gens(B1))
 end
+
+@testset "shifts for local orderings" begin
+  R, (x, y) = QQ["x", "y"]
+  U = complement_of_point_ideal(R, [1, 2])
+  L, _ = localization(R, U)
+  F = FreeMod(L, 1)
+  Fs = oscar.shifted_module(F)
+  M, _ = sub(F, [x*F[1]])
+  M, _ = quo(M, [x^2*F[1]])
+  Ms, a, b = oscar.shifted_module(M)
+  @test a.(b.(gens(Ms))) == gens(Ms)
+  Mb = oscar.pre_saturated_module(M)
+  @test b.(a.(gens(Mb))) == gens(Mb)
+end

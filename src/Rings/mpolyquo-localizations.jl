@@ -211,8 +211,26 @@ gens(L::MPolyQuoLocRing) = L.(gens(base_ring(L)))
 gen(L::MPolyQuoLocRing, i::Int) = L(gen(base_ring(L), i))
 
 ### printing
+
+function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
+  io = pretty(io)
+  println(io, "Localization")
+  print(io, Indent())
+  println(io, "of ", Lowercase(), underlying_quotient(L))
+  print(io, "at ", Lowercase(), inverted_set(L))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, L::MPolyQuoLocRing)
-  print(io, "Localization of $(underlying_quotient(L)) at the multiplicative set $(inverted_set(L))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Localized quotient of multivariate polynomial ring")
+  else
+    io = pretty(IOContext(io, :supercompact=>true))
+    print(io, "Localization of ")
+    print(io, Lowercase(), underlying_quotient(L))
+    print(io, " at ", Lowercase(), inverted_set(L))
+  end
 end
 
 ### additional constructors
@@ -224,7 +242,7 @@ function quo(
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
   L = MPolyQuoLocRing(R, J, S, quo(R, J)[1], W)
-  return L, hom(W, L, hom(R, L, gens(L)))
+  return L, hom(W, L, hom(R, L, gens(L), check=false), check=false)
 end
 
 function quo(
@@ -236,7 +254,7 @@ function quo(
   base_ring(I) = localized_ring(L) || error("ideal does not belong to the correct ring")
   J = pre_saturated_ideal(I)
   W = MPolyQuoLocRing(R, J, S, quo(R, J)[1], localized_ring(L))
-  return W, hom(L, W, gens(W))
+  return W, hom(L, W, gens(W), check=false)
 end
 
 function quo(
@@ -248,7 +266,7 @@ function quo(
   W = localized_ring(L) 
   J = J + modulus(underlying_quotient(L))
   P = MPolyQuoLocRing(R, J, S, quo(R, J)[1], W)
-  return P, hom(L, P, gens(P))
+  return P, hom(L, P, gens(P), check=false)
 end
 
 @doc raw"""
@@ -274,18 +292,22 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(y - 1, x - a)
+Complement
+  of prime ideal(y - 1, x - a)
+  in multivariate polynomial ring in 2 variables over number field
 
 julia> RQ, _ = quo(R, I);
 
 julia> RQL, iota = localization(RQ, U);
 
 julia> RQL
-Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+Localization
+  of quotient of multivariate polynomial ring by ideal with 2 generators
+  at complement of prime ideal(y - 1, x - a)
 
 julia> iota
 Map from
-RQ to Localization of Quotient of Multivariate polynomial ring in 2 variables over number field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a) defined by a julia-function
+RQ to Localization of quotient of multivariate polynomial ring at complement of prime ideal defined by a julia-function
 ```
 """ localization(A::MPolyQuoRing, U::AbsMPolyMultSet)
 
@@ -542,7 +564,9 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(y - 1, x - a)
+Complement
+  of prime ideal(y - 1, x - a)
+  in multivariate polynomial ring in 2 variables over number field
 
 julia> RQ, p = quo(R, I);
 
@@ -953,7 +977,7 @@ constructor takes as input the triple
     R = base_ring(L)
     R === domain(res) || error("restriction map is not compatible")
     U = inverted_set(L)
-    if check
+    @check begin
       for f in U
         is_unit(S(res(f))) || error("map is not well defined")
       end
@@ -1003,14 +1027,14 @@ function MPolyQuoLocalizedRingHom(
     a::Vector{T};
     check::Bool=true
   ) where {T<:RingElem}
-  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
+  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a, check=check), check=check)
 end
 
 hom(L::MPolyQuoLocRing, S::Ring, res::Map; check::Bool=true) = MPolyQuoLocalizedRingHom(L, S, res, check=check)
 
 function hom(L::MPolyQuoLocRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem}
   R = base_ring(L)
-  res = hom(R, S, a)
+  res = hom(R, S, a, check=check)
   MPolyQuoLocalizedRingHom(L, S, res, check=check)
 end
 
@@ -1056,16 +1080,50 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
 end
 
 ### printing
+function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  io = pretty(io)
+  println(io, "Ring homomorphism")
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(phi))
+  println(io, "to   ", Lowercase(), codomain(phi))
+  print(io, Dedent())
+  println(io,"defined by")
+  print(io, Indent())
+  if is_unicode_allowed()
+    for i in 1:ngens(R)-1
+      println(io, "$(R[i]) ↦ $(psi(R[i]))")
+    end
+    n = ngens(R)
+    println(io, "$(R[n]) ↦ $(psi(R[n]))")
+  else
+    for i in 1:ngens(R)-1
+      println(io, "$(R[i]) -> $(psi(R[i]))")
+    end
+    n = ngens(R)
+    print(io, "$(R[n]) -> $(psi(R[n]))")
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
   R = base_ring(domain(phi))
   psi = restricted_map(phi)
-  println(io, "$(domain(phi)) → $(codomain(phi));")
-  for i in 1:ngens(R)-1
-    println(io, " $(R[i]) ↦ $(psi(R[i])),")
+  if get(io, :supercompact, false)
+    print(io, "Ring homomorphism")
+  else
+    io = IOContext(io, :supercompact=>true)
+    io = pretty(io)
+    print(io, "hom: ")
+    print(IOContext(io, :supercompact=>true), domain(phi))
+    if is_unicode_allowed()
+      print(io, " → ")
+    else
+      print(io, " -> ")
+    end
+    print(IOContext(io, :supercompact=>true), codomain(phi))
   end
-  n = ngens(R)
-  println(io, " $(R[n]) ↦ $(psi(R[n]))")
-  return
 end
 
 ### helper_ring
@@ -1092,7 +1150,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
     c_inv = theta[1]
     helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p, denominator(y))) for y in images(f)]
     set_attribute!(f, :helper_images, helper_images)
-    eta = hom(R, help_ring, helper_images)
+    eta = hom(R, help_ring, helper_images, check=false)
     set_attribute!(f, :eta, eta)
   end
   return get_attribute(f, :helper_ring)::base_ring_type(domain(f))
@@ -1196,7 +1254,7 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   W = MPolyQuoLocRing(R, modulus(underlying_quotient(L)), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   A = codomain(id)
-  h = hom(P, A, id.(f.(gens(P))))
+  h = hom(P, A, id.(f.(gens(P))), check=false)
   return preimage(h, ideal(A, id.(W.(gens(J)))))
 end
 
@@ -1253,13 +1311,13 @@ function is_isomorphism(
   pushfirst!(imagesB, prod(denoms))
 
   # perform a sanity check
-  phiAB = hom(A, B, imagesB)
+  phiAB = hom(A, B, imagesB, check=false)
   issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
   C, j1, B_vars = _add_variables_first(A, symbols(B))
-  j2 = hom(B, C, B_vars)
+  j2 = hom(B, C, B_vars, check=false)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
 				  symbols(C),
@@ -1327,14 +1385,14 @@ end
 function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = ngens(R)
-  phi = hom(R, ext_R, gens(ext_R)[1:n])
+  phi = hom(R, ext_R, gens(ext_R)[1:n], check=false)
   return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
 function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
   ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = ngens(R)
-  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
+  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)], check=false)
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 
@@ -1362,7 +1420,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])))
+  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1373,7 +1431,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
       push!(imgs, zero(Rnew))
     end
   end
-  proj_map = hom(R, Rnew, imgs)
+  proj_map = hom(R, Rnew, imgs, check=false)
 
   # the full substitution map 
   f = compose(subst_map_R, proj_map)
@@ -1398,9 +1456,9 @@ end
 function simplify(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
   Lnew = MPolyLocRing(base_ring(L), inverted_set(L))
   R = base_ring(L)
-  finv = hom(R, L, gens(L))
-  f = hom(R, Lnew, gens(Lnew))
-  return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv)
+  finv = hom(R, L, gens(L), check=false)
+  f = hom(R, Lnew, gens(Lnew), check=false)
+  return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv, check=false)
 end
 
 function simplify(L::MPolyQuoRing)
@@ -1418,7 +1476,7 @@ function simplify(L::MPolyQuoRing)
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb, cached=false)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])))
+  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1429,7 +1487,7 @@ function simplify(L::MPolyQuoRing)
       push!(imgs, zero(Rnew))
     end
   end
-  proj_map = hom(R, Rnew, imgs)
+  proj_map = hom(R, Rnew, imgs, check=false)
 
   # the full substitution map 
   f = compose(subst_map_R, proj_map)
@@ -1447,8 +1505,8 @@ end
 
 function simplify(R::MPolyRing)
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R), cached=false)
-  f = hom(R, Rnew, gens(Rnew))
-  finv = hom(Rnew, R, gens(R))
+  f = hom(R, Rnew, gens(Rnew), check=false)
+  finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
 end
 
@@ -1537,16 +1595,37 @@ julia> T = MPolyComplementOfKPointIdeal(R,[0,0,0,0]);
 julia> RQL, phiQL = Localization(RQ,T);
 
 julia> I = ideal(RQL,RQL.([x,z]))
-ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [x, z]
+Ideal
+  of localized quotient of multivariate polynomial ring
+with 2 generators
+  x
+  z
 
 julia> J = ideal(RQL,RQL.([y]))
-ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [y]
+Ideal
+  of localized quotient of multivariate polynomial ring
+with 1 generator
+  y
 
 julia> intersect(I,J)
-ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [z*w, y*z, x*y]
+Ideal
+  of localized quotient of multivariate polynomial ring
+with 3 generators
+  z*w
+  y*z
+  x*y
 
-julia> intersect([I,J])
-ideal in Localization of Quotient of Multivariate polynomial ring in 4 variables over QQ by ideal(x*y - z*w) at the multiplicative set complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0, 0, 0] generated by [z*w, y*z, x*y]
+julia> K = intersect([I,J])
+Ideal
+  of localized quotient of multivariate polynomial ring
+with 3 generators
+  z*w
+  y*z
+  x*y
+
+julia> (I,J,K)
+(ideal(x, z), ideal(y), ideal(z*w, y*z, x*y))
+
 ```
 """
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
@@ -1634,18 +1713,27 @@ function ideal(
 end
 
 ### printing
+function Base.show(io::IO,::MIME"text/plain", I::MPolyQuoLocalizedIdeal)
+  n = ngens(I)
+  io = pretty(IOContext(io,:supercompact=>true))
+  println(io, "Ideal")
+  println(io, Indent(), "of ", Lowercase(), base_ring(I))
+  if n > 0
+    print(io, Dedent())
+    println(io, "with ", ItemQuantity(ngens(I),"generator"))
+    print(io, Indent())
+    join(io, gens(I), "\n")
+  else
+    print(io, Dedent())
+    print(io, "with ", ItemQuantity(ngens(I),"generator"))
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, I::MPolyQuoLocalizedIdeal)
-  if ngens(I) == 0
-    print(io, "zero ideal in $(base_ring(I))")
-    return
-  end
-  str = "ideal in $(base_ring(I)) generated by [$(first(gens(I)))"
-  for i in 2:ngens(I)
-    str = str * ", $(gen(I, i))"
-  end
-  str = str * "]"
-  print(io, str)
-  return
+  print(io, "ideal(")
+  join(io, gens(I), ", ")
+  print(io, ")")
 end
 
 ### Further constructors for quotient rings
@@ -1860,7 +1948,7 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MP
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
-    g = hom(S, L, lift.(f.img_gens))
+    g = hom(S, L, lift.(f.img_gens), check=false)
     set_attribute!(f, :lifted_map, g)
   end
   g = get_attribute(f, :lifted_map)
@@ -1872,9 +1960,120 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
-    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens))
+    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens), check=false)
     set_attribute!(f, :lifted_map, g)
   end
   g = get_attribute(f, :lifted_map)
   return codomain(f)(g(a), check=false)
 end
+
+function vector_space(kk::Field, W::MPolyQuoLocRing;
+    ordering::MonomialOrdering=degrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_sat = saturated_ideal(modulus(W))::MPolyIdeal
+  @assert iszero(dim(I_sat)) "algebra must be zero dimensional"
+  o = ordering
+  # We set up an algebra isomorphic to the given one. Since we do not know anything about the localization, this is the best we can do.
+  A, pr = quo(R, I_sat) 
+  f = hom(W, A, gens(A))
+  g = hom(A, W, gens(W))
+  set_attribute!(f, :inverse, g)
+  set_attribute!(g, :inverse, f)
+  V, id = vector_space(kk, A)
+  return V, MapFromFunc(v->g(id(v)), a->preimage(id, f(a)), V, W)
+end
+
+function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem, 
+                                                    <:MPolyRing, <:MPolyRingElem,
+                                                    <:MPolyComplementOfKPointIdeal
+                                                   };
+    ordering::MonomialOrdering=negdegrevlex(gens(base_ring(W)))
+  )
+  R = base_ring(W)::MPolyRing
+  kk === coefficient_ring(R)::Field || error("change of base field not implemented")
+  I = modulus(W)::MPolyLocalizedIdeal
+  I_shift = shifted_ideal(I)::MPolyIdeal
+
+  # Collect all monomials which are not in the leading ideal as representatives 
+  # of a basis over kk.
+  lead_I = leading_ideal(I_shift, ordering=ordering)
+  @assert iszero(dim(lead_I)) "quotient must be zero dimensional"
+  V_gens = elem_type(R)[]
+  done = false
+  d = 0
+  while !done
+    inc = [m for m in all_monomials(R, d) if !(m in lead_I)]
+    if iszero(length(inc))
+      done = true
+      break
+    end
+    V_gens = vcat(V_gens, [m for m in all_monomials(R, d) if !(m in lead_I)])
+    d = d + 1
+  end
+
+  n = length(V_gens)
+  V = free_module(kk, n)
+  L = localized_ring(W)::MPolyLocRing
+  shift, backshift = base_ring_shifts(L)
+
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = R(0)
+    for k=1:length(V_gens)
+      c = a[k]
+      if !iszero(c)
+        b += c*V_gens[k]
+      end
+    end
+    return W(backshift(b))
+  end
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(f::MPolyQuoLocRingElem)
+    @assert parent(f) === W
+    isone(denominator(f)) || error("handling of non-trivial denominators not implemented")
+    b = lifted_numerator(f)
+    b = shift(b)
+    # TODO: The normal form command seems to do something unexpected here.
+    # Please investigate!
+    #b = normal_form(b, I_shift, ordering=ordering)
+    result = zero(V)
+    # The following is an ugly hack, because normal_form is currently broken 
+    # for local oderings.
+    while !iszero(b)
+      m = leading_monomial(b, ordering=ordering)
+      c = leading_coefficient(b, ordering=ordering)
+      t = normal_form(c*m, I_shift, ordering=ordering)
+      if t == c*m 
+        j = findfirst(n->n==m, V_gens)
+        result = result + c * V[j]
+        b = b - c * m
+      else
+        b = b - c*m + t
+      end
+    end
+    return result
+  end
+  return V, MapFromFunc(im, prim, V, W)
+end
+
+
+# diasambiguate some conversions
+# ... but this needs to be after some type declarations... so here it is
+function (W::MPolyDecRing)(f::MPolyQuoRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyQuoLocRingElem)
+  return W(forget_decoration(W)(f))
+end
+
+function (W::MPolyDecRing)(f::MPolyLocRingElem)
+  return W(forget_decoration(W)(f))
+end
+
