@@ -47,11 +47,12 @@ Subdivision of points in ambient dimension 3
 ```
 """
 function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
-      POINTS = homogenize(points,1),
-      MAXIMAL_CELLS = arr,
-   ))
+  @assert size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
+  arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
+  SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+    POINTS = homogenize(points,1),
+    MAXIMAL_CELLS = arr,
+  ))
 end
 
 
@@ -81,10 +82,11 @@ julia> n_maximal_cells(SOP)
 ```
 """
 function subdivision_of_points(::Type{T}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
-   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
-      POINTS = homogenize(points,1),
-      WEIGHTS = weights,
-   ))
+  @assert size(points)[1] == length(weights) "Number of points must equal number of weights"
+  SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+    POINTS = homogenize(points,1),
+    WEIGHTS = weights,
+  ))
 end
 
 """
