@@ -72,3 +72,4 @@ function set_decomposition_info!(C::Covering, D::IdDict{<:AbsSpec, <:Vector{<:Ri
   C.decomp_info = D
 end
 
+has_decomposition_info(C::Covering) = isdefined(C, :decomp_info)
