@@ -65,7 +65,7 @@ function set_decomposition_info!(C::Covering, U::AbsSpec, f::Vector{<:RingElem})
     C.decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   end
   all(x->parent(x) === OO(U), f) || error("elements do not belong to the correct ring")
-  decomp_info(C)[U] = f
+  decomposition_info(C)[U] = f
 end
 
 function set_decomposition_info!(C::Covering, D::IdDict{<:AbsSpec, <:Vector{<:RingElem}})
