@@ -136,6 +136,7 @@ single tuple T, with the following values:
 - T[4] = 1
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+
 # Example:
 ```jldoctest
 julia> R,(x,y,z,w) = QQ["x","y","z","w"]
@@ -156,7 +157,7 @@ julia> decide_du_val_singularity(X,J)
  (1, ideal(x, y, z, w), (:E, 6), 1)
 
 """ 
-function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Union{MPolyIdeal, MPolyLocalizedIdeal})
+function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -333,6 +334,32 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   return length([x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
 end
   
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  M_shift,_,_ = shifted_module(M)
+@show default_ordering(M)
+@show default_ordering(M_shift)
+  return vector_space_dimension(M_shift)
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  M_shift,_,_ = shifted_module(M)
+  return vector_space_dimension(M_shift,d)
+end
+
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
 @doc raw"""
     vector_space_basis(M::SubquoModule, d::Int)
 
@@ -409,6 +436,32 @@ function vector_space_basis(M::SubquoModule,d::Int64)
   LM = leading_module(Mq,o)
 
   return [x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  M_shift,_,_ = shifted_module(M)
+@show default_ordering(M)
+@show default_ordering(M_shift)
+  return vector_space_basis(M_shift)
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  M_shift,_,_ = shifted_module(M)
+  return vector_space_basis(M_shift,d)
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
 end
 
 @doc raw"""
