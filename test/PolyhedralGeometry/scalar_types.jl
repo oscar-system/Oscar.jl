@@ -44,6 +44,9 @@
         ms = product(sd, c)
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
+    nf = normal_fan(sd)
+    nfc =  polyhedral_fan(E, rays(nf), maximal_cones(IncidenceMatrix,nf))
+    @test is_regular(nfc)
 
     @testset "Scalar detection" begin
         let j = johnson_solid(12)
