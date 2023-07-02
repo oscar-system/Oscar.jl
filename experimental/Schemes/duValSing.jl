@@ -178,7 +178,7 @@ function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
   result_vector = []
   decomp = absolute_primary_decomposition(I)
   for (_,_,I2,mult) in decomp
-    set_attribute!(I,:is_absolutely_prime,true)
+    set_attribute!(I2,:is_absolutely_prime,true)
     ## pass to algebraic extension
     r_changed = base_ring(I2)
     kk = coefficient_ring(r_changed)
@@ -186,7 +186,7 @@ function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
     tempvec = decide_du_val_singularity(Spec(quo(r_changed,J_changed)[1]),I2)
     for x in tempvec
       x[1] || return [x]
-      x[4] = mult
+      x = (x[1],x[2],x[3],mult)
       push!(result_vector,x)
     end
   end
@@ -225,9 +225,9 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
 
   if !all(iszero(a))
     F_loc = free_module(RL,ngens(IX))
-    Jm = sub(F_loc,JM_loc)
-    Jm = Jm + loc_map(IX)*F_loc
-    Jm_shifted = Oscar. shifted_module(Jm)
+    Jm = sub(F_loc,JM_loc)[1]
+    Jm = Jm + (loc_map(IX)*F_loc)[1]
+    Jm_shifted = Oscar. shifted_module(Jm)[1]
     F_shifted = ambient_free_module(Jm_shifted)
   else
     F = free_module(R,ngens(IX))
