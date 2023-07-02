@@ -190,7 +190,6 @@ function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
       push!(result_vector,x)
     end
   end
-@show result_vector
 
   return result_vector
 end
@@ -338,20 +337,22 @@ function vector_space_dimension(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   M_shift,_,_ = shifted_module(M)
-@show default_ordering(M)
-@show default_ordering(M_shift)
-  return vector_space_dimension(M_shift)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift)
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(LM)
 end
 
 function vector_space_dimension(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   M_shift,_,_ = shifted_module(M)
-  return vector_space_dimension(M_shift,d)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift)
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(LM,d)
 end
 
 function vector_space_dimension(M::SubquoModule{T}
-  ) where {T<:MPolyLocRingElem}}
+  ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
 
@@ -442,8 +443,6 @@ function vector_space_basis(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   M_shift,_,_ = shifted_module(M)
-@show default_ordering(M)
-@show default_ordering(M_shift)
   return vector_space_basis(M_shift)
 end
 
@@ -455,7 +454,7 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
 end
 
 function vector_space_basis(M::SubquoModule{T}
-  ) where {T<:MPolyLocRingElem}}
+  ) where {T<:MPolyLocRingElem}
   error("only available in global case and for localization at a point")
 end
 
