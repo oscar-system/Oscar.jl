@@ -1545,16 +1545,6 @@ end
 
 Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
-function Base.:*(I::MPolyIdeal{T}, M::SubModuleOfFreeModule{T}) where {T<: MPolyRingElem}
-  F = ambient_free_module(M)
-  newgens = filter( x -> !is_zero(x),[a*b for a in gens(I) for b in gens(M)])
-  return oscar.SubModuleOfFreeModule(F, newgens)
-end
-
-function times(I::MPolyIdeal, M::FreeMod)
-  base_ring(I) === base_ring(M) || error("base_ring mismatch")
-  return oscar.SubModuleOfFreeModule(M,[a*b for a in gens(I) for b in gens(M)])
-end
 ###############################################################################
 # SubquoModule constructors
 ###############################################################################
