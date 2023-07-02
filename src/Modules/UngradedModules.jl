@@ -2382,7 +2382,7 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
 end
 
 function leading_module(M::SubquoModule, ord::ModuleOrdering = default_ordering(M))
-  @assert !isdefined(M, :quo)
+  @assert (!isdefined(M, :quo) || length(relations(M)) == 0)
   return SubquoModule(leading_module(M.sub, ord))
 end
 
