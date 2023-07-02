@@ -304,30 +304,30 @@ end
 function +(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if denominator(a) == denominator(b) 
-    return reduce_fraction((parent(a))(numerator(a) + numerator(b), denominator(a)))
+    return reduce_fraction((parent(a))(numerator(a) + numerator(b), denominator(a), check=false))
   end
-  return reduce_fraction((parent(a))(numerator(a)*denominator(b) + numerator(b)*denominator(a), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(numerator(a)*denominator(b) + numerator(b)*denominator(a), denominator(a)*denominator(b), check=false))
 end
 
 function -(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if denominator(a) == denominator(b) 
-    return reduce_fraction((parent(a))(numerator(a) - numerator(b), denominator(a)))
+    return reduce_fraction((parent(a))(numerator(a) - numerator(b), denominator(a), check=false))
   end
-  return reduce_fraction((parent(a))(numerator(a)*denominator(b) - numerator(b)*denominator(a), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(numerator(a)*denominator(b) - numerator(b)*denominator(a), denominator(a)*denominator(b), check=false))
 end
 
 function -(a::T) where {T<:AbsLocalizedRingElem}
-  return (parent(a))(-numerator(a), denominator(a))
+  return (parent(a))(-numerator(a), denominator(a), check=false)
 end
 
 function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return reduce_fraction((parent(a))(numerator(a)*numerator(b), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(numerator(a)*numerator(b), denominator(a)*denominator(b), check=false))
 end
 
 function *(a::RET, b::AbsLocalizedRingElem{RT, RET, MST}) where {RT, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(a*numerator(b), denominator(b)))
+  return reduce_fraction((parent(b))(a*numerator(b), denominator(b), check=false))
 end
 
 function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: RingElem, MST}
@@ -348,11 +348,11 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
 end
 
 function ^(a::AbsLocalizedRingElem, i::ZZRingElem)
-  return parent(a)(numerator(a)^i, denominator(a)^i)
+  return parent(a)(numerator(a)^i, denominator(a)^i, check=false)
 end
 
 function ^(a::AbsLocalizedRingElem, i::Integer)
-  return parent(a)(numerator(a)^i, denominator(a)^i)
+  return parent(a)(numerator(a)^i, denominator(a)^i, check=false)
 end
 
 function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem} 
@@ -360,7 +360,7 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem}
 end
 
 function inv(a::AbsLocalizedRingElem) 
-  return parent(a)(denominator(a), numerator(a))
+  return divexact(parent(a)(denominator(a)), parent(a)(numerator(a)))
 end
 
 ########################################################################
@@ -381,7 +381,7 @@ function Base.hash(f::T, h::UInt) where {T<:AbsLocalizedRingElem}
   return xor(r, hash(denominator(f), h))
 end
 
-Base.deepcopy_internal(f::T, dict::IdDict) where {T<:AbsLocalizedRingElem} = parent(f)(copy(numerator(f)), copy(denominator(f)))
+Base.deepcopy_internal(f::T, dict::IdDict) where {T<:AbsLocalizedRingElem} = parent(f)(copy(numerator(f)), copy(denominator(f)), check=false)
 
 one(W::AbsLocalizedRing) = W(one(base_ring(W)))
 
@@ -611,7 +611,7 @@ function (f::AbsLocalizedRingHom)(a::AbsLocalizedRingElem)
 end
 
 ### generic functions
-(f::AbsLocalizedRingHom)(a::RingElem) = f(domain(f)(a))
+(f::AbsLocalizedRingHom)(a::RingElem; check::Bool=true) = f(domain(f)(a, check=check))
 (f::AbsLocalizedRingHom)(a::Integer) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::ZZRingElem) = f(domain(f)(a))
 

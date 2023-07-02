@@ -132,3 +132,30 @@ end
   @test underlying_glueing(GG) isa SimpleGlueing
 end
 
+@testset "extra lazy glueing domains" begin
+  P3 = projective_space(QQ, 3)
+  S = homogeneous_coordinate_ring(P3)
+  (x, y, z, w) = gens(S)
+  I = ideal(S, [x*z - y*w, x^4 + y^4 + z^4 + w^4])
+  Y = covered_scheme(P3)
+  II = ideal_sheaf(P3, I)
+  pr = blow_up(II)
+  X = domain(pr)
+
+  for G in values(glueings(oscar.simplified_covering(X)))
+    @test !isdefined(G, :G)
+    glueing_domains(G)
+    @test !isdefined(G, :G)
+    @test isdefined(G, :glueing_domains)
+  end
+
+  for G in values(glueings(oscar.simplified_covering(X)))
+    @test !isdefined(G, :G)
+    underlying_glueing(G)
+    @test isdefined(G, :G)
+    @test isdefined(G, :glueing_domains)
+    @test (G.glueing_domains[1] === glueing_domains(underlying_glueing(G))[1])
+    @test (G.glueing_domains[2] === glueing_domains(underlying_glueing(G))[2])
+  end
+end
+

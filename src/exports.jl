@@ -1311,6 +1311,7 @@ export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
+export transform
 export transition_graph
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification

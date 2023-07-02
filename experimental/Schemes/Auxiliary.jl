@@ -302,19 +302,19 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   UX = intersect(U, codomain(iso_X))
   UX isa PrincipalOpenSubset && ambient_scheme(UX) === A || error("incorrect intermediate result")
-  h_Y = pullback(f)(complement_equation(codomain(iso_Y)))
+  h_Y = pullback(f)(complement_equation(codomain(iso_Y)), check=false)
   UXY = PrincipalOpenSubset(codomain(iso_X), 
-                            OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U)))
+                            OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U), check=false))
   UXY isa PrincipalOpenSubset && ambient_scheme(UXY) === codomain(iso_X) || error("incorrect intermediate output")
   UY = PrincipalOpenSubset(U, h_Y)
   XY = PrincipalOpenSubset(X, pullback(iso_X)(complement_equation(UXY)))
 
   VY = intersect(V, codomain(iso_Y))
   VY isa PrincipalOpenSubset && ambient_scheme(VY) === B || error("incorrect intermediate result")
-  h_X = pullback(g)(complement_equation(codomain(iso_X)))
+  h_X = pullback(g)(complement_equation(codomain(iso_X)), check=false)
   VX = PrincipalOpenSubset(V, h_X)
   VYX = PrincipalOpenSubset(codomain(iso_Y), 
-                            OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V)))
+                            OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V), check=false))
   VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
   YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
@@ -323,7 +323,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   x_img = gens(OO(X))
   x_img = pullback(inverse(iso_X)).(x_img)
-  x_img = OO(UXY).(x_img)
+  x_img = [OO(UXY)(x, check=false) for x in x_img]
   x_img = pullback(gres).(x_img)
   phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
@@ -331,7 +331,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   y_img = gens(OO(Y))
   y_img = pullback(inverse(iso_Y)).(y_img)
-  y_img = OO(VYX).(y_img)
+  y_img = [OO(VYX)(y, check=false) for y in y_img]
   y_img = pullback(fres).(y_img)
   psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)

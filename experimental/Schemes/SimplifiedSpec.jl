@@ -161,12 +161,12 @@ function _flatten_open_subscheme(
   WV = PrincipalOpenSubset(W, hVW)
   ident = SpecMor(UV, WV, 
                   hom(OO(WV), OO(UV), 
-                      OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
+                      [OO(UV)(x, check=false) for x in pullback(f).(gens(ambient_coordinate_ring(WV)))], 
                       check=false), 
                   check=false)
   inv_ident = SpecMor(WV, UV,
                       hom(OO(UV), OO(WV),
-                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))),
+                          [OO(WV)(x, check=false) for x in pullback(g).(gens(ambient_coordinate_ring(UV)))],
                           check=false),
                       check=false)
   new_iso =  compose(iso, ident)

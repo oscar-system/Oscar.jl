@@ -56,6 +56,7 @@ space over the same ring with the identity on the base.
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     @check begin
       #TODO: Check map on ideals (not available yet)
+      true
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
   end
@@ -75,6 +76,7 @@ space over the same ring with the identity on the base.
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     @check begin
       #TODO: Check map on ideals (not available yet)
+      true
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
   end
