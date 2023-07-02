@@ -100,19 +100,19 @@ function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{T}}) where T<:sc
   return _transform(C, A)
 end
 function _transform(C::Cone{T}, A::AbstractMatrix) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
+  OT = _scalar_type_to_polymake(T)
   raymod = Polymake.Matrix{OT}(permutedims(A))
   facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
   return _transform(C, raymod, facetmod)
 end
 function _transform(C::Cone{T}, A::MatElem{T}) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
+  OT = _scalar_type_to_polymake(T)
   raymod = Polymake.Matrix{OT}(transpose(A))
   facetmod = Polymake.Matrix{OT}(inv(A))
   return _transform(C, raymod, facetmod)
 end
 function _transform(C::Cone{T}, raymod, facetmod) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
+  OT = _scalar_type_to_polymake(T)
   result = Polymake.polytope.Cone{OT}()
   for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
     if Polymake.exists(pm_object(C), prop)
@@ -126,5 +126,5 @@ function _transform(C::Cone{T}, raymod, facetmod) where T<:scalar_types
       Polymake.take(result, prop, resultprop)
     end
   end
-  return Cone{T}(result)
+  return Cone{T}(result, get_parent_field(C))
 end

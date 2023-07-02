@@ -171,15 +171,15 @@ for f in (QQ, NF, K)
             1   0   1   -1;
             1   9   0   -6;
             1   1   5   -5]
-    C = positive_hull(T, pts, lin)
-    Ctarget = positive_hull(T, pts*transpose(A), lin*transpose(A))
+    C = positive_hull(f, pts, lin)
+    Ctarget = positive_hull(f, pts*transpose(A), lin*transpose(A))
     for props in (["RAYS", "LINEALITY_SPACE"],
                   ["FACETS", "LINEAR_SPAN"])
-      Ccopy = Polymake.polytope.Cone{Oscar.scalar_type_to_polymake[T]}()
+      Ccopy = Polymake.polytope.Cone{Oscar._scalar_type_to_polymake(T)}()
       for prop in props
         Polymake.take(Ccopy, prop, Polymake.give(Oscar.pm_object(C), prop))
       end
-      Ccopy = Cone{T}(Ccopy)
+      Ccopy = Cone{T}(Ccopy, f)
       Ccopyt = transform(Ccopy, A)
       Ccopytt = transform(Ccopyt, invA)
       @test Ccopy == C
