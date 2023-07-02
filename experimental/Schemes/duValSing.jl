@@ -337,7 +337,7 @@ function vector_space_dimension(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
   return vector_space_dimension(LM)
 end
@@ -346,7 +346,7 @@ function vector_space_dimension(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
   return vector_space_dimension(LM,d)
 end
