@@ -764,7 +764,7 @@ function closure(
     Y::AbsSpec{BRT, RT};
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                                          <:MPolyPowersOfElement}}
+                                    <:MPolyPowersOfElement}}
   @check issubset(X, Y) "the first argument is not a subset of the second"
   #is_closed_embedding(X, Y) && return X
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))

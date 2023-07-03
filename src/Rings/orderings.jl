@@ -174,10 +174,15 @@ mutable struct MonomialOrdering{S}
   o::AbsGenOrdering
   is_total::Bool
   is_total_is_known::Bool
-end
+  canonical_matrix::ZZMatrix
 
-function MonomialOrdering(R::S, o::AbsGenOrdering) where S
-   return MonomialOrdering{S}(R, o, false, false)
+  function MonomialOrdering(R::S, o::AbsGenOrdering) where {S}
+    return new{S}(R, o, false, false)
+  end
+
+  function MonomialOrdering(R::S, o::AbsGenOrdering, is_total::Bool) where {S}
+    return new{S}(R, o, is_total, true)
+  end
 end
 
 base_ring(a::MonomialOrdering) = a.R
@@ -1313,7 +1318,10 @@ julia> canonical_matrix(o2)
 ```
 """
 function canonical_matrix(M::MonomialOrdering)
-  return canonical_matrix(nvars(base_ring(M)), M.o)
+  if !isdefined(M, :canonical_matrix)
+    M.canonical_matrix = canonical_matrix(nvars(base_ring(M)), M.o)
+  end
+  return M.canonical_matrix
 end
 
 import Base.==
@@ -1626,7 +1634,7 @@ function induce(vars::AbstractVector{<: MPolyRingElem}, o::MonomialOrdering)
   @assert !isempty(vars)
   v = _unique_var_indices(vars)
   o2 = induce(v, o.o)
-  return MonomialOrdering(parent(vars[1]), o2, false, false)
+  return MonomialOrdering(parent(vars[1]), o2)
 end
 
 ###################################################
