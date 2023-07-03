@@ -275,7 +275,8 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    return (f, finv)
 end
 
-function _iso_oscar_gap(FO::AnticNumberField)
+# Deal with simple extensions of Q.
+function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
    flag1, N1 = Hecke.is_cyclotomic_type(FO)
    flag2, N2 = Hecke.is_quadratic_type(FO)
    if flag1
@@ -285,8 +286,7 @@ function _iso_oscar_gap(FO::AnticNumberField)
      FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
      f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
    else
-     polFO = FO.pol
-     N = degree(polFO)
+     polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
      fam = GAP.Globals.CyclotomicsFamily::GapObj
      cfs = GAP.GapObj(coeffs_polFO, recursive = true)::GapObj
@@ -294,7 +294,7 @@ function _iso_oscar_gap(FO::AnticNumberField)
      FG = GAPWrap.AlgebraicExtension(GAP.Globals.Rationals::GapObj, polFG)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
-     f = function(x::Nemo.nf_elem)
+     f = function(x::SimpleNumFieldElem{QQFieldElem})
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
         return GAPWrap.AlgExtElm(fam, coeffs)
      end
@@ -307,6 +307,68 @@ function _iso_oscar_gap(FO::AnticNumberField)
 
    return MapFromFunc(f, finv, FO, FG)
 end
+
+# Deal with simple extensions of proper extensions of Q.
+function _iso_oscar_gap(FO::SimpleNumField{nf_elem})
+   B = base_field(FO)
+   isoB = iso_oscar_gap(B)
+   BG = codomain(isoB)::GapObj
+
+   polFO = defining_polynomial(FO)
+   coeffs_polFO = collect(coefficients(polFO))
+   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(BG))
+   cfs = GAP.GapObj([isoB(x) for x in coeffs_polFO])::GapObj
+   polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
+   FG = GAPWrap.AlgebraicExtension(BG, polFG)
+   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
+
+   f = function(x::SimpleNumFieldElem{nf_elem})
+      coeffs = GAP.GapObj([isoB(x) for x in coefficients(x)])::GapObj
+      return GAPWrap.AlgExtElm(fam, coeffs)
+   end
+
+   finv = function(x::GapObj)
+      coeffs = [preimage(isoB, x) for x in GapObj(GAPWrap.ExtRepOfObj(x))]
+      return FO(coeffs)
+   end
+
+   return MapFromFunc(f, finv, FO, FG)
+end
+
+# Deal with non-simple extensions of Q or of extensions of Q.
+function _iso_oscar_gap(FO::NumField)
+   @assert ! is_simple(FO)
+   if is_absolute(FO)
+     F, emb = absolute_simple_field(FO)
+   else
+     F, emb = simple_extension(FO)
+   end
+   iso = iso_oscar_gap(F)
+   FG = codomain(iso)
+   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
+   B = base_field(F)
+   isoB = iso_oscar_gap(B)
+
+   f = function(x::NumFieldElem)
+      coeffs = GAP.GapObj([isoB(x) for x in coefficients(preimage(emb, x))])::GapObj
+      return GAPWrap.AlgExtElm(fam, coeffs)
+   end
+
+   if is_absolute(FO)
+     finv = function(x::GapObj)
+        coeffs = Vector{QQFieldElem}(GAPWrap.ExtRepOfObj(x))
+        return emb(F(coeffs))
+     end
+   else
+     finv = function(x::GapObj)
+        coeffs = [preimage(isoB, y) for y in GAPWrap.ExtRepOfObj(x)]
+        return emb(F(coeffs))
+     end
+   end
+
+   return MapFromFunc(f, finv, FO, FG)
+end
+
 
 # Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
 function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GAP.GapObj)
