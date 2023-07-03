@@ -1977,7 +1977,6 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
   return codomain(f)(g(a), check=false)
 end
 
-<<<<<<< HEAD
 function vector_space(kk::Field, W::MPolyQuoLocRing;
     ordering::MonomialOrdering=degrevlex(gens(base_ring(W)))
   )
