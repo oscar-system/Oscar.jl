@@ -1056,7 +1056,8 @@ end
 # uncommon implementation of the numerator and denominator methods
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
-  return codomain(f)(restricted_map(f)(lifted_numerator(a)), check=false)*inv(codomain(f)(restricted_map(f)(lifted_denominator(a)), check=false))
+  isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
+  codomain(f)(restricted_map(f)(lifted_numerator(a)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(a))))
 end
 
 function compose(
