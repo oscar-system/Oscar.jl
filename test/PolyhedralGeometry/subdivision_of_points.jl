@@ -17,7 +17,8 @@
 
    moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
    fulldim_moaepts = moaepts[:,2:3]
-   moaeimreg0 = IncidenceMatrix([[1,2,3]])
+   moaeimreg0 = IncidenceMatrix(1,6)
+   moaeimreg0[1,:] = [1,1,1,0,0,0]
    moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
 
    MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
