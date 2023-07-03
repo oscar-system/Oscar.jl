@@ -276,6 +276,7 @@ function subscheme(I::IdealSheaf)
   C = default_covering(X)
   new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
   new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
   for (U, V) in keys(glueings(C))
     i = C[U]
     j = C[V]
@@ -290,6 +291,15 @@ function subscheme(I::IdealSheaf)
     new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
   end
   Cnew = Covering(new_patches, new_glueings, check=false)
+
+  # Inherit decomposition information if applicable
+  if has_decomposition_info(C)
+    for k in 1:length(new_patches)
+      U = new_patches[k]
+      V = basic_patches(C)[k]
+      set_decomposition_info!(Cnew, U, elem_type(OO(U))[OO(U)(a, check=false) for a in decomposition_info(C)[V]])
+    end
+  end
   return CoveredScheme(Cnew)
 end
 

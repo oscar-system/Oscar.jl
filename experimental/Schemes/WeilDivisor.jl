@@ -210,34 +210,49 @@ function intersect(D::WeilDivisor, E::WeilDivisor)
   return result
 end
 
-function colength(I::IdealSheaf)
+function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  C = default_covering(X)
-  patches_todo = copy(affine_charts(X))
+  patches_todo = copy(patches(covering))
   patches_done = AbsSpec[]
   result = 0
   while length(patches_todo) != 0
     U = pop!(patches_todo)
     J = I(U)
-    # To avoid overcounting, throw away all components that 
-    # were already visible in other charts.
-    for V in patches_done
-      if !haskey(glueings(C), (U, V))
-        continue
+    if has_decomposition_info(covering)
+      h = decomposition_info(covering)[U]
+      # The elements in h indicate where components must 
+      # be located so that they can not be spotted in other charts.
+      # We iteratively single out these components by adding a sufficiently high 
+      # power of the equation to the ideal.
+      for f in h
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        isone(J) && break
       end
-      G = C[U, V]
-      (UV, VU) = glueing_domains(G)
-      UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
-      f = complement_equation(UV)
-      # Find a sufficiently high power of f such that it throws
-      # away all components away from the horizon, but does not affect
-      # those on the horizon itself.
-      k = 0
-      while !(f^(k) in ideal(OO(U), f^(k+1)) + J)
-        k = k + 1
+    else
+      # To avoid overcounting, throw away all components that 
+      # were already visible in other charts.
+      for V in patches_done
+        if !haskey(glueings(covering), (U, V))
+          continue
+        end
+        G = covering[U, V]
+        (UV, VU) = glueing_domains(G)
+        UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
+        f = complement_equation(UV)
+        # Find a sufficiently high power of f such that it throws
+        # away all components away from the horizon, but does not affect
+        # those on the horizon itself.
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        isone(J) && break
       end
-      J = J + ideal(OO(U), f^k)
-      isone(J) && break
     end
     if !isone(J)
       JJ = leading_ideal(saturated_ideal(J))

@@ -107,13 +107,16 @@ affine_refinements(C::Covering) = C.affine_refinements
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     push!(U, Spec(quo(R, I)[1]))
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
@@ -146,11 +149,14 @@ end
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     push!(U, Spec(R))
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = gens(OO(U[i]))
@@ -193,6 +199,7 @@ end
   # ideal sheaf is trivial on some affine open part. 
   if r == 0
     result = Covering(Y)
+    set_decomposition_info!(result, Y, elem_type(OO(Y))[])
     pU[Y] = identity_map(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
@@ -202,6 +209,7 @@ end
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     F = Spec(R_fiber)
@@ -211,8 +219,10 @@ end
     patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
     pU[patch] = restrict(pY, patch, Y, check=false)
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
@@ -252,12 +262,14 @@ end
   # ideal sheaf is trivial on some affine open part.
   if r == 0
     result = Covering(Y)
+    set_decomposition_info!(result, Y, elem_type(OO(Y))[])
     pU[Y] = identity_map(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
     return result
   end
 
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   s = symbols(S)
   # for each homogeneous variable, set up the chart
   for i in 0:r
@@ -265,9 +277,11 @@ end
     F = Spec(R_fiber)
     ambient_space, pF, pY = product(F, Y)
     push!(U, ambient_space)
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
     pU[ambient_space] = pY
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = ambient_coordinates(U[i])
