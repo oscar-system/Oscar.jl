@@ -1037,7 +1037,9 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = 
   @assert Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idel_parent.mG)
   qA = cohomology_group(gA, 2)
+  n = degree(nf(zk))
   aa = map_entries(a, parent = gA) do x
+    x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
     J = ideal(idel_parent, x, coprime = m0)
     mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
   end
