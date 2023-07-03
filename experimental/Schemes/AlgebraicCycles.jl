@@ -280,10 +280,6 @@ end
 +(D::AbsAlgebraicCycle, I::IdealSheaf) = D + AbsAlgebraicCycle(I)
 
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  return irreducible_decomposition(underlying_cycle(D))
-end
-
-function irreducible_decomposition(D::AbsAlgebraicCycle)
   all(I->is_prime(I), keys(coefficient_dict(D))) && return D
   result = zero(D)
   for (I, a) in coefficient_dict(D)

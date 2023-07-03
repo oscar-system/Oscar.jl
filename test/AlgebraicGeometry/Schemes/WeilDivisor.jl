@@ -47,6 +47,7 @@
 # J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
   I = IdealSheaf(X, U, OO(U).([x[1]-1]))
   J = IdealSheaf(X, U, OO(U).([x[2]-5]))
+  oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
   @test D + 2*E == D + E + E
@@ -169,4 +170,18 @@ end
   D3 = weil_divisor(I3)
   @test intersect(D1, D2) == intersect(D1, D3) == 21
   @test intersect(D2, D3) == 1
+end
+
+@testset "decomposition" begin 
+  P3 = projective_space(QQ, 3)
+  S = homogeneous_coordinate_ring(P3)
+  (x, y, z, w) = gens(S)
+  I = ideal(S, x^2*y^3)
+  II = ideal_sheaf(P3, I)
+  X = covered_scheme(P3)
+  D = weil_divisor(II)
+  E = oscar.irreducible_decomposition(D)
+  @test length(keys(coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
 end

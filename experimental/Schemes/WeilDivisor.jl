@@ -35,7 +35,7 @@ stored as a formal linear combination over some ring ``R`` of
     ) where {CoefficientRingType, CoefficientRingElemType}
     @check begin
       for D in keys(coefficients)
-        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        is_equidimensional(D) || error("components of a divisor must be sheaves of equidimensional ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
@@ -46,7 +46,7 @@ stored as a formal linear combination over some ring ``R`` of
     X = scheme(C)
     @check begin
       for D in keys(coefficient_dict(C))
-        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        is_equidimensional(D) || error("components of a divisor must be sheaves of equidimensional ideals")
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
@@ -132,6 +132,11 @@ function copy(D::WeilDivisor)
     new_dict[I] = D[I]
   end
   return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
+end
+
+function irreducible_decomposition(D::WeilDivisor)
+  decomp = irreducible_decomposition(underlying_cycle(D))
+  return WeilDivisor(decomp, check=false)
 end
 
 function Base.show(io::IO, D::WeilDivisor)
