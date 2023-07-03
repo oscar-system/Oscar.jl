@@ -66,7 +66,7 @@ function ngens(a::FreeAssAlgIdeal)
 end
 
 function gens(a::FreeAssAlgIdeal{T}) where T
-  return T[a.gens[Val(:O), i] for i in 1:ngens(I)]
+  return T[a.gens[Val(:O), i] for i in 1:ngens(a)]
 end
 
 function gen(a::FreeAssAlgIdeal{T}, i::Int) where T
