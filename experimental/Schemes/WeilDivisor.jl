@@ -116,13 +116,14 @@ weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf)
+function WeilDivisor(I::IdealSheaf; check::Bool=true)
   D = WeilDivisor(space(I), ZZ)
+  @check is_equidimensional(I) "ideal sheaf must be equidimensional"
   D[I] = one(ZZ)
   return D
 end
 
-weil_divisor(I::IdealSheaf) = WeilDivisor(I)
+weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
 ### copy constructor
 function copy(D::WeilDivisor) 
