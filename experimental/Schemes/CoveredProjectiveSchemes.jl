@@ -136,6 +136,10 @@ mutable struct ProjectiveGlueing{
     ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
+    @vprint :Glueing 1 "computing projective glueing\n"
+    @vprint :Glueing 2 "$(X), coordinates $(ambient_coordinates(X))\n"
+    @vprint :Glueing 2 "and\n"
+    @vprint :Glueing 2 "$(Y) coordinates $(ambient_coordinates(X))\n"
     (fb, gb) = glueing_morphisms(G)
     (PX, QY) = (codomain(incP), codomain(incQ))
     (PU, QV) = (domain(incP), domain(incQ))
@@ -158,6 +162,7 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
+    @vprint :Glueing 1 "done computing the projective gluing\n"
     return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end

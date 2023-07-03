@@ -51,6 +51,7 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(V, codomain(f)) || error("$V is not contained in the codomain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    true
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient_scheme(V), check=check) for W in affine_patches(U)])
 end
@@ -65,6 +66,7 @@ function restrict(
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
     issubset(preimage(f,V), U) || error("f(U) is not contained in V")
+    true
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
@@ -77,6 +79,7 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   @check begin
     issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
+    true
   end
   phi = restriction_map(domain(f), W)
   fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_coordinate_ring(Y)))]

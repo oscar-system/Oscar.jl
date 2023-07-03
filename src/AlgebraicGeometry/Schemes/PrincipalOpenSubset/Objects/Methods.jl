@@ -14,6 +14,17 @@ function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true)
   return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
 end
 
+function preimage(f::AbsSpecMor{<:AbsSpec, <:PrincipalOpenSubset}, U::PrincipalOpenSubset; check::Bool=true) 
+  if ambient_scheme(U) === ambient_scheme(codomain(f))
+    return PrincipalOpenSubset(domain(f), pullback(f)(lifted_numerator(complement_equation(U))))
+  elseif ambient_scheme(U) === codomain(f)
+    return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
+  end
+  # TODO: Make use of the tree structure induced for PrincipalOpenSubset to extend the above pattern.
+  Z = preimage(f, ambient_scheme(U), check=check)
+  return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(lifted_numerator(complement_equation(U)))))
+end
+
 ########################################################################
 # Generic fractions on PrincipalOpenSubsets                            #
 ########################################################################
