@@ -185,3 +185,21 @@ end
   @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
   @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
 end
+
+@testset "intersection numbers on surfaces" begin
+  P3 = projective_space(QQ, 3)
+  S = homogeneous_coordinate_ring(P3)
+  (x,y, z, w) = gens(S)
+  I = ideal(S, [x^4+y^4+z^4+w^4])
+  II = ideal_sheaf(P3, I)
+  P = covered_scheme(P3)
+  inc = oscar.CoveredClosedEmbedding(covered_scheme(P3), II)
+  X = domain(inc)
+  C1 = EffectiveCartierDivisor(ideal_sheaf(P3, [x+y+z+w]))
+  C2 = EffectiveCartierDivisor(ideal_sheaf(P3, [x^2*y + y^2*z + z^2*w + w^2*x]))
+  C1 = pullback(inc)(C1)
+  C2 = pullback(inc)(C2)
+  d = intersect(weil_divisor(C1), weil_divisor(C2))
+  pts = oscar.irreducible_decomposition(intersect(C1, C2))
+  @test integral(pts) == d
+end

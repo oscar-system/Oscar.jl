@@ -358,11 +358,10 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
   result = zero(coefficient_ring(W))
   X = scheme(W)
   for I in components(W)
-    # All components must be prime, so the information is exclusively stored in the coefficients
-    if check
+    @check begin
       dim(I) == 0 || continue
     end
-    result = result + W[I]
+    result = result + W[I]*colength(I)
   end
   return result
 end
