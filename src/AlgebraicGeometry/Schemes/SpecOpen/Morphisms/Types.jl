@@ -51,7 +51,6 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
       for g in f
         is_empty(subscheme(domain(g), pullback(g).(complement_equations(V)))) || error("image is not contained in the codomain")
       end
-      true
     end
     return new{DomainType, CodomainType}(U, V, f)
   end
