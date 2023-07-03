@@ -543,10 +543,16 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
       end
       if simplify
         s = -coeff(defining_polynomial(K), 0)
-        p = parent(t)
-        _, ma = absolute_simple_field(p)
-        t = ma(evaluate(Hecke.reduce_mod_powers(preimage(ma, s), 2)))
-        r = ma(root(preimage(ma, s//t), 2))
+        p = parent(s)
+        if p == QQ
+          lf = factor(s, ZZ)
+          t = prod([p for (p, k) = lf.fac if isodd(k)], init = ZZ(1)) * lf.unit
+          r = root(s//t, 2)    
+        else
+          _, ma = absolute_simple_field(p)
+          t = ma(evaluate(Hecke.reduce_mod_powers(preimage(ma, s), 2)))
+          r = ma(root(preimage(ma, s//t), 2))
+        end
         K_, _ = radical_extension(2, t, check = false, cached = false)
         if h_data[end] == gen(K)
           h_data[end] = gen(K_)*r
