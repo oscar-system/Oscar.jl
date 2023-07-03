@@ -279,6 +279,12 @@ end
 
 +(D::AbsAlgebraicCycle, I::IdealSheaf) = D + AbsAlgebraicCycle(I)
 
+@doc raw"""
+    irreducible_decomposition(D::AbsAlgebraicCycle)
+
+Returns a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
+where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
+"""
 function irreducible_decomposition(D::AbsAlgebraicCycle)
   all(I->is_prime(I), keys(coefficient_dict(D))) && return D
   result = zero(D)
