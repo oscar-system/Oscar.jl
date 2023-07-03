@@ -102,4 +102,8 @@ end
   pr = blow_up(II)
   Y = domain(projection(pr))
   @test oscar.has_decomposition_info(oscar.simplified_covering(Y))
+  E = exceptional_divisor(pr)
+  IE = ideal_sheaf(E)
+  Z = subscheme(IE)
+  @test oscar.has_decomposition_info(oscar.simplified_covering(Z))
 end
