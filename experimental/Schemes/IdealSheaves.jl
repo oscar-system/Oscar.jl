@@ -126,7 +126,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
 on one affine open subset ``U`` among the `basic_patches` of the 
@@ -136,7 +136,7 @@ on one affine open subset ``U`` among the `basic_patches` of the
 of ``X`` since otherwise, the extension of the ideal sheaf to other 
 charts can not be inferred. 
 """
-function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
+function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
   U in patches(C) || error("the affine open patch does not belong to the covering")
   for f in g
@@ -149,7 +149,7 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   return I
 end
 
-ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme, 
@@ -634,7 +634,7 @@ function maximal_associated_points(I::IdealSheaf)
 
 # run through all charts and try to match the components
   while length(charts_todo) > 0
-    @vprint :MaximalAssociatedPoints 2 "length(charts_todo) remaining charts to go through\n"
+    @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
     U = pop!(charts_todo)
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
@@ -744,10 +744,9 @@ function match_on_intersections(
       I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
       associated_list::Vector{IdDict{AbsSpec,Ideal}},
       check::Bool=true)
-  @vprint :MaximalAssociatedPoints 2 "matching $(I) \n and $(J)\n on $(U)\n"
+  @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
   OOX = OO(X)
-
 # run through all components in associated_list and try to match up I
   for i in 1:length(associated_list)
     match_found = false
