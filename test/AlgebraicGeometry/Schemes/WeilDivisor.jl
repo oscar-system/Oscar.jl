@@ -47,8 +47,8 @@
 # J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
   I = IdealSheaf(X, U, OO(U).([x[1]-1]))
   J = IdealSheaf(X, U, OO(U).([x[2]-5]))
-  D = WeilDivisor(I)
-  E = WeilDivisor(J)
+  D = WeilDivisor(I, check=false)
+  E = WeilDivisor(J, check=false)
   @test D + 2*E == D + E + E
 
   KK = VarietyFunctionField(X)

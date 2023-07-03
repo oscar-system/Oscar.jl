@@ -459,6 +459,32 @@ function is_prime(I::IdealSheaf)
   return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
 end
 
+function is_equidimensional(I::IdealSheaf; covering=default_covering(scheme(I)))
+  local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
+  length(local_dims) == 0 && return true # This only happens if I == OO(X)
+  d = first(local_dims)
+  all(x->x==d, local_dims) || return false
+  all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
+  return true
+end
+
+function is_equidimensional(I::MPolyIdeal)
+  decomp = equidimensional_decomposition_weak(I)
+  return isone(length(decomp))
+end
+
+function is_equidimensional(I::MPolyQuoIdeal)
+  is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyLocalizedIdeal)
+  return is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
+end
+
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
   whole_ring = ideal(base_ring(I), [one(base_ring(I))])
   P(whole_ring) && return (0, whole_ring)
