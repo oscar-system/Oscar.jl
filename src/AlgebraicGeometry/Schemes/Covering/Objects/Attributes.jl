@@ -49,12 +49,20 @@ end
 @doc raw"""
     decomposition_info(C::Covering)
 
-Return an `IdDict` `D` with the `patches` of `C` as keys and values `D[U]` a list 
-of elements ``f₁,…,fᵣ ∈ 𝒪(U)``. These elements are chosen so that for 
-``Xᵤ = V(f₁,…,fᵣ) ⊂ U`` the scheme ``X`` covered by ``C`` decomposes as a 
-disjoint union ``X = ∪ Xᵤ``.
+Return an `IdDict` `D` with the `patches` ``Uᵢ`` of `C` as keys and values a list 
+of elements ``fᵢ₁,…,fᵢᵣ ∈ 𝒪(Uᵢ)``. These elements are chosen so that for every 
+affine patch `Uᵢ` of ``X`` in the covering `C` the closed subvarieties ``Zᵢ ⊂ Uᵢ`` 
+defined by the ``fᵢⱼ`` give rise to a decomposition of ``X`` as a **disjoint** union 
+``X = \bigcup_{i} Z_i`` of locally closed subvarieties. 
 
-!!! note This attribute might not be defined!
+This information can be used for local computations in any chart ``Uᵢ`` of ``X`` 
+as above to focus on phenomena occuring exclusively along ``Zᵢ`` and assuming 
+that other cases have been handled by computations in other charts. A key 
+application is counting points of zero-dimensional subschemes: To avoid overcounting, 
+we need to only consider points in ``Uᵢ`` which are located within ``Zᵢ`` and 
+then sum these up to all points in ``X``.
+
+!!! note This attribute might not be defined! Use `has_decomposition_info(C)` to check whether this information is available for the given covering.
 """
 function decomposition_info(C::Covering)
   return C.decomp_info
