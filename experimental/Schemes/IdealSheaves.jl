@@ -454,6 +454,7 @@ We say that a sheaf of ideals is prime if its support is irreducible and
 """
 function is_prime(I::IdealSheaf)
   is_locally_prime(I) || return false
+  # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
   return length(PD)==1
 end
