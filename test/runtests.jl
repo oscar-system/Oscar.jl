@@ -128,7 +128,6 @@ const testlist = [
   "Experimental/ModStdQt.jl",
   "Experimental/ModStdNF.jl",
   "Experimental/MatrixGroups.jl",
-  "Experimental/JuLie.jl",
   "Experimental/ExteriorAlgebra.jl",
   
   "Rings/ReesAlgebra.jl",
