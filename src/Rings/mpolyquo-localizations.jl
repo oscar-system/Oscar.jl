@@ -613,7 +613,7 @@ function inv(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BR
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
-  d = prod(denominators(inverted_set(W)))
+  d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power dᵏ ≡  c ⋅ f mod I
   (result, coefficient) = divides(one(Q), f)
@@ -666,12 +666,14 @@ function convert(
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
   one(R) in I && return zero(L)
-  d = prod(denominators(inverted_set(W)))
+  d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
   (result, coefficient) = divides(Q(a), Q(b))
   # check whether f is already a unit
   result && return L(coefficient)
+  # If we have localized at the trivial set, then this is the end.
+  isone(d) && error("element can not be converted to the localization")
   push!(powers_of_d, d)
   abort = false
   # find some power which works
@@ -1225,7 +1227,7 @@ function as_affine_algebra(
   R = base_ring(L)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
-  f = prod(denominators(inverted_set(L)))
+  f = prod(denominators(inverted_set(L)); init=one(R))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   return A, I, f, phi, theta
 end
@@ -1240,7 +1242,7 @@ function _as_affine_algebra(
   R = base_ring(L)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
-  f = prod(denominators(inverted_set(L)))
+  f = prod(denominators(inverted_set(L)); init=one(R))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   Q, _ = quo(A, I)
   id = hom(L, Q, gens(A)[2:end], check=false)
@@ -1263,7 +1265,8 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   id =  _as_affine_algebra(W)
   A = codomain(id)
   h = hom(P, A, id.(f.(gens(P))), check=false)
-  return preimage(h, ideal(A, id.(W.(gens(J)))))
+  gg = Vector{elem_type(A)}(id.(W.(gens(J))))
+  return preimage(h, ideal(A, gg))
 end
 
 function is_isomorphism(
@@ -1316,7 +1319,7 @@ function is_isomorphism(
     gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, inc2(q)*last(collect(M)))
   end
-  pushfirst!(imagesB, prod(denoms))
+  pushfirst!(imagesB, prod(denoms; init=one(B)))
 
   # perform a sanity check
   phiAB = hom(A, B, imagesB, check=false)
@@ -2084,4 +2087,6 @@ end
 function (W::MPolyDecRing)(f::MPolyLocRingElem)
   return W(forget_decoration(W)(f))
 end
+
+
 

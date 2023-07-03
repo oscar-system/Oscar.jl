@@ -126,7 +126,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
 on one affine open subset ``U`` among the `basic_patches` of the 
@@ -136,7 +136,7 @@ on one affine open subset ``U`` among the `basic_patches` of the
 of ``X`` since otherwise, the extension of the ideal sheaf to other 
 charts can not be inferred. 
 """
-function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
+function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
   U in patches(C) || error("the affine open patch does not belong to the covering")
   for f in g
@@ -149,7 +149,7 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   return I
 end
 
-ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme, 
@@ -454,9 +454,31 @@ function isone(I::IdealSheaf)
   return all(x->isone(I(x)), affine_charts(scheme(I)))
 end
 
-function is_prime(I::IdealSheaf) 
-  !isone(I) || return false
-  return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
+@doc raw"""
+    is_prime(I::IdealSheaf) -> Bool
+
+Return whether ``I`` is prime.
+
+We say that a sheaf of ideals is prime if its support is irreducible and
+``I`` is locally prime. (Note that the empty set is not irreducible.)
+"""
+function is_prime(I::IdealSheaf)
+  is_locally_prime(I) || return false
+  # TODO: this can be made more efficient
+  PD = maximal_associated_points(I)
+  return length(PD)==1
+end
+
+@doc raw"""
+    is_locally_prime(I::IdealSheaf) -> Bool
+
+Return whether ``I`` is locally prime.
+
+A sheaf of ideals $\mathcal{I}$ is locally prime if its stalk $\mathcal{I}_p$
+at every point $p$ is one or prime.
+"""
+function is_locally_prime(I::IdealSheaf)
+  return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
 end
 
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
@@ -493,6 +515,7 @@ function order_on_divisor(
     check::Bool=true
   )
   @check is_prime(I) "ideal sheaf must be a sheaf of prime ideals"
+
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
   
@@ -527,14 +550,14 @@ function order_on_divisor(
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
+  K = ambient_closure_ideal(V)
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))
 
-
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
   return num_mult - den_mult
 #    # Deprecated code computing symbolic powers explicitly:
 #    L, map = Localization(OO(U), 
@@ -622,6 +645,7 @@ function maximal_associated_points(I::IdealSheaf)
 
 # run through all charts and try to match the components
   while length(charts_todo) > 0
+    @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
     U = pop!(charts_todo)
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
@@ -731,10 +755,9 @@ function match_on_intersections(
       I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
       associated_list::Vector{IdDict{AbsSpec,Ideal}},
       check::Bool=true)
-
+  @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
   OOX = OO(X)
-
 # run through all components in associated_list and try to match up I
   for i in 1:length(associated_list)
     match_found = false
@@ -756,7 +779,7 @@ function match_on_intersections(
     end
 
 ## make sure we are working on consistent data
-    @check begin
+   @check begin
       if match_found && match_contradicted
         error("contradictory matching result!!")                     ## this should not be reached for ass. points
       end
@@ -838,12 +861,16 @@ end
 ## show functions for Ideal sheaves
 ########################################################################### 
 function Base.show(io::IO, I::IdealSheaf)
-    X = scheme(I)
+  X = scheme(I)
+  if has_attribute(I,:name)
+    println(io, get_attribute(I, :name))
+  else
 
-  # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+    # If there is a simplified covering, use it!
+    covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
+    n = npatches(covering)
+    println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+  end
 end
 
 function show_details(I::IdealSheaf)
