@@ -452,7 +452,11 @@ function vector_space_basis(M::SubquoModule{T}
   Mq,_ = sub(F,rels(M))
 
   M_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
   LM = leading_module(M_shift,o)
 
   return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
@@ -465,7 +469,11 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
   Mq,_ = sub(F,rels(M))
 
   M_shift,_,_ = shifted_module(Mq)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
   LM = leading_module(M_shift,o)
 
   return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
