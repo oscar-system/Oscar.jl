@@ -1057,7 +1057,7 @@ end
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
-  codomain(f)(restricted_map(f)(lifted_numerator(a)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(a))))
+  return codomain(f)(restricted_map(f)(lifted_numerator(a)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(a))))
 end
 
 function compose(
