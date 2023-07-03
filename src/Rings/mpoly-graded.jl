@@ -2149,13 +2149,19 @@ end #=function=#
 
 function homogenization2(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int = 1) where {T <: MPolyRingElem}
     ## ASSUME NumCols(W) = nvars(P)
-    if size(W,1) == 1 #=then=#
-        # Grading is over ZZ^1, so delegate to faster special-case function
-        return homogenization(I, h, pos);
-    end #=if=#
     P = base_ring(I); # initial polynomial ring
+    if size(W,1) == 1 #=then=#
+        # Grading is over ZZ^1, so delegate to faster special-case function.
+        # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
+        if all(a -> (a == 1), W)  #=then=#
+            return homogenization(I, h, pos) # std graded case, very fast
+        end #=if=#
+        W_ordering = matrix_ordering(P, W);
+        GB = groebner_basis(ideal(P,I); ordering=W_ordering);
+        return ideal(homogenization(GB, W, h, pos));
+    end #=if=#
     if  is_zero(I)  #=then=#
-        return ideal(homogenization(zero(P),W,"h",1+ngens(P))); # zero ideal in correct ring (I hope)
+        return ideal(homogenization(zero(P),W,h,pos)); # zero ideal in correct ring (I hope)
     end #=if=#
     G = homogenization(gens(I), W, h, 1+ngens(P)); # h come last
     Ph = parent(G[1]);  # Ph is graded ring, "homog-extn" of P.
