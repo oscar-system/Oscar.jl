@@ -225,11 +225,11 @@ function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
       # We iteratively single out these components by adding a sufficiently high 
       # power of the equation to the ideal.
       for f in h
-        k = 0
-        while !(f^(k) in ideal(OO(U), f^(k+1)) + J)
-          k = k + 1
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
         end
-        J = J + ideal(OO(U), f^k)
+        J = J + ideal(OO(U), g)
         isone(J) && break
       end
     else
@@ -246,11 +246,11 @@ function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
         # Find a sufficiently high power of f such that it throws
         # away all components away from the horizon, but does not affect
         # those on the horizon itself.
-        k = 0
-        while !(f^(k) in ideal(OO(U), f^(k+1)) + J)
-          k = k + 1
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
         end
-        J = J + ideal(OO(U), f^k)
+        J = J + ideal(OO(U), g)
         isone(J) && break
       end
     end
