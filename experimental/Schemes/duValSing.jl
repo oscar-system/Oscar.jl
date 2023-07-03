@@ -38,17 +38,17 @@ function has_du_val_singularities(X::AbsSpec{<:Field,<:Any})
 end
 
 function has_du_val_singularities(X::AbsCoveredScheme{<:Field})
-  C = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
+  C = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
 
   I = ideal_sheaf_of_singular_locus(X)
-  decomp = minimal_associated_points(I)
+  decomp = maximal_associated_points(I)
 
   ## we do the double loop here to avoid unnecessary checks
   for J in decomp
     for U in C
       !isone(J(U)) || continue
-      is_du_val_singularity(X(U),J(U)) || return false    ## testing the point in one chart suffices
-      break                         
+      is_du_val_singularity(U,saturated_ideal(J(U))) || return false    ## testing the point in one chart suffices
+      break
     end
   end
 
@@ -336,19 +336,25 @@ end
 function vector_space_dimension(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
-  M_shift,_,_ = shifted_module(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(LM)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1])
 end
 
 function vector_space_dimension(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
-  M_shift,_,_ = shifted_module(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(LM,d)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1],d)
 end
 
 function vector_space_dimension(M::SubquoModule{T}
@@ -442,15 +448,27 @@ end
 function vector_space_basis(M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
-  M_shift,_,_ = shifted_module(M)
-  return vector_space_basis(M_shift)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
 end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
-  M_shift,_,_ = shifted_module(M)
-  return vector_space_basis(M_shift,d)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
 end
 
 function vector_space_basis(M::SubquoModule{T}
