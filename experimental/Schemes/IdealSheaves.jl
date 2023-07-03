@@ -770,14 +770,28 @@ function match_on_intersections(
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
       VU, UV = glueing_domains(G)
-      I_res = OOX(U,UV)(I)
-      IV_res = OOX(V,UV)(IV)
-      if (I_res == IV_res)
-        match_found = !is_one(I_res)                               ## count only non-trivial matches
-        check || break
+      if UV isa SpecOpen && VU isa SpecOpen
+        I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
+        IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
+        if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
+          match_found = !all(I->is_one(I), I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
+      elseif UV isa AbsSpec && VU isa AbsSpec
+        I_res = OOX(U,UV)(I)
+        IV_res = OOX(V,UV)(IV)
+        if (I_res == IV_res)
+          match_found = !is_one(I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
       else
-        match_contradicted = true
-        check || break
+        error("case not implemented")
       end
     end
 
