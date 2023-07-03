@@ -120,7 +120,9 @@ end
   I = ideal(S, [x^3+y^3+z^3+w^3, x+y+z+w, 37*x^2-x*z+4*w^2-5*w*z])
   II = ideal_sheaf(P3, I)
   @test oscar.colength(II) == 6
+  @test oscar.colength(II, covering=oscar.simplified_covering(X)) == 6
   J = ideal(S, [x, y, z^4])
   JJ = ideal_sheaf(P3, J)
   @test oscar.colength(JJ) == 4
+  @test oscar.colength(JJ, covering=oscar.simplified_covering(X)) == 4
 end

@@ -212,7 +212,7 @@ end
 
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  patches_todo = copy(affine_charts(X))
+  patches_todo = copy(patches(covering))
   patches_done = AbsSpec[]
   result = 0
   while length(patches_todo) != 0
