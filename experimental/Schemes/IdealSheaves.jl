@@ -635,22 +635,36 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::IdealSheaf)
+function maximal_associated_points(I::IdealSheaf; covering=default_covering(scheme(I)))
   !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
 
-  charts_todo = copy(affine_charts(X))            ## todo-list of charts
+  charts_todo = copy(patches(covering))           ## todo-list of charts
 
   associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
                                                   ## may not yet contain all relevant charts. but
                                                   ## at least one for each identified component
 
-# run through all charts and try to match the components
+  result = IdealSheaf[]
+  # run through all charts and try to match the components
   while length(charts_todo) > 0
     U = pop!(charts_todo)
+    J = I(U)
+    # Do a quick check whether we even need to worry about this chart
+    if has_decomposition_info(covering)
+      J = J + ideal(OO(U), decomposition_info(covering)[U])
+      isone(J) && continue
+    end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
+    if has_decomposition_info(covering)
+      # We only need those components which are located at the locus presrcibed by the 
+      # decomposition_info in this chart
+      components_here = [ C for C in components_here if all(g->g in C, decomposition_info(covering)[U])]
+      result = vcat(result, [IdealSheaf(X, U, gens(C)) for C in components_here])
+      continue
+    end
 
 ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
     for comp in components_here
@@ -671,6 +685,11 @@ function maximal_associated_points(I::IdealSheaf)
         associated_primes_temp[target_comp][U] = comp
       end
     end
+  end
+
+  # In case we could use the decomposition info, quit here.
+  if has_decomposition_info(covering)
+    return result
   end
 
 # fill the gaps arising from a support not meeting a patch
