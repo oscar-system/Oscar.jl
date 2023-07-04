@@ -127,7 +127,7 @@ function rational_point_coordinates(I::MPolyIdeal)
   vd = vector_space_dimension(quo(base_ring(LG),LG)[1])
   vd ==1 || error("Ideal does not describe a single K-point")
   nf_vec = [normal_form(v,I) for v in gens(R)]
-  return [ a == zero(parent(a)) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
+  return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
 end
 
 ############################################################################################################
