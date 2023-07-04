@@ -55,6 +55,12 @@ function neighbor_patches(C::Covering, U::AbsSpec)
   return [C[i] for i in n]
 end
 
+function neighbor_patches_in_glueing_tree(C::Covering, U::AbsSpec)
+  gg = glueing_tree(C)
+  n = neighbors(gg, C[U])
+  return [C[i] for i in n]
+end
+
 ## compute the glueing graph for the given covering and store it
 function update_glueing_graph(C::Covering)
   n = npatches(C)

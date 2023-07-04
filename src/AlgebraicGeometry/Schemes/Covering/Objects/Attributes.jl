@@ -46,6 +46,38 @@ function glueing_graph(C::Covering)
   return C.glueing_graph
 end
 
+function glueing_tree(C::Covering; all_dense::Bool=false)
+  if !isdefined(C, :glueing_tree)
+    U = copy(patches(C))
+    n = npatches(C)
+    gg = Graph{Undirected}(n)
+    heap = AbsSpec[pop!(U)]
+    while !isempty(U)
+      W = last(heap) 
+      next = [B for (A, B) in keys(glueings(C)) if A === W && any(x->x===B, U)]
+      if isempty(next)
+        pop!(W)
+        isempty(W) && error("scheme is not connected")
+        continue
+      end
+      for B in next
+        if all_dense
+          add_edge!(gg, C[W], C[B])
+          add_edge!(gg, C[B], C[W])
+        else
+          WB, BW = glueing_domains(C[W, B])
+          is_dense(WB) && add_edge!(gg, C[W], C[B])
+          is_dense(BW) && add_edge!(gg, C[B], C[W])
+        end
+      end
+      U = [V for V in U if !any(x->x===V, next)]
+      heap = vcat(heap, next)
+    end
+    C.glueing_tree = gg
+  end
+  return C.glueing_tree
+end
+
 @doc raw"""
     decomposition_info(C::Covering)
 

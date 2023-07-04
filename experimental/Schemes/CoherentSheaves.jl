@@ -1345,6 +1345,14 @@ end
   end
   C = Covering(patch_list)
   inherit_glueings!(C, default_covering(X))
+  if has_decomposition_info(default_covering(X))
+    for U in patches(C)
+      V = __find_chart(U, default_covering(X))
+      phi = OOX(V, U)
+      set_decomposition_info!(C, U, phi.(decomposition_info(default_covering(X))[V]))
+    end
+  end
+
   push!(coverings(X), C)
   return C
 end

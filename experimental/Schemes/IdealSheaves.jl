@@ -321,14 +321,15 @@ on which ``I`` had already been described.
 Note that the covering `C` is not modified.  
 """
 function extend!(
-    C::Covering, D::IdDict{AbsSpec, Ideal}
+    C::Covering, D::IdDict{AbsSpec, Ideal};
+    all_dense::Bool=false
   )
-  gg = glueing_graph(C)
+  gg = glueing_tree(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
   dirty_patches = collect(keys(D))
   while length(dirty_patches) > 0
     U = pop!(dirty_patches)
-    N = neighbor_patches(C, U)
+    N = neighbor_patches_in_glueing_tree(C, U)
     # The following line potentially triggers a groebner basis
     # computation, because the quo command for polynomial rings 
     # requires it. 
@@ -682,31 +683,33 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
     end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
+    @show has_decomposition_info(covering)
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the 
       # decomposition_info in this chart
       components_here = [ C for C in components_here if all(g->g in C, decomposition_info(covering)[U])]
       result = vcat(result, [IdealSheaf(X, U, gens(C)) for C in components_here])
+      @show "blurb"
       continue
-    end
+    else
+      ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
+      for comp in components_here
+        matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
+        nmatches = length(matches)
 
-## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for comp in components_here
-      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
-      nmatches = length(matches)
-
-      if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
-        add_dict[U] = comp                         ## and fill it
-        push!(associated_primes_temp, add_dict)
-      elseif nmatches == 1                         ## unique match, update it
-        component_index = matches[1]
-        associated_primes_temp[component_index][U] = comp
-      else                                                ## more than one match, form union
-        target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = comp
+        if nmatches == 0                             ## not found
+          add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+          add_dict[U] = comp                         ## and fill it
+          push!(associated_primes_temp, add_dict)
+        elseif nmatches == 1                         ## unique match, update it
+          component_index = matches[1]
+          associated_primes_temp[component_index][U] = comp
+        else                                                ## more than one match, form union
+          target_comp = pop!(matches)
+          merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+          deleteat!(associated_primes_temp,matches)
+          associated_primes_temp[target_comp][U] = comp
+        end
       end
     end
   end
