@@ -121,7 +121,7 @@ end
     decide_du_val_singularity(X::AbsSpec, I::Ideal)
 
 Return a vector of tuples T with the following data:
-- T[1]::Bool answers 'X' has at most du Val (surface) singularities at the geometric points
+- `T[1]::Bool` answers 'X' has at most du Val (surface) singularities at the geometric points
 specified by the ideal 'I'.
 - T[2]::Ideal I_P associated prime of I (possibly over a suitable field extension)
   describing some geometrically irreducible point
