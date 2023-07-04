@@ -34,7 +34,7 @@ birkhoff_polytope(n::Integer; even::Bool = false) = polyhedron(Polymake.polytope
 
 
 @doc raw"""
-    pyramid(P::Polyhedron, z::Number = 1)
+    pyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1)
 
 Make a pyramid over the given polyhedron `P`.
 
@@ -58,12 +58,17 @@ julia> vertices(pyramid(c,5))
 ```
 """
 function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
-   pm_in = pm_object(P)
-   has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), get_parent_field(P))
+    pm_in = pm_object(P)
+    has_group = Polymake.exists(pm_in, "GROUP")
+    return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), get_parent_field(P))
 end
 
-
+function pyramid(P::Polyhedron{T}, z::FieldElem) where T<:scalar_types
+    U, f = _promote_scalar_field(get_parent_field(P), parent(z))
+    pm_in = pm_object(P)
+    has_group = Polymake.exists(pm_in, "GROUP")
+    return Polyhedron{U}(Polymake.polytope.pyramid(pm_in, z, group=has_group), f)
+end
 
 @doc raw"""
     bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)
@@ -91,11 +96,22 @@ julia> vertices(bipyramid(c,2))
 
 ```
 """
-function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:scalar_types
-   pm_in = pm_object(P)
-   has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), get_parent_field(P))
+function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z) where T<:scalar_types
+    pm_in = pm_object(P)
+    has_group = Polymake.exists(pm_in, "GROUP")
+    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), get_parent_field(P))
 end
+
+function bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::FieldElem=-z) where T<:scalar_types
+    U, f = _promote_scalar_field(get_parent_field(P), parent(z), parent(z_prime))
+    pm_in = pm_object(P)
+    has_group = Polymake.exists(pm_in, "GROUP")
+    return Polyhedron{U}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), f)
+end
+
+bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::Number) where T<:scalar_types = bipyramid(P, z, parent(z)(z_prime))
+
+bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where T<:scalar_types = bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
     normal_cone(P::Polyhedron, i::Int64)
@@ -304,12 +320,13 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron{T}...) where T<:scalar_types
+function intersect(P::Polyhedron...)
+    T, f = _promote_scalar_field((get_parent_field(p) for p in P)...)
     pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.intersection(pmo...), get_parent_field(iterate(P)[1]))
+    return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
 end
-intersect(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = intersect(P...)
 
+intersect(P::AbstractVector{<:Polyhedron}) = intersect(P...)
 
 @doc raw"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
@@ -331,15 +348,15 @@ julia> nvertices(M)
 8
 ```
 """
-function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{T}; algorithm::Symbol=:standard) where T<:scalar_types
-    parent_field = get_parent_field(P)
-   if algorithm == :standard
-      return Polyhedron{T}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)), parent_field)
-   elseif algorithm == :fukuda
-      return Polyhedron{T}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)), parent_field)
-   else
-      throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
-   end
+function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:standard) where {T<:scalar_types, U<:scalar_types}
+    V, f = _promote_scalar_field(get_parent_field(P), get_parent_field(Q))
+    if algorithm == :standard
+        return Polyhedron{V}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)), f)
+    elseif algorithm == :fukuda
+        return Polyhedron{V}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)), f)
+    else
+        throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
+    end
 end
 
 
@@ -362,7 +379,10 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)), get_parent_field(P))
+function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
+    V, f = _promote_scalar_field(get_parent_field(P), get_parent_field(Q))
+    return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+end
 
 @doc raw"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -382,7 +402,7 @@ julia> length(vertices(T*S))
 6
 ```
 """
-*(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = product(P,Q)
+*(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types} = product(P, Q)
 
 @doc raw"""
     convex_hull(P::Polyhedron, Q::Polyhedron)
@@ -406,16 +426,14 @@ julia> f_vector(T)
  4
 ```
 """
-function convex_hull(P::Polyhedron{T}...) where T<:scalar_types
+function convex_hull(P::Polyhedron...)
+    T, f = _promote_scalar_field((get_parent_field(p) for p in P)...)
     pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.conv(pmo...), get_parent_field(iterate(P)[1]))
+    return Polyhedron{T}(Polymake.polytope.conv(pmo...), f)
 end
-convex_hull(P::AbstractVector{Polyhedron{T}}) where T<:scalar_types = convex_hull(P...)
+convex_hull(P::AbstractVector{<:Polyhedron}) = convex_hull(P...)
 
-
-
-#TODO: documentation  + extend to different fields.
-
+#TODO: documentation
 @doc raw"""
     +(P::Polyhedron, Q::Polyhedron)
 
@@ -436,10 +454,7 @@ julia> nvertices(M)
 8
 ```
 """
-+(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = minkowski_sum(P,Q)
-
-
-#TODO: extend to different fields
++(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types} = minkowski_sum(P, Q)
 
 @doc raw"""
     *(k::Int, Q::Polyhedron)
@@ -462,8 +477,12 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), get_parent_field(P))
+*(k::Number, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), get_parent_field(P))
 
+function *(k::FieldElem, P::Polyhedron{T}) where T<:scalar_types
+    U, f = _promote_scalar_field(parent(k), get_parent_field(P))
+    return Polyhedron{U}(Polymake.polytope.scale(pm_object(P), k), f)
+end
 
 @doc raw"""
     *(P::Polyhedron, k::Int)
@@ -486,7 +505,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(P::Polyhedron{T},k::Int) where T<:scalar_types = k*P
+*(P::Polyhedron{T}, k::Union{Number, FieldElem}) where T<:scalar_types = k*P
 
 
 @doc raw"""

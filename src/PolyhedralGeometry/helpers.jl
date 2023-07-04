@@ -422,7 +422,7 @@ end
 function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :RAYS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :INPUT_VERTICES, :RAYS, :VERTICES, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
     i = findfirst(f, propnames)
     # find first QuadraticExtension with root != 0
     # or first OscarNumber wrapping an embedded number field element
@@ -452,7 +452,7 @@ _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.
 function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :RAYS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :INPUT_VERTICES, :RAYS, :VERTICES, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
     i = findfirst(f, propnames)
     # find first OscarNumber wrapping a FieldElem
     while !isnothing(i)
@@ -471,6 +471,17 @@ end
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
     T = detect_scalar_type(U, p)
     return (T, _detect_default_field(T, p))
+end
+
+# promotion helpers
+function _promote_scalar_field(f::Field...)
+    try
+        x = sum([g(0) for g in f])
+        p = parent(x)
+        return (elem_type(p), p)
+    catch e
+        throw(ArgumentError("Can not find a mutual parent field of $f and $g."))
+    end
 end
 
 # oscarnumber helpers

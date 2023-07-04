@@ -26,11 +26,12 @@ julia> dim(C01)
 0
 ```
 """
-function intersect(C::Cone{T}...) where T<:scalar_types
+function intersect(C::Cone...)
+    T, f = _promote_scalar_field((get_parent_field(c) for c in C)...)
     pmo = [pm_object(c) for c in C]
-    return Cone{T}(Polymake.polytope.intersection(pmo...), get_parent_field(first(C)))
+    return Cone{T}(Polymake.polytope.intersection(pmo...), f)
 end
-intersect(C::AbstractVector{Cone{T}}) where T<:scalar_types = intersect(C...)
+intersect(C::AbstractVector{<:Cone}) = intersect(C...)
 
 
 @doc raw"""
@@ -93,7 +94,7 @@ julia> c == ctt
 true
 ```
 """
-function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{T}}) where T<:scalar_types
+function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{U}}) where {T<:scalar_types, U<:FieldElem}
   @assert ambient_dim(C) == nrows(A) "Incompatible dimension of cone and transformation matrix"
   @assert nrows(A) == ncols(A) "Transformation matrix must be square"
   @assert Polymake.common.rank(A) == nrows(A) "Transformation matrix must have full rank."
@@ -105,7 +106,7 @@ function _transform(C::Cone{T}, A::AbstractMatrix) where T<:scalar_types
   facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
   return _transform(C, raymod, facetmod)
 end
-function _transform(C::Cone{T}, A::MatElem{T}) where T<:scalar_types
+function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:scalar_types}
   OT = _scalar_type_to_polymake(T)
   raymod = Polymake.Matrix{OT}(transpose(A))
   facetmod = Polymake.Matrix{OT}(inv(A))
