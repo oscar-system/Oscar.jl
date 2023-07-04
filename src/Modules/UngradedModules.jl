@@ -8790,7 +8790,7 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  return length([x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
+  return count(t->!(t[1]*t[2] in LM), Iterators.product(all_monomials(R, d), gens(F)))
 end
   
 function vector_space_dimension(M::SubquoModule{T}
