@@ -266,10 +266,19 @@ function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
   return result
 end
 
-function intersect(W::WeilDivisor, C::CartierDivisor)
+@doc raw"""
+    intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
+
+Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
+returns an `AbsAlgebraicCycle` of codimension ``2``.
+
+!!! note
+  The `components` of ``W`` must be sheaves of prime ideals; use `irreducible_decomposition(W)` to achieve this. The check for primality can be switched off using `check=false`. 
+"""
+function intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
   result = zero(W)
   for c in components(C)
-    result = result + C[c] * intersect(W, c)
+    result = result + C[c] * intersect(W, c, check=check)
   end
   return result
 end
