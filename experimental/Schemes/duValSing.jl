@@ -195,7 +195,7 @@ function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
 end
 
 @doc raw"""
-    _check_du_val_at_point(IX:Ideal,Ipt::Ideal))
+    _check_du_val_at_point(IX:Ideal,Ipt::Ideal)
 
 Returns a tuple T with the following data:
 - T[1]::Bool has V(IX) at most a du Val singularity at V(Ipt)
