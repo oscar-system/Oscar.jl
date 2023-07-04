@@ -309,7 +309,7 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
 end
 
 # Deal with simple extensions of proper extensions of Q.
-function _iso_oscar_gap(FO::SimpleNumField{nf_elem})
+function _iso_oscar_gap(FO::SimpleNumField{T}) where T <: FieldElem
    B = base_field(FO)
    isoB = iso_oscar_gap(B)
    BG = codomain(isoB)::GapObj
@@ -322,7 +322,7 @@ function _iso_oscar_gap(FO::SimpleNumField{nf_elem})
    FG = GAPWrap.AlgebraicExtension(BG, polFG)
    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
-   f = function(x::SimpleNumFieldElem{nf_elem})
+   f = function(x::SimpleNumFieldElem{T})
       coeffs = GAP.GapObj([isoB(x) for x in coefficients(x)])::GapObj
       return GAPWrap.AlgExtElm(fam, coeffs)
    end
