@@ -121,19 +121,19 @@ end
     decide_du_val_singularity(X::AbsSpec, I::Ideal)
 
 Return a vector of tuples T with the following data:
-- `T[1]::Bool` answers 'X' has at most du Val (surface) singularities at the geometric points
-specified by the ideal 'I'.
-- T[2]::Ideal I_P associated prime of I (possibly over a suitable field extension)
+- `T[1]::Bool` answers ``X`` has at most du Val (surface) singularities at the geometric points
+specified by the ideal ``I``.
+- `T[2]::Ideal` is ``I_P`` the associated prime of `I` (possibly over a suitable field extension)
   describing some geometrically irreducible point
-- T[3]::Tuple type of the singularity at ``P``  e.g. `(:A, 3)`
-- T[4]::Int number of conjugate points
+- `T[3]::Tuple` the type of the singularity at ``P``  e.g. `(:A, 3)`
+- `T[4]::Int` number of conjugate points
 
 If X has a least one singularity which is not du Val, the returned vector contains a
 single tuple T, with the following values:
-- T[1] = false
-- T[2] = point at which some non-du-Val singularity is present
-- T[3] = empty tuple
-- T[4] = 1
+- `T[1]`  is `false`
+- `T[2]` represents a point at which some non-du-Val singularity is present
+- `T[3]` is the empty tuple
+- `T[4] = 1`
 
 **Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
 
