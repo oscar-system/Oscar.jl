@@ -683,12 +683,12 @@ function convert(
   # find some power which works
   while !abort
    if length(terms(last(powers_of_d))) > 10000
-      id = _as_affine_algebra_with_many_variables(L)
+      id, id_inv = _as_affine_algebra_with_many_variables(L)
       aa = simplify(id(L(a)))
       bb = simplify(id(L(b)))
       success, cc = divides(aa, bb)
       !success && error("element can not be converted to localization")
-      return inverse(id)(simplify(cc))
+      return id_inv(simplify(cc))
     end
     (abort, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
     if !abort
@@ -2100,7 +2100,7 @@ function (W::MPolyDecRing)(f::MPolyLocRingElem)
   return W(forget_decoration(W)(f))
 end
 
-@attr Map function _as_affine_algebra_with_many_variables(
+@attr Tuple{<:Map, <:Map} function _as_affine_algebra_with_many_variables(
     L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
   )
   inverse_name=:_0
@@ -2129,7 +2129,7 @@ end
   id_inv = hom(Q, L, vcat([L(one(R), b, check=false) for b in f], gens(L)), check=false)
   set_attribute!(id, :inverse, id_inv)
   set_attribute!(id_inv, :inverse, id)
-  return id
+  return id, id_inv
 end
 
 function inverse(phi::MPolyQuoLocalizedRingHom)
