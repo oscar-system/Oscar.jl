@@ -8790,7 +8790,7 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  return length([x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
+  return length([x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)])
 end
   
 function vector_space_dimension(M::SubquoModule{T}
@@ -8902,7 +8902,7 @@ function vector_space_basis(M::SubquoModule,d::Int64)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  return [x*e for x in Oscar.all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
+  return [x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
 end
 
 function vector_space_basis(M::SubquoModule{T}

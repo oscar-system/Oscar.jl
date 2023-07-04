@@ -95,7 +95,7 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Ideal)
 
   R = base_ring(I)
   kk = base_ring(R)
-  characteristic(kk) == 0 || error("only available in characteristic zero")
+  characteristic(kk) == 0 || characteristic(kk) > 7 || error("not available in small characteristic")
   base_ring(OOX) === R || error("base rings need to be identical")
 
   dim(I) == 0 || error("second argument does not describe a 0-dimensional scheme")
@@ -217,7 +217,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   smooth = (:A,0)
 
   ## localize at point
-  a = Oscar.rational_point_coordinates(Ipt)
+  a = rational_point_coordinates(Ipt)
   U = complement_of_point_ideal(R,a)
   RL, loc_map = localization(R,U)
   IX_loc = loc_map(IX)
@@ -227,7 +227,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
     F_loc = free_module(RL,ngens(IX))
     Jm = sub(F_loc,JM_loc)[1]
     Jm = Jm + (loc_map(IX)*F_loc)[1]
-    Jm_shifted = Oscar. shifted_module(Jm)[1]
+    Jm_shifted = shifted_module(Jm)[1]
     F_shifted = ambient_free_module(Jm_shifted)
   else
     F = free_module(R,ngens(IX))
