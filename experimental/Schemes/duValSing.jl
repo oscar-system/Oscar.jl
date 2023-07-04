@@ -125,7 +125,7 @@ Return a vector of tuples T with the following data:
 specified by the ideal 'I'.
 - T[2]::Ideal I_P associated prime of I (possibly over a suitable field extension)
   describing some geometrically irreducible point
-- T[3]::Tuple type of the singularity at P
+- T[3]::Tuple type of the singularity at ``P``  e.g. `(:A, 3)`
 - T[4]::Int number of conjugate points
 
 If X has a least one singularity which is not du Val, the returned vector contains a
