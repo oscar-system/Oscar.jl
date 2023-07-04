@@ -1046,11 +1046,11 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   Q = parent(a)
   J = oscar_groebner_basis(Q)
 
-  BS = IdealGens([a.f], keep_ordering = false)
+  BS = IdealGens([a.f], keep_ordering = true)
   singular_assure(BS)
 
   J = vcat(J, [b.f])
-  BJ = IdealGens(J, keep_ordering = false)
+  BJ = IdealGens(J, keep_ordering = true)
   singular_assure(BJ)
 
   s, rest = Singular.lift(BJ.S, BS.S)

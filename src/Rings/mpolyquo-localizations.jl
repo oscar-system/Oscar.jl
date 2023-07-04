@@ -665,7 +665,11 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
-  one(R) in I && return zero(L)
+  isone(I) && return zero(L)
+  denoms = denominators(inverted_set(W))
+  if iszero(length(denoms)) || all(x->isone(x), denoms)
+    return L(Q(a)*inv(Q(b)))
+  end
   d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
@@ -678,6 +682,14 @@ function convert(
   abort = false
   # find some power which works
   while !abort
+   if length(terms(last(powers_of_d))) > 10000
+      id = _as_affine_algebra_with_many_variables(L)
+      aa = simplify(id(L(a)))
+      bb = simplify(id(L(b)))
+      success, cc = divides(aa, bb)
+      !success && error("element can not be converted to localization")
+      return inverse(id)(simplify(cc))
+    end
     (abort, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
     if !abort
       push!(powers_of_d, last(powers_of_d)^2)
@@ -2088,5 +2100,41 @@ function (W::MPolyDecRing)(f::MPolyLocRingElem)
   return W(forget_decoration(W)(f))
 end
 
+@attr Map function _as_affine_algebra_with_many_variables(
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
+  )
+  inverse_name=:_0
+  R = base_ring(L)
+  f = denominators(inverted_set(L))
+  f = sort(f, lt=(x, y)->total_degree(x)>total_degree(y))
+  r = length(f)
+  A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
+  theta = t[1:r]
+  I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
+  ordering = degrevlex(gens(A)[r+1:end])
+  if r > 0 
+    ordering = lex(theta)*ordering
+  end
+  Q = MPolyQuoRing(A, I, ordering)
+  function my_fun(g)
+    a = Q(phi(lifted_numerator(g)))
+    isone(lifted_denominator(g)) && return a
+    b = Q(phi(lifted_denominator(g)))
+    success, c = divides(a, b)
+    success || error("element can not be mapped")
+    return c
+  end
+  id = MapFromFunc(my_fun, L, Q)
+  #id = hom(L, Q, gens(A)[r+1:end], check=false)
+  id_inv = hom(Q, L, vcat([L(one(R), b, check=false) for b in f], gens(L)), check=false)
+  set_attribute!(id, :inverse, id_inv)
+  set_attribute!(id_inv, :inverse, id)
+  return id
+end
+
+function inverse(phi::MPolyQuoLocalizedRingHom)
+  has_attribute(phi, :inverse) && return get_attribute(phi, :inverse)
+  error("computation of inverse not implemented")
+end
 
 
