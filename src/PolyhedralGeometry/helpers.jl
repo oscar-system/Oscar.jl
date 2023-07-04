@@ -367,8 +367,13 @@ _scalar_type_to_polymake(::Type{Float64}) = Float64
 ####################################################################
 
 function _embedded_quadratic_field(r::ZZRingElem)
-    R, = quadratic_field(r)
-    return Hecke.embedded_field(R, real_embeddings(R)[2])
+    if iszero(r)
+        R, = rationals_as_number_field()
+        return Hecke.embedded_field(R, real_embeddings(R)[])
+    else
+        R, = quadratic_field(r)
+        return Hecke.embedded_field(R, real_embeddings(R)[2])
+    end
 end
 
 function _find_parent_field(::Type{T}, x, y...) where T <: scalar_types
@@ -417,29 +422,51 @@ end
 function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
-    propnames = propertynames(p)
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :RAYS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
     i = findfirst(f, propnames)
     # find first QuadraticExtension with root != 0
-    r = 0
+    # or first OscarNumber wrapping an embedded number field element
     while !isnothing(i)
         prop = getproperty(p, propnames[i])
-        # relevant properties can be QuadraticExtension or a container with QuadraticExtension elements
-        if prop isa Polymake.QuadraticExtension
-            r = Polymake.generating_field_elements(prop).r
-        elseif hasmethod(length, (typeof(prop),)) && eltype(prop) <: Polymake.QuadraticExtension
+        if eltype(prop) <: Polymake.QuadraticExtension
             for el in prop
                 r = Polymake.generating_field_elements(el).r
-                iszero(r) || break
+                iszero(r) || return _embedded_quadratic_field(ZZ(r))[1]
+            end
+        elseif eltype(prop) <: Polymake.OscarNumber
+            for el in prop
+                on = Polymake.unwrap(el)
+                if on isa Hecke.EmbeddedNumFieldElem{nf_elem}
+                    return parent(on)
+                end
             end
         end
-        iszero(r) || break
         i = findnext(f, propnames, i + 1)
     end
-    return iszero(r) ? rationals_as_number_field()[1] : _embedded_quadratic_field(ZZ(r))[1]
+    return _embedded_quadratic_field(ZZ(0))[1]
 end
 
 _detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ
 _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.Floats{Float64}()
+
+function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
+    # we only want to check existing properties
+    f = x -> Polymake.exists(p, string(x))
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :RAYS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
+    i = findfirst(f, propnames)
+    # find first OscarNumber wrapping a FieldElem
+    while !isnothing(i)
+        prop = getproperty(p, propnames[i])
+        for el in prop
+            on = Polymake.unwrap(el)
+            if on isa T
+                return parent(on)
+            end
+        end
+        i = findnext(f, propnames, i + 1)
+    end
+    throw(ArgumentError("BigObject does not contain information about a parent Field"))
+end
 
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
     T = detect_scalar_type(U, p)
