@@ -8730,7 +8730,7 @@ the one of each generator of the ambient free module of M as zero.
 
     vector_space_dimension(M::SubquoModule)
 
-If M happens to be finite-dimensional as a kk-vectorspace, this returns its dimension.
+If M happens to be finite-dimensional as a kk-vectorspace, this returns its dimension; otherwise it throws an error.
 
 # Examples:
 ```jldoctest
@@ -8837,7 +8837,7 @@ the one of each generator of the ambient free module of M as zero.
 
     vector_space_basis(M::SubquoModule)
 
-If M happens to be finite-dimensional as a kk-vectorspace, this returns a monomial basis of it.
+If M happens to be finite-dimensional as a kk-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
 
 # Examples:
 ```jldoctest
