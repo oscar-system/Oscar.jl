@@ -162,6 +162,10 @@ end
 
 ########################################################
 # (4) StdSpec (needed?)
+# Calling this in a constructor should be avoided
+# since we want to support all types of affine schemes.
+# But StdSpec can be useful when implementing some
+# comparison or properties.
 ########################################################
 
 @doc raw"""
@@ -175,24 +179,7 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
 Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
-```
-"""
-function standard_spec(X::AbsSpec)
-  error("not implemented for input of type $(typeof(X))")
-end
 
-standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
-
-
-@doc raw"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
@@ -202,25 +189,6 @@ Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> standard_spec(X)
 Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
-```
-"""
-function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
-  A = OO(X)
-  R = base_ring(A)
-  return Spec(MPolyQuoLocRing(R, modulus(A), units_of(R)))
-end
-
-
-@doc raw"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
@@ -233,33 +201,25 @@ julia> standard_spec(X)
 Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """
+function standard_spec(X::AbsSpec)
+  error("not implemented for input of type $(typeof(X))")
+end
+
+standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
+
+
+# documented above
+function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
+  A = OO(X)
+  R = base_ring(A)
+  return Spec(MPolyQuoLocRing(R, modulus(A), units_of(R)))
+end
+
+
+# documented above
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
-
-@doc raw"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
-
-julia> I = ideal(R, [x]);
-
-julia> U = complement_of_prime_ideal(ideal(R, [y]));
-
-julia> X = Spec(R, I, U)
-Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
-
-julia> standard_spec(X)
-Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
-```
-"""
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
-
+#documented above
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
 
 
