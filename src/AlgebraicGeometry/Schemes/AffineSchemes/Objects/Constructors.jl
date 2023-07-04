@@ -179,6 +179,26 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
 Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x]);
+
+julia> X = Spec(R, I)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+
+julia> standard_spec(X)
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+
+julia> I = ideal(R, [x]);
+
+julia> U = complement_of_prime_ideal(I);
+
+julia> X = Spec(R, U)
+Spec of Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal
+
+julia> standard_spec(X)
+Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """
 function standard_spec(X::AbsSpec)
