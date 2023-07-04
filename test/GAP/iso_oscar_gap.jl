@@ -183,6 +183,7 @@ end
             b = my_rand_bits(F, 5)
             @test f(a*b) == f(a)*f(b)
             @test f(a - b) == f(a) - f(b)
+            @test preimage(f, f(a)) == a
          end
       end
       @test_throws ErrorException f(cyclotomic_field(2)[2])
@@ -210,6 +211,7 @@ end
             b = my_rand_bits(F, 5)
             @test f(a*b) == f(a)*f(b)
             @test f(a - b) == f(a) - f(b)
+            @test preimage(f, f(a)) == a
          end
       end
 
@@ -221,11 +223,21 @@ end
 @testset "number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::NumField, b::Int) = F([my_rand_bits(base_field(F), b) for i in 1:degree(F)])
 
+   # absolute number fields
    R, x = polynomial_ring(QQ, "x")
-   @testset for pol in [ x^2 - 5, x^2 + 3, x^3 - 2 ]
-      F, z = number_field(pol)
+   pols = [ x^2 - 5, x^2 + 3, x^3 - 2,  # simple
+            [x^2 - 2, x^2 + 1] ]        # non-simple
+   fields = Any[number_field(pol)[1] for pol in pols]
+
+   # non-absolute number fields
+   F1, _ = number_field(x^2-2)
+   R1, x1 = polynomial_ring(F1, "x")
+   push!(fields, number_field(x1^2-3)[1])            # simple
+   push!(fields, number_field([x1^2-3, x1^2+1])[1])  # non-simple
+
+   @testset for F in fields
       f = Oscar.iso_oscar_gap(F)
       @test f === Oscar.iso_oscar_gap(F)  # test that everything gets cached
       for i in 1:10
@@ -234,9 +246,18 @@ end
             b = my_rand_bits(F, 5)
             @test f(a*b) == f(a)*f(b)
             @test f(a - b) == f(a) - f(b)
+            @test preimage(f, f(a)) == a
          end
       end
    end
+
+   # an application
+   K = fields[4]
+   a, b = gens(K)
+   M1 = 1/a*matrix(K, [1 1; 1 -1])
+   M2 = matrix(K, [1 0 ; 0 b])
+   G = matrix_group(M1, M2)
+   @test small_group_identification(G) == (192, 963)
 end
 
 @testset "abelian closure" begin
