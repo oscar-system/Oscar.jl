@@ -78,41 +78,41 @@
         c = cube(ENF, 3, -sre2, sre2)
         d = cube(3, -5//3, 1//2)
 
-        for z in (4, QQ(4), NF(4), ENF(4))
+        for z in (4, QQ(4), ENF(4))
             @test pyramid(c, z) isa Polyhedron{T}
             p = pyramid(c, z)
             @test f_vector(p) == [9, 20, 18, 7]
             @test volume(p) == volume(c)
         end
-        for (z, U) in ((4, QQFieldElem), (QQ(4), QQFieldElem), (NF(4), T), (ENF(4), T))
+        for (z, U) in ((4, QQFieldElem), (QQ(4), QQFieldElem), (ENF(4), T))
             @test pyramid(d, z) isa Polyhedron{U}
             p = pyramid(d, z)
             @test f_vector(p) == [9, 20, 18, 7]
             @test volume(p) == volume(d)
         end
 
-        for z in (2, QQ(2), NF(2), ENF(2))
+        for z in (2, QQ(2), ENF(2))
             @test bipyramid(c, z) isa Polyhedron{T}
             p = bipyramid(c, z)
-            @test f_vector(p) == [18, 40, 36, 12]
+            @test f_vector(p) == [10, 28, 30, 12]
             @test volume(p) == volume(c)
-            for z_prime in (2, QQ, NF(2), ENF(2))
+            for z_prime in (-2, QQ(-2), ENF(-2))
                 @test bipyramid(c, z, z_prime) isa Polyhedron{T}
                 p = bipyramid(c, z, z_prime)
-                @test f_vector(p) == [18, 40, 36, 12]
+                @test f_vector(p) == [10, 28, 30, 12]
                 @test volume(p) == volume(c)
             end
         end
-        for (z, U) in ((2, QQFieldElem), (QQ(2), QQFieldElem), (NF(2), T), (ENF(2), T))
+        for (z, U) in ((2, QQFieldElem), (QQ(2), QQFieldElem), (ENF(2), T))
             @test bipyramid(d, z) isa Polyhedron{U}
             p = bipyramid(d, z)
-            @test f_vector(p) == [18, 40, 36, 12]
+            @test f_vector(p) == [10, 28, 30, 12]
             @test volume(p) == volume(d)
-            for z_prime in (2, QQ, NF(2), ENF(2))
-                @test bipyramid(d, z, z_prime) isa Polyhedron{T}
+            for (z_prime, V) in ((-2, QQFieldElem), (QQ(-2), QQFieldElem), (ENF(-2), T))
+                @test bipyramid(d, z, z_prime) isa Polyhedron{U == T || V == T ? T : U}
                 p = bipyramid(d, z, z_prime)
-                @test f_vector(p) == [18, 40, 36, 12]
-                @test volume(p) == volume(c)
+                @test f_vector(p) == [10, 28, 30, 12]
+                @test volume(p) == volume(d)
             end
         end
 
@@ -128,6 +128,37 @@
             @test volume(p) == 265*sre2//6 + 13429//216
             @test c + d == p
         end
+
+        for (k, U) in ((3, QQFieldElem), (QQ(3), QQFieldElem), (ENF(3), T))
+            @test k * c isa Polyhedron{T}
+            let p = k * c
+                @test f_vector(p) == f_vector(c)
+                @test volume(p) == 27 * volume(c)
+                @test c * k == p
+            end
+            @test k * d isa Polyhedron{U}
+            let p = k * d
+                @test f_vector(p) == f_vector(d)
+                @test volume(p) == 27 * volume(d)
+                @test d * k == p
+            end
+            
+        end
+
+        @test convex_hull(c, d) isa Polyhedron{T}
+        let p = convex_hull(c, d)
+            @test f_vector(p) == [14, 24, 12]
+            @test volume(p) == 379 * sre2//36 + 1349//108
+        end
+
+        cc = positive_hull(ENF, Oscar.homogenized_matrix(vertices(c), 1))
+        dc = positive_hull(Oscar.homogenized_matrix(vertices(d), 1))
+        @test intersect(cc, dc) isa Cone{T}
+        let p = intersect(cc, dc)
+            @test f_vector(p) == f_vector(c)
+            @test Oscar.get_parent_field(p) == ENF
+        end
+        
     end
 
 end
