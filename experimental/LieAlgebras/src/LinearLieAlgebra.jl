@@ -6,14 +6,21 @@
   s::Vector{Symbol}
 
   function LinearLieAlgebra{C}(
-    R::Ring, n::Int, basis::Vector{<:MatElem{C}}, s::Vector{Symbol}; cached::Bool=true
+    R::Ring,
+    n::Int,
+    basis::Vector{<:MatElem{C}},
+    s::Vector{Symbol};
+    cached::Bool=true,
+    check::Bool=true,
   ) where {C<:RingElement}
     return get_cached!(
       LinearLieAlgebraDict, (R, n, basis, s), cached
     ) do
       @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
       @req length(s) == length(basis) "Invalid number of basis element names."
-      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid structure constants."
+      if check
+        @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid structure constants."
+      end
       new{C}(R, n, length(basis), basis, s)
     end::LinearLieAlgebra{C}
   end
@@ -145,7 +152,12 @@ two basis elements in its span.
 If `cached` is `true`, the constructed Lie algebra is cached.
 """
 function lie_algebra(
-  R::Ring, n::Int, basis::Vector{<:MatElem{C}}, s::Vector{<:VarName}; cached::Bool=true
+  R::Ring,
+  n::Int,
+  basis::Vector{<:MatElem{C}},
+  s::Vector{<:VarName};
+  cached::Bool=true,
+  check::Bool=true,
 ) where {C<:RingElement}
   return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
 end
@@ -178,7 +190,7 @@ julia> matrix_repr_basis(L)
 function general_linear_lie_algebra(R::Ring, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
-  L = lie_algebra(R, n, basis, s)
+  L = lie_algebra(R, n, basis, s; check=false)
   set_attribute!(L, :type => :general_linear)
   return L
 end
@@ -215,7 +227,7 @@ function special_linear_lie_algebra(R::Ring, n::Int)
   s_e = ["e_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_h = ["h_$(i)" for i in 1:(n - 1)]
-  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h])
+  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h]; check=false)
   set_attribute!(L, :type => :special_linear)
   return L
 end
@@ -248,7 +260,7 @@ function special_orthogonal_lie_algebra(R::Ring, n::Int)
     (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
   ]
   s = ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
-  L = lie_algebra(R, n, basis, s)
+  L = lie_algebra(R, n, basis, s; check=false)
   set_attribute!(L, :type => :special_orthogonal)
   return L
 end
