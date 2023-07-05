@@ -22,6 +22,22 @@ The objects from polyhedral geometry operate on a given type, which (usually) re
 Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
 When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
 
+!!! warning
+    Support for fields other than the rational numbers is currently in an experimental stage.
+
+These three lines result in the same polytope over rational numbers. Besides the general support mentioned above, naming a `Field` explicitly is encouraged because it allows user control and increases efficiency.
+```jldoctest
+julia> P = convex_hull(QQ, [1 0 0; 0 0 1]) # passing a `Field` always works
+Polyhedron in ambient dimension 3
+
+julia> P == convex_hull(QQFieldElem, [1 0 0; 0 0 1]) # passing the type works for `QQFieldElem` and `Float64` only
+true
+
+julia> P == convex_hull([1 0 0; 0 0 1]) # `Field` defaults to `QQ`
+true
+
+```
+
 ## Type compatibility
 
 When working in polyhedral geometry it can prove advantageous to have various
