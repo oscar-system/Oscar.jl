@@ -4,7 +4,12 @@
         "doi": "10.48550/arXiv.1212.2949",
         "version": "2",
         "discipline": "hep-th",
-        "link": "https://arxiv.org/abs/1212.2949v2"
+        "link": "https://arxiv.org/abs/1212.2949v2",
+        "model_location": {
+            "section": "5.1",
+            "equation": "5.1",
+            "page": "49"
+        }
     },
     "journal_data": {
         "doi": "10.1007/JHEP04(2013)061",
@@ -13,18 +18,18 @@
         "volume": "04",
         "pages": "061",
         "year": "2013",
-        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
     },
     "paper_metadata": {
         "authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"],
         "title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
         "description": "Systematic classification of ADE Tate models and their resolutions",
         "buzzwords": ["Tate", "classification", "resolution"]
-    },
-    "model_location": {
-        "section": "5.1",
-        "equation": "5.1",
-        "page": "49"
     },
     "model_data": {
         "type": "tate",
