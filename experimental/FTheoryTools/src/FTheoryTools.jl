@@ -9,7 +9,6 @@ include("WeierstrassModels/properties.jl")
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")
 include("TateModels/properties.jl")
-include("TateModels/auxiliary.jl")
 include("TateModels/methods.jl")
 
 include("HypersurfaceModels/constructors.jl")
@@ -20,6 +19,10 @@ include("HypersurfaceModels/methods.jl")
 include("standard_constructions.jl")
 
 include("LiteratureModels/constructors.jl")
+include("LiteratureModels/attributes.jl")
+include("LiteratureModels/properties.jl")
+include("LiteratureModels/methods.jl")
+include("LiteratureModels/auxiliary.jl")
 include("LiteratureModels/create_index.jl")
 
 include("exports.jl")
