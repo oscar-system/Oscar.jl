@@ -4,7 +4,12 @@
         "doi": "10.48550/arXiv.1507.05954",
         "version": "2",
         "discipline": "hep-th",
-        "link": "https://arxiv.org/abs/2507.05954v2"
+        "link": "https://arxiv.org/abs/2507.05954v2",
+        "model_location": {
+            "section": "A",
+            "equation": "A.1",
+            "page": "71"
+        }
     },
     "journal_data": {
         "doi": "10.1007/JHEP11(2015)204",
@@ -13,7 +18,12 @@
         "volume": "11",
         "pages": "204",
         "year": "2015",
-        "link": "https://link.springer.com/article/10.1007/JHEP11(2015)204"
+        "link": "https://link.springer.com/article/10.1007/JHEP11(2015)204",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
     },
     "paper_metadata": {
         "authors": [
@@ -25,11 +35,6 @@
         "title": "General U(1)×U(1) F-theory compactifications and beyond: geometry of unHiggsings and novel matter structure",
         "description": "General construction of U(1)xU(1) model",
         "buzzwords": ["U(1)", "Mordell–Weil", "rational sections"]
-    },
-    "model_location": {
-        "section": "A",
-        "equation": "A.1",
-        "page": "71"
     },
     "model_data": {
         "type": "hypersurface",

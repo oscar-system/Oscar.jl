@@ -4,7 +4,12 @@
         "doi": "",
         "version": "",
         "discipline": "",
-        "link": ""
+        "link": "",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
     },
     "journal_data": {
         "doi": "",
@@ -13,18 +18,18 @@
         "volume": "",
         "pages": "",
         "year": "",
-        "link": ""
+        "link": "",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
     },
     "paper_metadata": {
         "authors": [""],
         "title": "",
         "description": "",
         "buzzwords": [""]
-    },
-    "model_location": {
-        "section": "",
-        "equation": "",
-        "page": ""
     },
     "model_parameters": [""],
     "model_data": {

@@ -19,7 +19,7 @@ include("HypersurfaceModels/methods.jl")
 
 include("standard_constructions.jl")
 
-include("LiteratureTateModels/constructors.jl")
-include("LiteratureTateModels/create_index.jl")
+include("LiteratureModels/constructors.jl")
+include("LiteratureModels/create_index.jl")
 
 include("exports.jl")
