@@ -47,7 +47,7 @@ elem_type(::Type{LinearLieAlgebra{C}}) where {C<:RingElement} = LinearLieAlgebra
 
 parent(x::LinearLieAlgebraElem) = x.parent
 
-base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra) = L.dim
 
@@ -79,7 +79,7 @@ end
 
 function Base.show(io::IO, V::LinearLieAlgebra)
   print(io, "LinearLieAlgebra (⊆ gl_$(V.n)) over ")
-  print(IOContext(io, :compact => true), base_ring(V))
+  print(IOContext(io, :compact => true), coefficient_ring(V))
 end
 
 function symbols(L::LinearLieAlgebra)

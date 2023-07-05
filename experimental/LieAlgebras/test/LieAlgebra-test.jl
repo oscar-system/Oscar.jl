@@ -15,8 +15,8 @@ function lie_algebra_conformance_test(
 
     @test parent(x) === L
 
-    @test base_ring(x) === base_ring(L)
-    @test elem_type(base_ring(L)) == C
+    @test coefficient_ring(x) === coefficient_ring(L)
+    @test elem_type(coefficient_ring(L)) == C
 
     # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
     @test dim(L) == ngens(L)
@@ -38,14 +38,14 @@ function lie_algebra_conformance_test(
   end
 
   @testset "parent object call overload" begin
-    @test L() == zero(L) == L(zeros(base_ring(L), dim(L)))
+    @test L() == zero(L) == L(zeros(coefficient_ring(L), dim(L)))
 
     for _ in 1:num_random_tests
       coeffs = rand(-10:10, dim(L))
       x1 = L(coeffs)
-      x2 = L(base_ring(L).(coeffs))
-      x3 = L(matrix(base_ring(L), 1, dim(L), coeffs))
-      x4 = L(sparse_row(matrix(base_ring(L), 1, dim(L), coeffs)))
+      x2 = L(coefficient_ring(L).(coeffs))
+      x3 = L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
+      x4 = L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
       x5 = L(x1)
       @test x1 == x2
       @test x1 == x3
@@ -76,8 +76,8 @@ function lie_algebra_conformance_test(
 
       @test 2 * x == x + x
       @test x * 2 == x + x
-      @test base_ring(L)(2) * x == x + x
-      @test x * base_ring(L)(2) == x + x
+      @test coefficient_ring(L)(2) * x == x + x
+      @test x * coefficient_ring(L)(2) == x + x
     end
   end
 

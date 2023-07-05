@@ -19,8 +19,8 @@ function lie_algebra_module_conformance_test(
 
     @test parent(v) === V
 
-    @test base_ring(v) === base_ring(V)
-    @test elem_type(base_ring(V)) == C
+    @test coefficient_ring(v) === coefficient_ring(V)
+    @test elem_type(coefficient_ring(V)) == C
 
     @test base_lie_algebra(V) === L
 
@@ -44,14 +44,14 @@ function lie_algebra_module_conformance_test(
   end
 
   @testset "parent object call overload" begin
-    @test V() == zero(V) == V(zeros(base_ring(V), dim(V)))
+    @test V() == zero(V) == V(zeros(coefficient_ring(V), dim(V)))
 
     for _ in 1:num_random_tests
       coeffs = rand(-10:10, dim(V))
       v1 = V(coeffs)
-      v2 = V(base_ring(V).(coeffs))
-      v3 = V(matrix(base_ring(V), 1, dim(V), coeffs))
-      v4 = V(sparse_row(matrix(base_ring(V), 1, dim(V), coeffs)))
+      v2 = V(coefficient_ring(V).(coeffs))
+      v3 = V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
+      v4 = V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
       v5 = V(v1)
       @test v1 == v2
       @test v1 == v3
@@ -82,8 +82,8 @@ function lie_algebra_module_conformance_test(
 
       @test 2 * v == v + v
       @test v * 2 == v + v
-      @test base_ring(V)(2) * v == v + v
-      @test v * base_ring(V)(2) == v + v
+      @test coefficient_ring(V)(2) * v == v + v
+      @test v * coefficient_ring(V)(2) == v + v
     end
   end
 
@@ -409,7 +409,7 @@ end
     function lie_algebra_module_struct_const(
       L::LieAlgebra{C}, V::LieAlgebraModule{C}
     ) where {C<:RingElement}
-      R = base_ring(L)
+      R = coefficient_ring(L)
       dimL = dim(L)
       dimV = dim(V)
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)

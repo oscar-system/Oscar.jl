@@ -11,9 +11,9 @@ using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
 import ..Oscar:
   _iso_oscar_gap,
   action,
-  base_ring,
   basis,
   coeff,
+  coefficient_ring,
   coefficients,
   dim,
   direct_sum,
