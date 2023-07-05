@@ -3,12 +3,14 @@ export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
 
-This is the class describing relatively minimal elliptic surfaces.
-An genus $1$-fibration is a proper map
+The type of a relatively minimal elliptic surface.
+
+A genus $1$-fibration is a proper map
 $\pi \colon X \to C$ to a curve $C$ whose fibers are curves of
-(arithmetic) genus $1$. We call the fibration elliptic
-if it comes equipped with a section. This turns the generic
-fiber of $\pi$ into an elliptic curve $E/k(C)$ where
+(arithmetic) genus $1$.
+The fibration is relatively minimal if its fibers do not contain any ``(-1)``-curves.
+We call the fibration elliptic if it comes equipped with a section.
+This turns the generic fiber of $\pi$ into an elliptic curve $E/k(C)$ where
 $k(C)$ is the function field of the curve $C$.
 """
 @attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -47,7 +49,7 @@ end
 Return the relatively minimal elliptic surface with generic fiber ``E``.
 """
 function elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_gens::Vector{<:EllCrvPt}=EllCrvPt[])
-  @req all(parent(i)==generic_fiber.E for i in mwl_gens) "not a vector of points on $(generic_fiber)"
+  @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, s, mwl_gens)
   return S
 end
@@ -60,32 +62,30 @@ function underlying_scheme(S::EllipticSurface)
 end
 
 @doc raw"""
+    generic_fiber(S::EllipticSurface) -> EllCrv
 
+Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
 
 @doc raw"""
+    algebraic_lattice(X) -> Vector{WeilDivisor}, ZZLat
 
+Return the sublattice of ``Num(X)`` spanned by fiber components
+and the sections provided at the construction of ``X``.
 """
-@attr function algebraic_lattice(S)
-  isdefined(S, :MWL) || error("no generators for the Mordell-Weil group available")
-  return algebraic_lattice(S, S.MWL)
-end
-
-@doc raw"""
-
-"""
-function algebraic_lattice(S::EllipticSurface, mwl_gens::Vector{<:EllCrvPt})
-  basis, _, G = trivial_lattice(S)
+@attr function algebraic_lattice(X)
+  mwl_gens = X.MWL
+  basisTriv, GTriv = trivial_lattice(X)
   l = length(mwl_gens)
-  r = length(basis)
-  sections = [section(S, i) for i in mwl_gens]
+  r = length(basisTriv)
+  sections = [section(X, i) for i in mwl_gens]
   n = l+r
   GA = zero_matrix(ZZ, n, n)
-  GA[1:r,1:r] = G
+  GA[1:r,1:r] = GTriv
   GA[r+1:n,r+1:n] = -2*identity_matrix(ZZ, l)
-  gensA = vcat(basis, sections)
+  gensA = vcat(basisTriv, sections)
   @vprint :EllipticSurface 2 "computing intersection numbers"
   for i in 1:n
     @vprint :EllipticSurface 2 "\nrow $(i): \n"
@@ -100,6 +100,8 @@ function algebraic_lattice(S::EllipticSurface, mwl_gens::Vector{<:EllCrvPt})
 end
 
 @doc raw"""
+    mordell_weil_lattice(S::EllipticSurface)
+
 
 """
 @attr ZZLat function mordell_weil_lattice(S::EllipticSurface)
@@ -618,14 +620,15 @@ function irreducible_fiber(S::EllipticSurface)
     pt = k.([1, 0])
   else
     if is_finite(k)
+      found = false
       for i in k
         if !(i in sing)  # true if the fiber over [i,1] is irreducible
-          global pt = k.([i,1])
+          pt = k.([i,1])
           found = true
           break
         end
       end
-      error("there is no irreducible fiber defined over the base field")
+      found || error("there is no irreducible fiber defined over the base field")
     else
       i = k(0)
       while true
@@ -664,10 +667,10 @@ function section(X::EllipticSurface, P::EllCrvPt)
     b = P
     PX = ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
   end
-  for f in S.ambient_blowups
+  for f in X.ambient_blowups
     PX = strict_transform(f , PX)
   end
-  PY = pullback(S.inc_Y, PX)
+  PY = pullback(X.inc_Y, PX)
   set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
   return WeilDivisor(PY, check=false)
 end
@@ -918,11 +921,15 @@ function extended_ade(ADE::Symbol, n::Int)
     G[1,n+1] = -1
     G[n+1,1] = -1
   end
-  if ADE == :A
+  if ADE == :A && n > 0
     G[1,2] = -1
     G[2,1] = -1
     G[1,n+1] = -1
     G[n+1,1] = -1
+  end
+  if ADE == :A && n ==1 0
+    G[1,2]= -2
+    G[2,1] = -2
   end
   if ADE == :D
     G[1,n] = -1
