@@ -1,4 +1,3 @@
-# LieAlg.jl : Implements root systems (by copying most structures from GAP)
 using Oscar
 
 GAP.Packages.load("sla")
@@ -6,27 +5,24 @@ GAP.Packages.load("sla")
 import Base: show, size, getindex
 
 mutable struct RootSystem <: AbstractVector{fmpq}
-   roots::Vector
-   simple_roots::Vector
-   positive_roots::Vector
-   root_system_type::String
-
-   function RootSystem(S::String)
-        l=length(S)
-	n=parse(Int64,S[2:l])
-	S1=GAP.Globals.String(S[1:1])[2:2]
-
-	RS=GAP.Globals.RootSystem(S1,n)
-	Ro_1=GAP.Globals.PositiveRoots(RS)
-	Ro_2=GAP.Globals.NegativeRoots(RS)
-	sR=GAP.Globals.SimpleSystem(RS)
-
-        sR=[[sR[i][j] for j=1:length(sR[i])] for i=1:length(sR)]
-	Ro1=[[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
-	Ro2=[[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
-	Ro=reduce(vcat, (Ro1, Ro2))
-	new(Ro,sR,Ro1,S)
-   end
+  roots::Vector
+  simple_roots::Vector
+  positive_roots::Vector
+  root_system_type::String
+  function RootSystem(S::String)
+    l = length(S)
+    n = parse(Int64, S[2:l])
+    S1 = GAP.Obj(string(S[1:1]))
+    RS = GAP.Globals.RootSystem(S1, n)
+    Ro_1 = GAP.Globals.PositiveRoots(RS)
+    Ro_2 = GAP.Globals.NegativeRoots(RS)
+    sR = GAP.Globals.SimpleSystem(RS)
+    sR = [[sR[i][j] for j=1:length(sR[i])] for i=1:length(sR)]
+    Ro1 = [[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
+    Ro2 = [[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
+    Ro = reduce(vcat, (Ro1, Ro2))
+    new(Ro,sR,Ro1,S)
+  end
 end
 
 ###############################################################################
@@ -35,9 +31,9 @@ end
 #
 ###############################################################################
 
-size(R::RootSystem,dim::Any)=size(R.roots,dim)
+size(R::RootSystem, dim::Any) = size(R.roots, dim)
 
-size(R::RootSystem)=size(R.roots)
+size(R::RootSystem) = size(R.roots)
 
 getindex(R::RootSystem, r::Any) = getindex(R.roots, r)
 
@@ -48,8 +44,8 @@ getindex(R::RootSystem, r::Any) = getindex(R.roots, r)
 ###############################################################################
 
 function show(io::IO, R::RootSystem)
-   print(io, "Root system of type ")
-   show(io, R.root_system_type)
+  print(io, "Root system of type ")
+  show(io, R.root_system_type)
 end
 
 ###############################################################################
@@ -59,7 +55,7 @@ end
 ###############################################################################
 
 function CartanMatrix(S::String)
-		S1=S[1:1]
+  S1=S[1:1]
 		l=length(S)
 		n=parse(Int64,S[2:l])
 		S1=GAP.Globals.String(S[1:1])[2:2]
