@@ -13,7 +13,7 @@ function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
-  d = prod(denominators(U))
+  d = prod(denominators(U); init=one(R))
   if check
     inradical(d, I) || return false, zero(R), zero_matrix(R, 1, ngens(I))
   end

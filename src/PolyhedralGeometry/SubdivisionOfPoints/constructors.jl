@@ -54,7 +54,8 @@ Subdivision of points in ambient dimension 3
 ```
 """
 function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, points)
+   @req size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
+   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
    SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
       POINTS = homogenize(points,1),
@@ -91,7 +92,8 @@ julia> n_maximal_cells(SOP)
 ```
 """
 function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
+   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
+   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
    SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
       POINTS = homogenize(points,1),
       WEIGHTS = weights,

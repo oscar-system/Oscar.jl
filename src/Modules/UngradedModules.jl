@@ -181,8 +181,12 @@ function (==)(F::FreeMod, G::FreeMod)
 end
 
 function hash(F::FreeMod, h::UInt)
-  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
-  return hash((base_ring(F), rank(F), F.S), h)
+  b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
+  h = hash(base_ring(F), h)
+  h = hash(rank(F), h)
+  h = hash(F.S, h)
+  is_graded(F) && (h = hash(F.d, h))
+  return xor(h, b)
 end
 
 @doc raw"""
@@ -490,7 +494,11 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return xor(hash(tuple(parent(a), coordinates(a)), h), hash(typeof(a)))
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  h = hash(coordinates(a), h)
+  return xor(h, b)
 end
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
@@ -3515,37 +3523,48 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
 end
+
 function -(a::SubquoModuleElem, b::SubquoModuleElem) 
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
 end
+
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
+
 function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::MPolyRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::RingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
+
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
   if parent(a) !== parent(b)
     return false
   end
   return iszero(a-b)
+end
+
+function Base.hash(a::SubquoModuleElem, h::UInt)
+  error("not implemented")
 end
 
 function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
@@ -4820,6 +4839,15 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   end
   return true
 end
+
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
 ###################################################################
 
 @doc raw"""

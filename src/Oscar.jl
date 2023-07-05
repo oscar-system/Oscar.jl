@@ -94,6 +94,25 @@ function __init__()
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 
+    add_verbose_scope(:EllipticSurface)
+    add_assert_scope(:EllipticSurface)
+
+    add_verbose_scope(:Glueing)
+    add_assert_scope(:Glueing)
+
+    add_verbose_scope(:Intersections)
+    add_assert_scope(:Intersections)
+
+    add_verbose_scope(:MaximalAssociatedPoints)
+    add_assert_scope(:MaximalAssociatedPoints)
+
+    add_verbose_scope(:Divisors)
+    add_assert_scope(:Divisors)
+
+    add_verbose_scope(:Blowup)
+    add_assert_scope(:Blowup)
+
+
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
     add_verbose_scope(:HypersurfaceModel)

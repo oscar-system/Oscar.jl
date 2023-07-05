@@ -213,7 +213,15 @@ function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
     return ElementOfGSet(Omega, fun(omega.obj, g))
 end
 
-==(omega1::ElementOfGSet, omega2::ElementOfGSet) = ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
+==(omega1::ElementOfGSet, omega2::ElementOfGSet) = 
+  ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
+
+function Base.hash(omega::ElementOfGSet, h::UInt)
+  b = 0x4dd1b3e65edeab89 % UInt
+  h = hash(omega.gset, h)
+  h = hash(omega.obj, h)
+  return xor(h, b)
+end
 
 Base.in(omega::ElementOfGSet, Omega::GSet) = Base.in(omega.obj, Omega)
 

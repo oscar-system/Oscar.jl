@@ -70,3 +70,33 @@ A curve is a geometrically integral scheme of dimension 1 of finite type over a 
 """
 abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 
+
+################################################################################
+#
+# Abstract types for surfaces
+#
+################################################################################
+
+@doc raw"""
+    AbsAffineSurface <: AbsAffineVariety
+
+A surface in affine space.
+
+An affine surface is an affine variety of dimension two.
+"""
+abstract type AbsAffineSurface{BaseField<:Field, RingType<:Ring} <: AbsAffineVariety{BaseField, RingType} end
+
+@doc raw"""
+    AbsProjectiveSurface <: AbsProjectiveVariety
+
+A projective surface embedded in an ambient projective space.
+"""
+abstract type AbsProjectiveSurface{BaseField<:Field, RingType<:Ring} <: AbsProjectiveVariety{BaseField, RingType} end
+
+@doc raw"""
+    AbsCoveredSurface
+
+A geometrically integral scheme of dimension 2 of finite type over a field
+represented in terms of a covering.
+"""
+abstract type AbsCoveredSurface{BaseField} <: Scheme{BaseField} end

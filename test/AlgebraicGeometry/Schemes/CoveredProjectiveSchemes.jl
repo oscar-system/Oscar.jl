@@ -90,3 +90,20 @@ end
   I_sing_Y1 = image_ideal(inc_Y1)
   @test !is_smooth(Y1)
 end
+
+@testset "decomposition information" begin
+  P3 = projective_space(QQ, 3)
+  X = covered_scheme(P3)
+  S = homogeneous_coordinate_ring(P3)
+  (x,y, z, w) = gens(S)
+  A = S[x y z; y z w]
+  I = ideal(S, minors(A, 2))
+  II = ideal_sheaf(P3, I)
+  pr = blow_up(II)
+  Y = domain(projection(pr))
+  @test oscar.has_decomposition_info(oscar.simplified_covering(Y))
+  E = exceptional_divisor(pr)
+  IE = ideal_sheaf(E)
+  Z = subscheme(IE)
+  @test oscar.has_decomposition_info(oscar.simplified_covering(Z))
+end

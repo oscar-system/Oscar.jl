@@ -146,8 +146,8 @@ function polyhedral_fan_from_rays_action(f::Union{Type{T}, Field}, Rays::Abstrac
     Polymake.take(pf, "RAYS", Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(unhomogenized_matrix(Rays)))
     d = length(Rays)
     gp = _group_generators_to_pm_arr_arr(perms, d)
-    Polymake.take(pf, "GROUP.REPRESENTATIVE_MAXIMAL_CONES", MC_reps)
     Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", gp)
+    Polymake.take(pf, "GROUP.MAXIMAL_CONES_ACTION.MAXIMAL_CONES_GENERATORS", MC_reps)
     return PolyhedralFan{scalar_type}(pf, parent_field)
 end
 polyhedral_fan_from_rays_action(Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) = polyhedral_fan_from_rays_action(QQFieldElem, Rays, MC_reps, perms)

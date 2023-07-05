@@ -21,3 +21,12 @@ end
   @test !in(x, I, 10)
   @test in(x*y*z - y*z*x, I, 9) # 9 should be enough
 end
+
+@testset "FreeAssAlgIdeal.utils" begin
+  R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
+  I = Oscar.ideal(R, [x*y - y*x, x*z - z*x])
+  @test isa(ngens(I),Int)
+  @test isequal(ngens(I),2)
+  @test isa(gen(I,ngens(I)),FreeAssAlgElem{QQFieldElem})
+  @test isa(gens(I),Vector)
+end 

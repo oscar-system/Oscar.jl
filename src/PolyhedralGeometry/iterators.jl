@@ -212,6 +212,12 @@ Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
+Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
+  hash((x.a, x.b), hash(T, h))
+
+Base.hash(x::T, h::UInt) where {T<:Union{LinearHalfspace,LinearHyperplane}} =
+  hash(x.a, hash(T, h))
+
 ################################################################################
 ######## SubObjectIterator
 ################################################################################
