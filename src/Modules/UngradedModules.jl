@@ -8730,7 +8730,7 @@ the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_dimension(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise it throws an error.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
 
 # Examples:
 ```jldoctest
@@ -8765,7 +8765,7 @@ function vector_space_dimension(M::SubquoModule)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  has_monomials_on_all_axes(LM) || error("not a finite dimensional vector space")
+  has_monomials_on_all_axes(LM) || return Int64(-1)
   
   d = 0
   sum_dim = 0
