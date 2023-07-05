@@ -115,6 +115,19 @@
                 @test volume(p) == volume(c)
             end
         end
+
+        @test intersect(c, d) isa Polyhedron{T}
+        let p = intersect(c, d)
+            @test f_vector(p) == f_vector(c)
+            @test volume(p) == 11 * sre2//4 + 25//8
+        end
+
+        @test minkowski_sum(c, d) isa Polyhedron{T}
+        let p = minkowski_sum(c, d)
+            @test f_vector(p) == f_vector(c)
+            @test volume(p) == 265*sre2//6 + 13429//216
+            @test c + d == p
+        end
     end
 
 end

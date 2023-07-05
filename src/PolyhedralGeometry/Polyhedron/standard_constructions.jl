@@ -350,10 +350,28 @@ julia> nvertices(M)
 """
 function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:standard) where {T<:scalar_types, U<:scalar_types}
     V, f = _promote_scalar_field(get_parent_field(P), get_parent_field(Q))
+    # workaround; if fixed:
+    # po = pm_object(P)
+    # qo = pm_object(Q)
+    if (T<:FieldElem && T != QQFieldElem)
+        po = pm_object(P)
+        if (U<:FieldElem && U != QQFieldElem)
+            qo = pm_object(Q)
+        else
+            qo = Polymake.@convert_to OscarNumber pm_object(Q)
+        end
+    else
+        qo = pm_object(Q)
+        if (U<:FieldElem && U != QQFieldElem)
+            po = Polymake.@convert_to OscarNumber pm_object(P)
+        else
+            po = pm_object(P)
+        end
+    end
     if algorithm == :standard
-        return Polyhedron{V}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)), f)
+        return Polyhedron{V}(Polymake.polytope.minkowski_sum(po, qo), f)
     elseif algorithm == :fukuda
-        return Polyhedron{V}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)), f)
+        return Polyhedron{V}(Polymake.polytope.minkowski_sum_fukuda(po, qo), f)
     else
         throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
     end
