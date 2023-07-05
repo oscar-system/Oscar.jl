@@ -11,6 +11,7 @@
     cached::Bool=true,
     check::Bool=true,
   ) where {C<:RingElement}
+    @req C == elem_type(R) "Invalid coefficient type."
     return get_cached!(
       AbstractLieAlgebraDict, (R, struct_consts, s), cached
     ) do
@@ -61,11 +62,11 @@ parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:RingElement} =
 
 elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlgebraElem{C}
 
-parent(x::AbstractLieAlgebraElem{C}) where {C<:RingElement} = x.parent
+parent(x::AbstractLieAlgebraElem) = x.parent
 
 base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
-dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
+dim(L::AbstractLieAlgebra) = L.dim
 
 ###############################################################################
 #
@@ -73,12 +74,12 @@ dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
 #
 ###############################################################################
 
-function Base.show(io::IO, V::AbstractLieAlgebra{C}) where {C<:RingElement}
+function Base.show(io::IO, V::AbstractLieAlgebra)
   print(io, "AbstractLieAlgebra over ")
   print(IOContext(io, :compact => true), base_ring(V))
 end
 
-function symbols(L::AbstractLieAlgebra{C}) where {C<:RingElement}
+function symbols(L::AbstractLieAlgebra)
   return L.s
 end
 
@@ -115,7 +116,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Ring, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Ring, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -138,6 +139,7 @@ function lie_algebra(
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
+  @req C == elem_type(R) "Invalid coefficient type."
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
 
@@ -200,6 +202,7 @@ function lie_algebra(
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
+  @req C == elem_type(R) "Invalid coefficient type."
   struct_consts2 = Matrix{SRow{elem_type(R)}}(
     undef, size(struct_consts, 1), size(struct_consts, 2)
   )

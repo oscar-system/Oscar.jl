@@ -37,11 +37,11 @@ parent_type(::Type{LinearLieAlgebraElem{C}}) where {C<:RingElement} = LinearLieA
 
 elem_type(::Type{LinearLieAlgebra{C}}) where {C<:RingElement} = LinearLieAlgebraElem{C}
 
-parent(x::LinearLieAlgebraElem{C}) where {C<:RingElement} = x.parent
+parent(x::LinearLieAlgebraElem) = x.parent
 
 base_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
-dim(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.dim
+dim(L::LinearLieAlgebra) = L.dim
 
 @doc raw"""
     matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}
@@ -69,12 +69,12 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, V::LinearLieAlgebra{C}) where {C<:RingElement}
+function Base.show(io::IO, V::LinearLieAlgebra)
   print(io, "LinearLieAlgebra (⊆ gl_$(V.n)) over ")
   print(IOContext(io, :compact => true), base_ring(V))
 end
 
-function symbols(L::LinearLieAlgebra{C}) where {C<:RingElement}
+function symbols(L::LinearLieAlgebra)
   return L.s
 end
 
@@ -113,7 +113,7 @@ end
 
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:RingElement}
+function Generic.matrix_repr(x::LinearLieAlgebraElem)
   return sum(c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(parent(x))))
 end
 

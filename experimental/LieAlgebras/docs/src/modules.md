@@ -13,16 +13,16 @@ element type `LieAlgebraModuleElem{C}`.
 The type parameter `C` is the element type of the coefficient ring.
 
 ```@docs
-base_lie_algebra(V::LieAlgebraModule{C}) where {C<:RingElement}
-zero(::LieAlgebraModule{C}) where {C<:RingElement}
-iszero(::LieAlgebraModuleElem{C}) where {C<:RingElement}
-dim(::LieAlgebraModule{C}) where {C<:RingElement}
-basis(::LieAlgebraModule{C}) where {C<:RingElement}
-basis(::LieAlgebraModule{C}, ::Int) where {C<:RingElement}
-coefficients(::LieAlgebraModuleElem{C}) where {C<:RingElement}
-coeff(::LieAlgebraModuleElem{C}, ::Int) where {C<:RingElement}
-getindex(::LieAlgebraModuleElem{C}, ::Int) where {C<:RingElement}
-symbols(::LieAlgebraModule{C}) where {C<:RingElement}
+base_lie_algebra(V::LieAlgebraModule)
+zero(::LieAlgebraModule)
+iszero(::LieAlgebraModuleElem)
+dim(::LieAlgebraModule)
+basis(::LieAlgebraModule)
+basis(::LieAlgebraModule, ::Int)
+coefficients(::LieAlgebraModuleElem)
+coeff(::LieAlgebraModuleElem, ::Int)
+getindex(::LieAlgebraModuleElem, ::Int)
+symbols(::LieAlgebraModule)
 ```
 
 ## Element constructors
@@ -66,13 +66,13 @@ abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; 
 # Type-dependent getters
 
 ```@docs
-is_standard_module(::LieAlgebraModule{C}) where {C<:RingElement}
-is_dual(::LieAlgebraModule{C}) where {C<:RingElement}
-is_direct_sum(::LieAlgebraModule{C}) where {C<:RingElement}
-is_tensor_product(::LieAlgebraModule{C}) where {C<:RingElement}
-is_exterior_power(::LieAlgebraModule{C}) where {C<:RingElement}
-is_symmetric_power(::LieAlgebraModule{C}) where {C<:RingElement}
-is_tensor_power(::LieAlgebraModule{C}) where {C<:RingElement}
+is_standard_module(::LieAlgebraModule)
+is_dual(::LieAlgebraModule)
+is_direct_sum(::LieAlgebraModule)
+is_tensor_product(::LieAlgebraModule)
+is_exterior_power(::LieAlgebraModule)
+is_symmetric_power(::LieAlgebraModule)
+is_tensor_power(::LieAlgebraModule)
 base_module(::LieAlgebraModule{C}) where {C<:RingElement}
 base_modules(::LieAlgebraModule{C}) where {C<:RingElement}
 ```

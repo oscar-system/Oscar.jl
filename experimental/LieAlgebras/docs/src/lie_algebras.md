@@ -15,15 +15,15 @@ type has a corresponding element type.
 The type parameter `C` is the element type of the coefficient ring. 
 
 ```@docs
-zero(::LieAlgebra{C}) where {C<:RingElement}
-iszero(::LieAlgebraElem{C}) where {C<:RingElement}
-dim(::LieAlgebra{C}) where {C<:RingElement}
-basis(::LieAlgebra{C}) where {C<:RingElement}
-basis(::LieAlgebra{C}, ::Int) where {C<:RingElement}
-coefficients(::LieAlgebraElem{C}) where {C<:RingElement}
-coeff(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
-getindex(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
-symbols(::LieAlgebra{C}) where {C<:RingElement}
+zero(::LieAlgebra)
+iszero(::LieAlgebraElem)
+dim(::LieAlgebra)
+basis(::LieAlgebra)
+basis(::LieAlgebra, ::Int)
+coefficients(::LieAlgebraElem)
+coeff(::LieAlgebraElem, ::Int)
+getindex(::LieAlgebraElem, ::Int)
+symbols(::LieAlgebra)
 ```
 
 ## Special functions for `LinearLieAlgebra`s

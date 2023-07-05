@@ -22,7 +22,7 @@ function _iso_oscar_gap_lie_algebra_functions(
   return (f, finv)
 end
 
-function _iso_oscar_gap(LO::LinearLieAlgebra{C}) where {C<:RingElement}
+function _iso_oscar_gap(LO::LinearLieAlgebra)
   coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
   LG = GAP.Globals.LieAlgebra(
     codomain(coeffs_iso),
@@ -35,7 +35,7 @@ function _iso_oscar_gap(LO::LinearLieAlgebra{C}) where {C<:RingElement}
   return MapFromFunc(LO, LG, f, finv)
 end
 
-function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
+function _iso_oscar_gap(LO::AbstractLieAlgebra)
   coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
   sc_table_G = [
     [
