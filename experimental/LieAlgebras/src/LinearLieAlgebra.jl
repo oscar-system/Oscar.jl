@@ -114,7 +114,7 @@ end
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
 function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:RingElement}
-  return sum(c * b for (c, b) in zip(Generic._matrix(x), matrix_repr_basis(parent(x))))
+  return sum(c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(parent(x))))
 end
 
 function bracket(
