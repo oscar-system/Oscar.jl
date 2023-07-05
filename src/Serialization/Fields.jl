@@ -421,7 +421,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: FracElem},
+                       ::Type{<:FracElem},
                        dict::Dict)
     parents = load_parents(s, dict[:parents])
     return load_terms(s, parents, dict[:terms], parents[end])
