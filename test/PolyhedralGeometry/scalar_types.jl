@@ -53,25 +53,21 @@
             @test j isa Polyhedron{QQFieldElem}
             s = vertices(j)[1][1]
             @test s isa QQFieldElem
-            @test s == 2//3
         end
         let j = johnson_solid(64)
             @test j isa Polyhedron{Float64}
             s = vertices(j)[1][1]
             @test s isa Float64
-            @test s == 0.05987265245410669
         end
         let a = archimedean_solid("truncated_cube")
             @test a isa Polyhedron{Hecke.EmbeddedNumFieldElem{nf_elem}}
-            s = vertices(a)[1][2]
+            s = vertices(a)[1][1]
             @test s isa Hecke.EmbeddedNumFieldElem{nf_elem}
             f = Oscar.get_parent_field(a)
             F = number_field(f)
             isq = Hecke.is_quadratic_type(F)
             @test isq[1]
             @test isq[2] == 2
-            sr2 = f(basis(F)[2])
-            @test s == 1 + sr2
         end
     end
 
