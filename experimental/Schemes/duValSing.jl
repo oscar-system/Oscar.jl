@@ -152,7 +152,7 @@ julia> X = Spec(Rq)
 Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> decide_du_val_singularity(X,J)
-1-element Vector{Tuple{Bool, MPolyIdeal{QQMPolyRingElem}, Tuple{Symbol, Int64}, Int64}}:
+1-element Vector{Any}:
  (true, ideal(w, z, y, x), (:E, 6), 1)
 ```
 """ 
