@@ -1089,6 +1089,16 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
   return true
 end
 
+function Base.hash(f::MPolyQuoLocalizedRingHom, h::UInt)
+  b = 0xd6d389598ad28724  % UInt
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  for x in gens(base_ring(domain(f)))
+    h = hash(f(x), h)
+  end
+  return xor(h, b)
+end
+
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
   R = base_ring(domain(phi))
