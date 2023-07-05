@@ -40,12 +40,18 @@ number_of_roots(S::Symbol, n::Int64) = number_of_roots(RootSystem(S, n))
 @doc raw"""
   getindex(R::RootSystem, r::Int)
 
+<<<<<<< HEAD
 Return the `r`-th root of the root system `R`.
 """
 getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
 @doc raw"""
   root_system_type(R::RootSystem)
+=======
+size(R::RootSystem, dim::Any) = size(R.roots, dim)
+
+size(R::RootSystem) = size(R.roots)
+>>>>>>> Update root_systems.jl
 
 Return the Dynkin type of the root system `R`.
 """
