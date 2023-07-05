@@ -13,31 +13,32 @@ import Base: show, +, -, *, ^, ==, !=, inv, isone, iszero, one, zero, rand, deep
 
 @attributes mutable struct SimpleLieAlgebra{C<:RingElement} <: LieAlgebra{C}
 #Construct a simple Lie algebra over a given ring with a given root system
-   mat_space::MatSpace
-   base_ring::Ring
-   root_system::RootSystem
-   dim::Int
-   s::Vector{Symbol}
+  mat_space::MatSpace
+  base_ring::Ring
+  root_system::RootSystem
+  dim::Int
+  s::Vector{Symbol}
+  root_type::Vector{Union{String, Int64}}
 
   function SimpleLieAlgebra{C}(
-  R::Ring,
-  S::String, 
-  cached::Bool
+    R::Ring,
+    S::String,
+    cached::Bool
   ) where {C<:RingElement}
-        l=length(S)
-	n=parse(Int64,S[2:l])
-	Q=GAP.Globals.Rationals
-	S1=GAP.Obj(string(S[1:1]))
-	sL=GAP.Globals.SimpleLieAlgebra(S1,n,Q)
-	di=GAP.Globals.Dimension(sL)
-	M=MatrixSpace(R,1,di)
-	RS=RootSystem(S)
-	s=[Symbol("e_$i") for i in 1:di]
-      return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
-	 new{C}(M,R,RS,di,s)
-      end::SimpleLieAlgebra{C}
-   end
-   
+    l = length(S)
+    n = parse(Int64, S[2:l])
+    Q = GAP.Globals.Rationals
+    S1 = GAP.Obj(string(S[1:1]))
+    sL = GAP.Globals.SimpleLieAlgebra(S1, n, Q)
+    di = GAP.Globals.Dimension(sL)
+    M = MatrixSpace(R, 1, di)
+    RS = RootSystem(S)
+    s = [Symbol("e_$i") for i in 1:di]
+    rt=Union{String, Int64}[S[1:1],n]
+    return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
+    new{C}(M,R,RS,di,s,st)
+    end::SimpleLieAlgebra{C}
+  end
 end
 
 const SimpleLieAlgebraDict = CacheDictType{
