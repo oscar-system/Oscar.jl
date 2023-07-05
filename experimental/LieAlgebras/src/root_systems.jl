@@ -39,19 +39,13 @@ number_of_roots(S::Symbol, n::Int64) = number_of_roots(RootSystem(S, n))
 
 @doc raw"""
   getindex(R::RootSystem, r::Int)
-
-<<<<<<< HEAD
+  
 Return the `r`-th root of the root system `R`.
 """
 getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
 @doc raw"""
   root_system_type(R::RootSystem)
-=======
-size(R::RootSystem, dim::Any) = size(R.roots, dim)
-
-size(R::RootSystem) = size(R.roots)
->>>>>>> Update root_systems.jl
 
 Return the Dynkin type of the root system `R`.
 """
@@ -141,7 +135,7 @@ end
    dynkin_diagram(S::String)
 
  Return the Dynkin diagram of the type of root system specified by `S`
-  """
+"""
 function dynkin_diagram(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
    D = ""
@@ -230,4 +224,3 @@ function dynkin_diagram(R::RootSystem)
   S = R.root_system_type
   return dynkin_diagram(S[1],S[2])
 end
-
