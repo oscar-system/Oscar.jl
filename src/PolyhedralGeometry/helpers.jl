@@ -480,7 +480,7 @@ function _promote_scalar_field(f::Field...)
         p = parent(x)
         return (elem_type(p), p)
     catch e
-        throw(ArgumentError("Can not find a mutual parent field of $f and $g."))
+        throw(ArgumentError("Can not find a mutual parent field for $f."))
     end
 end
 
