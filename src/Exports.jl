@@ -788,6 +788,7 @@ export is_radical
 export is_reduced
 export is_regular
 export is_regular_sequence
+export is_representable
 export is_right
 export is_semiregular
 export is_semisimple
@@ -1369,3 +1370,12 @@ export witt_index
 export wreath_product
 export write_as_full
 export write_as_linear_combination
+
+export realization_space
+export reduce_realization_space
+export min_revlex_basis_encoding
+export is_representable
+export defining_ideal
+export inequations
+export ambient_ring
+export representation_matrix

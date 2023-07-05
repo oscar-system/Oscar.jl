@@ -13,7 +13,7 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
     if !RS.representable
         print(io, "The matroid is not representable.")
     else
-        println(io, "The representations of the matroid are parametrized by the matrix")
+        println(io, "The representations are parametrized by")
         # println isn't ideal as it prints the matrix as one big line
         display(RS.representation_matrix)
         println(io, "in the ", RS.ambient_ring)
