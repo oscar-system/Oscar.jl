@@ -76,7 +76,7 @@ function iszero(x::LieAlgebraElem{C}) where {C<:RingElement}
   return iszero(coefficients(x))
 end
 
-@inline function Generic._matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
+@inline function _matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
   return (x.mat)::dense_matrix_type(C)
 end
 
@@ -86,7 +86,7 @@ end
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
 function coefficients(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return collect(Generic._matrix(x))[1, :]
+  return collect(_matrix(x))[1, :]
 end
 
 @doc raw"""
@@ -95,7 +95,7 @@ end
 Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
 function coeff(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
-  return Generic._matrix(x)[1, i]
+  return _matrix(x)[1, i]
 end
 
 @doc raw"""
@@ -108,7 +108,7 @@ function getindex(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem{C}, dict::IdDict) where {C<:RingElement}
-  return parent(x)(deepcopy_internal(Generic._matrix(x), dict))
+  return parent(x)(deepcopy_internal(_matrix(x), dict))
 end
 
 function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
@@ -215,39 +215,39 @@ end
 ###############################################################################
 
 function Base.:-(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return parent(x)(-Generic._matrix(x))
+  return parent(x)(-_matrix(x))
 end
 
 function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return parent(x1)(Generic._matrix(x1) + Generic._matrix(x2))
+  return parent(x1)(_matrix(x1) + _matrix(x2))
 end
 
 function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return parent(x1)(Generic._matrix(x1) - Generic._matrix(x2))
+  return parent(x1)(_matrix(x1) - _matrix(x2))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
   base_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(Generic._matrix(x) * c)
+  return parent(x)(_matrix(x) * c)
 end
 
 function Base.:*(
   x::LieAlgebraElem{C}, c::U
 ) where {C<:RingElement,U<:Union{Rational,Integer}}
-  return parent(x)(Generic._matrix(x) * c)
+  return parent(x)(_matrix(x) * c)
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
   base_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(c * Generic._matrix(x))
+  return parent(x)(c * _matrix(x))
 end
 
 function Base.:*(
   c::U, x::LieAlgebraElem{C}
 ) where {C<:RingElement,U<:Union{Rational,Integer}}
-  return parent(x)(c * Generic._matrix(x))
+  return parent(x)(c * _matrix(x))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:RingElement}

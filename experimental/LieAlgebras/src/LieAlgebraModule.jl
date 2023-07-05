@@ -103,7 +103,7 @@ function iszero(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return iszero(coefficients(v))
 end
 
-@inline function Generic._matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   return (v.mat)::dense_matrix_type(C)
 end
 
@@ -113,7 +113,7 @@ end
 Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
 function coefficients(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  return collect(Generic._matrix(v))[1, :]
+  return collect(_matrix(v))[1, :]
 end
 
 @doc raw"""
@@ -122,7 +122,7 @@ end
 Return the `i`-th coefficient of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
 function coeff(v::LieAlgebraModuleElem{C}, i::Int) where {C<:RingElement}
-  return Generic._matrix(v)[1, i]
+  return _matrix(v)[1, i]
 end
 
 @doc raw"""
@@ -137,7 +137,7 @@ end
 function Base.deepcopy_internal(
   v::LieAlgebraModuleElem{C}, dict::IdDict
 ) where {C<:RingElement}
-  return parent(v)(deepcopy_internal(Generic._matrix(v), dict))
+  return parent(v)(deepcopy_internal(_matrix(v), dict))
 end
 
 function check_parent(
@@ -350,43 +350,43 @@ end
 ###############################################################################
 
 function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  return parent(v)(-Generic._matrix(v))
+  return parent(v)(-_matrix(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return parent(v1)(Generic._matrix(v1) + Generic._matrix(v2))
+  return parent(v1)(_matrix(v1) + _matrix(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return parent(v1)(Generic._matrix(v1) - Generic._matrix(v2))
+  return parent(v1)(_matrix(v1) - _matrix(v2))
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
   base_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(Generic._matrix(v) * c)
+  return parent(v)(_matrix(v) * c)
 end
 
 function Base.:*(
   v::LieAlgebraModuleElem{C}, c::U
 ) where {C<:RingElement,U<:Union{Rational,Integer}}
-  return parent(v)(Generic._matrix(v) * c)
+  return parent(v)(_matrix(v) * c)
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
   base_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(c * Generic._matrix(v))
+  return parent(v)(c * _matrix(v))
 end
 
 function Base.:*(
   c::U, v::LieAlgebraModuleElem{C}
 ) where {C<:RingElement,U<:Union{Rational,Integer}}
-  return parent(v)(c * Generic._matrix(v))
+  return parent(v)(c * _matrix(v))
 end
 
 ###############################################################################
@@ -448,7 +448,7 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Ring
 
   return parent(v)(
     sum(
-      cx[i] * Generic._matrix(v) * transpose(transformation_matrix(parent(v), i)) for
+      cx[i] * _matrix(v) * transpose(transformation_matrix(parent(v), i)) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
       init=zero_matrix(base_ring(parent(v)), 1, dim(parent(v)))::dense_matrix_type(C),
     ), # equivalent to (x * v^T)^T, since we work with row vectors
