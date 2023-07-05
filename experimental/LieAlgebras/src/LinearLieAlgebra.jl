@@ -13,6 +13,7 @@
     ) do
       @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
       @req length(s) == length(basis) "Invalid number of basis element names."
+      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid structure constants."
       new{C}(R, n, length(basis), basis, s)
     end::LinearLieAlgebra{C}
   end
