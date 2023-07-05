@@ -131,3 +131,20 @@ end
   Mb = oscar.pre_saturated_module(M)
   @test b.(a.(gens(Mb))) == gens(Mb)
 end
+
+@testset "as vector spaces" begin
+
+R, (x, y) = QQ["x", "y"]
+R, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
+F2 = free_module(R, 2)
+I, inc_I = sub(F2, [x^3*F2[1], (y-1)*y*F2[1], x^2*F2[1]-(y-1)*F2[2], x*F2[2], (y-1)^2*F2[2]])
+M, pr_M = quo(F2, I)
+# tests below should run one day.
+#V, i = vector_space(QQ, M)
+#v = gens(V)
+#a = i.(v)
+#iinv = x->preimage(i, x)
+#@test iinv.(a) == v
+#@test i.(iinv.(a)) == a
+end 
+
