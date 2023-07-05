@@ -11,7 +11,6 @@
     cached::Bool=true,
     check::Bool=true,
   ) where {C<:RingElement}
-    @req C == elem_type(R) "Invalid coefficient type."
     return get_cached!(
       AbstractLieAlgebraDict, (R, struct_consts, s), cached
     ) do
@@ -20,6 +19,9 @@
       dimL = n1
       @req length(s) == dimL "Invalid number of basis element names."
       if check
+        @req all(
+          r -> all(e -> parent(last(e)) === R, r), struct_consts
+        ) "Invalid structure constants."
         @req all(
           iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
         ) "Not anti-symmetric."
