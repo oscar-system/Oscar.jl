@@ -8967,7 +8967,11 @@ function has_monomials_on_all_axes(M::SubquoModule)
     tempdeg = sum(tempexp[1])
     push!(explist,(tempexp[1],tempexp[2],tempdeg))
   end
-  all(findfirst(x -> (x[1][i] == x[3] && x[2]==j),explist) != nothing for i in 1:ngens(R) for j in 1:ambient_rank) || return false
+  for i in 1:ngens(R), j in 1:ambient_rank
+    if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
+      return false
+    end
+  end
   return true
 end
 
