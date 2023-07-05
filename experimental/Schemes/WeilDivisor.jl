@@ -95,34 +95,22 @@ See the documentation for `WeilDivisor`.
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
 @doc raw"""
-    WeilDivisor(I::IdealSheaf, R::Ring)
+    WeilDivisor(I::IdealSheaf, R::Ring=ZZ)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
+function WeilDivisor(I::IdealSheaf, R::Ring=ZZ; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check isprime(I) "ideal sheaf must be prime"
-  @check dim(X) - dim(D) == 1 "components of a divisor must be of codimension one"
+  @check dim(space(I)) - dim(I) == 1 "components of a divisor must be of codimension one"
   coefficient_dict(D)[I] = one(R)
   return D
 end
 
-weil_divisor(I::IdealSheaf, R::Ring) = WeilDivisor(I, R)
+weil_divisor(I::IdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
 
-@doc raw"""
-    WeilDivisor(I::IdealSheaf)
-
-Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
-in ``ℤ`` for a sheaf of prime ideals ``I``.
-"""
-function WeilDivisor(I::IdealSheaf)
-  D = WeilDivisor(space(I), ZZ)
-  D[I] = one(ZZ)
-  return D
-end
-
-weil_divisor(I::IdealSheaf) = WeilDivisor(I)
+weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
 ### copy constructor
 function copy(D::WeilDivisor) 
@@ -210,34 +198,49 @@ function intersect(D::WeilDivisor, E::WeilDivisor)
   return result
 end
 
-function colength(I::IdealSheaf)
+function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  C = default_covering(X)
-  patches_todo = copy(affine_charts(X))
+  patches_todo = copy(patches(covering))
   patches_done = AbsSpec[]
   result = 0
   while length(patches_todo) != 0
     U = pop!(patches_todo)
     J = I(U)
-    # To avoid overcounting, throw away all components that 
-    # were already visible in other charts.
-    for V in patches_done
-      if !haskey(glueings(C), (U, V))
-        continue
+    if has_decomposition_info(covering)
+      h = decomposition_info(covering)[U]
+      # The elements in h indicate where components must 
+      # be located so that they can not be spotted in other charts.
+      # We iteratively single out these components by adding a sufficiently high 
+      # power of the equation to the ideal.
+      for f in h
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        isone(J) && break
       end
-      G = C[U, V]
-      (UV, VU) = glueing_domains(G)
-      UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
-      f = complement_equation(UV)
-      # Find a sufficiently high power of f such that it throws
-      # away all components away from the horizon, but does not affect
-      # those on the horizon itself.
-      k = 0
-      while !(f^(k) in ideal(OO(U), f^(k+1)) + J)
-        k = k + 1
+    else
+      # To avoid overcounting, throw away all components that 
+      # were already visible in other charts.
+      for V in patches_done
+        if !haskey(glueings(covering), (U, V))
+          continue
+        end
+        G = covering[U, V]
+        (UV, VU) = glueing_domains(G)
+        UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
+        f = complement_equation(UV)
+        # Find a sufficiently high power of f such that it throws
+        # away all components away from the horizon, but does not affect
+        # those on the horizon itself.
+        g = f
+        while !(g in ideal(OO(U), g*f) + J)
+          g = g * g
+        end
+        J = J + ideal(OO(U), g)
+        isone(J) && break
       end
-      J = J + ideal(OO(U), f^k)
-      isone(J) && break
     end
     if !isone(J)
       JJ = leading_ideal(saturated_ideal(J))
@@ -251,18 +254,19 @@ end
 
 
 @doc raw"""
-    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
+    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=true) -> Bool
 
 Check if the rational function `f` is in the linear system ``|D|``.
 """
-function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
+function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=false)
   X = scheme(D) 
   X === variety(parent(f)) || error("schemes not compatible")
-  C = default_covering(X)
+  C = simplified_covering(X)
   for I in components(D)
-    # no check needed because the components of a prime divisor a prime anyways
+    # no check needed because the components of a prime divisor are prime anyways
     order_on_divisor(f, I, check=false) >= -D[I] || return false
   end
+  regular_on_complement && return true
   for U in patches(C)
     # we have to check that f[U] has no poles outside the support of D[U]
     J = intersect([J(U) for J in components(D)])
@@ -297,7 +301,7 @@ generated by rational functions ``f₁,…,fᵣ ∈ K(X)``.
     return new{typeof(D)}(D, f)
   end
 end
-  
+
 @doc raw"""
     linear_system(f::Vector, D::WeilDivisor; check::Bool=true)
 
@@ -330,17 +334,37 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 scheme(L::LinearSystem) = variety(L)
 
 @doc raw"""
-    subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
+    subsystem(L::LinearSystem, D::WeilDivisor) -> LinearSystem, MatElem
+
+Given a linear system $L = |E|$ and a divisor $D \leq E$ compute $|D|$
+and the matrix representing the inclusion $|D| \hookrightarrow |E|$
+with respect to the given bases of both systems.
+"""
+function subsystem(L::LinearSystem, D::WeilDivisor)
+  E = weil_divisor(L)
+  @req D <= E "input does not define a subsystem"
+  Lnew = L
+  T = identity_matrix(base_ring(scheme(L)), ngens(L))
+  for P in components(E)
+    Lnew, Tnew = _subsystem(Lnew, P, -coeff(D,P))
+    T = Tnew*T
+  end
+  return Lnew, T
+end
+
+
+@doc raw"""
+    _subsystem(L::LinearSystem, P::IdealSheaf, n) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, return a pair ``(K, A)`` consisting
-of the subsystem of elements in ``|D - n P|`` and the representing
-matrix ``A`` for its inclusion into ``L`` on the given set 
+of the subsystem of elements in ``|D|`` that vanish to order at least n at ``P``.
+The matrix ``A`` for its inclusion into ``L`` on the given set
 of generators.
 """
-function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
+function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   # find one chart in which P is supported
-  # TODO: There might be preferred choices for charts with 
+  # TODO: There might be preferred choices for charts with
   # the least complexity.
   X = variety(L)
   X === space(P) || error("input incompatible")
@@ -357,22 +381,30 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
-  common_denominator = lcm([denominator(g) for g in loc_rep])
+  if length(loc_rep) == 0
+    common_denominator = R(1)
+  else
+    common_denominator = lcm([denominator(g) for g in loc_rep])
+  end
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
 
   # compute a symbolic power
-  RP, _ = Localization(R, complement_of_prime_ideal(saturated_ideal(P(U))))
+  RP, _ = Localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
-  denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
+  K = function_field(X)
+  denom_mult = order_on_divisor(K(common_denominator), P, check=false)
+  #denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
-  pPw = saturated_ideal(PP^w) # the symbolic power
-
+  if w < 0
+    pPw = ideal(R, one(R))
+  else
+    pPw = saturated_ideal(PP^w) # the symbolic power
+  end
   # reduce the numerators modulo P^(w)
   images = elem_type(R)[]
   for a in numerators
     push!(images, normal_form(a, pPw))
   end
-
   # collect a monomial basis in which to represent the results
   all_mons = elem_type(R)[]
   for b in images
@@ -390,12 +422,6 @@ function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
   return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
-end
-
-function subsystem(L::LinearSystem, P::WeilDivisor, n::Int)
-  @req is_prime(P) "P must be a prime divisor"
-  I = components(P)[1]
-  return subsystem(L, I, n)
 end
 
 @attr Bool function is_prime(D::WeilDivisor)

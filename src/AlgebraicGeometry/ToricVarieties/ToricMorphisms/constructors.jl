@@ -220,16 +220,24 @@ end
 
 
 ####################################################
-# 6: Equality of toric morphisms
+# 6: Equality and hash of toric morphisms
 ####################################################
 
 function Base.:(==)(tm1::ToricMorphism, tm2::ToricMorphism)
     return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
 end
 
+function Base.hash(tm::ToricMorphism, h::UInt)
+    b = 0x1a66f927cae2d409 % UInt
+    h = hash(domain(tm), h)
+    h = hash(codomain(tm), h)
+    h = hash(grid_morphism(tm), h)
+    return xor(h, b)
+end
+
 
 ######################
-# 6: Display
+# 7: Display
 ######################
 
 function Base.show(io::IO, tm::ToricMorphism)

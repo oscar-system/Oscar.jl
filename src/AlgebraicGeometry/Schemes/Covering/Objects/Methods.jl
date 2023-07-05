@@ -348,5 +348,15 @@ function base_change(phi::Any, C::Covering)
     mor_dict[V] = phi
   end
 
+  # Maintain decomposition information if applicable
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  if has_decomposition_info(C)
+    for (U, psi) in patch_change
+      V = codomain(psi)
+      decomp_dict[U] = elem_type(OO(U))[pullback(psi)(a) for a in decomposition_info(C)[V]]
+    end
+  end
+  set_decomposition_info!(CC, decomp_dict)
+
   return CC, CoveringMorphism(CC, C, mor_dict, check=true) # TODO: Set to false after testing
 end

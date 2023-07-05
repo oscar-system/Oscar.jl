@@ -99,11 +99,18 @@ Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_
 
 
 ######################
-# 5: Equality
+# 5: Equality and hash
 ######################s
 
 function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
     return toric_variety(td1) === toric_variety(td2) && coefficients(td1) == coefficients(td2)
+end
+
+function Base.hash(td::ToricDivisor, h::UInt)
+    b = 0x92bd6ac4f87d834e % UInt
+    h = hash(toric_variety(td), h)
+    h = hash(coefficients(td), h)
+    return xor(h, b)
 end
 
 
