@@ -641,7 +641,7 @@ end
 
 Given a cellular binomial ideal `I`, return the associated primes of `I`.
 
-The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `zeta`. So `zeta(3)`, for example, stands for a primitive third root of unity.
 
 # Examples
 ```jldoctest
@@ -655,8 +655,8 @@ julia> cellular_associated_primes(I)
 5-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}:
  ideal(x[5], x[6])
  ideal(x[1] - x[2], x[5], x[6])
- ideal(x[1] - z(3)*x[2], x[5], x[6])
- ideal(x[1] + (z(3) + 1)*x[2], x[5], x[6])
+ ideal(x[1] - zeta(3)*x[2], x[5], x[6])
+ ideal(x[1] + (zeta(3) + 1)*x[2], x[5], x[6])
  ideal(x[3] - x[4], x[5], x[6])
 ```
 """
@@ -723,7 +723,7 @@ end
 
 Given a cellular binomial ideal `I`, return the minimal associated primes of `I`.
 
-The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `zeta`. So `zeta(3)`, for example, stands for a primitive third root of unity.
 
 # Examples
 ```jldoctest
@@ -801,7 +801,7 @@ end
 
 Given a cellular binomial ideal `I`, return a binomial primary decomposition of `I`.
 
-The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `zeta`. So `zeta(3)`, for example, stands for a primitive third root of unity.
 
 # Examples
 ```jldoctest
@@ -815,8 +815,8 @@ julia> cellular_primary_decomposition(I)
 5-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
  (ideal(x[6], x[5]), ideal(x[5], x[6]))
  (ideal(x[6], x[1] - x[2], x[5]^2), ideal(x[1] - x[2], x[5], x[6]))
- (ideal(x[6], x[1] - z(3)*x[2], x[5]^2), ideal(x[1] - z(3)*x[2], x[5], x[6]))
- (ideal(x[6], x[1] + (z(3) + 1)*x[2], x[5]^2), ideal(x[1] + (z(3) + 1)*x[2], x[5], x[6]))
+ (ideal(x[6], x[1] - zeta(3)*x[2], x[5]^2), ideal(x[1] - zeta(3)*x[2], x[5], x[6]))
+ (ideal(x[6], x[1] + (zeta(3) + 1)*x[2], x[5]^2), ideal(x[1] + (zeta(3) + 1)*x[2], x[5], x[6]))
  (ideal(x[5], x[3] - x[4], x[6]^2), ideal(x[3] - x[4], x[5], x[6]))
 ```
 """
@@ -870,7 +870,7 @@ end
 
 Given a binomial ideal `I`, return a binomial primary decomposition of `I`.
 
-The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `zeta`. So `zeta(3)`, for example, stands for a primitive third root of unity.
 
 
 # Examples
@@ -883,8 +883,8 @@ ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
 3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QQAbElem{nf_elem}}}}}:
- (ideal(z, y - z(3), x - z(3)), ideal(y - z(3), x - z(3), z))
- (ideal(z, y + z(3) + 1, x + z(3) + 1), ideal(y + z(3) + 1, x + z(3) + 1, z))
+ (ideal(z, y - zeta(3), x - zeta(3)), ideal(y - zeta(3), x - zeta(3), z))
+ (ideal(z, y + zeta(3) + 1, x + zeta(3) + 1), ideal(y + zeta(3) + 1, x + zeta(3) + 1, z))
  (ideal(y - 1, x - 1), ideal(y - 1, x - 1, x*y - 1))
 ```
 """
