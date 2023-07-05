@@ -24,35 +24,34 @@ abstract type LieAlgebraElem{C<:RingElement} end
 #
 ###############################################################################
 
-base_ring(x::LieAlgebraElem{C}) where {C<:RingElement} = base_ring(parent(x))
+base_ring(x::LieAlgebraElem) = base_ring(parent(x))
 
-ngens(L::LieAlgebra{C}) where {C<:RingElement} = dim(L)
+ngens(L::LieAlgebra) = dim(L)
 
-gens(L::LieAlgebra{C}) where {C<:RingElement} = basis(L)
+gens(L::LieAlgebra) = basis(L)
 
-gen(L::LieAlgebra{C}, i::Int) where {C<:RingElement} = basis(L, i)
+gen(L::LieAlgebra, i::Int) = basis(L, i)
 
 @doc raw"""
-    dim(L::LieAlgebra{C}) -> Int
+    dim(L::LieAlgebra) -> Int
 
 Return the dimension of the Lie algebra `L`.
 """
-dim(_::LieAlgebra{C}) where {C<:RingElement} = error("Should be implemented by subtypes.")
+dim(_::LieAlgebra) = error("Should be implemented by subtypes.")
 
 @doc raw"""
     basis(L::LieAlgebra{C}) -> Vector{LieAlgebraElem{C}}
 
 Return a basis of the Lie algebra `L`.
 """
-basis(L::LieAlgebra{C}) where {C<:RingElement} =
-  [basis(L, i)::elem_type(L) for i in 1:dim(L)]
+basis(L::LieAlgebra) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 
 @doc raw"""
     basis(L::LieAlgebra{C}, i::Int) -> LieAlgebraElem{C}
 
 Return the `i`-th basis element of the Lie algebra `L`.
 """
-function basis(L::LieAlgebra{C}, i::Int) where {C<:RingElement}
+function basis(L::LieAlgebra, i::Int)
   R = base_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
@@ -62,7 +61,7 @@ end
 
 Return the zero element of the Lie algebra `L`.
 """
-function zero(L::LieAlgebra{C}) where {C<:RingElement}
+function zero(L::LieAlgebra)
   mat = zero_matrix(base_ring(L), 1, dim(L))
   return elem_type(L)(L, mat)
 end
@@ -72,7 +71,7 @@ end
 
 Check whether the Lie algebra element `x` is zero.
 """
-function iszero(x::LieAlgebraElem{C}) where {C<:RingElement}
+function iszero(x::LieAlgebraElem)
   return iszero(coefficients(x))
 end
 
@@ -85,7 +84,7 @@ end
 
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function coefficients(x::LieAlgebraElem{C}) where {C<:RingElement}
+function coefficients(x::LieAlgebraElem)
   return collect(_matrix(x))[1, :]
 end
 
@@ -94,7 +93,7 @@ end
 
 Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function coeff(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
+function coeff(x::LieAlgebraElem, i::Int)
   return _matrix(x)[1, i]
 end
 
@@ -103,11 +102,11 @@ end
 
 Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function getindex(x::LieAlgebraElem{C}, i::Int) where {C<:RingElement}
+function getindex(x::LieAlgebraElem, i::Int)
   return coeff(x, i)
 end
 
-function Base.deepcopy_internal(x::LieAlgebraElem{C}, dict::IdDict) where {C<:RingElement}
+function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
   return parent(x)(deepcopy_internal(_matrix(x), dict))
 end
 
@@ -126,12 +125,9 @@ end
 
 Return the symbols used for printing basis elements of the Lie algebra `L`.
 """
-symbols(_::LieAlgebra{C}) where {C<:RingElement} =
-  error("Should be implemented by subtypes.")
+symbols(_::LieAlgebra) = error("Should be implemented by subtypes.")
 
-function expressify(
-  v::LieAlgebraElem{C}, s=symbols(parent(v)); context=nothing
-) where {C<:RingElement}
+function expressify(v::LieAlgebraElem, s=symbols(parent(v)); context=nothing)
   sum = Expr(:call, :+)
   for (i, c) in enumerate(coefficients(v))
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
@@ -152,7 +148,7 @@ end
 
 Return the zero element of the Lie algebra `L`.
 """
-function (L::LieAlgebra{C})() where {C<:RingElement}
+function (L::LieAlgebra)()
   return zero(L)
 end
 
@@ -162,7 +158,7 @@ end
 Return the element of `L` with coefficent vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
-function (L::LieAlgebra{C})(v::Vector{Int}) where {C<:RingElement}
+function (L::LieAlgebra)(v::Vector{Int})
   return L(base_ring(L).(v))
 end
 
@@ -265,7 +261,7 @@ function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:Ring
   return coefficients(x1) == coefficients(x2)
 end
 
-function Base.hash(x::LieAlgebraElem{C}, h::UInt) where {C<:RingElement}
+function Base.hash(x::LieAlgebraElem, h::UInt)
   b = 0x6724cbedbd860982 % UInt
   h = hash(parent(x), h)
   h = hash(coefficients(x), h)
