@@ -1107,6 +1107,6 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
     opts[:seed] = convert(Int64, seed)
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
-  pm_obj = Polymake.polytope.Polytope(VERTICES=pm_matrix)::Polymake.BigObject
+  pm_obj = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES=pm_matrix)::Polymake.BigObject
   return Polyhedron{T}(pm_obj, get_parent_field(P))
 end
