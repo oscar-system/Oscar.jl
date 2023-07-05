@@ -1,7 +1,7 @@
 @doc raw"""
     has_du_val_singularities(X::Scheme)
 
-Return whether the given `X` has at most du Val (surface) singularities.
+Return whether the given ``X`` has at most du Val (surface) singularities.
 
 # Example:
 ```jldoctest
@@ -58,10 +58,9 @@ end
 @doc raw"""
     is_du_val_singularity(X::AbsSpec, I::Ideal)
 
-Return whether the given X has at most du Val (surface) singularities at the geometric points
-specified by the ideal I.
+Return whether the given ``X`` has at most du Val (surface) singularities at the geometric points specified by the ideal ``I``.
 
-**Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+**Note**: For the ideal ``I`` in a ring ``R``, `dim(R/I) = 0` is asserted
 
 # Example:
 ```jldoctest
@@ -120,22 +119,19 @@ end
 @doc raw"""
     decide_du_val_singularity(X::AbsSpec, I::Ideal)
 
-Return a vector of tuples T with the following data:
-- `T[1]::Bool` answers ``X`` has at most du Val (surface) singularities at the geometric points
-specified by the ideal ``I``.
-- `T[2]::Ideal` is ``I_P`` the associated prime of `I` (possibly over a suitable field extension)
-  describing some geometrically irreducible point
-- `T[3]::Tuple` the type of the singularity at ``P``  e.g. `(:A, 3)`
+Return a vector of tuples ``T`` with the following data:
+- `T[1]::Bool` answers whether ``X`` has at most du Val (surface) singularities at the geometric points specified by the ideal ``I``.
+- `T[2]::Ideal` is ``I_P`` the associated prime of `I` (possibly over a suitable field extension) describing some geometrically irreducible point
+- `T[3]::Tuple` contains the type of the singularity at ``P``  e.g. `(:A, 3)`
 - `T[4]::Int` number of conjugate points
 
-If X has a least one singularity which is not du Val, the returned vector contains a
-single tuple T, with the following values:
+If ``X`` has a least one singularity which is not du Val, the returned vector contains a single tuple ``T``, with the following values:
 - `T[1]`  is `false`
 - `T[2]` represents a point at which some non-du-Val singularity is present
 - `T[3]` is the empty tuple
 - `T[4] = 1`
 
-**Note**: For the ideal I in a ring R, dim(R/I) = 0 is asserted
+**Note**: For the ideal ``I`` in a ring ``R``, `dim(R/I) = 0` is asserted
 
 # Example:
 ```jldoctest
@@ -155,7 +151,7 @@ ideal(x, y, z, w)
 julia> decide_du_val_singularity(X,J)
 1-element Vector{Tuple{Bool, MPolyIdeal{QQMPolyRingElem}, Tuple{Symbol, Int64}, Int64}}:
  (1, ideal(x, y, z, w), (:E, 6), 1)
-
+```
 """ 
 function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
   OOX = OO(X)
@@ -197,11 +193,11 @@ end
 @doc raw"""
     _check_du_val_at_point(IX:Ideal,Ipt::Ideal)
 
-Returns a tuple T with the following data:
-- T[1]::Bool has V(IX) at most a du Val singularity at V(Ipt)
-- T[2]::Tuple Type of du Val singularity at V(Ipt)
+Returns a tuple `T` with the following data:
+- `T[1]::Bool` returns whether `V(IX)` has at most a du Val singularity at `V(Ipt)`
+- `T[2]::Tuple` Type of du Val singularity at `V(Ipt)`
 
-**Note**: Assumes Ipt to be absolutely irreducible.
+**Note**: Assumes ``Ipt`` to be absolutely irreducible.
 
 **Note**: Do not call directly, only via the higher level functions is_du_Val_singularity and decide_du_Val_singularity.
 
