@@ -14,10 +14,10 @@
     @req dimV == length(s) "Invalid number of basis element names."
     @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
     @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
-    @req all(m -> all(e -> parent(e) === base_ring(L), m), transformation_matrices) "Invalid transformation matrix entries."
 
     V = new{C}(L, dimV, transformation_matrices, s)
     if check
+      @req all(m -> all(e -> parent(e) === base_ring(L), m), transformation_matrices) "Invalid transformation matrix entries."
       for xi in basis(L), xj in basis(L), v in basis(V)
         @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
       end
