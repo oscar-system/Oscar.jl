@@ -1357,6 +1357,18 @@ end
   return C
 end
 
+function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
+  OOX = OO(X)
+  if has_decomposition_info(default_covering(X))
+    for U in patches(C)
+      V = __find_chart(U, default_covering(X))
+      phi = OOX(V, U)
+      set_decomposition_info!(C, U, phi.(decomposition_info(default_covering(X))[V]))
+    end
+  end
+  return C
+end
+
 @attr function trivializing_covering(M::HomSheaf)
   X = scheme(M)
   OOX = OO(X)

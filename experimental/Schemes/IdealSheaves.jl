@@ -678,7 +678,7 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
     J = I(U)
     # Do a quick check whether we even need to worry about this chart
     if has_decomposition_info(covering)
-      J = J + ideal(OO(U), decomposition_info(covering)[U])
+      J = J + ideal(OO(U), Vector{elem_type(OO(U))}(decomposition_info(covering)[U]))
       isone(J) && continue
     end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
