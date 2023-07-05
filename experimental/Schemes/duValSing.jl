@@ -148,6 +148,9 @@ Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-fun
 julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)
 
+julia> X = Spec(Rq)
+Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+
 julia> decide_du_val_singularity(X,J)
 1-element Vector{Tuple{Bool, MPolyIdeal{QQMPolyRingElem}, Tuple{Symbol, Int64}, Int64}}:
  (1, ideal(x, y, z, w), (:E, 6), 1)
