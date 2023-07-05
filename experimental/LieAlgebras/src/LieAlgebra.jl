@@ -270,6 +270,31 @@ end
 
 ###############################################################################
 #
+#   Universal enveloping algebra
+#
+###############################################################################
+
+function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
+  R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
+  n = dim(L)
+  b = basis(L)
+
+  to_R(x::LieAlgebraElem) =
+    sum(c * g for (c, g) in zip(coefficients(x), gensR); init=zero(R))
+
+  rel = strictly_upper_triangular_matrix([
+    to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
+  ])
+  U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=true)
+
+  L_to_U = function (x::LieAlgebraElem)
+    sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
+  end
+  return U, L_to_U
+end
+
+###############################################################################
+#
 #   Constructor
 #
 ###############################################################################

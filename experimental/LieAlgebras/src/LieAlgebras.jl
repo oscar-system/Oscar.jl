@@ -65,6 +65,7 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export universal_enveloping_algebra
 
 include("Combinatorics.jl")
 include("Util.jl")
@@ -107,3 +108,4 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export universal_enveloping_algebra
