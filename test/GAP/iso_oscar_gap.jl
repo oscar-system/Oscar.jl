@@ -234,8 +234,13 @@ end
    # non-absolute number fields
    F1, _ = number_field(x^2-2)
    R1, x1 = polynomial_ring(F1, "x")
-   push!(fields, number_field(x1^2-3)[1])            # simple
+   F2, _ = number_field(x1^2-3)
+   push!(fields, F2)                                 # simple
    push!(fields, number_field([x1^2-3, x1^2+1])[1])  # non-simple
+
+   # and a simple three-step construction (in order to exercise recursion)
+   R2, x2 = polynomial_ring(F2, "x")
+   push!(fields, number_field(x2^2+1)[1])
 
    @testset for F in fields
       f = Oscar.iso_oscar_gap(F)
