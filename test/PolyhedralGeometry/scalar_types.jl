@@ -71,4 +71,50 @@
         end
     end
 
+    @testset "Cross scalar operations" begin
+        NF, sr2 = quadratic_field(2)
+        ENF, sre2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+        T = elem_type(ENF)
+        c = cube(ENF, 3, -sre2, sre2)
+        d = cube(3, -5//3, 1//2)
+
+        for z in (4, QQ(4), NF(4), ENF(4))
+            @test pyramid(c, z) isa Polyhedron{T}
+            p = pyramid(c, z)
+            @test f_vector(p) == [9, 20, 18, 7]
+            @test volume(p) == volume(c)
+        end
+        for (z, U) in ((4, QQFieldElem), (QQ(4), QQFieldElem), (NF(4), T), (ENF(4), T))
+            @test pyramid(d, z) isa Polyhedron{U}
+            p = pyramid(d, z)
+            @test f_vector(p) == [9, 20, 18, 7]
+            @test volume(p) == volume(d)
+        end
+
+        for z in (2, QQ(2), NF(2), ENF(2))
+            @test bipyramid(c, z) isa Polyhedron{T}
+            p = bipyramid(c, z)
+            @test f_vector(p) == [18, 40, 36, 12]
+            @test volume(p) == volume(c)
+            for z_prime in (2, QQ, NF(2), ENF(2))
+                @test bipyramid(c, z, z_prime) isa Polyhedron{T}
+                p = bipyramid(c, z, z_prime)
+                @test f_vector(p) == [18, 40, 36, 12]
+                @test volume(p) == volume(c)
+            end
+        end
+        for (z, U) in ((2, QQFieldElem), (QQ(2), QQFieldElem), (NF(2), T), (ENF(2), T))
+            @test bipyramid(d, z) isa Polyhedron{U}
+            p = bipyramid(d, z)
+            @test f_vector(p) == [18, 40, 36, 12]
+            @test volume(p) == volume(d)
+            for z_prime in (2, QQ, NF(2), ENF(2))
+                @test bipyramid(d, z, z_prime) isa Polyhedron{T}
+                p = bipyramid(d, z, z_prime)
+                @test f_vector(p) == [18, 40, 36, 12]
+                @test volume(p) == volume(c)
+            end
+        end
+    end
+
 end
