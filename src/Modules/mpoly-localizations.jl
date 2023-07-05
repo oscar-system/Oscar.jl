@@ -187,7 +187,6 @@ ideal ``𝔪`` of a rational point and a `pre_saturated_module` ``N`` over ``R``
 ``(N', φ, φ⁻¹)`` where ``N'`` is a module over ``R``, and ``φ : N → N'`` is an isomorphism over
 the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
 """
-
 @attr function shifted_module(
     M::SubModuleOfFreeModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem,
