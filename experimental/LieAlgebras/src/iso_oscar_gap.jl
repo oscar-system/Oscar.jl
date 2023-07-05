@@ -23,7 +23,7 @@ function _iso_oscar_gap_lie_algebra_functions(
 end
 
 function _iso_oscar_gap(LO::LinearLieAlgebra)
-  coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
+  coeffs_iso = Oscar.iso_oscar_gap(coefficient_ring(LO))
   LG = GAP.Globals.LieAlgebra(
     codomain(coeffs_iso),
     GAP.Obj([map_entries(coeffs_iso, xi) for xi in matrix_repr_basis(LO)]),
@@ -36,7 +36,7 @@ function _iso_oscar_gap(LO::LinearLieAlgebra)
 end
 
 function _iso_oscar_gap(LO::AbstractLieAlgebra)
-  coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
+  coeffs_iso = Oscar.iso_oscar_gap(coefficient_ring(LO))
   sc_table_G = [
     [
       [
@@ -47,7 +47,7 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra)
       ] for xi in basis(LO)
     ]
     -1
-    coeffs_iso(zero(base_ring(LO)))
+    coeffs_iso(zero(coefficient_ring(LO)))
   ]
 
   LG = GAP.Globals.LieAlgebraByStructureConstants(

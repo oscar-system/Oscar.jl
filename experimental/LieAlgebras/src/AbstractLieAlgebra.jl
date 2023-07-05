@@ -66,7 +66,7 @@ elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlg
 
 parent(x::AbstractLieAlgebraElem) = x.parent
 
-base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra) = L.dim
 
@@ -76,9 +76,9 @@ dim(L::AbstractLieAlgebra) = L.dim
 #
 ###############################################################################
 
-function Base.show(io::IO, V::AbstractLieAlgebra)
+function Base.show(io::IO, L::AbstractLieAlgebra)
   print(io, "AbstractLieAlgebra over ")
-  print(IOContext(io, :compact => true), base_ring(V))
+  print(IOContext(io, :compact => true), coefficient_ring(L))
 end
 
 function symbols(L::AbstractLieAlgebra)

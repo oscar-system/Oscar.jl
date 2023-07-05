@@ -17,7 +17,7 @@
 
     V = new{C}(L, dimV, transformation_matrices, s)
     if check
-      @req all(m -> all(e -> parent(e) === base_ring(L), m), transformation_matrices) "Invalid transformation matrix entries."
+      @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
       for xi in basis(L), xj in basis(L), v in basis(V)
         @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
       end
@@ -43,9 +43,9 @@ elem_type(::Type{LieAlgebraModule{C}}) where {C<:RingElement} = LieAlgebraModule
 
 parent(v::LieAlgebraModuleElem) = v.parent
 
-base_ring(V::LieAlgebraModule) = base_ring(base_lie_algebra(V))
+coefficient_ring(V::LieAlgebraModule) = coefficient_ring(base_lie_algebra(V))
 
-base_ring(v::LieAlgebraModuleElem) = base_ring(parent(v))
+coefficient_ring(v::LieAlgebraModuleElem) = coefficient_ring(parent(v))
 
 @doc raw"""
     base_lie_algebra(V::LieAlgebraModule{C}) -> LieAlgebra{C}
@@ -80,7 +80,7 @@ basis(L::LieAlgebraModule) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 Return the `i`-th basis element of the Lie algebra module `V`.
 """
 function basis(L::LieAlgebraModule, i::Int)
-  R = base_ring(L)
+  R = coefficient_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
 
@@ -90,7 +90,7 @@ end
 Return the zero element of the Lie algebra module `V`.
 """
 function zero(V::LieAlgebraModule)
-  mat = zero_matrix(base_ring(V), 1, dim(V))
+  mat = zero_matrix(coefficient_ring(V), 1, dim(V))
   return elem_type(V)(V, mat)
 end
 
@@ -235,7 +235,7 @@ Return the element of `V` with coefficent vector `v`.
 Fails, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (V::LieAlgebraModule)(v::Vector{Int})
-  return V(base_ring(V).(v))
+  return V(coefficient_ring(V).(v))
 end
 
 @doc raw"""
@@ -245,7 +245,7 @@ Return the element of `V` with coefficent vector `v`.
 """
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(V) "Length of vector does not match dimension."
-  mat = matrix(base_ring(V), 1, length(v), v)
+  mat = matrix(coefficient_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
 end
 
@@ -306,7 +306,7 @@ function (V::LieAlgebraModule{C})(
     if is_direct_sum(V)
       return V(vcat([coefficients(x) for x in a]...))
     elseif is_tensor_product(V)
-      mat = zero_matrix(base_ring(V), 1, dim(V))
+      mat = zero_matrix(coefficient_ring(V), 1, dim(V))
       for (i, inds) in enumerate(get_attribute(V, :ind_map))
         mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
       end
@@ -315,7 +315,7 @@ function (V::LieAlgebraModule{C})(
   elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
     @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
-    mat = zero_matrix(base_ring(V), 1, dim(V))
+    mat = zero_matrix(coefficient_ring(V), 1, dim(V))
     if is_exterior_power(V)
       for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
         (inds, sgn) in permutations_with_sign(_inds)
@@ -364,7 +364,7 @@ function Base.:-(
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
-  base_ring(v) != parent(c) && error("Incompatible rings.")
+  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(_matrix(v) * c)
 end
 
@@ -375,7 +375,7 @@ function Base.:*(
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
-  base_ring(v) != parent(c) && error("Incompatible rings.")
+  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(c * _matrix(v))
 end
 
@@ -441,12 +441,12 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Ring
   @req parent(x) == base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = coefficients(x)
-
-  return parent(v)(
+  V = parent(v)
+  return V(
     sum(
-      cx[i] * _matrix(v) * transpose(transformation_matrix(parent(v), i)) for
+      cx[i] * _matrix(v) * transpose(transformation_matrix(V, i)) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
-      init=zero_matrix(base_ring(parent(v)), 1, dim(parent(v)))::dense_matrix_type(C),
+      init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
     ), # equivalent to (x * v^T)^T, since we work with row vectors
   )
 end
@@ -603,7 +603,7 @@ function abstract_module(
   @req dimV == size(struct_consts, 2) "Invalid structure constants dimensions."
   @req dimV == length(s) "Invalid number of basis element names."
 
-  transformation_matrices = [zero_matrix(base_ring(L), dimV, dimV) for _ in 1:dim(L)]
+  transformation_matrices = [zero_matrix(coefficient_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV
     transformation_matrices[i][:, j] = transpose(dense_row(struct_consts[i, j], dimV))
   end
@@ -636,7 +636,7 @@ function standard_module(L::LinearLieAlgebra)
   dim_std_V = L.n
   transformation_matrices = matrix_repr_basis(L)
   s = [Symbol("v_$(i)") for i in 1:dim_std_V]
-  std_V = LieAlgebraModule{elem_type(base_ring(L))}(
+  std_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
     L, dim_std_V, transformation_matrices, s; check=false
   )
   set_attribute!(std_V, :type => :standard_module, :show => show_standard_module)
@@ -771,8 +771,8 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   ind_map = collect(combinations(1:dim(V), k))
 
   T = tensor_power(V, k)
-  basis_change_E2T = zero_matrix(base_ring(V), dim(T), dim_pow_V)
-  basis_change_T2E = zero_matrix(base_ring(V), dim_pow_V, dim(T))
+  basis_change_E2T = zero_matrix(coefficient_ring(V), dim(T), dim_pow_V)
+  basis_change_T2E = zero_matrix(coefficient_ring(V), dim_pow_V, dim(T))
   T_ind_map = get_attribute(T, :ind_map)
   for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
     j = findfirst(==(inds), T_ind_map)
@@ -814,8 +814,8 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   ind_map = collect(multicombinations(1:dim(V), k))
 
   T = tensor_power(V, k)
-  basis_change_S2T = zero_matrix(base_ring(V), dim(T), dim_pow_V)
-  basis_change_T2S = zero_matrix(base_ring(V), dim_pow_V, dim(T))
+  basis_change_S2T = zero_matrix(coefficient_ring(V), dim(T), dim_pow_V)
+  basis_change_T2S = zero_matrix(coefficient_ring(V), dim_pow_V, dim(T))
   T_ind_map = get_attribute(T, :ind_map)
   for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
     j = findfirst(==(inds), T_ind_map)

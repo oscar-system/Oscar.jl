@@ -12,7 +12,7 @@ abstract type LieAlgebraElem{C<:RingElement} end
 # parent_type(::Type{MyLieAlgebraElem{C}})
 # elem_type(::Type{MyLieAlgebra{C}})
 # parent(x::MyLieAlgebraElem{C})
-# base_ring(L::MyLieAlgebra{C})
+# coefficient_ring(L::MyLieAlgebra{C})
 # dim(L::MyLieAlgebra{C})
 # Base.show(io::IO, x::MyLieAlgebra{C})
 # symbols(L::MyLieAlgebra{C})
@@ -24,7 +24,7 @@ abstract type LieAlgebraElem{C<:RingElement} end
 #
 ###############################################################################
 
-base_ring(x::LieAlgebraElem) = base_ring(parent(x))
+coefficient_ring(x::LieAlgebraElem) = coefficient_ring(parent(x))
 
 ngens(L::LieAlgebra) = dim(L)
 
@@ -52,7 +52,7 @@ basis(L::LieAlgebra) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 Return the `i`-th basis element of the Lie algebra `L`.
 """
 function basis(L::LieAlgebra, i::Int)
-  R = base_ring(L)
+  R = coefficient_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
 
@@ -62,7 +62,7 @@ end
 Return the zero element of the Lie algebra `L`.
 """
 function zero(L::LieAlgebra)
-  mat = zero_matrix(base_ring(L), 1, dim(L))
+  mat = zero_matrix(coefficient_ring(L), 1, dim(L))
   return elem_type(L)(L, mat)
 end
 
@@ -159,7 +159,7 @@ Return the element of `L` with coefficent vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (L::LieAlgebra)(v::Vector{Int})
-  return L(base_ring(L).(v))
+  return L(coefficient_ring(L).(v))
 end
 
 @doc raw"""
@@ -169,7 +169,7 @@ Return the element of `L` with coefficent vector `v`.
 """
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(L) "Length of vector does not match dimension."
-  mat = matrix(base_ring(L), 1, length(v), v)
+  mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
 end
 
@@ -225,7 +225,7 @@ function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingEle
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
-  base_ring(x) != parent(c) && error("Incompatible rings.")
+  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(_matrix(x) * c)
 end
 
@@ -236,7 +236,7 @@ function Base.:*(
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
-  base_ring(x) != parent(c) && error("Incompatible rings.")
+  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(c * _matrix(x))
 end
 
