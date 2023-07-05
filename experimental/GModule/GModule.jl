@@ -164,10 +164,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function Hecke.number_field(::QQField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
-  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
-end
-
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -1159,10 +1155,6 @@ function Oscar.abelian_group(M::Generic.FreeModule{fqPolyRepFieldElem})
     return M(m)
   end
   return A, MapFromFunc(A, M, to_M, to_A)
-end
-
-function Oscar.group(chi::Oscar.GAPGroupClassFunction)
-  return chi.table.GAPGroup
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
