@@ -43,7 +43,7 @@ hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types
-intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+intersect(C::Cone...)
 is_pointed(C::Cone)
 is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)

@@ -156,15 +156,15 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
-*(::Int, ::Polyhedron{T}) where T<:scalar_types
-*(::Polyhedron{T}, ::Polyhedron{T})  where T<:scalar_types
++(::Polyhedron{T}, ::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
+*(::Number, ::Polyhedron{T}) where T<:scalar_types
+*(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
 bipyramid
-intersect(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
+intersect(::Polyhedron...)
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
+convex_hull(::Polyhedron...)
 ```

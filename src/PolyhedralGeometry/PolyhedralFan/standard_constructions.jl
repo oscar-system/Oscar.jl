@@ -133,7 +133,7 @@ function star_subdivision(Sigma::_FanLikeType{T}, n::Int) where T<:scalar_types
   newmaxcones = IncidenceMatrix(newmaxcones)
   
   # return the new fan
-  return polyhedral_fan(T, newrays, newmaxcones; non_redundant=true)
+  return polyhedral_fan(get_parent_field(f), newrays, newmaxcones; non_redundant=true)
   
 end
 
@@ -155,7 +155,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
+    *(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 
 Return the Cartesian/direct product of two polyhedral fans.
 

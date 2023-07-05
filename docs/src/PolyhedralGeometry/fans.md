@@ -57,5 +57,5 @@ rays(PF::PolyhedralFan{T}) where T<:scalar_types
 rays_modulo_lineality(PF::PolyhedralFan{T}) where T<:scalar_types
 primitive_collections(PF::PolyhedralFan)
 star_subdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
-*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+*(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 ```

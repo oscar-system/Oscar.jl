@@ -71,7 +71,7 @@ function pyramid(P::Polyhedron{T}, z::FieldElem) where T<:scalar_types
 end
 
 @doc raw"""
-    bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)
+    bipyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1, z_prime::Union{Number, FieldElem} = -z)
 
 Make a bipyramid over a pointed polyhedron `P`.
 
@@ -299,9 +299,9 @@ polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(get_parent_field(
 polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(get_parent_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
-    intersect(P::Polyhedron, Q::Polyhedron)
+    intersect(P::Polyhedron...)
 
-Return the intersection $P \cap Q$ of `P` and `Q`.
+Return the intersection $\bigcap\limits_{p \in P} p$.
 
 # Examples
 The positive orthant of the plane is the intersection of the two halfspaces with
@@ -457,7 +457,7 @@ julia> nvertices(M)
 +(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types} = minkowski_sum(P, Q)
 
 @doc raw"""
-    *(k::Int, Q::Polyhedron)
+    *(k::Union{Number, FieldElem}, Q::Polyhedron)
 
 Return the scaled polyhedron $kQ = \{ kx\ |\ x∈Q\}$.
 
@@ -485,7 +485,7 @@ function *(k::FieldElem, P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc raw"""
-    *(P::Polyhedron, k::Int)
+    *(P::Polyhedron, k::Union{Number, FieldElem})
 
 Return the scaled polyhedron $kP = \{ kx\ |\ x∈P\}$.
 

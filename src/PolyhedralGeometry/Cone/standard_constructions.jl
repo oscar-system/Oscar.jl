@@ -4,9 +4,9 @@
 ###############################################################################
 ###############################################################################
 @doc raw"""
-    intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+    intersect(C::Cone...)
 
-Return the intersection $C0 \cap C1$ of `C0` and `C1`.
+Return the intersection $\bigcap\limits_{c \in C} c$.
 
 # Examples
 ```jldoctest
