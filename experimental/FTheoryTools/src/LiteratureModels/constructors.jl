@@ -75,7 +75,7 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
       dois = map(d -> get(d["journal_data"], "doi", nothing), dicts)
       ids = map(d -> get(d["arxiv_data"], "id", nothing), dicts)
       versions = map(d -> get(d["arxiv_data"], "version", nothing), dicts)
-      equations = map(d -> get(d["model_location"], "equation", nothing), dicts)
+      equations = map(d -> get(d["arxiv_data"]["model_location"], "equation", nothing), dicts)
       strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i])" for i in 1:length(dicts)]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
@@ -109,8 +109,8 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
   if haskey(model_dict["arxiv_data"], "version")
     set_attribute!(model, :version => model_dict["arxiv_data"]["version"])
   end
-  if haskey(model_dict["model_location"], "equation")
-    set_attribute!(model, :equation_number => model_dict["model_location"]["equation"])
+  if haskey(model_dict["arxiv_data"]["model_location"], "equation")
+    set_attribute!(model, :equation_number => model_dict["arxiv_data"]["model_location"]["equation"])
   end
   if haskey(model_dict["model_data"], "description")
     set_attribute!(model, :description => model_dict["model_data"]["description"])
