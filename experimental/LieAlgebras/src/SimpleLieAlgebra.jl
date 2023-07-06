@@ -28,13 +28,13 @@ import Base: show, +, -, *, ^, ==, !=, inv, isone, iszero, one, zero, rand, deep
     l = length(S)
     n = parse(Int64, S[2:l])
     Q = GAP.Globals.Rationals
-    S1 = GAP.Obj(string(S[1:1]))
+    S1 = GAP.Obj(string(S[1]))
     sL = GAP.Globals.SimpleLieAlgebra(S1, n, Q)
     di = GAP.Globals.Dimension(sL)
     M = MatrixSpace(R, 1, di)
     RS = RootSystem(S)
     s = [Symbol("e_$i") for i in 1:di]
-    rt=Union{String, Int64}[S[1:1],n]
+    rt=Union{String, Int64}[S[1:1], n]
     return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
     new{C}(M,R,RS,di,s,st)
     end::SimpleLieAlgebra{C}
@@ -80,7 +80,7 @@ characteristic(R::SimpleLieAlgebra{T}) where T <: RingElement = characteristic(b
 getindex(f::SimpleLieAlgebraElem, r::Int, c::Int) = f.mat[r, c]
 
 Base.@propagate_inbounds function Base.setindex!(f::SimpleLieAlgebraElem{T}, d, r) where {T <: RingElem}
-	f.mat[1,r]=d
+	f.mat[1, r]=d
 	return f
 end
 
@@ -95,7 +95,7 @@ function Base.show(io::IO, V::SimpleLieAlgebra{C}) where {C<:RingElement}
   print(IOContext(io, :compact => true), base_ring(V))
 end
 
-show(io::IO, x::SimpleLieAlgebraElem{C}) where {C<:RingElement} =show(io, x.mat)
+show(io::IO, x::SimpleLieAlgebraElem{C}) where {C<:RingElement} = show(io, x.mat)
 
 function symbols(L::SimpleLieAlgebra{C}) where {C<:RingElement}
   return L.s
@@ -141,9 +141,8 @@ end
 function *(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
    parent(f) != parent(g) && error("Incompatible Lie algebras")
    L = parent(f)
-   ad=AdjointMatrix(L)
-   
-   r=L()
+   ad = AdjointMatrix(L)
+   r = L()
    for i=1:ncols(f.mat)
    	for j=1:ncols(g.mat)
    		r=r+f[i]*g[j]*L(transpose(ad[i][:,j]))
