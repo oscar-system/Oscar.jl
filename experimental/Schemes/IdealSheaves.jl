@@ -47,8 +47,8 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
+  for U in patches(C)
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
@@ -890,4 +890,55 @@ function show_details(io::IO, I::IdealSheaf)
     println(io,"   $(I(U))")
     println(io," ")
   end
+end
+
+function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Covering=default_covering(scheme(first(comp))))
+  isempty(comp) && error("list of components must not be empty")
+  X = scheme(first(comp))
+  all(x->scheme(x) === X, comp) || error("components must be defined over the same scheme")
+  isone(length(comp)) && return covering
+  new_patches = Vector{AbsSpec}()
+  for U in patches(covering) 
+    isempty(U) && continue
+    loc_comp = [I(U) for I in comp]
+    loc_comp = [a for a in loc_comp if !isone(a)]
+    if isone(length(loc_comp))
+      push!(new_patches, U)
+      continue
+    end
+    cof = _cofactors(loc_comp)
+    if isempty(cof)
+      push!(new_patches, U)
+    else
+      new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
+    end
+  end
+  new_cov = Covering(new_patches)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+function _cofactors(comp::Vector{<:Ideal})
+  R = base_ring(first(comp))
+  all(x->base_ring(x)===R, comp) || error("ideals must be defined over the same ring")
+  n = length(comp)
+  pairwise_cof = one(MatrixSpace(R, n, n))
+  for i in 1:n-1
+    for j in i+1:n
+      I = ideal(R, vcat(gens(comp[i]), gens(comp[j])))
+      r = ngens(comp[i])
+      s = ngens(comp[j])
+      z = coordinates(one(R), I)
+      x = z isa MatElem ? [z[1, k] for k in 1:r] : z[1:r]
+      y = z isa MatElem ? [z[1, r+k] for k in 1:s] : z[r+1:r+s]
+      pairwise_cof[i, j] = sum(x[k]*gen(comp[i], k) for k in 1:r; init=zero(R))
+      pairwise_cof[j, i] = sum(y[k]*gen(comp[j], k) for k in 1:s; init=zero(R))
+    end
+  end
+  @show pairwise_cof
+  @show iszero.(pairwise_cof)
+  result = [prod(pairwise_cof[1:n, i]) for i in 1:n]
+  @show result
+  @show iszero.(result)
+  return result
 end

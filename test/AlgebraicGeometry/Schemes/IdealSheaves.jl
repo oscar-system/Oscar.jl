@@ -126,3 +126,28 @@ end
   @test oscar.colength(JJ) == 4
   @test oscar.colength(JJ, covering=oscar.simplified_covering(X)) == 4
 end
+
+@testset "separation of ideal sheaves" begin
+  P2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P2)
+  (x, y, z) = gens(S)
+  I = Vector{Ideal}()
+  push!(I, ideal(S, [x, y]))
+  push!(I, ideal(S, [y, z]))
+  push!(I, ideal(S, [x, z]))
+  push!(I, ideal(S, [x+y, z]))
+  push!(I, ideal(S, [x+z, y]))
+  push!(I, ideal(S, [y+z, x]))
+  push!(I, ideal(S, [y+2*z, x]))
+
+  II = [IdealSheaf(P2, a) for a in I]
+  X = covered_scheme(P2)
+  C = oscar._separate_disjoint_components(II, covering=oscar.simplified_covering(X))
+  for U in patches(C)
+    @test sum(isone(I(U)) for I in II) == 6
+  end
+  C = oscar._separate_disjoint_components(II)
+  for U in patches(C)
+    @test sum(isone(I(U)) for I in II) == 6
+  end
+end
