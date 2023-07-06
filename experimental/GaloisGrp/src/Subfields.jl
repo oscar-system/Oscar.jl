@@ -7,7 +7,7 @@ import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
 
 
 function embedding_hom(k, K)
-  return MapFromFunc(x->K(x), k, K)
+  return MapFromFunc(k, K, x->K(x))
 end
 
 const BlockSystem_t = Vector{Vector{Int}}

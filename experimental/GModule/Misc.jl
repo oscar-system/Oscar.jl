@@ -40,7 +40,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   end
   #TODO: make map canonical?
   # ... and return gen(k) instead?
-  return k, MapFromFunc(to_qqbar, to_k, k, parent(a))
+  return k, MapFromFunc(k, parent(a), to_qqbar, to_k)
 end
 
 Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
