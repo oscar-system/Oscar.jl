@@ -484,6 +484,12 @@ function _promote_scalar_field(f::Field...)
     end
 end
 
+function _promote_scalar_field(a::AbstractArray)
+    b = filter(x -> x isa FieldElem, a)
+    isempty(b) && return (QQFieldElem, QQ)
+    return _promote_scalar_field(parent.(b)...)
+end
+
 # oscarnumber helpers
 
 function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{nf_elem})

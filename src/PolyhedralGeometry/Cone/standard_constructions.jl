@@ -101,31 +101,33 @@ function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{U}}) where {T<:s
   return _transform(C, A)
 end
 function _transform(C::Cone{T}, A::AbstractMatrix) where T<:scalar_types
-  OT = _scalar_type_to_polymake(T)
-  raymod = Polymake.Matrix{OT}(permutedims(A))
-  facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
-  return _transform(C, raymod, facetmod)
+    U, f = _promote_scalar_field(A)
+    OT = _scalar_type_to_polymake(f == QQ ? T : U)
+    raymod = Polymake.Matrix{OT}(permutedims(A))
+    facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
+    return _transform(C, raymod, facetmod, f)
 end
 function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:scalar_types}
   OT = _scalar_type_to_polymake(T)
   raymod = Polymake.Matrix{OT}(transpose(A))
   facetmod = Polymake.Matrix{OT}(inv(A))
-  return _transform(C, raymod, facetmod)
+  return _transform(C, raymod, facetmod, base_ring(A))
 end
-function _transform(C::Cone{T}, raymod, facetmod) where T<:scalar_types
-  OT = _scalar_type_to_polymake(T)
-  result = Polymake.polytope.Cone{OT}()
-  for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
-    if Polymake.exists(pm_object(C), prop)
-      resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * raymod)
-      Polymake.take(result, prop, resultprop)
+function _transform(C::Cone{T}, raymod, facetmod, matrixparent::Field) where T<:scalar_types
+    U, f = _promote_scalar_field(get_parent_field(C), matrixparent)
+    OT = _scalar_type_to_polymake(U)
+    result = Polymake.polytope.Cone{OT}()
+    for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
+        if Polymake.exists(pm_object(C), prop)
+            resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * raymod)
+            Polymake.take(result, prop, resultprop)
+        end
     end
-  end
-  for prop in ("INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "FACETS")
-    if Polymake.exists(pm_object(C), prop)
-      resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * facetmod)
-      Polymake.take(result, prop, resultprop)
+    for prop in ("INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "FACETS")
+        if Polymake.exists(pm_object(C), prop)
+            resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * facetmod)
+            Polymake.take(result, prop, resultprop)
+        end
     end
-  end
-  return Cone{T}(result, get_parent_field(C))
+    return Cone{U}(result, f)
 end
