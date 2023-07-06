@@ -64,6 +64,7 @@ end
 # in unexpected ways when import/export statements are adjusted.
 # It also sets the value of serialize_with_id, which determines
 # whether or not the type can be back referenced.
+# If omitted, the default is that no back references are allowed.
 function registerSerializationType(ex::Any,
                                    uses_id::Bool,
                                    str::Union{String,Nothing} = nothing)
@@ -74,7 +75,7 @@ function registerSerializationType(ex::Any,
         quote
             registerSerializationType($ex, $str)
             encodeType(::Type{<:$ex}) = $str
-            # There exists types where equality cannot be discerned from the serialization
+            # There exist types where equality cannot be discerned from the serialization
             # these types require an id so that equalities can be forced upon load.
             # The ids are only necessary for parent types, checking for element type equality
             # can be done once the parents are known to be equal.
