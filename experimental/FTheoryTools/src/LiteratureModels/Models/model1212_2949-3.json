@@ -6,9 +6,9 @@
         "discipline": "hep-th",
         "link": "https://arxiv.org/abs/1212.2949v2",
         "model_location": {
-            "section": "4.2",
-            "equation": "4.23",
-            "page": "44"
+            "section": "4.1",
+            "equation": "4.1",
+            "page": "37"
         }
     },
     "journal_data": {
@@ -34,27 +34,25 @@
     "model_parameters": ["k"],
     "model_data": {
         "type": "tate",
-        "description": "SO(4k+4)xU(1) Tate model",
-        "comment": "The paper only states that this is an SO(4k+4) model, but setting a6 = 0 also introduces an additional generating section, so there is additionally a U(1) factor, which may not have been relevant for the authors' purposes.",
-        "gauge_algebra": ["so(4k+4)", "u(1)"],
+        "description": "SO(4k+2) Tate model",
+        "gauge_algebra": ["so(4k+2)"],
         "base_dim": 3,
-        "base_coordinates": ["b1", "b2", "b3", "b4", "ζ0"],
+        "base_coordinates": ["b1", "b2", "b3", "b4", "b6", "ζ0"],
         "a1": "b1*ζ0",
         "a2": "b2*ζ0",
-        "a3": "b3*ζ0^(k + 1)",
+        "a3": "b3*ζ0^k",
         "a4": "b4*ζ0^(k + 1)",
-        "a6": "0",
+        "a6": "b6*ζ0^(2*k + 1)",
         "auxiliary_base_grading": [
-            [1, 2, 3, 4, 0],
-            [-1, -1, "-(k + 1)", "-(k + 1)", 1]
+            [1, 2, 3, 4, 6, 0],
+            [-1, -1, "-k", "-(k + 1)", "-(2*k + 1)", 1]
         ],
-        "generating_sections": [["0", "0", "1"]],
         "resolutions": [
             [
                 [
                     [
                         ["x", "y", ["ζ", "index"]],
-                        ["index", 0, "k"]
+                        ["index", 0, "k - 1"]
                     ],
                     [
                         ["y", ["ζ", "index"]],
@@ -65,7 +63,7 @@
                             ["ζ", "index"],
                             ["δ", "index"]
                         ],
-                        ["index", 1, "k"]
+                        ["index", 1, "k - 1"]
                     ],
                     [
                         [
@@ -78,7 +76,7 @@
                 [
                     [
                         ["ζ", "index"],
-                        ["index", 1, "k + 1"]
+                        ["index", 1, "k"]
                     ],
                     [
                         ["δ", "index"],
@@ -97,11 +95,11 @@
         ]
     },
     "related_models": [
-        "model2.json",
-        "model3.json",
-        "model4.json",
-        "model6.json",
-        "model7.json",
-        "model8.json"
+        "model1212_2949-1.json",
+        "model1212_2949-2.json",
+        "model1212_2949-4.json",
+        "model1212_2949-5.json",
+        "model1212_2949-6.json",
+        "model1212_2949-7.json"
     ]
 }
