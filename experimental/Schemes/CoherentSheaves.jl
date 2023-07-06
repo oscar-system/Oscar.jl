@@ -1358,12 +1358,13 @@ end
 end
 
 function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
+  D = default_covering(X)
   OOX = OO(X)
-  if has_decomposition_info(default_covering(X))
+  if has_decomposition_info(D)
     for U in patches(C)
-      V = __find_chart(U, default_covering(X))
+      V = __find_chart(U, D)
       phi = OOX(V, U)
-      set_decomposition_info!(C, U, phi.(decomposition_info(default_covering(X))[V]))
+      set_decomposition_info!(C, U, phi.(decomposition_info(D)[V]))
     end
   end
   return C

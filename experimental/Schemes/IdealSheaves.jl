@@ -340,11 +340,17 @@ function extend!(
 
       f, _ = glueing_morphisms(C[V, U])
       if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
+        @show V, U
         # if not, extend D to this patch
         f, _ = glueing_morphisms(C[V, U])
+        @show f
         pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
+        @show pbI_gens
         J = ideal(OO(V), lifted_numerator.(pbI_gens))
-        J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+        @show complement_equation(domain(f))
+        #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+        J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
+        @show "done"
         D[V] = J_sat
       else 
         Z = subscheme(U, D[U])
@@ -361,6 +367,15 @@ function extend!(
     end
   end
   return D
+end
+
+function _iterative_saturation(I::Ideal, f::RingElem)
+  fac = factor(f)
+  R = base_ring(I)
+  for (u, k) in fac
+    I = saturation(I, ideal(R, u))
+  end
+  return I
 end
 
 #function Base.show(io::IO, I::IdealSheaf)
