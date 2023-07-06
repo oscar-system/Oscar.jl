@@ -69,7 +69,7 @@ end
   R::Ring
   coeff_dict::IdDict{EffectiveCartierDivisor, CoeffType}
 
-  function CartierDivisor(X::AbsCoveredScheme, R::Ring, coeff_dict::IdDict{EffectiveCartierDivisor, CoeffType}) where {CoeffType<:RingElem}
+  function CartierDivisor(X::AbsCoveredScheme, R::Ring, coeff_dict::IdDict{<:EffectiveCartierDivisor, CoeffType}) where {CoeffType<:RingElem}
     all(x->(scheme(x)===X), keys(coeff_dict)) || error("all effective divisors must be defined over the same scheme")
     all(x->(parent(x) === R), values(coeff_dict)) || error("all coefficients must belong to the same parent")
     return new{typeof(X), CoeffType}(X, R, coeff_dict)

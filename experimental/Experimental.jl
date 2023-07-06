@@ -65,5 +65,6 @@ include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
+include("Schemes/duValSing.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

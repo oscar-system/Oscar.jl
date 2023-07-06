@@ -61,7 +61,7 @@ end
     K, z = abelian_closure(QQ)
     @test sprint(show, "text/plain", K) == "Abelian closure of Q"
 
-    @test get_variable(K) == "z"
+    @test get_variable(K) == "zeta"
     s = sprint(show, "text/plain", z)
 
     a = z(1)
@@ -79,7 +79,7 @@ end
     end
 
     t = set_variable!(K, "zz")
-    @test t == "z"
+    @test t == "zeta"
     @test get_variable(K) == "zz"
     sprint(show, "text/plain", a) == "zz(4)"
 

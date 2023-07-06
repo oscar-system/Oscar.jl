@@ -174,11 +174,18 @@ Base.:^(l::ToricLineBundle, p::Int) = l^ZZRingElem(p)
 
 
 ########################
-# 5: Equality
+# 5: Equality and hash
 ########################
 
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
     return toric_variety(l1) === toric_variety(l2) && picard_class(l1) == picard_class(l2)
+end
+
+function Base.hash(l::ToricLineBundle, h::UInt)
+    b = 0xa2b0a2cd60a8ffbf % UInt
+    h = hash(toric_variety(l), h)
+    h = hash(picard_class(l), h)
+    return xor(h, b)
 end
 
 
