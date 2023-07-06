@@ -325,13 +325,11 @@ function extend!(
     all_dense::Bool=false
   )
   gg = glueing_graph(C, all_dense=all_dense)
-  #gg = glueing_tree(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
   dirty_patches = AbsSpec[U for U in keys(D) if !isone(D[U])]
   while length(dirty_patches) > 0
     U = pop!(dirty_patches)
     N = neighbor_patches(C, U)
-    #N = neighbor_patches_in_glueing_tree(C, U)
     # The following line potentially triggers a groebner basis
     # computation, because the quo command for polynomial rings 
     # requires it. 
@@ -350,7 +348,6 @@ function extend!(
           continue
         end
         
-        @show V, U
         # if not, extend D to this patch
         f, _ = glueing_morphisms(C[V, U])
         pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])

@@ -26,7 +26,6 @@ mutable struct Covering{BaseRingType}
 
   # fields for caching
   glueing_graph::Graph{Undirected}
-  glueing_tree::Graph{Undirected}
   transition_graph::Graph{Undirected}
   edge_dict::Dict{Tuple{Int, Int}, Int}
   decomp_info::IdDict{<:AbsSpec, <:Vector{<:RingElem}}
