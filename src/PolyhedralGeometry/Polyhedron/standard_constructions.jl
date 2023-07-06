@@ -1257,32 +1257,53 @@ julia> vertices(S)
  [1, 2, 3]
 ```
 """
-lecture_hall_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d)) 
+lecture_hall_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
 
-# @doc raw"""
-#     explicit_zonotope(d::Int)
+@doc raw"""
+    cyclic_caratheodory(d::Int, n::Int)
 
-# Produce the points of a zonotope as the iterated Minkowski sum of all intervals [-x,x], 
-# where x ranges over the rows of the input matrix `zones`. 
+Produce a $d-$dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
+Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the trigonometric moment curve.
 
-# # Keywords
-# - `zones::Matrix`: the input vectors 
+# Keywords
+- `d::Int`: the dimension has to be even
+- `n::Int`: the number of points $n$ have to be be $\leq d$ 
 
-# Note that in polymake, this function has an optional Boolean parameter `group`, to
-# also construct the symmetry group of the simplex.  
+# Examples
+```jldoctest
+julia> cyclic_caratheodory(4,5)
+type: Polytope<Rational>
+description: Cyclic 4-polytope on 5 vertices on the trigonometric moment curve
 
-# # Examples
-# A $3$-dimensional lecture hall simplex:
-# ```jldoctest
-# julia> S = lecture_hall_simplex(3) 
-# Polyhedron in ambient dimension 3
+BOUNDED
+        true
 
-# julia> vertices(S)
-# 4-element SubObjectIterator{PointVector{QQFieldElem}}:
-#  [0, 0, 0]
-#  [0, 0, 3]
-#  [0, 2, 3]
-#  [1, 2, 3]
-# ```
-# """
-# explicit_zonotope(zones::Matrix{QQFieldElem})  = Polyhedron(Polymake.polytope.explicit_zonotope(zones)) 
+CONE_AMBIENT_DIM
+        5
+
+CONE_DIM
+        5
+
+N_VERTICES
+        5
+
+VERTICES
+  1                                   1                                   0  …                                   0
+  1    347922205179541/1125899906842624   8566355544790271/9007199254740992      5294298886396511/9007199254740992
+  1  -7286977268806823/9007199254740992   5294298886396511/9007199254740992         -33462326346837/35184372088832
+  1  -7286977268806825/9007199254740992  -5294298886396509/9007199254740992      8566355544790271/9007199254740992
+  1   1391688820718163/4503599627370496      -33462326346837/35184372088832     -5294298886396507/9007199254740992
+```
+"""
+function cyclic_caratheodory(d::Int, n::Int)
+    if n < d 
+        throw(ArgumentError("Dimension d has to be smaller than number of points n."))
+    end
+    if d < 2
+        throw(ArgumentError("Dimension has to be greater or equal to 2."))
+    end
+    if mod(d,2) != 0
+        throw(ArgumentError("Dimension has to be even."))
+    end
+    return Polymake.polytope.cyclic_caratheodory(d,n)
+end

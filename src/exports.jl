@@ -398,6 +398,7 @@ export cross_polytope
 export cube
 export cycle_matroid
 export cycle_structure
+export cyclic_caratheodory
 export cyclic_flats
 export cyclic_generator
 export cyclic_group
@@ -1376,4 +1377,5 @@ export witt_index
 export wreath_product
 export write_as_full
 export write_as_linear_combination
+
 

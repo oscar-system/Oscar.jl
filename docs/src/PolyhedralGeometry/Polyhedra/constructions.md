@@ -141,6 +141,7 @@ associahedron
 billera_lee_polytope
 binary_markov_graph
 birkhoff_polytope
+cyclic_caratheodory
 cyclic_polytope
 del_pezzo_polytope
 dwarfed_cube
