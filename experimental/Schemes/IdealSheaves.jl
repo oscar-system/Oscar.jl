@@ -340,17 +340,12 @@ function extend!(
 
       f, _ = glueing_morphisms(C[V, U])
       if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
-        @show V, U
         # if not, extend D to this patch
         f, _ = glueing_morphisms(C[V, U])
-        @show f
         pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
-        @show pbI_gens
         J = ideal(OO(V), lifted_numerator.(pbI_gens))
-        @show complement_equation(domain(f))
         #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
         J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
-        @show "done"
         D[V] = J_sat
       else 
         Z = subscheme(U, D[U])
@@ -698,13 +693,11 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
     end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
-    @show has_decomposition_info(covering)
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the 
       # decomposition_info in this chart
       components_here = [ C for C in components_here if all(g->g in C, decomposition_info(covering)[U])]
       result = vcat(result, [IdealSheaf(X, U, gens(C)) for C in components_here])
-      @show "blurb"
       continue
     else
       ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
