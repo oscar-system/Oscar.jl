@@ -324,12 +324,14 @@ function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal};
     all_dense::Bool=false
   )
-  gg = glueing_tree(C, all_dense=all_dense)
+  gg = glueing_graph(C, all_dense=all_dense)
+  #gg = glueing_tree(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
-  dirty_patches = collect(keys(D))
+  dirty_patches = AbsSpec[U for U in keys(D) if !isone(D[U])]
   while length(dirty_patches) > 0
     U = pop!(dirty_patches)
-    N = neighbor_patches_in_glueing_tree(C, U)
+    N = neighbor_patches(C, U)
+    #N = neighbor_patches_in_glueing_tree(C, U)
     # The following line potentially triggers a groebner basis
     # computation, because the quo command for polynomial rings 
     # requires it. 
@@ -339,7 +341,16 @@ function extend!(
       haskey(D, V)  && continue
 
       f, _ = glueing_morphisms(C[V, U])
-      if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
+      if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+
+        # Take a shortcut if possible
+        _, UV = glueing_domains(C[V, U])
+        if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
+          D[V] = ideal(OO(V), one(OO(V)))
+          continue
+        end
+        
+        @show V, U
         # if not, extend D to this patch
         f, _ = glueing_morphisms(C[V, U])
         pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
@@ -353,12 +364,14 @@ function extend!(
         ZV = closure(pZ, V, check=false)
         D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
       end
-      V in dirty_patches || push!(dirty_patches, V)
+      if !(V in dirty_patches) && !isone(D[V])
+        push!(dirty_patches, V)
+      end
     end
   end
   for U in basic_patches(C) 
     if !haskey(D, U)
-      D[U] = ideal(OO(U), zero(OO(U)))
+      D[U] = ideal(OO(U), one(OO(U)))
     end
   end
   return D
