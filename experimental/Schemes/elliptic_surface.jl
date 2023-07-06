@@ -29,11 +29,11 @@ $k(C)$ is the function field of the curve $C$.
   ambient_blowups
   ambient_exceptionals
 
-  function EllipticSurface(generic_fiber::EllCrv{F}, bundle_number::Int, mwl_gens::Vector{<:EllCrvPt}) where F
+  function EllipticSurface(generic_fiber::EllCrv{F}, bundle_number::Int, mwl_basis::Vector{<:EllCrvPt}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
     S = new{B,F}()
     S.E = generic_fiber
-    S.MWL = mwl_gens
+    S.MWL = mwl_basis
     S.bundle_number = bundle_number
     set_attribute!(S, :is_irreducible=>true)
     set_attribute!(S, :is_reduced=>true)
@@ -44,13 +44,13 @@ $k(C)$ is the function field of the curve $C$.
 end
 
 @doc raw"""
-    elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_gens::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
+    elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E``.
 """
-function elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_gens::Vector{<:EllCrvPt}=EllCrvPt[])
-  @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
-  S = EllipticSurface(generic_fiber, s, mwl_gens)
+function elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[])
+  @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
+  S = EllipticSurface(generic_fiber, s, mwl_basis)
   return S
 end
 
@@ -76,33 +76,34 @@ Return the sublattice of ``Num(X)`` spanned by fiber components
 and the sections provided at the construction of ``X``.
 """
 @attr function algebraic_lattice(X)
-  mwl_gens = X.MWL
+  mwl_basis = X.MWL
   basisTriv, GTriv = trivial_lattice(X)
-  l = length(mwl_gens)
+  l = length(mwl_basis)
   r = length(basisTriv)
-  sections = [section(X, i) for i in mwl_gens]
+  sections = [section(X, i) for i in mwl_basis]
   n = l+r
   GA = zero_matrix(ZZ, n, n)
   GA[1:r,1:r] = GTriv
   GA[r+1:n,r+1:n] = -2*identity_matrix(ZZ, l)
-  gensA = vcat(basisTriv, sections)
+  basisA = vcat(basisTriv, sections)
   @vprint :EllipticSurface 2 "computing intersection numbers"
   for i in 1:n
     @vprint :EllipticSurface 2 "\nrow $(i): \n"
     for j in max(i + 1, r + 1):n
       @vprint :EllipticSurface 2 "$(j) "
-      GA[i,j] = intersect(gensA[i],gensA[j])
+      GA[i,j] = intersect(basisA[i],basisA[j])
       GA[j,i] = GA[i,j]
     end
   end
   @assert rank(GA) == n "todo: treat torsion sections" # need to adapt mordell_weil then too
-  return gensA, integer_lattice(gram=GA)
+  return basisA, integer_lattice(gram=GA)
 end
 
 @doc raw"""
-    mordell_weil_lattice(S::EllipticSurface)
+    mordell_weil_lattice(S::EllipticSurface) -> Vector{EllCrvPt}, ZZLat
 
-
+Return the (sublattice) of the Mordell-Weil lattice of ``S``  spanned
+by the sections of ``S`` supplied at its construction.
 """
 @attr ZZLat function mordell_weil_lattice(S::EllipticSurface)
   NS = algebraic_lattice(S)
@@ -111,18 +112,34 @@ end
   V = ambient_space(NS)
   P = orthogonal_complement(V, trivNS)
   mwl = rescale(lattice(V, basis_matrix(NS)*P, is_basis=false),-1)
+  #Todo basis
   return lll(mwl)
 end
 
 @doc raw"""
+    mordell_weil_torsion(S::EllipticSurface) ->
 
+Return generators for the torsion part of the Mordell-Weil group
+of the generic fiber of ``S``.
 """
 @attr function mordell_weil_torsion(S::EllipticSurface)
-  error("not implemented")
+  E = generic_fiber(S)
+  O = E([0,1,0])
+  N = trivial_lattice(S)
+  tors = EllCrvPt[]
+  for d in divisors(det(N))
+    @vprint :EllipticSurface 2 "computing $(d)-torsion"
+    append!(tors, division_points(E, d))
+  end
+  return tors
 end
 
 @doc raw"""
 
+#Examples
+```jldoctest
+
+```
 """
 function Base.show(io::IOContext, S::EllipticSurface)
   io = pretty(io)
@@ -134,7 +151,10 @@ function Base.show(io::IOContext, S::EllipticSurface)
 end
 
 @doc raw"""
+#Examples
+```jldoctest
 
+```
 """
 function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
   io = pretty(io)
@@ -785,7 +805,9 @@ function _prop217(E::EllCrv, P::EllCrvPt, k)
   OP = divexact(max(degree(xd), degree(xn) - 4), 2)
   dega = k + 2*OP
   degb = k + 2*OP - 2 - divexact(degree(xd), 2) #?
-  base = base_ring(X)
+  base = base_field(E)
+  Bt = base_ring(base)
+  B = coefficient_ring(Bt)
 
   R,ab = polynomial_ring(base,vcat([Symbol(:a,i) for i in 0:dega],[Symbol(:b,i) for i in 0:degb]),cached=false)
   Rt, t1 = polynomial_ring(R,:t)
@@ -802,11 +824,10 @@ function _prop217(E::EllCrv, P::EllCrvPt, k)
 
   # collect the equations as a matrix
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
-  M = matrix(base, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
+  M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
   kerdim, K = kernel(M)
-  result = []
-  Bt = base_ring(base_field(E))
+  result = Tuple{elem_type(Bt),elem_type(Bt)}[]
   t = gen(Bt)
   for j in 1:kerdim
     aa = reduce(+, (K[i+1,j]*t^i for i in 0:dega), init=zero(Bt))
@@ -855,9 +876,9 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
 
     @assert gcd(xn, xd)==1
     @assert gcd(yn, yd)==1
-    ab = prop217(generic_fiber(X), P, k)
+    ab = _prop217(generic_fiber(X), P, k)
     d = divexact(yd, xd)(t)
-    den = t^k(x*xd(t) - xn(t))
+    den = t^k*(x*xd(t) - xn(t))
     for (a,b) in ab
       c = divexact(b*yn - a*xn, xd)
       num = a(t)*x+b(t)*d*y + c(t)
@@ -939,7 +960,16 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, left_kernel(G)[2]
 end
 
-
+function basis_representation(X::EllipticSurface, D::WeilDivisor)
+  basis, NS = algebraic_lattice(X)
+  G = gram_matrix(NS)
+  n = length(basis)
+  v = zeros(fmpz, )
+  for i in 1:n
+    v[i] = intersect(basis[i],D)
+  end
+  return v*inv(G)
+end
 
 ################################################################################
 #

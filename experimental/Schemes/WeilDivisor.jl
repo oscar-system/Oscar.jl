@@ -346,6 +346,9 @@ function subsystem(L::LinearSystem, D::WeilDivisor)
   Lnew = L
   T = identity_matrix(base_ring(scheme(L)), ngens(L))
   for P in components(E)
+    if coeff(D,P) == coeff(E,P)
+      continue
+    end
     Lnew, Tnew = _subsystem(Lnew, P, -coeff(D,P))
     T = Tnew*T
   end
@@ -366,6 +369,9 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   # find one chart in which P is supported
   # TODO: There might be preferred choices for charts with
   # the least complexity.
+  if coeff(weil_divisor(L),P) == -n
+    return L, identity_matrix(ZZ, length(gens(L)))
+  end
   X = variety(L)
   X === space(P) || error("input incompatible")
   C = default_covering(X)
@@ -421,7 +427,7 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   end
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
+  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K[1:r,:]
 end
 
 @attr Bool function is_prime(D::WeilDivisor)
