@@ -326,44 +326,81 @@ function extend!(
   )
   gg = glueing_graph(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
-  dirty_patches = AbsSpec[U for U in keys(D) if !isone(D[U])]
-  while length(dirty_patches) > 0
-    U = pop!(dirty_patches)
-    N = neighbor_patches(C, U)
-    # The following line potentially triggers a groebner basis
-    # computation, because the quo command for polynomial rings 
-    # requires it. 
-    #Z = subscheme(U, D[U])
-    for V in N
-      # check whether this node already knows about D
-      haskey(D, V)  && continue
-
-      f, _ = glueing_morphisms(C[V, U])
-      if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
-
-        # Take a shortcut if possible
-        _, UV = glueing_domains(C[V, U])
-        if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
-          D[V] = ideal(OO(V), one(OO(V)))
-          continue
+  visited = collect(keys(D))
+  # The nodes which can be used for extension
+  fat = [U for U in visited if !isone(D[U])]
+  # Nodes which are leafs
+  flat = [U for U in visited if isone(D[U])]
+  # Nodes to which we might need to extend
+  leftover = [U for U in patches(C) if !(U in keys(D))]
+  # Nodes to which we can extend in one step
+  neighbors = [U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  # All other nodes
+  leftover = [U for U in leftover if !any(W->W===U, neighbors)]
+  while length(neighbors) > 0
+    good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
+    for V in neighbors
+      for U in fat
+        G = C[U, V]
+        if (G isa SimpleGlueing || (G isa LazyGlueing && is_computed(G)))
+          push!(good_pairs, (U, V))
         end
-        
-        # if not, extend D to this patch
-        f, _ = glueing_morphisms(C[V, U])
-        pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
-        J = ideal(OO(V), lifted_numerator.(pbI_gens))
-        #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
-        J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
-        D[V] = J_sat
-      else 
-        Z = subscheme(U, D[U])
-        pZ = preimage(f, Z, check=false)
-        ZV = closure(pZ, V, check=false)
-        D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
       end
-      if !(V in dirty_patches) && !isone(D[V])
-        push!(dirty_patches, V)
+    end
+
+    # Initialize some variables
+    U = first(visited) # The visited node
+    V = first(visited) # The neighboring node for which we do the extension
+    if !isempty(good_pairs)
+      # In case we find a good neighboring pair, use that
+      (U, V) = first(good_pairs)
+    else
+      # If there is no good neighboring pair, compute a new glueing
+      V = first(neighbors)
+      k = findfirst(U->haskey(glueings(C), (U, V)), fat)
+      U = fat[k]
+    end
+    f, _ = glueing_morphisms(C[V, U])
+    if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+
+      # Take a shortcut if possible
+      _, UV = glueing_domains(C[V, U])
+      if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
+        D[V] = ideal(OO(V), one(OO(V)))
+        # Register this patch as a leaf
+        push!(flat, V)
+        # Update the neighbors
+        neighbors = [W for W in neighbors if !(W===V)]
+        continue
       end
+
+      # if not, extend D to this patch
+      f, _ = glueing_morphisms(C[V, U])
+      pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
+      J = ideal(OO(V), lifted_numerator.(pbI_gens))
+      #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+      J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
+      D[V] = J_sat
+    else 
+      Z = subscheme(U, D[U])
+      pZ = preimage(f, Z, check=false)
+      ZV = closure(pZ, V, check=false)
+      D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+    end
+
+    # Update the neighbors
+    neighbors = [W for W in neighbors if !(W===V)]
+    # Put that new node in the correct list
+    if isone(D[V])
+      push!(flat, V)
+    else
+      push!(fat, V)
+      for W in leftover
+        if haskey(glueings(C), (V, W))
+          push!(neighbors, W)
+        end
+      end
+      leftover = [W for W in leftover if !any(x->x===W, neighbors)]
     end
   end
   for U in basic_patches(C) 
