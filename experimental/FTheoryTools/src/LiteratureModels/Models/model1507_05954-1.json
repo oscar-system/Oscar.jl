@@ -132,7 +132,7 @@
                 ["e1", "e2"]
             ]
         ],
-        "resolution_zero_section": [
+        "resolution_zero_sections": [
             [
                 ["0", "-b1", "a1"],
                 [

@@ -41,7 +41,7 @@ julia> arxiv_id(t)
 ```
 """
 function arxiv_id(t::AbstractFTheoryModel)
-  @req has_attribute(t, :arxiv_id) "No arxiv identifier known for this model"
+  @req has_arxiv_id(t) "No arxiv identifier known for this model"
   return get_attribute(t, :arxiv_id)
 end
 
@@ -60,7 +60,7 @@ julia> description(t)
 ```
 """
 function description(t::AbstractFTheoryModel)
-  @req has_attribute(t, :description) "No description known for this model"
+  @req has_description(t) "No description known for this model"
   return get_attribute(t, :description)
 end
 
@@ -80,7 +80,7 @@ julia> doi(t)
 ```
 """
 function doi(t::AbstractFTheoryModel)
-  @req has_attribute(t, :doi) "No doi known for this model"
+  @req has_doi(t) "No DOI known for this model"
   return get_attribute(t, :doi)
 end
 
@@ -100,7 +100,7 @@ julia> equation_number(t)
 ```
 """
 function equation_number(t::AbstractFTheoryModel)
-  @req has_attribute(t, :equation_number) "No equation number known for this model"
+  @req has_equation_number(t) "No equation number known for this model"
   return get_attribute(t, :equation_number)
 end
 
@@ -120,7 +120,7 @@ julia> link(t)
 ```
 """
 function link(t::AbstractFTheoryModel)
-  @req has_attribute(t, :link) "No link known for this model"
+  @req has_ling(t) "No link known for this model"
   return get_attribute(t, :link)
 end
 
@@ -140,6 +140,6 @@ julia> version(t)
 ```
 """
 function version(t::AbstractFTheoryModel)
-  @req has_attribute(t, :version) "No version known for this model"
+  @req has_version(t) "No version known for this model"
   return get_attribute(t, :version)
 end

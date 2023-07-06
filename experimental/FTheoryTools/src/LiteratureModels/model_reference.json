@@ -55,10 +55,10 @@
         "generating_sections": [[["", "", ""]]],
         "hypersurface_equation": "",
         "resolutions": [[[[""]], [""]]],
-        "resolution_zero_section": [[["", "", ""]]],
+        "resolution_zero_sections": [[["", "", ""]]],
         "resolution_generating_sections": [[[["", "", ""]]]],
         "weighted_resolutions": [[[[[""], []]], [""]]],
-        "weighted_resolution_zero_section": [[["", "", ""]]],
+        "weighted_resolution_zero_sections": [[["", "", ""]]],
         "weighted_resolution_generating_sections": [[[["", "", ""]]]]
     },
     "associated_models": [""],
