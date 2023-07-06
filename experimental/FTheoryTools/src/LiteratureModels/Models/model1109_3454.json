@@ -58,7 +58,7 @@
                 ["e1", "e4", "e2", "e3", "s"]
             ]
         ],
-        "resolution_zero_section": [
+        "resolution_zero_sections": [
             [
                 ["1", "1", "0"],
                 ["1", "1", "w"],
@@ -107,7 +107,7 @@
                 ["e1", "e4", "e2", "e3", "s"]
             ]
         ],
-        "weighted_resolution_zero_section": [
+        "weighted_resolution_zero_sections": [
             [
                 ["1", "1", "0"],
                 ["1", "1", "w"],
