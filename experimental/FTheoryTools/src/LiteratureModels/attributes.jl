@@ -26,26 +26,6 @@ end
 #####################################################
 
 @doc raw"""
-    doi(t::AbstractFTheoryModel)
-
-Return the `doi` of the publication that introduced
-the given model. If no `doi` is
-known, an error is raised.
-
-```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> doi(t)
-"10.1016/j.nuclphysb.2011.12.013"
-```
-"""
-function doi(t::AbstractFTheoryModel)
-  @req has_attribute(t, :doi) "No doi known for this model"
-  return get_attribute(t, :doi)
-end
-
-@doc raw"""
     arxiv_id(t::AbstractFTheoryModel)
 
 Return the `arxiv_id` of the preprint that introduced
@@ -66,23 +46,42 @@ function arxiv_id(t::AbstractFTheoryModel)
 end
 
 @doc raw"""
-    version(t::AbstractFTheoryModel)
+    description(t::AbstractFTheoryModel)
 
-Return the `version` of the arXiv preprint that
-introduced the given model. If no
-`version` is known, an error is raised.
+Return the `description` of the given model.
+If no `description` is known, an error is raised.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> version(t)
-"2"
+julia> description(t)
+"SU(5)xU(1) restricted Tate model"
 ```
 """
-function version(t::AbstractFTheoryModel)
-  @req has_attribute(t, :version) "No version known for this model"
-  return get_attribute(t, :version)
+function description(t::AbstractFTheoryModel)
+  @req has_attribute(t, :description) "No description known for this model"
+  return get_attribute(t, :description)
+end
+
+@doc raw"""
+    doi(t::AbstractFTheoryModel)
+
+Return the `doi` of the publication that introduced
+the given model. If no `doi` is
+known, an error is raised.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> doi(t)
+"10.1016/j.nuclphysb.2011.12.013"
+```
+"""
+function doi(t::AbstractFTheoryModel)
+  @req has_attribute(t, :doi) "No doi known for this model"
+  return get_attribute(t, :doi)
 end
 
 @doc raw"""
@@ -106,25 +105,6 @@ function equation_number(t::AbstractFTheoryModel)
 end
 
 @doc raw"""
-    description(t::AbstractFTheoryModel)
-
-Return the `description` of the given model.
-If no `description` is known, an error is raised.
-
-```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> description(t)
-"SU(5)xU(1) restricted Tate model"
-```
-"""
-function description(t::AbstractFTheoryModel)
-  @req has_attribute(t, :description) "No description known for this model"
-  return get_attribute(t, :description)
-end
-
-@doc raw"""
     link(t::AbstractFTheoryModel)
 
 Return the `link` (formatted as string) to the online
@@ -142,4 +122,24 @@ julia> link(t)
 function link(t::AbstractFTheoryModel)
   @req has_attribute(t, :link) "No link known for this model"
   return get_attribute(t, :link)
+end
+
+@doc raw"""
+    version(t::AbstractFTheoryModel)
+
+Return the `version` of the arXiv preprint that
+introduced the given model. If no
+`version` is known, an error is raised.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> version(t)
+"2"
+```
+"""
+function version(t::AbstractFTheoryModel)
+  @req has_attribute(t, :version) "No version known for this model"
+  return get_attribute(t, :version)
 end
