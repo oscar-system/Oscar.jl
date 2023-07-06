@@ -75,9 +75,15 @@
         NF, sr2 = quadratic_field(2)
         ENF, sre2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
         T = elem_type(ENF)
+        
         c = cube(ENF, 3, -sre2, sre2)
         d = cube(3, -5//3, 1//2)
 
+        mat = [1 2 3; 1 4 5]
+        e = positive_hull(ENF, mat; non_redundant = true)
+        f = positive_hull(mat; non_redundant = true)
+
+        # Polyhedron
         for z in (4, QQ(4), ENF(4))
             @test pyramid(c, z) isa Polyhedron{T}
             p = pyramid(c, z)
@@ -158,7 +164,22 @@
             @test f_vector(p) == f_vector(c)
             @test Oscar.get_parent_field(p) == ENF
         end
-        
+
+        tm = [0 0 1; 0 1 0; 1 0 0]
+        # Cone
+        for (m, F) in ((tm, QQ), (Rational{BigInt}.(tm), QQ), (QQ.(tm), QQ), (matrix(QQ, tm), QQ), (ENF.(tm), ENF), (matrix(ENF, tm), ENF))
+            U = elem_type(F)
+            @test transform(e, m) isa Cone{T}
+            let et = transform(e, m)
+                @test f_vector(et) == f_vector(e)
+                @test vector_matrix(rays(et)) == matrix(ENF, [1 2//3 1//3; 1 4//5 1//5])
+            end
+            @test transform(f, m) isa Cone{U}
+            let ft = transform(f, m)
+                @test f_vector(ft) == f_vector(f)
+                @test vector_matrix(rays(ft)) == matrix(F, [1 2//3 1//3; 1 4//5 1//5])
+            end
+        end
     end
 
 end

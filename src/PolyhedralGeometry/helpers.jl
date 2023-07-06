@@ -127,6 +127,14 @@ function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatr
     return res
 end
 
+function Polymake.Matrix{Polymake.OscarNumber}(x::Union{MatElem, AbstractMatrix{<:FieldElem}})
+    res = Polymake.Matrix{Polymake.OscarNumber}(size(x)...)
+    for i in eachindex(x)
+        res[i] = x[i]
+    end
+    return res
+end
+
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
@@ -178,6 +186,8 @@ Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(
 
 Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymake.unwrap(x))
 
+Base.convert(::Type{Polymake.Matrix{Polymake.OscarNumber}}, x::MatElem{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(x)
+
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
 (Z::ZZRing)(x::Polymake.Rational) = convert(ZZRingElem, x)
 
@@ -201,7 +211,7 @@ Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.R
 Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
 Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
 Polymake.convert_to_pm_type(::Type{T}) where T<:FieldElem = Polymake.OscarNumber
-# Polymake.convert_to_pm_type(::Type{Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
+Polymake.convert_to_pm_type(::Type{<:Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
@@ -484,10 +494,9 @@ function _promote_scalar_field(f::Field...)
     end
 end
 
-function _promote_scalar_field(a::AbstractArray)
-    b = filter(x -> x isa FieldElem, a)
-    isempty(b) && return (QQFieldElem, QQ)
-    return _promote_scalar_field(parent.(b)...)
+function _promote_scalar_field(a::AbstractArray{<:FieldElem})
+    isempty(a) && return (QQFieldElem, QQ)
+    return _promote_scalar_field(parent.(a)...)
 end
 
 # oscarnumber helpers

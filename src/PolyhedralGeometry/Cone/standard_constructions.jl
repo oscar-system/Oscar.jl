@@ -94,27 +94,35 @@ julia> c == ctt
 true
 ```
 """
-function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{U}}) where {T<:scalar_types, U<:FieldElem}
+function transform(C::Cone{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}) where {T<:scalar_types, U<:FieldElem}
   @assert ambient_dim(C) == nrows(A) "Incompatible dimension of cone and transformation matrix"
   @assert nrows(A) == ncols(A) "Transformation matrix must be square"
   @assert Polymake.common.rank(A) == nrows(A) "Transformation matrix must have full rank."
   return _transform(C, A)
 end
-function _transform(C::Cone{T}, A::AbstractMatrix) where T<:scalar_types
+function _transform(C::Cone{T}, A::AbstractMatrix{<:FieldElem}) where T<:scalar_types
     U, f = _promote_scalar_field(A)
-    OT = _scalar_type_to_polymake(f == QQ ? T : U)
+    V, g = _promote_scalar_field(get_parent_field(C), f)
+    OT = _scalar_type_to_polymake(V)
     raymod = Polymake.Matrix{OT}(permutedims(A))
     facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
+    return _transform(C, raymod, facetmod, g)
+end
+function _transform(C::Cone{T}, A::AbstractMatrix{<:Number}) where T<:scalar_types
+    OT = _scalar_type_to_polymake(T)
+    raymod = Polymake.Matrix{OT}(permutedims(A))
+    facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
+    return _transform(C, raymod, facetmod, get_parent_field(C))
+end
+function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:FieldElem}
+    V, f = _promote_scalar_field(get_parent_field(C), base_ring(A))
+    OT = _scalar_type_to_polymake(V)
+    raymod = Polymake.Matrix{OT}(transpose(A))
+    facetmod = Polymake.Matrix{OT}(inv(A))
     return _transform(C, raymod, facetmod, f)
 end
-function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:scalar_types}
-  OT = _scalar_type_to_polymake(T)
-  raymod = Polymake.Matrix{OT}(transpose(A))
-  facetmod = Polymake.Matrix{OT}(inv(A))
-  return _transform(C, raymod, facetmod, base_ring(A))
-end
-function _transform(C::Cone{T}, raymod, facetmod, matrixparent::Field) where T<:scalar_types
-    U, f = _promote_scalar_field(get_parent_field(C), matrixparent)
+function _transform(C::Cone{T}, raymod, facetmod, f::Field) where T<:scalar_types
+    U = elem_type(f)
     OT = _scalar_type_to_polymake(U)
     result = Polymake.polytope.Cone{OT}()
     for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
