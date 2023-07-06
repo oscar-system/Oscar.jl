@@ -902,7 +902,7 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
     isempty(U) && continue
     loc_comp = [I(U) for I in comp]
     loc_comp = [a for a in loc_comp if !isone(a)]
-    if isone(length(loc_comp))
+    if isempty(loc_comp) || isone(length(loc_comp))
       push!(new_patches, U)
       continue
     end
@@ -935,10 +935,6 @@ function _cofactors(comp::Vector{<:Ideal})
       pairwise_cof[j, i] = sum(y[k]*gen(comp[j], k) for k in 1:s; init=zero(R))
     end
   end
-  @show pairwise_cof
-  @show iszero.(pairwise_cof)
   result = [prod(pairwise_cof[1:n, i]) for i in 1:n]
-  @show result
-  @show iszero.(result)
   return result
 end
