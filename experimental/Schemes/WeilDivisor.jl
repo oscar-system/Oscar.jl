@@ -276,7 +276,7 @@ end
 
 Check if the rational function `f` is in the linear system ``|D|``.
 """
-function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=false)
+function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
   X = scheme(D) 
   X === variety(parent(f)) || error("schemes not compatible")
   C = simplified_covering(X)

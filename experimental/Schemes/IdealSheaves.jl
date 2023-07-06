@@ -798,7 +798,7 @@ function match_on_intersections(
       X::AbsCoveredScheme,
       U::AbsSpec,
       I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
-      associated_list::Vector{IdDict{AbsSpec,Ideal}},
+      associated_list::Vector{<:IdDict{<:AbsSpec, <:Ideal}},
       check::Bool=true)
   @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
