@@ -12,6 +12,7 @@ import ..Oscar:
   _iso_oscar_gap,
   action,
   basis,
+  basis_matrix,
   coeff,
   coefficient_ring,
   coefficients,
@@ -23,6 +24,7 @@ import ..Oscar:
   exterior_power,
   gen,
   gens,
+  ideal,
   ngens,
   parent_type,
   symbols,
@@ -35,6 +37,7 @@ import Base: getindex, deepcopy_internal, hash, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
+export LieAlgebraIdeal
 export LieAlgebraModule, LieAlgebraModuleElem
 export LinearLieAlgebra, LinearLieAlgebraElem
 
@@ -47,6 +50,7 @@ export coefficient_vector
 export combinations
 export exterior_power
 export general_linear_lie_algebra
+export has_basis
 export highest_weight_module
 export is_direct_sum
 export is_dual
@@ -72,6 +76,7 @@ include("Util.jl")
 include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
+include("LieAlgebraIdeal.jl")
 include("LieAlgebraModule.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
@@ -83,6 +88,7 @@ using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
+export LieAlgebraIdeal
 export LieAlgebraModule, LieAlgebraModuleElem
 export LinearLieAlgebra, LinearLieAlgebraElem
 
@@ -93,6 +99,7 @@ export base_modules
 export bracket
 export exterior_power
 export general_linear_lie_algebra
+export has_basis
 export highest_weight_module
 export is_direct_sum
 export is_dual
