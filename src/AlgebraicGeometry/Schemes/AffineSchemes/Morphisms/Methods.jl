@@ -146,18 +146,29 @@ end
 # (5) Display
 ########################################
 
-function Base.show(io::IO, f::AbsSpecMor)
-  println(io, "morphism from\n")
-  println(io, "\t$(domain(f))\n")
-  println(io, "to\n")
-  println(io, "\t$(codomain(f))\n")
-  println(io, "with coordinates\n")
+function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
+  io = pretty(io)
+  println(io, "Morphism")
+  println(io, Indent(), "from ", Lowercase(), domain(f))
+  println(io, "to   ", Lowercase(), codomain(f))
+  println(io, Dedent(), "given by")
+  pf = pullback(f)
+  print(io, Indent())
   x = coordinates(codomain(f))
-  print(io,"\t")
   for i in 1:length(x)-1
-    print(io, "$(pullback(f)(x[i])), ")
+    println(io, "$(x[i]) -> $(pf(x[i]))")
   end
-  print(io, "$(pullback(f)(last(x)))")
+  print(io, "$(x[end]) -> $(pf(x[end]))")
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AbsSpecMor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
 end
 
 ########################################################################

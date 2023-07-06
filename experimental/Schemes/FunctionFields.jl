@@ -242,10 +242,6 @@ function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool
   return KK(numerator(h), denominator(h), check=check)
 end
 
-function Base.show(io::IO, f::VarietyFunctionFieldElem)
-  print(io, representative(f))
-end
-
 ### given the fraction field of the `ambient_coordinate_ring` in one
 # affine chart, return a representative of `f` in that field
 function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
@@ -328,7 +324,45 @@ end
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)
-  print(io, "function field of $(variety(KK))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field")
+  else
+    print(io, "Function field of ", Lowercase(), variety(KK))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", KK::VarietyFunctionField)
+  io = pretty(io)
+  X = variety(KK)
+  println(io, "Field of rational functions")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, default_covering(X))
+  println(io, Dedent())
+  println(io, "represented by ", Lowercase(), representative_field(KK))
+  print(io, Indent(), "over ", Lowercase(), representative_patch(KK))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field element")
+  else
+    print(io, "Rational function on ", Lowercase(), variety(parent(f)))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  KK = parent(f)
+  println(io, "Rational function")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, variety(KK), default_covering(variety(KK)))
+  println(io, Dedent())
+  println(io, "represented by ", representative(f))
+  print(io, Indent(), "over ", Lowercase(), representative_patch(KK))
+  print(io, Dedent())
 end
 
 function divexact(f::VarietyFunctionFieldElem, 

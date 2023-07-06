@@ -188,25 +188,91 @@ function copy(D::AlgebraicCycle)
   return AlgebraicCycle(scheme(D), coefficient_ring(D), new_dict)
 end
 
-function Base.show(io::IO, D::AlgebraicCycle)
-  if has_name(D)
-    print(io, name(D))
-    return
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  if length(components(D)) == 1
+    prim = D[components(D)[1]] == 1
+  else
+    prim = false
   end
   if length(components(D)) == 0
-    println(io, "the zero Weil divisor on $(scheme(D))")
-    return
+    print(io, "Zero algebraic cycle")
+  else
+    if eff
+      if prim
+        print(io, "Irreducible algebraic cycle ")
+      else
+        print(io, "Effective algebraic cycle ")
+      end
+    else
+      print(io, "Algebraic cycle ")
+    end
+    if has_attribute(D, :dim)
+      print(io, "of dimension $(dim(D))")
+    end
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum")
-  comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  out_str = comp[1]
-  for c in comp[2:end]
-    out_str = out_str* " + " * c
+  println(io)
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov, 3)
+  println(io, Dedent())
+  print(io, "with coefficients in ", Lowercase(), coefficient_ring(D))
+  if length(components(D)) != 0
+    println(io, Dedent())
+    print(io, Dedent(), "given as the formal sum of")
+    println(io, Indent())
+    for i in 1:length(components(D))-1
+      I = components(D)[i]
+      print(io, "$(D[I])*")
+      print(io, Indent())
+      Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
+      println(io, Dedent())
+      println(io, "--------------------------------------------------------------------------------")
+    end
+    I = components(D)[end]
+    print(io, "$(D[I])*")
+    print(io, Indent())
+    Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
+    print(io, Dedent())
   end
-  println(io, out_str)
+  print(io, Dedent())
 end
 
-function dim(D::AlgebraicCycle)
+function Base.show(io::IO, D::AlgebraicCycle)
+  io = pretty(io)
+  X = scheme(D)
+  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  if length(components(D)) == 1
+    prim = D[components(D)[1]] == 1 ? true : false
+  else
+    prim = false
+  end
+  if has_name(D)
+    print(io, name(D))
+  elseif get(io, :supercompact, false)
+    print(io, "Algebraic cycle")
+  elseif length(components(D)) == 0
+    print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))
+  elseif eff
+    if prim
+      print(io, "Irreducible algebraic cycle on ", Lowercase(), scheme(D))
+    else
+      print(io, "Effective algebraic cycle on ", Lowercase(), scheme(D))
+    end
+  else
+    print(io, "Algebraic cycle on ", Lowercase(), scheme(D))
+  end
+end
+
+
+@attr function dim(D::AlgebraicCycle)
   result = -1
   for I in components(D)
     d = dim(I)
@@ -322,5 +388,4 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
   end
   return result
 end
-
 

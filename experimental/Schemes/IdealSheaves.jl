@@ -5,8 +5,6 @@ export order_on_divisor
 export scheme
 export subscheme
 
-export show_details
-
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -260,7 +258,6 @@ function simplify!(I::IdealSheaf)
       push!(new_gens, new_gen)
       K = ideal(OO(U), new_gens)
     end
-    Oscar.object_cache(underlying_presheaf(I))[U] = K 
   end
   return I
 end
@@ -352,9 +349,6 @@ function extend!(
   return D
 end
 
-#function Base.show(io::IO, I::IdealSheaf)
-#  print(io, "sheaf of ideals on $(space(I))")
-#end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
@@ -440,11 +434,11 @@ end
 #  return W, spec_dict
 #end
 #
-function isone(I::IdealSheaf)
+@attr function isone(I::IdealSheaf)
   return all(x->isone(I(x)), affine_charts(scheme(I)))
 end
 
-function is_prime(I::IdealSheaf) 
+@attr function is_prime(I::IdealSheaf) 
   !isone(I) || return false
   return all(U->(is_one(I(U)) || is_prime(I(U))), basic_patches(default_covering(space(I))))
 end
@@ -828,29 +822,83 @@ end
 ## show functions for Ideal sheaves
 ########################################################################### 
 function Base.show(io::IO, I::IdealSheaf)
-    X = scheme(I)
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
 
-  # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+  if get_attribute(I, :is_one, false)
+    print(io, "Sheaf of unit ideals")
+  elseif z
+    print(io, "Sheaf of zero ideals")
+  elseif get(io, :supercompact, false)
+    if prim
+      print(io, "Presheaf")
+    else
+      print(io, "Sheaf of ideals")
+    end
+  else
+    # If there is a simplified covering, use it!
+    if prim
+      print(io, "Sheaf of prime ideals")
+    else
+      print(io, "Sheaf of ideals")
+    end
+    print(io," on ", Lowercase(), X)
+  end
 end
 
-function show_details(I::IdealSheaf)
-   show_details(stdout,I)
+function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), k::Int = 0)
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
+
+  if get_attribute(I, :is_one, false)
+    print(io, "Sheaf of unit ideals")
+  elseif z
+    print(io, "Sheaf of zero ideals")
+  else
+    # If there is a simplified covering, use it!
+    if prim
+      print(io, "Sheaf of prime ideals ")
+    else
+      print(io, "Sheaf of ideals ")
+    end
+    print(io, "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for (i, U) in enumerate(patches(cov))
+      println(io)
+      print(io, " "^k, "patch $i: $(I(U))")
+    end
+    print(io, Dedent())
+  end
 end
 
-function show_details(io::IO, I::IdealSheaf)
+function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))))
+  io = pretty(io)
   X = scheme(I)
 
   # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
-
-  for (i,U) in enumerate(patches(covering))
-    println(io,"Chart $i:")
-    println(io,"   $(I(U))")
-    println(io," ")
+  println(io, "Sheaf of ideals")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, scheme(I), cov, 3)
+  println(io)
+  print(io, Dedent(), "with restriction")
+  length(cov) > 1 && print(io, "s")
+  print(io, Indent())
+  for (i, U) in enumerate(patches(cov))
+    println(io)
+    print(io, "patch $i: $(I(U))")
   end
+  print(io, Dedent())
 end

@@ -112,3 +112,32 @@ function _register_birationality!(f::AbsCoveredSchemeMorphism,
   set_attribute!(f, :iso_on_open_subset, g)
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
+  io = pretty(io)
+  g = covering_morphism(f)
+  println(io, "Morphism")
+  print(io, Indent(), "from ", Lowercase())
+  Oscar._show_semi_compact(io, domain(f), domain(g), 5)
+  println(io)
+  print(io, "to   ", Lowercase())
+  Oscar._show_semi_compact(io, codomain(f), codomain(g), 5)
+  println(io, Dedent())
+  println(io, "given by")
+  print(io, Indent())
+  Oscar._show_semi_compact(io, covering_morphism(f))
+end

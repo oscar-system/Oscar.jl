@@ -417,8 +417,26 @@ underlying_presheaf(S::StructureSheafOfRings) = S.OO
 end
 
 function Base.show(io::IO, R::StructureSheafOfRings)
-  print(io, "𝒪_{$(space(R))}")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    if is_unicode_allowed()
+      print(io, "𝒪_{")
+      print(IOContext(io, :supercompact => true), space(R), "}")
+    else
+      print(io, "Structure sheaf of ", Lowercase(), space(R))
+    end
+  end
 end
+
+function Base.show(io::IO, ::MIME"text/plain", R::StructureSheafOfRings)
+  io = pretty(io)
+  println(io, "Structure sheaf of rings of regular functions")
+  print(io, Indent(), "on ", Lowercase(), space(R))
+  print(io, Dedent())
+end
+
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
     a::MPolyRingElem,

@@ -31,12 +31,55 @@ Base.in(U::AbsSpec, X::CoveredScheme) = any(C->(U in C), coverings(X))
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, X::AbsCoveredScheme)
+
+function Base.show(io::IO, ::MIME"text/plain", X::AbsCoveredScheme)
+  io = pretty(io)
+  println(io, "Scheme")
+  println(io, Indent(), "over ", Lowercase(), base_ring(X))
+  C = default_covering(X)
+  n = npatches(C)
+  print(io, Dedent(), "with $n affine patch")
+  n > 1 && print(io, "es")
+  print(io, " in its default covering")
+  print(io, Indent())
+  for U in C
+    println(io)
+    print(io, Lowercase(), U)
+  end
+  print(io, Dedent())
+end
+
+function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X, :simplified_covering, default_covering(X)), l::Int = 0)
+  io = pretty(io)
+  show(io, X, cov)
+  n = npatches(cov)
+  print(io, Indent())
+  for U in cov
+    println(io)
+    print(io, " "^l, Lowercase(), U)
+  end
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X, :simplified_covering, default_covering(X)))
+  io = pretty(io)
+  n = npatches(cov)
   if has_name(X)
     print(io, name(X))
-    return
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty covered scheme")
+  elseif get(io, :supercompact, false)
+    print(io, "Scheme")
+  else
+    print(io, "Scheme over ")
+    if base_ring(X) == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+    end
+    print(io, " covered with $n affine patch")
+    n > 1 && print(io, "es")
   end
-  print(io, "covered scheme with $(npatches(default_covering(X))) affine patches in its default covering")
 end
 
 ########################################################################

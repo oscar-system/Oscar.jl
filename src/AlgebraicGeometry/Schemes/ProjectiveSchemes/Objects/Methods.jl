@@ -3,18 +3,19 @@
 ################################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
-  println(io, "Projective scheme")  # at least one new line is needed
-  println(io, "  over ", base_ring(P))
-  print(io, "  defined by ")
-  print(io, defining_ideal(P)) # the last print statement must not add a new line
+  io = pretty(io)
+  println(io, "Projective scheme")
+  println(io, Indent(), "over ", Lowercase(), base_ring(P))
+  print(io, Dedent(), "defined by ", defining_ideal(P))
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
+  io = pretty(io)
   if get(io, :supercompact, false)
-    # no nested printing
-    print(io, "Projective scheme")
+    print(io, "Scheme")
+  elseif get_attribute(P, :is_empty, false)
+    print(io, "Empty projective scheme")
   else
-    # nested printing allowed, preferably supercompact
     print(io, "Projective scheme in ")
     print(IOContext(io, :supercompact => true), ambient_space(P), " over ", base_ring(P))
   end
@@ -22,24 +23,27 @@ end
 
 # Projective space
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
-  println(io, "Projective space of dimension $(relative_ambient_dimension(P))")  # at least one new line is needed
-  print(io, "  with homogeneous coordinates ")
-  for x in homogeneous_coordinates(P)
-    print(io, x, " ")
-  end
-  println(io, "")
-  print(io, "  over ")
-  print(io, base_ring(P)) # the last print statement must not add a new line
+  io = pretty(io)
+  println(io, "Projective space of dimension $(relative_ambient_dimension(P))")
+  print(io, Indent(), "over ")
+  println(io, Lowercase(), base_ring(P))
+  print(io, Dedent(), "with homogeneous coordinate")
+  length(homogeneous_coordinates(P)) > 1 && print(io, "s")
+  print(io, " ")
+  print(io, join(homogeneous_coordinates(P), ", "))
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
-  if get(io, :supercompact, false) # no nested printing
+  io = pretty(io)
+  if get(io, :supercompact, false)
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
       print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
     else
       print(io, "IP^$(relative_ambient_dimension(P))")
     end
+  elseif get_attribute(P, :is_empty, false)
+    print(io, "Empty projective space")
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
@@ -49,11 +53,23 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
         print(io, ltx["\\^$d"])
       end
       print(io, " over ")
-      print(IOContext(io, :supercompact => true), base_ring(P))
+      if base_ring(P) == QQ
+        print(io, "QQ")
+      else
+        print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
+      end
     else
-      # nested printing allowed, preferably supercompact
       print(io, "Projective $(relative_ambient_dimension(P))-space over ")
-      print(IOContext(io, :supercompact => true), base_ring(P))
+      if base_ring(P) == QQ
+        print(io, "QQ")
+      else
+        print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
+      end
+      c = homogeneous_coordinates(P)
+      print(io, " with coordinate")
+      length(c) > 1 && print(io, "s")
+      print(io, " ")
+      print(io, join(c, ", "))
     end
   end
 end

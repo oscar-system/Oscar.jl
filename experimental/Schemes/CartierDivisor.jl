@@ -307,30 +307,104 @@ dim(C::CartierDivisor) = dim(scheme(C))-1
 ## show functions for Cartier divisors
 ########################################################################### 
 function Base.show(io::IO, C::EffectiveCartierDivisor)
-  I = ideal_sheaf(C)
-  X = C.X
-  covering = C.C
-  n = npatches(covering)
-
-  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Cartier divisor")
+  else
+    print(io, "Effective cartier divisor on ", Lowercase())
+    show(io, scheme(C))
+  end
 end
 
-function show_details(C::EffectiveCartierDivisor)
-   show_details(stdout,C)
+function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  I = ideal_sheaf(C)
+  X = scheme(C)
+
+  println(io, "Effective cartier divisor")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, scheme(C), cov, 3)
+  println(io, Dedent())
+  println(io, "defined by", Lowercase())
+  print(io, Indent())
+  Oscar._show_semi_compact(io, I)
+  print(io, Dedent())
 end
 
-function show_details(io::IO,C::EffectiveCartierDivisor)
-  I = ideal_sheaf(C)
-  X = C.X
+function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  X = scheme(C)
+  println(io, "Effective cartier divisor defined by")
+  print(io, Indent(), Lowercase())
+  Oscar._show_semi_compact(io, ideal_sheaf(C), cov)
+  print(io, Dedent())
+end
 
-  covering = C.C
-  n = npatches(covering)
+function Base.show(io::IO, C::CartierDivisor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Cartier divisor")
+  else
+    print(io, "Cartier divisor on ", Lowercase())
+    show(io, scheme(C))
+  end
+end
 
-  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
+function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  X = scheme(C)
+  cc = components(C)
+  if length(cc) == 0
+    print(io, "Zero cartier divisor")
+    print(io, Indent(), "on ", Lowercase())
+    Oscar._show_semi_compact(io, scheme(C), cov, 3)
+    print(io, Dedent())
+  else
+    println(io, "Cartier divisor")
+    print(io, Indent(), "on ", Lowercase())
+    Oscar._show_semi_compact(io, scheme(C), cov, 3)
+    println(io)
+    println(io, Dedent(), "with coefficients")
+    println(io, Indent(), "in ", Lowercase(), coefficient_ring(C))
+    print(io, Dedent(), "defined by the formal sum of")
+    println(io, Indent())
 
-  for (i,U) in enumerate(patches(covering))
-    println(io,"Chart $i:")
-    println(io,"   $(I(U))")
-    println(io," ")
+    for i in 1:length(components(C))-1
+      I = components(C)[i]
+      print(io, "$(C[I])*")
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, ideal_sheaf(I), cov, length("$(C[I])*"))
+      println(io, "--------------------------------------------------------------------------------")
+    end
+    I = components(C)[end]
+    print(io, "$(C[I])*")
+    print(io, Lowercase())
+    Oscar._show_semi_compact(io, ideal_sheaf(I), cov, length("$(C[I])*"))
+    print(io, Dedent())
+  end
+end
+
+function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  X = scheme(C)
+  cc = components(C)
+  if length(cc) == 0
+    print(io, "Zero cartier divisor")
+  else
+    println(io, "Cartier divisor defined by the formal sum of")
+    print(io, Indent())
+
+    for i in 1:length(components(C))-1
+      I = components(C)[i]
+      print(io, "$(C[I])*")
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, ideal_sheaf(I), cov, length("$(C[I])*"))
+      println(io, "--------------------------------------------------------------------------------")
+    end
+    I = components(C)[end]
+    print(io, "$(C[I])*")
+    print(io, Lowercase())
+    Oscar._show_semi_compact(io, ideal_sheaf(I), cov, length("$(C[I])*"))
+    print(io, Dedent())
   end
 end

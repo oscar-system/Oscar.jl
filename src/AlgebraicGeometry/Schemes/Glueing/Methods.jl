@@ -1,12 +1,32 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, G::AbsGlueing)
-  print(io, "Glueing of $(patches(G)[1]) and $(patches(G)[2]) along the map $(glueing_morphisms(G)[1])")
+function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
+  io = pretty(io)
+  println(io, "Glueing")
+  println(io, Indent(), "of  ", Lowercase(), patches(G)[1])
+  println(io, "and ", Lowercase(), patches(G)[2])
+  println(io, Dedent(), "along the open subsets")
+  f = glueing_morphisms(G)[1]
+  pf = pullback(f)
+  println(io, Indent(), Lowercase(), domain(f))
+  println(io, Lowercase(), codomain(f))
+  println(io, Dedent(), "given by")
+  c = coordinates(codomain(f))
+  print(io, Indent())
+  for i in 1:length(c)-1
+    println(io, "$(c[i]) -> $(pf(c[i]))")
+  end
+  print(io, "$(c[end]) -> $(pf(c[end]))")
+  print(io, Dedent())
 end
 
-function Base.show(io::IO, G::Glueing)
-  print(io, "Glueing of $(patches(G)[1]) and $(patches(G)[2]) along the map $(glueing_morphisms(G)[1])")
+function Base.show(io::IO, G::AbsGlueing)
+  if get(io, :supercompact, false)
+    print(io, "Affine glueing")
+  else
+    print(io, "Glueing of affine patches")
+  end
 end
 
 ########################################################################

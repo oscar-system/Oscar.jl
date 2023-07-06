@@ -134,12 +134,28 @@ end
 ########################################################################
 # Printing                                                             #
 ########################################################################
+
+function Base.show(io::IO, ::MIME"text/plain", U::SpecOpen, k::Int = 0)
+  io = pretty(io)
+  println(io, "Open subset")
+  println(io, Indent(), " "^k, "of ", Lowercase(), ambient_space(U))
+  print(io, Dedent(), " "^k, "complement to V(")
+  join(io, gens(complement_ideal(U)), ", ")
+  print(io, ")")
+end
+
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
     print(io, name(U))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Scheme")
+  elseif get_attribute(U, :is_empty, false)
+    print(io, "Empty open subset of affine scheme")
+  else
+    print(io, "Complement to V(")
+    print(io, join(gens(complement_ideal(U)), ", "), ")")
+    print(IOContext(io, :supercompact => true), " in ", ambient_scheme(U))
   end
-  print(io, "complement of zero locus of $(complement_equations(U)) in $(ambient_scheme(U))")
 end
 
 ########################################################################

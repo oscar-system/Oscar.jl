@@ -1,9 +1,32 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, f::SpecOpenMor) 
-  print(io, "Morphism from $(domain(f)) to $(codomain(f))")
-  #given by the rational map $(generic_fractions(f))")
+function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
+  io = pretty(io)
+  println(io, "Morphism")
+  println(io, Indent(), "from ", Lowercase(), domain(f))
+  println(io, "to   ", Lowercase(), codomain(f))
+  print(io, Dedent(), "defined by the map")
+  mop = maps_on_patches(f)
+  length(mop) > 1 && print(io, "s")
+  println(io, Indent())
+  for i in 1:length(mop)-1
+    print(io, Lowercase())
+    Base.show(io, MIME"text/plain"(), mop[i])
+    println(io)
+    println(io, "----------------------------------------------------------------------")
+  end
+  print(io, Lowercase())
+  Base.show(io, MIME"text/plain"(), mop[end])
+end
+
+function Base.show(io::IO, f::SpecOpenMor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
 end
 
 ########################################################################

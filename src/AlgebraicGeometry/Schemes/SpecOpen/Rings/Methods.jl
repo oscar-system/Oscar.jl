@@ -439,3 +439,54 @@ function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
   return f
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, R::SpecOpenRing)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Ring")
+  else
+    print(io, "Ring of regular functions on ", Lowercase(), domain(R))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
+  io = pretty(io)
+  println(io, "Ring of regular functions")
+  print(io, Indent(), "on ", Lowercase())
+  show(io, MIME"text/plain"(), domain(R), 3)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, a::SpecOpenRingElem)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Ring element")
+  else
+    print(io, "Regular function on ", Lowercase(), domain(parent(a)))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
+  io = pretty(io)
+  R = parent(a)
+  println("Regular function")
+  print(io, Indent(), "on ", Lowercase())
+  show(io, MIME"text/plain"(), domain(R), 3)
+  println(io, Dedent())
+  r = restrictions(a)
+  ap = affine_patches(a)
+  print(io, "with restriction")
+  length(r) > 1 && print(io, "s")
+  println(io, Indent())
+  for i in 1:length(r)-1
+    println(io, Lowercase(), ap[i], " -> ", r[i])
+  end
+  print(io, Lowercase(), ap[end], " -> ", r[end])
+  print(io, Dedent())
+end
+  

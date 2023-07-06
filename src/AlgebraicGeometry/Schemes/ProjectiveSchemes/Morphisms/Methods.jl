@@ -61,3 +61,44 @@ of ``X`` and ``Y``, respectively.
   return ff
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, f::ProjectiveSchemeMor)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    io = pretty(io)
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
+  io = pretty(io)
+  println(io, "Morphism")
+  println(io, Indent(), "from ", Lowercase(), domain(f))
+  print(io, "to   ", Lowercase(), codomain(f))
+  print(io, Dedent())
+  if has_attribute(f, :covered_scheme_morphism)
+    println(io)
+    println(io, "defined by")
+    print(io, Indent(), Lowercase())
+    show(io, MIME"text/plain"(), covered_scheme_morphism(f))
+    print(io, Dedent())
+  end
+end
+
+function _show_semi_compact(io::IO, f::ProjectiveSchemeMor)
+  io = pretty(io)
+  print(io, "Morphism of projective schemes")
+  if has_attribute(f, :covered_scheme_morphism)
+    println(io, " defined by")
+    print(io, Indent(), Lowercase())
+    show(io, MIME"text/plain"(), covered_scheme_morphism(f))
+    print(io, Dedent())
+  end
+end
+

@@ -37,8 +37,37 @@ function sheaf_of_rings(F::AbsCoherentSheaf)
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
 
+function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
+  io = pretty(io)
+  cov = default_covering(M)
+  X = scheme(M)
+  D = M.ID 
+  println(io, "Coherent sheaf of modules")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov, 3)
+  println(io, Dedent())
+  print(io, "with restriction")
+  length(cov) > 1 && print(io, "s")
+  print(io, Indent())
+  for i in 1:length(cov)
+    U = cov[i]
+    println(io)
+    print(io, "patch $i: ", Lowercase(), D[U])
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, M::AbsCoherentSheaf)
-  print(io, "sheaf of $(sheaf_of_rings(M))-modules on $(scheme(M))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    if is_unicode_allowed()
+      print(io, "Coherent sheaf of $(sheaf_of_rings(M))-modules on ", Lowercase(), scheme(M))
+    else
+      print(io, "Coherent sheaf of modules on ", Lowercase(), scheme(M))
+    end
+  end
 end
 
 
@@ -657,7 +686,7 @@ sheaf_of_rings(M::SheafOfModules) = M.OOX
 
 ### Implementing the additional getters
 default_covering(M::SheafOfModules) = M.C
-
+restrictions_dict(M::SheafOfModules) = M.ID
 
 @doc raw"""
     twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
@@ -926,7 +955,19 @@ function direct_sum(summands::Vector{<:AbsCoherentSheaf})
 end
 
 function Base.show(io::IO, M::DirectSumSheaf)
-  print(io, "direct sum of $(summands(M))")
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    s = summands(M)
+    if is_unicode_allowed() && length(s) > 0
+      for i in 1:length(M) - 1
+        print(io, "$(s[i]) ⊕ ")
+      end
+      print(io, "$(s[end])")
+    else
+      print(io, "Sheaf of modules on covered scheme")
+    end
+  end
 end
 
 @doc raw"""
@@ -1106,10 +1147,6 @@ sheaf_of_rings(M::PushforwardSheaf) = M.OOY
 original_sheaf(M::PushforwardSheaf) = M.M
 map(M::PushforwardSheaf) = M.inc
 
-function Base.show(io::IO, M::PushforwardSheaf)
-  print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
-end
-
 ########################################################################
 # Pullback of sheaves along morphisms                                  #
 ########################################################################
@@ -1286,10 +1323,6 @@ sheaf_of_rings(M::PullbackSheaf) = M.OOX
 original_sheaf(M::PullbackSheaf) = M.M
 map(M::PullbackSheaf) = M.f
 pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
-
-function Base.show(io::IO, M::PullbackSheaf)
-  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
-end
 
 
 ########################################################################

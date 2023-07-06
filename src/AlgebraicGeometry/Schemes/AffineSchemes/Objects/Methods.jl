@@ -25,20 +25,30 @@ end
 ==(X::EmptyScheme, Y::AbsSpec) = (Y == X)
 
 
-
 ########################################################
 # (2) Display
 ########################################################
 
-function Base.show(io::IO, X::AbsSpec)
-  if has_attribute(X, :name)
-    print(io, name(X))
-    return
-  end
-  print(io, "Spec of $(OO(X))")
+function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
+  io = pretty(io)
+  println(io, "Spectrum")
+  print(io, Indent(), "of ", Lowercase(), OO(X))
+  print(io, Dedent())
 end
 
-
+function Base.show(io::IO, X::AbsSpec)
+  io = pretty(io)
+  if has_attribute(X, :name)
+    print(io, name(X))
+  elseif get(io, :supercompact, false)
+    print(io, "Scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine scheme")
+  else
+    print(io, "Spec of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), OO(X))
+  end
+end
 
 ########################################################
 # (3) Check for zero divisors in rings

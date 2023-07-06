@@ -73,3 +73,94 @@ function base_change(phi::Any, f::CoveringMorphism;
   return domain_map, CoveringMorphism(DD, CC, mor_dict, check=true), codomain_map # TODO: Set to false after testing.
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, f::CoveringMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+function _show_semi_compact(io::IO, f::CoveringMorphism)
+  io = pretty(io)
+  mor = morphisms(f)
+  for i in 1:length(patches(domain(f)))-1
+    println(io, "patch $i:")
+    print(io, Indent())
+    U = patches(domain(f))[i]
+    g = mor[U]
+    x = coordinates(codomain(g))
+    pg = pullback(mor[U])
+    for j in 1:length(x)-1
+      println(io, "$(x[j]) -> $(pg(x[j]))")
+    end
+    println(io, "$(x[end]) -> $(pg(x[end]))")
+    print(io, Dedent())
+    println(io, "----------------------------------------")
+  end
+  println(io, "patch $(npatches(domain(f))):")
+  print(io, Indent())
+  U = patches(domain(f))[npatches(domain(f))]
+  g = mor[U]
+  x = coordinates(codomain(g))
+  pg = pullback(mor[U])
+  for j in 1:length(x)-1
+    println(io, "$(x[j]) -> $(pg(x[j]))")
+  end
+  print(io, "$(x[end]) -> $(pg(x[end]))")
+  print(io, Dedent(), Dedent())
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
+  io = pretty(io)
+  println(io, "Morphism")
+  println(io, Indent(), "from ", Lowercase(), domain(f))
+  print(io, Indent())
+  for U in domain(f)
+    println(io, " "^5, Lowercase(), U)
+  end
+  print(io, Dedent())
+  println(io, "to   ", Lowercase(), codomain(f))
+  print(io, Indent())
+  for U in codomain(f)
+    println(io, " "^5, Lowercase(), U)
+  end
+  print(io, Dedent(), Dedent())
+  println(io, "given by")
+  print(io, Indent())
+  mor = morphisms(f)
+  for i in 1:length(patches(domain(f)))-1
+    println(io, "patch $i:")
+    print(io, Indent())
+    U = patches(domain(f))[i]
+    g = mor[U]
+    x = coordinates(codomain(g))
+    pg = pullback(mor[U])
+    for j in 1:length(x)-1
+      println(io, "$(x[j]) -> $(pg(x[j]))")
+    end
+    println(io, "$(x[end]) -> $(pg(x[end]))")
+    print(io, Dedent())
+    println(io, "----------------------------------------")
+  end
+  println(io, "patch $(npatches(domain(f))):")
+  print(io, Indent())
+  U = patches(domain(f))[npatches(domain(f))]
+  g = mor[U]
+  x = coordinates(codomain(g))
+  pg = pullback(mor[U])
+  for j in 1:length(x)-1
+    println(io, "$(x[j]) -> $(pg(x[j]))")
+  end
+  print(io, "$(x[end]) -> $(pg(x[end]))")
+  print(io, Dedent(), Dedent())
+end
+
+

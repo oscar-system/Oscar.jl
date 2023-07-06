@@ -4,19 +4,17 @@
 
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   io = pretty(io)
-  println(io, "Affine algebraic set")  # at least one new line is needed
-  println(io, Indent(), "in ", ambient_space(X))
-  print(io, "defined by ", fat_ideal(X))
-  # the last print statement must not add a new line
-  print(io, Dedent()) # do not forget to Dedent() every Indent()
+  println(io, "Affine algebraic set")
+  println(io, Indent(), "in ", Lowercase(), ambient_space(X))
+  print(io, Dedent(), "defined by ", fat_ideal(X))
 end
 
 function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   if get(io, :supercompact, false)
-    # no nested printing
-    print(io, "Affine algebraic set")
+    print(io, "Scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine algebraic set")
   else
-    # nested printing allowed, preferably supercompact
     print(io, "V(")
     join(io, gens(fat_ideal(X)), ", ")
     print(io,")")
@@ -26,15 +24,19 @@ end
 # special case for Zariski opens
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
   io = pretty(io)
-  println(io, "Reduced subscheme")  # at least one new line is needed
+  println(io, "Reduced subscheme")
   print(io, Indent(),"of ", Lowercase(), fat_scheme(X))
   print(io, Dedent())
-  # the last print statement must not add a new line
 end
 
 function Base.show(io::IO, X::AffineAlgebraicSet)
   io = pretty(io)
-  println(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))  # at least one new line is needed
-  # the last print statement must not add a new line
+  if get(io, :supercompact, false)
+    print(io, "Scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine algebraic set")
+  else
+    print(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))
+  end
 end
 

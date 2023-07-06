@@ -24,6 +24,11 @@ glueing_domains(PG::AbsProjectiveGlueing) = glueing_domains(underlying_glueing(P
 patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
 glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
 
 @doc raw"""
   LazyProjectiveGlueing(
@@ -162,6 +167,41 @@ mutable struct ProjectiveGlueing{
   end
 end
 
+function Base.show(io::IO, PG::LazyProjectiveGlueing)
+  if get(io, :supercompact, false)
+    print(io, "Projective glueing")
+  else
+    if isdefined(G, :underlying_glueing)
+      show(io, underlying_glueing(G))
+    else
+      print(io, "Glueing of projective patches (not yet computed)")
+    end
+  end
+end
+
+function Base.show(io::IO, PG::ProjectiveGlueing)
+  if get(io, :supercompact, false)
+    print(io, "Projective glueing")
+  else
+    print(io, "Glueing of projective patches")
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
+  io = pretty(io)
+  f = glueing_morphisms(PG)[1]
+  PX, PY = pacthes(PG)
+  PU, PV = glueing_domains(PG)
+  println(io, "Glueing")
+  println(io, Indent(), "of  ", Lowercase(), PX)
+  println(io, "and ", Lowercase(), PY)
+  println(io, Dedent(), "along the open subsets")
+  println(io, Indent(), Lowercase(), PU)
+  println(io, Lowercase(), PV)
+  print(io, Dedent(), "given by ", Lowercase())
+  Oscar._show_semi_compact(io, f)
+end
+
 ### type getters
 #=
 TODO: Do we need these?
@@ -225,6 +265,48 @@ projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
 getindex(P::CoveredProjectiveScheme, U::AbsSpec) = (P.patches)[U]
 getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.glueings)[(U, V)]
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  n = length(projective_patches(CPS))
+  K = base_ring(base_scheme(CPS))
+  if get(io, :supercompact, false)
+    print(io, "Scheme")
+  else
+    print(io, "Relative projective scheme over ")
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
+    print(io, " covered with $n projective patch")
+    n > 1 && print(io, "es")
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  pp = projective_patches(CPS)
+  n = length(pp)
+  println(io, "Relative projective scheme")
+  print(io, Indent(), "over ", Lowercase())
+  Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
+  println(io)
+  print(io, Dedent(), " covered with $n projective patch")
+  n > 1 && print(io, "es")
+  print(io, Indent())
+  for PU in pp
+    println(io)
+    print(io, Lowercase(), U)
+  end
+  print(io, Dedent())
+end
+
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   Y = empty_covered_scheme(R)
   C = default_covering(Y)
@@ -233,7 +315,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   pp = IdDict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = Dict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
   #tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
@@ -1599,11 +1681,4 @@ end
 #end
 #
 #
-
-########################################################################
-# Printing                                                             #
-########################################################################
-function Base.show(io::IO, X::CoveredProjectiveScheme)
-  print(io, "relative projective scheme over $(base_scheme(X))")
-end
 
