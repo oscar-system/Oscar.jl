@@ -685,6 +685,10 @@ function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   return (issubset(T, U) && issubset(U, T))
 end
 
+function Base.hash(T::AbsMPolyMultSet{BRT, BRET, RT, RET}, h::UInt) where {BRT,BRET,RT,RET}
+  error("not implemented")
+end
+
 function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
@@ -2888,6 +2892,16 @@ function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom)
     f(x) == g(x) || return false
   end
   return true
+end
+
+function Base.hash(f::MPolyLocalizedRingHom, h::UInt)
+  b = 0xe29cdc1ecb68b7a0 % UInt
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  for x in gens(base_ring(domain(f)))
+    h = hash(f(x), h)
+  end
+  return xor(h, b)
 end
 
 function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)

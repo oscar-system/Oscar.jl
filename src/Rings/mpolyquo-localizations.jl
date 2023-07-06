@@ -1089,6 +1089,16 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
   return true
 end
 
+function Base.hash(f::MPolyQuoLocalizedRingHom, h::UInt)
+  b = 0xd6d389598ad28724  % UInt
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  for x in gens(base_ring(domain(f)))
+    h = hash(f(x), h)
+  end
+  return xor(h, b)
+end
+
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
   R = base_ring(domain(phi))
@@ -1689,6 +1699,14 @@ end
 
 function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
+end 
+
+function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
+                                 <:MPolyComplementOfKPointIdeal})
+  I = shifted_ideal(modulus(R))
+  o = negdegrevlex(gens(base_ring(R)))
+  LI=leading_ideal(standard_basis(I, ordering = o))
+  return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
 ### Conversion of ideals in the original ring to localized ideals

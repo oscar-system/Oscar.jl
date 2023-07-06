@@ -227,7 +227,7 @@ Oscar.isone(x::TropicalSemiringElem) = !isinf(x) && iszero(data(x))
 
 ################################################################################
 #
-#  Equality
+#  Equality and hash
 #
 ################################################################################
 
@@ -235,6 +235,15 @@ function Base.:(==)(x::TropicalSemiringElem, y::TropicalSemiringElem)
   (isinf(x) && isinf(y)) && return true
   ((isinf(x) && !isinf(y)) || (!isinf(x) && isinf(y))) && return false
   return data(x) == data(y)
+end
+
+function Base.hash(x::TropicalSemiringElem, h::UInt)
+  b = 0x4df38853cc07aa27   % UInt
+  h = hash(isinf(x), h)
+  if !isinf(x)
+    h = hash(data(x), h)
+  end
+  return xor(h, b)
 end
 
 ################################################################################
