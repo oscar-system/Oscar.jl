@@ -446,12 +446,6 @@ end
   return is_radical(saturated_ideal(I))
 end
 
-# TODO: Replace by a more efficient method!
-function radical(I::MPolyQuoIdeal)
-  Irad = radical(saturated_ideal(I))
-  return ideal(base_ring(I), gens(Irad))
-end
-
 @doc raw"""
     is_zero(a::MPolyQuoIdeal)
 
