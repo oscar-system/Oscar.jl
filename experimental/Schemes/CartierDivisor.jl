@@ -220,7 +220,7 @@ end
 function weil_divisor(C::EffectiveCartierDivisor;
     is_prime::Bool=false # Indicate whether this divisor is already prime
   )
-  return WeilDivisor(ideal_sheaf(C), ZZ, check=false)
+  return WeilDivisor(ideal_sheaf(C), ZZ, check=is_prime)
 
   # TODO: See what we can recycle from the code below.
   X = scheme(C)
