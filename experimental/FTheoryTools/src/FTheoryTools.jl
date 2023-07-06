@@ -12,6 +12,11 @@ include("TateModels/properties.jl")
 include("TateModels/auxiliary.jl")
 include("TateModels/methods.jl")
 
+include("HypersurfaceModels/constructors.jl")
+include("HypersurfaceModels/attributes.jl")
+include("HypersurfaceModels/properties.jl")
+include("HypersurfaceModels/methods.jl")
+
 include("standard_constructions.jl")
 
 include("LiteratureTateModels/constructors.jl")

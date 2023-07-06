@@ -1078,6 +1078,10 @@ function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, 
   return is_subset(a, b) && is_subset(b, a)
 end
 
+function Base.hash(a::PBWAlgIdeal{D, T, S}, h::UInt) where {D, T, S}
+  b = 0x91c65dda1eed350f % UInt
+  return xor(hash(base_ring(a), hash(D, h)), b)
+end
 
 #### elimination
 

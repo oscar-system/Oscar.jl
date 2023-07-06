@@ -28,6 +28,7 @@ mutable struct Covering{BaseRingType}
   glueing_graph::Graph{Undirected}
   transition_graph::Graph{Undirected}
   edge_dict::Dict{Tuple{Int, Int}, Int}
+  decomp_info::IdDict{<:AbsSpec, <:Vector{<:RingElem}}
 
   function Covering(
       patches::Vector{<:AbsSpec},

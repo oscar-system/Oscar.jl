@@ -1,3 +1,6 @@
+import Oscar.Nemo.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 const rng = Oscar.get_seeded_rng()
 
 @testset "mpoly-localizations" begin

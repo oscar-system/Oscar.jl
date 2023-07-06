@@ -519,7 +519,7 @@ end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
   @assert is_zm_graded(parent(f))
-  d = degree(f)isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
+  d = degree(f)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -1642,6 +1642,11 @@ and names for printing the basis elements are equal.
 """
 function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
   return forget_decoration(F) == forget_decoration(G) && F.d == G.d
+end
+
+function Base.hash(F::FreeMod_dec, h::UInt)
+  b = 0x13d6e1b453cb661a % UInt
+  return xor(hash(forget_decoration(F), hash(F.d, h)), b)
 end
 
 ###############################################################################

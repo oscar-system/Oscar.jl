@@ -35,7 +35,7 @@ This method checks if a morphism is the identity map.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -55,3 +55,8 @@ false
 ```
 """
 is_identity_map(f::AbsSpecMor) = (domain(f) == codomain(f)) && all(x->(pullback(f)(x) == x), gens(OO(domain(f))))
+
+@attr Bool function is_birational(f::AbsSpecMor)
+  error("verification of birationality not implemented")
+end
+

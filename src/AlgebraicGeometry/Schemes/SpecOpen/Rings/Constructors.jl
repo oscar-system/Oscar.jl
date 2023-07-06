@@ -18,14 +18,14 @@ end
 ########################################################################
 # Coercion                                                             #
 ########################################################################
-(R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(f::RingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
+(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
 
-(R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
+(R::SpecOpenRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
 
-function (R::SpecOpenRing)(f::SpecOpenRingElem)
+function (R::SpecOpenRing)(f::SpecOpenRingElem; check::Bool=true)
   parent(f) === R && return f
-  return SpecOpenRingElem(R, [restrict(f, U) for U in affine_patches(domain(R))])
+  return SpecOpenRingElem(R, [restrict(f, U, check=check) for U in affine_patches(domain(R))])
 end
 
 ########################################################################

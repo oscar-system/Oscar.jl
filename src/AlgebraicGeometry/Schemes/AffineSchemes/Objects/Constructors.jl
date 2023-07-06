@@ -116,12 +116,12 @@ and so on. This choice can be overwritten with a third optional argument.
 julia> affine_space(QQ, 5)
 Affine space of dimension 5
   with coordinates x1 x2 x3 x4 x5
-  over Rational field
+  over rational field
 
 julia> affine_space(QQ,5,variable_name="y")
 Affine space of dimension 5
   with coordinates y1 y2 y3 y4 y5
-  over Rational field
+  over rational field
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
@@ -142,26 +142,30 @@ The following example demonstrates this.
 julia> affine_space(QQ,[:y1,:z2,:a])
 Affine space of dimension 3
   with coordinates y1 z2 a
-  over Rational field
+  over rational field
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
   R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
   R, _ = polynomial_ring(kk, var_symbols)
-  return affine_variety(Spec(R), check=false)
+  return variety(Spec(R), check=false)
 end
 
 ########################################################
 # (4) StdSpec (needed?)
+# Calling this in a constructor should be avoided
+# since we want to support all types of affine schemes.
+# But StdSpec can be useful when implementing some
+# comparison or properties.
 ########################################################
 
 @doc raw"""
@@ -175,6 +179,26 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
 Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x]);
+
+julia> X = Spec(R, I)
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+
+julia> standard_spec(X)
+Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+
+julia> I = ideal(R, [x]);
+
+julia> U = complement_of_prime_ideal(I);
+
+julia> X = Spec(R, U)
+Spec of Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal
+
+julia> standard_spec(X)
+Spec of Localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """
 function standard_spec(X::AbsSpec)
@@ -184,26 +208,7 @@ end
 standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
-#@doc raw"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
-#
-#For an affine spectrum whose coordinate ring is the
-#quotient of a polynomial ring, this method computes
-#the standard spectrum.
-#
-## Examples
-#```jldoctest
-#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
-#
-#julia> I = ideal(R, [x]);
-#
-#julia> X = Spec(R, I)
-#Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
-#
-#julia> standard_spec(X)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of QQMPolyRingElem[1]
-#```
-#"""
+# documented above
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
   A = OO(X)
   R = base_ring(A)
@@ -211,53 +216,10 @@ function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
 end
 
 
-#@doc raw"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing})
-#
-#For an affine spectrum whose coordinate ring is the
-#quotient of a polynomial ring, this method computes
-#the standard spectrum.
-#
-## Examples
-#```jldoctest
-#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
-#
-#julia> I = ideal(R, [x]);
-#
-#julia> U = complement_of_prime_ideal(I);
-#
-#julia> X = Spec(R, U)
-#Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
-#
-#julia> standard_spec(X)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
-#```
-#"""
+# documented above
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
-
-#@doc raw"""
-#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing})
-#
-#For an affine spectrum whose coordinate ring is the
-#quotient of a polynomial ring, this method computes
-#the standard spectrum.
-#
-## Examples
-#```jldoctest
-#julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
-#
-#julia> I = ideal(R, [x]);
-#
-#julia> U = complement_of_prime_ideal(ideal(R, [y]));
-#
-#julia> X = Spec(R, I, U)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
-#
-#julia> standard_spec(X)
-#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
-#```
-#"""
+#documented above
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
 
 
@@ -278,7 +240,7 @@ the subscheme ``V(f_1, f_2, \dots)`` of ``X``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -316,7 +278,7 @@ return the closed subscheme defined by ``I``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -357,7 +319,7 @@ defined by the complement of the vanishing locus of ``f``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -381,6 +343,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -391,6 +354,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -400,6 +364,7 @@ end
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -409,6 +374,7 @@ end
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -428,7 +394,7 @@ defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -452,6 +418,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -462,6 +429,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -471,6 +439,7 @@ end
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -480,6 +449,7 @@ end
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
+  simplify!(U)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -516,7 +486,7 @@ schemes that reside in the same ambient affine space.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -687,7 +657,7 @@ Return the closure of ``X`` in ``Y``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   with coordinates x1 x2 x3
-  over Rational field
+  over rational field
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -703,20 +673,70 @@ julia> H = subscheme(X,ideal(R,[x1]))
 Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> closure(H, X)
-Spec of Localization of quotient of multivariate polynomial ring at products of 1 element
+Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
 ```
 """
-function closure(X::AbsSpec, Y::AbsSpec) 
-  return closure(standard_spec(X), standard_spec(Y))
+function closure(X::AbsSpec, Y::AbsSpec, check= true)
+  error("not implemented")
 end
 
 function closure(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
-                                          <:MPolyPowersOfElement}}
-  issubset(X, Y) || error("the first argument is not a subset of the second")
-  is_closed_embedding(X, Y) && return X
+    X::AbsSpec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
+    Y::AbsSpec{BRT, <:MPolyAnyRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  return X
+end
+
+function closure(
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyAnyRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  return Y
+end
+
+function closure(
+    X::AbsSpec{BRT, <:MPolyLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  return Y
+end
+
+
+function closure(
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  I = ambient_closure_ideal(X)
+  return Spec(base_ring(I),I)
+end
+
+function closure(
+    X::AbsSpec{BRT, <:MPolyQuoLocRing},
+    Y::AbsSpec{BRT, <:MPolyLocRing};
+    check::Bool=true
+  ) where {BRT}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  I = ambient_closure_ideal(X)
+  R = base_ring(I)
+  return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
+end
+
+function closure(
+    X::AbsSpec{BRT, RT},
+    Y::AbsSpec{BRT, RT};
+    check::Bool=true
+  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
+                                    <:MPolyPowersOfElement}}
+  @check issubset(X, Y) "the first argument is not a subset of the second"
+  #is_closed_embedding(X, Y) && return X
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
@@ -724,3 +744,9 @@ function closure(
   return Spec(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
 end
 
+@doc raw"""
+    closure(X::AbsSpec) -> AbsSpec
+
+Return the closure of `X` in its ambient affine space.
+"""
+closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)

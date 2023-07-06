@@ -4,54 +4,63 @@
 
 # detailed printing
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyQuoRing})
+  io = pretty(io)
   println(io, "Affine variety")
-  print(io, " in ")
-  println(io, ambient_space(X))
+  print(io, Indent(), "in ")
+  println(io, Lowercase(), ambient_space(X))
   print(io, "defined by ")
-  print(io, vanishing_ideal(X))
+  print(io, Lowercase(), fat_ideal(X))
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
 # one line printing
+  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Affine variety")
   else
-    print(io, "Affine variety defined by $(vanishing_ideal(X))")
+    print(io, X.X)
   end
 end
 
 
 # The case that X is not Zariski closed in its ambient space.
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety)
+  io = pretty(io)
   println(io, "Affine variety")
-  print(io, "  in ")
+  print(io, Indent(), "in ")
   println(io, ambient_space(X))
-  print(io, "with coordinate ring $(OO(X))")
+  print(io, "with coordinate ring ", Lowercase(), OO(X))
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, X::AffineVariety)
+  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Affine variety")
   else
-    print(io, "Affine variety contained in the vanishing locus of $(vanishing_ideal(X))")
+    print(io, "Affine open in ", Lowercase(), closure(X))
   end
 end
 
 
 # For affine space
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyRing})
+  io = pretty(io)
   println(io, "Affine space of dimension $(dim(X))")
-  print(io, "  with coordinates ")
+  print(io, Indent(), "with coordinates ")
   for x in coordinates(X)
     print(io, x, " ")
   end
   println(io, "")
-  print(io, "  over ")
-  print(io, base_ring(X))
+  print(io, "over ")
+  print(io, Lowercase(), base_ring(X))
+  print(io, Dedent())
 end
 
 
 function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
+  io = pretty(io)
   if get(io, :supercompact, false) # no nested printing
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
@@ -68,11 +77,11 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
         print(io, ltx["\\^$d"])
       end
       print(io, " over ")
-      print(IOContext(io, :supercompact => true), base_ring(X))
+      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
     else
       # nested printing allowed, preferably supercompact
       print(io, "Affine $(dim(X))-space over ")
-      print(IOContext(io, :supercompact => true), base_ring(X))
+      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
     end
   end
 end

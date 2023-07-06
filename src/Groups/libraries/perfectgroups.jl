@@ -179,3 +179,19 @@ function number_perfect_groups(n::IntegerUnion)
 end
 
 # TODO: add all_perfect_groups() iterator
+
+function __init_extraperfect()
+  for i in [27, 33]
+    _write_gap_file(
+      "grp/perf$(i).grp",
+      "Read(JuliaToGAP(IsString, Oscar._path_extraperfect($(i))));\n",
+    )
+  end
+end
+
+function _path_extraperfect(i::Int)
+  return joinpath(
+    artifact"gap_extraperfect/extraperfect",
+    "perf$(i).grp.gz",
+  )
+end

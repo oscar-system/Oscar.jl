@@ -30,8 +30,8 @@
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
@@ -110,4 +110,19 @@ end
   @test !haskey(pbII.I.obj_cache, U[2])
   @test pbII(U[2]) isa Ideal
   @test haskey(pbII.I.obj_cache, U[2])
+end
+
+@testset "colength of ideal sheaves" begin
+  P3 = projective_space(QQ, 3)
+  X = covered_scheme(P3)
+  S = homogeneous_coordinate_ring(P3)
+  (x,y, z, w) = gens(S)
+  I = ideal(S, [x^3+y^3+z^3+w^3, x+y+z+w, 37*x^2-x*z+4*w^2-5*w*z])
+  II = ideal_sheaf(P3, I)
+  @test oscar.colength(II) == 6
+  @test oscar.colength(II, covering=oscar.simplified_covering(X)) == 6
+  J = ideal(S, [x, y, z^4])
+  JJ = ideal_sheaf(P3, J)
+  @test oscar.colength(JJ) == 4
+  @test oscar.colength(JJ, covering=oscar.simplified_covering(X)) == 4
 end

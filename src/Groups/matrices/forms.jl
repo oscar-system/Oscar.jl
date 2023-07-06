@@ -176,7 +176,14 @@ end
 ########################################################################
 
 #TODO: checking whether two quadratic forms coincide by checking their polynomials is not possible yet.
-==(B::SesquilinearForm, C::SesquilinearForm) = gram_matrix(B)==gram_matrix(C) && B.descr==C.descr
+==(B::SesquilinearForm, C::SesquilinearForm) = B.descr == C.descr && gram_matrix(B) == gram_matrix(C)
+
+function Base.hash(f::SesquilinearForm, h::UInt)
+   b = 0xf64440baac005f8c % UInt
+   h = hash(f.descr, h)
+   h = hash(gram_matrix(f), h)
+   return xor(h, b)
+end
 
 function base_ring(B::SesquilinearForm)
    if isdefined(B,:matrix) return base_ring(gram_matrix(B))

@@ -20,6 +20,7 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 module Oscar
 
 using Preferences
+using LazyArtifacts
 
 include("imports.jl")
 
@@ -93,9 +94,29 @@ function __init__()
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 
-    add_verbose_scope(:GlobalTateModel)
-    add_verbose_scope(:GlobalWeierstrassModel)
+    add_verbose_scope(:EllipticSurface)
+    add_assert_scope(:EllipticSurface)
 
+    add_verbose_scope(:Glueing)
+    add_assert_scope(:Glueing)
+
+    add_verbose_scope(:Intersections)
+    add_assert_scope(:Intersections)
+
+    add_verbose_scope(:MaximalAssociatedPoints)
+    add_assert_scope(:MaximalAssociatedPoints)
+
+    add_verbose_scope(:Divisors)
+    add_assert_scope(:Divisors)
+
+    add_verbose_scope(:Blowup)
+    add_assert_scope(:Blowup)
+
+
+    add_verbose_scope(:GlobalTateModel)
+    add_verbose_scope(:WeierstrassModel)
+    add_verbose_scope(:HypersurfaceModel)
+    
     add_verbosity_scope(:LinearQuotients)
 
     add_assertion_scope(:ZZLatWithIsom)
@@ -208,9 +229,6 @@ if is_dev
 #  include("../examples/ModStdQ.jl")
 #  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
-#  include("../examples/GaloisGrp.jl")
-
-#  include("../examples/PlaneCurve.jl")
 end
 
 include("Serialization/main.jl")

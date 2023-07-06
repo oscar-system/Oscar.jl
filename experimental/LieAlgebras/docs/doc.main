@@ -1,2 +1,7 @@
 [
+   "Lie Algebras" => [
+      "introduction.md",
+      "lie_algebras.md",
+      "modules.md",
+   ],
 ]

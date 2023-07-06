@@ -79,7 +79,7 @@ function process_eigenvector!(HBB::HomBasisBuilder, d::Int, e::Vector{<:FieldEle
         is_zero(v[i, j]) && continue
 
         m = T(v[i, j])
-        expj = exponent_vector(C, basisd[j])
+        expj = get_exponent_vector(C, basisd[j])
         # inhom_gens[1]^expj[1] \cdots inhom_gens[end]^expj[end] == basisd[j]
         for k in 1:length(inhom_gens(HBB))
           is_zero(expj[k]) && continue

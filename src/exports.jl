@@ -31,8 +31,7 @@ export AffineHyperplane
 export AffineNormalToricVariety
 export AffineVariety
 export affine_normal_toric_variety
-export affine_variety
-export affine_algebraic_set
+export algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
@@ -401,6 +400,7 @@ export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
 export data
+export decide_du_val_singularity
 export decomposition_matrix
 export decorate
 export decoration
@@ -492,6 +492,8 @@ export factorisations
 export fan
 export fano_matroid
 export fano_simplex
+export fat_ideal
+export fat_scheme
 export feasible_region
 export fglm
 export fiber_product
@@ -572,6 +574,7 @@ export halfspace_matrix_pair
 export hall_subgroup
 export hall_subgroup_reps
 export hall_system, has_hall_system, set_hall_system
+export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
@@ -700,6 +703,7 @@ export is_degenerate
 export is_dense
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_duplicate_table
+export is_du_val_singularity
 export is_effective
 export is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian
 export is_elimination_ordering
@@ -1108,8 +1112,6 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
-export projective_variety
-export projective_algebraic_set
 export pullback
 export pullback_type
 export pyramid
@@ -1194,6 +1196,7 @@ export saturation_with_index
 export save
 export save_lp
 export save_mps
+export metadata
 export scalar_product
 export scheme
 export schur_index
@@ -1305,6 +1308,7 @@ export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
+export transform
 export transition_graph
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
@@ -1342,10 +1346,11 @@ export valuation_of_roots
 export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets
-export vanishing_locus
 export vanishing_ideal
-export vdim
+export variety
 export vector_matrix
+export vector_space_basis
+export vector_space_dimension
 export vertex_and_ray_indices
 export vertex_indices
 export vertexindices

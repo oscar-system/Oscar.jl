@@ -423,6 +423,12 @@ end
   return is_prime(saturated_ideal(I))
 end
 
+@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
+end
+
 # The following is to streamline the programmer's
 # interface for the use of the four standard rings
 # for the schemes `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`,
@@ -433,6 +439,17 @@ end
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J
+end
+
+# TODO: Replace by a more efficient method!
+@attr Bool function is_radical(I::MPolyQuoIdeal)
+  return is_radical(saturated_ideal(I))
+end
+
+# TODO: Replace by a more efficient method!
+function radical(I::MPolyQuoIdeal)
+  Irad = radical(saturated_ideal(I))
+  return ideal(base_ring(I), gens(Irad))
 end
 
 @doc raw"""
@@ -553,7 +570,13 @@ end
 
 *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
+  if b >= 0
+    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+  else
+    return inv(a)^(-b)
+  end
+end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
@@ -887,9 +910,10 @@ end
 
 lift(a::MPolyQuoRingElem) = a.f
 
+
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
-function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
+function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   if parent(a) === Q
     return a
   else
@@ -897,12 +921,18 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   end
 end
 
-function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  @req base_ring(Q) === parent(a) "Parent mismatch"
+function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
+  @req base_ring(parent(a)) === Q "parent missmatch"
+  return lift(a)
+end
+
+
+function (Q::MPolyQuoRing{S})(a::S; check::Bool=false) where {S <: MPolyRingElem}
+  @req base_ring(Q) === parent(a) "parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 
-function (Q::MPolyQuoRing)(a::MPolyRingElem)
+function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
 end
 
@@ -917,7 +947,7 @@ function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
   return S(a.f)
 end
 
-(Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
+(Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
 one(Q::MPolyQuoRing) = Q(1)
 
@@ -1041,13 +1071,11 @@ function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal was no zero-dimensional")
+    error("ideal is not zero-dimensional")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
 
-#TODO: the reverse map...
-# problem: the "canonical" reps are not the monomials.
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   R = base_ring(Q)
   @assert K == base_ring(R)
@@ -1056,15 +1084,36 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   function im(a::Generic.FreeModuleElem)
     @assert parent(a) == V
     b = R(0)
-    for i=1:length(l)
-      c = a[i]
+    for k=1:length(l)
+      c = a[k]
       if !iszero(c)
-        b += c*l[i]
+        b += c*l[k]
       end
     end
     return Q(b)
   end
-  return V, MapFromFunc(im, V, Q)
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(a::MPolyQuoRingElem)
+    @assert parent(a) === Q
+    b = lift(a)::MPolyElem
+    o = default_ordering(R)
+    # TODO: Make sure the ordering is the same as the one used for the _kbase above
+    @assert is_global(o) "ordering must be global"
+    b = normal_form(b, modulus(Q), ordering=o)
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=o)
+      c = leading_coefficient(b, ordering=o)
+      j = findfirst(n->n==m, l)
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(im, prim, V, Q)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
