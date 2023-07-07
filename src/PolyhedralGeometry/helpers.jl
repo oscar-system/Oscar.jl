@@ -184,7 +184,7 @@ end
 
 Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(x)
 
-Base.convert(T::Type{<:FieldElem}, x::Polymake.OscarNumber) = convert(T, Polymake.unwrap(x))
+(::Type{T})(x::Polymake.OscarNumber) where T<:FieldElem = convert(T, Polymake.unwrap(x))
 
 Base.convert(::Type{Polymake.Matrix{Polymake.OscarNumber}}, x::MatElem{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(x)
 
