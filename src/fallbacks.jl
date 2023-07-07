@@ -30,3 +30,8 @@ end
 function exponents(a...)
   return AbstractAlgebra.exponent_vectors(a...)
 end
+
+# remove once https://github.com/Nemocas/AbstractAlgebra.jl/pull/1395 is available
+nrows(A::AbstractMatrix) = Int(size(A)[1])
+
+ncols(A::AbstractMatrix) = Int(size(A)[2])
