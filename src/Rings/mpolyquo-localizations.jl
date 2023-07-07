@@ -673,7 +673,7 @@ function convert(
   d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
-  (result, coefficient) = divides(Q(a), Q(b))
+  (result, coefficient) = _divides_hack(Q(a), Q(b))
   # check whether f is already a unit
   result && return L(coefficient)
   # If we have localized at the trivial set, then this is the end.
@@ -686,11 +686,11 @@ function convert(
       id, id_inv = _as_affine_algebra_with_many_variables(L)
       aa = simplify(id(L(a)))
       bb = simplify(id(L(b)))
-      success, cc = divides(aa, bb)
+      success, cc = _divides_hack(aa, bb)
       !success && error("element can not be converted to localization")
       return id_inv(simplify(cc))
     end
-    (abort, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+    (abort, coefficient) = _divides_hack(Q(a*last(powers_of_d)), Q(b))
     if !abort
       push!(powers_of_d, last(powers_of_d)^2)
     end
@@ -700,7 +700,7 @@ function convert(
   lower = pop!(powers_of_d)
   while length(powers_of_d) > 0
     middle = lower*pop!(powers_of_d)
-    (result, coefficient) = divides(Q(a*middle), Q(b))
+    (result, coefficient) = _divides_hack(Q(a*middle), Q(b))
     if result 
       upper = middle
     else 
