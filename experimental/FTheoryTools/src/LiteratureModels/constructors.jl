@@ -62,7 +62,7 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     if all([doi == "" || get(file_index[k], "journal_doi", nothing) == doi,
         arxiv_id == "" || get(file_index[k], "arxiv_id", nothing) == arxiv_id,
         version == "" || get(file_index[k], "arxiv_version", nothing) == version,
-        equation == "" || get(file_index[k], "equation", nothing) == equation])
+        equation == "" || get(file_index[k], "arxiv_equation", nothing) == equation])
       push!(candidate_files, string(file_index[k]["file"]))
     end
   end
@@ -80,7 +80,7 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
 
-  # We were able to find a unique model, so read that model
+  # We were able to find a unique model, so read that model)
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
 
   # Appropriately construct each possible type of model
@@ -92,33 +92,117 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     @req false "Model is not a Tate or Weierstrass model"
   end
 
-  # Read in the resolutions and process them to the correct format
-  if haskey(model_dict["model_data"], "resolutions")
-    resolutions = model_dict["model_data"]["resolutions"]
-    resolutions = [[[string.(center) for center in r[1]], string.(r[2])] for r in resolutions]
-    set_attribute!(model, :resolutions => resolutions)
-  end
-
-  # Remember saved attributes of this model, in particular the resolution sequences known
-  if haskey(model_dict["journal_data"], "doi")
-    set_attribute!(model, :doi => model_dict["journal_data"]["doi"])
-  end
+  # Remember saved attributes of this model
+  base_ring = cox_ring(base_space(model)) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
   if haskey(model_dict["arxiv_data"], "id")
     set_attribute!(model, :arxiv_id => model_dict["arxiv_data"]["id"])
   end
-  if haskey(model_dict["arxiv_data"], "version")
-    set_attribute!(model, :version => model_dict["arxiv_data"]["version"])
-  end
-  if haskey(model_dict["arxiv_data"]["model_location"], "equation")
-    set_attribute!(model, :equation_number => model_dict["arxiv_data"]["model_location"]["equation"])
-  end
-  if haskey(model_dict["model_data"], "description")
-    set_attribute!(model, :description => model_dict["model_data"]["description"])
+  if haskey(model_dict["arxiv_data"], "doi")
+    set_attribute!(model, :arxiv_doi => model_dict["arxiv_data"]["doi"])
   end
   if haskey(model_dict["arxiv_data"], "link")
-    set_attribute!(model, :link => model_dict["arxiv_data"]["link"])
+    set_attribute!(model, :arxiv_link => model_dict["arxiv_data"]["link"])
   end
-
+  if haskey(model_dict["arxiv_data"]["model_location"], "equation")
+    set_attribute!(model, :arxiv_model_equation_number => model_dict["arxiv_data"]["model_location"]["equation"])
+  end
+  if haskey(model_dict["arxiv_data"]["model_location"], "page")
+    set_attribute!(model, :arxiv_model_page => model_dict["arxiv_data"]["model_location"]["page"])
+  end
+  if haskey(model_dict["arxiv_data"]["model_location"], "section")
+    set_attribute!(model, :arxiv_model_section => model_dict["arxiv_data"]["model_location"]["section"])
+  end
+  if haskey(model_dict["arxiv_data"], "version")
+    set_attribute!(model, :arxiv_version => model_dict["arxiv_data"]["version"])
+  end
+  if haskey(model_dict, "associated_models")
+    # This removes 'model' from the front and '.json' from the end of the file name
+    set_attribute!(model, :associated_literature_models => [str[6:end - 5] for str in model_dict["associated_models"]])
+  end
+  if haskey(model_dict["model_data"], "generating_sections")
+    set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+  end
+  if haskey(model_dict["journal_data"], "doi")
+    set_attribute!(model, :journal_doi => model_dict["journal_data"]["doi"])
+  end
+  if haskey(model_dict["journal_data"], "link")
+    set_attribute!(model, :journal_link => model_dict["journal_data"]["link"])
+  end
+  if haskey(model_dict["journal_data"]["model_location"], "equation")
+    set_attribute!(model, :journal_model_equation_number => model_dict["journal_data"]["model_location"]["equation"])
+  end
+  if haskey(model_dict["journal_data"]["model_location"], "page")
+    set_attribute!(model, :journal_model_page => model_dict["journal_data"]["model_location"]["page"])
+  end
+  if haskey(model_dict["journal_data"]["model_location"], "section")
+    set_attribute!(model, :journal_model_section => model_dict["journal_data"]["model_location"]["section"])
+  end
+  if haskey(model_dict["journal_data"], "pages")
+    set_attribute!(model, :journal_pages => model_dict["journal_data"]["pages"])
+  end
+  if haskey(model_dict["journal_data"], "report_numbers")
+    set_attribute!(model, :journal_report_numbers => string.(model_dict["journal_data"]["report_numbers"]))
+  end
+  if haskey(model_dict["journal_data"], "volume")
+    set_attribute!(model, :journal_volume => model_dict["journal_data"]["volume"])
+  end
+  if haskey(model_dict["journal_data"], "year")
+    set_attribute!(model, :journal_year => model_dict["journal_data"]["year"])
+  end
+  # This removes 'model' from the front and '.json' from the end of the file name
+  set_attribute!(model, :literature_identifier => candidate_files[1][6:end - 5])
+  if haskey(model_dict["model_data"], "description")
+    set_attribute!(model, :model_description => model_dict["model_data"]["description"])
+  end
+  if haskey(model_dict["paper_metadata"], "authors")
+    set_attribute!(model, :paper_authors => string.(model_dict["paper_metadata"]["authors"]))
+  end
+  if haskey(model_dict["paper_metadata"], "buzzwords")
+    set_attribute!(model, :paper_buzzwords => string.(model_dict["paper_metadata"]["buzzwords"]))
+  end
+  if haskey(model_dict["paper_metadata"], "description")
+    set_attribute!(model, :paper_description => model_dict["paper_metadata"]["description"])
+  end
+  if haskey(model_dict["paper_metadata"], "title")
+    set_attribute!(model, :paper_title => model_dict["paper_metadata"]["title"])
+  end
+  if haskey(model_dict, "related_models")
+    # This removes 'model' from the front and '.json' from the end of the file name
+    set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
+  end
+  if haskey(model_dict["model_data"], "resolutions")
+    resolutions_data = model_dict["model_data"]["resolutions"]
+    resolutions = [[[string.(center) for center in res[1]], string.(res[2])] for res in resolutions_data]
+    set_attribute!(model, :resolutions => resolutions)
+  end
+  if haskey(model_dict["model_data"], "resolution_generating_sections")
+    resolution_generating_sections_data = model_dict["model_data"]["resolution_generating_sections"]
+    resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in resolution_generating_sections_data]
+    set_attribute!(model, :resolution_generating_sections => resolution_generating_sections)
+  end
+  if haskey(model_dict["model_data"], "resolution_zero_sections")
+    resolution_zero_sections_data = model_dict["model_data"]["resolution_zero_sections"]
+    resolution_zero_sections = [[string.(factor) for factor in res] for res in resolution_zero_sections_data]
+    set_attribute!(model, :resolution_zero_sections => resolution_zero_sections)
+  end
+  if haskey(model_dict["model_data"], "weighted_resolutions")
+    weighted_resolutions_data = model_dict["model_data"]["weighted_resolutions"]
+    weighted_resolutions = [[[[string.(center[1]), center[2]] for center in res[1]], string.(res[2])] for res in weighted_resolutions_data]
+    set_attribute!(model, :weighted_resolutions => weighted_resolutions)
+  end
+  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
+    weighted_resolution_generating_sections_data = model_dict["model_data"]["weighted_resolution_generating_sections"]
+    weighted_resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in weighted_resolution_generating_sections_data]
+    set_attribute!(model, :weighted_resolution_generating_sections => weighted_resolution_generating_sections)
+  end
+  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
+    weighted_resolution_zero_sections_data = model_dict["model_data"]["weighted_resolution_zero_sections"]
+    weighted_resolution_zero_sections = [[string.(factor) for factor in res] for res in weighted_resolution_zero_sections_data]
+    set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
+  end
+  if haskey(model_dict["model_data"], "zero_section")
+    set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+  end
   # Return the model
   return model
 end
