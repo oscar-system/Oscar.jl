@@ -3,22 +3,22 @@
 #####################################################
 
 @doc raw"""
-    set_description(t::AbstractFTheoryModel, description::String)
+    set_description(m::AbstractFTheoryModel, description::String)
 
 Set a description for a model.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> set_description(t, "An SU(5)xU(1) GUT-model")
+julia> set_description(m, "An SU(5)xU(1) GUT-model")
 
-julia> t
+julia> m
 Global Tate model over a not fully specified base -- An SU(5)xU(1) GUT-model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
-function set_description(t::AbstractFTheoryModel, description::String)
-  set_attribute!(t, :description => description)
+function set_description(m::AbstractFTheoryModel, description::String)
+  set_attribute!(m, :model_description => description)
 end
 
 
@@ -27,32 +27,32 @@ end
 #####################################################
 
 @doc raw"""
-    add_resolution(t::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+    add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
 
 Add a known resolution for a model.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> add_resolution(t, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
+julia> add_resolution(m, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
 
-julia> length(resolutions(t))
+julia> length(resolutions(m))
 2
 ```
 """
-function add_resolution(t::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
+function add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
 
   resolution = [centers, exceptionals]
-  if has_attribute(t, :resolutions)
-    known_resolutions = resolutions(t)
+  if has_attribute(m, :resolutions)
+    known_resolutions = resolutions(m)
     if (resolution in known_resolutions) == false
       push!(known_resolutions, resolution)
-      set_attribute!(t, :resolutions => known_resolutions)
+      set_attribute!(m, :resolutions => known_resolutions)
     end
   else
-    set_attribute!(t, :resolutions => [resolution])
+    set_attribute!(m, :resolutions => [resolution])
   end
 end
 
@@ -62,7 +62,7 @@ end
 #####################################################
 
 @doc raw"""
-    resolve(t::AbstractFTheoryModel, index::Int)
+    resolve(m::AbstractFTheoryModel, index::Int)
 
 Resolve a model with the index-th resolution that is known.
 
@@ -70,10 +70,10 @@ Careful: Currently, this assumes that all blowups are toric blowups.
 We hope to remove this requirement in the near future.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> v = resolve(t, 1)
+julia> v = resolve(m, 1)
 Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2], [0, 0, 1, 0, 0, -1, -2], [0, 0, 1, 0, 0, -1, -1], [0, 0, 1, 0, 0, 0, -1], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1]]
 
 julia> cox_ring(v)
@@ -93,17 +93,17 @@ Multivariate polynomial ring in 13 variables over QQ graded by
   s -> [2 -1 0 2 1 1]
 ```
 """
-function resolve(t::AbstractFTheoryModel, index::Int)
-  @req has_attribute(t, :resolutions) "No resolutions known for this model"
+function resolve(m::AbstractFTheoryModel, index::Int)
+  @req has_attribute(m, :resolutions) "No resolutions known for this model"
   @req index > 0 "The resolution must be specified by a non-negative integer"
-  @req index <= length(resolutions(t)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
+  @req index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
   
   # Gather information for resolution
-  centers, exceptionals = resolutions(t)[index]
+  centers, exceptionals = resolutions(m)[index]
   nr_blowups = length(centers)
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  resolved_ambient_space = underlying_toric_variety(ambient_space(t))
+  resolved_ambient_space = underlying_toric_variety(ambient_space(m))
   R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
   for center in centers
     @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
