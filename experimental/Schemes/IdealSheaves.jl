@@ -896,13 +896,12 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
   isempty(comp) && error("list of components must not be empty")
   X = scheme(first(comp))
   all(x->scheme(x) === X, comp) || error("components must be defined over the same scheme")
-  isone(length(comp)) && return covering
   new_patches = Vector{AbsSpec}()
   for U in patches(covering) 
     isempty(U) && continue
     loc_comp = [I(U) for I in comp]
     loc_comp = [a for a in loc_comp if !isone(a)]
-    if isempty(loc_comp) || isone(length(loc_comp))
+    if isempty(loc_comp) #|| isone(length(loc_comp))
       push!(new_patches, U)
       continue
     end
@@ -913,7 +912,27 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
       new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
     end
   end
-  new_cov = Covering(new_patches)
+  new_patches2 = Vector{AbsSpec}()
+  patches_todo = copy(patches(covering))
+  for P in comp
+    i = findfirst(U->!isone(P(U)), patches_todo)
+    U = patches_todo[i]
+    deleteat!(patches_todo, i)
+    push!(new_patches2, U)
+    # remove P from all other patches
+    done = Int[]
+    for (j,V) in enumerate(patches_todo)
+      if isone(P(V))
+        continue
+      end
+      push!(done, j)
+      sg = small_generating_set(P(V))
+      new_patches2 = append!(new_patches2, [PrincipalOpenSubset(V,a) for a in sg])
+    end
+    deleteat!(patches_todo, done)
+  end
+  new_patches2 = append!(new_patches2, patches_todo)
+  new_cov = Covering(new_patches2)
   inherit_glueings!(new_cov, covering)
   return new_cov
 end
