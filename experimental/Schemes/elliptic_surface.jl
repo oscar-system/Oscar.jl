@@ -78,6 +78,24 @@ and the sections provided at the construction of ``X``.
 @attr function algebraic_lattice(X)
   mwl_basis = X.MWL
   basisTriv, GTriv = trivial_lattice(X)
+
+  # primitive closure of the trivial lattice comes from torsion sections
+  tors = [section(X, h) for h in mordell_weil_torsion(X)]
+  torsV = ZZMat[]
+  for T in tors
+    basis, NS = algebraic_lattice(X)
+    G = gram_matrix(NS)
+    n = length(basis)
+    vT = zero_matrix(ZZ, 1, n)
+    for i in 1:n
+      vT[i] = intersect(basisTriv[i], T)
+    end
+    push!(torsV, vT*inv(GTriv))
+  end
+
+
+
+
   l = length(mwl_basis)
   r = length(basisTriv)
   sections = [section(X, i) for i in mwl_basis]
@@ -243,8 +261,6 @@ function _separate_singularities!(X::EllipticSurface)
   I_sing = ideal_sheaf_of_singular_locus(S)
   I_sing_P = radical(pushforward(inc_S)(I_sing))
 
-
-
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
   refined_charts = AbsSpec[]
@@ -257,10 +273,14 @@ function _separate_singularities!(X::EllipticSurface)
     # project the singular locus to an affine chart of P1
     disc = gens(eliminate(IsingU, coordinates(U)[1:2]))[1]
     redfib = [f[1] for f in factor(disc)]
-    for i in 1:length(redfib)
-      r = copy(redfib)
-      deleteat!(r, i)
-      push!(refined_charts, PrincipalOpenSubset(U, r))
+    if length(redfib)==1
+      push!(refined_charts, U)
+    else
+      for i in 1:length(redfib)
+        r = copy(redfib)
+        deleteat!(r, i)
+        push!(refined_charts, PrincipalOpenSubset(U, r))
+      end
     end
   end
 
@@ -281,7 +301,11 @@ function _separate_singularities!(X::EllipticSurface)
       disc = d
     end
     redfib = [f[1] for f in factor(disc)]
-    push!(refined_charts, PrincipalOpenSubset(V, redfib))
+    if length(redfib)> 0
+      push!(refined_charts, PrincipalOpenSubset(V, redfib))
+    else
+      push!(refined_charts, V)
+    end
   end
 
   # no extra singularities in the X = 1 chart
@@ -364,19 +388,24 @@ function relatively_minimal_model(E::EllipticSurface)
     I_sing_Y0 = ideal_sheaf_of_singular_locus(Y0)
     @vprint :EllipticSurface 2 "decomposing singular locus\n"
     I_sing_Y0 = maximal_associated_points(I_sing_Y0)
+    I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
     @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_Y0))\n"
     if length(I_sing_Y0)==0
       # stop if smooth
       break
     end
-    # take the first singular point and blow it up
-    I_sing_X0_1 = radical(pushforward(inc_Y0)(I_sing_Y0[1]))
+    # make sure there is only one singular point per chart
     if count == 1
       cov = Crefined
     else
-      cov = simplified_covering(X0)
+      cov0 = simplified_covering(X0)
+      cov = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      push!(X0.coverings, cov)
     end
-    pr_X1 = blow_up(I_sing_X0_1, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+    # take the first singular point and blow it up
+    J = radical(I_sing_X0[1])
+    @show [J(U) for U in cov]
+    pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
     E1 = exceptional_divisor(pr_X1)
@@ -903,6 +932,9 @@ function elliptic_parameter(X::EllipticSurface, F::ZZMatrix)
   @req F*gram_matrix(NS)*transpose(F) "not an isotropic divisor"
   @req is_nef(X, F) "F is not net"
   error("not implemented")
+
+
+
   X.bundle_number
   E = generic_fiber(X)
 
@@ -922,6 +954,7 @@ function elliptic_parameter(X::EllipticSurface, F::ZZMatrix)
 
   u2 = LsubF2onS[2]//LsubF2onS[1]
 end
+
 
 
 @doc raw"""
