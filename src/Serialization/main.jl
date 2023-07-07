@@ -79,6 +79,14 @@ function registerSerializationType(ex::Any,
             # these types require an id so that equalities can be forced upon load.
             # The ids are only necessary for parent types, checking for element type equality
             # can be done once the parents are known to be equal.
+            # For example two serializations of QQ[x] require ids to check for equality.
+            # Although they're isomorphic rings, they may want to be treated as seperate
+            # This is done since other software might not use symbols in their serialization of QQ[x].
+            # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
+            # whenever there is a possibility (amongst any software system) that the objects
+            # cannot be distinguish on a syntatic level we use ids.
+            # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntatic
+            # ambiguities in their encodings.
 
             serialize_with_id(obj::T) where T <: $ex = $uses_id 
             serialize_with_id(T::Type{<:$ex}) = $uses_id 
@@ -136,11 +144,22 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
 
-# Objects have a elements that have a basic encoding are fundamental objects. They are "atomic"
+# Objects having a basic encoding are fundamental objects. They are "atomic"
 # with regards to the available types in Oscar (maybe in general), they are base cases when
 # a parent tree is constructed via recursion, and they can be decoded from a string or array of
 # strings provided their parent is known. All types with basic serialization have a basic encoding
 # has_elem_basic_encoding also deals with basic parametrized types.
+
+# a basic serialization type is a type that only requires a single property for serialization.
+# examples: QQ, Symbol, Int
+
+# a basic encoded type is a type that only requires a single property or a list of ordered properties
+# of the same type and a known parent for serialization.
+# example: elements of ZZ/nZZ. Say the parent is ZZ/7ZZ then we can (de)serialize "6", in a sense once the parent is known
+# the serialization relies on a "basic" serialization or list of ordered "basic" serializations. We use the word encoding
+# here to mean serialization knowing how elements are represented in the parent.
+
+# has_elem_basic_encoding is used for parent types (and only makes sense for parent types)
 
 function has_elem_basic_encoding(obj::T) where T <: Ring
     return is_basic_serialization_type(elem_type(obj))
