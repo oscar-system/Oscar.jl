@@ -938,3 +938,49 @@ function _cofactors(comp::Vector{<:Ideal})
   result = [prod(pairwise_cof[1:n, i]) for i in 1:n]
   return result
 end
+
+function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf})
+  new_patches2 = Vector{AbsSpec}()
+  patches_todo = copy(patches(covering))
+  for P in comp
+    # Find one patch in which this component is supported
+    i = findfirst(U->!isone(P(U)), patches_todo)
+    U = patches_todo[i]
+    # Take this patch out of the list
+    deleteat!(patches_todo, i)
+    # Add it to the list of patches for the new covering
+    push!(new_patches2, U)
+    # For every other patch V in which P appears we do the following:
+    # Replace V by the complement of the support of P.
+    # This will not be affine in general, but can be covered by hypersurface 
+    # complements. Even though this may lead to many charts, they will be harmless
+    # in the mext blowup.
+    done = Int[]
+    for (j, V) in enumerate(patches_todo)
+      # Check whether P is visible in this patch; if not leave it
+      isone(P(V)) && continue
+      # Remember this patch to be done 
+      push!(done, j)
+      sg = small_generating_set(P(V))
+      new_patches2 = append!(new_patches2, [PrincipalOpenSubset(V,a) for a in sg])
+      # TODO: Cache that P = 1 on all these new patches?
+    end
+    deleteat!(patches_todo, done)
+  end
+  new_patches2 = append!(new_patches2, patches_todo)
+  new_cov = Covering(new_patches2)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
+end
+
+@attr Vector{<:MPolyLocRingElem} function small_generating_set(I::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
+end
