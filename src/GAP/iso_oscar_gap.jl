@@ -332,7 +332,7 @@ function _iso_oscar_gap(FO::SimpleNumField{T}) where T <: FieldElem
       return FO(coeffs)
    end
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 # Deal with non-simple extensions of Q or of extensions of Q.
@@ -366,7 +366,7 @@ function _iso_oscar_gap(FO::NumField)
      end
    end
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 
