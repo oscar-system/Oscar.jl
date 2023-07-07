@@ -27,7 +27,7 @@ julia> dim(C01)
 ```
 """
 function intersect(C::Cone...)
-    T, f = _promote_scalar_field((get_parent_field(c) for c in C)...)
+    T, f = _promote_scalar_field((coefficient_field(c) for c in C)...)
     pmo = [pm_object(c) for c in C]
     return Cone{T}(Polymake.polytope.intersection(pmo...), f)
 end
@@ -55,7 +55,7 @@ julia> rays(Cv)
 ```
 """
 function polarize(C::Cone{T}) where T<:scalar_types
-    return Cone{T}(Polymake.polytope.polarize(pm_object(C)), get_parent_field(C))
+    return Cone{T}(Polymake.polytope.polarize(pm_object(C)), coefficient_field(C))
 end
 
 
@@ -102,7 +102,7 @@ function transform(C::Cone{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem
 end
 function _transform(C::Cone{T}, A::AbstractMatrix{<:FieldElem}) where T<:scalar_types
     U, f = _promote_scalar_field(A)
-    V, g = _promote_scalar_field(get_parent_field(C), f)
+    V, g = _promote_scalar_field(coefficient_field(C), f)
     OT = _scalar_type_to_polymake(V)
     raymod = Polymake.Matrix{OT}(permutedims(A))
     facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
@@ -112,10 +112,10 @@ function _transform(C::Cone{T}, A::AbstractMatrix{<:Number}) where T<:scalar_typ
     OT = _scalar_type_to_polymake(T)
     raymod = Polymake.Matrix{OT}(permutedims(A))
     facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
-    return _transform(C, raymod, facetmod, get_parent_field(C))
+    return _transform(C, raymod, facetmod, coefficient_field(C))
 end
 function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:FieldElem}
-    V, f = _promote_scalar_field(get_parent_field(C), base_ring(A))
+    V, f = _promote_scalar_field(coefficient_field(C), base_ring(A))
     OT = _scalar_type_to_polymake(V)
     raymod = Polymake.Matrix{OT}(transpose(A))
     facetmod = Polymake.Matrix{OT}(inv(A))

@@ -21,7 +21,7 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}}) = matrix(QQ, Matrix{QQFieldElem}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
-        $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = matrix(get_parent_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -37,7 +37,7 @@ end
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
     try
-        f = get_parent_field(iter.Obj)
+        f = coefficient_field(iter.Obj)
         h = affine_matrix_for_polymake(iter)
         return (A = matrix(f, h[:, 2:end]), b = Vector{T}(f.(-h[:, 1])))
     catch e

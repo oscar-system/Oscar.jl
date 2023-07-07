@@ -63,7 +63,7 @@
             @test a isa Polyhedron{Hecke.EmbeddedNumFieldElem{nf_elem}}
             s = vertices(a)[1][1]
             @test s isa Hecke.EmbeddedNumFieldElem{nf_elem}
-            f = Oscar.get_parent_field(a)
+            f = coefficient_field(a)
             F = number_field(f)
             isq = Hecke.is_quadratic_type(F)
             @test isq[1]
@@ -162,7 +162,7 @@
         @test intersect(cc, dc) isa Cone{T}
         let p = intersect(cc, dc)
             @test f_vector(p) == f_vector(c)
-            @test Oscar.get_parent_field(p) == ENF
+            @test coefficient_field(p) == ENF
         end
 
         tm = [0 0 1; 0 1 0; 1 0 0]

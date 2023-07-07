@@ -111,7 +111,7 @@ end
 halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
 halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_halfspace(f, a, b)
 
-invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(get_parent_field(H), -normal_vector(H), -negbias(H))
+invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(coefficient_field(H), -normal_vector(H), -negbias(H))
 
 function affine_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
     parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
@@ -132,7 +132,7 @@ end
 halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
 halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_halfspace(f, a)
 
-invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(get_parent_field(H), -normal_vector(H))
+invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(coefficient_field(H), -normal_vector(H))
 
 function linear_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
     parent_field, scalar_type = _determine_parent_and_scalar(f, a)
@@ -141,7 +141,7 @@ end
 
 linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
 
-get_parent_field(h::Halfspace) = h.parent_field
+coefficient_field(h::Halfspace) = h.parent_field
 
 ################################################################################
 
@@ -192,13 +192,13 @@ end
 
 linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)
 
-get_parent_field(h::Hyperplane) = h.parent_field
+coefficient_field(h::Hyperplane) = h.parent_field
 
 ################################################################################
 
 #  Field access
 negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
-negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = get_parent_field(H)(0)
+negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = coefficient_field(H)(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
@@ -280,7 +280,7 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) = matrix(get_parent_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) = matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end

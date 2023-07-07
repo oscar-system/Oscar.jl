@@ -28,7 +28,7 @@ julia> rays(NF)
 function normal_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmnf = Polymake.fan.normal_fan(pmp)
-   return PolyhedralFan{T}(pmnf, get_parent_field(P))
+   return PolyhedralFan{T}(pmnf, coefficient_field(P))
 end
 
 """
@@ -53,7 +53,7 @@ true
 function face_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmff = Polymake.fan.face_fan(pmp)
-   return PolyhedralFan{T}(pmff, get_parent_field(P))
+   return PolyhedralFan{T}(pmff, coefficient_field(P))
 end
 
 
@@ -133,7 +133,7 @@ function star_subdivision(Sigma::_FanLikeType{T}, n::Int) where T<:scalar_types
   newmaxcones = IncidenceMatrix(newmaxcones)
   
   # return the new fan
-  return polyhedral_fan(get_parent_field(Sigma), newrays, newmaxcones; non_redundant=true)
+  return polyhedral_fan(coefficient_field(Sigma), newrays, newmaxcones; non_redundant=true)
   
 end
 

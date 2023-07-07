@@ -60,11 +60,11 @@ julia> vertices(pyramid(c,5))
 function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
     pm_in = pm_object(P)
     has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), get_parent_field(P))
+    return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), coefficient_field(P))
 end
 
 function pyramid(P::Polyhedron{T}, z::FieldElem) where T<:scalar_types
-    U, f = _promote_scalar_field(get_parent_field(P), parent(z))
+    U, f = _promote_scalar_field(coefficient_field(P), parent(z))
     pm_in = pm_object(P)
     has_group = Polymake.exists(pm_in, "GROUP")
     return Polyhedron{U}(Polymake.polytope.pyramid(pm_in, z, group=has_group), f)
@@ -99,11 +99,11 @@ julia> vertices(bipyramid(c,2))
 function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z) where T<:scalar_types
     pm_in = pm_object(P)
     has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), get_parent_field(P))
+    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), coefficient_field(P))
 end
 
 function bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::FieldElem=-z) where T<:scalar_types
-    U, f = _promote_scalar_field(get_parent_field(P), parent(z), parent(z_prime))
+    U, f = _promote_scalar_field(coefficient_field(P), parent(z), parent(z_prime))
     pm_in = pm_object(P)
     has_group = Polymake.exists(pm_in, "GROUP")
     return Polyhedron{U}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), f)
@@ -146,7 +146,7 @@ julia> rays(nc)
 function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
     @req 1 <= i <= nvertices(P) "Vertex index out of range"
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
-    return Cone{T}(bigobject, get_parent_field(P))
+    return Cone{T}(bigobject, coefficient_field(P))
 end
 
 
@@ -294,9 +294,9 @@ function newton_polytope(f)
 end
 
 
-polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(get_parent_field(H), normal_vector(H), negbias(H))
+polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(coefficient_field(H), normal_vector(H), negbias(H))
 
-polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(get_parent_field(H), nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(coefficient_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
     intersect(P::Polyhedron...)
@@ -321,7 +321,7 @@ julia> rays(PO)
 ```
 """
 function intersect(P::Polyhedron...)
-    T, f = _promote_scalar_field((get_parent_field(p) for p in P)...)
+    T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
     pmo = [pm_object(p) for p in P]
     return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
 end
@@ -349,7 +349,7 @@ julia> nvertices(M)
 ```
 """
 function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:standard) where {T<:scalar_types, U<:scalar_types}
-    V, f = _promote_scalar_field(get_parent_field(P), get_parent_field(Q))
+    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
     # workaround; if fixed:
     # po = pm_object(P)
     # qo = pm_object(Q)
@@ -398,7 +398,7 @@ julia> length(vertices(product(T,S)))
 ```
 """
 function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
-    V, f = _promote_scalar_field(get_parent_field(P), get_parent_field(Q))
+    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
     return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
 end
 
@@ -445,7 +445,7 @@ julia> f_vector(T)
 ```
 """
 function convex_hull(P::Polyhedron...)
-    T, f = _promote_scalar_field((get_parent_field(p) for p in P)...)
+    T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
     pmo = [pm_object(p) for p in P]
     return Polyhedron{T}(Polymake.polytope.conv(pmo...), f)
 end
@@ -495,10 +495,10 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Number, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), get_parent_field(P))
+*(k::Number, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), coefficient_field(P))
 
 function *(k::FieldElem, P::Polyhedron{T}) where T<:scalar_types
-    U, f = _promote_scalar_field(parent(k), get_parent_field(P))
+    U, f = _promote_scalar_field(parent(k), coefficient_field(P))
     return Polyhedron{U}(Polymake.polytope.scale(pm_object(P), k), f)
 end
 
@@ -554,7 +554,7 @@ julia> vertices(S)
 """
 function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
     @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
-    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)), get_parent_field(P))
+    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)), coefficient_field(P))
 end
 
 
@@ -912,7 +912,7 @@ julia> vertices(P)
 ```
 """
 function polarize(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), get_parent_field(P))
+    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), coefficient_field(P))
 end
 
 
@@ -937,7 +937,7 @@ julia> is_fulldimensional(p)
 true
 ```
 """
-project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)), get_parent_field(P))
+project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)), coefficient_field(P))
 
 @doc raw"""
     gelfand_tsetlin_polytope(lambda::AbstractVector)
@@ -1126,5 +1126,5 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
   pm_obj = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES=pm_matrix)::Polymake.BigObject
-  return Polyhedron{T}(pm_obj, get_parent_field(P))
+  return Polyhedron{T}(pm_obj, coefficient_field(P))
 end

@@ -15,7 +15,7 @@ end
 
 pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
 
-get_parent_field(::AbstractNormalToricVariety) = QQ
+coefficient_field(::AbstractNormalToricVariety) = QQ
 
 ######################
 # 2: Generic constructors

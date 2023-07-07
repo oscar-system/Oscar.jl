@@ -106,7 +106,7 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(PF::PolyhedralFan) = PF.pm_fan
 
-polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...), get_parent_field(iterate(itr)[1]))
+polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...), coefficient_field(iterate(itr)[1]))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
 polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
@@ -117,7 +117,7 @@ polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], In
 
 function polyhedral_fan(C::Cone{T}) where T<:scalar_types
     pmfan = Polymake.fan.check_fan_objects(pm_object(C))
-    return PolyhedralFan{T}(pmfan, get_parent_field(C))
+    return PolyhedralFan{T}(pmfan, coefficient_field(C))
 end
 
 ###############################################################################

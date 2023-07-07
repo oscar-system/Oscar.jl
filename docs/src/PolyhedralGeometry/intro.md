@@ -22,6 +22,12 @@ The objects from polyhedral geometry operate on a given type, which (usually) re
 Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
 When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
 
+The parent `Field` of the coefficients of an object `O` with coefficients of type `T` can be retrieved with the `coefficient_field` function, and it holds `elem_type(coefficient_field(O)) == T`.
+
+```@docs
+coefficient_field(x::PolyhedralObject)
+```
+
 !!! warning
     Support for fields other than the rational numbers is currently in an experimental stage.
 

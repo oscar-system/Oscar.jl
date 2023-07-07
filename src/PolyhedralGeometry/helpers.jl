@@ -354,8 +354,22 @@ end
 
 abstract type PolyhedralObject{T} end
 
-get_parent_field(x::PolyhedralObject) =  x.parent_field
-get_parent_field(x::PolyhedralObject{QQFieldElem}) = QQ
+@doc raw"""
+     coefficient_field(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}) where T<:scalar_types
+
+Return the parent `Field` of the coefficients of `P`.
+
+# Examples
+```jldoctest
+julia> c = cross(2)
+Polyhedron in ambient dimension 2
+
+julia> coefficient_field(c)
+Rational field
+```
+"""
+coefficient_field(x::PolyhedralObject) =  x.parent_field
+coefficient_field(x::PolyhedralObject{QQFieldElem}) = QQ
 
 ################################################################################
 ######## Scalar types

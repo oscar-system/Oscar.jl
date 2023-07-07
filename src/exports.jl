@@ -328,6 +328,7 @@ export codim
 export codomain
 export codomain_covering
 export codomain_type
+export coefficient_field
 export coefficient_ring
 export coefficients
 export coefficients_and_exponents

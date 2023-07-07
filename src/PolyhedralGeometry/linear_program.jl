@@ -9,7 +9,7 @@ struct LinearProgram{T} <: PolyhedralObject{T}
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
-linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c, get_parent_field(p))
+linear_program(p::Polyhedron{T}, lp, c) where T<:scalar_types = LinearProgram{T}(p, lp, c, coefficient_field(p))
 
 
 @doc raw"""
@@ -32,7 +32,7 @@ function linear_program(P::Polyhedron{T}, objective::AbstractVector; k = 0, conv
       Polymake.attach(lp, "convention", "min")
    end
    Polymake.add(pm_object(P), "LP", lp)
-   LinearProgram{T}(P, lp, convention, get_parent_field(P))
+   LinearProgram{T}(P, lp, convention, coefficient_field(P))
 end
 
 
@@ -142,7 +142,7 @@ function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
       opt_vert = lp.polymake_lp.MINIMAL_VERTEX
    end
    if opt_vert != nothing
-      return PointVector{T}(get_parent_field(lp), view(dehomogenize(opt_vert), :))
+      return PointVector{T}(coefficient_field(lp), view(dehomogenize(opt_vert), :))
    else
       return nothing
    end
