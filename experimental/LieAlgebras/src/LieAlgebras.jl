@@ -13,6 +13,7 @@ import ..Oscar:
   action,
   basis,
   basis_matrix,
+  center,
   coeff,
   coefficient_ring,
   coefficients,
@@ -25,6 +26,8 @@ import ..Oscar:
   gen,
   gens,
   ideal,
+  is_abelian,
+  is_simple,
   ngens,
   parent_type,
   symbols,
@@ -33,7 +36,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, iszero, parent, zero
+import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
@@ -48,6 +51,7 @@ export base_modules
 export bracket
 export coefficient_vector
 export combinations
+export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
 export has_basis
@@ -97,6 +101,7 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
 export has_basis

@@ -78,9 +78,16 @@ dim(I::LieAlgebraIdeal) = length(basis(I))
 
 ###############################################################################
 #
-#   Equality
+#   Comparisons
 #
 ###############################################################################
+
+function Base.issubset(
+  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
+  return all(in(I2), gens(I1))
+end
 
 function Base.:(==)(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
@@ -105,7 +112,27 @@ end
 ###############################################################################
 
 function Base.in(x::LieAlgebraElem, I::LieAlgebraIdeal)
-  return nothing # TODO
+  return can_solve(basis_matrix(I), _matrix(x); side=:left)
+end
+
+###############################################################################
+#
+#   Constructions
+#
+###############################################################################
+
+function Base.:+(
+  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
+  return ideal(base_lie_algebra(I1), [gens(I1); gens(I2)])
+end
+
+function bracket(
+  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
+  return ideal(base_lie_algebra(I1), [x * y for x in gens(I1) for y in gens(I2)])
 end
 
 ###############################################################################
@@ -114,10 +141,14 @@ end
 #
 ###############################################################################
 
-function ideal(L::LieAlgebra, gens::Vector)
-  return LieAlgebraIdeal{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens)
+function ideal(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
+  return LieAlgebraIdeal{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis)
 end
 
 function ideal(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
   return ideal(L, [gen])
+end
+
+function ideal(L::LieAlgebra)
+  return ideal(L, basis(L); is_basis=true)
 end

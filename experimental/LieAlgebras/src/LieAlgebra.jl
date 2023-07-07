@@ -270,6 +270,48 @@ end
 
 ###############################################################################
 #
+#   Important ideals
+#
+###############################################################################
+
+function derived_algebra(L::LieAlgebra)
+  L_ideal = ideal(L)
+  return bracket(L_ideal, L_ideal)
+end
+
+function center(L::LieAlgebra)
+  characteristic(coefficient_ring(L)) == 2 &&
+    error("GAP does something else for char 2 which is not implemented here.")
+
+  dim(L) == 0 && return ideal(L, [])
+
+  mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
+  for (i, bi) in enumerate(basis(L))
+    for (j, bj) in enumerate(basis(L))
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bi * bj)
+    end
+  end
+
+  c_dim, c_basis = left_kernel(mat)
+  return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+end
+
+###############################################################################
+#
+#   Properties
+#
+###############################################################################
+
+function is_abelian(L::LieAlgebra)
+  return all(iszero, x * y for (x, y) in combinations(basis(L), 2))
+end
+
+function is_simple(L::LieAlgebra)
+  error("Not implemented.") # TODO
+end
+
+###############################################################################
+#
 #   Universal enveloping algebra
 #
 ###############################################################################
