@@ -183,7 +183,7 @@ function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, 
     b = f(representative(h))
     push!(coll, Q(trace(b)))
   end
-  c = Oscar.group_class_function(character_table_underlying_group(RR), coll)
+  c = Oscar.class_function(character_table_underlying_group(RR), coll)
   return c
 end
 

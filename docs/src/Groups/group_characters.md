@@ -134,6 +134,8 @@ trivial_character(tbl::GAPGroupCharacterTable)
 ```@docs
 natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
 ```
 

@@ -92,15 +92,15 @@ in a `p`-modular table.
 """
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPTable::GapObj  # the GAP character table object
-    characteristic::Int
+    characteristic::T where T <: IntegerUnion
     group::Union{GAPGroup, GrpAbFinGen}    # the underlying group, if any
     isomorphism::Map  # isomorphism from `group` to a group in GAP
 
-    function GAPGroupCharacterTable(G::Union{GAPGroup, GrpAbFinGen}, tab::GapObj, iso::Map, char::Int)
+    function GAPGroupCharacterTable(G::Union{GAPGroup, GrpAbFinGen}, tab::GapObj, iso::Map, char::T) where T <: IntegerUnion
       return new(tab, char, G, iso)
     end
 
-    function GAPGroupCharacterTable(tab::GapObj, char::Int)
+    function GAPGroupCharacterTable(tab::GapObj, char::T) where T <: IntegerUnion
       # group and isomorphism are left undefined
       return new(tab, char)
     end
@@ -242,7 +242,7 @@ end
 
 
 """
-    character_table(G::GAPGroup, p::Int = 0)
+    character_table(G::GAPGroup, p::T = 0) where T <: IntegerUnion
 
 Return the ordinary (if `p == 0`) or `p`-modular character table of the
 finite group `G`.
@@ -283,20 +283,12 @@ Sym( [ 1 .. 3 ] ) mod 2
 χ₂  2 -1
 ```
 """
-function character_table(G::Union{GAPGroup, GrpAbFinGen}, p::Int = 0)
+function character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
     tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
     return get!(tbls, p) do
-      if p == 0
-        iso = isomorphism_to_GAP_group(G)
-        gaptbl = GAPWrap.CharacterTable(codomain(iso))
-      else
-        # Create the `p`-modular table if possible.
-        @req is_prime(p) "p must be 0 or a prime integer"
-        ordtbl = character_table(G, 0)
-        iso = isomorphism_to_GAP_group(ordtbl)
-        gaptbl = GAPWrap.mod(GAPTable(ordtbl), GAP.Obj(p))
-        gaptbl === GAP.Globals.fail && return nothing
-      end
+      p != 0 && return mod(character_table(G, 0), p)
+      iso = isomorphism_to_GAP_group(G)
+      gaptbl = GAPWrap.CharacterTable(codomain(iso))
       return GAPGroupCharacterTable(G, gaptbl, iso, p)
     end
 end
@@ -307,8 +299,6 @@ end
 # in order to achieve that fetching the same table twice yields the same
 # object, and the modular ones are stored in their ordinary tables.
 const character_tables_by_id = Dict{String, Union{GAPGroupCharacterTable, Nothing}}()
-
-#T provide a function to clear this cache!
 
 """
     character_table(id::String, p::Int = 0)
@@ -1077,7 +1067,7 @@ end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     irr = GAPWrap.Irr(GAPTable(tbl))
-    return group_class_function(tbl, irr[i])
+    return class_function(tbl, irr[i])
 end
 #TODO: cache the irreducibles in the table
 
@@ -1099,7 +1089,7 @@ end
 Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
 
 """
-    mod(tbl::GAPGroupCharacterTable, p::Int)
+    mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
 
 Return the `p`-modular character table of `tbl`,
 or `nothing` if this table cannot be computed.
@@ -1112,13 +1102,13 @@ julia> show(mod(character_table("A5"), 2))
 2-modular Brauer table of A5
 ```
 """
-function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
+function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     @req is_prime(p) "p must be a prime integer"
     characteristic(tbl) == 0 || error("tbl mod p only for ordinary table tbl")
 
     modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
     if ! haskey(modtbls, p)
-      modtblgap = mod(GAPTable(tbl), p)::GapObj
+      modtblgap = mod(GAPTable(tbl), GAP.Obj(p))::GapObj
       if modtblgap === GAP.Globals.fail
         modtbls[p] = nothing
       elseif isdefined(tbl, :group)
@@ -1408,7 +1398,7 @@ struct GAPGroupClassFunction <: GroupClassFunction
 end
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "group_class_function($(chi.table), $(values(chi)))")
+    print(io, "class_function($(chi.table), $(values(chi)))")
 end
 
 function values(chi::GAPGroupClassFunction)
@@ -1420,18 +1410,23 @@ group(chi::GAPGroupClassFunction) = group(chi.table)
 
 characteristic(chi::GAPGroupClassFunction) = characteristic(chi.table)
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::GapObj)
+function class_function(tbl::GAPGroupCharacterTable, values::GapObj)
     @req GAPWrap.IsClassFunction(values) "values must be a class function"
     return GAPGroupClassFunction(tbl, values)
 end
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem})
+function class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem})
     gapvalues = GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAPWrap.ClassFunction(GAPTable(tbl), gapvalues))
 end
 
-function group_class_function(G::GAPGroup, values::Vector{<:QQAbElem})
-    return group_class_function(character_table(G), values)
+function class_function(G::GAPGroup, values::GapObj)
+    @req GAPWrap.IsClassFunction(values) "values must be a class function"
+    return GAPGroupClassFunction(character_table(G), values)
+end
+
+function class_function(G::GAPGroup, values::Vector{<:QQAbElem})
+    return class_function(character_table(G), values)
 end
 
 @doc raw"""
@@ -1449,7 +1444,7 @@ true
 """
 function trivial_character(tbl::GAPGroupCharacterTable)
     val = QQAbElem(1)
-    return group_class_function(tbl, [val for i in 1:ncols(tbl)])
+    return class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
 @doc raw"""
@@ -1468,7 +1463,7 @@ true
 """
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
-    return group_class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+    return class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
 end
 
 @doc raw"""
@@ -1494,7 +1489,7 @@ function natural_character(G::PermGroup)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
     vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
-    return group_class_function(G, vals)
+    return class_function(G, vals)
 end
 
 @doc raw"""
@@ -1503,14 +1498,99 @@ end
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
 or contained in a cyclotomic field.
+
+# Examples
+```jldoctest
+julia> g = matrix_group(matrix(ZZ, [0 1; 1 0]));
+
+julia> println(values(natural_character(g)))
+QQAbElem{nf_elem}[2, 0]
+```
 """
 function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
     tbl = character_table(G)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     vals = [FF(tr(representative(x))) for x in ccl]
-    return group_class_function(G, vals)
+    return class_function(G, vals)
 end
+
+@doc raw"""
+    natural_character(G::MatrixGroup{FinFieldElem})
+
+Return the character that maps each $p$-regular element of `G`,
+where $p$ is the characteristic of the base field of `G`,
+to its Brauer character value.
+
+# Examples
+```jldoctest
+julia> g = general_linear_group(2, 2);
+
+julia> println(values(natural_character(g)))
+QQAbElem{nf_elem}[2, -1]
+```
+"""
+function natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+    p = characteristic(base_ring(G))
+    tbl = character_table(G, p)
+    ccl = conjugacy_classes(tbl)
+    vals = [GAP.Globals.BrauerCharacterValue(representative(x).X) for x in ccl]
+    vals = GAPWrap.ClassFunction(GAPTable(tbl), GapObj(vals))
+
+    return class_function(G, vals)
+end
+
+@doc raw"""
+    natural_character(rho::GAPGroupHomomorphism)
+
+Return the character of `domain(rho)` that is afforded by the representation
+`rho`, where `codomain(rho)` must be a permutation group or a matrix group.
+In the latter case, an ordinary character is returned if the characteristic
+of the base field is zero, and a $p$-modular Brauer character is returned
+if the characteristic is $p > 0$.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);  h = general_linear_group(2, 2);
+
+julia> mp = hom(g, h, [g([2,1]), g([1, 3, 2])], gens(h));
+
+julia> println(values(natural_character(mp)))
+QQAbElem{nf_elem}[2, -1]
+```
+"""
+function natural_character(rho::GAPGroupHomomorphism)
+    G = domain(rho)
+    M = codomain(rho)
+    tbl = character_table(G)
+    FF = abelian_closure(QQ)[1]
+
+    if M isa PermGroup
+      modtbl = tbl
+      ccl = conjugacy_classes(tbl)
+      n = degree(M)
+      vals = [FF(n - number_moved_points(rho(representative(x)))) for x in ccl]
+    elseif M isa MatrixGroup
+      p = characteristic(base_ring(M))
+      if p == 0
+        # ordinary character
+        modtbl = tbl
+        ccl = conjugacy_classes(modtbl)
+        vals = [FF(tr(rho(representative(x)))) for x in ccl]
+      else
+        # Brauer character
+        modtbl = mod(tbl, p)
+        ccl = conjugacy_classes(modtbl)  # p-regular classes
+        vals = [GAP.Globals.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
+        vals = GAPWrap.ClassFunction(GAPTable(modtbl), GapObj(vals))
+      end
+    else
+      throw(ArgumentError("codomain must be a PermGroup or MatrixGroup"))
+    end
+
+    return class_function(modtbl, vals)
+end
+
 
 @doc raw"""
     induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable[, fusion::Vector{Int}])
@@ -1719,7 +1799,7 @@ end
 
 function Base.zero(chi::GAPGroupClassFunction)
     val = QQAbElem(0)
-    return group_class_function(chi.table, [val for i in 1:length(chi)])
+    return class_function(chi.table, [val for i in 1:length(chi)])
 end
 
 Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
@@ -1842,7 +1922,7 @@ function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, GrpAbFinGenE
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
     pi = [findfirst(x -> x^g in c, reps) for c in ccl]
-    return group_class_function(tbl, values(chi)[pi])
+    return class_function(tbl, values(chi)[pi])
 end
 
 @doc raw"""
@@ -2368,7 +2448,7 @@ For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
     tbl = characters[1].table
-    return [group_class_function(tbl, chi)
+    return [class_function(tbl, chi)
             for chi in GAPWrap.Symmetrizations(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
@@ -2383,7 +2463,7 @@ see [`symmetrizations`](@ref).
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
     tbl = characters[1].table
-    return [group_class_function(tbl, chi)
+    return [class_function(tbl, chi)
             for chi in GAPWrap.SymmetricParts(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
@@ -2398,7 +2478,7 @@ see [`symmetrizations`](@ref).
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
     tbl = characters[1].table
-    return [group_class_function(tbl, chi)
+    return [class_function(tbl, chi)
             for chi in GAPWrap.AntiSymmetricParts(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
@@ -2416,7 +2496,7 @@ see also [`symmetrizations`](@ref) and [`anti_symmetric_parts`](@ref).
 function exterior_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `ExteriorPower` method becomes available then use it
     tbl = chi.table
-    return group_class_function(tbl,
+    return class_function(tbl,
       GAPWrap.AntiSymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
 end
 
@@ -2433,7 +2513,7 @@ see also [`symmetrizations`](@ref) and [`symmetric_parts`](@ref).
 function symmetric_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `SymmetricPower` method becomes available then use it
     tbl = chi.table
-    return group_class_function(tbl,
+    return class_function(tbl,
       GAPWrap.SymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
 end
 
@@ -2450,7 +2530,7 @@ function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int
     @req (2 <= n && n <= 6) "the second ergument must be in 2:6"
     length(characters) == 0 && return eltype(typeof(characters))[]
     tbl = characters[1].table
-    return [group_class_function(tbl, chi)
+    return [class_function(tbl, chi)
             for chi in GAPWrap.OrthogonalComponents(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end
@@ -2468,7 +2548,7 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
     @req (2 <= n && n <= 6) "the second ergument must be in 2:6"
     length(characters) == 0 && return eltype(typeof(characters))[]
     tbl = characters[1].table
-    return [group_class_function(tbl, chi)
+    return [class_function(tbl, chi)
             for chi in GAPWrap.SymplecticComponents(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
 end

@@ -929,7 +929,22 @@ end
     G = matrix_group(mats)
     chi = Oscar.natural_character(G)
     @test degree(chi) == degree(G)
+    @test chi == natural_character(hom(G, G, gens(G)))
   end
+
+  G = symmetric_group(3)
+  @test values(natural_character(hom(G, G, gens(G)))) == [3, 1, 0]
+
+  K, a = cyclotomic_field(8, "a")
+  o = one(K)
+  z = zero(K)
+  G = general_linear_group(2, 3)
+  @test values(natural_character(hom(G, G, gens(G)))) ==
+        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+
+  G = small_group(4, 1)  # pc group
+  @test_throws MethodError natural_character(G)
+  @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
 end
 
 @testset "character fields of ordinary characters" begin
