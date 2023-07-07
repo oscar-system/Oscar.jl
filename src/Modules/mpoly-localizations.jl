@@ -176,4 +176,30 @@ the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the orig
   return result, a, b
 end
 
+@doc raw"""
+    shifted_module(
+        M::SubModuleOfFreeModule{T}
+                  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                                <:MPolyRing, <:MPolyRingElem,
+                                <:MPolyComplementOfKPointIdeal}}
+For a submodule ``M`` of a free module over a localized polynomial ring ``Rₘ`` at a maximal
+ideal ``𝔪`` of a rational point and a `pre_saturated_module` ``N`` over ``R``, this returns a triple
+``(N', φ, φ⁻¹)`` where ``N'`` is a module over ``R``, and ``φ : N → N'`` is an isomorphism over
+the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
+"""
+@attr function shifted_module(
+    M::SubModuleOfFreeModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal}}
 
+  R = base_ring(M)::MPolyLocRing
+  P = base_ring(R)::MPolyRing
+  FL = ambient_free_module(M)
+  F = base_ring_module(FL)
+  (A,D) = clear_denominators(M.matrix)
+  Mp = SubModuleOfFreeModule(F,A)
+  F_shifted, shift, shift_back = shifted_module(FL)
+  Mp_gens_shift = shift.(gens(Mp))
+  result = SubModuleOfFreeModule(F_shifted,Mp_gens_shift)
+  return result
+end

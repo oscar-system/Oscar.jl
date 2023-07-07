@@ -423,6 +423,12 @@ end
   return is_prime(saturated_ideal(I))
 end
 
+@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
+end
+
 # The following is to streamline the programmer's
 # interface for the use of the four standard rings
 # for the schemes `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`,
@@ -438,12 +444,6 @@ end
 # TODO: Replace by a more efficient method!
 @attr Bool function is_radical(I::MPolyQuoIdeal)
   return is_radical(saturated_ideal(I))
-end
-
-# TODO: Replace by a more efficient method!
-function radical(I::MPolyQuoIdeal)
-  Irad = radical(saturated_ideal(I))
-  return ideal(base_ring(I), gens(Irad))
 end
 
 @doc raw"""

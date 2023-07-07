@@ -406,6 +406,7 @@ export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
 export data
+export decide_du_val_singularity
 export decomposition_matrix
 export decorate
 export decoration
@@ -579,6 +580,7 @@ export halfspace_matrix_pair
 export hall_subgroup
 export hall_subgroup_reps
 export hall_system, has_hall_system, set_hall_system
+export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
@@ -707,6 +709,7 @@ export is_degenerate
 export is_dense
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_duplicate_table
+export is_du_val_singularity
 export is_effective
 export is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian
 export is_elimination_ordering
@@ -1351,8 +1354,9 @@ export vamos_matroid
 export vanishing_sets
 export vanishing_ideal
 export variety
-export vdim
 export vector_matrix
+export vector_space_basis
+export vector_space_dimension
 export vertex_and_ray_indices
 export vertex_indices
 export vertexindices

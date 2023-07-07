@@ -77,13 +77,13 @@ end
   @test length(L) == 3 # just a smoke test
 end
 
-@testset "mpoly_affinite_algebra.vdim" begin
+@testset "mpoly_affine_algebra.vector_space_dimension" begin
   r, (x, y) = polynomial_ring(QQ, [:x, :y])
-  @test vdim(quo(r, ideal(r, [x^2+y^2]))[1]) == -1
-  @test vdim(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
+  @test vector_space_dimension(quo(r, ideal(r, [x^2+y^2]))[1]) == -1
+  @test vector_space_dimension(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
 
   r, (x, y) = polynomial_ring(ZZ, [:x, :y])
-  @test_throws ErrorException vdim(quo(r, ideal(r, [x, y]))[1])
+  @test_throws ErrorException vector_space_dimension(quo(r, ideal(r, [x, y]))[1])
 end
 
 @testset "Subalgebra membership" begin
