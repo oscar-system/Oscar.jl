@@ -47,8 +47,8 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
+  for U in patches(C)
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
@@ -890,4 +890,97 @@ function show_details(io::IO, I::IdealSheaf)
     println(io,"   $(I(U))")
     println(io," ")
   end
+end
+
+function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Covering=default_covering(scheme(first(comp))))
+  isempty(comp) && error("list of components must not be empty")
+  X = scheme(first(comp))
+  all(x->scheme(x) === X, comp) || error("components must be defined over the same scheme")
+  isone(length(comp)) && return covering
+  new_patches = Vector{AbsSpec}()
+  for U in patches(covering) 
+    isempty(U) && continue
+    loc_comp = [I(U) for I in comp]
+    loc_comp = [a for a in loc_comp if !isone(a)]
+    if isempty(loc_comp) || isone(length(loc_comp))
+      push!(new_patches, U)
+      continue
+    end
+    cof = _cofactors(loc_comp)
+    if isempty(cof)
+      push!(new_patches, U)
+    else
+      new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
+    end
+  end
+  new_cov = Covering(new_patches)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+function _cofactors(comp::Vector{<:Ideal})
+  R = base_ring(first(comp))
+  all(x->base_ring(x)===R, comp) || error("ideals must be defined over the same ring")
+  n = length(comp)
+  pairwise_cof = one(MatrixSpace(R, n, n))
+  for i in 1:n-1
+    for j in i+1:n
+      I = ideal(R, vcat(gens(comp[i]), gens(comp[j])))
+      r = ngens(comp[i])
+      s = ngens(comp[j])
+      z = coordinates(one(R), I)
+      x = z isa MatElem ? [z[1, k] for k in 1:r] : z[1:r]
+      y = z isa MatElem ? [z[1, r+k] for k in 1:s] : z[r+1:r+s]
+      pairwise_cof[i, j] = sum(x[k]*gen(comp[i], k) for k in 1:r; init=zero(R))
+      pairwise_cof[j, i] = sum(y[k]*gen(comp[j], k) for k in 1:s; init=zero(R))
+    end
+  end
+  result = [prod(pairwise_cof[1:n, i]) for i in 1:n]
+  return result
+end
+
+function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf})
+  new_patches2 = Vector{AbsSpec}()
+  patches_todo = copy(patches(covering))
+  for P in comp
+    # Find one patch in which this component is supported
+    i = findfirst(U->!isone(P(U)), patches_todo)
+    U = patches_todo[i]
+    # Take this patch out of the list
+    deleteat!(patches_todo, i)
+    # Add it to the list of patches for the new covering
+    push!(new_patches2, U)
+    # For every other patch V in which P appears we do the following:
+    # Replace V by the complement of the support of P.
+    # This will not be affine in general, but can be covered by hypersurface 
+    # complements. Even though this may lead to many charts, they will be harmless
+    # in the mext blowup.
+    done = Int[]
+    for (j, V) in enumerate(patches_todo)
+      # Check whether P is visible in this patch; if not leave it
+      isone(P(V)) && continue
+      # Remember this patch to be done 
+      push!(done, j)
+      sg = small_generating_set(P(V))
+      new_patches2 = append!(new_patches2, [PrincipalOpenSubset(V,a) for a in sg])
+      # TODO: Cache that P = 1 on all these new patches?
+    end
+    deleteat!(patches_todo, done)
+  end
+  new_patches2 = append!(new_patches2, patches_todo)
+  new_cov = Covering(new_patches2)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
+end
+
+@attr Vector{<:MPolyLocRingElem} function small_generating_set(I::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end
