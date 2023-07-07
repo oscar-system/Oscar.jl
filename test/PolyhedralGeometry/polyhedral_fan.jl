@@ -86,4 +86,16 @@
         @test IncidenceMatrix(maximal_cones(F2NR)) == incidence2
     end
 
+    @testset "Star Subdivision" begin
+      f = polyhedral_fan([1 0 0; 1 1 0; 1 1 1; 1 0 1], IncidenceMatrix([[1,2,3,4]]))
+      v0 = [1;0;0]
+      v1 = [2;1;0]
+      v2 = [2;1;1]
+      sf0 = star_subdivision(f, v0)
+      sf1 = star_subdivision(f, v1)
+      sf2 = star_subdivision(f, v2)
+      @test n_maximal_cones(sf0) == 2
+      @test n_maximal_cones(sf1) == 3
+      @test n_maximal_cones(sf2) == 4
+    end
 end
