@@ -94,8 +94,6 @@ and the sections provided at the construction of ``X``.
   end
 
 
-
-
   l = length(mwl_basis)
   r = length(basisTriv)
   sections = [section(X, i) for i in mwl_basis]
@@ -399,12 +397,13 @@ function relatively_minimal_model(E::EllipticSurface)
       cov = Crefined
     else
       cov0 = simplified_covering(X0)
-      cov = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      cov = _one_patch_per_component(cov1, I_sing_X0)
       push!(X0.coverings, cov)
+      inc_Y0 = inc_Y0a
     end
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1])
-    @show [J(U) for U in cov]
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
