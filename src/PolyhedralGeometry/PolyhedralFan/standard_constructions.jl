@@ -128,6 +128,7 @@ function star_subdivision(Sigma::_FanLikeType{T}, new_ray::Vector{Int64}) where 
   
   facet_normals = pm_object(Sigma).FACET_NORMALS
   refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray, facet_normals)
+  @req length(refinable_cones)>0 "$new_ray not contained in support of fan."
   new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
   for nc in new_cones
     push!(nc, new_ray_index)
