@@ -23,8 +23,34 @@ end
 # The list of all available upgrade scripts
 const upgrade_scripts = Vector{UpgradeScript}()
 
+function upgrade_data(upgrade::Function, s::DeserializerState, dict::Dict)
+    # file comes from polymake
+    haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
+    
+    upgraded_dict = Dict{Symbol, Any}()
+    for (key, dict_value) in dict
+        if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
+            upgraded_dict[key] = dict_value
+        elseif dict_value isa Dict{Symbol, Any}
+            upgraded_dict[key] = upgrade(s, dict_value)
+        else  # not a string or a dictionary, so must be a vector
+            new_value = []
+            for v in dict_value
+                if v isa String
+                    push!(new_value, v)
+                else
+                    push!(new_value, upgrade(s, v))
+                end
+            end
+            upgraded_dict[key] = new_value
+        end
+    end
+    return upgraded_dict
+end
+
 include("0.11.3.jl")
-include("0.11.4.jl")
+include("0.12.0.jl")
+include("0.12.2.jl")
 
 sort!(upgrade_scripts; by=version)
 
@@ -48,5 +74,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
     end
 
     upgraded_dict[:_ns] = oscarSerializationVersion
+    
     return upgraded_dict
 end

@@ -160,16 +160,19 @@ end
   S = homogeneous_coordinate_ring(X)
   (x, y, z, w) = gens(S)
   J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, x+y+z+w])
-  J = J*ideal(S, [x^2 - 5*y^2 + 7*y*z + 9*y*w - 5*w^2 + 3*x*w, x+8*y+z+w])
+  J = J*ideal(S, [5*x + 9*y - 5*z + 3*w, x+8*y+z+w])
+  J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
   #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
   JJ = oscar.maximal_associated_points(ideal_sheaf(X, J))
   X = covered_scheme(X)
   C = oscar._separate_disjoint_components(JJ, covering=oscar.simplified_covering(X))
   for U in patches(C)
-    @test sum(isone(I(U)) for I in JJ) == 1
+    @test sum(!isone(I(U)) for I in JJ) == 1
   end
-  C = oscar._separate_disjoint_components(JJ)
-  for U in patches(C)
-    @test sum(isone(I(U)) for I in JJ) == 1
+
+  CC = oscar._one_patch_per_component(C, JJ)
+  for P in JJ
+    @test isone(sum(!isone(P(U)) for U in patches(CC)))
+    @show sum(!isone(P(U)) for U in patches(CC))
   end
 end
