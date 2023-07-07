@@ -400,7 +400,7 @@ function relatively_minimal_model(E::EllipticSurface)
       cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
       cov = _one_patch_per_component(cov1, I_sing_X0)
       push!(X0.coverings, cov)
-      inc_Y0 = inc_Y0a
+      #inc_Y0 = inc_Y0a
     end
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1])
