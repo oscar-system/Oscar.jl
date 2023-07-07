@@ -117,35 +117,57 @@ julia> ray_indices(maximal_cones(star))
 """
 function star_subdivision(Sigma::_FanLikeType{T}, new_ray::Vector{Int64}) where T<:scalar_types
   
-  # Check if new_ray is primitive.
-  # Note that new_ray is primitive iff v/n is a lattice point in Z^d (d = length(new_ray)) iff n = 1 or n == -1.
-  # For our application, the lattice in question is always Z^d for a suitable integer d.
-  # -> We check if gcd(all entries of new_ray) is 1.
+  # Check if new_ray is primitive in ZZ^d, i.e. gcd(new_ray)==1.
   @req ambient_dim(Sigma) == length(new_ray) "New ray cannot be a primitive element"
   @req gcd(new_ray) == 1 "The new ray r is not a primitive element of the lattice Z^d with d = length(r)"
   
-  # Construct new rays
-  old_rays = matrix(ZZ,rays(Sigma))
+  old_rays = matrix(ZZ, rays(Sigma))
+  mc_old = maximal_cones(IncidenceMatrix, Sigma)
   new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
+  new_ray_index = nrays(Sigma)+1
   
-  mc_orig = maximal_cones(IncidenceMatrix, Sigma)
-
-  refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray)
-  new_cones = Set{Vector{Int}}()
-  for rc in refinable_cones
-    new_cones = Base.union(new_cones, Set{Vector{Int}}(_refine_maximal_cone(Sigma, new_ray, rc)))
-  end
+  facet_normals = pm_object(Sigma).FACET_NORMALS
+  refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray, facet_normals)
+  new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
   for nc in new_cones
-    push!(nc, nrays(Sigma)+1)
+    push!(nc, new_ray_index)
   end
   for i in 1:n_maximal_cones(Sigma)
     if !(i in refinable_cones)
-      push!(new_cones, Vector{Int}(Polymake.row(mc_orig)))
+      push!(new_cones, Vector{Int}(Polymake.row(mc_old, i)))
     end
   end
   
   return polyhedral_fan(T, new_rays, IncidenceMatrix([nc for nc in new_cones]); non_redundant=true)
-  
+end
+
+function _get_refinable_facets(Sigma::_FanLikeType{T}, new_ray::Vector{Int64}, refinable_cones::Vector{Int}, facet_normals::AbstractMatrix, mc_old::IncidenceMatrix) where T<:scalar_types
+  new_cones = Set{Vector{Int}}()
+  v_facet_signs = _facet_signs(facet_normals, new_ray)
+  R = pm_object(Sigma).RAYS
+  hd = pm_object(Sigma).HASSE_DIAGRAM
+  hd_graph = Graph{Directed}(hd.ADJACENCY)
+  hd_maximal_cones = inneighbors(hd_graph, hd.TOP_NODE+1)
+  for mc_index in refinable_cones
+    mc_indices = Polymake.row(mc_old, mc_index)
+    mc_hd_index = hd_maximal_cones[findfirst(i -> Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, i-1)) == mc_indices, hd_maximal_cones)]
+    refinable_facets = _get_refinable_facets_of_cone(mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R)
+    new_cones = Base.union(new_cones, Set{Vector{Int}}(refinable_facets))
+  end
+  return new_cones
+end
+
+function _get_refinable_facets_of_cone(mc_hd_index::Int, facet_normals::AbstractMatrix, hd, hd_graph::Graph{Directed}, v_facet_signs::AbstractVector, R::AbstractMatrix)
+  refinable_facets = Vector{Int}[]
+  for fc_index in inneighbors(hd_graph, mc_hd_index)
+    fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index-1))
+    inner_ray = sum([R[i,:] for i in fc_indices])
+    fc_facet_signs = _facet_signs(facet_normals, inner_ray)
+    if(!_check_containment_via_facet_signs(v_facet_signs, fc_facet_signs))
+      push!(refinable_facets, Vector{Int}(fc_indices))
+    end
+  end
+  return refinable_facets
 end
 
 # FIXME: Small workaround, since sign does not work for polymake types.
@@ -166,29 +188,10 @@ function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector
   end
   return true
 end
-function _get_maximal_cones_containing_vector(Sigma::_FanLikeType{T}, v::Vector{Int64}) where T<:scalar_types
+function _get_maximal_cones_containing_vector(Sigma::_FanLikeType{T}, v::Vector{Int64}, facet_normals::AbstractMatrix) where T<:scalar_types
   maximal_cones_signs = Matrix{Int}(pm_object(Sigma).MAXIMAL_CONES_FACETS)
-  v_facet_signs = _facet_signs(pm_object(Sigma).FACET_NORMALS, v)
+  v_facet_signs = _facet_signs(facet_normals, v)
   return filter(i -> _check_containment_via_facet_signs(v_facet_signs, maximal_cones_signs[i,:]; zero_unused=true), 1:n_maximal_cones(Sigma))
-end
-function _refine_maximal_cone(Sigma::_FanLikeType{T}, new_ray::Vector, mc_index::Int) where T<:scalar_types
-  v_facet_signs = _facet_signs(pm_object(Sigma).FACET_NORMALS, new_ray)
-  R = pm_object(Sigma).RAYS
-  hd = pm_object(Sigma).HASSE_DIAGRAM
-  hdg = Graph{Directed}(hd.ADJACENCY)
-  mc_indices = Polymake.row(pm_object(Sigma).MAXIMAL_CONES, mc_index)
-  mcs = inneighbors(hdg, hd.TOP_NODE+1)
-  mc_hd_index = mcs[findfirst(i -> Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, i-1)) == mc_indices, mcs)]
-  result = Vector{Int}[]
-  for fc_index in inneighbors(hdg, mc_hd_index)
-    fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index-1))
-    inner_ray = sum([R[i,:] for i in fc_indices])
-    fc_facet_signs = _facet_signs(pm_object(Sigma).FACET_NORMALS, inner_ray)
-    if(!_check_containment_via_facet_signs(v_facet_signs, fc_facet_signs))
-      push!(result, Vector{Int}(fc_indices))
-    end
-  end
-  return result
 end
 
 
