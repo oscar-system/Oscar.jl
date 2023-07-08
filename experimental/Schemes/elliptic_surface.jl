@@ -396,11 +396,12 @@ function relatively_minimal_model(E::EllipticSurface)
     if count == 1
       cov = Crefined
     else
-      cov0 = simplified_covering(X0)
-      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
-      cov = _one_patch_per_component(cov1, I_sing_X0)
-      push!(X0.coverings, cov)
-      #inc_Y0 = inc_Y0a
+      # the following leads to difficult bugs
+      #cov0 = simplified_covering(X0)
+      #cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      #cov = _one_patch_per_component(cov1, I_sing_X0)
+      #push!(X0.coverings, cov)
+      cov = simplified_covering(X0)
     end
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1])
