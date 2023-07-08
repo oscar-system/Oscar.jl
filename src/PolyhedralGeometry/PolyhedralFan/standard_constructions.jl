@@ -74,25 +74,7 @@ the underlying lattice. We follow the definition at the top of page 515 in
 julia> fan = normal_fan(simplex(3))
 Polyhedral fan in ambient dimension 3
 
-julia> rays(fan)
-4-element SubObjectIterator{RayVector{QQFieldElem}}:
- [1, 0, 0]
- [0, 1, 0]
- [0, 0, 1]
- [-1, -1, -1]
-
-julia> ray_indices(maximal_cones(fan))
-4×4 IncidenceMatrix
-[1, 2, 3]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
-
-julia> new_ray = [1, 1, 1]
-3-element Vector{Int64}:
- 1
- 1
- 1
+julia> new_ray = [1, 1, 1];
 
 julia> star = star_subdivision(fan, new_ray)
 Polyhedral fan in ambient dimension 3

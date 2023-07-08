@@ -543,7 +543,7 @@ of *all* cones of the fan of `v` which corresponds to the
 provided ideal `I`. Note that this cone need not be maximal.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
-the exceptional divisor. As third optional argument on can supply
+the exceptional divisor. As third optional argument one can supply
 a custom variable name.
 
 # Examples
@@ -591,30 +591,13 @@ provided new ray. Note that this ray must be a primitive element in the
 lattice Z^d, with d the dimension of the fan.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
-the exceptional divisor. As third optional argument on can supply
+the exceptional divisor. As third optional argument one can supply
 a custom variable name.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
-
-julia> cones(P3)
-14×4 IncidenceMatrix
-[1, 2, 3]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
-[2, 3]
-[1, 3]
-[1, 2]
-[3, 4]
-[2, 4]
-[1, 4]
-[2]
-[3]
-[1]
-[4]
 
 julia> bP3 = blow_up(P3, [0, 1, 1])
 Normal toric variety
@@ -653,30 +636,13 @@ Blow up the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
-the exceptional divisor. As third optional argument on can supply
+the exceptional divisor. As third optional argument one can supply
 a custom variable name.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
-
-julia> cones(P3)
-14×4 IncidenceMatrix
-[1, 2, 3]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
-[2, 3]
-[1, 3]
-[1, 2]
-[3, 4]
-[2, 4]
-[1, 4]
-[2]
-[3]
-[1]
-[4]
 
 julia> bP3 = blow_up(P3, 5)
 Normal toric variety
