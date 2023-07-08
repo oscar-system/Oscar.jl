@@ -16,11 +16,32 @@
   weierstrass_model(S)
   relatively_minimal_model(S)
 
+  E = EllipticCurve(kP1, [0,0,0,1,t^10])
+  X = elliptic_surface(E, 2)
+  triv = trivial_lattice(X)
+
+  k = GF(29,2)
+  # The generic fiber of the elliptic fibration
+  # as an elliptic curve over k(t)
+  kt, t = polynomial_ring(k, :t)
+  kP1 = fraction_field(kt)
+  t = gen(kP1)
+
+  E = EllipticCurve(kP1, [0, 2*t^4 + 28*t^2, 0, 27*t^6 + 19, 10*t^2])
+  P = E([0,sqrt(k(10))*t,1])
+  X = elliptic_surface(E, 2, [P])
+  triv = trivial_lattice(X)
+  @test det(triv[2]) == 256
+  @test length(Oscar.mordell_weil_torsion(X)) == 1
+  alg = algebraic_lattice(X)
+  @test det(alg[2]) == -192
+  @test det(mordell_weil_lattice(X)) == 3
+
   Qt, t = polynomial_ring(QQ, :t)
   Qtf = fraction_field(Qt)
   E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
   relatively_minimal_model(X3)
 
-  @test length(fiber_components(S, [-1,1]))
+
 end

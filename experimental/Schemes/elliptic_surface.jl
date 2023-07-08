@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -72,47 +72,70 @@ weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
 @doc raw"""
     algebraic_lattice(X) -> Vector{WeilDivisor}, ZZLat
 
-Return the sublattice of ``Num(X)`` spanned by fiber components
-and the sections provided at the construction of ``X``.
+Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
+torsion sections and the sections provided at the construction of ``X``.
+
+The first return value is the basis of the ambient space of `L`.
 """
 @attr function algebraic_lattice(X)
   mwl_basis = X.MWL
   basisTriv, GTriv = trivial_lattice(X)
-
-  # primitive closure of the trivial lattice comes from torsion sections
-  tors = [section(X, h) for h in mordell_weil_torsion(X)]
-  torsV = ZZMat[]
-  for T in tors
-    basis, NS = algebraic_lattice(X)
-    G = gram_matrix(NS)
-    n = length(basis)
-    vT = zero_matrix(ZZ, 1, n)
-    for i in 1:n
-      vT[i] = intersect(basisTriv[i], T)
-    end
-    push!(torsV, vT*inv(GTriv))
-  end
-
-
-  l = length(mwl_basis)
   r = length(basisTriv)
+  l = length(mwl_basis)
   sections = [section(X, i) for i in mwl_basis]
   n = l+r
   GA = zero_matrix(ZZ, n, n)
   GA[1:r,1:r] = GTriv
   GA[r+1:n,r+1:n] = -2*identity_matrix(ZZ, l)
   basisA = vcat(basisTriv, sections)
-  @vprint :EllipticSurface 2 "computing intersection numbers"
+  @vprint :EllipticSurface 2 "computing intersection numbers\n"
   for i in 1:n
-    @vprint :EllipticSurface 2 "\nrow $(i): \n"
-    for j in max(i + 1, r + 1):n
-      @vprint :EllipticSurface 2 "$(j) "
-      GA[i,j] = intersect(basisA[i],basisA[j])
+      @vprint :EllipticSurface 2 "\nrow $(i): \n"
+      for j in max(i + 1, r + 1):n
+      if i!=2 && i <= r
+        I = components(basisA[i])[1]
+        J = components(basisA[j])[1]
+        if isone(I+J)
+          ij = 0
+        else
+          ij = 1
+        end
+      else
+        @vprint :EllipticSurface 2 "$(j) "
+        ij = intersect(basisA[i],basisA[j])
+      end
+      GA[i,j] = ij
       GA[j,i] = GA[i,j]
     end
   end
-  @assert rank(GA) == n "todo: treat torsion sections" # need to adapt mordell_weil then too
-  return basisA, integer_lattice(gram=GA)
+  GAinv = inv(change_base_ring(QQ,GA))
+  # primitive closure of the trivial lattice comes from torsion sections
+  tors = [section(X, h) for h in mordell_weil_torsion(X)]
+  torsV = QQMatrix[]
+  for T in tors
+    @vprint :EllipticSurface 2 "computing basis representation of $(T)\n"
+    vT = zero_matrix(ZZ, 1, n)
+    for i in 1:r
+      if i== 2
+        vT[1,i] = intersect(basisA[i], T)
+      else
+        @assert length(components(basisTriv[i])) == 1
+        I = sum(components(basisA[i]))
+        J = components(T)[1]
+        if !isone(I+J)
+          @assert i!=2 # O does not meet any torsion section
+          vT[1,i] = 1
+        end
+      end
+    end
+    for i in r+1:n
+      vT[1,i] = intersect(T,basisA[i])
+    end
+    push!(torsV, vT*GAinv) # not necessarily integral .... todo
+  end
+  push!(torsV, identity_matrix(QQ,n))
+  V = quadratic_space(QQ,GA)
+  return basisA, lattice(V, reduce(vcat,torsV), isbasis=false)
 end
 
 @doc raw"""
@@ -122,12 +145,13 @@ Return the (sublattice) of the Mordell-Weil lattice of ``S``  spanned
 by the sections of ``S`` supplied at its construction.
 """
 @attr ZZLat function mordell_weil_lattice(S::EllipticSurface)
-  NS = algebraic_lattice(S)
+  NS = algebraic_lattice(S)[2]
   t = length(trivial_lattice(S)[1])
-  trivNS = basis_matrix(NS)[1,:t]
+  trivNS = basis_matrix(NS)[1:t,:]
+  R = basis_matrix(NS)[t+1:end,:]
   V = ambient_space(NS)
-  P = orthogonal_complement(V, trivNS)
-  mwl = rescale(lattice(V, basis_matrix(NS)*P, is_basis=false),-1)
+  P = orthogonal_projection(V, trivNS)
+  mwl = rescale(P(NS),-1)
   #Todo basis
   return lll(mwl)
 end
@@ -141,11 +165,29 @@ of the generic fiber of ``S``.
 @attr function mordell_weil_torsion(S::EllipticSurface)
   E = generic_fiber(S)
   O = E([0,1,0])
-  N = trivial_lattice(S)
+  N = trivial_lattice(S)[2]
   tors = EllCrvPt[]
-  for d in divisors(det(N))
-    @vprint :EllipticSurface 2 "computing $(d)-torsion"
-    append!(tors, division_points(E, d))
+  d = det(N)
+  for p in prime_divisors(d)
+    if valuation(d, p) == 1
+      continue
+    end
+    r = 1
+    i = 0
+    while true
+      i = i+1
+      @vprint :EllipticSurface 2 "computing $(p^i)-torsion"
+      global dp = division_points(O, p^i)
+      if length(dp) == r
+        break
+      end
+      r = length(dp)
+    end
+    for pt in dp
+      if pt != O
+        push!(tors, pt)
+      end
+    end
   end
   return tors
 end
@@ -264,6 +306,7 @@ function _separate_singularities!(X::EllipticSurface)
   refined_charts = AbsSpec[]
   U = P[1][1]  # the weierstrass_chart
   IsingU = I_sing_P(U)
+  dec_info = []
   if isone(IsingU)
     push!(refined_charts, U)
   else
@@ -276,8 +319,15 @@ function _separate_singularities!(X::EllipticSurface)
     else
       for i in 1:length(redfib)
         r = copy(redfib)
+        g = r[i]
         deleteat!(r, i)
-        push!(refined_charts, PrincipalOpenSubset(U, r))
+        Uref = PrincipalOpenSubset(U, r)
+        push!(refined_charts, Uref)
+        if i>1
+          push!(dec_info, Uref=> RingElem[g])
+        else
+         push!(dec_info, Uref=> RingElem[])
+        end
       end
     end
   end
@@ -341,6 +391,11 @@ function _separate_singularities!(X::EllipticSurface)
   Cref = Covering(refined_charts)
   inherit_glueings!(Cref, P[1])
   push!(P.coverings, Cref)
+  inherit_decomposition_info!(Cref, P)
+  dec_infoP = decomposition_info(Cref)
+  for (U,h) in dec_info
+    dec_infoP[U] = h
+  end
   # Now we have an extra covering where each chart just contains a single singularity
 
   @assert scheme(I_sing) === S
@@ -402,6 +457,7 @@ function relatively_minimal_model(E::EllipticSurface)
       #cov = _one_patch_per_component(cov1, I_sing_X0)
       #push!(X0.coverings, cov)
       cov = simplified_covering(X0)
+      #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1])
@@ -460,10 +516,30 @@ basis of the trivial lattice, gram matrix, fiber_components
   =#
   W = weierstrass_model(S)
   d = numerator(discriminant(generic_fiber(S)))
+  j = j_invariant(generic_fiber(S))
   kt = parent(d)
   k = coefficient_ring(kt)
-  r = [k.(roots(i[1])) for i in factor(d) if i[2]>=2]
-  sing = reduce(append!,r, init=[])
+  sing = elem_type(k)[]
+  for (p,v) in factor(d)
+    if v == 1
+      continue
+    end
+    r = k.(roots(p))
+    if length(r) == 0
+      error("not all reducible fibers are visible over k")
+    end
+    @assert length(r) ==1
+    rt = r[1]
+    if v == 2
+      # not a type II fiber
+      if j!=0
+        push!(sing, rt)
+      end
+    end
+    if v > 2
+      push!(sing, rt)
+    end
+  end
   f = []
   f = [[k.([i,1]), fiber_components(S,[i,k(1)])] for  i in sing]
   if degree(d) <= 12*S.bundle_number - 2
@@ -530,11 +606,6 @@ function reducible_fibers(S::EllipticSurface)
   return _trivial_lattice(S)[3]
 end
 
-isone(I::IdealSheaf) = isone(I, space(I)[1])
-
-function isone(I::IdealSheaf, C::Covering)
-  return all(isone(I(U)) for U in C)
-end
 
 @doc raw"""
     standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
@@ -792,10 +863,12 @@ end
     _prop217(E::EllCrv, P::EllCrvPt, k)
 
 Compute a basis for the linear system
-|O + P + kF|
+``|O + P + kF|``
 on the  minimal elliptic (K3) surface defined by E.
 Here F is the class of a fiber O the zero section
 and P any non-torsion section.
+
+The return value is a list of pairs ``(a(t),b(t))``
 
 ```jldoctest
 julia> kt,t = polynomial_ring(GF(29),:t);
@@ -811,7 +884,7 @@ julia> E = EllipticCurve(ktfield,[3*t^8+24*t^7+22*t^6+15*t^5+28*t^4+20*t^3+16*t^
 
 julia> bk = [E(collect(i)) for i in bk];
 
-julia> prop217(E,bk[2],2)
+julia> Oscar._prop217(E,bk[2],2)
 5-element Vector{Any}:
  (t^2 + 12*t + 7, 0)
  (t^3 + 8*t + 3, 0)
@@ -819,7 +892,7 @@ julia> prop217(E,bk[2],2)
  (25*t + 22, 1)
  (12*t + 28, t)
 
-julia> prop217(E,bk[1],1)
+julia> Oscar._prop217(E,bk[1],1)
 2-element Vector{Any}:
  (1, 0)
  (t, 0)
