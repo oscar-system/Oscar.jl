@@ -241,3 +241,11 @@ end
   v = V[3] - 4*V[5]
   @test preimage(id, id(v)) == v
 end
+
+@testset "divides hack" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, 1-x*y)
+  o = revlex([x, y])
+  Q = MPolyQuo(R, I, o)
+  @test oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+end
