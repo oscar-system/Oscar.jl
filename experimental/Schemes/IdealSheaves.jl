@@ -328,15 +328,15 @@ function extend!(
   # push all nodes on which I is known in a heap
   visited = collect(keys(D))
   # The nodes which can be used for extension
-  fat = [U for U in visited if !isone(D[U])]
+  fat = AbsSpec[U for U in visited if !isone(D[U])]
   # Nodes which are leafs
-  flat = [U for U in visited if isone(D[U])]
+  flat = AbsSpec[U for U in visited if isone(D[U])]
   # Nodes to which we might need to extend
-  leftover = [U for U in patches(C) if !(U in keys(D))]
+  leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = [U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  neighbors = AbsSpec[U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
   # All other nodes
-  leftover = [U for U in leftover if !any(W->W===U, neighbors)]
+  leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
   while length(neighbors) > 0
     good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
     for V in neighbors
@@ -511,6 +511,11 @@ end
 function isone(I::IdealSheaf)
   return all(x->isone(I(x)), affine_charts(scheme(I)))
 end
+
+function isone(I::IdealSheaf, C::Covering)
+  return all(isone(I(U)) for U in C)
+end
+
 
 @doc raw"""
     is_prime(I::IdealSheaf) -> Bool
