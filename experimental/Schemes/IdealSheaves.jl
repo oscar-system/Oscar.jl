@@ -321,45 +321,103 @@ on which ``I`` had already been described.
 Note that the covering `C` is not modified.  
 """
 function extend!(
-    C::Covering, D::IdDict{AbsSpec, Ideal}
+    C::Covering, D::IdDict{AbsSpec, Ideal};
+    all_dense::Bool=false
   )
-  gg = glueing_graph(C)
+  gg = glueing_graph(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
-  dirty_patches = collect(keys(D))
-  while length(dirty_patches) > 0
-    U = pop!(dirty_patches)
-    N = neighbor_patches(C, U)
-    # The following line potentially triggers a groebner basis
-    # computation, because the quo command for polynomial rings 
-    # requires it. 
-    #Z = subscheme(U, D[U])
-    for V in N
-      # check whether this node already knows about D
-      haskey(D, V)  && continue
-
-      f, _ = glueing_morphisms(C[V, U])
-      if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && underlying_glueing(C[V, U]) isa SimpleGlueing)
-        # if not, extend D to this patch
-        f, _ = glueing_morphisms(C[V, U])
-        pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
-        J = ideal(OO(V), lifted_numerator.(pbI_gens))
-        J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
-        D[V] = J_sat
-      else 
-        Z = subscheme(U, D[U])
-        pZ = preimage(f, Z, check=false)
-        ZV = closure(pZ, V, check=false)
-        D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+  visited = collect(keys(D))
+  # The nodes which can be used for extension
+  fat = [U for U in visited if !isone(D[U])]
+  # Nodes which are leafs
+  flat = [U for U in visited if isone(D[U])]
+  # Nodes to which we might need to extend
+  leftover = [U for U in patches(C) if !(U in keys(D))]
+  # Nodes to which we can extend in one step
+  neighbors = [U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  # All other nodes
+  leftover = [U for U in leftover if !any(W->W===U, neighbors)]
+  while length(neighbors) > 0
+    good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
+    for V in neighbors
+      for U in fat
+        G = C[U, V]
+        if (G isa SimpleGlueing || (G isa LazyGlueing && is_computed(G)))
+          push!(good_pairs, (U, V))
+        end
       end
-      V in dirty_patches || push!(dirty_patches, V)
+    end
+
+    # Initialize some variables
+    U = first(visited) # The visited node
+    V = first(visited) # The neighboring node for which we do the extension
+    if !isempty(good_pairs)
+      # In case we find a good neighboring pair, use that
+      (U, V) = first(good_pairs)
+    else
+      # If there is no good neighboring pair, compute a new glueing
+      V = first(neighbors)
+      k = findfirst(U->haskey(glueings(C), (U, V)), fat)
+      U = fat[k]
+    end
+    f, _ = glueing_morphisms(C[V, U])
+    if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+
+      # Take a shortcut if possible
+      _, UV = glueing_domains(C[V, U])
+      if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
+        D[V] = ideal(OO(V), one(OO(V)))
+        # Register this patch as a leaf
+        push!(flat, V)
+        # Update the neighbors
+        neighbors = [W for W in neighbors if !(W===V)]
+        continue
+      end
+
+      # if not, extend D to this patch
+      f, _ = glueing_morphisms(C[V, U])
+      pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
+      J = ideal(OO(V), lifted_numerator.(pbI_gens))
+      #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+      J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
+      D[V] = J_sat
+    else 
+      Z = subscheme(U, D[U])
+      pZ = preimage(f, Z, check=false)
+      ZV = closure(pZ, V, check=false)
+      D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+    end
+
+    # Update the neighbors
+    neighbors = [W for W in neighbors if !(W===V)]
+    # Put that new node in the correct list
+    if isone(D[V])
+      push!(flat, V)
+    else
+      push!(fat, V)
+      for W in leftover
+        if haskey(glueings(C), (V, W))
+          push!(neighbors, W)
+        end
+      end
+      leftover = [W for W in leftover if !any(x->x===W, neighbors)]
     end
   end
   for U in basic_patches(C) 
     if !haskey(D, U)
-      D[U] = ideal(OO(U), zero(OO(U)))
+      D[U] = ideal(OO(U), one(OO(U)))
     end
   end
   return D
+end
+
+function _iterative_saturation(I::Ideal, f::RingElem)
+  fac = factor(f)
+  R = base_ring(I)
+  for (u, k) in fac
+    I = saturation(I, ideal(R, u))
+  end
+  return I
 end
 
 #function Base.show(io::IO, I::IdealSheaf)
@@ -479,6 +537,32 @@ at every point $p$ is one or prime.
 """
 function is_locally_prime(I::IdealSheaf)
   return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
+end
+
+function is_equidimensional(I::IdealSheaf; covering=default_covering(scheme(I)))
+  local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
+  length(local_dims) == 0 && return true # This only happens if I == OO(X)
+  d = first(local_dims)
+  all(x->x==d, local_dims) || return false
+  all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
+  return true
+end
+
+function is_equidimensional(I::MPolyIdeal)
+  decomp = equidimensional_decomposition_weak(I)
+  return isone(length(decomp))
+end
+
+function is_equidimensional(I::MPolyQuoIdeal)
+  is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyLocalizedIdeal)
+  return is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
 end
 
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
@@ -632,43 +716,62 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::IdealSheaf)
+function maximal_associated_points(I::IdealSheaf; covering=default_covering(scheme(I)))
   !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
 
-  charts_todo = copy(affine_charts(X))            ## todo-list of charts
+  charts_todo = copy(patches(covering))           ## todo-list of charts
 
   associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
                                                   ## may not yet contain all relevant charts. but
                                                   ## at least one for each identified component
 
-# run through all charts and try to match the components
+  result = IdealSheaf[]
+  # run through all charts and try to match the components
   while length(charts_todo) > 0
     @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
     U = pop!(charts_todo)
+    J = I(U)
+    # Do a quick check whether we even need to worry about this chart
+    if has_decomposition_info(covering)
+      J = J + ideal(OO(U), Vector{elem_type(OO(U))}(decomposition_info(covering)[U]))
+      isone(J) && continue
+    end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
+    if has_decomposition_info(covering)
+      # We only need those components which are located at the locus presrcibed by the 
+      # decomposition_info in this chart
+      components_here = [ C for C in components_here if all(g->g in C, decomposition_info(covering)[U])]
+      result = vcat(result, [IdealSheaf(X, U, gens(C)) for C in components_here])
+      continue
+    else
+      ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
+      for comp in components_here
+        matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
+        nmatches = length(matches)
 
-## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for comp in components_here
-      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
-      nmatches = length(matches)
-
-      if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
-        add_dict[U] = comp                         ## and fill it
-        push!(associated_primes_temp, add_dict)
-      elseif nmatches == 1                         ## unique match, update it
-        component_index = matches[1]
-        associated_primes_temp[component_index][U] = comp
-      else                                                ## more than one match, form union
-        target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = comp
+        if nmatches == 0                             ## not found
+          add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+          add_dict[U] = comp                         ## and fill it
+          push!(associated_primes_temp, add_dict)
+        elseif nmatches == 1                         ## unique match, update it
+          component_index = matches[1]
+          associated_primes_temp[component_index][U] = comp
+        else                                                ## more than one match, form union
+          target_comp = pop!(matches)
+          merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+          deleteat!(associated_primes_temp,matches)
+          associated_primes_temp[target_comp][U] = comp
+        end
       end
     end
+  end
+
+  # In case we could use the decomposition info, quit here.
+  if has_decomposition_info(covering)
+    return result
   end
 
 # fill the gaps arising from a support not meeting a patch
@@ -753,7 +856,7 @@ function match_on_intersections(
       X::AbsCoveredScheme,
       U::AbsSpec,
       I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
-      associated_list::Vector{IdDict{AbsSpec,Ideal}},
+      associated_list::Vector{<:IdDict{<:AbsSpec, <:Ideal}},
       check::Bool=true)
   @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
@@ -767,14 +870,28 @@ function match_on_intersections(
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
       VU, UV = glueing_domains(G)
-      I_res = OOX(U,UV)(I)
-      IV_res = OOX(V,UV)(IV)
-      if (I_res == IV_res)
-        match_found = !is_one(I_res)                               ## count only non-trivial matches
-        check || break
+      if UV isa SpecOpen && VU isa SpecOpen
+        I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
+        IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
+        if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
+          match_found = !all(I->is_one(I), I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
+      elseif UV isa AbsSpec && VU isa AbsSpec
+        I_res = OOX(U,UV)(I)
+        IV_res = OOX(V,UV)(IV)
+        if (I_res == IV_res)
+          match_found = !is_one(I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
       else
-        match_contradicted = true
-        check || break
+        error("case not implemented")
       end
     end
 

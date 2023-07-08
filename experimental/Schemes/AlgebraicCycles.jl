@@ -130,7 +130,7 @@ end
       is_integral(X) || error("scheme must be integral") 
       #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       for D in keys(coefficients)
-        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        is_equidimensional(D) || error("components of a divisor must be sheaves of equidimensional ideals")
       end
     end
     return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
@@ -163,6 +163,10 @@ in `R`.
 function AlgebraicCycle(X::AbsCoveredScheme, R::Ring)
   D = IdDict{IdealSheaf, elem_type(R)}()
   return AlgebraicCycle(X, R, D)
+end
+
+function zero(D::AbsAlgebraicCycle) 
+  return AlgebraicCycle(scheme(D), coefficient_ring(D))
 end
 
 # provide non-camelcase methods
@@ -297,6 +301,42 @@ end
 
 +(D::AbsAlgebraicCycle, I::IdealSheaf) = D + AbsAlgebraicCycle(I)
 
+@doc raw"""
+    irreducible_decomposition(D::AbsAlgebraicCycle)
+
+Returns a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
+where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
+"""
+function irreducible_decomposition(D::AbsAlgebraicCycle)
+  all(I->is_prime(I), keys(coefficient_dict(D))) && return D
+  result = zero(D)
+  for (I, a) in coefficient_dict(D)
+    next_dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+    decomp = maximal_associated_points(I)
+    for P in decomp
+      k = _colength_in_localization(I, P)
+      next_dict[P] = coefficient_ring(D)(k)
+    end
+    result = result + a * AlgebraicCycle(scheme(D), coefficient_ring(D), next_dict, check=false)
+  end
+  return result
+end
+
+function _colength_in_localization(Q::IdealSheaf, P::IdealSheaf; covering=simplified_covering(scheme(P)))
+  X = scheme(Q)
+  X === scheme(P) || error("ideal sheaves do not live on the same scheme")
+  n = minimum([ngens(OO(U)) for U in patches(covering) if !isone(P(U))])
+  j = findfirst(U->(!isone(P(U)) && ngens(OO(U))==n), patches(covering))
+  U = patches(covering)[j]
+  QU = Q(U)
+  PU = P(U)
+  W, loc_map = localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
+  Q_loc = loc_map(QU)
+  F = free_module(W, 1)
+  M, _ = quo(F, sub(F, [g*F[1] for g in gens(Q_loc)])[1])
+  return length(M)
+end
+
 function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle) 
   if all(k->k in keys(coefficient_dict(D)), keys(coefficient_dict(E))) && all(k->k in keys(coefficient_dict(E)), keys(coefficient_dict(D))) 
     for I in keys(coefficient_dict(D))
@@ -310,6 +350,10 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
       !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
     end
   else
+    # Make sure all generators are actually prime so that they can be compared. 
+    all(I->isprime(I), keys(coefficient_dict(D))) || return irreducible_decomposition(D) == E
+    all(I->isprime(I), keys(coefficient_dict(E))) || return D == irreducible_decomposition(E)
+
     keys_D = collect(keys(coefficient_dict(D)))
     keys_E = collect(keys(coefficient_dict(E)))
     for I in keys(coefficient_dict(D))
@@ -336,11 +380,10 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
   result = zero(coefficient_ring(W))
   X = scheme(W)
   for I in components(W)
-    # All components must be prime, so the information is exclusively stored in the coefficients
-    if check
+    @check begin
       dim(I) == 0 || continue
     end
-    result = result + W[I]
+    result = result + W[I]*colength(I)
   end
   return result
 end

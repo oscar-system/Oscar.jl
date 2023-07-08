@@ -516,6 +516,15 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              BaseMorType
             }
     ff = CoveredSchemeMorphism(X, Y, f)
+    if has_decomposition_info(codomain(f))
+      for U in patches(domain(f))
+        floc = f[U]
+        phi = pullback(floc)
+        V = codomain(floc)
+        g = Vector{elem_type(OO(V))}(decomposition_info(codomain(f))[V])
+        set_decomposition_info!(domain(f), U, Vector{elem_type(OO(U))}(phi.(g)))
+      end
+    end
     #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
     return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
   end
