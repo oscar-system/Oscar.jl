@@ -525,7 +525,7 @@ basis of the trivial lattice, gram matrix, fiber_components
     end
     r = k.(roots(p))
     if length(r) == 0
-      error("not all reducible fibers are visible over k")
+      error("not all reducible fibers are visible over $(base_ring(X))")
     end
     @assert length(r) ==1
     rt = r[1]
