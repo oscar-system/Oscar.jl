@@ -262,6 +262,7 @@ function weierstrass_model(X::EllipticSurface)
 
   P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
   P = covered_scheme(P_proj)
+  @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
   a = a_invars(E)
@@ -391,11 +392,9 @@ function _separate_singularities!(X::EllipticSurface)
   Cref = Covering(refined_charts)
   inherit_glueings!(Cref, P[1])
   push!(P.coverings, Cref)
-  inherit_decomposition_info!(Cref, P)
-  dec_infoP = decomposition_info(Cref)
-  for (U,h) in dec_info
-    dec_infoP[U] = h
-  end
+  @assert has_decomposition_info(default_covering(P))
+  inherit_decomposition_info!(P, Cref)
+  @assert has_decomposition_info(Cref)
   # Now we have an extra covering where each chart just contains a single singularity
 
   @assert scheme(I_sing) === S
