@@ -42,6 +42,10 @@ function underlying_glueing(G::LazyGlueing)
   return G.G
 end
 
+function is_computed(G::LazyGlueing)
+  return isdefined(G, :G)
+end
+
 function glueing_domains(G::LazyGlueing) # TODO: Type annotation
   if !isdefined(G, :glueing_domains)
     # If there was a function provided to do the extra computation, use it.

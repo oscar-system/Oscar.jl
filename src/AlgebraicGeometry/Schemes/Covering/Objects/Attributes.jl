@@ -39,9 +39,9 @@ getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j
 getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = glueings(C)[(X, Y)]
 #edge_dict(C::Covering) = C.edge_dict
 
-function glueing_graph(C::Covering) 
+function glueing_graph(C::Covering; all_dense::Bool=false)
   if !isdefined(C, :glueing_graph)
-    update_glueing_graph(C)
+    update_glueing_graph(C, all_dense=all_dense)
   end
   return C.glueing_graph
 end
