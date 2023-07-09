@@ -578,13 +578,13 @@ function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     rs = matrix(ZZ, rays(v))
-    new_ray = vec([Int(k) for k in sum([rs[i,:] for i in indices])])
+    new_ray = vec(sum([rs[i,:] for i in indices]))
     return blow_up(v, new_ray; coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
 @doc raw"""
-  blow_up(v::AbstractNormalToricVariety, new_ray::Vector{Int64}; coordinate_name::String = "e", set_attributes::Bool = true)
+  blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
@@ -611,7 +611,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, new_ray::Vector{Int64}; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
     new_fan = star_subdivision(fan(v), new_ray)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)

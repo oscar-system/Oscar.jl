@@ -57,6 +57,6 @@ rays(PF::PolyhedralFan{T}) where T<:scalar_types
 rays_modulo_lineality(PF::PolyhedralFan{T}) where T<:scalar_types
 primitive_collections(PF::PolyhedralFan)
 star_subdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
-star_subdivision(PF::PolyhedralFan{T}, new_ray::Vector{Int64}) where T<:scalar_types
+star_subdivision(PF::PolyhedralFan{T}, new_ray::AbstractVector{<:IntegerUnion}) where T<:scalar_types
 *(PF1::PolyhedralFan, PF2::PolyhedralFan)
 ```
