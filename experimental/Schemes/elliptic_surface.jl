@@ -196,14 +196,23 @@ end
 
 #Examples
 ```jldoctest
+julia> Qt, t = polynomial_ring(QQ, :t);
+
+julia> Qtf = fraction_field(Qt);
+
+julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
+
+julia> Base.show(stdout, X3)
+Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 
 ```
 """
-function Base.show(io::IOContext, S::EllipticSurface)
+function Base.show(io::IO, S::EllipticSurface)
   io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Elliptic surface")
   else
+    E = generic_fiber(S)
     print(io, "Elliptic surface with generic fiber ", equation(E))
   end
 end
@@ -211,6 +220,17 @@ end
 @doc raw"""
 #Examples
 ```jldoctest
+julia> Qt, t = polynomial_ring(QQ, :t);
+
+julia> Qtf = fraction_field(Qt);
+
+julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
+
+julia> X3 = elliptic_surface(E, 2)
+Elliptic surface
+  with generic fiber
+    elliptic curve with equation
+        y^2 = x^3 + t^7 - 2*t^6 + t^5
 
 ```
 """
@@ -219,9 +239,10 @@ function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
   println(io, "Elliptic surface")
   println(io, Indent(), "with generic fiber")
   print(io, Indent(), Lowercase(), generic_fiber(S), Dedent())
-  if isdefined(S, :X)
+  if isdefined(S, :Y)
     println(io, "")
-    print(io, "with relative minimal model ", Lowercase(), S.Y)
+    println(io, "with relatively minimal model")
+    print(io, Indent(), Lowercase(), relatively_minimal_model(S)[1], Dedent())
   end
   print(io, Dedent())
 end
@@ -1002,10 +1023,9 @@ Here `F` must be given with respect to the basis of
 function elliptic_parameter(X::EllipticSurface, F::ZZMatrix)
   NS = algebraic_lattice(X)
   @req F*gram_matrix(NS)*transpose(F) "not an isotropic divisor"
-  @req is_nef(X, F) "F is not net"
-  error("not implemented")
-
-
+  # how to give an ample divisor automagically in general?
+  # @req is_nef(X, F) "F is not nef"
+   error("not implemented")
 
   X.bundle_number
   E = generic_fiber(X)
@@ -1030,7 +1050,10 @@ end
 
 
 @doc raw"""
+  extended_ade(ADE::Symbol, n::Int)
 
+Return the dual intersection matrix of an extended ade Dynkin diagram
+as well as the isotropic vector (with positive coefficients in the roots).
 """
 function extended_ade(ADE::Symbol, n::Int)
   R = change_base_ring(ZZ,gram_matrix(root_lattice(ADE,n)))
@@ -1066,6 +1089,7 @@ function extended_ade(ADE::Symbol, n::Int)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
+  error("not implemented")
   basis, NS = algebraic_lattice(X)
   G = gram_matrix(NS)
   n = length(basis)
