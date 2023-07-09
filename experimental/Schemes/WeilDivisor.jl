@@ -164,7 +164,9 @@ end
 For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
 as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
 """
-function intersect(D::WeilDivisor, E::WeilDivisor)
+function intersect(D::WeilDivisor, E::WeilDivisor;
+    covering::Covering=default_covering(scheme(D))
+  )
   X = scheme(D)
   @assert dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
   X === scheme(E) || error("divisors do not live on the same scheme")
@@ -186,13 +188,17 @@ function intersect(D::WeilDivisor, E::WeilDivisor)
 #  end
   # TODO: Work out the intersection
   result = zero(R)
+  @show "here"
   for c1 in components(D)
     a1 = D[c1]
+    @show "outer"
     for c2 in components(E)
+      @show "inner"
       a2 = E[c2]
       I = c1 + c2
+      @show I
       @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-      result = result + a1 * a2 * colength(I)
+      result = result + a1 * a2 * colength(I, covering=covering)
     end
   end
   return result
