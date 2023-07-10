@@ -1644,6 +1644,11 @@ function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
   return forget_decoration(F) == forget_decoration(G) && F.d == G.d
 end
 
+function Base.hash(F::FreeMod_dec, h::UInt)
+  b = 0x13d6e1b453cb661a % UInt
+  return xor(hash(forget_decoration(F), hash(F.d, h)), b)
+end
+
 ###############################################################################
 # FreeModElem_dec constructors
 ###############################################################################

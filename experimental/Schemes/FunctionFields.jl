@@ -27,24 +27,23 @@ representative_field(KK::VarietyFunctionField) = KK.KK
 
 ### user facing constructors 
 @doc raw"""
-    function_field(X::CoveredScheme)
+    function_field(X::AbsCoveredScheme)
 
 Return the function field of the irreducible variety `X`.
 
 Internally, a rational function is represented by an element in the field of
 fractions of the `ambient_coordinate_ring` of the `representative_patch`.
 """
-@attr VarietyFunctionField function_field(X::CoveredScheme) = VarietyFunctionField(X)
-
+@attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
 
 @doc raw"""
-    FunctionField(X::CoveredScheme; kw...)
+    FunctionField(X::AbsCoveredScheme; kw...)
 
 Return the function field of the irreducible variety `X`.
 
-See [`function_field(X::CoveredScheme)`](@ref).
+See [`function_field(X::AbsCoveredScheme)`](@ref).
 """
-FunctionField(X::CoveredScheme; kw... ) = function_field(X; kw...)
+FunctionField(X::AbsCoveredScheme; kw... ) = function_field(X; kw...)
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #
@@ -141,6 +140,12 @@ isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 ########################################################################
 # Conversion of rational functions on arbitrary patches                #
 ########################################################################
+
+function (KK::VarietyFunctionField)(a::RingElem; check::Bool=true)
+  return KK(a, one(parent(a)), check=check)
+end
+
+
 
 function (KK::VarietyFunctionField)(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   return KK(lift(a), lift(b), check=check)

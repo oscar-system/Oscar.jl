@@ -613,7 +613,7 @@ function inv(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BR
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
-  d = prod(denominators(inverted_set(W)))
+  d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power dᵏ ≡  c ⋅ f mod I
   (result, coefficient) = divides(one(Q), f)
@@ -665,18 +665,32 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
-  one(R) in I && return zero(L)
-  d = prod(denominators(inverted_set(W)))
+  isone(I) && return zero(L)
+  denoms = denominators(inverted_set(W))
+  if iszero(length(denoms)) || all(x->isone(x), denoms)
+    return L(Q(a)*inv(Q(b)))
+  end
+  d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
-  (result, coefficient) = divides(Q(a), Q(b))
+  (result, coefficient) = _divides_hack(Q(a), Q(b))
   # check whether f is already a unit
   result && return L(coefficient)
+  # If we have localized at the trivial set, then this is the end.
+  isone(d) && error("element can not be converted to the localization")
   push!(powers_of_d, d)
   abort = false
   # find some power which works
   while !abort
-    (abort, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+   if length(terms(last(powers_of_d))) > 10000
+      id, id_inv = _as_affine_algebra_with_many_variables(L)
+      aa = simplify(id(L(a)))
+      bb = simplify(id(L(b)))
+      success, cc = _divides_hack(aa, bb)
+      !success && error("element can not be converted to localization")
+      return id_inv(simplify(cc))
+    end
+    (abort, coefficient) = _divides_hack(Q(a*last(powers_of_d)), Q(b))
     if !abort
       push!(powers_of_d, last(powers_of_d)^2)
     end
@@ -686,7 +700,7 @@ function convert(
   lower = pop!(powers_of_d)
   while length(powers_of_d) > 0
     middle = lower*pop!(powers_of_d)
-    (result, coefficient) = divides(Q(a*middle), Q(b))
+    (result, coefficient) = _divides_hack(Q(a*middle), Q(b))
     if result 
       upper = middle
     else 
@@ -1087,6 +1101,16 @@ function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom)
   return true
 end
 
+function Base.hash(f::MPolyQuoLocalizedRingHom, h::UInt)
+  b = 0xd6d389598ad28724  % UInt
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  for x in gens(base_ring(domain(f)))
+    h = hash(f(x), h)
+  end
+  return xor(h, b)
+end
+
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
   R = base_ring(domain(phi))
@@ -1225,7 +1249,7 @@ function as_affine_algebra(
   R = base_ring(L)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
-  f = prod(denominators(inverted_set(L)))
+  f = prod(denominators(inverted_set(L)); init=one(R))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   return A, I, f, phi, theta
 end
@@ -1240,7 +1264,7 @@ function _as_affine_algebra(
   R = base_ring(L)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name)])
   theta = t[1]
-  f = prod(denominators(inverted_set(L)))
+  f = prod(denominators(inverted_set(L)); init=one(R))
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   Q, _ = quo(A, I)
   id = hom(L, Q, gens(A)[2:end], check=false)
@@ -1263,7 +1287,8 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   id =  _as_affine_algebra(W)
   A = codomain(id)
   h = hom(P, A, id.(f.(gens(P))), check=false)
-  return preimage(h, ideal(A, id.(W.(gens(J)))))
+  gg = Vector{elem_type(A)}(id.(W.(gens(J))))
+  return preimage(h, ideal(A, gg))
 end
 
 function is_isomorphism(
@@ -1316,7 +1341,7 @@ function is_isomorphism(
     gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, inc2(q)*last(collect(M)))
   end
-  pushfirst!(imagesB, prod(denoms))
+  pushfirst!(imagesB, prod(denoms; init=one(B)))
 
   # perform a sanity check
   phiAB = hom(A, B, imagesB, check=false)
@@ -1686,6 +1711,14 @@ end
 
 function saturated_ideal(I::MPolyQuoLocalizedIdeal{LRT}) where {LRT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   return saturated_ideal(pre_image_ideal(I),strategy=:iterative_saturation,with_generator_transition=false)
+end 
+
+function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
+                                 <:MPolyComplementOfKPointIdeal})
+  I = shifted_ideal(modulus(R))
+  o = negdegrevlex(gens(base_ring(R)))
+  LI=leading_ideal(standard_basis(I, ordering = o))
+  return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
 ### Conversion of ideals in the original ring to localized ideals
@@ -2084,4 +2117,42 @@ end
 function (W::MPolyDecRing)(f::MPolyLocRingElem)
   return W(forget_decoration(W)(f))
 end
+
+@attr Tuple{<:Map, <:Map} function _as_affine_algebra_with_many_variables(
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
+  )
+  inverse_name=:_0
+  R = base_ring(L)
+  f = denominators(inverted_set(L))
+  f = sort(f, lt=(x, y)->total_degree(x)>total_degree(y))
+  r = length(f)
+  A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
+  theta = t[1:r]
+  I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
+  ordering = degrevlex(gens(A)[r+1:end])
+  if r > 0 
+    ordering = lex(theta)*ordering
+  end
+  Q = MPolyQuoRing(A, I, ordering)
+  function my_fun(g)
+    a = Q(phi(lifted_numerator(g)))
+    isone(lifted_denominator(g)) && return a
+    b = Q(phi(lifted_denominator(g)))
+    success, c = divides(a, b)
+    success || error("element can not be mapped")
+    return c
+  end
+  id = MapFromFunc(my_fun, L, Q)
+  #id = hom(L, Q, gens(A)[r+1:end], check=false)
+  id_inv = hom(Q, L, vcat([L(one(R), b, check=false) for b in f], gens(L)), check=false)
+  set_attribute!(id, :inverse, id_inv)
+  set_attribute!(id_inv, :inverse, id)
+  return id, id_inv
+end
+
+function inverse(phi::MPolyQuoLocalizedRingHom)
+  has_attribute(phi, :inverse) && return get_attribute(phi, :inverse)
+  error("computation of inverse not implemented")
+end
+
 

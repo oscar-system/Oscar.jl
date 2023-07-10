@@ -8,32 +8,11 @@
 push!(upgrade_scripts, UpgradeScript(
     v"0.11.3", # version this script upgrades to
     function upgrade_0_11_3(s::DeserializerState, dict::Dict)
-        # file comes from polymake
-        haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
-
         # moves down tree to point where type exists in dict
         # since we are only doing updates based on certain types
         # no :type key implies the dict is data
         if !haskey(dict, :type)
-            upgraded_dict = Dict{Symbol, Any}()
-            for (key, dict_value) in dict
-                if dict_value isa String
-                    upgraded_dict[key] = dict_value
-                elseif dict_value isa Dict{Symbol, Any}
-                    upgraded_dict[key] = upgrade_0_11_3(s, dict_value)
-                else  # not a string or a dictionary, so must be a vector
-                    new_value = []
-                    for v in dict_value
-                        if v isa String
-                            push!(new_value, v)
-                        else
-                            push!(new_value, upgrade_0_11_3(s, v))
-                        end
-                    end
-                    upgraded_dict[key] = new_value
-                end
-            end
-            return upgraded_dict
+            return upgrade_data(upgrade_0_11_3, s, dict)
         end
 
         if dict[:type] == string(backref_sym)
@@ -108,7 +87,18 @@ push!(upgrade_scripts, UpgradeScript(
             return upgraded_dict
         end
 
-        U = decodeType(dict[:type])
+        dict_type = dict[:type]
+        if contains(dict_type, "MPolyRingElem")
+            dict_type = "MPolyRingElem"
+        elseif contains(dict_type, "MPolyRing")
+            dict_type = "MPolyRing"
+        elseif contains(dict_type, "PolyRingElem")
+            dict_type = "PolyRingElem"
+        elseif contains(dict_type, "PolyRing")
+            dict_type = "PolyRing"
+        end
+
+        U = decodeType(dict_type)
 
         # Upgrades QQFieldElem serialization
         if is_basic_serialization_type(U)
@@ -133,7 +123,7 @@ push!(upgrade_scripts, UpgradeScript(
 
         upgraded_data = upgrade_0_11_3(s, dict[:data])
         upgraded_dict = Dict(
-            :type => dict[:type],
+            :type => dict_type,
             :data => upgraded_data,
             :id => dict[:id]
         )

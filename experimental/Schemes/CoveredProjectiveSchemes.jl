@@ -136,6 +136,10 @@ mutable struct ProjectiveGlueing{
     ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
+    @vprint :Glueing 1 "computing projective glueing\n"
+    @vprint :Glueing 2 "$(X), coordinates $(ambient_coordinates(X))\n"
+    @vprint :Glueing 2 "and\n"
+    @vprint :Glueing 2 "$(Y) coordinates $(ambient_coordinates(X))\n"
     (fb, gb) = glueing_morphisms(G)
     (PX, QY) = (codomain(incP), codomain(incQ))
     (PU, QV) = (domain(incP), domain(incQ))
@@ -158,6 +162,7 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
+    @vprint :Glueing 1 "done computing the projective gluing\n"
     return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end
@@ -291,6 +296,13 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
 
+    # Prepare the decomposition data
+    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    for k in 1:ngens(I)
+      U = affine_charts(Y)[i]
+      decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+    end
+
     # Cache the isomorphism on the complement of the center
     p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
     for i in 1:ngens(I)
@@ -304,6 +316,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
                     )
     end
     set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
+    set_decomposition_info!(default_covering(Y), decomp_dict)
     return IPY
   else
     # construct the blowup by elimination.
@@ -345,6 +358,15 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
                      SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
+    
+    # Prepare the decomposition data
+    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    for k in 1:ngens(I)
+      U = affine_charts(Y)[k]
+      decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+    end
+
+    set_decomposition_info!(default_covering(Y), decomp_dict)
     set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
     return IPY
   end
@@ -392,6 +414,15 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
                   )
   end
   set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
+
+  # Prepare the decomposition data
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  for k in 1:ngens(I)
+    U = affine_charts(Y)[k]
+    decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+  end
+  set_decomposition_info!(default_covering(Y), decomp_dict)
+
   return Bl_W
 end
 
@@ -820,7 +851,7 @@ end
     end
   end
   result_covering = Covering(result_patches, result_glueings, check=false)
-
+  
   # Now we need to add glueings
   for U in patches(C)
     for V in patches(C)
@@ -844,14 +875,34 @@ end
     p = covered_projection_to_base(PP)
     cov_mor = covering_morphism(p)
     cov_mor_dict = morphisms(cov_mor)
-    for V in keys(cov_mor_dict)
-      projection_dict[V] = cov_mor_dict[V]
+    for (V, phi) in cov_mor_dict
+      projection_dict[V] = phi
     end
+  end
+
+  # Assemble the decomposition information if applicable
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  if has_decomposition_info(C)
+    for V in patches(C)
+      cov_part = default_covering(parts[V])
+      if has_decomposition_info(cov_part)
+        for U in patches(cov_part)
+          pr = projection_dict[U]
+          decomp_dict[U] = vcat(decomposition_info(cov_part)[U], 
+                                elem_type(OO(U))[pullback(pr)(a) for a in decomposition_info(C)[V]]
+                               )
+        end
+      end
+    end
+  end
+  if length(keys(decomp_dict)) == length(patches(result_covering))
+    set_decomposition_info!(result_covering, decomp_dict)
   end
 
   # TODO: Remove the internal checks in the constructors below
   covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false) 
   set_attribute!(P, :covering_projection_to_base, covering_map)
+
   return result
 end
 
