@@ -417,10 +417,6 @@ function _iterative_saturation(I::Ideal, f::RingElem)
   return I
 end
 
-#function Base.show(io::IO, I::IdealSheaf)
-#  print(io, "sheaf of ideals on $(space(I))")
-#end
-
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
   X = space(I)
@@ -517,7 +513,7 @@ Return whether ``I`` is prime.
 We say that a sheaf of ideals is prime if its support is irreducible and
 ``I`` is locally prime. (Note that the empty set is not irreducible.)
 """
-function is_prime(I::IdealSheaf)
+@attr function is_prime(I::IdealSheaf)
   is_locally_prime(I) || return false
   # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
@@ -984,19 +980,14 @@ function Base.show(io::IO, I::IdealSheaf)
   end
   prim = get_attribute(I, :is_prime, false)
 
-  if get_attribute(I, :is_one, false)
-    print(io, "Sheaf of unit ideals")
-  elseif z
-    print(io, "Sheaf of zero ideals")
-  elseif get(io, :supercompact, false)
-    if prim
-      print(io, "Presheaf")
-    else
-      print(io, "Sheaf of ideals")
-    end
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
   else
-    # If there is a simplified covering, use it!
-    if prim
+    if get_attribute(I, :is_one, false)
+      print(io, "Sheaf of unit ideals")
+    elseif z
+      print(io, "Sheaf of zero ideals")
+    elseif prim
       print(io, "Sheaf of prime ideals")
     else
       print(io, "Sheaf of ideals")

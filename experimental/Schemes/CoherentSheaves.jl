@@ -1147,6 +1147,10 @@ sheaf_of_rings(M::PushforwardSheaf) = M.OOY
 original_sheaf(M::PushforwardSheaf) = M.M
 map(M::PushforwardSheaf) = M.inc
 
+function Base.show(io::IO, M::PushforwardSheaf)
+  print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
+end
+
 ########################################################################
 # Pullback of sheaves along morphisms                                  #
 ########################################################################
@@ -1323,6 +1327,10 @@ sheaf_of_rings(M::PullbackSheaf) = M.OOX
 original_sheaf(M::PullbackSheaf) = M.M
 map(M::PullbackSheaf) = M.f
 pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
+
+function Base.show(io::IO, M::PullbackSheaf)
+  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
+end
 
 
 ########################################################################

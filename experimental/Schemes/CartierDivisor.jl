@@ -377,9 +377,8 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering 
     print(io, Indent(), "on ", Lowercase())
     Oscar._show_semi_compact(io, scheme(C), cov, 3)
     println(io)
-    println(io, Dedent(), "with coefficients")
-    println(io, Indent(), "in ", Lowercase(), coefficient_ring(C))
-    print(io, Dedent(), "defined by the formal sum of")
+    println(io, Dedent(), "with coefficients in ", Lowercase(), coefficient_ring(C))
+    print(io, "defined by the formal sum of")
     println(io, Indent())
 
     for i in 1:length(components(C))-1

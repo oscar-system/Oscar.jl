@@ -257,14 +257,14 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
     for i in 1:length(components(D))-1
       I = components(D)[i]
       print(io, "$(D[I])*")
-      print(io, Indent())
+      print(io, Indent(), Lowercase())
       Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
       println(io, Dedent())
       println(io, "--------------------------------------------------------------------------------")
     end
     I = components(D)[end]
     print(io, "$(D[I])*")
-    print(io, Indent())
+    print(io, Indent(), Lowercase())
     Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
     print(io, Dedent())
   end

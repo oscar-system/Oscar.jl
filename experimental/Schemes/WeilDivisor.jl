@@ -184,9 +184,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
   print(io, Indent(), "on ", Lowercase())
   Oscar._show_semi_compact(io, X, cov, 3)
   println(io, Dedent())
-  println(io, "with coefficients")
-  println(io, Indent(), "in ", Lowercase(), coefficient_ring(C))
-  print(io, Dedent())
+  print(io, "with coefficients in ", Lowercase(), coefficient_ring(C))
   if length(components(C)) != 0
     println(io)
     print(io, Dedent(), "given as the formal sum of")
