@@ -100,7 +100,7 @@ julia> ray_indices(maximal_cones(star))
 function star_subdivision(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:IntegerUnion}) where T<:scalar_types
   
   # Check if new_ray is primitive in ZZ^d, i.e. gcd(new_ray)==1.
-  @req ambient_dim(Sigma) == length(new_ray) "New ray cannot be a primitive element"
+  @req ambient_dim(Sigma) == length(new_ray) "New ray is not $(ambient_dim(Sigma))-dimensional"
   @req gcd(new_ray) == 1 "The new ray r is not a primitive element of the lattice Z^d with d = length(r)"
   @req lineality_dim(Sigma) == 0 "star_subdivision does not work for polyhedral fans with lineality."
   

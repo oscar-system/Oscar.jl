@@ -474,7 +474,7 @@ is_pure(PF::_FanLikeType) = pm_object(PF).PURE::Bool
 @doc raw"""
     is_fulldimensional(PF::PolyhedralFan)
 
-Determine whether `PF` is fulldimensional, i.e. all maximal cones have maximal
+Determine whether `PF` is fulldimensional, i.e. at least one maximal cone has maximal
 dimension.
 
 # Examples

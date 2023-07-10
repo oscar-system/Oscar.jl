@@ -585,7 +585,7 @@ end
 
 
 @doc raw"""
-  blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
