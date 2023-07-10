@@ -1258,6 +1258,10 @@ codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
 Return the degree of `I` if it is homogeneous. Otherwise return the degree
 of its `homogenization`.
 
+The degree of a homogeneous ideal `I` is the number of intersection points
+of its projective variety with a generic linear subspace of complementary
+dimension (counted with multiplicities). See also [MS21](@cite).
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
