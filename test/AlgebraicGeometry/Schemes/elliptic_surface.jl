@@ -42,6 +42,7 @@
   E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
   relatively_minimal_model(X3)
+  trivial_lattice(X3)
 
 
 end

@@ -101,7 +101,7 @@ The first return value is the basis of the ambient space of `L`.
   basisA = vcat(basisTriv, sections)
   @vprint :EllipticSurface 2 "computing intersection numbers\n"
   for i in 1:n
-      @vprint :EllipticSurface 2 "\nrow $(i): \n"
+      @vprint :EllipticSurface 3 "\nrow $(i): \n"
       for j in max(i + 1, r + 1):n
       if i!=2 && i <= r
         I = components(basisA[i])[1]
@@ -112,7 +112,7 @@ The first return value is the basis of the ambient space of `L`.
           ij = 1
         end
       else
-        @vprint :EllipticSurface 2 "$(j) "
+        @vprint :EllipticSurface 4 "$(j) "
         ij = intersect(basisA[i],basisA[j])
       end
       GA[i,j] = ij
@@ -483,15 +483,20 @@ function relatively_minimal_model(E::EllipticSurface)
       cov = Crefined
     else
       # the following leads to difficult bugs
-      #cov0 = simplified_covering(X0)
-      #cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
-      #cov = _one_patch_per_component(cov1, I_sing_X0)
-      #push!(X0.coverings, cov)
+      #=
+      cov0 = simplified_covering(X0)
+      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      cov = _one_patch_per_component(cov1, I_sing_X0)
+      push!(X0.coverings, cov)
+      @assert has_decomposition_info(default_covering(X0))
+      inherit_decomposition_info!(X0, cov)
+      @assert has_decomposition_info(cov)
+      =#
       cov = simplified_covering(X0)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = radical(I_sing_X0[1])
+    J = radical(I_sing_X0[1]) # radical to have small number of generators
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
