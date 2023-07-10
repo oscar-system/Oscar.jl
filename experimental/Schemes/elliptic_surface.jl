@@ -20,8 +20,8 @@ $k(C)$ is the function field of the curve $C$.
   MWLtors::Vector{EllCrvPt{BaseCurveFieldType}}
   Weierstrasschart::AbsSpec
   Weierstrassmodel::CoveredScheme
-  inc_Weierstrass
-  inc_Y
+  inc_Weierstrass::CoveredClosedEmbedding
+  inc_Y::CoveredClosedEmbedding
   bundle_number::Int
   blowup
   blowups
