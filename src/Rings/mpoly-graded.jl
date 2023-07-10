@@ -588,7 +588,7 @@ function (W::MPolyDecRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
   return W(forget_decoration(W)(c, e))
 end
 
-(W::MPolyDecRing)(g::MPolyDecRingElem) = MPolyDecRingElem(forget_decoration(W)(forget_decoration(g)), W)
+(W::MPolyDecRing)(g::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(forget_decoration(W)(forget_decoration(g)), W)
 one(W::MPolyDecRing) = MPolyDecRingElem(one(forget_decoration(W)), W)
 zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 

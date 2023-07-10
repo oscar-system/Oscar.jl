@@ -109,7 +109,7 @@ dim(A::MPolyQuoRing)
 ```
 
 ```@docs
-vdim(A::MPolyQuoRing)
+vector_space_dimension(A::MPolyQuoRing)
 ```
 
 ## Elements of Affine Algebras

@@ -1,4 +1,25 @@
 ################################################################################
+# Utility functions for ring parent tree
+
+# builds parent tree
+function get_parents(parent_ring::Ring)
+    if has_elem_basic_encoding(parent_ring)
+        return Any[]
+    end
+    base = base_ring(parent_ring)
+
+    parents = get_parents(base)
+    push!(parents, parent_ring)
+    return parents
+end
+
+function get_parent_refs(s, parent_ring::Ring)
+    parents = get_parents(parent_ring)
+    return [save_as_ref(s, parent) for parent in parents]
+end
+
+
+################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
 
@@ -6,6 +27,7 @@
 ################################################################################
 #  non simpleton base rings
 @registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
+has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
     return Dict(
@@ -21,51 +43,44 @@ end
 #elements
 @registerSerializationType(zzModRingElem)
 
-function save_internal(s::SerializerState, r::zzModRingElem)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :class_val => save_type_dispatch(s, ZZRingElem(r))
-    )
+function save_internal(s::SerializerState, r::zzModRingElem; include_parents::Bool=true)
+    class_rep = string(r)
+    if include_parents
+        return Dict(
+            :parent => save_as_ref(s, parent(r)),
+            :class_rep => class_rep
+        )
+    end
+    return string(r)
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
-    parent_ring = load_type_dispatch(s, Nemo.zzModRing, dict[:parent])
-    class_val = load_type_dispatch(s, ZZRingElem, dict[:class_val])
-    return parent_ring(class_val)
+    parent_ring = load_unknown_type(s, dict[:parent])
+    class_rep = load_type_dispatch(s, ZZRingElem, dict[:class_rep])
+    return parent_ring(class_rep)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{zzModRingElem},
-                                   dict::Dict,
+                                   str::String,
                                    parent_ring::Nemo.zzModRing)
-    class_val = load_type_dispatch(s, ZZRingElem, dict[:class_val])
-    return parent_ring(class_val)
+    return parent_ring(ZZRingElem(str))
 end
 
 
 ################################################################################
 #  Polynomial Rings
 
-@registerSerializationType(PolyRing)
-
-@registerSerializationType(MPolyRing)
-
-@registerSerializationType(UniversalPolyRing)
-
-@registerSerializationType(QQMPolyRing)
-@registerSerializationType(QQPolyRing)
-@registerSerializationType(ZZMPolyRing)
-@registerSerializationType(ZZPolyRing)
-@registerSerializationType(fqPolyRepMPolyRing)
-@registerSerializationType(fqPolyRepPolyRing)
-@registerSerializationType(fpPolyRing)
-@registerSerializationType(zzModMPolyRing)
-@registerSerializationType(zzModPolyRing)
+@registerSerializationType(PolyRing, true)
+@registerSerializationType(MPolyRing, true)
+@registerSerializationType(UniversalPolyRing, true)
 
 function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing})
+    base = base_ring(R)
+
     return Dict(
         :symbols => save_type_dispatch(s, symbols(R)),
-        :base_ring => save_type_dispatch(s, base_ring(R)),
+        :base_ring => save_as_ref(s, base),
     )
 end
 
@@ -74,7 +89,7 @@ function load_internal(s::DeserializerState,
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
-
+    
     if T <: PolyRing
         return polynomial_ring(base_ring, symbols..., cached=false)[1]
     elseif T <: UniversalPolyRing
@@ -88,107 +103,120 @@ end
 
 ################################################################################
 # Multivariate and Universal Polynomials
-@registerSerializationType(QQMPolyRingElem)
-@registerSerializationType(ZZMPolyRingElem)
-@registerSerializationType(fqPolyRepMPolyRingElem)
-@registerSerializationType(zzModMPolyRingElem)
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
 
-function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
+function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem};
+                       include_parents::Bool=true)
     parent_ring = parent(p)
-    parent_ring = save_type_dispatch(s, parent_ring)
-    terms = []
+    base = base_ring(parent_ring)
+    encoded_terms = []
 
     for i in 1:length(p)
-        term = Dict(
-            :exponent => save_type_dispatch(s, exponent_vector(p, i)),
-            :coeff => save_type_dispatch(s, coeff(p, i))
+        encoded_coeff = save_internal(s, coeff(p, i); include_parents=false)
+        push!(encoded_terms,  (exponent_vector(p, i), encoded_coeff))
+    end
+
+    if include_parents
+        return Dict(
+            :terms => encoded_terms,
+            :parents => get_parent_refs(s, parent_ring),
         )
-        push!(terms, term)
     end
-
-    return Dict(
-        :terms => terms,
-        :parent => parent_ring,
-    )
+    return encoded_terms
 end
 
-function load_internal(s::DeserializerState,
-                        ::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}},
-                        dict::Dict)
-    R = load_unknown_type(s, dict[:parent])
-    coeff_ring = coefficient_ring(R)
-    coeff_type = elem_type(coeff_ring)
-    polynomial = MPolyBuildCtx(R)
-
-    for term in dict[:terms]
-        c = load_type_dispatch(s, coeff_type, term[:coeff])
-        e = load_type_dispatch(s, Vector{Int}, term[:exponent])
-        push_term!(polynomial, c, e)
-    end
-    return finish(polynomial)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}},
-                                   dict::Dict,
-                                   parent_ring::Union{UniversalPolyRing, MPolyRing})
-    # ensure backrefs in parent are loaded
-    _ = load_unknown_type(s, dict[:parent])
-    coeff_ring = coefficient_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    polynomial = MPolyBuildCtx(parent_ring)
-
-    for term in dict[:terms]
-        c = load_type_dispatch(s, coeff_type, term[:coeff]; parent=coeff_ring)
-        e = load_type_dispatch(s, Vector{Int}, term[:exponent])
-        push_term!(polynomial, c, e)
-    end
-    return finish(polynomial)
-end
 
 ################################################################################
 # Univariate Polynomials
 
 @registerSerializationType(PolyRingElem)
 
-@registerSerializationType(QQPolyRingElem)
-@registerSerializationType(ZZPolyRingElem)
-@registerSerializationType(fqPolyRepPolyRingElem)
-@registerSerializationType(fpPolyRingElem)
-@registerSerializationType(zzModPolyRingElem)
-
-function save_internal(s::SerializerState, p::PolyRingElem)
+function save_internal(s::SerializerState, p::PolyRingElem; include_parents::Bool=true)
+    # store a polynomial over a ring provided we can store elements in that ring
     parent_ring = parent(p)
-    parent_ring = save_type_dispatch(s, parent_ring)
+    base = base_ring(parent_ring)
+    coeffs = coefficients(p)
+    encoded_terms = []
+    exponent = 0
+    for coeff in coeffs
+        # collect only non trivial terms
+        if is_zero(coeff)
+            exponent += 1
+            continue
+        end
+        
+        encoded_coeff = save_internal(s, coeff; include_parents=false)
+        push!(encoded_terms,  (exponent, encoded_coeff))
+        exponent += 1
+    end
 
-    return Dict(
-        :parent => parent_ring,
-        :coeffs => save_type_dispatch(s, collect(coefficients(p)))
-    )
+    if include_parents
+        return Dict(
+            :parents => get_parent_refs(s, parent_ring),
+            :terms => encoded_terms
+        )
+    end
+    return encoded_terms
 end
 
-function load_internal(s::DeserializerState, ::Type{<: PolyRingElem}, dict::Dict)
-    R = load_unknown_type(s, dict[:parent])
-    coeff_ring = coefficient_ring(R)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs])
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::PolyRing)
+    if isempty(terms)
+        return parent_ring(0)
+    end
+    
+    # shift so constant starts at 1
+    degree = max(map(x->x[1] + 1, terms)...)
+    base = base_ring(parent_ring)
+    loaded_terms = zeros(base, degree)
 
-    return R(coeffs)
+    for term in terms
+        exponent, coeff = term
+        # account for shift
+        exponent += 1
+
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_internal_with_parent(s, coeff_type, coeff, base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
+    return parent_ring(loaded_terms)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: PolyRingElem},
-                                   dict::Dict,
-                                   parent_ring::PolyRing)
-    # ensure backrefs in parent are loaded
-    _ = load_unknown_type(s, dict[:parent])
-    coeff_ring = coefficient_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
+                    parent_ring::Union{MPolyRing, UniversalPolyRing})
+    base = base_ring(parent_ring)
+    polynomial = MPolyBuildCtx(parent_ring)
+    for (e, coeff) in terms
+        if length(parents) == 1
+            coeff_type = elem_type(base)
+            @assert has_elem_basic_encoding(base)
+            c = load_type_dispatch(s, coeff_type, coeff, parent=base)
+        else
+            c = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+        
+        push_term!(polynomial, c, Vector{Int}(e))
+    end
+    return finish(polynomial)
+end
 
-    return parent_ring(coeffs)
+
+function load_internal(s::DeserializerState, ::Type{<: Union{
+    PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict)
+    loaded_parents = load_parents(s, dict[:parents])
+    return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
+end
+
+function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
+    PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict,
+                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing})
+    parents = get_parents(parent_ring)
+    return load_terms(s, parents, dict[:terms], parents[end])
 end
 
 ################################################################################
@@ -196,44 +224,36 @@ end
 
 @registerSerializationType(MPolyIdeal)
 
-function save_internal(s::SerializerState, i::MPolyIdeal)
-    generators = gens(i)
-    parent_ring = save_type_dispatch(s, parent(generators[1]))
+function save_internal(s::SerializerState, I::MPolyIdeal)
+    generators = gens(I)
 
     return Dict(
-        :parent => parent_ring,
         :gens => save_type_dispatch(s, generators),
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
-    parent_ring = load_unknown_type(s, dict[:parent])
-    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
+    gens = load_type_dispatch(s, Vector, dict[:gens])
 
-    return ideal(parent_ring, gens)
+    return ideal(parent(gens[1]), gens)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyIdeal},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
-    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
+    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)},
+                              dict[:gens], parent=parent_ring)
     return ideal(parent_ring, gens)
 end
 
 ################################################################################
 # Matrices
-
 @registerSerializationType(MatElem)
-
-@registerSerializationType(ZZMatrix)
-@registerSerializationType(QQMatrix)
-@registerSerializationType(fqPolyRepMatrix)
-@registerSerializationType(zzModMatrix)
 
 function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(parent(m))),
+        :base_ring => save_as_ref(s, base_ring(parent(m))),
         :matrix => save_type_dispatch(s, Array(m)),
     )
 end
@@ -242,7 +262,7 @@ function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict)
     entries_ring = load_unknown_type(s, dict[:base_ring])
-    mat = load_type_dispatch(s, Matrix, dict[:matrix])
+    mat = load_type_dispatch(s, Matrix, dict[:matrix]; parent=entries_ring)
 
     return matrix(entries_ring, mat)
 end
@@ -251,15 +271,13 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MatElem},
                                    dict::Dict,
                                    parent_ring::T) where T <: MatSpace
-    # ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
     return matrix(base_ring(parent_ring), mat)
 end
 
 ################################################################################
 # Power Series
-@registerSerializationType(SeriesRing)
+@registerSerializationType(SeriesRing, true)
 
 function save_internal(s::SerializerState, R::Union{
     Generic.RelPowerSeriesRing,
@@ -268,7 +286,7 @@ function save_internal(s::SerializerState, R::Union{
     fqPolyRepRelPowerSeriesRing,
     zzModRelPowerSeriesRing})
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(R)),
+        :base_ring => save_as_ref(s, base_ring(R)),
         :var => save_type_dispatch(s, var(R)),
         :max_precision => save_type_dispatch(s, max_precision(R)),
         :model => save_type_dispatch(s, :capped_relative)
@@ -281,8 +299,9 @@ function save_internal(s::SerializerState, R::Union{
     ZZAbsPowerSeriesRing,
     fqPolyRepAbsPowerSeriesRing,
     zzModAbsPowerSeriesRing})
+
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(R)),
+        :base_ring => save_as_ref(s, base_ring(R)),
         :var => save_type_dispatch(s, var(R)),
         :max_precision => save_type_dispatch(s, max_precision(R)),
         :model => save_type_dispatch(s, :capped_absolute)
@@ -300,104 +319,152 @@ end
 
 # elements
 @registerSerializationType(RelPowerSeriesRingElem)
-
 @registerSerializationType(AbsPowerSeriesRingElem)
 
-function save_internal(s::SerializerState, r::RelPowerSeriesRingElem)
+function save_internal(s::SerializerState, r::RelPowerSeriesRingElem;
+                       include_parents::Bool=true)
     v = valuation(r)
     pl = pol_length(r)
-    coeffs = map(x -> coeff(r, x), v:v + pl)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
-        :valuation => save_type_dispatch(s, v),
-        :pol_length => save_type_dispatch(s, pl),
-        :precision => save_type_dispatch(s, precision(r))
-    )
+    encoded_terms = []
+    parent_ring = parent(r)
+    base = base_ring(parent_ring)
+    for exponent in v: v + pl
+        coefficient = coeff(r, exponent)
+        #collect only non trivial values
+        if is_zero(coefficient)
+            continue
+        end
+
+        encoded_coeff = save_internal(s, coefficient; include_parents=false)
+        push!(encoded_terms,  (exponent, encoded_coeff))
+    end
+
+    if include_parents
+        return Dict(
+            :parents => get_parent_refs(s, parent_ring),
+            :terms => encoded_terms,
+            :valuation => save_type_dispatch(s, v),
+            :pol_length => save_type_dispatch(s, pl),
+            :precision => save_type_dispatch(s, precision(r))
+        )
+    end
+    return encoded_terms
 end
 
-function save_internal(s::SerializerState, r::AbsPowerSeriesRingElem)
-    coeffs = map(x -> coeff(r, x), 0:pol_length(r))
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
-        :pol_length => save_type_dispatch(s, pol_length(r)),
-        :precision => save_type_dispatch(s, precision(r))
-    )
+function save_internal(s::SerializerState, r::AbsPowerSeriesRingElem;
+                       include_parents::Bool=true)
+    pl = pol_length(r)
+    encoded_terms = []
+    parents = []
+    parent_ring = parent(r)
+    base = base_ring(parent_ring)
+    for exponent in 0:pl
+        coefficient = coeff(r, exponent)
+        #collect only non trivial values
+        if is_zero(coefficient)
+            continue
+        end
+
+        encoded_coeff = save_internal(s, coefficient; include_parents=false)
+        push!(encoded_terms,  (exponent, encoded_coeff))
+    end
+
+    if include_parents
+        return Dict(
+            :parents => get_parent_refs(s, parent_ring),
+            :terms => encoded_terms,
+            :pol_length => save_type_dispatch(s, pl),
+            :precision => save_type_dispatch(s, precision(r))
+        )
+    end
+    return encoded_terms
 end
 
 function load_internal(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem}, dict::Dict)
-    parent = load_type_dispatch(s, SeriesRing, dict[:parent])
-    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    parents = load_parents(s, dict[:parents])
+    parent_ring = parents[end]
     valuation = load_type_dispatch(s, Int, dict[:valuation])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
+    base = base_ring(parent_ring)
+    loaded_terms = zeros(base, pol_length)
+
+    for term in dict[:terms]
+        exponent, coeff = term
+        
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
     
-    return parent(coeffs, pol_length, precision, valuation)
+    return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: RelPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    # cache parent inside serializer state in case the coefficient ring
-    # needs to be checked against the coefficient ring of the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
-    coeff_ring = base_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    parents = get_parents(parent_ring)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
     valuation = load_type_dispatch(s, Int, dict[:valuation])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
 
-    if precision > max_precision(parent_ring)
-        @warn("Precision Warning: given parent is less precise than serialized elem",
-              maxlog=1)
-    end
+    return parent_ring(terms[valuation + 1: end], pol_length, precision, valuation)
+end
 
-    return parent_ring(coeffs, pol_length, precision, valuation)
+function load_terms(s::DeserializerState, parents::Vector, terms::Vector, parent_ring::SeriesRing)
+    highest_degree = max(map(x->x[1] + 1, terms)...)
+    base = base_ring(parent_ring)
+    # account for index shift
+    loaded_terms = zeros(base, highest_degree + 1)
+    for term in terms
+        exponent, coeff = term
+        exponent += 1
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
+    
+    return loaded_terms
 end
 
 function load_internal(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem}, dict::Dict)
-    parent = load_type_dispatch(s, SeriesRing, dict[:parent])
-    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    parents = load_parents(s, dict[:parents])
+    parent_ring = parents[end]
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
-    
-    return parent(coeffs, pol_length, precision)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
+
+    parent_ring(terms, pol_length, precision)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: AbsPowerSeriesRingElem},
                                    dict::Dict,
                                    parent_ring::SeriesRing)
-    # cache parent inside serializer state in case parent needs
-    # to be checked against the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
-    coeff_ring = base_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    parents = get_parents(parent_ring)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
 
-    if precision > max_precision(parent_ring)
-        @warn("Precision Warning: given parent is less precise than serialized elem",
-              maxlog=1)
-    end
-
-    return parent_ring(coeffs, pol_length, precision)
+    return parent_ring(terms, pol_length, precision)
 end
 
 ################################################################################
 # Laurent Series
-@registerSerializationType(Generic.LaurentSeriesRing, "LaurentSeriesRing")
-
-@registerSerializationType(Generic.LaurentSeriesField, "LaurentSeriesField")
-
+@registerSerializationType(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
+@registerSerializationType(Generic.LaurentSeriesField, true, "LaurentSeriesField")
 @registerSerializationType(ZZLaurentSeriesRing)
 
 function save_internal(s::SerializerState, R::Union{
@@ -405,7 +472,7 @@ function save_internal(s::SerializerState, R::Union{
     Generic.LaurentSeriesField,
     ZZLaurentSeriesRing})
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(R)),
+        :base_ring => save_as_ref(s, base_ring(R)),
         :var => save_type_dispatch(s, var(R)),
         :max_precision => save_type_dispatch(s, max_precision(R)),
     )
@@ -426,37 +493,61 @@ end
 
 # elements
 @registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
-
 @registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
-
 @registerSerializationType(ZZLaurentSeriesRingElem)
 
-function save_internal(s::SerializerState, r:: ZZLaurentSeriesRingElem)
+function save_internal(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem};
+                       include_parents::Bool=true)
     v = valuation(r)
-    l = pol_length(r)
-    coeffs = map(x -> coeff(r, x), v:l + v)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
-        :valuation => save_type_dispatch(s, v),
-        :pol_length => save_type_dispatch(s, l),
-        :precision => save_type_dispatch(s, precision(r)),
-        :scale => save_type_dispatch(s, Nemo.scale(r))
-    )
-end
+    pl = pol_length(r)
+    encoded_terms = []
+    for exponent in v: v + pl
+        coefficient = coeff(r, exponent)
+        #collect only non trivial values
+        if is_zero(coefficient)
+            continue
+        end
 
-function save_internal(s::SerializerState, r:: Generic.LaurentSeriesElem)
-    v = valuation(r)
-    l = pol_length(r)
-    coeffs = map(x -> coeff(r, x), v:l + v)
+        encoded_coeff = save_internal(s, coefficient; include_parents=false)
+        push!(encoded_terms,  (exponent, encoded_coeff))
+    end
+
     return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :coeffs => save_type_dispatch(s, coeffs),
+        :parents => get_parent_refs(s, parent(r)),
+        :terms => encoded_terms,
         :valuation => save_type_dispatch(s, v),
-        :pol_length => save_type_dispatch(s, l),
+        :pol_length => save_type_dispatch(s, pl),
         :precision => save_type_dispatch(s, precision(r)),
         :scale => save_type_dispatch(s, Generic.scale(r))
     )
+end
+
+function load_terms(s::DeserializerState,
+                    parents::Vector,
+                    terms::Vector,
+                    parent_ring::Union{
+                           Generic.LaurentSeriesRing,
+                           Generic.LaurentSeriesField,
+                           ZZLaurentSeriesRing})
+    highest_degree = max(map(x->x[1], terms)...)
+    lowest_degree = min(map(x->x[1], terms)...)
+    base = base_ring(parent_ring)
+    # account for index shift
+    loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
+    for term in terms
+        exponent, coeff = term
+        exponent -= lowest_degree - 1
+        if length(parents) == 1
+            @assert has_elem_basic_encoding(base)
+            coeff_type = elem_type(base)
+            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
+                                                            parent=base)
+        else
+            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+        end
+    end
+    
+    return loaded_terms
 end
 
 function load_internal(s::DeserializerState,
@@ -464,29 +555,24 @@ function load_internal(s::DeserializerState,
                            Generic.LaurentSeriesElem,                           
                            ZZLaurentSeriesRingElem}},
                        dict::Dict)
-    parent = load_unknown_type(s, dict[:parent])
-    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    parents = load_parents(s, dict[:parents])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
     valuation = load_type_dispatch(s, Int, dict[:valuation])
     scale = load_type_dispatch(s, Int, dict[:scale])
-    
-    return parent(coeffs, pol_length, precision, valuation, scale)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
+    parent_ring = parents[end]
+    return parent_ring(terms, pol_length, precision, valuation, scale)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   T::Type{<: Union{
-                                       Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
+                                   T::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                                    dict::Dict,
-                                   parent_ring)
-    # cache parent inside serializer state in case parent needs
-    # to be checked against the passed parent
-    # to ensure necessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
-    coeff_ring = base_ring(parent_ring)
-    coeff_type = elem_type(coeff_ring)
-    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+                                   parent_ring::Union{Generic.LaurentSeriesRing,
+                                                      Generic.LaurentSeriesField,
+                                                      ZZLaurentSeriesRing})
+    parents = get_parents(parent_ring)
+    terms = load_terms(s, parents, dict[:terms], parents[end])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
     valuation = load_type_dispatch(s, Int, dict[:valuation])
@@ -497,6 +583,6 @@ function load_internal_with_parent(s::DeserializerState,
               maxlog=1)
     end
 
-    return parent_ring(coeffs, pol_length, precision, valuation, scale)
+    return parent_ring(terms, pol_length, precision, valuation, scale)
 end
 

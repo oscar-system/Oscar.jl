@@ -33,7 +33,7 @@ function simplify(C::Covering)
     iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
     #new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
-    new_glueings[(Xsimp, Ysimp)] = LazyGlueing(Xsimp, Ysimp, _compute_restriction, 
+    new_glueings[(Xsimp, Ysimp)] = LazyGlueing(Xsimp, Ysimp, _compute_restriction, _compute_domains,
                                                RestrictionDataIsomorphism(G, jX, jY)
                                               )
   end
@@ -46,6 +46,16 @@ function simplify(C::Covering)
   Cnew = Covering(new_patches, new_glueings, check=false)
   i_cov_mor = CoveringMorphism(Cnew, C, iDict, check=false)
   j_cov_mor = CoveringMorphism(C, Cnew, jDict, check=false)
+  
+  # Carry over the decomposition information.
+  if has_decomposition_info(C)
+    for U in new_patches
+      V = codomain(i_cov_mor[U])
+      pb = pullback(i_cov_mor[U])
+      set_decomposition_info!(Cnew, U, elem_type(OO(U))[pb(a) for a in decomposition_info(C)[V]])
+    end
+  end
+
   return Cnew, i_cov_mor, j_cov_mor
 end
 

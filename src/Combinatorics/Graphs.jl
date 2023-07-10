@@ -269,6 +269,8 @@ end
 ##  Accessing properties
 ################################################################################
 ################################################################################
+@alias nv nvertices
+
 @doc raw"""
     nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
@@ -309,6 +311,7 @@ function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
 
+@alias nedges ne
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}

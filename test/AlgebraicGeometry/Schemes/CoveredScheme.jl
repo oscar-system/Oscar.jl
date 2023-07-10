@@ -234,3 +234,11 @@ end
   (a, b, c) = base_change(pr, inc_X)
   @test compose(a, inc_X) == compose(b, c)
 end
+
+@testset "decomposition info" begin
+  P3 = projective_space(ZZ, 3)
+  X = covered_scheme(P3)
+  kk = GF(29)
+  X29, f = base_change(kk, X)
+  @test oscar.has_decomposition_info(default_covering(X29))
+end
