@@ -12,6 +12,8 @@ The fibration is relatively minimal if its fibers do not contain any ``(-1)``-cu
 We call the fibration elliptic if it comes equipped with a section.
 This turns the generic fiber of $\pi$ into an elliptic curve $E/k(C)$ where
 $k(C)$ is the function field of the curve $C$.
+
+For now functionality is restricted to $C = \mathbb{P}^1$.
 """
 @attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
   Y::CoveredScheme{BaseField}
@@ -22,19 +24,19 @@ $k(C)$ is the function field of the curve $C$.
   Weierstrassmodel::CoveredScheme
   inc_Weierstrass::CoveredClosedEmbedding
   inc_Y::CoveredClosedEmbedding
-  bundle_number::Int
+  euler_characteristic::Int
   blowup
   blowups
   exceptionals
   ambient_blowups
   ambient_exceptionals
 
-  function EllipticSurface(generic_fiber::EllCrv{F}, bundle_number::Int, mwl_basis::Vector{<:EllCrvPt}) where F
+  function EllipticSurface(generic_fiber::EllCrv{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
     S = new{B,F}()
     S.E = generic_fiber
     S.MWL = mwl_basis
-    S.bundle_number = bundle_number
+    S.euler_characteristic = euler_characteristic
     set_attribute!(S, :is_irreducible=>true)
     set_attribute!(S, :is_reduced=>true)
     set_attribute!(S, :is_integral=>true)
@@ -44,13 +46,15 @@ $k(C)$ is the function field of the curve $C$.
 end
 
 @doc raw"""
-    elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
+    elliptic_surface(generic_fiber::EllCrv, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
 
-Return the relatively minimal elliptic surface with generic fiber ``E``.
+Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
 """
-function elliptic_surface(generic_fiber::EllCrv, s::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[])
+function elliptic_surface(generic_fiber::EllCrv{BaseField}, euler_characteristic::Int,
+                          mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) where {
+                          BaseField <: Frac{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
-  S = EllipticSurface(generic_fiber, s, mwl_basis)
+  S = EllipticSurface(generic_fiber, euler_characteristic, mwl_basis)
   return S
 end
 
@@ -70,6 +74,13 @@ generic_fiber(S::EllipticSurface) = S.E
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
 
 @doc raw"""
+    euler_characteristic(X::EllipticSurface) -> Int
+
+Return $\chi(\mathcal{O}_X)$.
+"""
+euler_characteristic(X::EllipticSurface) = X.euler_characteristic
+
+@doc raw"""
     algebraic_lattice(X) -> Vector{WeilDivisor}, ZZLat
 
 Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
@@ -86,7 +97,7 @@ The first return value is the basis of the ambient space of `L`.
   n = l+r
   GA = zero_matrix(ZZ, n, n)
   GA[1:r,1:r] = GTriv
-  GA[r+1:n,r+1:n] = -2*identity_matrix(ZZ, l)
+  GA[r+1:n,r+1:n] = -euler_characteristic(X)*identity_matrix(ZZ, l)
   basisA = vcat(basisTriv, sections)
   @vprint :EllipticSurface 2 "computing intersection numbers\n"
   for i in 1:n
@@ -259,7 +270,7 @@ function weierstrass_model(X::EllipticSurface)
     return X.Weierstrassmodel, X.inc_Weierstrass
   end
 
-  s = X.bundle_number
+  s = euler_characteristic(X)
   E = generic_fiber(X)
 
   kt = base_ring(base_field(E))
@@ -427,7 +438,7 @@ end
     relatively_minimal_model(E::EllipticSurface) -> CoveredScheme, SchemeMor
 
 Return the relatively minimal model $X \to C$ and the contraction
-$\Psi \colon X \to S$ to its weierstrass model $S$.
+$\Psi \colon X \to S$ to its Weierstrass model $S$.
 """
 function relatively_minimal_model(E::EllipticSurface)
   if isdefined(E, :blowups)
@@ -562,7 +573,7 @@ basis of the trivial lattice, gram matrix, fiber_components
   end
   f = []
   f = [[k.([i,1]), fiber_components(S,[i,k(1)])] for  i in sing]
-  if degree(d) <= 12*S.bundle_number - 2
+  if degree(d) <= 12*euler_characteristic(S) - 2
     pt = k.([1, 0])
     push!(f, [pt, fiber_components(S, pt)])
   end
@@ -570,9 +581,8 @@ basis of the trivial lattice, gram matrix, fiber_components
 
   F = weil_divisor(ideal_sheaf(irreducible_fiber(S)), check=false)
   basisT = [F, O]
-  @assert S.bundle_number == 2
 
-  grams = [ZZ[0 1;1 -2]]
+  grams = [ZZ[0 1;1 -euler_characteristic(S)]]
   # TODO: the -2 self intersection is probably some K3 artefact
   fiber_componentsS = []
   for (pt, ft) in f
@@ -676,7 +686,7 @@ end
 @doc raw"""
     fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1])) -> EffectiveCartierDivisor
 
-Return the fiber of $\pi\colon X \to C$ as a Cartier divisor.
+Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
 """
 function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
@@ -756,7 +766,7 @@ function irreducible_fiber(S::EllipticSurface)
   r = [k.(roots(i[1])) for i in factor(d) if i[2]>=2]
   sing = reduce(append!,r, init=[])
 
-  if degree(d) >= 12*S.bundle_number - 1  # irreducible at infinity?
+  if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
     pt = k.([1, 0])
   else
     if is_finite(k)
@@ -975,7 +985,7 @@ Here ``F`` is the class of the fiber over ``[0:1]``, ``O`` the zero section
 and ``P`` any section given as a point on the generic fiber.
 """
 function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
-  X.bundle_number == 2 || error("linear system implemented only for elliptic K3s")
+  euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
   FS = function_field(weierstrass_model(X)[1])
   U = weierstrass_chart(X)
   (x,y,t) = ambient_coordinates(U)
@@ -1022,13 +1032,16 @@ Here `F` must be given with respect to the basis of
 """
 function elliptic_parameter(X::EllipticSurface, F::ZZMatrix)
   NS = algebraic_lattice(X)
-  @req F*gram_matrix(NS)*transpose(F) "not an isotropic divisor"
+  @req F*gram_matrix(NS)*transpose(F)==0 "not an isotropic divisor"
   # how to give an ample divisor automagically in general?
   # @req is_nef(X, F) "F is not nef"
-   error("not implemented")
+  error("not implemented")
 
-  X.bundle_number
   E = generic_fiber(X)
+
+  k = 4 # we need some magic here
+
+
 
   L = linear_system(X, E([0,1,0]), 4)
 
@@ -1089,13 +1102,12 @@ function extended_ade(ADE::Symbol, n::Int)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
-  error("not implemented")
   basis, NS = algebraic_lattice(X)
   G = gram_matrix(NS)
   n = length(basis)
-  v = zeros(fmpz, )
+  v = zeros(ZZRingElem, n)
   for i in 1:n
-    v[i] = intersect(basis[i],D)
+    v[i] = intersect(basis[i], D)
   end
   return v*inv(G)
 end

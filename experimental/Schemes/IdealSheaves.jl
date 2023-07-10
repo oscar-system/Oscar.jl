@@ -507,14 +507,12 @@ end
 #  return W, spec_dict
 #end
 #
-function isone(I::IdealSheaf)
-  return all(x->isone(I(x)), affine_charts(scheme(I)))
-end
 
-function isone(I::IdealSheaf, C::Covering)
-  return all(isone(I(U)) for U in C)
+function is_one(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
+  return get_attribute!(I, :is_one) do
+    return all(x->isone(I(x)), covering)
+  end::Bool
 end
-
 
 @doc raw"""
     is_prime(I::IdealSheaf) -> Bool
@@ -524,7 +522,7 @@ Return whether ``I`` is prime.
 We say that a sheaf of ideals is prime if its support is irreducible and
 ``I`` is locally prime. (Note that the empty set is not irreducible.)
 """
-function is_prime(I::IdealSheaf)
+@attr function is_prime(I::IdealSheaf)
   is_locally_prime(I) || return false
   # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
@@ -539,7 +537,7 @@ Return whether ``I`` is locally prime.
 A sheaf of ideals $\mathcal{I}$ is locally prime if its stalk $\mathcal{I}_p$
 at every point $p$ is one or prime.
 """
-function is_locally_prime(I::IdealSheaf)
+@attr Bool function is_locally_prime(I::IdealSheaf)
   return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
 end
 
