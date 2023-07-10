@@ -515,32 +515,10 @@ end
 
 # oscarnumber helpers
 
-function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{nf_elem})
-   return Rational{BigInt}(QQ(data(e)))
+function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem)
+   return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{nf_elem})
-   return is_rational(data(e))
-end
-
-function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{NfAbsNSElem})
-   return degree(data(e)) <= 1
-end
-
-function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{NfAbsNSElem})
-   c = coefficients(minpoly(data(e)))
-   return Rational{BigInt}(-c[0]//c[1])
-end
-
-function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem{<:Hecke.NfRelElem})
-   degree(minpoly(data(e))) > 1 && return false
-   c = coefficients(minpoly(data(e)))
-   num = -c[0]//c[1]
-   return is_rational(num)
-end
-
-function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem{<:Hecke.NfRelElem})
-   c = coefficients(minpoly(data(e)))
-   num = -c[0]//c[1]
-   return Rational{BigInt}(QQ(num))
+function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem)
+   return is_rational(e)
 end
