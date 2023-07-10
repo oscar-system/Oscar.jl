@@ -17,12 +17,12 @@ Weierstrass model over a concrete base
 """
 function weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
   (f, g) = _weierstrass_sections(base)
-  return weierstrass_model(f, g, base; completeness_check = completeness_check)
+  return weierstrass_model(base, f, g; completeness_check = completeness_check)
 end
 
 
 @doc raw"""
-    weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+    weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
 This method operates analogously to `weierstrass_model(base::AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -36,11 +36,11 @@ julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bu
 
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
-julia> w = weierstrass_model(f, g, base; completeness_check = false)
+julia> w = weierstrass_model(base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
-function weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+function weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
@@ -82,7 +82,7 @@ weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true) = w
 
 
 @doc raw"""
-    weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true)
+    weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
 This method operates analogously to `weierstrass_model(base::ToricCoveredScheme)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -96,11 +96,11 @@ julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bu
 
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^6)]);
 
-julia> w = weierstrass_model(f, g, base; completeness_check = false)
+julia> w = weierstrass_model(base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
-weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true) = weierstrass_model(f, g, underlying_toric_variety(base), completeness_check = completeness_check)
+weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true) = weierstrass_model(underlying_toric_variety(base), f, g, completeness_check = completeness_check)
 
 
 ################################################

@@ -77,7 +77,7 @@ Base.show(w)
 end
 
 @testset "Error messages in global Weierstrass models over concrete base spaces" begin
-  @test_throws ArgumentError weierstrass_model(sec_f, sec_g, base; completeness_check = false)
+  @test_throws ArgumentError weierstrass_model(base, sec_f, sec_g; completeness_check = false)
 end
 
 
