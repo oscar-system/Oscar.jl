@@ -1,4 +1,3 @@
-
 ##################################################################################
 #
 # This is an import to Oscar of the methods written following the paper [BH23] on

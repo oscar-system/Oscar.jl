@@ -187,9 +187,27 @@ end
 
   E8 = root_lattice(:E, 8)
   @test length(enumerate_classes_of_lattices_with_isometry(E8, 20)) == 3
+  @test length(enumerate_classes_of_lattices_with_isometry(E8, 18)) == 4
 end
 
 @testset "Primitive embeddings" begin
+  # Compute orbits of short vectors
+  k = integer_lattice(gram=matrix(QQ,1,1,[4]))
+  E8 = root_lattice(:E, 8)
+  ok, sv = primitive_embeddings_of_primary_lattice(E8, k, classification =:sublat, check=false)
+  @test ok
+  @test length(sv) == 1
+  ok, sv = primitive_embeddings_in_primary_lattice(rescale(E8, 2), rescale(k, QQ(1//2)), check=false)
+  @test !ok
+  @test is_empty(sv)
+  @test_throws ArgumentError primitive_embeddings_of_primary_lattice(rescale(E8, -1), k, check=false)
 
+  k = integer_lattice(gram=matrix(QQ,1,1,[6]))
+  E7 = root_lattice(:E, 7)
+  ok, sv = primitive_embeddings_in_primary_lattice(E7, k, classification = :emb, check=false)
+  @test ok
+  @test length(sv) == 2
+
+  @test !primitive_embeddings_in_primary_lattice(rescale(E7, 2), k, classification = :none, check = false)[1]
 end
 

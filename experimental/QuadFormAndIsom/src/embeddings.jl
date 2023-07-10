@@ -238,14 +238,14 @@ end
 function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor,
                                                           O::AutomorphismGroup{TorQuadModule},
                                                           order::Hecke.IntegerUnion = -1,
-                                                          f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(Vinq)))
+                                                          f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)))
   fV = f isa TorQuadModuleMor ? restrict_endomorphism(f, Vinq) : restrict_endomorphism(hom(f), Vinq)
   V = domain(Vinq)
   q = codomain(Vinq)
   if order == -1
     subs = collect(stable_submodules(V, [fV]))
   else
-    subs = submodules(V, order = order)
+    subs = collect(submodules(V, order = order))
     filter!(s -> is_invariant(fV, s[2]), subs)
   end
   subs = TorQuadModule[s[1] for s in subs]
@@ -409,16 +409,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   return res
 end
 
-# Need to be discarded after next Hecke release
-function Base.:(==)(T1::TorQuadModule, T2::TorQuadModule)
-  relations(T1) != relations(T2) && return false
-  return cover(T1) == cover(T2)
-end
-
-function _classes_automorphic_subgroups(Vinq::TorQuadModuleMor,
-                                        O::AutomorphismGroup{TorQuadModule},
-                                        H::TorQuadModule;
-                                        f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)))
+function _classes_automorphic_subgroups(Vinq::TorQuadModuleMor, O::AutomorphismGroup{TorQuadModule}, H::TorQuadModule; f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)))
   if is_elementary_with_prime(H)[1]
     sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, order(H), f)
   else
@@ -654,7 +645,7 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
     if el
       subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qL), GL, k)
     else
-      subsL = _subgroups_orbit_representatives_and_stabilizers(id_hom(qL), GL, order = k)
+      subsL = _subgroups_orbit_representatives_and_stabilizers(id_hom(qL), GL, k)
     end
 
     @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
@@ -670,7 +661,7 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
       @hassert :ZZLatWithIsom 1 ok
 
-      _glue = [lift(qMinD(HM(g))) + lift(qLinD(H[1](phi(g)))) for g in gens(domain(HM))]
+      _glue = [lift(qMinD(qM(lift((g))))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
@@ -830,12 +821,12 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
   end
 
   for k  in divisors(gcd(order(qM), order(VL)))
-    @info "Glue order: $(k)"
+    @vprint :ZZLatWithIsom 1 "Glue order: $(k)"
 
     if el
       subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(VLinqL, GL, k)
     else
-      subsL = _subgroups_orbit_representatives_and_stabilizers(VLinqL, GL, order = k)
+      subsL = _subgroups_orbit_representatives_and_stabilizers(VLinqL, GL, k)
     end
     
     @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
@@ -851,7 +842,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
       @hassert :ZZLatWithIsom 1 ok
 
-      _glue = [lift(qMinD(HM(g))) + lift(qLinD(VLinqL(H[1](phi(g))))) for g in gens(domain(HM))]
+      _glue = [lift(qMinD(qM(lift(g)))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
@@ -862,9 +853,9 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       classification == :none && return true, results
 
       G2 = genus(disc, (pL-pM, nL-nM))
-      @info "We can glue: $(G2)"
+      @vprint :ZZLatWithIsom 1 "We can glue: $(G2)"
       Ns = representatives(G2)
-      @info "$(length(Ns)) possible orthogonal complement(s)"
+      @vprint :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
@@ -879,6 +870,13 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
     end
   end
   return (length(results) > 0), results
+end
+
+function Base.:(==)(S::TorQuadModule, T::TorQuadModule)
+  modulus_bilinear_form(S) != modulus_bilinear_form(T) && return false
+  modulus_quadratic_form(S) != modulus_quadratic_form(T) && return false
+  relations(S) != relations(T) && return false
+  return cover(S) == cover(T)
 end
 
 ####################################################################################
