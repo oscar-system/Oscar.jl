@@ -30,6 +30,9 @@ IncidenceMatrix
 nrows(i::IncidenceMatrix) = Polymake.nrows(i)
 ncols(i::IncidenceMatrix) = Polymake.ncols(i)
 
+nrows(A::Polymake.Matrix) = Polymake.nrows(A)
+ncols(A::Polymake.Matrix) = Polymake.ncols(A)
+
 @doc raw"""
      row(i::IncidenceMatrix, n::Int)
 
