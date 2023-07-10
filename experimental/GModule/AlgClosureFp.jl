@@ -113,7 +113,7 @@ function Oscar.roots(a::AlgClosureElem, b::Int)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
   d = lcm(d, degree(parent(ad)))
   K = ext_of_degree(parent(a), d)
-  r = roots(f, K)
+  r = roots(K, f)
   return [AlgClosureElem(x, parent(a)) for x = r]
 end
 
@@ -126,7 +126,7 @@ function Oscar.roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
   d = lcm(d, degree(parent(b[1])))
   K = ext_of_degree(A, d)
-  r = roots(f, K)
+  r = roots(K, f)
   return [AlgClosureElem(x, A) for x = r]
 end
 

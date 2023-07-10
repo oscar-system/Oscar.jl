@@ -891,7 +891,7 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
 function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
@@ -1060,6 +1060,38 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
+### 
+# The following two functions below provide a hotfix to make sure that the preferred 
+# ordering provided to the constructor of the quotient ring is actually used for the 
+# groebner basis computations.
+function ordering(A::MPolyQuoRing)
+  return A.ordering
+end
+
+function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  check_parent(a, b)
+  iszero(a) && iszero(b) && return (true, zero(parent(a)))
+  iszero(b) && error("cannot divide by zero")
+
+  A = parent(a)
+  R = base_ring(A)
+  mod = modulus(A)
+  o = ordering(A)
+  # Take a groebner basis for the preferred ordering, hoping that it will speed up things
+  gb_mod = gens(groebner_basis(mod, ordering=o))
+  I = ideal(R, push!(gb_mod, lift(b)))
+  # Make sure that the singular side of this ideal is filled with the correct ordering
+  singular_assure(I, o)
+  # Get our hands on the actual singular ideal
+  Ising = I.gens.gens.S
+  # ...and the ring
+  Rsing = I.gens.gens.Sx
+  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  u_sing, rem = Singular.lift(Ising, a_ideal)
+  !iszero(rem) && return false, a
+  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
+end
+
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
@@ -1107,7 +1139,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
     end
     return result
   end
-  return V, MapFromFunc(im, prim, V, Q)
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1478,7 +1510,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})

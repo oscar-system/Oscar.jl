@@ -377,7 +377,7 @@ function _submodules_space_isotypical_as_vs(rep::LinRep{S, T, U},
     return sum([v[i]*B[i] for i in 1:length(B)])
   end
 
-  return MapFromFunc(_basis_parametrisation, V, parent(B[1]))
+  return MapFromFunc(V, parent(B[1]), _basis_parametrisation)
 end
 
 @doc raw"""

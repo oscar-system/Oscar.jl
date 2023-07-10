@@ -269,7 +269,7 @@ Base.inv(x::GAPGroupElem) = group_element(parent(x), GAPWrap.Inverse(x.X))
 
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
-Base.:^(x::GAPGroupElem, y::ZZRingElem) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
+Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 

@@ -98,7 +98,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
 
   right_action_by_M = (f::MPolyRingElem{T}) -> evaluate(f, vars)
 
-  return MapFromFunc(right_action_by_M, R, R)
+  return MapFromFunc(R, R, right_action_by_M)
 end
 
 right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
@@ -111,7 +111,7 @@ function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
 
   right_action_by_p = (f::MPolyRingElem{T}) -> on_indeterminates(f, p)
 
-  return MapFromFunc(right_action_by_p, R, R)
+  return MapFromFunc(R, R, right_action_by_p)
 end
 
 right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
@@ -138,7 +138,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  IR.reynolds_operator = MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
   return IR.reynolds_operator
 end
 
@@ -264,7 +264,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
 end
 
 @doc raw"""

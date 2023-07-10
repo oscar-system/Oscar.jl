@@ -974,6 +974,7 @@ export name
 export names_of_fusion_sources
 export natural_character
 export ne
+export nedges
 export nef_cone
 export negbias
 export negdeglex

@@ -1,35 +1,46 @@
 # Tropical Semiring
 @registerSerializationType(TropicalSemiring{typeof(min)})
 @registerSerializationType(TropicalSemiring{typeof(max)})
+has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
 
-function save_internal(s::SerializerState, t::TropicalSemiringElem)
-  T = parent(t)
-  return Dict(
-    :parent => save_type_dispatch(s, T),
-    :data => save_type_dispatch(s, data(t))
-  )
+function save_internal(s::SerializerState, t::TropicalSemiringElem;
+                       include_parents::Bool=true)
+    encoded_t = string(data(t))
+    if include_parents
+        return Dict(
+            :parent => save_as_ref(s, parent(t)),
+            :str => encoded_t
+        )
+    end
+    return encoded_t
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem{S}},
-                       dict::Dict) where S
-  parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+                              dict::Dict) where S
+    parent = load_unknown_type(s, dict[:parent])
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{TropicalSemiringElem},
+                              dict::Dict) 
+    parent = load_unknown_type(s, dict[:parent])
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{TropicalSemiringElem{S}},
-                                   dict::Dict,
+                                   str::String,
                                    parent::TropicalSemiring{S}) where S
-  return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+  return parent(load_type_dispatch(s, QQFieldElem, str))
 end
 
-
 # Tropical Hypersurfaces
-@registerSerializationType(TropicalHypersurface)
+@registerSerializationType(TropicalHypersurface, true)
 
 function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
     return Dict(
@@ -45,7 +56,7 @@ function load_internal(s::DeserializerState,
 end
 
 # Tropical Curves
-@registerSerializationType(TropicalCurve)
+@registerSerializationType(TropicalCurve, true)
 
 function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
   if EMB
