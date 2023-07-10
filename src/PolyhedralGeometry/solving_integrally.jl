@@ -1,3 +1,7 @@
+nrows(A::Polymake.Matrix) = Int(size(A)[1])
+
+ncols(A::Polymake.Matrix) = Int(size(A)[2])
+
 function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix)
     @req ncols(A) == ncols(C) "solve_mixed(A,b,C,d): A and C must have the same number of columns."
     @req nrows(A) == nrows(b) "solve_mixed(A,b,C,d): A and b must have the same number of rows."
