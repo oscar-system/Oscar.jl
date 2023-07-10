@@ -226,18 +226,6 @@ function star_subdivision(Sigma::_FanLikeType{T}, n::Int) where T<:scalar_types
 end
 
 
-function _cone_is_smooth(PF::_FanLikeType, c::AbstractSet{<:Integer})
-  R = matrix(ZZ, rays(PF))
-  return _is_unimodular(R[Vector{Int}(c),:])
-end
-
-function _is_unimodular(M::ZZMatrix)
-  nrows(M) <= ncols(M) || return false
-  n = nrows(M)
-  return abs(det(snf(M)[:,1:n])) == 1
-end
-
-
 ###############################################################################
 ## Cartesian/Direct product
 ###############################################################################
