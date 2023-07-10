@@ -162,12 +162,8 @@ using .Orderings
 #in general: all algos here needs revision: do they benefit from gb or not?
 
 function default_ordering(R::MPolyRing)
-  if has_attribute(R, :default_ordering)
-    return get_attribute(R, :default_ordering)
-  else
-    default_ordering = degrevlex(R)
-    set_attribute!(R, :default_ordering => default_ordering)
-    return default_ordering
+  return get_attribute!(R, :default_ordering) do
+    degrevlex(R)
   end
 end
 

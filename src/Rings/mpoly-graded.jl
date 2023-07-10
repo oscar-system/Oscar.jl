@@ -745,11 +745,10 @@ function has_weighted_ordering(R::MPolyDecRing)
 end
 
 function default_ordering(R::MPolyDecRing)
-  fl, w_ord = has_weighted_ordering(R)
-  if fl
-    return w_ord
+  return get_attribute!(R, :default_ordering) do
+    fl, w_ord = has_weighted_ordering(R)
+    fl ? w_ord : degrevlex(gens(R))
   end
-  return degrevlex(gens(R))
 end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
