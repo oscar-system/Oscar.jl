@@ -104,7 +104,8 @@ function inherit_decomposition_info!(
     comp_eqns = [decomp_dict[U][2] for U in V_ref]
     dec_inf = copy(decomposition_info(orig_cov)[V])
     for U in V_ref
-      set_decomposition_info!(ref_cov, U, OX(V, U).(dec_inf))
+      tmp = elem_type(OO(U))[OX(V, U)(i) for i in dec_inf] # help the compiler
+      set_decomposition_info!(ref_cov, U, tmp)
       append!(dec_inf, decomp_dict[U][2])
     end
   end
