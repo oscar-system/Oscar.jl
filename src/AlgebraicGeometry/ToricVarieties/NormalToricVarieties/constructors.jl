@@ -579,6 +579,7 @@ function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     rs = matrix(ZZ, rays(v))
     new_ray = vec(sum([rs[i,:] for i in indices]))
+    new_ray = new_ray ./ gcd(new_ray)
     return blow_up(v, new_ray; coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
