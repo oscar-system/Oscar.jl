@@ -161,7 +161,7 @@ fan for its construction, see [`polyhedral_fan`](@ref).
 Lower dimensional polyhedral objects can be visualized through polymake's backend.
 
 ```@docs
-visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+visualize(P::PolyhedralObject{T}) where T<:Union{QQFieldElem, Float64}
 ```
 
 
