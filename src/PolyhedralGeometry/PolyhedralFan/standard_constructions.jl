@@ -63,7 +63,7 @@ end
 
 
 @doc raw"""
-    star_subdivision(PF::PolyhedralFan, new_ray::Vector{<:IntegerUnion})
+    star_subdivision(PF::PolyhedralFan, new_ray::AbstractVector{<:IntegerUnion})
 
 Return the star subdivision of a polyhedral fan by a primitive element of
 the underlying lattice. We follow the definition at the top of page 515 in
@@ -90,10 +90,10 @@ julia> rays(star)
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
 [2, 3, 5]
-[1, 3, 4]
 [1, 3, 5]
-[2, 3, 4]
 [1, 2, 5]
+[2, 3, 4]
+[1, 3, 4]
 [1, 2, 4]
 ```
 """
@@ -102,14 +102,20 @@ function star_subdivision(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:Inte
   # Check if new_ray is primitive in ZZ^d, i.e. gcd(new_ray)==1.
   @req ambient_dim(Sigma) == length(new_ray) "New ray cannot be a primitive element"
   @req gcd(new_ray) == 1 "The new ray r is not a primitive element of the lattice Z^d with d = length(r)"
+  @req lineality_dim(Sigma) == 0 "star_subdivision does not work for polyhedral fans with lineality."
   
   old_rays = matrix(ZZ, rays(Sigma))
+  # In case the new ray is an old ray.
+  new_ray_index = findfirst(i->vec(old_rays[i,:])==new_ray, 1:nrows(old_rays))
+  new_rays = old_rays
+  if isnothing(new_ray_index)
+    new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
+    new_ray_index = nrays(Sigma)+1
+  end
   mc_old = maximal_cones(IncidenceMatrix, Sigma)
-  new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
-  new_ray_index = nrays(Sigma)+1
   
   facet_normals = pm_object(Sigma).FACET_NORMALS
-  refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray, facet_normals)
+  refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray)
   @req length(refinable_cones)>0 "$new_ray not contained in support of fan."
   new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
   for nc in new_cones
@@ -125,7 +131,7 @@ function star_subdivision(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:Inte
 end
 
 function _get_refinable_facets(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:IntegerUnion}, refinable_cones::Vector{Int}, facet_normals::AbstractMatrix, mc_old::IncidenceMatrix) where T<:scalar_types
-  new_cones = Set{Vector{Int}}()
+  new_cones = Vector{Int}[]
   v_facet_signs = _facet_signs(facet_normals, new_ray)
   R = pm_object(Sigma).RAYS
   hd = pm_object(Sigma).HASSE_DIAGRAM
@@ -135,15 +141,19 @@ function _get_refinable_facets(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<
     mc_indices = Polymake.row(mc_old, mc_index)
     mc_hd_index = hd_maximal_cones[findfirst(i -> Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, i-1)) == mc_indices, hd_maximal_cones)]
     refinable_facets = _get_refinable_facets_of_cone(mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R)
-    new_cones = Base.union(new_cones, Set{Vector{Int}}(refinable_facets))
+    append!(new_cones, refinable_facets)
+    # If all facets contain new_ray, then the current maximal cone is just
+    # new_ray.
+    length(refinable_facets) > 0 || push!(new_cones, Vector{Int}(mc_indices))
   end
-  return new_cones
+  return unique(new_cones)
 end
 
 function _get_refinable_facets_of_cone(mc_hd_index::Int, facet_normals::AbstractMatrix, hd, hd_graph::Graph{Directed}, v_facet_signs::AbstractVector, R::AbstractMatrix)
   refinable_facets = Vector{Int}[]
   for fc_index in inneighbors(hd_graph, mc_hd_index)
     fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index-1))
+    length(fc_indices) > 0 || return refinable_facets # The only facet was 0
     inner_ray = sum([R[i,:] for i in fc_indices])
     fc_facet_signs = _facet_signs(facet_normals, inner_ray)
     if(!_check_containment_via_facet_signs(v_facet_signs, fc_facet_signs))
@@ -157,28 +167,21 @@ end
 _int_sign(e) = e>0 ? 1 : (e<0 ? -1 : 0)
 _facet_signs(F::AbstractMatrix, v::AbstractVector{<:IntegerUnion}) = [_int_sign(e) for e in (F*Polymake.Vector{Polymake.Integer}(v))]
 _facet_signs(F::AbstractMatrix, v::AbstractVector) = [_int_sign(e) for e in (F*v)]
-function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int}; zero_unused=false)
-  # zero_unused indicates whether zero entries in bigger indicate that the cone
-  # does not use the facet. Otherwise this is treated like an equation.
+function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int})
   for a in zip(smaller, bigger)
     p = prod(a)
-    if !zero_unused 
-      # We assume that bigger uses 0 entries. Hence p==0 indicates that a[1] or
-      # a[2] indicated an equation. If a[2] indicates an equation then so must
-      # a[1], hence a[1]==0. If a[2] did not indicate an equation, then
-      # a[2]!=0, so we must also have a[1]==0.
       if p == 0
         a[1] == 0 || return false
       end
-    end
     p >= 0 || return false # Both facet vectors must point in the same direction.
   end
   return true
 end
-function _get_maximal_cones_containing_vector(Sigma::_FanLikeType{T}, v::AbstractVector{<:IntegerUnion}, facet_normals::AbstractMatrix) where T<:scalar_types
-  maximal_cones_signs = Matrix{Int}(pm_object(Sigma).MAXIMAL_CONES_FACETS)
-  v_facet_signs = _facet_signs(facet_normals, v)
-  return filter(i -> _check_containment_via_facet_signs(v_facet_signs, maximal_cones_signs[i,:]; zero_unused=true), 1:n_maximal_cones(Sigma))
+function _get_maximal_cones_containing_vector(Sigma::_FanLikeType{T}, v::AbstractVector{<:IntegerUnion}) where T<:scalar_types
+  # Make sure these are computed as otherwise performance degrades.
+  pm_object(Sigma).FACET_NORMALS
+  pm_object(Sigma).MAXIMAL_CONES_FACETS
+  return findall(mc -> v in mc, maximal_cones(Sigma))
 end
 
 
