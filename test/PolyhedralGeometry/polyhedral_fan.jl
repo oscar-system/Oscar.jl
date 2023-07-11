@@ -90,4 +90,30 @@ for f in (QQ, NF, K)
         end
         
     end
+
+    @testset "Star Subdivision" begin
+      f = polyhedral_fan([1 0 0; 1 1 0; 1 1 1; 1 0 1], IncidenceMatrix([[1,2,3,4]]))
+      @test is_pure(f)
+      @test is_fulldimensional(f)
+      v0 = [1;0;0]
+      v1 = [2;1;0]
+      v2 = [2;1;1]
+      sf0 = star_subdivision(f, v0)
+      sf1 = star_subdivision(f, v1)
+      sf2 = star_subdivision(f, v2)
+      @test n_maximal_cones(sf0) == 2
+      @test n_maximal_cones(sf1) == 3
+      @test n_maximal_cones(sf2) == 4
+
+      ff = polyhedral_fan([1 0 0; -1 0 0; 0 1 0], IncidenceMatrix([[1],[2,3]]))
+      @test !is_pure(ff)
+      @test !is_fulldimensional(ff)
+      w0 = [1;0;0]
+      w1 = [-1;1;0]
+      sff0 = star_subdivision(ff, w0)
+      sff1 = star_subdivision(ff, w1)
+      @test n_maximal_cones(sff0) == 2
+      @test n_maximal_cones(sff1) == 3
+
+    end
 end

@@ -197,11 +197,12 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
 
+include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs.jl")
+include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")

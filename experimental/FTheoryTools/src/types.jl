@@ -45,7 +45,7 @@ end
 end
 
 
-@attributes mutable struct WeierstrassModel
+@attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
   weierstrass_f::MPolyRingElem
   weierstrass_g::MPolyRingElem
   weierstrass_polynomial::MPolyRingElem
@@ -62,7 +62,7 @@ end
 end
 
 
-@attributes mutable struct GlobalTateModel
+@attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
   tate_a1::MPolyRingElem
   tate_a2::MPolyRingElem
   tate_a3::MPolyRingElem
