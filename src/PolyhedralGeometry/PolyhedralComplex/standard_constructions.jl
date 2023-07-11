@@ -32,11 +32,12 @@ julia> common_refinement(PC1,PC2)
 Polyhedral complex in ambient dimension 2
 ```
 """
-function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
+function common_refinement(PC1::PolyhedralComplex{T}, PC2::PolyhedralComplex{T}) where T<:scalar_types
+    U, f = _promote_scalar_field(coefficient_field(PC1), coefficient_field(PC2))
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
     result = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
-    return PolyhedralComplex{T}(result, coefficient_field(PC1))
+    return PolyhedralComplex{T}(result, f)
 end
 
 
