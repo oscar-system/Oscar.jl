@@ -11,7 +11,11 @@
     L::parent_type(LieT)
     if is_basis
       basis = gens
-      basis_matrix = matrix([coefficients(g) for g in gens])
+      basis_matrix = if length(gens) == 0
+        matrix(coefficient_ring(L), 0, dim(L), C[])
+      else
+        matrix(coefficient_ring(L), [coefficients(g) for g in gens])
+      end
       return new{C,LieT}(L, gens, basis, basis_matrix)
     else
       return new{C,LieT}(L, gens)
@@ -47,6 +51,7 @@ function basis_matrix(I::LieAlgebraIdeal)
   if !isdefined(I, :basis_matrix)
     rank, mat = rref(
       matrix(
+        coefficient_ring(base_lie_algebra(I)),
         [
           [coefficients(g) for g in gens(I) if !iszero(g)]
           [
