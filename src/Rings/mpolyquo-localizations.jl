@@ -2156,3 +2156,41 @@ function inverse(phi::MPolyQuoLocalizedRingHom)
 end
 
 
+function minimal_generating_set(
+    I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
+                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyComplementOfKPointIdeal},
+                              <:Any,<:Any}
+  )
+  Q = base_ring(I)
+  L = localized_ring(Q)
+
+  J = ideal(L, lift.(gens(I))) + modulus(Q)
+  return filter(!iszero, Q.(minimal_generating_set(J)))
+end
+
+function small_generating_set(
+      I::MPolyQuoLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyComplementOfKPointIdeal},
+                              <:Any,<:Any}
+  )
+  Q = base_ring(I)
+  L = localized_ring(Q)
+
+  J = ideal(L, lift.(gens(I))) + modulus(Q)
+  return filter(!iszero, Q.(small_generating_set(J)))
+end
+
+function small_generating_set(
+    I::MPolyQuoLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyPowersOfElement}
+                          }
+  )
+  Q = base_ring(I)
+  L = localized_ring(Q)
+
+  J = ideal(L, lift.(gens(I))) + modulus(Q)
+  return filter(!iszero, Q.(small_generating_set(J)))
+end
