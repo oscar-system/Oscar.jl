@@ -3054,7 +3054,26 @@ over a field at a point, return an array containing a minimal set of
 generators of `I`. If `I` is the zero ideal an empty list is returned.
 
 # Examples
+```jldoctest
+julia> R, (x, y) = QQ["x", "y"];
 
+julia> L, phi = localization(R, complement_of_point_ideal(R, [1, 2]));
+
+julia> I = ideal(L, [x-1, y-2])^2
+Ideal
+  of localized ring
+with 4 generators
+  x^2 - 2*x + 1
+  x*y - 2*x - y + 2
+  x*y - 2*x - y + 2
+  y^2 - 4*y + 4
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ y^2 - 4*y + 4
+ x*y - 2*x - y + 2
+ x^2 - 2*x + 1
+```
 """
 @attr Vector{<:MPolyLocRingElem} function minimal_generating_set(
     I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
@@ -3098,6 +3117,42 @@ generators of `I`. If `I` is the zero ideal an empty list is returned.
 
 end
 
+@doc raw"""
+    small_generating_set(I::MPolyLocalizedIdeal)
+
+Given an ideal `I` in a localization of a multivariate polynomial ring
+over a field, return an array containing a set of generators of `I`,
+which is usually smaller than the original one. 
+
+If `I` is the zero ideal an empty list is returned.
+
+If the localization is at a point, a minimal set of generators is returned.
+
+# Note: not available for localizations at prime ideals.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = QQ["x", "y"];
+
+julia> L, phi = localization(R, powers_of_element(x));
+
+julia> I = ideal(L, [x*(x-1), y])^2
+Ideal
+  of localized ring
+with 4 generators
+  x^4 - 2*x^3 + x^2
+  x^2*y - x*y
+  x^2*y - x*y
+  y^2
+
+julia> small_generating_set(I)
+3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyPowersOfElement{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ y^2
+ x*y - y
+ x^2 - 2*x + 1
+
+```
+"""
 small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
                         <:MPolyRing, <:MPolyElem,
                         <:MPolyComplementOfKPointIdeal}})  = minimal_generating_set(I)
