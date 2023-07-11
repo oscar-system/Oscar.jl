@@ -132,8 +132,8 @@ Base.show(t)
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
-  @test_throws ArgumentError global_tate_model([sec_a2, sec_a3, sec_a4, sec_a6], base; completeness_check = false)
-  @test_throws ArgumentError global_tate_model([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base; completeness_check = false)
+  @test_throws ArgumentError global_tate_model(base, [sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
+  @test_throws ArgumentError global_tate_model(base, [sec_a1, sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
 end
 
 
