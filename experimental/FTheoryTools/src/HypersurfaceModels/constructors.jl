@@ -215,7 +215,11 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
-  @req length(auxiliary_base_vars) >= d "We expect at least as many base variables as the desired base dimension"
+  if d == 1
+    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+  else
+    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+  end
   @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"

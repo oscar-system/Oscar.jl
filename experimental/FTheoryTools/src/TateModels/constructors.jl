@@ -166,7 +166,11 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
-  @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+  if d == 1
+    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+  else
+    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+  end
   gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
