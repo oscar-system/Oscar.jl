@@ -667,6 +667,8 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   return pow_V
 end
 
+Base.:^(V::LieAlgebraModule, ::typeof(Base.:*)) = dual(V)
+
 @doc raw"""
     direct_sum(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
     ⊕(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
