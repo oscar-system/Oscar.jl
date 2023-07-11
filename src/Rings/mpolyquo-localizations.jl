@@ -2155,7 +2155,14 @@ function inverse(phi::MPolyQuoLocalizedRingHom)
   error("computation of inverse not implemented")
 end
 
+@doc raw"""
+    minimal_generating_set(I::MPolyLocalizedIdeal)
 
+Given an ideal `I` in the localization of a quotient of a  multivariate
+polynomial ring over a field at a point, return an array containing a
+minimal set of generators of `I`. If `I` is the zero ideal an empty list
+is returned.
+"""
 function minimal_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyElem,
@@ -2169,6 +2176,17 @@ function minimal_generating_set(
   return filter(!iszero, Q.(minimal_generating_set(J)))
 end
 
+@doc raw"""
+    small_generating_set(I::MPolyLocalizedIdeal)
+
+Given an ideal `I` in a localization of a multivariate polynomial ring
+over a field, return an array containing a set of generators of `I`,
+which is usually smaller than the original one.
+
+If `I` is the zero ideal an empty list is returned.
+
+If the localization is at a point, a minimal set of generators is returned.
+"""
 function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyElem,
