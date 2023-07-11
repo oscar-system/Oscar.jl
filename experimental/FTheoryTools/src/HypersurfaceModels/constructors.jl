@@ -158,6 +158,13 @@ This method requires the following information:
 5. The dimension of the auxiliary toric base space.
 6. The fiber ambient space.
 7. The hypersurface equation.
+
+Note that many studies in the literature use the class of the anticanonical bundle
+in their analysis. We anticipate this by adding this class as a variable of the
+auxiliary base space, unless the user already provides this grading. Our convention
+is that the first grading refers to Kbar and that the homogeneous variable corresponding
+to this class carries the name "Kbar".
+
 The following example exemplifies this constructor.
 
 # Examples
@@ -206,6 +213,29 @@ Hypersurface model over a not fully specified base
 """
 function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
   
+  # Is there a grading [1, 0, ..., 0]?
+  Kbar_grading_present = false
+  for i in 1:ncols(auxiliary_base_grading)
+    col = auxiliary_base_grading[:,i]
+    if length(col) == 1 && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+  end
+  
+  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
+  if Kbar_grading_present == false
+    @req ("Kbar" in auxiliary_base_vars) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
+    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
+    Kbar_grading[1] = 1
+    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
+    push!(auxiliary_base_vars, "Kbar")
+  end
+  
   # Compute simple information
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
@@ -216,9 +246,9 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
   if d == 1
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
   else
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
   end
   @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"

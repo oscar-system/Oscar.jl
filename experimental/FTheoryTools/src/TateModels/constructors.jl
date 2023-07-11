@@ -135,7 +135,15 @@ global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::
     global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
-fully specified. The following example exemplifies this approach.
+fully specified.
+
+Note that many studies in the literature use the class of the anticanonical bundle
+in their analysis. We anticipate this by adding this class as a variable of the
+auxiliary base space, unless the user already provides this grading. Our convention
+is that the first grading refers to Kbar and that the homogeneous variable corresponding
+to this class carries the name "Kbar".
+
+The following example exemplifies this approach.
 
 # Examples
 ```jldoctest
@@ -163,23 +171,48 @@ Global Tate model over a not fully specified base
 ```
 """
 function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
+  
+  # Is there a grading [1, 0, ..., 0]?
+  Kbar_grading_present = false
+  for i in 1:ncols(auxiliary_base_grading)
+    col = auxiliary_base_grading[:,i]
+    if length(col) == 1 && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+  end
+  
+  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
+  auxiliary_base_vars = gens(auxiliary_base_ring)
+  gens_base_names = [string(g) for g in auxiliary_base_vars]
+  if Kbar_grading_present == false
+    @req ("Kbar" in gens_base_names) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
+    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
+    Kbar_grading[1] = 1
+    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
+    push!(gens_base_names, "Kbar")
+  end
+  
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if d == 1
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+    @req length(gens_base_names) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
   else
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+    @req length(gens_base_names) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
   end
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # convert Tate sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], auxiliary_base_grading, d)
+  auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
   S = cox_ring(auxiliary_base_space)
-  ring_map = hom(auxiliary_base_ring, S, gens(S))
+  ring_map = hom(auxiliary_base_ring, S, gens(S)[1:ngens(auxiliary_base_ring)])
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   
   # construct ambient space

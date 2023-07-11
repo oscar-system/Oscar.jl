@@ -120,7 +120,15 @@ weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; 
     weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
 This method constructs a Weierstrass model over a base space that is not
-fully specified. The following example illustrates this approach.
+fully specified.
+
+Note that many studies in the literature use the class of the anticanonical bundle
+in their analysis. We anticipate this by adding this class as a variable of the
+auxiliary base space, unless the user already provides this grading. Our convention
+is that the first grading refers to Kbar and that the homogeneous variable corresponding
+to this class carries the name "Kbar".
+
+The following example illustrates this approach.
 
 # Examples
 ```jldoctest
@@ -136,22 +144,47 @@ Weierstrass model over a not fully specified base
 ```
 """
 function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
+  
+  # Is there a grading [1, 0, ..., 0]?
+  Kbar_grading_present = false
+  for i in 1:ncols(auxiliary_base_grading)
+    col = auxiliary_base_grading[:,i]
+    if length(col) == 1 && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+  end
+  
+  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
+  auxiliary_base_vars = gens(auxiliary_base_ring)
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  if Kbar_grading_present == false
+    @req ("Kbar" in gens_base_names) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
+    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
+    Kbar_grading[1] = 1
+    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
+    push!(gens_base_names, "Kbar")
+  end
+  
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if d == 1
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+    @req length(gens_base_names) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
   else
-    @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+    @req length(gens_base_names) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
   end
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # convert Weierstrass sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], auxiliary_base_grading, d)
+  auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
   S = cox_ring(auxiliary_base_space)
-  ring_map = hom(auxiliary_base_ring, S, gens(S))
+  ring_map = hom(auxiliary_base_ring, S, gens(S)[1:ngens(auxiliary_base_ring)])
   f = ring_map(weierstrass_f)
   g = ring_map(weierstrass_g)
   
