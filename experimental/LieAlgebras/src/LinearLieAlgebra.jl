@@ -77,9 +77,51 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, V::LinearLieAlgebra)
-  print(io, "LinearLieAlgebra (⊆ gl_$(V.n)) over ")
-  print(IOContext(io, :compact => true), coefficient_ring(V))
+function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
+  io = pretty(io)
+  println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
+  println(io, Indent(), "of dimension $(dim(L))", Dedent())
+  print(io, "over ")
+  print(io, Lowercase(), coefficient_ring(L))
+end
+
+function Base.show(io::IO, L::LinearLieAlgebra)
+  if get(io, :supercompact, false)
+    print(io, type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
+  else
+    io = pretty(io)
+    print(
+      io,
+      _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n),
+      " over ",
+      Lowercase(),
+    )
+    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+  end
+end
+
+function _lie_algebra_type_to_string(type::Symbol, n::Int)
+  if type == :general_linear
+    return "General linear Lie algebra of degree $n"
+  elseif type == :special_linear
+    return "Special linear Lie algebra of degree $n"
+  elseif type == :special_orthogonal
+    return "Special orthogonal Lie algebra of degree $n"
+  else
+    return "Linear Lie algebra ⊆ gl_$n"
+  end
+end
+
+function type_to_compact_string(type::Symbol, n::Int)
+  if type == :general_linear
+    return "gl_$n"
+  elseif type == :special_linear
+    return "sl_$n"
+  elseif type == :special_orthogonal
+    return "so_$n"
+  else
+    return "Linear Lie algebra"
+  end
 end
 
 function symbols(L::LinearLieAlgebra)

@@ -7,6 +7,8 @@ import Oscar: GAPWrap
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
 
+using AbstractAlgebra.PrettyPrinting
+
 # functions with new methods
 import ..Oscar:
   _iso_oscar_gap,

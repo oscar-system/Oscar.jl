@@ -78,6 +78,35 @@ dim(I::LieAlgebraIdeal) = length(basis(I))
 
 ###############################################################################
 #
+#   String I/O
+#
+###############################################################################
+
+function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
+  io = pretty(io)
+  println(io, LowercaseOff(), "Lie algebra ideal")
+  println(
+    io, Indent(), has_basis(I) ? "of dimension $(dim(I))" : "of unknown dimension", Dedent()
+  )
+  if !has_basis(I) || dim(I) != ngens(I)
+    println(io, Indent(), "with $(ngens(I)) generators", Dedent())
+  end
+  print(io, "over ")
+  print(io, Lowercase(), base_lie_algebra(I))
+end
+
+function Base.show(io::IO, I::LieAlgebraIdeal)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, LowercaseOff(), "Lie algebra ideal")
+  else
+    print(io, LowercaseOff(), "Lie algebra ideal over ", Lowercase())
+    print(IOContext(io, :supercompact => true), base_lie_algebra(I))
+  end
+end
+
+###############################################################################
+#
 #   Comparisons
 #
 ###############################################################################
