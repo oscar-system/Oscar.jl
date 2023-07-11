@@ -83,7 +83,7 @@ end
     _iter = 0
     while val[1] in LL
       j = indexin([val[1]], LL)[1]
-      if !(_lbs[j] <= Hecke.multiplicity(ms, val[1])) || any(i -> lbs[i] > 0, 1:_iter+j-1)
+      if !(_lbs[j] <= multiplicity(ms, val[1])) || any(i -> lbs[i] > 0, 1:_iter+j-1)
         LL = LL[j+1:end]
         _lbs = _lbs[j+1:end]
         _ubs = _ubs[j+1:end]
@@ -91,8 +91,8 @@ end
         continue
       end
       aug = 0
-      for k in max(1, _lbs[j]):min(Hecke.multiplicity(ms, val[1]), _ubs[j])
-        if k == Hecke.multiplicity(ms, val[1])
+      for k in max(1, _lbs[j]):min(multiplicity(ms, val[1]), _ubs[j])
+        if k == multiplicity(ms, val[1])
           _p = any(i -> lbs[i] > 0, [i for i in _iter+j+1:length(lbs) if L[i] == val[1]]) ? Int(0) : Int(1)
         else
           _p = 1
@@ -101,7 +101,7 @@ end
         val2 = sort(unique(ms2))
         for l in val2
           idx = filter(m -> LL[m] == l, j+1:length(LL))
-          _p *= _iterate_size(_lbs[idx], _ubs[idx], Hecke.multiplicity(ms2, l))
+          _p *= _iterate_size(_lbs[idx], _ubs[idx], multiplicity(ms2, l))
         end
         len += _p
         aug += _p
@@ -244,7 +244,7 @@ function _first(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   for l in val
     j = findfirst(j -> fL[j] == l, 1:length(L))
     idx = filter(m -> fL[m] == l, 1:length(L))
-    sl = _first_homog(lbs[idx], ubs[idx], Hecke.multiplicity(ms, l))
+    sl = _first_homog(lbs[idx], ubs[idx], multiplicity(ms, l))
     append!(s, [k+j-1 for k in sl])
   end
   return s
@@ -299,7 +299,7 @@ function _last(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   for l in val
     j = findfirst(j -> fL[j] == l, 1:length(L))
     idx = filter(m -> fL[m] == l, 1:length(L))
-    sl = _last_homog(lbs[idx], ubs[idx], Hecke.multiplicity(ms, l))
+    sl = _last_homog(lbs[idx], ubs[idx], multiplicity(ms, l))
     append!(s, [k+j-1 for k in sl])
   end
   return s

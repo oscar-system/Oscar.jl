@@ -8,7 +8,7 @@
   U = trivial_subgroup(G)[1]
   L = fixed_field(C, U)
   @test degree(L) == order(G)
-  @test length(roots(k.pol, L)) == 5
+  @test length(roots(L, k.pol)) == 5
 
   R, x = polynomial_ring(QQ, "x")
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
