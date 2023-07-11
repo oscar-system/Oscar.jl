@@ -3097,3 +3097,16 @@ generators of `I`. If `I` is the zero ideal an empty list is returned.
   return filter(!iszero, I_min)
 
 end
+
+small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyComplementOfKPointIdeal}})  = minimal_generating_set(I)
+
+function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyPowersOfElement}})
+  L = base_ring(I)
+  R = base_ring(L)
+  I_min = L.(small_generating_set(saturated_ideal(I)))
+  return filter(!iszero, I_min)
+end
