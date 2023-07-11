@@ -454,6 +454,40 @@ false
 """
 is_regular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
 
+
+@doc raw"""
+    is_pure(PF::PolyhedralFan)
+
+Determine whether `PF` is pure, i.e. all maximal cones have the same dimension.
+
+# Examples
+```jldoctest
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+
+julia> is_pure(PF)
+false
+```
+"""
+is_pure(PF::_FanLikeType) = pm_object(PF).PURE::Bool
+
+
+@doc raw"""
+    is_fulldimensional(PF::PolyhedralFan)
+
+Determine whether `PF` is fulldimensional, i.e. at least one maximal cone has maximal
+dimension.
+
+# Examples
+```jldoctest
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+
+julia> is_fulldimensional(PF)
+true
+```
+"""
+is_fulldimensional(PF::_FanLikeType) = pm_object(PF).FULL_DIM::Bool
+
+
 @doc raw"""
     is_complete(PF::PolyhedralFan)
 
