@@ -76,9 +76,22 @@ dim(L::AbstractLieAlgebra) = L.dim
 #
 ###############################################################################
 
+function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
+  io = pretty(io)
+  println(io, "Abstract Lie algebra")
+  println(io, Indent(), "of dimension $(dim(L))", Dedent())
+  print(io, "over ")
+  print(io, Lowercase(), coefficient_ring(L))
+end
+
 function Base.show(io::IO, L::AbstractLieAlgebra)
-  print(io, "AbstractLieAlgebra over ")
-  print(IOContext(io, :compact => true), coefficient_ring(L))
+  if get(io, :supercompact, false)
+    print(io, "Abstract Lie algebra")
+  else
+    io = pretty(io)
+    print(io, "Abstract Lie algebra over ", Lowercase())
+    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+  end
 end
 
 function symbols(L::AbstractLieAlgebra)

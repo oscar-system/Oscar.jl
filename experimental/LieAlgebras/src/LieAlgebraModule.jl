@@ -150,48 +150,98 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, V::LieAlgebraModule)
-  if has_attribute(V, :show) && get_attribute(V, :show) isa Function
-    get_attribute(V, :show)(io, V)
+function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
+  io = pretty(io)
+  println(io, _module_type_to_string(get_attribute(V, :type, :unknown)))
+  println(io, Indent(), "of dimension $(dim(V))")
+  _show_inner(io, V)
+  print(io, Dedent())
+  print(io, "over ")
+  print(io, Lowercase(), base_lie_algebra(V))
+end
+
+function _show_semi_compact(io::IO, V::LieAlgebraModule)
+  io = pretty(io)
+  println(io, Lowercase(), _module_type_to_string(get_attribute(V, :type, :unknown)))
+  print(io, Indent())
+  _show_inner(io, V)
+  print(io, Dedent())
+end
+
+function _show_inner(io::IO, V::LieAlgebraModule)
+  type = get_attribute(V, :type, :unknown)
+  if type == :standard_module
+    # nothing
+  elseif type == :dual
+    print(io, "dual of ", Lowercase())
+    _show_semi_compact(io, base_module(V))
+  elseif type == :direct_sum
+    println(io, "with direct summands")
+    print(io, Indent())
+    for W in base_modules(V)
+      _show_semi_compact(io, W)
+    end
+    print(io, Dedent())
+  elseif type == :tensor_product
+    println(io, "with tensor factors")
+    print(io, Indent())
+    for W in base_modules(V)
+      _show_semi_compact(io, W)
+    end
+    print(io, Dedent())
+  elseif type == :exterior_power
+    println(io, "$(get_attribute(V, :power))-th exterior power of ")
+    print(io, Indent())
+    _show_semi_compact(io, base_module(V))
+    print(io, Dedent())
+  elseif type == :symmetric_power
+    println(io, "$(get_attribute(V, :power))-th symmetric power of ")
+    print(io, Indent())
+    _show_semi_compact(io, base_module(V))
+    print(io, Dedent())
+  elseif type == :tensor_power
+    println(io, "$(get_attribute(V, :power))-th tensor power of ")
+    print(io, Indent())
+    _show_semi_compact(io, base_module(V))
+    print(io, Dedent())
   else
-    print(io, "AbstractModule of ")
-    print(IOContext(io, :compact => true), base_lie_algebra(V))
+    error("Unknown module type.")
   end
 end
 
-function show_standard_module(io::IO, V::LieAlgebraModule)
-  print(io, "StdModule of ")
-  print(IOContext(io, :compact => true), base_lie_algebra(V))
+function Base.show(io::IO, V::LieAlgebraModule)
+  if get(io, :supercompact, false)
+    print(io, _module_type_to_string(get_attribute(V, :type, :unknown)))
+  else
+    io = pretty(io)
+    print(
+      io,
+      _module_type_to_string(get_attribute(V, :type, :unknown)),
+      " of dimension $(dim(V)) over ",
+      Lowercase(),
+    )
+    print(IOContext(io, :supercompact => true), base_lie_algebra(V))
+  end
 end
 
-function show_dual(io::IO, V::LieAlgebraModule)
-  print(io, "Dual of ")
-  print(IOContext(io, :compact => true), base_module(V))
-end
-
-function show_direct_sum(io::IO, V::LieAlgebraModule)
-  print(io, "Direct sum of ")
-  print(IOContext(io, :compact => true), base_modules(V))
-end
-
-function show_tensor_product(io::IO, V::LieAlgebraModule)
-  print(io, "Tensor product of ")
-  print(IOContext(io, :compact => true), base_modules(V))
-end
-
-function show_exterior_power(io::IO, V::LieAlgebraModule)
-  print(io, "$(get_attribute(V, :power))-th exterior power of ")
-  print(IOContext(io, :compact => true), base_module(V))
-end
-
-function show_symmetric_power(io::IO, V::LieAlgebraModule)
-  print(io, "$(get_attribute(V, :power))-th symmetric power of ")
-  print(IOContext(io, :compact => true), base_module(V))
-end
-
-function show_tensor_power(io::IO, V::LieAlgebraModule)
-  print(io, "$(get_attribute(V, :power))-th tensor power of ")
-  print(IOContext(io, :compact => true), base_module(V))
+function _module_type_to_string(type::Symbol)
+  if type == :standard_module
+    return "Standard module"
+  elseif type == :dual
+    return "Dual module"
+  elseif type == :direct_sum
+    return "Direct sum module"
+  elseif type == :tensor_product
+    return "Tensor product module"
+  elseif type == :exterior_power
+    return "Exterior power module"
+  elseif type == :symmetric_power
+    return "Symmetric power module"
+  elseif type == :tensor_power
+    return "Tensor power module"
+  else
+    return "Abstract Lie algebra module"
+  end
 end
 
 @doc raw"""
@@ -639,7 +689,7 @@ function standard_module(L::LinearLieAlgebra)
   std_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
     L, dim_std_V, transformation_matrices, s; check=false
   )
-  set_attribute!(std_V, :type => :standard_module, :show => show_standard_module)
+  set_attribute!(std_V, :type => :standard_module)
   return std_V
 end
 
@@ -663,7 +713,7 @@ function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
-  set_attribute!(pow_V, :type => :dual, :base_module => V, :show => show_dual)
+  set_attribute!(pow_V, :type => :dual, :base_module => V)
   return pow_V
 end
 
@@ -698,12 +748,7 @@ function direct_sum(
   direct_sum_V = LieAlgebraModule{C}(
     L, dim_direct_sum_V, transformation_matrices, s; check=false
   )
-  set_attribute!(
-    direct_sum_V,
-    :type => :direct_sum,
-    :base_modules => collect([V, Vs...]),
-    :show => show_direct_sum,
-  )
+  set_attribute!(direct_sum_V, :type => :direct_sum, :base_modules => collect([V, Vs...]))
   return direct_sum_V
 end
 
@@ -754,7 +799,6 @@ function tensor_product(
     :type => :tensor_product,
     :base_modules => collect([V, Vs...]),
     :ind_map => ind_map,
-    :show => show_tensor_product,
   )
   return tensor_product_V
 end
@@ -795,12 +839,7 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
-    pow_V,
-    :type => :exterior_power,
-    :power => k,
-    :base_module => V,
-    :ind_map => ind_map,
-    :show => show_exterior_power,
+    pow_V, :type => :exterior_power, :power => k, :base_module => V, :ind_map => ind_map
   )
   return pow_V
 end
@@ -858,12 +897,7 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
-    pow_V,
-    :type => :symmetric_power,
-    :power => k,
-    :base_module => V,
-    :ind_map => ind_map,
-    :show => show_symmetric_power,
+    pow_V, :type => :symmetric_power, :power => k, :base_module => V, :ind_map => ind_map
   )
   return pow_V
 end
@@ -893,12 +927,7 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
   set_attribute!(
-    pow_V,
-    :type => :tensor_power,
-    :power => k,
-    :base_module => V,
-    :ind_map => ind_map,
-    :show => show_tensor_power,
+    pow_V, :type => :tensor_power, :power => k, :base_module => V, :ind_map => ind_map
   )
   return pow_V
 end
