@@ -3040,3 +3040,60 @@ end
   return dim(saturated_ideal(I))
 end
 
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc raw"""
+    minimal_generating_set(I::MPolyLocalizedIdeal)
+
+Given an ideal `I` in the localization of a multivariate polynomial ring
+over a field at a point, return an array containing a minimal set of
+generators of `I`. If `I` is the zero ideal an empty list is returned.
+
+# Examples
+
+"""
+@attr Vector{<:MPolyLocRingElem} function minimal_generating_set(
+    I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyComplementOfKPointIdeal}
+                          }
+  )
+  L = base_ring(I)
+  R = base_ring(L)
+
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+
+  shift, back_shift = base_ring_shifts(L)
+  I_shift = shifted_ideal(I)
+  o = negdegrevlex(R) # the default local ordering
+
+  if !isempty(I_shift.gb)
+
+    # use available gb for shifted ideal is available
+    G = first(values(I_shift.gb))
+    is_local(G.ord) || error("inconsistent data: local ring, but global ordering for I_shift")
+    singular_assure(G, G.ord)
+    G.gens.S.isGB = true
+    _, I_shift_min = Singular.mstd(G.gens.S)
+  else
+
+    # no gb for shifted ideal available
+    singular_assure(I_shift,o)
+    I_shift_gb, I_shift_min = Singular.mstd(I_shift.gens.gens.S)
+
+    # store gb of I_shift
+    computed_gb = IdealGens(base_ring(I_shift),I_shift_gb, false)
+    computed_gb.isGB = true
+    I_shift.gb[o] = computed_gb
+  end
+
+  # return result after shifting back and moving to the correct ring
+  computed_min = IdealGens(base_ring(I_shift), I_shift_min, false)
+  I_min = L.(back_shift.(R.(gens(computed_min))))
+  return filter(!iszero, I_min)
+
+end
