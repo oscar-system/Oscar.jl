@@ -509,6 +509,10 @@ function _promote_scalar_field(a::AbstractArray{<:FieldElem})
     return _promote_scalar_field(parent.(a)...)
 end
 
+function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
+  T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))
+end
+
 # oscarnumber helpers
 
 function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem)
