@@ -54,7 +54,7 @@ t_ivstar_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2
 t_ivstar_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2 -3 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^5]);
 t_iiistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -3 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^3, a6p * v^5]);
 t_iistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^5]);
-#t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]);
+t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]);
 
 
 
