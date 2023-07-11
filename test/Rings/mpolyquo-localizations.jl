@@ -296,3 +296,19 @@ end
   @test preimage(id, id(v)) == v
 end
 
+@testset "minimal and small generating sets" begin
+  R, (x,y,z) = QQ["x","y","z"]
+  IQ = ideal(R,[x-z])
+  U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
+  U3 = MPolyPowersOfElement(y)
+  Q1 = MPolyQuoLocRing(R,IQ,U1)
+  Q2 = MPolyQuoLocRing(R,IQ,U2)
+  Q3 = MPolyQuoLocRing(R,IQ,U3)
+  J1 = ideal(Q1,[x^2-y^2,y^2-z^2,x^2-z^2])
+  @test length(minimal_generating_set(J1)) == 1
+  J2 = ideal(Q2,[x^2-y^2,y^2-z^2,x^2-z^2])
+  @test length(small_generating_set(J2)) == 1
+  J3 = ideal(Q3,[x^2-z^2,y*(y-1)])
+  @test length(small_generating_set(J3)) == 1
+end
