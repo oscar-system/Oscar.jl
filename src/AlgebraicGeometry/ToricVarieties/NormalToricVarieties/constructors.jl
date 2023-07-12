@@ -615,7 +615,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(polyhedral_fan(v), new_ray)
+    new_fan = star_subdivision(v, new_ray)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
     old_rays = rays(v)
