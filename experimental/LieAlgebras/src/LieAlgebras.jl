@@ -56,7 +56,6 @@ export combinations
 export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
-export has_basis
 export highest_weight_module
 export is_direct_sum
 export is_dual
@@ -106,7 +105,6 @@ export bracket
 export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
-export has_basis
 export highest_weight_module
 export is_direct_sum
 export is_dual
