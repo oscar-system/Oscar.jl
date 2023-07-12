@@ -3,7 +3,6 @@ mutable struct RootSystem
   simple_roots::Vector{Vector{Int}}
   positive_roots::Vector{Vector{Int}}
   root_system_type::Tuple{Symbol, Int64}
-
   function RootSystem(S::Symbol, n::Int64)
     # S is a symbol detailing the type of the indecomposable root system 
     # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
@@ -121,7 +120,7 @@ end
    cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}
 
  Return the Cartan matrix of the type root system `R`
-  """
+"""
 function cartan_matrix(R::RootSystem)
   S = R.root_system_type
   S1 = GAP.Obj(S[1])
