@@ -209,6 +209,17 @@ function lie_algebra(
   return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
 end
 
+function lie_algebra(
+  basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
+) where {C<:RingElement}
+  parent_L = parent(basis[1])
+  @req all(parent(x) == parent_L for x in basis) "Elements not compatible."
+  R = coefficient_ring(parent_L)
+  n = parent_L.n
+  s = map(AbstractAlgebra.obj_to_string, basis)
+  return lie_algebra(R, n, basis, s; check)
+end
+
 @doc raw"""
     general_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
 

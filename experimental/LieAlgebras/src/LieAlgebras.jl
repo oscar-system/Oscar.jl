@@ -32,6 +32,7 @@ import ..Oscar:
   is_simple,
   ngens,
   parent_type,
+  sub,
   symbols,
   symmetric_power,
   tensor_product,
@@ -43,6 +44,7 @@ import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraIdeal
+export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
 export LinearLieAlgebra, LinearLieAlgebraElem
 
@@ -81,6 +83,7 @@ include("Util.jl")
 include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
+include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraModule.jl")
 include("iso_oscar_gap.jl")
@@ -95,6 +98,7 @@ export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraIdeal
 export LieAlgebraModule, LieAlgebraModuleElem
+export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 
 export abstract_module

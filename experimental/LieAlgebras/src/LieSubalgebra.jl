@@ -1,10 +1,10 @@
-@attributes mutable struct LieAlgebraIdeal{C<:RingElement,LieT<:LieAlgebraElem{C}}
+@attributes mutable struct LieSubalgebra{C<:RingElement,LieT<:LieAlgebraElem{C}}
   base_lie_algebra::LieAlgebra{C}
   gens::Vector{LieT}
   basis_elems::Vector{LieT}
   basis_matrix::MatElem{C}
 
-  function LieAlgebraIdeal{C,LieT}(
+  function LieSubalgebra{C,LieT}(
     L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
   ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
@@ -23,8 +23,8 @@
       while !isempty(todo)
         g = pop!(todo)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for b in basis(L)
-          push!(todo, b * g)
+        for i in 1:nrows(basis_matrix)
+          push!(todo, g * L(basis_matrix[i, :]))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
@@ -35,10 +35,10 @@
     end
   end
 
-  function LieAlgebraIdeal{C,LieT}(
+  function LieSubalgebra{C,LieT}(
     L::LieAlgebra{C}, gens::Vector; kwargs...
   ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-    return LieAlgebraIdeal{C,LieT}(L, Vector{LieT}(map(L, gens)); kwargs...)
+    return LieSubalgebra{C,LieT}(L, Vector{LieT}(map(L, gens)); kwargs...)
   end
 end
 
@@ -48,29 +48,28 @@ end
 #
 ###############################################################################
 
-base_lie_algebra(
-  I::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}} = I.base_lie_algebra::parent_type(LieT)
+base_lie_algebra(S::LieSubalgebra{C,LieT}) where {C<:RingElement,LieT<:LieAlgebraElem{C}} =
+  S.base_lie_algebra::parent_type(LieT)
 
-function gens(I::LieAlgebraIdeal)
-  return I.gens
+function gens(S::LieSubalgebra)
+  return S.gens
 end
 
-function ngens(I::LieAlgebraIdeal)
-  return length(gens(I))
+function ngens(S::LieSubalgebra)
+  return length(gens(S))
 end
 
 function basis_matrix(
-  I::LieAlgebraIdeal{C,LieT}
+  S::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  return I.basis_matrix::dense_matrix_type(C)
+  return S.basis_matrix::dense_matrix_type(C)
 end
 
-function basis(I::LieAlgebraIdeal)
-  return I.basis_elems
+function basis(S::LieSubalgebra)
+  return S.basis_elems
 end
 
-dim(I::LieAlgebraIdeal) = length(basis(I))
+dim(S::LieSubalgebra) = length(basis(S))
 
 ###############################################################################
 #
@@ -78,24 +77,24 @@ dim(I::LieAlgebraIdeal) = length(basis(I))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
+function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
   io = pretty(io)
-  println(io, LowercaseOff(), "Lie algebra ideal")
-  println(io, Indent(), "of dimension $(dim(I))", Dedent())
-  if dim(I) != ngens(I)
-    println(io, Indent(), "with $(ItemQuantity(ngens(I), "generator"))", Dedent())
+  println(io, LowercaseOff(), "Lie subalgebra")
+  println(io, Indent(), "of dimension $(dim(S))", Dedent())
+  if dim(S) != ngens(S)
+    println(io, Indent(), "with $(ItemQuantity(ngens(S), "generator"))", Dedent())
   end
-  print(io, "over ")
-  print(io, Lowercase(), base_lie_algebra(I))
+  print(io, "of ")
+  print(io, Lowercase(), base_lie_algebra(S))
 end
 
-function Base.show(io::IO, I::LieAlgebraIdeal)
+function Base.show(io::IO, S::LieSubalgebra)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, LowercaseOff(), "Lie algebra ideal")
+    print(io, LowercaseOff(), "Lie subalgebra")
   else
-    print(io, LowercaseOff(), "Lie algebra ideal over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(I))
+    print(io, LowercaseOff(), "Lie subalgebra of ", Lowercase())
+    print(IOContext(io, :supercompact => true), base_lie_algebra(S))
   end
 end
 
@@ -106,25 +105,25 @@ end
 ###############################################################################
 
 function Base.issubset(
-  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+  S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
-  return all(in(I2), gens(I1))
+  @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
+  return all(in(S2), gens(S1))
 end
 
 function Base.:(==)(
-  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+  S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  base_lie_algebra(I1) === base_lie_algebra(I2) || return false
-  gens(I1) == gens(I2) && return true
-  return basis_matrix(I1) == basis_matrix(I2)
+  base_lie_algebra(S1) === base_lie_algebra(S2) || return false
+  gens(S1) == gens(S2) && return true
+  return basis_matrix(S1) == basis_matrix(S2)
 end
 
-function Base.hash(I::LieAlgebraIdeal, h::UInt)
-  b = 0xd745d725d0b66431 % UInt
-  h = hash(base_lie_algebra(I), h)
-  h = hash(gens(I), h)
-  h = hash(basis_matrix(I), h)
+function Base.hash(S::LieSubalgebra, h::UInt)
+  b = 0x712b12e671184d1a % UInt
+  h = hash(base_lie_algebra(S), h)
+  h = hash(gens(S), h)
+  h = hash(basis_matrix(S), h)
   return xor(h, b)
 end
 
@@ -134,8 +133,8 @@ end
 #
 ###############################################################################
 
-function Base.in(x::LieAlgebraElem, I::LieAlgebraIdeal)
-  return can_solve(basis_matrix(I), _matrix(x); side=:left)
+function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
+  return can_solve(basis_matrix(S), _matrix(x); side=:left)
 end
 
 ###############################################################################
@@ -144,18 +143,11 @@ end
 #
 ###############################################################################
 
-function Base.:+(
-  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
-  return ideal(base_lie_algebra(I1), [gens(I1); gens(I2)])
-end
-
 function bracket(
-  I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
+  S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
-  return ideal(base_lie_algebra(I1), [x * y for x in gens(I1) for y in gens(I2)])
+  @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
+  return ideal(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
 end
 
 ###############################################################################
@@ -165,9 +157,9 @@ end
 ###############################################################################
 
 function lie_algebra(
-  I::LieAlgebraIdeal{C,LieT}
+  S::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  return lie_algebra(basis(I))
+  return lie_algebra(basis(S))
 end
 
 ###############################################################################
@@ -176,14 +168,14 @@ end
 #
 ###############################################################################
 
-function ideal(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
-  return LieAlgebraIdeal{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis)
+function sub(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
+  return LieSubalgebra{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis) #, embedding_hom   # TODO
 end
 
-function ideal(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
-  return ideal(L, [gen])
+function sub(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
+  return sub(L, [gen])
 end
 
-function ideal(L::LieAlgebra)
-  return ideal(L, basis(L); is_basis=true)
+function sub(L::LieAlgebra)
+  return sub(L, basis(L); is_basis=true)
 end
