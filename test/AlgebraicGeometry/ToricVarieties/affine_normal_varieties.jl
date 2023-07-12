@@ -8,7 +8,7 @@ using Test
     antv3 = affine_normal_toric_variety(antv2; set_attributes)
     antv4 = affine_normal_toric_variety(Oscar.positive_hull([1 0]); set_attributes)
     antv5 = affine_space(NormalToricVariety, 2; set_attributes)
-    antv6 = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
+    antv6 = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]])
     
     @testset "Basic properties" begin
         @test is_smooth(antv) == false

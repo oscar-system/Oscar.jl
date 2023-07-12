@@ -78,10 +78,7 @@ function normal_toric_variety(C::Cone; set_attributes::Bool = true)
     variety = NormalToricVariety(pmntv)
     
     if set_attributes
-        set_attribute!(variety, :fan, fan)
         set_attribute!(variety, :is_affine, true)
-        set_attribute!(variety, :is_complete, false)
-        set_attribute!(variety, :is_projective, false)
         set_attribute!(variety, :is_projective_space, false)
         set_attribute!(variety, :picard_group, free_abelian_group(0))
     end
@@ -91,7 +88,7 @@ end
 
 
 @doc raw"""
-    normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
+    normal_toric_variety(rays::AbstractMatrix, max_cones::Vector{Vector{Int64}})
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
 as vector of vectors. By default, this method assumes that the input is not
@@ -124,14 +121,15 @@ julia> normal_toric_variety(ray_generators, max_cones; non_redundant = true)
 Normal toric variety
 ```
 """
-function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
-    fan = polyhedral_fan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
-    return normal_toric_variety(fan; set_attributes = set_attributes)
+normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false) = normal_toric_variety(rays, IncidenceMatrix(max_cones); non_redundant = non_redundant)
+function normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false)
+  fan = polyhedral_fan(rays, max_cones; non_redundant=non_redundant)
+  return normal_toric_variety(fan)
 end
 
 
 @doc raw"""
-    normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
+    normal_toric_variety(PF::PolyhedralFan)
 
 Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
 
@@ -148,19 +146,16 @@ julia> ntv = normal_toric_variety(nf)
 Normal toric variety
 ```
 """
-function normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
+function normal_toric_variety(PF::PolyhedralFan)
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     variety = NormalToricVariety(pmntv)
-    if set_attributes
-        set_attribute!(variety, :fan, PF)
-    end
     return variety
 end
 
 
 @doc raw"""
-    NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
+    normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 
 Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
 fan $\Sigma_P$ of the given polyhedron `P`.
@@ -210,8 +205,6 @@ function affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool
     
     if set_attributes
         set_attribute!(variety, :is_affine, true)
-        set_attribute!(variety, :is_complete, false)
-        set_attribute!(variety, :is_projective, false)
         set_attribute!(variety, :is_projective_space, false)
     end
     
@@ -236,16 +229,12 @@ Normal, affine, 2-dimensional toric variety
 """
 function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
     C = positive_hull(identity_matrix(ZZ, d))
-    fan = polyhedral_fan(C)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv)
+    variety = normal_toric_variety(C; set_attributes=set_attributes)
     
     if set_attributes
-        set_attribute!(variety, :is_affine, true)
         set_attribute!(variety, :is_complete, false)
         set_attribute!(variety, :is_projective, false)
         set_attribute!(variety, :isprojective_space, false)
-        set_attribute!(variety, :fan, fan)
         set_attribute!(variety, :dim, d)
         set_attribute!(variety, :dim_of_torusfactor, 0)
     end
@@ -382,8 +371,8 @@ Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional tori
 """
 function hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
-    cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
-    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
+    cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
+    variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
@@ -616,7 +605,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 """
 function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
     new_fan = star_subdivision(v, new_ray)
-    new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
+    new_variety = normal_toric_variety(new_fan)
     new_rays = rays(new_fan)
     old_rays = rays(v)
     old_vars = string.(symbols(cox_ring(v)))
@@ -626,7 +615,9 @@ function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:Intege
         j = findfirst(==(new_rays[i]), old_rays)
         new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
     end
-    set_attribute!(new_variety, :coordinate_names, new_vars)
+    if set_attributes
+      set_attribute!(new_variety, :coordinate_names, new_vars)
+    end
     return new_variety
 end
 
@@ -661,7 +652,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
     new_fan = star_subdivision(polyhedral_fan(v), n)
-    new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
+    new_variety = normal_toric_variety(new_fan)
     new_rays = rays(new_fan)
     old_rays = rays(v)
     old_vars = string.(symbols(cox_ring(v)))
@@ -671,7 +662,9 @@ function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String 
         j = findfirst(==(new_rays[i]), old_rays)
         new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
     end
-    set_attribute!(new_variety, :coordinate_names, new_vars)
+    if set_attributes
+      set_attribute!(new_variety, :coordinate_names, new_vars)
+    end
     return new_variety
 end
 
@@ -735,7 +728,7 @@ Multivariate polynomial ring in 6 variables over QQ graded by
 ```
 """
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
-    product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w); set_attributes = set_attributes)
+    product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w))
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
 end
@@ -795,7 +788,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in trias]
     
     # construct the varieties
-    return [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    return [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
 end
 
 
@@ -876,16 +869,18 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     # construct varieties
     integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
-    varieties = [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
     
     # set the map from Div_T -> Cl to the desired matrix
     for v in varieties
       G1 = free_abelian_group(ncols(charges))
       G2 = free_abelian_group(nrows(charges))
       grading_of_cox_ring = hom(G1, G2, transpose(charges))
-      set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
-      set_attribute!(v, :class_group, G2)
-      set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
+      if set_attributes
+        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+        set_attribute!(v, :class_group, G2)
+        set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
+      end
     end
     
     # return the varieties

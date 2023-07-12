@@ -38,8 +38,8 @@ affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 ### Normal Toric Varieties
 
 ```@docs
-normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
-normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)
+normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false)
+normal_toric_variety(PF::PolyhedralFan)
 normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
 ```
 
