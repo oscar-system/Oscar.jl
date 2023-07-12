@@ -242,6 +242,27 @@ function lie_algebra(
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
 end
 
+function lie_algebra(
+  basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+) where {C<:RingElement}
+  parent_L = parent(basis[1])
+  @req all(parent(x) == parent_L for x in basis) "Elements not compatible."
+  R = coefficient_ring(parent_L)
+  basis_matrix = if length(basis) == 0
+    matrix(R, 0, dim(L), C[])
+  else
+    matrix(R, [coefficients(b) for b in basis])
+  end
+  struct_consts = Matrix{SRow{elem_type(R)}}(undef, length(basis), length(basis))
+  for (i, bi) in enumerate(basis), (j, bj) in enumerate(basis)
+    fl, row = can_solve_with_solution(basis_matrix, _matrix(bi * bj); side=:left)
+    @req fl "Not closed under the bracket."
+    struct_consts[i, j] = sparse_row(row)
+  end
+  s = map(AbstractAlgebra.obj_to_string, basis)
+  return lie_algebra(R, struct_consts, s; check)
+end
+
 @doc raw"""
     lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
