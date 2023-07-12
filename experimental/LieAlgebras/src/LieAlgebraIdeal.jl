@@ -83,7 +83,7 @@ function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
   println(io, LowercaseOff(), "Lie algebra ideal")
   println(io, Indent(), "of dimension $(dim(I))", Dedent())
   if dim(I) != ngens(I)
-    println(io, Indent(), "with $(ngens(I)) generators", Dedent())
+    println(io, Indent(), "with $(ItemQuantity(ngens(I), "generator"))", Dedent())
   end
   print(io, "over ")
   print(io, Lowercase(), base_lie_algebra(I))

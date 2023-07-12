@@ -217,7 +217,9 @@ Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = general_linear_lie_algebra(QQ, 2)
-LinearLieAlgebra (⊆ gl_2) over Rational field
+General linear Lie algebra of degree 2
+  of dimension 4
+over rational field
 
 julia> basis(L)
 4-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
@@ -250,7 +252,9 @@ Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = special_linear_lie_algebra(QQ, 2)
-LinearLieAlgebra (⊆ gl_2) over Rational field
+Special linear Lie algebra of degree 2
+  of dimension 3
+over rational field
 
 julia> basis(L)
 3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
@@ -287,7 +291,9 @@ Return the special orthogonal Lie algebra $\mathfrak{so}_n(R)$.
 # Examples
 ```jldoctest
 julia> L = special_orthogonal_lie_algebra(QQ, 3)
-LinearLieAlgebra (⊆ gl_3) over Rational field
+Special orthogonal Lie algebra of degree 3
+  of dimension 3
+over rational field
 
 julia> basis(L)
 3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
