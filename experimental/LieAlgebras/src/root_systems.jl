@@ -9,6 +9,12 @@ mutable struct RootSystem <: AbstractVector{fmpq}
   simple_roots::Vector
   positive_roots::Vector
   root_system_type::Vector{Union{String, Int64}}
+  @doc raw"""
+    `RootSystem(S::String) -> RootSystem`
+  Return the root system of type `S` where `S` is a string consisting out of
+  a letter `A`, `B`, `C`, `D`, `E`, `F`, `G` followed by an integer.
+  For the exceptional root system, the integers are fixed, e.g. `G2`, `F4`, `E6`, ...
+  """
   function RootSystem(S::String)
     # S is a string detailing the type of the indecomposable root system made out of a letter, e.g. "A", "B", "C",... and an integer for the number of simple roots
     l = length(S)
@@ -32,12 +38,20 @@ end
 #   Basic manipulation
 #
 ###############################################################################
-
-size(R::RootSystem, dim::Any) = size(R.roots, dim)
+ @doc raw"""
+  `size(R::RootSystem, [dim::Int])`
+ Return a tuple containing the dimensions of the vector of roots, i.e. the number of roots in the first entry. 
+ Optionally you can specify a dimension to just get the length of that dimension.
+  """
+size(R::RootSystem, dim::Int) = size(R.roots, dim)
 
 size(R::RootSystem) = size(R.roots)
 
-getindex(R::RootSystem, r::Any) = getindex(R.roots, r)
+ @doc raw"""
+  `getindex(R::RootSystem, r::Int)`
+ Return the rth root in the vector of roots in the root system `R`
+  """
+getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
 ###############################################################################
 #
@@ -55,7 +69,10 @@ end
 #   further functions
 #
 ###############################################################################
-
+ @doc raw"""
+  `CartanMatrix(S::String) -> Matrix{QQFieldElem}`
+ Return the Cartan matrix of the type of root system specified by `S`
+  """
 function CartanMatrix(S::String)
   S1 = S[1:1]
   l = length(S)
@@ -67,6 +84,10 @@ function CartanMatrix(S::String)
 	return C
 end
 
+ @doc raw"""
+  `CartanMatrix(R::RootString) -> Matrix{QQFieldElem}`
+ Return the Cartan matrix of the type of root system specified by `S`
+  """
 function CartanMatrix(R::RootSystem)
   S = R.root_system_type
   S2 = S[1] * string(S[2])
