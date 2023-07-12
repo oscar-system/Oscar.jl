@@ -1,3 +1,46 @@
+@doc raw"""
+    RationalMap{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
+
+A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
+by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
+of ``𝒪(U)`` for one of the dense open `affine_chart`s ``U`` of ``X``. 
+The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some 
+`affine_chart` ``V`` of the codomain ``Y`` under this map. 
+```jldoctest
+julia> IP1 = covered_scheme(projective_space(QQ, [:s, :t]))
+covered scheme with 2 affine patches in its default covering
+
+julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
+covered scheme with 3 affine patches in its default covering
+
+julia> U = first(affine_charts(IP1))
+Spec of Multivariate polynomial ring in 1 variable over QQ
+
+julia> V = first(affine_charts(IP2))
+Spec of Multivariate polynomial ring in 2 variables over QQ
+
+julia> t = first(gens(OO(U)))
+(t//s)
+
+julia> Phi = oscar.RationalMap(IP1, IP2, U, V, [1//t, 1//t^2]);
+
+julia> realizations = oscar.realize_on_patch(Phi, U);
+
+julia> realizations[3]
+morphism from
+
+	Spec of Localization of multivariate polynomial ring in 1 variable over QQ at products of 0 elements
+
+to
+
+	Spec of Multivariate polynomial ring in 2 variables over QQ
+
+with coordinates
+
+	(t//s)^2, (t//s)
+
+```
+"""
 @attributes mutable struct RationalMap{DomainType<:AbsCoveredScheme, 
                                        CodomainType<:AbsCoveredScheme} 
   domain::DomainType
@@ -10,6 +53,7 @@
 
   patch_representatives::IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:Vector{<:FieldElem}}}
   realizations::IdDict{<:AbsSpec, <:Vector{<:AbsSpecMor}}
+  full_realization::CoveredSchemeMorphism
 
   function RationalMap(
       X::AbsCoveredScheme, Y::AbsCoveredScheme, 
@@ -79,7 +123,7 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
     f, g = glueing_morphisms(glueings(codomain_covering(Phi))[(V_next, V_orig)])
     # Find one morphism which was already realized with this codomomain
     phi = first([psi for psi in Psi_res if codomain(psi) === V_orig])
-    # We need to express the pullback of the coordinates of V_next as rational functions 
+    # We need to express the pullback of the coordinates of V_next as rational functions, 
     # first on V_orig and then pulled back to U
     y0 = gens(OO(V_orig))
     y1 = gens(OO(V_next))
@@ -93,27 +137,31 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
     Psi = [_restrict_properly(psi, V_next) for psi in Psi]
     append!(Psi_res, Psi)
     append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi])
+    push!(covered_codomain_patches, V_next)
   end
   return Psi_res
 end
 
 function realize(Phi::RationalMap)
-  realizations = AbsSpecMor[]
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for U in patches(domain_covering(Phi))
-    loc_mors = realize_on_patch(Phi, U)
-    for phi in loc_mors 
-      mor_dict[domain(phi)] = phi
+  if !isdefined(Phi, :full_realization)
+    realizations = AbsSpecMor[]
+    mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for U in patches(domain_covering(Phi))
+      loc_mors = realize_on_patch(Phi, U)
+      for phi in loc_mors 
+        mor_dict[domain(phi)] = phi
+      end
+      append!(realizations, loc_mors)
     end
-    append!(realizations, loc_mors)
+    domain_ref = Covering([domain(phi) for phi in realizations])
+    inherit_glueings!(domain_ref, domain_covering(Phi))
+    # TODO: Inherit the decomposition_info, too!
+    phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict)
+    # Make the refinement known to the domain
+    push!(coverings(domain(Phi)), domain_ref)
+    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov)
   end
-  domain_ref = Covering([domain(phi) for phi in realizations])
-  inherit_glueings!(domain_ref, domain_covering(Phi))
-  # TODO: Inherit the decomposition_info, too!
-  phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict)
-  # Make the refinement known to the domain
-  push!(coverings(domain(Phi)), domain_ref)
-  return CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov)
+  return Phi.full_realization
 end
 
 function _extend(U::AbsSpec, a::Vector{<:FieldElem})
