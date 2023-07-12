@@ -159,20 +159,10 @@ function primary_invariants(G::AffineMatrixGroup_GlorSl)
   end
 end
 
-#unfinished
-function reynolds__(elem::MPolyElem, D::Dict{Any,Any}, G::AffineMatrixGroup_GlorSl, R::MPolyRing)
-  V = exponent_vector(elem,1)
-  W = collect(keys(D))
-  for (elem1, elem2) in W
-    if exponent_vector(elem2,1)[n^2 + 1: n^2 + n] == V 
-      mu_st = get(D, (elem1, elem2)) #this is in terms of a_is
-    end
-  end
-  #find out degree of mu_star
-  #the derivation has to happen in terms of Omega^d not determinant! TODO.
-  mixedpolring = parent(mu_st)
-  det = det_coordinate_matrix(G)
-  h = mixedpolring()
+#omega process
+function omegap(p::Int64, G::AffineMatrixGroup_GlorSl, f::MPolyElem)
+  det = (G.det_coordinate_matrix)^p
+  x = f
   for monomial in monomials(det)
     exp_vect = exponent_vector(monomial, 1)
     x = mu_st
@@ -186,7 +176,34 @@ function reynolds__(elem::MPolyElem, D::Dict{Any,Any}, G::AffineMatrixGroup_Glor
     end
     h += x
   end
-  #h is in terms of a_is. Make it in terms of yi_s. 
+  return h
+end
+
+#this returns reynolds(elem/(detZ)^p). How to return just reynolds(elem)??
+#unfinished
+function reynolds__(elem::MPolyElem, D::Dict{Any,Any}, G::AffineMatrixGroup_GlorSl, R::MPolyRing)
+  V = exponent_vector(elem,1)
+  W = collect(keys(D))
+  for (elem1, elem2) in W
+    if exponent_vector(elem2,1)[n^2 + 1: n^2 + n] == V 
+      mu_st = get(D, (elem1, elem2)) #this is in terms of a_is
+    end
+  end
+  #find out degree of mu_star
+  d = total_degree(mu_star)
+  if !(divides(d,n)[1])
+    return R()
+  else 
+    p = divexact(d,n)
+  end
+  mixedpolring = parent(mu_st)
+  det = (det_coordinate_matrix(G))^p
+  h = omegap(p, G, mu_st)
+  #h is the numerator
+  #we need to divide by c_{p,n}
+  cpn = omegap(p, G, G.det_coordinate_matrix)
+  elem_by_detzp = h//cpn
+  #this is in terms of a_is. Make it in terms of yi_s. 
 
 end
 
