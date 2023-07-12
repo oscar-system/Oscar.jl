@@ -216,7 +216,7 @@ julia> Qtf = fraction_field(Qt);
 
 julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
 
-julia> julia> X3 = elliptic_surface(E, 2);
+julia> X3 = elliptic_surface(E, 2);
 
 julia> Base.show(stdout, X3)
 Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
