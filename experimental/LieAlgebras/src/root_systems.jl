@@ -8,11 +8,12 @@ mutable struct RootSystem <: AbstractVector{fmpq}
   roots::Vector
   simple_roots::Vector
   positive_roots::Vector
-  root_system_type::String
+  root_system_type::Vector{Union{String, Int64}}
   function RootSystem(S::String)
+    # S is a string detailing the type of the indecomposable root system made out of a letter, e.g. "A", "B", "C",... and an integer for the number of simple roots
     l = length(S)
     n = parse(Int64, S[2:l])
-    S1 = GAP.Obj(string(S[1:1]))
+    S1 = GAP.Obj(string(S[1]))
     RS = GAP.Globals.RootSystem(S1, n)
     Ro_1 = GAP.Globals.PositiveRoots(RS)
     Ro_2 = GAP.Globals.NegativeRoots(RS)
@@ -21,6 +22,7 @@ mutable struct RootSystem <: AbstractVector{fmpq}
     Ro1 = [[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
     Ro2 = [[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
     Ro = reduce(vcat, (Ro1, Ro2))
+    S = Union{String, Int64}[S[1:1], n]
     new(Ro,sR,Ro1,S)
   end
 end
@@ -67,7 +69,8 @@ end
 
 function CartanMatrix(R::RootSystem)
   S = R.root_system_type
-	C = CartanMatrix(S)
+  S2 = S[1] * string(S[2])
+	C = CartanMatrix(S2)
 	return C
 end
 
@@ -130,5 +133,6 @@ end
 
 function DynkinDiagram(R::RootSystem)
 	S = R.root_system_type
-	DynkinDiagram(S)
+  S2 = S[1] * string(S[2])
+	DynkinDiagram(S2)
 end
