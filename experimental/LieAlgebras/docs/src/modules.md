@@ -52,7 +52,7 @@ The module action is defined as `*`.
 ## Module constructors
 
 ```@docs
-standard_module(::LinearLieAlgebra{C}) where {C<:RingElement}
+standard_module(::LinearLieAlgebra)
 dual(::LieAlgebraModule{C}) where {C<:RingElement}
 direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
 tensor_product(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
