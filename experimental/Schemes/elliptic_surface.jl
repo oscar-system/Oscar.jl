@@ -280,8 +280,6 @@ function weierstrass_model(X::EllipticSurface)
 
   kt = base_ring(base_field(E))
   k = coefficient_ring(kt)
-  delta = factor(discriminant(E), kt).fac
-  reducible_singular_fibers = [p for p in keys(delta) if delta[p]>1]
 
   IP1 = projective_space(k, 1)
   c = standard_covering(IP1)
@@ -405,7 +403,7 @@ function _separate_singularities!(X::EllipticSurface)
      (z,y,s_or_t) = coordinates(W)
     # reducible singular fibers
     local disc = gens(eliminate(Ising, [z, s_or_t]))[1]
-    local redfib = collect(keys(factor(disc).fac))
+    local redfib = [p for (p,e) in factor(disc)]
     push!(refined_charts, PrincipalOpenSubset(W, redfib))
   end
 
@@ -421,7 +419,7 @@ function _separate_singularities!(X::EllipticSurface)
     local (z,x,s_or_t) = coordinates(W)
     # reducible singular fibers
     local disc = gens(eliminate(Ising, [x, s_or_t]))[1]
-    local redfib = collect(keys(factor(disc).fac))
+    local redfib = [p for (p,e) in factor(disc)]
     push!(refined_charts, PrincipalOpenSubset(W, redfib))
   end
 
