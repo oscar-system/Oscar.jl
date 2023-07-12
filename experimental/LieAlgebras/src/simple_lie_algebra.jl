@@ -34,7 +34,7 @@ import Base: show, +, -, *, ^, ==, !=, inv, isone, iszero, one, zero, rand, deep
     M = MatrixSpace(R, 1, di)
     RS = RootSystem(S)
     s = [Symbol("e_$i") for i in 1:di]
-    rt=Union{String, Int64}[S[1:1], n]
+    st=Union{String, Int64}[S[1:1], n]
     return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
     new{C}(M,R,RS,di,s,st)
     end::SimpleLieAlgebra{C}
