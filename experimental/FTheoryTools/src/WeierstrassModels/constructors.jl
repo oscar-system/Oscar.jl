@@ -140,6 +140,8 @@ julia> auxiliary_base_grading = [4 6 1 0]
  4  6  1  0
 
 julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 ```
 """
@@ -180,6 +182,9 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
+  
+  # inform about the assume Kbar grading
+  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
   
   # convert Weierstrass sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)

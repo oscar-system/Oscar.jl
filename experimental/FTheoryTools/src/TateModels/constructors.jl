@@ -167,6 +167,8 @@ julia> a6 = a65 * w^5;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base
 ```
 """
@@ -208,6 +210,9 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
+  
+  # inform about the assume Kbar grading
+  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
   
   # convert Tate sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)

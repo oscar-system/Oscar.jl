@@ -17,6 +17,8 @@ construction of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_f(w);
@@ -33,6 +35,8 @@ construction of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_g(w);
@@ -52,6 +56,8 @@ Return the Weierstrass polynomial of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
@@ -89,6 +95,8 @@ Return the base space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> ambient_space(w)
@@ -108,6 +116,8 @@ Return the fiber ambient space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
@@ -139,6 +149,8 @@ which defines the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> calabi_yau_hypersurface(w)
@@ -170,6 +182,8 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> discriminant(w);
@@ -204,6 +218,8 @@ auxiliary base space.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> length(singular_loci(w))

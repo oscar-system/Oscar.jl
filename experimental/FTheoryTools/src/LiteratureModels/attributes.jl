@@ -11,6 +11,8 @@ known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_id(m)
@@ -31,6 +33,8 @@ known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_doi(m)
@@ -51,6 +55,8 @@ If no `arxiv_link` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_link(m)
@@ -71,6 +77,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_model_equation_number(m)
@@ -91,6 +99,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_model_page(m)
@@ -111,6 +121,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_model_section(m)
@@ -131,6 +143,8 @@ introduced the given model. If no
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> arxiv_version(m)
@@ -165,6 +179,8 @@ an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
@@ -186,6 +202,8 @@ known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_doi(m)
@@ -206,6 +224,8 @@ If no `journal_link` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_link(m)
@@ -226,6 +246,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_model_equation_number(m)
@@ -246,6 +268,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_model_page(m)
@@ -266,6 +290,8 @@ is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_model_section(m)
@@ -285,6 +311,8 @@ If no `journal_pages` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_pages(m)
@@ -315,6 +343,8 @@ If no `journal_volume` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_volume(m)
@@ -334,6 +364,8 @@ If no `journal_year` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> journal_year(m)
@@ -354,6 +386,8 @@ If no `literature_identifier` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> literature_identifier(m)
@@ -373,6 +407,8 @@ If no `model_description` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> model_description(m)
@@ -392,6 +428,8 @@ If no `paper_authors` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> paper_authors(m)
@@ -414,6 +452,8 @@ If no `paper_buzzwords` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> paper_buzzwords(m)
@@ -437,6 +477,8 @@ If no `paper_description` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> paper_description(m)
@@ -456,6 +498,8 @@ If no `paper_title` is known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> paper_title(m)
@@ -505,6 +549,8 @@ If no resolutions are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolutions(m)
@@ -529,6 +575,8 @@ If no resolution generating sections are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_generating_sections(m)
@@ -551,6 +599,8 @@ If no resolution zero sections are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_zero_sections(m)
@@ -571,6 +621,8 @@ If no weighted resolutions are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolutions(m)
@@ -595,6 +647,8 @@ If no weighted resolution generating sections are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_generating_sections(m)
@@ -617,6 +671,8 @@ If no weighted resolution zero sections are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_zero_sections(m)
