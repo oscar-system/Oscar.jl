@@ -1398,7 +1398,7 @@ function K3_surface_automorphism_group(S::ZZLat)
   return borcherds_method(S, 26, compute_OR=false)[2:end]
 end
 
-function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix)
+function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix, n::Int=26)
   ample_classS = solve_left(basis_matrix(S), ample_class)
   L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
@@ -2061,7 +2061,7 @@ end
 
 find_section(L::ZZLat, f::Vector{QQFieldElem}) = vec(collect(find_section(L, matrix(QQ, 1, degree(L), f))))
 
-fibration_type(NS::ZZLat, f) = fibration_type(NS, matrix(QQ, 1, degree(NS), f))
+fibration_type(NS::ZZLat, f::Vector) = fibration_type(NS, matrix(QQ, 1, degree(NS), f))
 
 ################################################################################
 # entropy
