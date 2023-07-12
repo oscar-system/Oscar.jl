@@ -273,13 +273,12 @@ end
 Give the Adjoint matrices of all basis vectors acting on the Lie algebra L with respect to the Chevalley basis of L
 """
 function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
-	S = (L.root_system).root_system_type
+	St = L.root_type
 	R = base_ring(L)	
-	l = length(S)
-	n = parse(Int64, S[2:l]) #get integer and type A,B,C,... out of the string S
+	n = St[2]
 	
 	Q = GAP.Globals.Rationals
-	S = GAP.Obj(string(S[1:1]))
+	S = GAP.Obj(St[1])
 	LG = GAP.Globals.SimpleLieAlgebra(S, n, Q) #define the Lie algebra in Gap over the rationals
 	d = GAP.Globals.Dimension(LG)
 	
