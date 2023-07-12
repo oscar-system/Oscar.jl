@@ -104,19 +104,19 @@ end
 #   further functions
 #
 ###############################################################################
- @doc raw"""
+@doc raw"""
     cartan_matrix(S::Symbol, n::Int64) -> Matrix{QQFieldElem}
 
- Return the Cartan matrix of the type of root system specified by `S`
+Return the Cartan matrix of the type of root system specified by `S`
   """
 function cartan_matrix(S::Symbol, n::Int64)
   return cartan_matrix(root_system(S,n))
 end
 
- @doc raw"""
+@doc raw"""
     cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}
 
- Return the Cartan matrix of the type root system `R`
+Return the Cartan matrix of the type root system `R`
 """
 function cartan_matrix(R::RootSystem)
   RS = R.GAP_root_system
@@ -128,7 +128,7 @@ end
 @doc raw"""
     dynkin_diagram(S::String)
 
- Return the Dynkin diagram of the type of root system specified by `S`
+Return the Dynkin diagram of the type of root system specified by `S`
 """
 function dynkin_diagram(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
@@ -142,7 +142,7 @@ function dynkin_diagram(S::Symbol, n::Int64)
     D = D * string(n)
     
   elseif S == :B
-    if n==1
+    if n == 1
       D = string(n)
     else
       for i = 1:(n-2)
@@ -152,7 +152,7 @@ function dynkin_diagram(S::Symbol, n::Int64)
     end
 
   elseif S == :C
-    if n==1
+    if n == 1
       D = string(n)
     else
       for i = 1:(n-2)
@@ -219,7 +219,7 @@ end
 @doc raw"""
     dynkin_diagram(R::RootSystem)
 
- Return the Dynkin diagram of the root system `R`
+Return the Dynkin diagram of the root system `R`
 """
 function dynkin_diagram(R::RootSystem)
   S = R.root_system_type
