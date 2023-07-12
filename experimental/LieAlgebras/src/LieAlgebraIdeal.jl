@@ -18,7 +18,22 @@
       end
       return new{C,LieT}(L, gens, basis, basis_matrix)
     else
-      return new{C,LieT}(L, gens)
+      rank, mat = rref(
+        matrix(
+          coefficient_ring(base_lie_algebra(I)),
+          [
+            [coefficients(g) for g in gens(I) if !iszero(g)]
+            [
+              coefficients(x * g) for x in basis(base_lie_algebra(I)) for
+              g in gens(I) if !iszero(x * g)
+            ]
+            [coefficients(zero(base_lie_algebra(I)))]
+          ],
+        ),
+      )
+      basis_matrix = mat[1:rank, :]
+      basis = [base_lie_algebra(I)(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      return new{C,LieT}(L, gens, basis, basis_matrix)
     end
   end
 
@@ -47,35 +62,13 @@ function ngens(I::LieAlgebraIdeal)
   return length(gens(I))
 end
 
-function basis_matrix(I::LieAlgebraIdeal)
-  if !isdefined(I, :basis_matrix)
-    rank, mat = rref(
-      matrix(
-        coefficient_ring(base_lie_algebra(I)),
-        [
-          [coefficients(g) for g in gens(I) if !iszero(g)]
-          [
-            coefficients(x * g) for x in basis(base_lie_algebra(I)) for
-            g in gens(I) if !iszero(x * g)
-          ]
-          [coefficients(zero(base_lie_algebra(I)))]
-        ],
-      ),
-    )
-    I.basis_matrix = mat[1:rank, :]
-  end
-  return I.basis_matrix
-end
-
-function has_basis(I::LieAlgebraIdeal)
-  return isdefined(I, :basis)
+function basis_matrix(
+  I::LieAlgebraIdeal{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  return I.basis_matrix::dense_matrix_type(C)
 end
 
 function basis(I::LieAlgebraIdeal)
-  if !has_basis(I)
-    mat = basis_matrix(I)
-    I.basis = [base_lie_algebra(I)(mat[i, :]) for i in 1:nrows(mat)]
-  end
   return I.basis
 end
 
@@ -90,10 +83,8 @@ dim(I::LieAlgebraIdeal) = length(basis(I))
 function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie algebra ideal")
-  println(
-    io, Indent(), has_basis(I) ? "of dimension $(dim(I))" : "of unknown dimension", Dedent()
-  )
-  if !has_basis(I) || dim(I) != ngens(I)
+  println(io, Indent(), "of dimension $(dim(I))", Dedent())
+  if dim(I) != ngens(I)
     println(io, Indent(), "with $(ngens(I)) generators", Dedent())
   end
   print(io, "over ")
