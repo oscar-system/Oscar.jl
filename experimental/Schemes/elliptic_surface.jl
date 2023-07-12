@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -87,6 +87,8 @@ Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
 torsion sections and the sections provided at the construction of ``X``.
 
 The first return value is the basis of the ambient space of `L`.
+The second consists of additional generators for `L` coming from torsion sections.
+The third is ``L``.
 """
 @attr function algebraic_lattice(X)
   mwl_basis = X.MWL
@@ -144,9 +146,11 @@ The first return value is the basis of the ambient space of `L`.
     end
     push!(torsV, vT*GAinv) # not necessarily integral .... todo
   end
+  gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
   V = quadratic_space(QQ,GA)
-  return basisA, lattice(V, reduce(vcat,torsV), isbasis=false)
+  L = lattice(V, reduce(vcat,torsV), isbasis=false)
+  return basisA, collect(gen_tors), L
 end
 
 @doc raw"""
@@ -156,7 +160,7 @@ Return the (sublattice) of the Mordell-Weil lattice of ``S``  spanned
 by the sections of ``S`` supplied at its construction.
 """
 @attr ZZLat function mordell_weil_lattice(S::EllipticSurface)
-  NS = algebraic_lattice(S)[2]
+  NS = algebraic_lattice(S)[3]
   t = length(trivial_lattice(S)[1])
   trivNS = basis_matrix(NS)[1:t,:]
   R = basis_matrix(NS)[t+1:end,:]
@@ -168,10 +172,9 @@ by the sections of ``S`` supplied at its construction.
 end
 
 @doc raw"""
-    mordell_weil_torsion(S::EllipticSurface) ->
+    mordell_weil_torsion(S::EllipticSurface) -> Vector{EllCrvPt}
 
-Return generators for the torsion part of the Mordell-Weil group
-of the generic fiber of ``S``.
+Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
 """
 @attr function mordell_weil_torsion(S::EllipticSurface)
   E = generic_fiber(S)
@@ -212,6 +215,8 @@ julia> Qt, t = polynomial_ring(QQ, :t);
 julia> Qtf = fraction_field(Qt);
 
 julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
+
+julia> julia> X3 = elliptic_surface(E, 2);
 
 julia> Base.show(stdout, X3)
 Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
@@ -584,7 +589,11 @@ basis of the trivial lattice, gram matrix, fiber_components
   end
   O = zero_section(S)
 
-  F = weil_divisor(ideal_sheaf(irreducible_fiber(S)), check=false)
+  pt0, F = fiber(S)
+  set_attribute!(components(F)[1], :self_intersection, 0)
+  set_attribute!(components(O)[1], :self_intersection, -euler_characteristic(S))
+
+
   basisT = [F, O]
 
   grams = [ZZ[0 1;1 -euler_characteristic(S)]]
@@ -604,6 +613,7 @@ basis of the trivial lattice, gram matrix, fiber_components
     for (i,I) in enumerate(comp)
       name = string(root_type[1], root_type[2])
       set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
+      set_attribute!(components(I)[1], :self_intersection, -2)
     end
   end
   return basisT, G, fiber_componentsS
@@ -758,6 +768,11 @@ function fiber_components(S::EllipticSurface, P)
   return [weil_divisor(c, check=false) for c in comp]
 end
 
+function fiber(X::EllipticSurface)
+  pt, F = irreducible_fiber(X)
+  return pt, weil_divisor(F)
+end
+
 @doc raw"""
     irreducible_fiber(S::EllipticSurface) -> EffectiveCartierDivisor
 
@@ -798,7 +813,7 @@ function irreducible_fiber(S::EllipticSurface)
   # F = fiber_components(S,pt) this does not terminate .... so we have to build it by hand
   # @assert length(F) == 1
   F = fiber_cartier(S, pt)
-  return F
+  return pt,F
 end
 
 @doc raw"""
@@ -827,6 +842,7 @@ function section(X::EllipticSurface, P::EllCrvPt)
   end
   PY = pullback(X.inc_Y, PX)
   set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
+  set_attribute!(PY, :self_intersection, -euler_characteristic(X))
   return WeilDivisor(PY, check=false)
 end
 
@@ -855,19 +871,15 @@ end
 @doc raw"""
     graph(G::MatElem)
 
-Return the undirected graph defined by the square matrix `G = (g_{ij})_{ij}`.
+Return the undirected graph defined by the square matrix ``G = (g_{ij})_{ij}``.
 
-Two nodes $i,j \in {1, \dots n\}$ with $i>j$ are joined by an edge
+Two nodes $i,j \in \{1, \dots n\} with $i>j$ are joined by an edge
 if and only if $g_{ij} == 1$.
 """
 function graph(G::MatElem)
   n = nrows(G)
   g = Graph{Undirected}(n)
   for i in 1:n
-    ## small hack to single out the fiber
-    #if G[i,i]==0
-    #  add_edge!(g,i,i)
-    #end
     for j in 1:i-1
       if G[i,j] == 1
         add_edge!(g,i,j)
@@ -894,7 +906,7 @@ end
 #
 ################################################################################
 
-"""
+@doc raw"""
     _prop217(E::EllCrv, P::EllCrvPt, k)
 
 Compute a basis for the linear system
@@ -1027,42 +1039,104 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
   return sectionX
 end
 
-"""
+@doc raw"""
   elliptic_parameter(X::EllipticSurface, F::ZZMat) -> LinearSystem
 
 Return the complete linear system ``|F|``.
 
 Here `F` must be given with respect to the basis of
-`algebraic_lattice(X)` and be an isotropic nef divisor.
+`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
+a K3 surface.
 """
-function elliptic_parameter(X::EllipticSurface, F::ZZMatrix)
-  NS = algebraic_lattice(X)
-  @req F*gram_matrix(NS)*transpose(F)==0 "not an isotropic divisor"
+function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
+  # TODO: Adapt this to compute linear systems on elliptic surfaces in general.
+  E = generic_fiber(X)
+  basisNS, tors, NS = algebraic_lattice(X)
+  V = ambient_space(NS)
+  @req inner_product(V, F, F)==0 "not an isotropic divisor"
+  @req euler_characteristic(X) == 2 "not a K3 surface"
   # how to give an ample divisor automagically in general?
   # @req is_nef(X, F) "F is not nef"
-  error("not implemented")
+  l = F[1]
+  rk_triv = nrows(trivial_lattice(X)[2])
+  n = rank(NS)
+  @assert degree(NS) == rank(NS)
+  P0 = sum([ZZ(F[i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
+  P0_div = section(X, P0)
+  p0 = basis_representation(X, P0_div) # this could be done from theory alone
+  F1 = F - p0  # should be contained in the trivial lattice
+  F2 = F1
+  tmp = F1
+  if all(denominator(i)==1 for i in F1)
+    # no torsion
+    P = P0
+    P_div = P0_div
+  else
+    for (T, tor) in tors
+      if all(denominator(i)==1 for i in F1-tor)
+        break
+        flag = true
+        P = P0 - T
+        F2 = F1 - tor
+        tmp = tor
+      end
+    end
+    @assert flag
+    P_div = section(X, P)
+    @assert basis_representation(X, P_div) == tmp
+  end
+  D = P_div
+  D = D + ZZ(F2[2])*zero_section(X)
+  D1 = D
+  F2 = ZZ.(F2); F2[2] = 0
+  l = F2[1] # number of fibers that we need
+  # find the fiber components meeting O necessary
+  F3 = F2
+  (_,_,t) = ambient_coordinates(weierstrass_chart(X))
+  c = t^0
+  for (pt, rt, fiber, comp, gram) in reducible_fibers(X)
+    Fib0 = comp[1]
+    f0 = basis_representation(X, Fib0) # could be deduced from theory
+    nonzero = [i for i in 3:rk_triv if f0[i]!=0]
+    if pt[2]==0 # at infinity
+      t0 = t
+    else
+      t0 = t//(t*pt[2]-pt[1])
+    end
+    while any(F3[i]<0 for i in nonzero)
+      F3 = F2 - f0
+      D = D + Fib0
+      D1 = D1 + fiber
+      c = c*t0
+      @assert F3[1]>=0
+    end
+  end
+  pt, _ = fiber(X)
+  if pt[2]==0 # at infinity
+    t0 = t
+  else
+    t0 = t//(t*pt[2]-pt[1])
+  end
+  c = c*t0^ZZ(F3[1])
+  D = D + F3[1]*basisNS[1]
+  D1 = D1 + F3[1]*basisNS[1]
+  F4 = copy(F3); F4[1]=0
+  @assert D<=D1
 
-  E = generic_fiber(X)
+  S, piS = weierstrass_model(X);
+  _,piX = relatively_minimal_model(X)
+  c = function_field(S)(c)
+  L = [i*c for i in linear_system(X, P, Int(l))];
+  LonX = linear_system(pullback(piX).(L), D1, check=false);
 
-  k = 4 # we need some magic here
+  LsubF, Tmat = subsystem(LonX, D);
 
+  LsubFonS = [sum(Tmat[i,j]*L[j] for j in 1:ncols(Tmat)) for i in 1:nrows(Tmat)]
 
+  @assert length(LsubFonS)==2
 
-  L = linear_system(X, E([0,1,0]), 4)
-
-  (x,y,t) = ambient_coordinates(weierstrass_chart(X3))
-
-  L = [i*function_field(S)(t^2,t-1) for i in L]
-
-  LonX3 = linear_system(pullback(piS).(L2), D2, check=false);
-
-  LsubF2, Tmat = subsystem(L2onX3, F2);
-
-  LsubF2onS = [sum(Tmat[i,j]*L[j] for j in 1:ncols(Tmat)) for i in 1:nrows(Tmat)]
-
-  @assert length(L2subF2onS)==2
-
-  u2 = LsubF2onS[2]//LsubF2onS[1]
+  u2 = LsubFonS[2]//LsubFonS[1]
+  return u2
 end
 
 
@@ -1107,7 +1181,7 @@ function extended_ade(ADE::Symbol, n::Int)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
-  basis, NS = algebraic_lattice(X)
+  basis,_, NS = algebraic_lattice(X)
   G = gram_matrix(NS)
   n = length(basis)
   v = zeros(ZZRingElem, n)
@@ -1127,7 +1201,6 @@ end
 # Disable simplification for the usage of (decorated) quotient rings within the
 # schemes framework (speedup of ~2).
 function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, MPolyQuoLocRingElem,
-                                              <:MPolyQuoRingElem, MPolyLocRingElem}}
-  )
+                                              <:MPolyQuoRingElem, MPolyLocRingElem}})
   return f
 end
