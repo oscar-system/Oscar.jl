@@ -52,7 +52,7 @@ function _iso_oscar_gap(RO::Union{Nemo.zzModRing, Nemo.ZZModRing})
    RG = GAPWrap.mod(GAP.Globals.Integers::GapObj, GAP.Obj(n))
    f, finv = _iso_oscar_gap_residue_ring_functions(RO, RG)
 
-   return MapFromFunc(f, finv, RO, RG)
+   return MapFromFunc(RO, RG, f, finv)
 end
 
 # Assume that `FO` and `FG` are finite fields of the same order
@@ -190,7 +190,7 @@ function _iso_oscar_gap(FO::FinField)
    end
    f, finv = _iso_oscar_gap_field_finite_functions(FO, FG)
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 
@@ -204,7 +204,7 @@ function _iso_oscar_gap(FO::QQField)
 
    f, finv = _iso_oscar_gap_field_rationals_functions(FO, FG)
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 function _iso_oscar_gap_ring_integers_functions(FO::ZZRing, FG::GapObj)
@@ -217,7 +217,7 @@ function _iso_oscar_gap(FO::ZZRing)
 
    f, finv = _iso_oscar_gap_ring_integers_functions(FO, FG)
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
@@ -305,7 +305,7 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
      end
    end
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 # Deal with simple extensions of proper extensions of Q.
@@ -332,7 +332,7 @@ function _iso_oscar_gap(FO::SimpleNumField{T}) where T <: FieldElem
       return FO(coeffs)
    end
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 # Deal with non-simple extensions of Q or of extensions of Q.
@@ -366,7 +366,7 @@ function _iso_oscar_gap(FO::NumField)
      end
    end
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 
@@ -379,7 +379,7 @@ function _iso_oscar_gap(FO::QQAbField)
    FG = GAP.Globals.Cyclotomics::GapObj
    f, finv = _iso_oscar_gap_abelian_closure_functions(FO, FG)
 
-   return MapFromFunc(f, finv, FO, FG)
+   return MapFromFunc(FO, FG, f, finv)
 end
 
 """
@@ -487,7 +487,7 @@ function _iso_oscar_gap(RO::PolyRing)
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 
-   return MapFromFunc(f, finv, RO, RG)
+   return MapFromFunc(RO, RG, f, finv)
 end
 
 
@@ -543,7 +543,7 @@ function _iso_oscar_gap(RO::MPolyRing{T}) where T
 
    f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
 
-   return MapFromFunc(f, finv, RO, RG)
+   return MapFromFunc(RO, RG, f, finv)
 end
 
 

@@ -25,7 +25,7 @@ function GaloisCtx(f::PolyRingElem{nf_elem}, P::NfOrdIdl)
   mF = Hecke.extend(mF, k)
   d = reduce(lcm, keys(factor_shape(map_coefficients(mF, f))))
   D = QadicField(p, d, 10)[1]
-  mCD = MapFromFunc(x->D(coeff(x, 0)), C, D)
+  mCD = MapFromFunc(C, D, x->D(coeff(x, 0)))
   H = Hecke.HenselCtxQadic(map_coefficients(x->mCD(mC(x)), f))
   V = Hecke.vanHoeijCtx()
   V.P = P

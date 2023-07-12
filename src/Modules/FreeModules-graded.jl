@@ -990,7 +990,7 @@ function hom(F::FreeModule_dec, G::FreeModule_dec)
     end
     return FreeModuleElem_dec(s, GH)
   end
-  return GH, Hecke.MapFromFunc(im, pre, GH, X)
+  return GH, MapFromFunc(GH, X, im, pre)
 end
 
 function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
@@ -1129,7 +1129,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
     return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
     return SubquoDecModuleElem(emb[1](preimage(mH_s0_t0, g)), H)
   end
-  return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  return H, MapFromFunc(H, Hecke.MapParent(M, N, "homomorphisms"), im, pr)
 end
 
 #TODO
@@ -1287,7 +1287,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
   end
 
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)
@@ -1396,5 +1396,5 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
     end
     return z
   end
-  return X, Hecke.MapFromFunc(im, pr, X, F)
+  return X, MapFromFunc(X, F, im, pr)
 end

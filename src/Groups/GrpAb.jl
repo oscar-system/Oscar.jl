@@ -366,7 +366,7 @@ is_sporadic_simple(G::GrpAbFinGen) = false
 function is_pgroup_with_prime(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
   is_trivial(G) && return true, nothing
   is_finite(G) || return false, nothing
-  flag, p, e = is_prime_power_with_data(order(G))
+  flag, _, p = is_prime_power_with_data(order(G))
   flag && return true, T(p)
   return false, nothing
 end
@@ -382,7 +382,7 @@ nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 # prime_of_pgroup.
 # TODO: enhance @gapattribute so this is not necessary
 function _prime_of_pgroup(G::GrpAbFinGen)
-  flag, p, e = is_prime_power_with_data(order(G))
+  flag, _, p = is_prime_power_with_data(order(G))
   @req flag "only supported for non-trivial p-groups"
   return p
 end

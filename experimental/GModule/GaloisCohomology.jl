@@ -329,7 +329,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
       mG,
-      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y))*A[1], A, K)
+      MapFromFunc(A, K, x->pi^x[1], y->Int(e*valuation(y))*A[1])
   end
 
   if e % prime(K) != 0 && !full #tame!
@@ -355,12 +355,12 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
     end
     return gmodule(G, h),
       mG,
-      MapFromFunc(x->pi^x[1] * gk^x[2],
+      MapFromFunc(A, K, x->pi^x[1] * gk^x[2],
         function(y)
           v = Int(e*valuation(y))
           y *= pi^-v
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
-        end, A, K)
+        end)
   end
  
 #  @show :wild
@@ -614,7 +614,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AnticNumberFiel
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, a))
   end
-  return MapFromFunc(to, from, L, codomain(m))
+  return MapFromFunc(L, codomain(m), to, from)
 end
 
 function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticNumberField})
@@ -640,7 +640,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticN
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, mu(a)))
   end
-  return MapFromFunc(to, from, L, domain(mu))
+  return MapFromFunc(L, domain(mu), to, from)
 end
 
 
@@ -746,7 +746,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
   @vprint :GaloisCohomology 2 " .. S-units (for all) ..\n"
   U, mU = sunit_group_fac_elem(S)
   I.mU = mU
-  z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
+  z = MapFromFunc(codomain(mU), k, x->evaluate(x), y->FacElem(y))
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology -1 is_consistent(E)
@@ -1061,7 +1061,7 @@ function Oscar.completion(I::IdelParent, P::NfAbsOrdIdl)
   z = findall(pr -> mG(pr)(mKp.P) == P, prm)
   pr = inv(prm[z[1]])
   
-  nKp = MapFromFunc(x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)), I.k, Kp)
+  nKp = MapFromFunc(I.k, Kp, x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)))
 
   return Kp, nKp, mGp, mUp, pro * Hecke.canonical_projection(J, z[1]), Hecke.canonical_injection(J, z[1])*inj 
 end
@@ -1466,7 +1466,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     G = s
     mG = ms*mG
   else
-    mp = MapFromFunc(x -> K(x), y-> QQ(y), QQ, K)
+    mp = MapFromFunc(QQ, K, x -> K(x), y-> QQ(y))
   end
   B = RelativeBrauerGroup(mp)
   B.mG = mG
@@ -1498,7 +1498,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     S, mS = sunit_group(lP)
 
     MC = Oscar.GrpCoh.MultGrp(K)
-    mMC = MapFromFunc(x->MC(x), y->y.data, K, MC)
+    mMC = MapFromFunc(K, MC, x->MC(x), y->y.data)
 
     mG = B.mG
     G = domain(mG)
@@ -1548,9 +1548,9 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     return b
   end
 
-  B.map =  MapFromFunc(x->elem_to_cocycle(x), 
-                       y->cocycle_to_elem(y),
-                       B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}}())
+  B.map =  MapFromFunc(B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}}(),
+                       x->elem_to_cocycle(x), 
+                       y->cocycle_to_elem(y))
   return B, B.map
 end
 
