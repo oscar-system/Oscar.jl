@@ -27,7 +27,7 @@ julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2, 0, 1], [-1, -3//2, 1//2, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 1//3], [0, 0, 0, 1, -1//2], [0, 0, 0, 0, 1]]
 
 julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
 
@@ -38,15 +38,15 @@ Normal toric variety
 
 julia> cox_ring(v2)
 Multivariate polynomial ring in 9 variables over QQ graded by
-  a1 -> [0 0]
-  a21 -> [0 0]
-  a32 -> [0 0]
-  a43 -> [0 0]
-  w -> [1 0]
-  x -> [1 2]
-  y -> [1 3]
-  z -> [0 1]
-  e -> [-1 0]
+  a1 -> [1 0 0 0]
+  a21 -> [0 1 0 0]
+  a32 -> [-1 2 0 0]
+  a43 -> [-2 3 0 0]
+  w -> [0 0 1 0]
+  x -> [0 1 1 2]
+  y -> [1 1 1 3]
+  z -> [0 0 0 1]
+  e -> [2 -1 -1 0]
 ```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="")
@@ -209,17 +209,22 @@ end
 
 # Constructs Tate model from given Tate literature model
 function _construct_literature_tate_model(model_dict::Dict{String,Any})
+  @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = PolynomialRing(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-
+  
   base_dim = get(model_dict["model_data"], "base_dim", 3)
-
+  
   a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
   a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
   a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
   a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
   a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
-
-  return global_tate_model([a1, a2, a3, a4, a6], auxiliary_base_ring, base_dim)
+  
+  @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat(model_dict["model_data"]["auxiliary_base_grading"]...)))
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+  
+  return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
 end
 
 # Constructs Weierstrass model from given Weierstrass literature model

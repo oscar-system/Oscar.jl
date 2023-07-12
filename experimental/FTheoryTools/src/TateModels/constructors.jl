@@ -55,7 +55,14 @@ function global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; com
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _tate_ambient_space_from_base(base)
+  # construct the ambient space
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = 2 * anticanonical_divisor_class(base)
+  D2 = 3 * anticanonical_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  
+  # construct the model
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
@@ -125,7 +132,7 @@ global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::
 ################################################
 
 @doc raw"""
-    global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
+    global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -133,6 +140,11 @@ fully specified. The following example exemplifies this approach.
 # Examples
 ```jldoctest
 julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+
+julia> auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
+2×6 Matrix{Int64}:
+ 1   2   3   4   6  0
+ 0  -1  -2  -3  -5  1
 
 julia> a1 = a10;
 
@@ -146,28 +158,63 @@ julia> a6 = a65 * w^5;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
 Global Tate model over a not fully specified base
 ```
 """
-function global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
+function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
-  @req ngens(auxiliary_base_ring) >= d "We expect at least as many base variables as the desired base dimension"
+  @req ngens(auxiliary_base_ring) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
   gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
+  # Find candidate base spaces and perform consistency checks
+  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
+  @req length(candidates) > 0 "Could not find a full regular star triangulation"
+  f = fan(candidates[1])
+  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  
+  # Construct base space of desired dimension
+  fan_rays = matrix(ZZ, rays(f))
+  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
+  fan_max_cone_matrix = matrix(ZZ, cones(f))
+  new_max_cones = Vector{Int}[]
+  for k in 1:nrows(fan_max_cone_matrix)
+    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
+    if length(indices) == d
+      push!(new_max_cones, indices)
+    end
+  end
+  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
+  set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
+  G1 = free_abelian_group(ncols(auxiliary_base_grading))
+  G2 = free_abelian_group(nrows(auxiliary_base_grading))
+  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
+  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+  set_attribute!(auxiliary_base_space, :class_group, G2)
+  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
+  
   # convert Tate sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
   S = cox_ring(auxiliary_base_space)
   ring_map = hom(auxiliary_base_ring, S, gens(S))
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   
-  # construct model
-  auxiliary_ambient_space = _tate_ambient_space_from_base(auxiliary_base_space)
+  # construct ambient space
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
+  D1[1] = 2
+  D1 = toric_divisor_class(auxiliary_base_space, D1)
+  D2 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
+  D2[1] = 3
+  D2 = toric_divisor_class(auxiliary_base_space, D2)
+  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1, D2)
+  
+  # construct the model
   pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
   model = GlobalTateModel(a1, a2, a3, a4, a6, pt, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)
