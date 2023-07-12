@@ -1,7 +1,7 @@
 @attributes mutable struct LieAlgebraIdeal{C<:RingElement,LieT<:LieAlgebraElem{C}}
   base_lie_algebra::LieAlgebra{C}
   gens::Vector{LieT}
-  basis::Vector{LieT}
+  basis_elems::Vector{LieT}
   basis_matrix::MatElem{C}
 
   function LieAlgebraIdeal{C,LieT}(
@@ -10,30 +10,28 @@
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
     L::parent_type(LieT)
     if is_basis
-      basis = gens
+      basis_elems = gens
       basis_matrix = if length(gens) == 0
         matrix(coefficient_ring(L), 0, dim(L), C[])
       else
         matrix(coefficient_ring(L), [coefficients(g) for g in gens])
       end
-      return new{C,LieT}(L, gens, basis, basis_matrix)
+      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     else
-      rank, mat = rref(
-        matrix(
-          coefficient_ring(base_lie_algebra(I)),
-          [
-            [coefficients(g) for g in gens(I) if !iszero(g)]
-            [
-              coefficients(x * g) for x in basis(base_lie_algebra(I)) for
-              g in gens(I) if !iszero(x * g)
-            ]
-            [coefficients(zero(base_lie_algebra(I)))]
-          ],
-        ),
-      )
-      basis_matrix = mat[1:rank, :]
-      basis = [base_lie_algebra(I)(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
-      return new{C,LieT}(L, gens, basis, basis_matrix)
+      basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
+      todo = copy(gens)
+      while !isempty(todo)
+        g = pop!(todo)
+        can_solve(basis_matrix, _matrix(g); side=:left) && continue
+        basis_matrix = vcat(basis_matrix, _matrix(g))
+        for b in basis(L)
+          push!(todo, b * g)
+        end
+        rank = rref!(basis_matrix)
+        basis_matrix = basis_matrix[1:rank, :]
+      end
+      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
 
@@ -69,7 +67,7 @@ function basis_matrix(
 end
 
 function basis(I::LieAlgebraIdeal)
-  return I.basis
+  return I.basis_elems
 end
 
 dim(I::LieAlgebraIdeal) = length(basis(I))
