@@ -216,7 +216,6 @@ function dynkin_diagram(S::Symbol, n::Int64)
   print(D)
 end
 
-<<<<<<< HEAD
 @doc raw"""
     dynkin_diagram(R::RootSystem)
 
@@ -225,10 +224,4 @@ Return the Dynkin diagram of the root system `R`
 function dynkin_diagram(R::RootSystem)
   S = R.root_system_type
   return dynkin_diagram(S[1],S[2])
-=======
-function DynkinDiagram(R::RootSystem)
-	S = R.root_system_type
-  S2 = S[1] * string(S[2])
-	DynkinDiagram(S2)
->>>>>>> Update root_systems.jl
 end
