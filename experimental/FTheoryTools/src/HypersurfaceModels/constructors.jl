@@ -208,6 +208,8 @@ julia> p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^
 -a1*x*y*z + a21*w*x^2*z^2 - a32*w^2*y*z^3 + a43*w^3*x*z^4 + a65*w^5*z^6 + x^3 - y^2
 
 julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p)
+Assuming that the first row of the given grading is the grading under Kbar
+
 Hypersurface model over a not fully specified base
 ```
 """
@@ -253,6 +255,9 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
+  
+  # inform about the assume Kbar grading
+  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
   
   # Construct auxiliary base space
   auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)

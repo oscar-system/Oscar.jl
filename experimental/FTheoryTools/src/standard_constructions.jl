@@ -149,6 +149,8 @@ e.g. [Wei18](@cite) and references therein.
 
 ```jldoctest
 julia> tm = su5_tate_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base
 
 julia> v = underlying_toric_variety(ambient_space(tm))
@@ -196,6 +198,8 @@ e.g. [Wei18](@cite) and references therein.
 
 ```jldoctest
 julia> tm = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 ```
 """
