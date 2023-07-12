@@ -32,7 +32,7 @@ function _iso_oscar_gap(LO::LinearLieAlgebra{C}) where {C<:RingElement}
 
   f, finv = _iso_oscar_gap_lie_algebra_functions(LO, LG, coeffs_iso)
 
-  return MapFromFunc(f, finv, LO, LG)
+  return MapFromFunc(LO, LG, f, finv)
 end
 
 function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
@@ -58,5 +58,5 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
 
   f, finv = _iso_oscar_gap_lie_algebra_functions(LO, LG, coeffs_iso)
 
-  return MapFromFunc(f, finv, LO, LG)
+  return MapFromFunc(LO, LG, f, finv)
 end

@@ -36,7 +36,7 @@ Return the point with the given coordinates.
 
 # Examples
 ```jldoctest
-julia> P = Oscar.Point([QQ(1), QQ(2), QQ(2)])
+julia> P = Point([QQ(1), QQ(2), QQ(2)])
 Point with coordinates QQFieldElem[1, 2, 2]
 ```
 """
@@ -81,7 +81,7 @@ Return the maximal ideal associated to the point `P` in the ring `R`.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> P = Oscar.Point([QQ(2), QQ(1)])
+julia> P = Point([QQ(2), QQ(1)])
 Point with coordinates QQFieldElem[2, 1]
 
 julia> Oscar.ideal_point(R, P)
@@ -109,7 +109,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 julia> F = y^3*x^6 - y^6*x^2
 x^6*y^3 - x^2*y^6
 
-julia> C = Oscar.AffinePlaneCurve(F)
+julia> C = AffinePlaneCurve(F)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 ```
 """
@@ -153,7 +153,7 @@ julia> T, _ = grade(R)
 julia> F = T(y^3*x^6 - y^6*x^2*z)
 x^6*y^3 - x^2*y^6*z
 
-julia> Oscar.ProjPlaneCurve(F)
+julia> ProjPlaneCurve(F)
 Projective plane curve defined by x^6*y^3 - x^2*y^6*z
 ```
 """
@@ -276,7 +276,7 @@ Return the Jacobian ideal of the defining polynomial of `C`.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> C = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.jacobi_ideal(C)
@@ -300,7 +300,7 @@ Return a dictionary containing the irreducible components of `C` and their multi
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> C = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.curve_components(C)
@@ -332,13 +332,13 @@ Return `true` if `C` is irreducible, and `false` otherwise.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+julia> C = AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.is_irreducible(C)
 true
 
-julia> D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> D = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.is_irreducible(D)
@@ -362,13 +362,13 @@ Return `true` if `C` is reduced, and `false` otherwise.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+julia> C = AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.is_reduced(C)
 true
 
-julia> D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> D = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.is_reduced(D)
@@ -398,7 +398,7 @@ Return the plane curve defined by the squarefree part of the equation of `C`.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> C = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.reduction(C)
@@ -440,10 +440,10 @@ Return the union of `C` and `D` (with multiplicity).
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+julia> C = AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
-julia> D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
+julia> D = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> union(C, D)
@@ -465,7 +465,7 @@ Return the coordinate ring of the curve `C`.
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
+julia> C = AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.ring(C)

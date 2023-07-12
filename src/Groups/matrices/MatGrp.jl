@@ -864,7 +864,7 @@ julia> gens(H)
 ```
 """
 function unitary_group(n::Int, q::Int)
-   fl, b, a = is_prime_power_with_data(q)
+   fl, a, b = is_prime_power_with_data(q)
    @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
@@ -890,7 +890,7 @@ julia> gens(H)
 ```
 """
 function special_unitary_group(n::Int, q::Int)
-   fl, b, a = is_prime_power_with_data(q)
+   fl, a, b = is_prime_power_with_data(q)
    @req fl "The field size must be a prime power"
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
