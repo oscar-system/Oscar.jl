@@ -117,7 +117,7 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia --project=docs --color=yes -e '
+          julia --project=docs --depwarn=error --color=yes -e'
             using Documenter
             using Oscar
             DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
