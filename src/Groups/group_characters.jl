@@ -132,7 +132,7 @@ end
 function isomorphism_to_GAP_group(G::GAPGroup)
     f = function(x) return x.X; end
     finv = function(x::GAP.Obj) return group_element(G, x); end
-    return MapFromFunc(f, finv, G, G.X)
+    return MapFromFunc(G, G.X, f, finv)
 end
 
 function isomorphism_to_GAP_group(G::GrpAbFinGen)
@@ -142,7 +142,7 @@ function isomorphism_to_GAP_group(G::GrpAbFinGen)
     @assert C isa GAPGroup
     f = function(x) return iso(x).X; end
     finv = function(x::GAP.Obj) return preimage(iso, group_element(C, x)); end
-    return MapFromFunc(f, finv, G, C.X)
+    return MapFromFunc(G, C.X, f, finv)
 end
 
 function isomorphism_to_GAP_group(tbl::GAPGroupCharacterTable)
@@ -1859,7 +1859,7 @@ function character_field(chi::GAPGroupClassFunction)
       end
     end
 
-    return F, MapFromFunc(f, finv, F, FF)
+    return F, MapFromFunc(F, FF, f, finv)
 end
 
 @doc raw"""

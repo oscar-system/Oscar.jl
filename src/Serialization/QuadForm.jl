@@ -6,7 +6,7 @@
 
 function save_internal(s::SerializerState, V::Hecke.QuadSpace)
     return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(V)),
+        :base_ring => save_as_ref(s, base_ring(V)),
         :gram_matrix => save_type_dispatch(s, gram_matrix(V))
     )
 end

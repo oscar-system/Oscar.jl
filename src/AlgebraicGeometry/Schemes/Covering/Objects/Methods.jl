@@ -56,13 +56,18 @@ function neighbor_patches(C::Covering, U::AbsSpec)
 end
 
 ## compute the glueing graph for the given covering and store it
-function update_glueing_graph(C::Covering)
+function update_glueing_graph(C::Covering; all_dense::Bool=false)
   n = npatches(C)
   gg = Graph{Undirected}(n)
   for (X, Y) in keys(glueings(C))
-    (U, V) = glueing_domains(C[X,Y])
-    is_dense(U) && add_edge!(gg, C[X], C[Y])
-    is_dense(V) && add_edge!(gg, C[Y], C[X])
+    if all_dense
+      add_edge!(gg, C[X], C[Y])
+      add_edge!(gg, C[Y], C[X])
+    else
+      (U, V) = glueing_domains(C[X,Y])
+      is_dense(U) && add_edge!(gg, C[X], C[Y])
+      is_dense(V) && add_edge!(gg, C[Y], C[X])
+    end
   end
   C.glueing_graph = gg
   return gg

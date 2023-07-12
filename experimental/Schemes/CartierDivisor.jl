@@ -220,6 +220,9 @@ end
 function weil_divisor(C::EffectiveCartierDivisor;
     is_prime::Bool=false # Indicate whether this divisor is already prime
   )
+  return WeilDivisor(ideal_sheaf(C), ZZ, check=is_prime)
+
+  # TODO: See what we can recycle from the code below.
   X = scheme(C)
   OOX = OO(X)
 
@@ -248,10 +251,11 @@ function weil_divisor(C::CartierDivisor)
   return result
 end
 
-function intersect(W::WeilDivisor, C::EffectiveCartierDivisor)
+function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
   X = scheme(W)
   result = zero(W)
   for I in components(W)
+    @check isprime(I) "all components of the first argument must be sheaves of prime ideals"
     inc_Y = CoveredClosedEmbedding(X, I, check=false)
     #inc_Y = CoveredClosedEmbedding(X, I, covering=trivializing_covering(C), check=false)
     Y = domain(inc_Y)
@@ -262,28 +266,37 @@ function intersect(W::WeilDivisor, C::EffectiveCartierDivisor)
   return result
 end
 
-function intersect(W::WeilDivisor, C::CartierDivisor)
+@doc raw"""
+    intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
+
+Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
+returns an `AbsAlgebraicCycle` of codimension ``2``.
+
+!!! note
+  The `components` of ``W`` must be sheaves of prime ideals; use `irreducible_decomposition(W)` to achieve this. The check for primality can be switched off using `check=false`. 
+"""
+function intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
   result = zero(W)
   for c in components(C)
-    result = result + C[c] * intersect(W, c)
+    result = result + C[c] * intersect(W, c, check=check)
   end
   return result
 end
 
 function intersect(D::EffectiveCartierDivisor, C::EffectiveCartierDivisor)
-  return intersect(weil_divisor(D), C)
+  return intersect(irreducible_decomposition(weil_divisor(D)), C)
 end
 
 function intersect(D::EffectiveCartierDivisor, C::CartierDivisor)
-  return intersect(weil_divisor(D), C)
+  return intersect(irreducible_decomposition(weil_divisor(D)), C)
 end
 
 function intersect(D::CartierDivisor, C::EffectiveCartierDivisor)
-  return intersect(weil_divisor(D), C)
+  return intersect(irreducible_decomposition(weil_divisor(D)), C)
 end
 
 function intersect(D::CartierDivisor, C::CartierDivisor)
-  return intersect(weil_divisor(D), C)
+  return intersect(irreducible_decomposition(weil_divisor(D)), C)
 end
 
 

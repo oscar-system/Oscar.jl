@@ -4,26 +4,31 @@
         "doi": "10.48550/arXiv.1109.3454",
         "version": "2",
         "discipline": "hep-th",
-        "link": "https://arxiv.org/abs/1109.3454v2"
+        "link": "https://arxiv.org/abs/1109.3454v2",
+        "model_location": {
+            "section": "3",
+            "equation": "3.1",
+            "page": "10"
+        }
     },
     "journal_data": {
         "doi": "10.1016/j.nuclphysb.2011.12.013",
         "journal": "Nucl. Phys. B",
         "volume": "858",
-        "pages": "1--47",
+        "pages": "1–47",
         "year": "2012",
-        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115",
+        "model_location": {
+            "section": "3",
+            "equation": "3.1",
+            "page": "9"
+        }
     },
     "paper_metadata": {
         "authors": ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"],
         "title": "$G_4$ flux, chiral matter and singularity resolution in F-theory compactifications",
         "description": "SU(5)xU(1) restricted Tate model",
         "buzzwords": ["GUT model", "Tate", "U(1)", "SU(5)"]
-    },
-    "model_location": {
-        "section": "3",
-        "equation": "3.1",
-        "page": "10"
     },
     "model_data": {
         "type": "tate",
@@ -40,7 +45,7 @@
             [1, 2, 3, 4, 0],
             [0, -1, -2, -3, 1]
         ],
-        "generating_sections": [[["0", "0", "1"]]],
+        "generating_sections": [["0", "0", "1"]],
         "resolutions": [
             [
                 [
@@ -53,7 +58,7 @@
                 ["e1", "e4", "e2", "e3", "s"]
             ]
         ],
-        "resolution_zero_section": [
+        "resolution_zero_sections": [
             [
                 ["1", "1", "0"],
                 ["1", "1", "w"],
@@ -102,7 +107,7 @@
                 ["e1", "e4", "e2", "e3", "s"]
             ]
         ],
-        "weighted_resolution_zero_section": [
+        "weighted_resolution_zero_sections": [
             [
                 ["1", "1", "0"],
                 ["1", "1", "w"],

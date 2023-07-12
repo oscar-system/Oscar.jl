@@ -162,9 +162,20 @@ end
 #######################################
 
 function Base.show(io::IO, w::WeierstrassModel)
+  properties_string = ["Weierstrass model over a"]
   if base_fully_specified(w)
-    print(io, "Weierstrass model over a concrete base")
+    push!(properties_string, "concrete base")
   else
-    print(io, "Weierstrass model over a not fully specified base")
+    push!(properties_string, "not fully specified base")
   end
+  if has_model_description(w)
+    push!(properties_string, "-- " * string(get_attribute(w, :model_description)))
+  end
+  if has_arxiv_id(w)
+    push!(properties_string, "based on arXiv paper " * string(get_attribute(w, :arxiv_id)))
+  end
+  if has_arxiv_model_equation_number(w)
+    push!(properties_string, "Eq. (" * string(get_attribute(w, :arxiv_model_equation_number)) * ")")
+  end
+  join(io, properties_string, " ")
 end

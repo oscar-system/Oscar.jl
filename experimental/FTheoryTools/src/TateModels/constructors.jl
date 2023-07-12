@@ -186,14 +186,14 @@ function Base.show(io::IO, t::GlobalTateModel)
   else
     push!(properties_string, "not fully specified base")
   end
-  if has_description(t)
-    push!(properties_string, "-- " * string(get_attribute(t, :description)))
+  if has_model_description(t)
+    push!(properties_string, "-- " * string(get_attribute(t, :model_description)))
   end
   if has_arxiv_id(t)
     push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))
   end
-  if has_equation_number(t)
-    push!(properties_string, "Eq. (" * string(get_attribute(t, :equation_number)) * ")")
+  if has_arxiv_model_equation_number(t)
+    push!(properties_string, "Eq. (" * string(get_attribute(t, :arxiv_model_equation_number)) * ")")
   end
   join(io, properties_string, " ")
 end

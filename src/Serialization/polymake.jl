@@ -24,7 +24,7 @@ const polymake2OscarTypes = Dict{String, Type}([
     "common::GraphAdjacency<Directed>" => Graph{Directed},
 ])
 
-@registerSerializationType(Polymake.BigObjectAllocated, "Polymake.BigObject")
+@registerSerializationType(Polymake.BigObjectAllocated, true, "Polymake.BigObject")
 
 function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
         S<:scalar_types,

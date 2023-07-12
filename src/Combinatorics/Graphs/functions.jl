@@ -1,19 +1,16 @@
 import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
-################################################################################
-################################################################################
-##  Constructing and modifying
-################################################################################
-################################################################################
-struct Graph{T <: Union{Directed, Undirected}}
-    pm_graph::Polymake.Graph{T}
-end
 function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
     return G.pm_graph
 end
 
 
+################################################################################
+################################################################################
+##  Constructing and modifying
+################################################################################
+################################################################################
 
 @doc raw"""
     Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
@@ -269,6 +266,8 @@ end
 ##  Accessing properties
 ################################################################################
 ################################################################################
+@alias nv nvertices
+
 @doc raw"""
     nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
@@ -309,6 +308,7 @@ function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
 
+@alias nedges ne
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
