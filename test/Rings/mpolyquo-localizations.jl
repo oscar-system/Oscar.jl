@@ -307,6 +307,7 @@ end
   Q3 = MPolyQuoLocRing(R,IQ,U3)
   J1 = ideal(Q1,[x^2-y^2,y^2-z^2,x^2-z^2])
   @test length(minimal_generating_set(J1)) == 1
+  @test length(small_generating_set(J2)) == 1
   J2 = ideal(Q2,[x^2-y^2,y^2-z^2,x^2-z^2])
   @test length(small_generating_set(J2)) == 1
   J3 = ideal(Q3,[x^2-z^2,y*(y-1)])
