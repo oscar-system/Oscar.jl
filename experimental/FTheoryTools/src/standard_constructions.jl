@@ -162,28 +162,29 @@ julia> v2 = blow_up(v,I)
 Normal toric variety
 
 julia> cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by
-  a10 -> [0 0]
-  a21 -> [0 0]
-  a32 -> [0 0]
-  a43 -> [0 0]
-  a65 -> [0 0]
-  w -> [1 0]
-  x -> [1 2]
-  y -> [1 3]
-  z -> [0 1]
-  e -> [-1 0]
+Multivariate polynomial ring in 10 variables over QQ graded by 
+  a10 -> [1 0 0 0]
+  a21 -> [0 1 0 0]
+  a32 -> [-1 2 0 0]
+  a43 -> [-2 3 0 0]
+  a65 -> [-4 5 0 0]
+  w -> [0 0 1 0]
+  x -> [0 1 1 2]
+  y -> [1 1 1 3]
+  z -> [0 0 0 1]
+  e -> [2 -1 -1 0]
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()
     auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
-    a1 = a10;
-    a2 = a21 * w;
-    a3 = a32 * w^2;
-    a4 = a43 * w^3;
-    a6 = a65 * w^5;
-    ais = [a1, a2, a3, a4, a6];
-    return global_tate_model(ais, auxiliary_base_ring, 3)
+    auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
+    a1 = a10
+    a2 = a21 * w
+    a3 = a32 * w^2
+    a4 = a43 * w^3
+    a6 = a65 * w^5
+    ais = [a1, a2, a3, a4, a6]
+    return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
 end
 
 @doc raw"""

@@ -74,23 +74,23 @@ julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = resolve(m, 1)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2], [0, 0, 1, 0, 0, -1, -2], [0, 0, 1, 0, 0, -1, -1], [0, 0, 1, 0, 0, 0, -1], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2, 0, 1], [-1, -3//2, 1//2, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 1//3], [0, 0, 0, 1, -1//2], [0, 0, 0, 0, 1], [0, 0, 1, -1, 0], [0, 0, 1, 1, -1], [0, 0, 1, -2, 0], [0, 0, 1, 0, -1], [0, 0, 0, -1, 0]]
 
 julia> cox_ring(v)
-Multivariate polynomial ring in 13 variables over QQ graded by
-  a1 -> [0 0 0 0 0 0]
-  a21 -> [0 0 0 0 0 0]
-  a32 -> [0 0 0 0 0 0]
-  a43 -> [0 0 0 0 0 0]
-  w -> [1 0 0 0 0 0]
-  x -> [0 1 0 0 0 0]
-  y -> [0 0 1 0 0 0]
-  z -> [0 0 0 1 0 0]
-  e1 -> [0 0 0 0 1 0]
-  e4 -> [0 0 0 0 0 1]
-  e2 -> [-1 -1 1 -1 -1 0]
-  e3 -> [0 1 -1 1 0 -1]
-  s -> [2 -1 0 2 1 1]
+Multivariate polynomial ring in 13 variables over QQ graded by 
+  a1 -> [1 0 0 0 0 0 0 0]
+  a21 -> [0 1 0 0 0 0 0 0]
+  a32 -> [-1 2 0 0 0 0 0 0]
+  a43 -> [-2 3 0 0 0 0 0 0]
+  w -> [0 0 1 0 0 0 0 0]
+  x -> [0 0 0 1 0 0 0 0]
+  y -> [0 0 0 0 1 0 0 0]
+  z -> [0 0 0 0 0 1 0 0]
+  e1 -> [0 0 0 0 0 0 1 0]
+  e4 -> [0 0 0 0 0 0 0 1]
+  e2 -> [1 -1 -1 -1 1 -1 -1 0]
+  e3 -> [1 0 0 1 -1 1 0 -1]
+  s -> [-2 2 2 -1 0 2 1 1]
 ```
 """
 function resolve(m::AbstractFTheoryModel, index::Int)

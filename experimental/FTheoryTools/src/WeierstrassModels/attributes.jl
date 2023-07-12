@@ -92,7 +92,7 @@ julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
 Weierstrass model over a not fully specified base
 
 julia> ambient_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, 4, -2, 0, 1], [-1, -3//2, -5//2, 1//2, 0, 0], [1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, -1, 1//3], [0, 0, 0, 0, 1, -1//2], [0, 0, 0, 0, 0, 1]]
 ```
 """
 function ambient_space(w::WeierstrassModel)

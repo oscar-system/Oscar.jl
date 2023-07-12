@@ -146,7 +146,7 @@ such an analysis are not limited to the world of toric varieties.
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 ```
 
 

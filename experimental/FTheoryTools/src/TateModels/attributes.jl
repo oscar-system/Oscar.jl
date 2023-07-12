@@ -123,7 +123,7 @@ julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2], [-1, -3//2, 1//2], [1, 0, 0], [0, 1, 0], [0, 0, 1]]
 ```
 """
 function base_space(t::GlobalTateModel)
@@ -142,7 +142,7 @@ julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2]]
+Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2, 0, 1], [-1, -3//2, 1//2, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 1//3], [0, 0, 0, 1, -1//2], [0, 0, 0, 0, 1]]
 ```
 """
 function ambient_space(t::GlobalTateModel)
@@ -295,6 +295,8 @@ sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify t
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
 
+julia> auxiliary_base_grading = [1 2 3 4 6 0; -1 -1 -1 -1 -2 1];
+
 julia> a1 = a11 * w;
 
 julia> a2 = a21 * w;
@@ -307,7 +309,7 @@ julia> a6 = a62 * w^2;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
 Global Tate model over a not fully specified base
 
 julia> length(singular_loci(t))

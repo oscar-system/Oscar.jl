@@ -105,10 +105,6 @@ end
 # 3: Construct the Weierstrass/Tate ambient space
 ################################################################
 
-_tate_ambient_space_from_base(base::NormalToricVariety) = _weierstrass_ambient_space_from_base(base)
-
-_tate_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
-
 _weierstrass_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
 
 function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)

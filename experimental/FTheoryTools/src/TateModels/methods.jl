@@ -68,4 +68,5 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   end
   
   return loci_fiber_intersections
+
 end
