@@ -269,7 +269,7 @@ end
 # According to [BH23], the quotient D^{-1}L^#/L is unimodular at p
 # if and only if 
 #  - either L is unimodular at p, and D and p are coprime
-#  - or D^{-1}L^# is P^a-modular where P is largest prime ideal
+#  - or L is P^{-a}-modular where P is largest prime ideal
 #    over p fixed the canonical involution, and a is the valuation of D at P. 
 
 function _elementary_divisors(L::HermLat, D::Hecke.NfRelOrdIdl)
@@ -281,14 +281,15 @@ function _elementary_divisors(L::HermLat, D::Hecke.NfRelOrdIdl)
     ok && a == -valuation(D, P) && continue
     push!(primess, p)
   end
+  minPs = minimum.(Ps)
   for p in primes(genus(L))
-    (p in primess) && continue
+    ((p in primess) || (p in minPs)) && continue
     push!(primess, p)
   end
   return primess
 end
 
-# We compute here the map delta from Theorem 6.15 of BH22. Its kernel is
+# We compute here the map delta from Theorem 6.15 of BH23. Its kernel is
 # precisely the image of the map O(L, f) \to O(D_L, D_f).
 #
 # This map is defined on the centralizer O(D_L, D_f) of D_f in O(D_L). For
@@ -334,7 +335,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
 
   # Since any isometry of L centralizing f induces an isometry of qL centralising
   # fqL, G is the group where we want to compute the image of O(L, f). This
-  # group G corresponds to U(D_L) in the notation of BH22.
+  # group G corresponds to U(D_L) in the notation of BH23.
   G2, _ = centralizer(OqL2, fqL2)
   G, _ = sub(OqL, [OqL(compose(phi12, compose(hom(g), inv(phi12)))) for g in gens(G2)])
   GtoG2 = hom(G, G2, gens(G), gens(G2))
@@ -413,7 +414,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   f = hom(gens(RmodFsharp), A)
   FmodFsharp, j = kernel(f)
 
-  # Now according to Theorem 6.15 of BH22, it remains to quotient out the image
+  # Now according to Theorem 6.15 of BH23, it remains to quotient out the image
   # of the units in E of norm 1.
   Eabs, EabstoE = Hecke.absolute_simple_field(E)
   OEabs = maximal_order(Eabs)
@@ -426,7 +427,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
 
   gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
 
-  # Now according to Theorem 6.15 of BH22, it remains to quotient out
+  # Now according to Theorem 6.15 of BH23, it remains to quotient out
   FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog([x for i in 1:length(S)]) for x in gene_norm_one])
 
   I = intersect(FOEmodFsharp, FmodFsharp)
@@ -444,20 +445,24 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   imgs = elem_type(SQ)[]
   # For each of our matrices in gene_herm, we do successive P-adic liftings in
   # order to approximate an isometry of D^{-1}H^#, up to a certain precision
-  # (given by Theorem 6.25 in BH22). We do this for all the primes we have to
+  # (given by Theorem 6.25 in BH23). We do this for all the primes we have to
   # consider up to now, and then map the corresponding determinant adeles inside
   # Q. Since our matrices were approximate lifts of the generators of G, we can
   # create the map we wanted from those data.
   for g in gens(G2)
     ds = elem_type(E)[]
     for p in S
-      lp = prime_decomposition(OE, p)
-      P = lp[1][1]
-      k = valuation(N, p)
-      a = valuation(DEQ, P)
-      e = valuation(DEK, P)
-      g_approx = _approximate_isometry(H, H2, g, P, e, a, k, res)
-      push!(ds, det(g_approx))
+      if !_is_special(H, p)
+        push!(ds, one(E))
+      else
+        lp = prime_decomposition(OE, p)
+        P = lp[1][1]
+        k = valuation(N, p)
+        a = valuation(DEQ, P)
+        e = valuation(DEK, P)
+        g_approx = _approximate_isometry(H, H2, g, P, e, a, k, res)
+        push!(ds, det(g_approx))
+      end
     end
     push!(imgs, dlog(ds))
   end
@@ -599,7 +604,7 @@ function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke
   return r
 end
 
-# This is algorithm 8 of BH22: under the good assumptions, then we can do a
+# This is algorithm 8 of BH23: under the good assumptions, then we can do a
 # P-adic lifting of a matrix which represents an isometry up to a certain
 # precision. In this way, we approximate our matrix by another matrix, to a
 # given precision and the new matrix defines also an isometry up to a finer
@@ -617,7 +622,7 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::H
 
   # R represents the defect, how far F is to be an isometry of G
   R = G - F*G*map_entries(involution(E), transpose(F))
-  # These are the necessary conditions for the input of algorithm 8 in BH22
+  # These are the necessary conditions for the input of algorithm 8 in BH23
   if check
     @hassert :ZZLatWithIsom 1 _scale_valuation(inv(G), P) >= 1+a
     @hassert :ZZLatWithIsom 1 _norm_valuation(inv(G), P) + valuation(rho, P) >= 1+a
@@ -744,7 +749,10 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
   E = nf(OE)
   lp = prime_decomposition(OE, minimum(P))
   dya = is_dyadic(P)
-  !dya && return E(1//2)
+  if !dya
+    length(lp) == 1 && return E(1//2)
+    return gen(E)
+  end
   lp = prime_decomposition(OE, minimum(P))
   if lp[1][2] == 1
     return Hecke._special_unit(P, minimum(P))

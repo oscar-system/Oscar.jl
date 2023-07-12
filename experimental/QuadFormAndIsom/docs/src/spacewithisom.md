@@ -24,7 +24,7 @@ $f$ is of infinite order, then `n = PosInf`. If $V$ has rank 0, then any
 isometry $f$ of $V$ is trivial and we set by default `n = -1`.
 
 Given a quadratic space with isometry $(V, f)$, we provide the following
-accessors to the elements of the previously described tripe:
+accessors to the elements of the previously described triple:
 
 ```@docs
 isometry(::QuadSpaceWithIsom)
@@ -54,18 +54,13 @@ an isometry of the quadratic space. We recommend not to disable this parameter
 to avoid any complications. Note however that in the rank 0 case, the checks are
 avoided since all isometries are necessarily trivial.
 
-### Examples
-
-```@repl2
-using Oscar # hide
-```
-
 ## Attributes and first operations
 
 Given a quadratic space with isometry $Vf := (V, f)$, one can have access to
 most of the attributes of $V$ and $f$ by calling the similar functions to the
 pair $(V, f)$ itself. For instance, in order to know the rank of $V$, one can
-simply `rank(Vf)`. Here is a list of what are the current accessible attributes:
+simply call `rank(Vf)`. Here is a list of what are the current accessible
+attributes:
 
 ```@docs
 characteristic_polynomial(::QuadSpaceWithIsom)

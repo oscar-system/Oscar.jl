@@ -38,11 +38,10 @@ currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non optimized algorithms.
 
 Among the possible improvements and extensions:
-* Implement methods for lattices with isometries of infinite order;
+* Implement extra methods for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
-* Implement methods for more kinds of (equivariant) primitive embeddings;
-* Implement methods for more kinds of (equivariant) primitive extensions.
+* Extend existing methods for equivariant primitive embeddings/extensions.
 
 ## Currently application of this project
 
@@ -54,17 +53,56 @@ dimensional analog of K3 surface.
 
 ## Tutorials
 
+No tutorials available at the moment.
+
+## Examples
+
+No examples available at the moment.
 
 ## Notice to the user
+
+### Disclaimer
 
 Since this project is still under development, feel free to try any feature and
 report all the bugs you may have found. Any suggestions for improvements or
 extensions are more than welcome. Refer to the next section to know who you
-should contact and how.
+should contact and how. Do not hesitate either to ask for new features - we
+will be glad to add anything you may need for your research.
 
 One may expect many things to vary within the next months: name of the
 functions, available features, performance. This is due to the fact that the
 current version of the code is still at an experimental stage.
+
+### Report an issue
+
+If you are working with some objects of type `QuadSpaceWithIsom` or `ZZLatWithIsom`
+and you need to report an issue, you can produce directly some lines of codes
+helping to reconstruct your example. This can help the reviewers to understand
+your issue and assist you. We have implemented a method `to_oscar` which
+prints few lines of codes for reconstructing your example.
+
+```@repl 2
+using Oscar # hide
+V = quadratic_space(QQ, 2);
+Vf = quadratic_space_with_isometry(V, neg = true)
+Oscar.to_oscar(Vf)
+
+Lf = lattice(Vf)
+Oscar.to_oscar(Lf)
+```
+
+## Make the code more talkative
+
+Within the code, there are more hidden messages and testing which are disabled
+by default. If you plan to experiment with the codes with your favourite
+examples, you may want to be able to detect some issues to be reported, as well
+as knowing what the code is doing. Indeed, some functions might take time in
+term of compilation but also computations. For this, you can enable these extra
+tests and printings by setting:
+                                                                                                     
+```julia
+Oscar.set_lwi_level(2)
+```
 
 ## Contact
 

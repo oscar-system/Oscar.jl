@@ -9,6 +9,16 @@
     lattice(Lf::ZZLatWithIsom) -> ZZLat
 
 Given a lattice with isometry $(L, f)$, return the underlying lattice `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> lattice(Lf) === L
+true
+```
 """
 lattice(Lf::ZZLatWithIsom) = Lf.Lb
 
@@ -16,6 +26,20 @@ lattice(Lf::ZZLatWithIsom) = Lf.Lb
     isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the underlying isometry `f`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> isometry(Lf)
+[-1    0    0    0    0]
+[ 0   -1    0    0    0]
+[ 0    0   -1    0    0]
+[ 0    0    0   -1    0]
+[ 0    0    0    0   -1]
+```
 """
 isometry(Lf::ZZLatWithIsom) = Lf.f
 
@@ -28,6 +52,26 @@ inducing `f` on `L`.
 
 Note that `g` might not be unique and we fix such a global isometry
 together with `V` into a container type `QuadSpaceWithIsom`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> Vf = ambient_space(Lf)
+Quadratic space of dimension 5
+  with isometry of finite order 2
+  given by
+  [-1    0    0    0    0]
+  [ 0   -1    0    0    0]
+  [ 0    0   -1    0    0]
+  [ 0    0    0   -1    0]
+  [ 0    0    0    0   -1]
+
+julia> typeof(Vf)
+QuadSpaceWithIsom
+```
 """
 ambient_space(Lf::ZZLatWithIsom) = Lf.Vf
 
@@ -35,15 +79,39 @@ ambient_space(Lf::ZZLatWithIsom) = Lf.Vf
    ambient_isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return an isometry of the ambient
-space of `L` inducing `f` on `L`
+space of `L` inducing `f` on `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> ambient_isometry(Lf)
+[-1    0    0    0    0]
+[ 0   -1    0    0    0]
+[ 0    0   -1    0    0]
+[ 0    0    0   -1    0]
+[ 0    0    0    0   -1]
+```
 """
 ambient_isometry(Lf::ZZLatWithIsom) = isometry(ambient_space(Lf))
 
 @doc raw"""
-    order_of_isometry(Lf::ZZLatWithIsom) -> Integer
+    order_of_isometry(Lf::ZZLatWithIsom) -> IntExt
 
 Given a lattice with isometry $(L, f)$, return the order of the underlying
 isometry `f`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> order_of_isometry(Lf) == 2
+true
+```
 """
 order_of_isometry(Lf::ZZLatWithIsom) = Lf.n
 
@@ -60,6 +128,16 @@ Given a lattice with isometry $(L, f)$, return the rank of the underlying lattic
 `L`.
 
 See [`rank(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> rank(Lf)
+5
+```
 """
 rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))::Integer
 
@@ -68,6 +146,16 @@ rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))::Integer
 
 Given a lattice with isometry $(L, f)$, return the characteristic polynomial of the
 underlying isometry `f`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> factor(characteristic_polynomial(Lf))
+1 * (x + 1)^5
+```
 """
 characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))::QQPolyRingElem
 
@@ -76,6 +164,16 @@ characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometr
 
 Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
 underlying isometry `f`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> minimal_polynomial(Lf)
+x + 1
+```
 """
 minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))::QQPolyRingElem
 
@@ -86,6 +184,20 @@ Given a lattice with isometry $(L, f)$, return the genus of the underlying
 lattice `L`.
 
 See [`genus(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true);
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (5, 0, 0)
+Local symbols:
+  Local genus symbol at 2: 1^-4 2^1_7
+  Local genus symbol at 3: 1^-4 3^1
+```
 """
 genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
 
@@ -96,6 +208,33 @@ Given a lattice with isometry $(L, f)$, return the basis matrix of the underlyin
 lattice `L`.
 
 See [`basis_matrix(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ,5,5,[ 1  0  0  0  0;
+                          -1 -1 -1 -1 -1;
+                           0  0  0  0  1;
+                           0  0  0  1  0;
+                           0  0  1  0  0])
+[ 1    0    0    0    0]
+[-1   -1   -1   -1   -1]
+[ 0    0    0    0    1]
+[ 0    0    0    1    0]
+[ 0    0    1    0    0]
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> invariant_lattice(Lf);
+
+julia> I = invariant_lattice(Lf);
+
+julia> basis_matrix(I)
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+```
 """
 basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
 
@@ -106,6 +245,20 @@ Given a lattice with isometry $(L, f)$, return the gram matrix of the underlying
 lattice `L` with respect to its basis matrix.
 
 See [`gram_matrix(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> gram_matrix(Lf)
+[ 2   -1    0    0    0]
+[-1    2   -1    0    0]
+[ 0   -1    2   -1    0]
+[ 0    0   -1    2   -1]
+[ 0    0    0   -1    2]
+```
 """
 gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
 
@@ -117,6 +270,26 @@ $L \otimes \mathbb{Q}$ of the underlying lattice `L` together with the
 underlying isometry of `L`.
 
 See [`rational_span(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> Vf = rational_span(Lf)
+Quadratic space of dimension 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> typeof(Vf)
+QuadSpaceWithIsom
+```
 """
 rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(lattice(Lf)), isometry(Lf))::QuadSpaceWithIsom
 
@@ -127,6 +300,16 @@ Given a lattice with isometry $(L, f)$, return the determinant of the
 underlying lattice `L`.
 
 See [`det(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> det(Lf)
+6
+```
 """
 det(Lf::ZZLatWithIsom) = det(lattice(Lf))::QQFieldElem
 
@@ -137,6 +320,16 @@ Given a lattice with isometry $(L, f)$, return the scale of the underlying
 lattice `L`.
 
 See [`scale(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> scale(Lf)
+1
+```
 """
 scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))::QQFieldElem
 
@@ -147,6 +340,16 @@ Given a lattice with isometry $(L, f)$, return the norm of the underlying
 lattice `L`.
 
 See [`norm(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> norm(Lf)
+2
+```
 """
 norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))::QQFieldElem
 
@@ -157,6 +360,16 @@ Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is positive definite.
 
 See [`is_positive_definite(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_positive_definite(Lf)
+true
+```
 """
 is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))::Bool
 
@@ -167,6 +380,16 @@ Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is negative definite.
 
 See [`is_positive_definite(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_negative_definite(Lf)
+false
+```
 """
 is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))::Bool
 
@@ -177,6 +400,16 @@ Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is definite.
 
 See [`is_definite(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_definite(Lf)
+true
+```
 """
 is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))::Bool
 
@@ -187,6 +420,16 @@ Given a positive definite lattice with isometry $(L, f)$, return the minimum
 of the underlying lattice `L`.
 
 See [`minimum(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> minimum(Lf)
+2
+```
 """
 function minimum(Lf::ZZLatWithIsom)
   @req is_positive_definite(Lf) "Underlying lattice must be positive definite"
@@ -200,6 +443,16 @@ Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 `L` is integral.
 
 See [`is_integral(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_integral(Lf)
+true
+```
 """
 is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))::Bool
 
@@ -210,6 +463,16 @@ Given a lattice with isometry $(L, f)$, return the degree of the underlying
 lattice `L`.
 
 See [`degree(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> degree(Lf)
+5
+```
 """
 degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))::Int
 
@@ -220,6 +483,16 @@ Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 `L` is even.
 
 See [`is_even(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_even(Lf)
+true
+```
 """
 is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))::Bool
 
@@ -230,6 +503,16 @@ Given a lattice with isometry $(L, f)$, return the discriminant of the underlyin
 lattice `L`.
 
 See [`discriminant(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> discriminant(Lf) == det(Lf) == 6
+true
+```
 """
 discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
 
@@ -240,6 +523,16 @@ Given a lattice with isometry $(L, f)$, return the signature tuple of the
 underlying lattice `L`.
 
 See [`signature_tuple(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> signature_tuple(Lf)
+(5, 0, 0)
+```
 """
 signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
 
@@ -261,6 +554,65 @@ If `ambient_representation` is set to true, `f` is consider as an isometry of th
 ambient space of `L` and the induced isometry on `L` is automatically computed.
 Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
 on the complement of the rational span of `L` if it is not of full rank.
+
+# Examples
+
+The way we construct the lattice can have an influence on the isometry of the
+ambient space we store. Indeed, if one mentions an isometry of the lattice,
+this isometry will be extended by the identity on the orthogonal complement
+of the rational span of the lattice. In the following example, `Lf` and `Lf2` are
+the same object, but the isometry of their ambient space stored are totally
+different (one has order 2, the other one is the identity).
+
+```jldoctest
+julia> B = matrix(QQ, 3, 5, [1 0 0 0 0;
+                             0 0 1 0 1;
+                             0 0 0 1 0]);
+
+julia> G = matrix(QQ, 5, 5, [ 2 -1  0  0  0;
+                             -1  2 -1  0  0;
+                              0 -1  2 -1  0;
+                              0  0 -1  2 -1;
+                              0  0  0 -1  2]);
+
+julia> L = integer_lattice(B, gram = G);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> ambient_isometry(Lf)
+[ 1    0    0    0    0]
+[-1   -1   -1   -1   -1]
+[ 0    0    0    0    1]
+[ 0    0    0    1    0]
+[ 0    0    1    0    0]
+
+julia> Lf2 = integer_lattice_with_isometry(L, isometry(Lf), ambient_representation=false)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> ambient_isometry(Lf2)
+[1   0   0   0   0]
+[0   1   0   0   0]
+[0   0   1   0   0]
+[0   0   0   1   0]
+[0   0   0   0   1]
+```
 """
 function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
                                                               ambient_representation::Bool = true)
@@ -306,6 +658,20 @@ Given a $\mathbb Z$-lattice `L` return the lattice with isometry pair $(L, f)$,
 where `f` corresponds to the identity mapping of `L`.
 
 If `neg` is set to `true`, then the isometry `f` is negative the identity of `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> Lf = integer_lattice_with_isometry(L, neg=true)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [-1    0    0    0    0]
+  [ 0   -1    0    0    0]
+  [ 0    0   -1    0    0]
+  [ 0    0    0   -1    0]
+  [ 0    0    0    0   -1]```
 """
 function integer_lattice_with_isometry(L::ZZLat; neg::Bool = false)
   d = degree(L)
@@ -321,7 +687,35 @@ end
 
 Given a quadratic space with isometry $(V, f)$, return the full rank lattice `L`
 in `V` with basis the standard basis, together with the induced action of `f`
-on `L`
+on `L`.
+
+# Examples
+```jldoctest
+julia> V = quadratic_space(QQ, QQ[2 -1; -1 2])
+Quadratic space of dimension 2
+  over rational field
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia> f = matrix(QQ, 2, 2, [1 1; 0 -1])
+[1    1]
+[0   -1]
+
+julia> Vf = quadratic_space_with_isometry(V, f)
+Quadratic space of dimension 2
+  with isometry of finite order 2
+  given by
+  [1    1]
+  [0   -1]
+
+julia> Lf = lattice(Vf)
+Integer lattice of rank 2 and degree 2
+  with isometry of finite order 2
+  given by
+  [1    1]
+  [0   -1]
+```
 """
 lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(Vf), order_of_isometry(Vf))::ZZLatWithIsom
 
@@ -334,6 +728,38 @@ Given a quadratic space with isometry $(V, f)$ and a matrix `B` generating a
 lattice `L` in `V`, if `L` is preserved under the action of `f`, return the
 lattice with isometry $(L, f_L)$ where $f_L$ is induced by the action of `f`
 on `L`.
+
+# Examples
+```jldoctest
+julia> V = quadratic_space(QQ, QQ[ 2 -1  0  0  0;
+                                  -1  2 -1  0  0;
+                                   0 -1  2 -1  0;
+                                   0  0 -1  2 -1;
+                                   0  0  0 -1  2]);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Vf = quadratic_space_with_isometry(V, f);
+
+julia> B = matrix(QQ,3,5,[1 0 0 0 0;
+                          0 0 1 0 1;
+                          0 0 0 1 0])
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+
+julia> lattice(Vf, B)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+```
 """
 function lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion}; isbasis::Bool = true, check::Bool = true)
   L = lattice(space(Vf), B, isbasis=isbasis, check=check)
@@ -353,6 +779,37 @@ system of vectors in the ambient space `V` of `L`, if the lattice `M` in `V` def
 by `B` is preserved under the fixed isometry `g` of `V` inducing `f` on `L`, return
 the lattice with isometry pair $(M, f_M)$ where $f_M$ is induced by the action of
 `g` on `M`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> B = matrix(QQ,3,5,[1 0 0 0 0;
+                          0 0 1 0 1;
+                          0 0 0 1 0])
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+
+julia> lattice_in_same_ambient_space(Lf, B)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia> ambient_space(I) === ambient_space(Lf)
+true
+```
 """
 function lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem; check::Bool = true)
   @req !check || (rank(B) == nrows(B)) "The rows of B must define a free system of vectors"
@@ -373,6 +830,53 @@ Given a lattice with isometry $(L, f)$ and a rational number `a`, return the
 lattice with isometry $(L(a), f)$.
 
 See [`rescale(::ZZLat, ::RationalUnion)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5)
+Integer lattice of rank 5 and degree 5
+with gram matrix
+[ 2   -1    0    0    0]
+[-1    2   -1    0    0]
+[ 0   -1    2   -1    0]
+[ 0    0   -1    2   -1]
+[ 0    0    0   -1    2]
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lf2 = rescale(Lf, 1//2)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> lattice(Lf2)
+Integer lattice of rank 5 and degree 5
+with gram matrix
+[    1   -1//2       0       0       0]
+[-1//2       1   -1//2       0       0]
+[    0   -1//2       1   -1//2       0]
+[    0       0   -1//2       1   -1//2]
+[    0       0       0   -1//2       1]
+```
 """
 function rescale(Lf::ZZLatWithIsom, a::Hecke.RationalUnion)
   return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf), check=false)
@@ -383,6 +887,37 @@ end
 
 Given a lattice with isometry $(L, f)$ and an integer $n$, return the pair
 $(L, f^n)$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lf^0
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0   0   0]
+  [0   1   0   0   0]
+  [0   0   1   0   0]
+  [0   0   0   1   0]
+  [0   0   0   0   1]
+```
 """
 function Base.:^(Lf::ZZLatWithIsom, n::Int)
   return lattice(ambient_space(Lf)^n, basis_matrix(Lf))
@@ -397,6 +932,40 @@ isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$
 and `h` is induced by `g`.
 
 See [`dual(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lfv = dual(Lf)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [1   -1   0   0   0]
+  [0   -1   0   0   0]
+  [0   -1   0   0   1]
+  [0   -1   0   1   0]
+  [0   -1   1   0   0]
+
+julia> ambient_space(Lfv) == ambient_space(Lf)
+true
+```
 """
 function dual(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -414,6 +983,40 @@ Note that matrix representing the action of `f` on `L` changes but the global ac
 on the ambient space of `L` stays the same.
 
 See [`lll(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lf2 = lll(Lf)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1    0    0    0   -1]
+  [-1    0    0   -1    0]
+  [-1    0   -1    0    0]
+  [-1   -1    0    0    0]
+
+julia> ambient_space(Lf2) == ambient_space(Lf)
+true
+```
 """
 function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
   L2 = lll(lattice(Lf), same_ambient = same_ambient)
@@ -441,6 +1044,73 @@ If one wants to obtain $(L, f)$ as a direct product with the projections $L \to 
 one should call `direct_product(x)`.
 If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ and
 the projections $L \to L_i$, one should call `biproduct(x)`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia> Lh, inj = direct_sum(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10, Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10])
+
+julia> Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]
+```
 """
 function direct_sum(x::Vector{ZZLatWithIsom})
   Vf, inj = direct_sum(ambient_space.(x))
@@ -467,6 +1137,73 @@ If one wants to obtain $(L, f)$ as a direct sum with the injections $L_i \to L$,
 one should call `direct_sum(x)`.
 If one wants to obtain $(L, f)$ as a biproduct with the injections $L_i \to L$ and
 the projections $L \to L_i$, one should call `biproduct(x)`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia> Lh, proj = direct_product(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5, Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5])
+
+julia> Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]
+```
 """
 function direct_product(x::Vector{ZZLatWithIsom})
   Vf, proj = direct_product(ambient_space.(x))
@@ -496,6 +1233,99 @@ If one wants to obtain $(L, f)$ as a direct sum with the injections $L_i \to L$,
 one should call `direct_sum(x)`.
 If one wants to obtain $(L, f)$ as a direct product with the projections $L \to L_i$,
 one should call `direct_product(x)`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia> Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia> Lh, inj, proj = biproduct(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10, Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10], AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5, Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5])
+
+julia> Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]
+
+julia> matrix(compose(inj[1], proj[1]))
+[1   0   0   0   0]
+[0   1   0   0   0]
+[0   0   1   0   0]
+[0   0   0   1   0]
+[0   0   0   0   1]
+
+julia> matrix(compose(inj[1], proj[2]))
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]
+```
 """
 function biproduct(x::Vector{ZZLatWithIsom})
   Vf, inj, proj = biproduct(ambient_space.(x))
@@ -535,6 +1365,33 @@ the underlying isometry `f` is irreducible.
 
 Note that if $(L, f)$ is of hermitian type with `f` of minimal polynomial $\chi$,
 then `L` can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia> is_of_hermitian_type(Lf)
+false
+
+julia> is_of_hermitian_type(coinvariant_lattice(Lf))
+true
+```
 """
 function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
@@ -552,6 +1409,49 @@ underlying lattice `L` over the equation order of the minimal polynomial of
 If it exists, the hermitian structure is stored. For now, we only cover the case
 where the equation order is maximal (which is always the case when the order is
 finite, for instance, since the minimal polynomial is cyclotomic).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> M = coinvariant_lattice(Lf)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+
+julia> H = hermitian_structure(M)
+Hermitian lattice of rank 1 and degree 1
+  over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
+  with pseudo-basis 
+  (1, 1//1 * <1, 1>)
+  (z_5, 1//1 * <1, 1>)
+
+julia> res = get_attribute(M, :transfer_data)
+Map of change of scalars
+  from quadratic space of dimension 4
+  to hermitian space of dimension 1
+
+julia> M2, f2 = trace_lattice_with_isometry(H, res)
+(Integer lattice of rank 4 and degree 4, [-1 -1 -1 -1; 1 0 0 0; 0 1 0 0; 0 0 1 0])
+
+julia> genus(M) == genus(M2) # One class in this genus, so they are isometric
+true
+
+julia> f2 == isometry(M)
+true
+```
 """
 @attr HermLat function hermitian_structure(Lf::ZZLatWithIsom)
   @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
@@ -577,6 +1477,47 @@ of the underlying lattice `L` as well as this image of the underlying isometry
 `f` inside $O(q)$.
 
 See [`discriminant_group(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> qL, qf = discriminant_group(Lf)
+(Finite quadratic module: Z/6 -> Q/2Z, [1])
+
+julia> qL
+Finite quadratic module
+  over integer ring
+Abelian group: Z/6
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form: 
+[5//6]
+
+julia> qf
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+[1]
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> discriminant_group(Lf)[2]
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+[5]
+```
 """
 function discriminant_group(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -596,6 +1537,21 @@ denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
 $q_L$ induced by `f`.
 
 See [`image_in_Oq(::ZZLat)`](@ref).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> f = matrix(QQ, 2, 2, [1 1; 0 -1]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> G = image_centralizer_in_Oq(Lf)
+Group of isometries of Finite quadratic module: Z/3 -> Q/2Z generated by 2 elements
+
+julia> order(G)
+2
+```
 """
 @attr AutomorphismGroup{TorQuadModule} function image_centralizer_in_Oq(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
@@ -662,6 +1618,26 @@ In this context, if we denote $z$ a primitive `n`-th root of unity, where `n`
 is the order of `f`, then for each $1 \leq i \leq n/2$ such that $(i, n) = 1$,
 the $i$-th signature of $(L, f)$ is given by the signatures of the real quadratic
 form $\Ker(f + f^{-1} - z^i - z^{-i})$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> M = coinvariant_lattice(Lf);
+
+julia> signatures(M)
+Dict{Integer, Tuple{Int64, Int64}} with 2 entries:
+  2 => (2, 0)
+  1 => (2, 0)
+```
 """
 function signatures(Lf::ZZLatWithIsom)
   @req is_cyclotomic_polynomial(minimal_polynomial(Lf)) "Lf must be of finite hermitian type"
@@ -700,6 +1676,43 @@ end
 Given a lattice with isometry $(L, f)$ and a polynomial `p` with rational
 coefficients, return the sublattice $M := \ker(p(f))$ of the underlying lattice
 `L` with isometry `f`, together with the restriction $f_{\mid M}$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> Zx,x = ZZ["x"]
+(Univariate polynomial ring in x over ZZ, x)
+
+julia> mf = minimal_polynomial(Lf)
+x^5 - 1
+
+julia> factor(mf)
+1 * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
+
+julia> kernel_lattice(Lf, x-1)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]
+
+julia> kernel_lattice(Lf, cyclotomic_polynomial(5))
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+```
 """
 kernel_lattice(Lf::ZZLatWithIsom, p::Union{ZZPolyRingElem, QQPolyRingElem})
 
@@ -727,6 +1740,34 @@ kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change
 
 Given a lattice with isometry $(L, f)$ and an integer `l`, return the kernel
 lattice of $(L, f)$ associated to the `l`-th cyclotomic polynomial.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> kernel_lattice(Lf, 5)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+
+julia> kernel_lattice(Lf, 1)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]
+```
 """
 function kernel_lattice(Lf::ZZLatWithIsom, l::Integer)
   @req _divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
@@ -739,7 +1780,26 @@ end
 
 Given a lattice with isometry $(L, f)$, return the invariant lattice $L^f$ of
 $(L, f)$ together with the restriction of `f` to $L^f$ (which is the identity
-in this case)
+in this case).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> invariant_lattice(Lf)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]
+```
 """
 invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
 
@@ -753,6 +1813,18 @@ return the invariant sublattice $L^G$ of `L`.
 If `ambient_representation` is set to true, the isometries in `G` are seen as
 isometries of the ambient quadratic space of `L` preserving `L`. Otherwise, they
 are considered as honnest isometries of `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> G = isometry_group(L);
+
+julia> invariant_lattice(L, G)
+Integer lattice of rank 0 and degree 2
+with gram matrix
+0 by 0 empty matrix
+```
 """
 function invariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   return invariant_lattice(L, matrix.(gens(G)), ambient_representation = ambient_representation)
@@ -766,6 +1838,28 @@ $(L, f)$ together with the restriction of `f` to $L_f$.
 
 The coinvariant lattice $L_f$ of $(L, f)$ is the orthogonal complement in
 `L` of the invariant lattice $L_f$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> coinvariant_lattice(Lf)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+```
 """
 function coinvariant_lattice(Lf::ZZLatWithIsom)
   chi = minimal_polynomial(Lf)
@@ -789,6 +1883,22 @@ of isometries of $L_G$ induced by the action of $G$.
 If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
 as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
 they are considered as honnest isometries of `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> G = isometry_group(L);
+
+julia> L2, G2 = coinvariant_lattice(L, G)
+(Integer lattice of rank 2 and degree 2, Matrix group of degree 2 over Rational field)
+
+julia> L == L2
+true
+
+julia> G == G2
+true
+```
 """
 function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   F = invariant_lattice(L, G, ambient_representation = ambient_representation)
@@ -820,6 +1930,28 @@ action of $G$.
 If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
 as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
 they are considered as honnest isometries of `L`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> G = isometry_group(L);
+
+julia> Gsub, _ = sub(G, [gens(G)[end]]);
+
+julia> F, C, G2 = invariant_coinvariant_pair(L, Gsub)
+(Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, Matrix group of degree 2 over Rational field)
+
+julia> F
+Integer lattice of rank 1 and degree 2
+with gram matrix
+[2]
+
+julia> C
+Integer lattice of rank 1 and degree 2
+with gram matrix
+[6]
+```
 """
 function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   F = invariant_lattice(L, G, ambient_representation = ambient_representation)
@@ -856,6 +1988,27 @@ the `k`-type of $(L, f)$ is the tuple $(H_k, A_K)$ consisting of the genus
 $H_k$ of the lattice $\Ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k]$-
 lattice (so a $\mathbb{Z}$-lattice for k= 1, 2) and of the genus $A_k$ of the
 $\mathbb{Z}$-lattice $\Ker(f^k-1)$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> t = type(Lf)
+Dict{Integer, Tuple} with 2 entries:
+  5 => (Genus symbol for hermitian lattices of rank 1 over relative maximal order of Relative number field…
+  1 => (Genus symbol: II_(1, 0) 2^1_7 3^1 5^1, Genus symbol: II_(1, 0) 2^1_7 3^1 5^1)
+
+julia> genus(invariant_lattice(Lf)) == t[1][1]
+true
+```
 """
 @attr function type(Lf::ZZLatWithIsom)
   L = lattice(Lf)
@@ -881,6 +2034,24 @@ end
     is_of_type(Lf::ZZLatWithIsom, t::Dict) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether $(L, f)$ is of type `t`.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> t = type(Lf);
+
+julia> is_of_type(Lf, t)
+true
+```
 """
 function is_of_type(L::ZZLatWithIsom, t::Dict)
   @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
@@ -904,6 +2075,24 @@ end
 
 Given two lattices with isometry $(L, f)$ and $(M, g)$, return whether they are
 of the same type.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> M = coinvariant_lattice(Lf);
+
+julia> is_of_same_type(Lf, M)
+false
+```
 """
 function is_of_same_type(L::ZZLatWithIsom, M::ZZLatWithIsom)
   @req is_finite(order_of_isometry(L)*order_of_isometry(M)) "Type is defined only for finite order isometries"
@@ -917,6 +2106,27 @@ end
 
 Given a type `t` of lattices with isometry, return whether `t` is hermitian, i.e.
 whether it defines the type of a hermitian lattice with isometry.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> M = coinvariant_lattice(Lf);
+
+julia> is_hermitian(type(Lf))
+false
+
+julia> is_hermitian(type(M))
+true
+```
 """
 function is_hermitian(t::Dict)
   ke = collect(keys(t))

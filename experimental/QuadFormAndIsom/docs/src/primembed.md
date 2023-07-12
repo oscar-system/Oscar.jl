@@ -3,9 +3,11 @@ CurrentModule = Oscar
 ```
 
 We introduce here the necessary definitions and results which lie behind the
-methods presented. Most of the content is taken from [Nik79].
+methods presented. Most of the content is taken from [Nik79](@cite).
 
 # Primitive embeddings between even lattices
+
+## Nikulin's theory
 
 Given an embedding $i\colon S\hookrightarrow T$ of non-degenerate integral
 integer lattices, we call $i$ *primitive* if its cokernel $T/i(S)$ is torsion
@@ -14,18 +16,18 @@ $i_2\colon S \hookrightarrow M_2$ of $S$ into two lattices $M_1$ and $M_2$ are
 called *isomorphic* if there exists an isometry $M_1 \to M_2$ which restricts to
 the identity of $S$. Moreover, if there exists an isometry between $M_1$ and
 $M_2$ which maps $S$ to itself (non-necessarily identically), we say that $i_1$
-and $i_2$ defines *isomorphic primitive sublattices* [Nik79].
+and $i_2$ defines *isomorphic primitive sublattices* [Nik79](@cite).
 
 In his paper, V. V. Nikulin gives necessary and sufficient condition for an even
 integral lattice $M$ to embed primitively into an even unimodular lattice with
-given invariant ([Nik79, Theorem 1.12.2]). More generally, the author also
+given invariants ([Nik79, Theorem 1.12.2](@cite)). More generally, the author also
 provides methods to compute primitive embeddings of any even lattice into an even
-lattice in a given genus ([Nik79, Proposition 1.15.1]). In the latter
+lattice in a given genus ([Nik79, Proposition 1.15.1](@cite)). In the latter
 proposition, it is explain how to classify such embeddings as isomorphic
 embeddings or as isomorphic sublattices.
 
 Such a method can be algorithmically implemented, however it tends to be slow
-and inefficient in general for large rank or determinant. However, in the case
+and inefficient in general for large rank or determinant. But, in the case
 where the discriminant groups are (elementary) $p$-groups, the method can be
 more efficient.
 
@@ -59,7 +61,7 @@ primitive_embeddings_of_primary_lattice(::TorQuadModule, ::Tuple{Int, Int},
 
 In order to compute such primitive embeddings of a lattice `M` into a lattice
 `L`, one first compute the possible genera for the orthogonal of `M` in `L`
-(after embedding), and for each lattice `N` in such a genus, one compute
+(after embedding), and for each lattice `N` in such a genus, one computes
 isomorphism classes of *primitive extensions* of $M \perp N$ modulo $\bar{O}(N)$
 (and $\bar{O}(M)$ in the case of classification of primitive sublattices of `L`
 isometric to `M`).
@@ -72,10 +74,10 @@ classified, by looking for *gluings* between anti-isometric subgroups of the
 respective discriminant groups of `M` and `N`. The construction of an
 overlattice is determined by the graph of such glue map. 
 
-# Admissible equivariant primitive extension
+## Admissible equivariant primitive extension
 
-The following function is an interesting tool provided by [BH23]. Given a triple
-of integer lattices with isometry `((A, a), (B, b), (C, c))` and two prime
+The following function is an interesting tool provided by [BH23](2cite). Given
+a triple of integer lattices with isometry `((A, a), (B, b), (C, c))` and two prime
 numbers `p` and `q` (possibly equal), if `(A, B, C)` is `p`-admissible, this
 function returns representatives of isomorphism classes of equivariant primitive
 extensions $(A, a)\perp (B, b)\to (D, d)$ such that the type of $(D, d^p)$ is

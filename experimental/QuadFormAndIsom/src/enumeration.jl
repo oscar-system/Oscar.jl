@@ -74,7 +74,32 @@ end
 
 Given a triple of $\mathbb Z$-genera `(A,B,C)` and a prime number `p`, such
 that the rank of `B` is divisible by $p-1$, return whether `(A,B,C)` is
-`p`-admissible in the sense of Definition 4.13. [BH22]
+`p`-admissible in the sense of [BH23, Definition 4.13](@cite)
+
+# Examples
+A standard example is the following: let $(L, f)$ be a lattice with isometry of
+prime order $p$, let $F:= L^f$ and $C:= L_f$ be respectively the invariant
+and coinvariant sublattices of $(L, f)$. Then, the triple of genera
+$(g(F), g(C), g(L))$ is $p$-admissible according to [BH23, Lemma 4.15](@cite).
+
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> F = invariant_lattice(Lf);
+
+julia> C = coinvariant_lattice(Lf);
+
+julia> is_admissible_triple(genus(F), genus(C), genus(Lf), 5)
+true
+```
 """
 function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   zg = genus(integer_lattice(gram = matrix(QQ, 0, 0, [])))
@@ -150,13 +175,13 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
 
   if a_max == g
     if length(symbol(Ap)) > 1
-      Ar = LocalZZGenus(p, symbol(Ap)[1:end-1])
+      Ar = ZZLocalGenus(p, symbol(Ap)[1:end-1])
     else
       Ar = genus(matrix(ZZ,0,0,[]), p)
     end
    
     if length(symbol(Bp)) > 1
-      Br = LocalZZGenus(p, symbol(Bp)[1:end-1])
+      Br = ZZLocalGenus(p, symbol(Bp)[1:end-1])
     else
       Br = genus(matrix(ZZ, 0, 0, []), p)
     end
@@ -189,7 +214,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   for s in Cp
     s[1] += 2
   end
-  Cp = LocalZZGenus(p, Cp)
+  Cp = ZZLocalGenus(p, Cp)
   
   if !represents(local_symbol(AperpB, p), Cp)
     return false
@@ -221,7 +246,35 @@ Given a $\mathbb Z$-genus `C` and a prime number `p`, return all tuples of
 $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
 `B` is of rank divisible by $p-1$.
 
-See Algorithm 1 of [BH22].
+See [BH23, Algorithm 1](@cite).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> g = genus(L)
+Genus symbol for integer lattices
+Signatures: (5, 0, 0)
+Local symbols:
+  Local genus symbol at 2: 1^-4 2^1_7
+  Local genus symbol at 3: 1^-4 3^1
+
+julia> admissible_triples(g, 5)
+2-element Vector{Tuple{ZZGenus, ZZGenus}}:
+ (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
+ (Genus symbol: II_(1, 0) 2^1_7 3^1 5^1, Genus symbol: II_(4, 0) 5^1)
+
+julia> admissible_triples(g, 2)
+8-element Vector{Tuple{ZZGenus, ZZGenus}}:
+ (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
+ (Genus symbol: II_(4, 0) 2^2_6 3^1, Genus symbol: II_(1, 0) 2^1_1)
+ (Genus symbol: II_(3, 0) 2^3_3, Genus symbol: II_(2, 0) 2^-2 3^1)
+ (Genus symbol: II_(3, 0) 2^-3_1 3^1, Genus symbol: II_(2, 0) 2^2_2)
+ (Genus symbol: II_(2, 0) 2^2_2, Genus symbol: II_(3, 0) 2^-3_1 3^1)
+ (Genus symbol: II_(2, 0) 2^-2 3^1, Genus symbol: II_(3, 0) 2^3_3)
+ (Genus symbol: II_(1, 0) 2^1_1, Genus symbol: II_(4, 0) 2^2_6 3^1)
+ (Genus symbol: II_(0, 0), Genus symbol: II_(5, 0) 2^-1_3 3^1)
+```
 """
 function admissible_triples(G::ZZGenus, p::Integer; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
@@ -366,7 +419,21 @@ hermitian type $(M, g)$ and such that the type of $(B, g^m)$ is equal to the
 type of $(L, f)$. Note that in this case, the isometries `g`'s are of
 order $nm$.
 
-See Algorithm 3 of [BH22].
+See [BH23, Algorithm 3](@cite).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> reps = representatives_of_hermitian_type(Lf, 6)
+1-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 6
+
+julia> is_of_hermitian_type(reps[1])
+true
+```
 """
 function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
@@ -460,7 +527,33 @@ $(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
 Note that `e` can be 0.
 
-See Algorithm 4 of [BH22].
+See [BH23, Algorithm 4](@cite).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> f = matrix(QQ, 2, 2, [0 1; -1 -1]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> is_of_hermitian_type(Lf)
+true
+
+julia> reps = splitting_of_hermitian_prime_power(Lf, 2)
+2-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 3
+ Integer lattice with isometry of finite order 6
+
+julia> all(is_of_hermitian_type, reps)
+true
+
+julia> is_of_same_type(Lf, reps[1]^2)
+true
+
+julia> is_of_same_type(Lf, reps[2]^2)
+true
+```
 """
 function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int = -1, pB::Int = -1)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
@@ -511,7 +604,25 @@ order $pq^e$.
 
 Note that `e` can be 0.
 
-See Algorithm 5 of [BH22].
+See [BH23, Algorithm 5](@cite).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,2);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> splitting_of_prime_power(Lf, 2)
+4-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 1
+ Integer lattice with isometry of finite order 2
+ Integer lattice with isometry of finite order 2
+ Integer lattice with isometry of finite order 2
+
+julia> splitting_of_prime_power(Lf, 3, 1)
+1-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 3
+```
 """
 function splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
   if rank(Lf) == 0
@@ -563,7 +674,7 @@ of $(L, f)$.
 
 Note that `e` can be 0, while `d` has to be positive.
 
-See Algorithm 6 of [BH22].
+See [BH23, Algorithm 6](@cite).
 """
 function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
@@ -627,7 +738,40 @@ of order $p^{d+1}q^e$.
 
 Note that `d` and `e` can be both zero.
 
-See Algorithm 7 of [BH22].
+See [BH23, Algorithm 7](@cite).
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:E,7);
+
+julia> f = matrix(QQ, 7, 7, [ 1  1  2  1  0  0  1;
+                             -1 -2 -3 -2 -1 -1 -1;
+                              0  1  2  1  1  1  1;
+                              0  0 -1 -1 -1 -1 -1;
+                              1  1  2  2  2  1  1;
+                              0  0 -1 -1 -1  0  0;
+                              0  0  0  1  0  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 7 and degree 7
+  with isometry of finite order 6
+  given by
+  [ 1    1    2    1    0    0    1]
+  [-1   -2   -3   -2   -1   -1   -1]
+  [ 0    1    2    1    1    1    1]
+  [ 0    0   -1   -1   -1   -1   -1]
+  [ 1    1    2    2    2    1    1]
+  [ 0    0   -1   -1   -1    0    0]
+  [ 0    0    0    1    0    0    0]
+
+julia> reps = splitting_of_mixed_prime_power(Lf, 2)
+2-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 12
+ Integer lattice with isometry of finite order 12
+
+julia> all(LL -> is_of_same_type(Lf, LL^2), reps)
+true
+```
 """
 function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
   if rank(Lf) == 0
@@ -678,7 +822,7 @@ end
     enumerate_classes_of_lattices_with_isometry(L::ZZLat, order::IntegerUnion)
                                                             -> Vector{ZZLatWithIsom}
     enumerate_classes_of_lattices_with_isometry(G::ZZGenus, order::IntegerUnion)
-                                                            -> Vector{LocalZZGenus}
+                                                            -> Vector{ZZLocalGenus}
 
 Given an integral integer lattice `L`, return representatives of isomorphism classes
 of lattice with isometry $(M ,g)$ where `M` is in the genus of `L`, and `g` has order

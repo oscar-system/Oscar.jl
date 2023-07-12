@@ -21,7 +21,7 @@ $L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
 is an isometry of $L$. One of the main feature of this project is the
 enumeration of isomorphism classes of pairs $(L, f)$ where $f$ is an isometry
 of finite order with at most two prime divisors. The methods we resort to
-for this purpose are developed in the paper [BH23].
+for this purpose are developed in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of even lattices following Nikulin's theory. More precisely, the two
@@ -38,11 +38,10 @@ currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non optimized algorithms.
 
 Among the possible improvements and extensions:
-* Implement methods for lattices with isometries of infinite order;
+* Implement extra methods for lattices with isometries of infinite order;
 * Extend the methods for classification of primitive embeddings for the more
   general case (knowing that we lose efficiency for large discriminant groups);
-* Implement methods for more kinds of (equivariant) primitive embeddings;
-* Implement methods for more kinds of (equivariant) primitive extensions.
+* Extend existing methods for equivariant primitive embeddings/extensions.
 
 ## Currently application of this project
 
@@ -52,15 +51,13 @@ this code, and further extension of it, to classify finite subgroups of
 bimeromorphic self-maps of *hyperkaehler manifolds*, which are a higher
 dimensional analog of K3 surface.
 
-## Tutorials
-
-
 ## Notice to the user
 
 Since this project is still under development, feel free to try any feature and
 report all the bugs you may have found. Any suggestions for improvements or
 extensions are more than welcome. Refer to the next section to know who you
-should contact and how.
+should contact and how. Do not hesitate either to ask for new features - we
+will be glad to add anything you may need for your research.
 
 One may expect many things to vary within the next months: name of the
 functions, available features, performance. This is due to the fact that the

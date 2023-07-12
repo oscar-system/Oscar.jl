@@ -537,6 +537,29 @@ There are 4 possibilities:
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
+
+# Examples
+We can use such primitive embeddings algorithm to classify embedding in unimodular
+lattices
+
+```jldoctest
+julia> E8 = root_lattice(:E,8);
+
+julia> A4 = root_lattice(:A,4);
+
+julia> bool, pe = primitive_embeddings_in_primary_lattice(E8, A4)
+(true, Tuple{ZZLat, ZZLat, ZZLat}[(Integer lattice of rank 8 and degree 8, Integer lattice of rank 4 and degree 8, Integer lattice of rank 4 and degree 8)])
+
+julia> pe
+1-element Vector{Tuple{ZZLat, ZZLat, ZZLat}}:
+ (Integer lattice of rank 8 and degree 8, Integer lattice of rank 4 and degree 8, Integer lattice of rank 4 and degree 8)
+
+julia> genus(pe[1][2]) == genus(pe[1][3])
+true
+```
+To be understood here that there exists a unique class of embedding of the root
+lattice $A_4$ in the root lattice $E_8$, and the orthogonal primitive sublattice
+is isometric to $A_4$.
 """
 function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = false)
   if check
@@ -718,6 +741,26 @@ There are 4 possibilities:
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
+
+# Examples
+We can use such primitive extensions algorithm to have orbits of some short
+primitive vectors:
+
+```jldoctest
+julia> L = root_lattice(:D, 5);
+
+julia> k = integer_lattice(gram=matrix(QQ,1,1,[4]));
+
+julia> bool, sv = primitive_embeddings_of_primary_lattice(L, k);
+
+julia> bool
+true
+
+julia> sv
+2-element Vector{Tuple{ZZLat, ZZLat, ZZLat}}:
+ (Integer lattice of rank 5 and degree 5, Integer lattice of rank 1 and degree 5, Integer lattice of rank 4 and degree 5)
+ (Integer lattice of rank 5 and degree 5, Integer lattice of rank 1 and degree 5, Integer lattice of rank 4 and degree 5)
+```
 """
 function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = false)
   if check
@@ -821,7 +864,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
   end
 
   for k  in divisors(gcd(order(qM), order(VL)))
-    @vprint :ZZLatWithIsom 1 "Glue order: $(k)"
+    @vprint :ZZLatWithIsom 1 "Glue order: $(k)\n"
 
     if el
       subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(VLinqL, GL, k)
@@ -853,9 +896,9 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       classification == :none && return true, results
 
       G2 = genus(disc, (pL-pM, nL-nM))
-      @vprint :ZZLatWithIsom 1 "We can glue: $(G2)"
+      @vprint :ZZLatWithIsom 1 "We can glue: $(G2)\n"
       Ns = representatives(G2)
-      @vprint :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
+      @vprint :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)\n"
       Ns = lll.(Ns)
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
@@ -908,7 +951,7 @@ integral lattices (with isometry) with `fA` and `fB` having relatively coprime
 irreducible minimal polynomials and imposing that `A` and `B` are orthogonal
 if `A`, `B` and `C` lie in the same ambient quadratic space.
 
-See Algorithm 2 of [BH22].
+See [BH23, Algorithm 2](@cite).
 """
 function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
                                                      B::ZZLatWithIsom,
