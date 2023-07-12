@@ -756,7 +756,7 @@ Hecke.is_defining_polynomial_nice(::NfNSGen) = false
 
 RandomExtensions.maketype(K::NfNSGen, r) = elem_type(K)
 
-function rand(rng::AbstractRNG, sp::RandomExtensions.SamplerTrivial{<:RandomExtensions.Make2{<:NfNSGenElem,<:NfNSGen,<:UnitRange}})
+function rand(rng::AbstractRNG, sp::RandomExtensions.SamplerTrivial{<:RandomExtensions.Make2{<:NfNSGenElem,<:NfNSGen,<:AbstractUnitRange}})
   K, r = sp[][1:end]
   # TODO: This is super slow
   b = basis(K, copy = false)
@@ -767,8 +767,8 @@ function rand(rng::AbstractRNG, sp::RandomExtensions.SamplerTrivial{<:RandomExte
   return z
 end
 
-rand(K::NfNSGen, r::UnitRange) = rand(Random.GLOBAL_RNG, K, r)
-rand(rng::AbstractRNG, K::NfNSGen, r::UnitRange) = rand(rng, make(K, r))
+rand(K::NfNSGen, r::AbstractUnitRange) = rand(Random.GLOBAL_RNG, K, r)
+rand(rng::AbstractRNG, K::NfNSGen, r::AbstractUnitRange) = rand(rng, make(K, r))
 
 ################################################################################
 #

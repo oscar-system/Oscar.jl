@@ -126,12 +126,12 @@ function Base.show(io::IO, S::MPolyPowersOfElement)
 end
 
 ### generation of random elements 
-function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(S::MPolyPowersOfElement, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   R = ambient_ring(S)
   return prod(f^rand(0:2) for f in denominators(S); init = one(R))::elem_type(R)
 end
 
-function rand(rng::Random.AbstractRNG, S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, S::MPolyPowersOfElement, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   R = ambient_ring(S)
   return prod(f^rand(rng, 0:2) for f in denominators(S); init = one(R))::elem_type(R)
 end
@@ -256,7 +256,7 @@ function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
 end
 
 ### generation of random elements 
-function rand(S::MPolyComplementOfPrimeIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(S::MPolyComplementOfPrimeIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   f = rand(ambient_ring(S), v1, v2, v3)
   if f in prime_ideal(S)
     return rand(S, v1, v2, v3)
@@ -264,7 +264,7 @@ function rand(S::MPolyComplementOfPrimeIdeal, v1::UnitRange{Int}, v2::UnitRange{
   return f
 end
 
-function rand(rng::Random.AbstractRNG, S::MPolyComplementOfPrimeIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, S::MPolyComplementOfPrimeIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   f = rand(rng, ambient_ring(S), v1, v2, v3)
   if f in prime_ideal(S)
     return rand(rng, S, v1, v2, v3)
@@ -443,14 +443,14 @@ function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
 end
 
 ### generation of random elements 
-function rand(S::MPolyComplementOfKPointIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(S::MPolyComplementOfKPointIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   f = rand(ambient_ring(S), v1, v2, v3)
   if !(f in S)
     return rand(S, v1, v2, v3)
   end
   return f
 end
-function rand(rng::Random.AbstractRNG, S::MPolyComplementOfKPointIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, S::MPolyComplementOfKPointIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   f = rand(rng, ambient_ring(S), v1, v2, v3)
   if !(f in S)
     return rand(rng, S, v1, v2, v3)
@@ -576,10 +576,10 @@ function Base.show(io::IO, S::MPolyProductOfMultSets)
 end
 
 ### generation of random elements 
-function rand(S::MPolyProductOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(S::MPolyProductOfMultSets, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
 end
-function rand(rng::Random.AbstractRNG, S::MPolyProductOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, S::MPolyProductOfMultSets, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return prod([rand(rng, s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
 end
 
@@ -1212,11 +1212,11 @@ function Localization(
 end
 
 ### generation of random elements 
-function rand(W::MPolyLocRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(W::MPolyLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return W(rand(base_ring(W), v1, v2, v3), rand(inverted_set(W), v1, v2, v3))
 end
 
-function rand(rng::Random.AbstractRNG, W::MPolyLocRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(rng::Random.AbstractRNG, W::MPolyLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return W(rand(rng, base_ring(W), v1, v2, v3), rand(rng, inverted_set(W), v1, v2, v3))
 end
 
