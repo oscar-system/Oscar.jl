@@ -201,12 +201,21 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
     a1 = D[c1]
     for c2 in components(E)
       a2 = E[c2]
-      I = c1 + c2
-      @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-      result = result + a1 * a2 * colength(I, covering=covering)
+      if c1 === c2
+        result = a1*a2*self_intersection(I)
+      else
+        I = c1 + c2
+        @assert dim(I) <= 0 "divisors have nontrivial self intersection"
+        result = result + a1 * a2 * colength(I, covering=covering)
+      end
     end
   end
   return result
+end
+
+function self_intersection(I::IdealSheaf)
+  has_attribute(I, :self_intersection) || error("self intersection unknown")
+  return get_attribute(I, :self_intersection)::Int
 end
 
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
@@ -439,7 +448,11 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   end
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K[1:r,:]
+  W = weil_divisor(L)
+  PW = WeilDivisor(P, check=false)
+  k = coeff(W,P)
+  D = W + (min(-n,k)-k)*PW
+  return LinearSystem(new_gens, D, check=false), K[1:r,:]
 end
 
 function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)
