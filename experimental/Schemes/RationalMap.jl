@@ -289,6 +289,6 @@ end
 end
 
 @attr function is_isomorphism(phi::AbsCoveredSchemeMorphism)
-  error("no method implemented to check properness")
+  error("no method implemented to check for being an isomorphism")
 end
 
