@@ -1061,6 +1061,7 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert degree(NS) == rank(NS)
   P0 = sum([ZZ(F[i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
   P0_div = section(X, P0)
+  @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
   F1 = F - p0  # should be contained in the trivial lattice
   F2 = F1
@@ -1094,7 +1095,18 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   c = t^0
   for (pt, rt, fiber, comp, gram) in reducible_fibers(X)
     Fib0 = comp[1]
-    f0 = basis_representation(X, Fib0) # could be deduced from theory
+    f0 = zeros(QQFieldElem, length(basisNS))
+    for i in 1:length(basisNS)
+      if !isone(components(Fib0)[1]+components(basisNS[i])[1])
+        if length(comp)==2 && 2<i<=rk_triv
+          f0[i] = 2
+        else
+          f0[i] = 1
+        end
+      end
+    end
+    f0 = f0 * inv(gram_matrix(ambient_space(NS)))
+    @assert inner_product(ambient_space(NS), f0,f0) == -2
     nonzero = [i for i in 3:rk_triv if f0[i]!=0]
     if pt[2]==0 # at infinity
       t0 = t
@@ -1179,13 +1191,15 @@ function extended_ade(ADE::Symbol, n::Int)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
-  basis,_, NS = algebraic_lattice(X)
-  G = gram_matrix(NS)
-  n = length(basis)
+  basis_ambient,_, NS = algebraic_lattice(X)
+  G = gram_matrix(ambient_space(NS))
+  n = length(basis_ambient)
   v = zeros(ZZRingElem, n)
+  @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   for i in 1:n
-    v[i] = intersect(basis[i], D)
+    v[i] = intersect(basis_ambient[i], D)
   end
+  @vprint :EllipticSurface 3 "done computing basis representation\n"
   return v*inv(G)
 end
 

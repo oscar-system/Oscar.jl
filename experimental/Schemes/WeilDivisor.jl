@@ -202,7 +202,7 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
     for c2 in components(E)
       a2 = E[c2]
       if c1 === c2
-        result = a1*a2*self_intersection(I)
+        result = a1*a2*self_intersection(c1)
       else
         I = c1 + c2
         @assert dim(I) <= 0 "divisors have nontrivial self intersection"
