@@ -621,6 +621,7 @@ export homomorphism_of_semidirect_product
 export homomorphism_of_wreath_product
 export homomorphism_to_element
 export hyperplanes
+export hypersimplex
 export hypersurface_complement
 export icosahedron
 export id_hom

@@ -152,6 +152,7 @@ fractional_cut_polytope
 fractional_knapsack
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+hypersimplex
 lecture_hall_simplex
 newton_polytope
 orbit_polytope

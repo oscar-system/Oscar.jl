@@ -1338,3 +1338,43 @@ INEQUALITIES
 fractional_knapsack(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
 fractional_knapsack(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
 
+@doc raw"""
+    hypersimplex(k::Int, d::Int)
+
+Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$-vector in $\mathbb{R}^d$ with exactly $k$ ones. Note that the output is never full-dimensional.
+
+# Keywords
+- `k::Int`: number of ones
+- `d::Int`: ambient dimension
+- `no_vertices::Bool`: optional parameter, if set equal to true, vertices are not computed
+- `no_facets::Bool`: optional parameter, if set equal to true, facets are not computed
+- `no_vif::Bool`: optional parameter, if set equal to true, vertices and facets are not computed
+
+# Example
+```jldoctest
+julia> H = hypersimplex(3,4)
+Polyhedron in ambient dimension 4
+
+julia> G = hypersimplex(3,4,no_facets=true)
+Polyhedron in ambient dimension 4
+
+julia> facets(G)
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+x₄ ≦ 1
+x₃ ≦ 1
+-x₁ - x₃ - x₄ ≦ -2
+x₁ ≦ 1
+
+julia> facets(H)
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+x₄ ≦ 1
+x₃ ≦ 1
+-x₁ - x₃ - x₄ ≦ -2
+x₁ ≦ 1
+````
+"""
+function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
+    opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
+    return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k,d;opts...))
+end
+
