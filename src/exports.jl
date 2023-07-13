@@ -555,6 +555,7 @@ export glueing_domains
 export glueing_graph
 export glueing_morphisms
 export glueings
+export goldfarb_cube
 export grade
 export graded_cokernel
 export graded_free_module
