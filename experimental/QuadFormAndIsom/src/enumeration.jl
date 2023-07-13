@@ -561,7 +561,7 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
   @req is_prime(p) "p must be a prime number"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
 
-  ok, q, e = is_prime_power_with_data(order_of_isometry(Lf))
+  ok, e, q = is_prime_power_with_data(order_of_isometry(Lf))
 
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
@@ -633,7 +633,7 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
   @req is_prime(p) "p must be a prime number"
   @req b in [0, 1] "b must be an integer equal to 0 or 1"
 
-  ok, q, e = is_prime_power_with_data(order_of_isometry(Lf))
+  ok, e, q = is_prime_power_with_data(order_of_isometry(Lf))
 
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
@@ -793,7 +793,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
 
   d = valuation(n, p)
   if n != p^d
-    _, q, e = is_prime_power_with_data(divexact(n, p^d))
+    _, e, q = is_prime_power_with_data(divexact(n, p^d))
   else
     q = 1
     e = 0

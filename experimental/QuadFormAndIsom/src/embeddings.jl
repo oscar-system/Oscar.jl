@@ -286,7 +286,7 @@ function _cokernel_as_Fp_vector_space(HinV, p)
     return sum([x[i]*V[i] for i in 1:ngens(V)])
   end
 
-  VtoVp = Hecke.MapFromFunc(_VtoVp, _VptoV, V, Vp)
+  VtoVp = Hecke.MapFromFunc(V, Vp, _VtoVp, _VptoV)
   subgene = elem_type(Vp)[VtoVp(HinV(a)) for a in gens(H)]
   Hp, _ = sub(Vp, subgene)
   Qp, VptoQp = quo(Vp, Hp)
@@ -913,13 +913,6 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
     end
   end
   return (length(results) > 0), results
-end
-
-function Base.:(==)(S::TorQuadModule, T::TorQuadModule)
-  modulus_bilinear_form(S) != modulus_bilinear_form(T) && return false
-  modulus_quadratic_form(S) != modulus_quadratic_form(T) && return false
-  relations(S) != relations(T) && return false
-  return cover(S) == cover(T)
 end
 
 ####################################################################################
