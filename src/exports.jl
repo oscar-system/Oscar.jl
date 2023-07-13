@@ -488,6 +488,7 @@ export exponents
 export ext
 export extension_field
 export exterior_power
+export expand
 export f_vector
 export face_fan
 export faces

@@ -1452,8 +1452,7 @@ function Oscar.degree(H::HilbertData)
   return numerator(deg)
 end
 
-function (P::QQRelPowerSeriesRing)(H::HilbertData)
-  n, d = hilbert_series_reduced(H)
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
@@ -1462,6 +1461,20 @@ function (P::QQRelPowerSeriesRing)(H::HilbertData)
   nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
   return P(map(QQFieldElem, c), length(c), max_precision(P), 0)
+end
+
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
+  return _rational_function_to_power_series(P, numerator(f), denominator(f))
+end
+
+function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
+  T, t = power_series_ring(QQ, d+1, "t")   
+  return _rational_function_to_power_series(T, f)
+end
+
+function (P::QQRelPowerSeriesRing)(H::HilbertData)
+  n, d = hilbert_series_reduced(H)
+  return _rational_function_to_power_series(P, n, d)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)
