@@ -59,6 +59,22 @@ The usual arithmetics, e.g. `+`, `-`, and `*`, are defined for `LieAlgebraElem`s
 !!! warning
     Please note that `*` refers to the Lie bracket and is thus not associative.
 
+## Properties
+
+```@docs
+is_abelian(L::LieAlgebra)
+is_simple(L::LieAlgebra)
+```
+
+## More functions
+
+```@docs
+derived_algebra(L::LieAlgebra)
+center(L::LieAlgebra)
+centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
+centralizer(L::LieAlgebra, x::LieAlgebraElem)
+```
+
 ## Lie algebra constructors
 
 ```@docs

@@ -56,6 +56,10 @@ function gens(I::LieAlgebraIdeal)
   return I.gens
 end
 
+function gen(I::LieAlgebraIdeal, i::Int)
+  return I.gens[i]
+end
+
 function ngens(I::LieAlgebraIdeal)
   return length(gens(I))
 end
@@ -66,10 +70,29 @@ function basis_matrix(
   return I.basis_matrix::dense_matrix_type(C)
 end
 
+@doc raw"""
+    basis(I::LieAlgebraIdeal) -> Vector{LieAlgebraElem}
+
+Return the basis of the ideal `I`.
+"""
 function basis(I::LieAlgebraIdeal)
   return I.basis_elems
 end
 
+@doc raw"""
+    basis(I::LieAlgebraIdeal, i::Int) -> LieAlgebraElem
+
+Return the `i`-th basis element of the ideal `I`.
+"""
+function basis(I::LieAlgebraIdeal, i::Int)
+  return I.basis_elems[i]
+end
+
+@doc raw"""
+    dim(I::LieAlgebraIdeal) -> Int
+
+Return the dimension of the ideal `I`.
+"""
 dim(I::LieAlgebraIdeal) = length(basis(I))
 
 ###############################################################################
@@ -134,6 +157,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    in(x::LieAlgebraElem, I::LieAlgebraIdeal) -> Bool
+
+Return `true` if `x` is in the ideal `I`, `false` otherwise.
+"""
 function Base.in(x::LieAlgebraElem, I::LieAlgebraIdeal)
   return can_solve(basis_matrix(I), _matrix(x); side=:left)
 end
@@ -151,6 +179,11 @@ function Base.:+(
   return ideal(base_lie_algebra(I1), [gens(I1); gens(I2)])
 end
 
+@doc raw"""
+    bracket(I1::LieAlgebraIdeal, I2::LieAlgebraIdeal) -> LieAlgebraIdeal
+
+Return $[I_1,I_2]$.
+"""
 function bracket(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
@@ -164,11 +197,20 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    normalizer(L::LieAlgebra, I::LieAlgebraIdeal) -> LieSubalgebra
+
+Return the normalizer of `I` in `L`, i.e. $\{x \in L \mid [x, I] \subseteq I\} = L$.
+"""
 function normalizer(L::LieAlgebra, I::LieAlgebraIdeal)
-  @req parent(I) == L "Incompatible Lie algebras."
-  return normalizer(L, sub(L, I))
+  return sub(L)
 end
 
+@doc raw"""
+    centralizer(L::LieAlgebra, I::LieAlgebraIdeal) -> LieSubalgebra
+  
+Return the centralizer of `I` in `L`, i.e. $\{x \in L \mid [x, I] = 0\}$.
+"""
 function centralizer(L::LieAlgebra, I::LieAlgebraIdeal)
   return centralizer(L, basis(I))
 end
@@ -179,12 +221,20 @@ end
 #
 ###############################################################################
 
-function lie_algebra(
-  I::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+@doc raw"""
+    lie_algebra(I::LieAlgebraIdeal) -> LieAlgebra
+
+Return `I` as a Lie algebra.
+"""
+function lie_algebra(I::LieAlgebraIdeal)
   return lie_algebra(basis(I))
 end
 
+@doc raw"""
+    sub(L::LieAlgebra, I::LieAlgebraIdeal) -> LieSubalgebra
+
+Return `I` as a subalgebra of `L`.
+"""
 function sub(L::LieAlgebra{C}, I::LieAlgebraIdeal{C}) where {C<:RingElement}
   @req base_lie_algebra(I) === L "Incompatible Lie algebras."
   return sub(L, basis(I); is_basis=true)
@@ -196,14 +246,30 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    ideal(L::LieAlgebra, gens::Vector{LieAlgebraElem}; is_basis::Bool=false) -> LieAlgebraIdeal
+
+Return the smallest ideal of `L` containing `gens`.
+If `is_basis` is `true`, then `gens` is assumed to be a basis of the ideal.
+"""
 function ideal(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
   return LieAlgebraIdeal{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis)
 end
 
+@doc raw"""
+    ideal(L::LieAlgebra, gen::LieAlgebraElem) -> LieAlgebraIdeal
+
+Return the smallest ideal of `L` containing `gen`.
+"""
 function ideal(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
   return ideal(L, [gen])
 end
 
+@doc raw"""
+    ideal(L::LieAlgebra) -> LieAlgebraIdeal
+
+Return `L` as an ideal of itself.
+"""
 function ideal(L::LieAlgebra)
   return ideal(L, basis(L); is_basis=true)
 end
