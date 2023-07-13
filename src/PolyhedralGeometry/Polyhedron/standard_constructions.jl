@@ -1004,8 +1004,22 @@ julia> nvertices(cp)
 20
 ```
 """
-cyclic_polytope(d::Int, n::Int) = polyhedron(Polymake.polytope.cyclic(d, n))
+cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))
 
+@doc raw"""
+    perles_nonrational_8_polytope()
+
+Construct an 8-dimensional polytope with 12 vertices which is not combinatorially equivalent to any rational polytope.
+- [Gru03](@cite), p.94f
+
+# Examples
+```jldoctest
+julia> perles_nonrational_8_polytope()
+Polyhedron in ambient dimension 8 with Hecke.EmbeddedNumFieldElem{nf_elem} type coefficients
+```
+"""
+perles_nonrational_8_polytope() = Polyhedron{Hecke.EmbeddedNumFieldElem{nf_elem}}(Polymake.polytope.perles_irrational_8_polytope())
+                                           
 # random constructions
 
 @doc raw"""
