@@ -91,31 +91,8 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
       return projective_space(NormalToricVariety, length(w)-1)
     end
 
-    # construct the weighted projective space
-    # pmntv = Polymake.fulton.weighted_projective_space(w)
-    # variety = NormalToricVariety(pmntv)
-    
-    # Workaround due to bug in polymake
-    #
-    # We follow the recipe of page 35-36 in
-    # William Fulton: Introduction to toric varieties
-    # Since we cannot deal with lattices that are finer than ZZ^n, we scale
-    # everything up by the corresponding lcms.
-    lcms = [lcm(w[1], w[i]) for i in 2:length(w)]
-    lattice_gens = ZZMatrix(length(w), length(w)-1)
-    ray_gens = ZZMatrix(length(w), length(w)-1)
-    lattice_gens[1,:] = [-div(i, w[1]) for i in lcms]
-    ray_gens[1,:] = -lcms
-    for i in 1:length(w)-1
-        lattice_gens[i+1,i] = div(lcms[i], w[i+1])
-        ray_gens[i+1,i] = lcms[i]
-    end
-    H = hnf(lattice_gens)
-    lattice_gens = transpose(H[1:length(w)-1, :])
-    tr,_ = pseudo_inv(lattice_gens)
-    ray_gens = ray_gens * transpose(tr)
-    mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
-    variety = normal_toric_variety(polyhedral_fan(ray_gens, mc; non_redundant=true ))
+    pmntv = Polymake.fulton.weighted_projective_space(w)
+    variety = NormalToricVariety(pmntv)
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
@@ -230,7 +207,7 @@ function del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::B
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
     end
-    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
     
     # make standard choice for weights of the cox ring
     if b == 1
