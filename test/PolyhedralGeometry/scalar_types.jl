@@ -69,6 +69,10 @@
             @test isq[1]
             @test isq[2] == 2
         end
+        let j = johnson_solid(1)
+            jj = polyhedron(Polymake.polytope.Polytope{Polymake.QuadraticExtension{Polymake.Rational}}(POINTS=Oscar.pm_object(j).VERTICES))
+            @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
+        end
     end
 
     @testset "Cross scalar operations" begin

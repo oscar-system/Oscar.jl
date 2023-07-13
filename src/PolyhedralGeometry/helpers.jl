@@ -442,7 +442,7 @@ end
 function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :INPUT_VERTICES, :RAYS, :VERTICES, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
     i = findfirst(f, propnames)
     # find first QuadraticExtension with root != 0
     # or first OscarNumber wrapping an embedded number field element
@@ -472,7 +472,7 @@ _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.
 function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :INPUT_VERTICES, :RAYS, :VERTICES, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN])
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
     i = findfirst(f, propnames)
     # find first OscarNumber wrapping a FieldElem
     while !isnothing(i)
