@@ -129,7 +129,7 @@ function mu_star(degree::Int64, G::AffineMatrixGroup_GlorSl)
       true = 1
     end
     k = h // W[j]
-    push!(B, (W[j],a[j]) => k)
+    push!(B, a[j] => (W[j],k)) #This dict appears somewhere else make sure the change is made TODO 
   end
   return B
 end
@@ -162,19 +162,18 @@ end
 #omega process
 function omegap(p::Int64, G::AffineMatrixGroup_GlorSl, f::MPolyElem)
   det = (G.det_coordinate_matrix)^p
-  x = f
-  for monomial in monomials(det)
+  for (coeff,monomial) in (coefficients(det),monomials(det))
     exp_vect = exponent_vector(monomial, 1)
-    x = mu_st
-    for i in exp_vect
-      for j in 1:i
+    x = f
+    for i in 1:length(exp_vect)
+      for j in 1:exp_vect[i]
       x = derivative(x, gens(mixedpolring)[i]) 
       if x == 0
         break
       end
       end
     end
-    h += x
+    h += coeff*x
   end
   return h
 end
@@ -184,9 +183,9 @@ end
 function reynolds__(elem::MPolyElem, D::Dict{Any,Any}, G::AffineMatrixGroup_GlorSl, R::MPolyRing)
   V = exponent_vector(elem,1)
   W = collect(keys(D))
-  for (elem1, elem2) in W
+  for (elem2) in W
     if exponent_vector(elem2,1)[n^2 + 1: n^2 + n] == V 
-      mu_st = get(D, (elem1, elem2)) #this is in terms of a_is
+      mu_st = get(D, (elem2))[2] #this is in terms of a_is
     end
   end
   #find out degree of mu_star
@@ -204,7 +203,45 @@ function reynolds__(elem::MPolyElem, D::Dict{Any,Any}, G::AffineMatrixGroup_Glor
   cpn = omegap(p, G, G.det_coordinate_matrix)
   elem_by_detzp = h//cpn
   #this is in terms of a_is. Make it in terms of yi_s. 
+  result = R()
+  x = R(1)
+  for monomial in monomials(elem_by_detzp)
+    (coeff,factors) = factorisation!(monomial)
+    for (factor, deg) in factors
+      W = get(D,factor)[1]
+      x = x*monom_in_R(W,R)
+    end
+    result += coeff*x
+  end
+  return x
+end
 
+function monom_in_R(elem::MPolyElem, R::MPolyRing)
+  gens = gens(R)
+  x = R(1)
+  V = exponent_vector(elem, 1)
+  for i in 1:length(V)
+    if V[i] != 0
+      for j in 1:V[i]
+        x = x*gens[i - n^2]
+      end
+    end
+  end
+  return x
+end
+
+#need this to convert elements of type ai to type yi
+function factorisation!(elem::MPolyElem)
+  coeffs = collect(coefficients(elem))
+  length(coeffs) == 1 || @error("can only factorise monomials")
+  R = elem.parent
+  gens = gens(R)
+  factors = Vector{Tuple{MPolyElem, Int64}}
+  v = exponent_vector(monomial,1)
+  for i in 1:length(v)
+    push!(factors, (gens[i], v[i]))
+  end
+  return coeffs[1], factors
 end
 
 #used to compute primary invariants
