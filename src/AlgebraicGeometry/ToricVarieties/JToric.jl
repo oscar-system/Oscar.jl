@@ -35,10 +35,11 @@ function push_attribute_if_exists!(result::Vector{String},
 end
 
 include("NormalToricVarieties/constructors.jl")
-include("NormalToricVarieties/auxiliary.jl")
+include("NormalToricVarieties/toric_ideal.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
-include("NormalToricVarieties/methods.jl")
+include("NormalToricVarieties/betti_numbers.jl")
+include("NormalToricVarieties/standard_constructions.jl")
 
 include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
 
