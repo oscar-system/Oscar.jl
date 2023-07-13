@@ -22,7 +22,7 @@ mutable struct SesquilinearForm{T<:RingElem}
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
-         @assert is_hermitian_matrix(B) "The matrix is not hermitian"
+         @assert is_hermitian(B) "The matrix is not hermitian"
       elseif sym==:symmetric
          @assert is_symmetric(B) "The matrix is not symmetric"
       elseif sym==:alternating

@@ -39,7 +39,6 @@
 @alias isglobal is_global
 @alias isgraded is_graded
 @alias ishermitian_form is_hermitian_form
-@alias ishermitian_matrix is_hermitian_matrix
 @alias isinner_automorphism is_inner_automorphism
 @alias isinvariant is_invariant
 @alias isisomorphic_with_alternating_group is_isomorphic_with_alternating_group
