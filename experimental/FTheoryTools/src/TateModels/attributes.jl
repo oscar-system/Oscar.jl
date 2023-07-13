@@ -137,7 +137,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2], [-1, -3//2, 1//2], [1, 0, 0], [0, 1, 0], [0, 0, 1]]
+Scheme of a toric variety
 ```
 """
 function base_space(t::GlobalTateModel)
@@ -158,7 +158,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2, 0, 1], [-1, -3//2, 1//2, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 1//3], [0, 0, 0, 1, -1//2], [0, 0, 0, 0, 1]]
+Scheme of a toric variety
 ```
 """
 function ambient_space(t::GlobalTateModel)
@@ -179,7 +179,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base
 
 julia> fiber_ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Scheme of a toric variety
 ```
 """
 fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space

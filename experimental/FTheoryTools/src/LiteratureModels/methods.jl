@@ -80,7 +80,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = resolve(m, 1)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, -2, 0, 1], [-1, -3//2, 1//2, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, -1, 1//3], [0, 0, 0, 1, -1//2], [0, 0, 0, 0, 1], [0, 0, 1, -1, 0], [0, 0, 1, 1, -1], [0, 0, 1, -2, 0], [0, 0, 1, 0, -1], [0, 0, 0, -1, 0]]
+Scheme of a toric variety
 
 julia> cox_ring(v)
 Multivariate polynomial ring in 13 variables over QQ graded by 

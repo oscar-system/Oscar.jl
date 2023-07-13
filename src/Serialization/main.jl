@@ -269,6 +269,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
+    Base.issingletontype(U) && return U()
 
     if parent !== nothing
         result = load_internal_with_parent(s, T, dict[:data], parent)

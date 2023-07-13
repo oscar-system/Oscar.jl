@@ -3,7 +3,7 @@ using Test
 
 @testset "Normal toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)); set_attributes)
+    ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))
     set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"])
     ntv2 = normal_toric_variety(Oscar.cube(2); set_attributes)
     ntv3 = normal_toric_varieties_from_glsm(matrix(ZZ, [[1, 1, 1]]); set_attributes)

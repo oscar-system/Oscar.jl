@@ -91,7 +91,7 @@ $2 \overline{K}_{B_3}$ and $y$ as $3 \overline{K}_{B_3}$.
 # Examples
 ```jldoctest
 julia> base = projective_space(ToricCoveredScheme, 2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety
 
 julia> hypersurface_model(base; completeness_check = false)
 Hypersurface model over a concrete base
@@ -110,7 +110,7 @@ coordinates of the fiber ambient space transform.
 # Examples
 ```jldoctest
 julia> base = projective_space(ToricCoveredScheme, 2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety
 
 julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
 Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
@@ -118,7 +118,7 @@ Normal, non-affine, simplicial, projective, 2-dimensional toric variety without 
 julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
 julia> fiber_ambient_space = ToricCoveredScheme(fiber_ambient_space)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Scheme of a toric variety
 
 julia> D1 = 2 * anticanonical_divisor_class(underlying_toric_variety(base))
 Divisor class on a normal toric variety
@@ -263,8 +263,8 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
 
   # Construct auxiliary ambient space
-  D1_class = ToricDivisorClass(auxiliary_base_space, D1)
-  D2_class = ToricDivisorClass(auxiliary_base_space, D2)
+  D1_class = toric_divisor_class(auxiliary_base_space, D1)
+  D2_class = toric_divisor_class(auxiliary_base_space, D2)
   auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)
   
   # Map p to cox ring of ambient space

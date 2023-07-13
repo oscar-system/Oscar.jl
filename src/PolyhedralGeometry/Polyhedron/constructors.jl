@@ -4,37 +4,47 @@
 ###############################################################################
 ###############################################################################
 
-struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
+struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
+    parent_field::Field
 
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
 
     @doc raw"""
-        Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
+        Polyhedron{T}(P::Polymake.BigObject, F::Field) where T<:scalar_types
 
-    Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
-    The type parameter `T` is optional but recommended for type stability.
+    Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope` with scalars from `Field` `F`.
     """
-    Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
+    Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(p, f)
+    Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
 end
 
 # default scalar type: `QQFieldElem`
 polyhedron(A, b) = polyhedron(QQFieldElem, A, b)
 polyhedron(A) = polyhedron(QQFieldElem, A)
 
-# Automatic detection of corresponding OSCAR scalar type;
-# Avoid, if possible, to increase type stability
-polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
+@doc raw"""
+    polyhedron(P::Polymake.BigObject)
+
+Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`. Scalar type and parent field will be detected automatically. To improve type stability and performance, please use [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref) instead, where possible.
+"""
+function polyhedron(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(Polyhedron, p)
+    return Polyhedron{T}(p, f)
+end
 
 @doc raw"""
-    polyhedron(::Type{T}, A::AnyVecOrMat, b) where T<:scalar_types
+    polyhedron([::Union{Type{T}, Field},] A::AnyVecOrMat, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
 see Def. 3.35 and Section 4.1. of [JT13](@cite)
+
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -47,23 +57,25 @@ julia> polyhedron(A,b)
 Polyhedron in ambient dimension 2
 ```
 """
-polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = polyhedron(T, (A, b))
+polyhedron(f::Union{Type{T}, Field}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = polyhedron(f, (A, b))
 
-polyhedron(::Type{T}, A::AbstractVector, b::Any) where T<:scalar_types = polyhedron(T, ([A], [b]))
+polyhedron(f::Union{Type{T}, Field}, A::AbstractVector, b::Any) where T<:scalar_types = polyhedron(f, ([A], [b]))
 
-polyhedron(::Type{T}, A::AbstractVector, b::AbstractVector) where T<:scalar_types = polyhedron(T, ([A], b))
+polyhedron(f::Union{Type{T}, Field}, A::AbstractVector, b::AbstractVector) where T<:scalar_types = polyhedron(f, ([A], b))
 
-polyhedron(::Type{T}, A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = polyhedron(T, (A, [b]))
+polyhedron(f::Union{Type{T}, Field}, A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = polyhedron(f, (A, [b]))
 
-polyhedron(::Type{T}, A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = polyhedron(T, (A, b))
+polyhedron(f::Union{Type{T}, Field}, A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = polyhedron(f, (A, b))
 
-polyhedron(::Type{T}, A::AnyVecOrMat, b::Any) where T<:scalar_types = polyhedron(T, A, [b])
+polyhedron(f::Union{Type{T}, Field}, A::AnyVecOrMat, b::Any) where T<:scalar_types = polyhedron(f, A, [b])
 
 @doc raw"""
-    polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+    polyhedron(::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 
 The (convex) polyhedron obtained intersecting the halfspaces `I` (inequalities)
 and the hyperplanes `E` (equations).
+The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -94,16 +106,17 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-function polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+function polyhedron(f::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing; parent_field::Union{Nothing, Field} = nothing) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
-        IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+        IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
     else
         IM = -affine_matrix_for_polymake(I)
-        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
     end
 
-    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)), parent_field)
 end
 
 """
@@ -124,12 +137,14 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc raw"""
-    convex_hull([::Type{T} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull([::Union{Type{T}, Field} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
+- The first argument either specifies the `Type` of its coefficients or their
+parent `Field`.
 - `V::AbstractCollection[PointVector]`: Points whose convex hull is to be computed.
 - `R::AbstractCollection[RayVector]`: Rays completing the set of points.
 - `L::AbstractCollection[RayVector]`: Generators of the Lineality space.
@@ -183,7 +198,8 @@ julia> XA = convex_hull(V, R, L)
 Polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function convex_hull(f::Union{Type{T}, Field}, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, V, R, L)
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
@@ -192,9 +208,9 @@ function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{Abs
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
     if non_redundant
-        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = points, LINEALITY_SPACE = lineality))
+        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(VERTICES = points, LINEALITY_SPACE = lineality), parent_field)
     else
-        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
+        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)), parent_field)
     end
 end
 

@@ -28,7 +28,7 @@ julia> rays(NF)
 function normal_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmnf = Polymake.fan.normal_fan(pmp)
-   return PolyhedralFan{T}(pmnf)
+   return PolyhedralFan{T}(pmnf, coefficient_field(P))
 end
 
 """
@@ -53,7 +53,7 @@ true
 function face_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmff = Polymake.fan.face_fan(pmp)
-   return PolyhedralFan{T}(pmff)
+   return PolyhedralFan{T}(pmff, coefficient_field(P))
 end
 
 
@@ -127,7 +127,7 @@ function star_subdivision(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:Inte
     end
   end
   
-  return polyhedral_fan(T, new_rays, IncidenceMatrix([nc for nc in new_cones]); non_redundant=true)
+  return polyhedral_fan(coefficient_field(Sigma), new_rays, IncidenceMatrix([nc for nc in new_cones]); non_redundant=true)
 end
 
 function _get_refinable_facets(Sigma::_FanLikeType{T}, new_ray::AbstractVector{<:IntegerUnion}, refinable_cones::Vector{Int}, facet_normals::AbstractMatrix, mc_old::IncidenceMatrix) where T<:scalar_types
@@ -231,7 +231,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
+    *(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 
 Return the Cartesian/direct product of two polyhedral fans.
 
@@ -241,7 +241,7 @@ julia> normal_fan(simplex(2))*normal_fan(simplex(3))
 Polyhedral fan in ambient dimension 5
 ```
 """
-function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+function Base.:*(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
     prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
-    return PolyhedralFan{detect_scalar_type(PolyhedralFan, prod)}(prod)
+    return PolyhedralFan{QQFieldElem}(prod, QQ)
 end
