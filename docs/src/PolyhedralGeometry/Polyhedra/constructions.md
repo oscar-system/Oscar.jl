@@ -149,6 +149,7 @@ dwarfed_product_polygons
 explicit_zonotope
 fano_simplex
 fractional_cut_polytope
+fractional_knapsack
 fractional_matching_polytope
 gelfand_tsetlin_polytope
 lecture_hall_simplex

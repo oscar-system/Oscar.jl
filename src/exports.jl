@@ -520,6 +520,7 @@ export fraction
 export fraction_field
 export fractional_cut_polytope
 export fractional_ideal
+export fractional_knapsack
 export fractional_matching_polytope
 export frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup
 export free_abelian_group

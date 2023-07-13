@@ -1155,7 +1155,7 @@ description see [Jos05](@cite).
 
 # Examples
 ```jldoctest
-julia> P = binary_markov_graph([100,345,12,17])
+julia> P = binary_markov_graph([1,1,1,1])
 Polyhedron in ambient dimension 2
 
 julia> vertices(P)
@@ -1166,7 +1166,7 @@ julia> vertices(P)
  [0, 7]
 ```
 """
-binary_markov_graph(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(observation))
+binary_markov_graph(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
 
 @doc raw"""
     dwarfed_cube(d::Int)
@@ -1307,3 +1307,33 @@ function cyclic_caratheodory(d::Int, n::Int)
     end
     return Polymake.polytope.cyclic_caratheodory(d,n)
 end
+
+@doc raw"""
+    fractional_knapsack(b::Vector)
+
+Produce a knapsack polytope defined by one linear inequality (and non-negativity constraints).
+
+# Keywords
+- `b::Vector`: Entries in vector have to be rational, represents a linear inequality
+
+# Example 
+```jldoctest
+julia> fractional_knapsack([1;2;3])
+type: Polytope<Rational>
+description: knapsack 1 2 3
+
+BOUNDED
+        true
+
+CONE_AMBIENT_DIM
+        3
+
+INEQUALITIES
+  1  2  3
+  0  1  0
+  0  0  1
+  1  0  0
+```
+"""
+fractional_knapsack(b::Vector{Rational}) = Polymake.polytope.fractional_knapsack(b)
+fractional_knapsack(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
