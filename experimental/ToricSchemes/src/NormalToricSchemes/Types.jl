@@ -24,7 +24,7 @@ function Base.show(io::IO, X::ToricSpec)
 end
 
 function Base.show(io::IO, X::ToricCoveredScheme)
-  print(io, "Scheme of a toric variety with fan spanned by $(rays(fan(X)))")
+  print(io, "Scheme of a toric variety")
 end
 
 function Base.show(io::IO, ::MIME"text/plain",  X::ToricSpec)
@@ -32,6 +32,6 @@ function Base.show(io::IO, ::MIME"text/plain",  X::ToricSpec)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", X::ToricCoveredScheme)
-  print(io, "Scheme of a toric variety with fan spanned by $(rays(fan(X)))")
+  print(io, "Scheme of a toric variety")
 end
 
