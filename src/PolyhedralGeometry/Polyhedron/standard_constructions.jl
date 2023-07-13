@@ -1077,8 +1077,6 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   return Polyhedron{T}(pm_obj)
 end
 
-
-
 @doc raw"""
     SIM_body(alpha::AbstractVector)
 
@@ -1260,39 +1258,53 @@ julia> vertices(S)
 lecture_hall_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
 
 @doc raw"""
-    cyclic_caratheodory(d::Int, n::Int)
+    explicit_zonotope(zones::Matrix)
 
-Produce a $d-$dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
-Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the trigonometric moment curve.
+Produce the points of a zonotope as the iterated Minkowski sum of all intervals $[-x,x]$, 
+where $x$ ranges over the rows of the input matrix `zones`. 
 
 # Keywords
-- `d::Int`: the dimension has to be even
-- `n::Int`: the number of points $n$ have to be be $\leq d$ 
+- `zones::Matrix`: the input vectors 
+- `rows_are_points::Bool`: the rows of the input matrix represent affine points(`true`, default) or linear vectors(`false`). 
 
 # Examples
 ```jldoctest
-julia> cyclic_caratheodory(4,5)
-type: Polytope<Rational>
-description: Cyclic 4-polytope on 5 vertices on the trigonometric moment curve
+julia> Z = explicit_zonotope([1 1; 1 -1], false)
+Polyhedron in ambient dimension 2
 
-BOUNDED
-        true
+julia> vertices(Z)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [2, 0]
+ [0, -2]
+ [0, 2]
+ [-2, 0]
+```
+"""
+explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = Polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
 
-CONE_AMBIENT_DIM
-        5
+@doc raw"""
+    cyclic_caratheodory(d::Int, n::Int)
 
-CONE_DIM
-        5
+Produce a $d$-dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
+Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the 
+trigonometric moment curve.
 
-N_VERTICES
-        5
+# Keywords
+- `d::Int`: the dimension has to be even.
+- `n::Int`: the number of points `n` has to be be $\geq d$ 
 
-VERTICES
-  1                                   1                                   0  …                                   0
-  1    347922205179541/1125899906842624   8566355544790271/9007199254740992      5294298886396511/9007199254740992
-  1  -7286977268806823/9007199254740992   5294298886396511/9007199254740992         -33462326346837/35184372088832
-  1  -7286977268806825/9007199254740992  -5294298886396509/9007199254740992      8566355544790271/9007199254740992
-  1   1391688820718163/4503599627370496      -33462326346837/35184372088832     -5294298886396507/9007199254740992
+# Examples
+```jldoctest
+julia> C= cyclic_caratheodory(4,5)
+Polyhedron in ambient dimension 4
+
+julia> vertices(C)
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0, 1, 0]
+ [347922205179541//1125899906842624, 8566355544790271//9007199254740992, -7286977268806823//9007199254740992, 5294298886396511//9007199254740992]
+ [-7286977268806823//9007199254740992, 5294298886396511//9007199254740992, 1391688820718163//4503599627370496, -33462326346837//35184372088832]
+ [-7286977268806825//9007199254740992, -5294298886396509//9007199254740992, 5566755282872661//18014398509481984, 8566355544790271//9007199254740992]
+ [1391688820718163//4503599627370496, -33462326346837//35184372088832, -3643488634403413//4503599627370496, -5294298886396507//9007199254740992]
 ```
 """
 function cyclic_caratheodory(d::Int, n::Int)
@@ -1305,5 +1317,77 @@ function cyclic_caratheodory(d::Int, n::Int)
     if mod(d,2) != 0
         throw(ArgumentError("Dimension has to be even."))
     end
-    return Polymake.polytope.cyclic_caratheodory(d,n)
+    return Polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
 end
+
+@doc raw"""
+    zonotope(M::Matrix)
+
+Create a zonotope from a matrix whose rows are input points or vectors.
+
+# Keywords
+- `M::Matrix`: input points or vectors.
+- `rows_are_points::Bool`: This is `true` in case `M` consists of points instead of vectors; the default is `true`.
+- `centered::Bool`: This is `true` if the output should be centered; the default is `true`.
+
+# Examples
+The following produces a parallelogram with the origin as its vertex barycenter: 
+```jldoctest
+julia> Z = zonotope([1 1 0; 1 1 1])
+Polyhedron in ambient dimension 2
+
+julia> vertices(Z)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [-1, -1//2]
+ [0, -1//2]
+ [0, 1//2]
+ [1, 1//2]
+```
+The following produces a parallelogram with the origin being a vertex (not centered case): 
+```jldoctest
+julia> Z = zonotope([1 1 0; 1 1 1], true, false)
+Polyhedron in ambient dimension 2
+
+julia> vertices(Z)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0]
+ [1, 0]
+ [1, 1]
+ [2, 1]
+```
+"""
+zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
+
+@doc raw"""
+    goldfarb
+
+# Keywords
+- `d::Int`: the dimension
+- `e::Number`: first parameter of deformation, it must be $<\frac{1}{2}$. 
+- `g::Number`: second parameter of deformation, it must be $\geq \frac{e}{4}$. 
+    
+The Goldfarb cube is a combinatorial cube and yields a bad example for the 
+Simplex Algorithm using the Shadow Vertex Pivoting Strategy. 
+Here we use the description as a deformed product due to [AZ99](@cite). 
+For $e<\frac{1}{2}$ and $g=0$ we obtain the Klee-Minty cubes, 
+in particular for $e=g=0$ we obtain the standard cube. 
+
+# Examples
+The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{4}.
+```jldoctest
+julia> C = goldfarb_cube(3,1/4,0)
+Polyhedron in ambient dimension 3 with Float64 type coefficients
+
+julia> vertices(C)
+8-element SubObjectIterator{PointVector{Float64}}:
+ [1.0, 0.75, 0.1875]
+ [0.0, 1.0, 0.25]
+ [0.0, 0.0, 0.0]
+ [1.0, 0.25, 0.0625]
+ [0.0, 0.0, 1.0]
+ [1.0, 0.25, 0.9375]
+ [0.0, 1.0, 0.75]
+ [1.0, 0.75, 0.8125]
+```
+"""
+goldfarb_cube(d::Int, e::Number, g::Number) = Polyhedron(Polymake.polytope.goldfarb(d,e,g))

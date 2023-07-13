@@ -151,6 +151,7 @@ fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+goldfarb_cube
 lecture_hall_simplex
 newton_polytope
 orbit_polytope
