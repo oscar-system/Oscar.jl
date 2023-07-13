@@ -152,6 +152,51 @@ end
 
 ###############################################################################
 #
+#   Important ideals and subalgebras
+#
+###############################################################################
+
+function normalizer(L::LieAlgebra, S::LieSubalgebra)
+  @req base_lie_algebra(S) == L "Incompatible Lie algebras."
+
+  mat = zero_matrix(coefficient_ring(L), dim(L) + dim(S)^2, dim(L) * dim(S))
+  for (i, bi) in enumerate(basis(L))
+    for (j, sj) in enumerate(basis(S))
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bracket(bi, sj))
+    end
+  end
+  for i in 1:dim(S)
+    mat[(dim(L) + (i - 1) * dim(S) + 1):(dim(L) + i * dim(S)), ((i - 1) * dim(L) + 1):(i * dim(L))] = basis_matrix(
+      S
+    )
+  end
+  show(stdout, MIME"text/plain"(), mat)
+  println("")
+  sol_dim, sol = left_kernel(mat)
+  sol = sol[:, 1:dim(L)]
+  c_dim, c_basis = rref(sol)
+  println(c_dim)
+  show(stdout, MIME"text/plain"(), c_basis)
+  println("")
+  return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+end
+
+function centralizer(L::LieAlgebra, S::LieSubalgebra)
+  return centralizer(L, basis(S))
+end
+
+###############################################################################
+#
+#   Properties
+#
+###############################################################################
+
+function is_self_normalizing(S::LieSubalgebra)
+  return normalizer(base_lie_algebra(S), S) == S
+end
+
+###############################################################################
+#
 #   Conversion
 #
 ###############################################################################
@@ -159,7 +204,7 @@ end
 function lie_algebra(
   S::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
-  return lie_algebra(basis(S))
+  return lie_algebra(basis(S)) #, embedding_hom   # TODO
 end
 
 ###############################################################################
@@ -169,7 +214,7 @@ end
 ###############################################################################
 
 function sub(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
-  return LieSubalgebra{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis) #, embedding_hom   # TODO
+  return LieSubalgebra{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis)
 end
 
 function sub(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}

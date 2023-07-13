@@ -160,6 +160,21 @@ end
 
 ###############################################################################
 #
+#   Important ideals and subalgebras
+#
+###############################################################################
+
+function normalizer(L::LieAlgebra, I::LieAlgebraIdeal)
+  @req parent(I) == L "Incompatible Lie algebras."
+  return normalizer(L, sub(L, I))
+end
+
+function centralizer(L::LieAlgebra, I::LieAlgebraIdeal)
+  return centralizer(L, basis(I))
+end
+
+###############################################################################
+#
 #   Conversion
 #
 ###############################################################################
@@ -168,6 +183,11 @@ function lie_algebra(
   I::LieAlgebraIdeal{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
   return lie_algebra(basis(I))
+end
+
+function sub(L::LieAlgebra{C}, I::LieAlgebraIdeal{C}) where {C<:RingElement}
+  @req base_lie_algebra(I) === L "Incompatible Lie algebras."
+  return sub(L, basis(I); is_basis=true)
 end
 
 ###############################################################################
