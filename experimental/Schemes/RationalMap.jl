@@ -42,7 +42,9 @@ with coordinates
 ```
 """
 @attributes mutable struct RationalMap{DomainType<:AbsCoveredScheme, 
-                                       CodomainType<:AbsCoveredScheme} 
+                                       CodomainType<:AbsCoveredScheme
+                                      } <: AbsCoveredSchemeMorphism{DomainType, CodomainType, 
+                                                                    RationalMap, Nothing}
   domain::DomainType
   codomain::CodomainType
   domain_covering::Covering
@@ -103,7 +105,7 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
   # Try to cover U by PrincipalOpenSubsets W so that the restriction 
   # of Phi to W extends to a regular morphism φ : W → V' for some 
   # `affine_chart` of the codomain of Phi.
-  covered_codomain_patches = Vector{AbsSpec}([codomain_chart(Phi)])
+  covered_codomain_patches = Vector{AbsSpec}([V])
   complement_equations = Vector{elem_type(OO(U))}()
   FY = FunctionField(Y)
   FX = FunctionField(X)
@@ -115,13 +117,17 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
   # But V might be a hypersurface complement in there and we 
   # might need to restrict our domain of definition accordingly. 
   Psi_res = [_restrict_properly(psi, V) for psi in Psi]
+  @assert all(phi->codomain(phi) === V, Psi_res)
   append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi_res])
+  @show Psi_res
   while !isone(ideal(OO(U), complement_equations))
     # Find another chart in the codomain which is hopefully easily accessible
     V_next, V_orig = _find_good_neighboring_patch(codomain_covering(Phi), covered_codomain_patches)
     # Get the glueing morphisms for the glueing to some already covered chart
     f, g = glueing_morphisms(glueings(codomain_covering(Phi))[(V_next, V_orig)])
     # Find one morphism which was already realized with this codomomain
+    @show codomain.(Psi_res)
+    @show [psi for psi in Psi_res if codomain(psi) === V_orig]
     phi = first([psi for psi in Psi_res if codomain(psi) === V_orig])
     # We need to express the pullback of the coordinates of V_next as rational functions, 
     # first on V_orig and then pulled back to U
@@ -163,6 +169,8 @@ function realize(Phi::RationalMap)
   end
   return Phi.full_realization
 end
+
+underlying_morphism(Phi::RationalMap) = realize(Phi)
 
 function _extend(U::AbsSpec, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
@@ -209,11 +217,11 @@ function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
 end
 
 function _restrict_properly(f::AbsSpecMor, V::AbsSpec{<:Ring, <:MPolyRing})
-  return f
+  return restrict(f, domain(f), V, check=false)
 end
 
 function _restrict_properly(f::AbsSpecMor, V::AbsSpec{<:Ring, <:MPolyQuoRing})
-  return f
+  return restrict(f, domain(f), V, check=false)
 end
 
 function _restrict_properly(
@@ -242,5 +250,52 @@ function _restrict_properly(
   W = ambient_scheme(f)
   UU = PrincipalOpenSubset(W, push!(pbh, complement_equation(U)))
   return restrict(f, UU, V, check=false)
+end
+
+function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
+  is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
+  #is_proper(Phi) || error("morphism must be proper")
+  all(x->isprime(x), components(D)) || error("divisor must be given in terms of irreducible components")
+  X = domain(Phi)
+  Y = codomain(Phi)
+  pushed_comps = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+  for I in components(D)
+    # Find some chart in which I is non-trivial
+    k = findfirst(x->!isone(I(x)), affine_charts(X))
+    k === nothing && error("no affine chart found on which the component was non-trivial")
+    U = affine_charts(X)[k]
+    loc_phi = realize_on_patch(Phi, U)
+    k = findfirst(x->!isone(I(domain(x))), loc_phi)
+    k === nothing && error("no patch found on which the component was non-trivial")
+    phi = loc_phi[k]
+    U = domain(phi)
+    V = codomain(phi)
+    pb = pullback(phi)
+    Q, pr = quo(OO(U), I(U))
+    @show codomain(pb) === domain(pr)
+    @show codomain(pb) === OO(U)
+    @show domain(pr) === OO(U)
+    J = kernel(hom(OO(V), Q, compose(pb, pr).(gens(OO(V))), check=false))
+    # If this map is contracting the component, skip
+    dim(I(U)) == dim(J) || continue
+    JJ = IdealSheaf(Y, V, gens(J))
+    @show JJ
+    @show JJ.(affine_charts(Y))
+    # TODO: There is a further multiplicity!
+    pushed_comps[JJ] = D[I]
+  end
+  return AlgebraicCycle(Y, coefficient_ring(D), pushed_comps)
+end
+
+function pushforward(Phi::RationalMap, D::WeilDivisor)
+  return WeilDivisor(pushforward(Phi, underlying_cycle(D)))
+end
+
+@attr function is_proper(phi::AbsCoveredSchemeMorphism)
+  error("no method implemented to check properness")
+end
+
+@attr function is_isomorphism(phi::AbsCoveredSchemeMorphism)
+  error("no method implemented to check properness")
 end
 
