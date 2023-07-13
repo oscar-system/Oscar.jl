@@ -186,6 +186,7 @@ import Hecke:
   MapHeader,
   multiplicative_jordan_decomposition,
   primitive_element,
-  conjugate
+  conjugate,
+  expand
 
 import cohomCalg_jll
