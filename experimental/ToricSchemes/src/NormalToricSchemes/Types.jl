@@ -28,7 +28,7 @@ function Base.show(io::IO, X::ToricCoveredScheme)
 end
 
 function Base.show(io::IO, ::MIME"text/plain",  X::ToricSpec)
-  print(io, "Spec of an affine toric variety with cone spanned by $(rays(fan(X)))")
+  print(io, "Spec of an affine toric variety")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", X::ToricCoveredScheme)
