@@ -29,7 +29,7 @@ function pullback(f::SpecOpenMor)
       function my_restr(a::SpecOpenRingElem)
         return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:ngens(V)])
       end
-      f.pullback = Hecke.MapFromFunc(my_restr, OO(U), OO(V))
+      f.pullback = MapFromFunc(OO(U), OO(V), my_restr)
       return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
     end
 
@@ -74,7 +74,7 @@ function pullback(f::SpecOpenMor)
       #                           check=false)
       # end
     end
-    f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
+    f.pullback = MapFromFunc(OO(U), OO(V), mymap)
   end
   return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
 end

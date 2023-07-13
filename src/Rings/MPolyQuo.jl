@@ -891,7 +891,7 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
 function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
@@ -1139,7 +1139,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
     end
     return result
   end
-  return V, MapFromFunc(im, prim, V, Q)
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1510,7 +1510,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})

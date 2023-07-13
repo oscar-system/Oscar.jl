@@ -184,7 +184,7 @@ function monomial_valuation(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{
     return minimum(mons)
   end
 
-  return MapFromFunc(val, R, ZZ)
+  return MapFromFunc(R, ZZ, val)
 end
 
 ################################################################################

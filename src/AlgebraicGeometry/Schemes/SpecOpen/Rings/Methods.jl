@@ -208,7 +208,7 @@ function restriction_map(
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
-    return MapFromFunc(mymap, OO(U), OO(X))
+    return MapFromFunc(OO(U), OO(X), mymap)
   end
 
   # do the checks
@@ -290,7 +290,7 @@ function restriction_map(
     dk = [dk for (p, q, dk, k) in sep]
     return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=false)*OO(X)(1//poh^m, check=false)
   end
-  return Hecke.MapFromFunc(mysecondmap, OO(U), OO(X))
+  return MapFromFunc(OO(U), OO(X), mysecondmap)
 end
 
 # Automatically find a hypersurface equation h such that X = D(h) in 
@@ -376,7 +376,7 @@ function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
-  return Hecke.MapFromFunc(mymap, OO(X), OO(U))
+  return MapFromFunc(OO(X), OO(U), mymap)
 end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
@@ -386,7 +386,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     function mymap(f::SpecOpenRingElem)
       return f
     end
-    return Hecke.MapFromFunc(mymap, OO(U), OO(V))
+    return MapFromFunc(OO(U), OO(V), mymap)
   end
 
   if ambient_scheme(U) === ambient_scheme(V)
@@ -394,14 +394,14 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
     end
-    return Hecke.MapFromFunc(mysecondmap, OO(U), OO(V))
+    return MapFromFunc(OO(U), OO(V), mysecondmap)
   end
   
   g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
   function mythirdmap(f::SpecOpenRingElem)
     return SpecOpenRingElem(OO(V), [g(f) for g in g], check=false)
   end
-  return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
+  return MapFromFunc(OO(U), OO(V), mythirdmap)
 end
 
 ########################################################################
@@ -430,7 +430,7 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   function myinvmap(b::SpecOpenRingElem)
     return SpecOpenRingElem(S, [g(b) for g in pb_to_Us], check=false)
   end
-  return Hecke.MapFromFunc(mymap, myinvmap, S, T)
+  return MapFromFunc(S, T, mymap, myinvmap)
 end
 
 # Special override for a case where even ideal membership and ring flattenings 

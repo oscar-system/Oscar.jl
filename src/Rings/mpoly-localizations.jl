@@ -1155,7 +1155,7 @@ Localization of multivariate polynomial ring in 3 variables over QQ at complemen
 function Localization(S::AbsMPolyMultSet)
     R = ambient_ring(S)
     Rloc = MPolyLocRing(R, S)
-    #iota = MapFromFunc(x -> Rloc(x), R, Rloc)
+    #iota = MapFromFunc(R, Rloc, x -> Rloc(x))
     iota = hom(R, Rloc, Rloc.(gens(R)), check=false)
     return Rloc, iota
 end
@@ -1173,7 +1173,7 @@ function Localization(
   issubset(S, inverted_set(W)) && return W, identity_map(W)
   U = S*inverted_set(W)
   L, _ = Localization(U)
-  #return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
+  #return L, MapFromFunc(W, L, (x->(L(numerator(x), denominator(x), check=false))))
   return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
 end
 
@@ -1196,7 +1196,7 @@ function Localization(
   h = gcd(prod(g), f)
   L = MPolyLocRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
   return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
-  #return L, MapFromFunc((x->L(numerator(x), denominator(x), check=false)), W, L)
+  #return L, MapFromFunc(W, L, (x->L(numerator(x), denominator(x), check=false)))
 end
 
 function Localization(
@@ -1208,7 +1208,7 @@ function Localization(
     V = Localization(V, f)
   end
   return V, MPolyLocalizedRingHom(W, V, hom(base_ring(W), V, V.(gens(base_ring(W)))), check=false)
-  #return V, MapFromFunc((x->V(numerator(x), denominator(x), check=false)), W, V)
+  #return V, MapFromFunc(W, V, (x->V(numerator(x), denominator(x), check=false)))
 end
 
 ### generation of random elements 
@@ -1587,10 +1587,10 @@ Ideals in localizations of polynomial rings.
       W::MPolyLocRing, 
       gens::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
+          base_ring(W), 
+          W,
           x->W(x),
           y->(isone(denominator(y)) ? numerator(y) : divexact(numerator(y), denominator(y))),
-          base_ring(W), 
-          W
         )
     ) where {LocRingElemType<:AbsLocalizedRingElem}
     for f in gens
@@ -1938,9 +1938,9 @@ function coordinate_shift(
     xs = [ x + a for (x, a) in zip(gens(base_ring(L)), a) ]
     xs_inv = [ x - a for (x, a) in zip(gens(base_ring(L)), a) ]
     shift = MapFromFunc(
+                L, Ls,
                 f -> Ls(evaluate(numerator(f), xs), evaluate(denominator(f), xs), check=false),
                 g -> L(evaluate(numerator(g), xs_inv), evaluate(denominator(g), xs_inv), check=false),
-                L, Ls
               )
     set_attribute!(L, :coordinate_shift, shift)
   end
@@ -2930,7 +2930,7 @@ function Localization(R::MPolyRing, f::MPolyRingElem)
     isone(denominator(a)) && return numerator(a)
     return divexact(numerator(a), denominator(a))
   end
-  return L, MapFromFunc(func, func_inv, R, L)
+  return L, MapFromFunc(R, L, func, func_inv)
 end
 
 #############################################################################

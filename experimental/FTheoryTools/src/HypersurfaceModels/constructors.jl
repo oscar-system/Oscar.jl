@@ -158,6 +158,13 @@ This method requires the following information:
 5. The dimension of the auxiliary toric base space.
 6. The fiber ambient space.
 7. The hypersurface equation.
+
+Note that many studies in the literature use the class of the anticanonical bundle
+in their analysis. We anticipate this by adding this class as a variable of the
+auxiliary base space, unless the user already provides this grading. Our convention
+is that the first grading refers to Kbar and that the homogeneous variable corresponding
+to this class carries the name "Kbar".
+
 The following example exemplifies this constructor.
 
 # Examples
@@ -201,10 +208,35 @@ julia> p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^
 -a1*x*y*z + a21*w*x^2*z^2 - a32*w^2*y*z^3 + a43*w^3*x*z^4 + a65*w^5*z^6 + x^3 - y^2
 
 julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p)
+Assuming that the first row of the given grading is the grading under Kbar
+
 Hypersurface model over a not fully specified base
 ```
 """
 function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+  
+  # Is there a grading [1, 0, ..., 0]?
+  Kbar_grading_present = false
+  for i in 1:ncols(auxiliary_base_grading)
+    col = auxiliary_base_grading[:,i]
+    if length(col) == 1 && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
+      Kbar_grading_present = true
+      break;
+    end
+  end
+  
+  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
+  if Kbar_grading_present == false
+    @req ("Kbar" in auxiliary_base_vars) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
+    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
+    Kbar_grading[1] = 1
+    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
+    push!(auxiliary_base_vars, "Kbar")
+  end
   
   # Compute simple information
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
@@ -215,38 +247,22 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
-  @req length(auxiliary_base_vars) >= d "We expect at least as many base variables as the desired base dimension"
+  if d == 1
+    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
+  else
+    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
+  end
   @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
-  # Find candidate base spaces and perform consistency checks
-  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
-  @req length(candidates) > 0 "Could not find a full regular star triangulation"
-  f = fan(candidates[1])
-  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  # inform about the assume Kbar grading
+  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
   
-  # Construct base space of desired dimension
-  fan_rays = matrix(ZZ, rays(f))
-  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
-  fan_max_cone_matrix = matrix(ZZ, cones(f))
-  new_max_cones = Vector{Int}[]
-  for k in 1:nrows(fan_max_cone_matrix)
-    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
-    if length(indices) == d
-      push!(new_max_cones, indices)
-    end
-  end
-  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
-  set_coordinate_names(auxiliary_base_space, auxiliary_base_vars)
-  G1 = free_abelian_group(ncols(auxiliary_base_grading))
-  G2 = free_abelian_group(nrows(auxiliary_base_grading))
-  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
-  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
-  set_attribute!(auxiliary_base_space, :class_group, G2)
-  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
-  
-  # Construct ambient space
+  # Construct auxiliary base space
+  auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
+
+  # Construct auxiliary ambient space
   D1_class = ToricDivisorClass(auxiliary_base_space, D1)
   D2_class = ToricDivisorClass(auxiliary_base_space, D2)
   auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)

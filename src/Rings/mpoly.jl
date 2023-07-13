@@ -161,7 +161,12 @@ using .Orderings
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-default_ordering(R::MPolyRing) = degrevlex(R)
+function default_ordering(R::MPolyRing)
+  return get_attribute!(R, :default_ordering) do
+    degrevlex(R)
+  end
+end
+
 
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
