@@ -270,7 +270,7 @@ end
 
 ###############################################################################
 #
-#   Important ideals
+#   Important ideals and subalgebras
 #
 ###############################################################################
 
@@ -280,9 +280,6 @@ function derived_algebra(L::LieAlgebra)
 end
 
 function center(L::LieAlgebra)
-  characteristic(coefficient_ring(L)) == 2 &&
-    error("GAP does something else for char 2 which is not implemented here.")
-
   dim(L) == 0 && return ideal(L, [])
 
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
@@ -296,6 +293,24 @@ function center(L::LieAlgebra)
   return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
+function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
+  @req all(x -> parent(x) == L, xs) "Incompatible Lie algebras."
+
+  mat = zero_matrix(coefficient_ring(L), dim(L), dim(L) * length(xs))
+  for (i, bi) in enumerate(basis(L))
+    for (j, xj) in enumerate(xs)
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bracket(bi, xj))
+    end
+  end
+
+  c_dim, c_basis = left_kernel(mat)
+  return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+end
+
+function centralizer(L::LieAlgebra, x::LieAlgebraElem)
+  return centralizer(L, [x])
+end
+
 ###############################################################################
 #
 #   Properties
@@ -307,6 +322,7 @@ function is_abelian(L::LieAlgebra)
 end
 
 function is_simple(L::LieAlgebra)
+  is_abelian(L) && return false
   error("Not implemented.") # TODO
 end
 

@@ -217,7 +217,7 @@ function lie_algebra(
   R = coefficient_ring(parent_L)
   n = parent_L.n
   s = map(AbstractAlgebra.obj_to_string, basis)
-  return lie_algebra(R, n, basis, s; check)
+  return lie_algebra(R, n, matrix_repr.(basis), s; check)
 end
 
 @doc raw"""

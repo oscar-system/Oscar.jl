@@ -16,6 +16,7 @@ import ..Oscar:
   basis,
   basis_matrix,
   center,
+  centralizer,
   coeff,
   coefficient_ring,
   coefficients,
@@ -31,6 +32,7 @@ import ..Oscar:
   is_abelian,
   is_simple,
   ngens,
+  normalizer,
   parent_type,
   sub,
   symbols,
@@ -62,6 +64,7 @@ export highest_weight_module
 export is_direct_sum
 export is_dual
 export is_exterior_power
+export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
@@ -113,6 +116,7 @@ export highest_weight_module
 export is_direct_sum
 export is_dual
 export is_exterior_power
+export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
