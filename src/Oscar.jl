@@ -1,4 +1,4 @@
-@doc raw"""
+@doc """
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
