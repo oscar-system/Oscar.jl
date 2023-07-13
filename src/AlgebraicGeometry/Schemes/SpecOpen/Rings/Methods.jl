@@ -458,7 +458,7 @@ function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
   io = pretty(io)
   println(io, "Ring of regular functions")
   print(io, Indent(), "on ", Lowercase())
-  show(io, MIME"text/plain"(), domain(R), 3)
+  show(io, domain(R))
   print(io, Dedent())
 end
 
@@ -476,17 +476,20 @@ function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
   R = parent(a)
   println("Regular function")
   print(io, Indent(), "on ", Lowercase())
-  show(io, MIME"text/plain"(), domain(R), 3)
-  println(io, Dedent())
+  show(io, domain(R))
+  print(io, Dedent())
   r = restrictions(a)
   ap = affine_patches(a)
-  print(io, "with restriction")
-  length(r) > 1 && print(io, "s")
-  println(io, Indent())
-  for i in 1:length(r)-1
-    println(io, Lowercase(), ap[i], " -> ", r[i])
+  if length(r) > 0
+    println(io)
+    print(io, "with restriction")
+    length(r) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(r)
+      println(io)
+      print(io, Lowercase(), ap[i], " -> ", r[i])
+    end
+    print(io, Dedent())
   end
-  print(io, Lowercase(), ap[end], " -> ", r[end])
-  print(io, Dedent())
 end
   

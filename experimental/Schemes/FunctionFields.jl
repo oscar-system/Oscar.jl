@@ -340,12 +340,14 @@ end
 function Base.show(io::IO, ::MIME"text/plain", KK::VarietyFunctionField)
   io = pretty(io)
   X = variety(KK)
+  cov = default_covering(X)
   println(io, "Field of rational functions")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, default_covering(X))
+  Oscar._show_semi_compact(io, X, cov)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
   println(io, Dedent())
   println(io, "represented by ", Lowercase(), representative_field(KK))
-  print(io, Indent(), "over ", Lowercase(), representative_patch(KK))
+  print(io, Indent(), "over patch $j")
   print(io, Dedent())
 end
 
@@ -358,15 +360,24 @@ function Base.show(io::IO, f::VarietyFunctionFieldElem)
   end
 end
 
+function _show_semi_compact(io::IO, f::VarietyFunctionFieldElem, cov::Covering = get_attribute(variety(parent(f)), :simplified_covering, default_covering(variety(parent(f)))), k::Int = 0)
+  io = pretty(io)
+  j = findfirst(U -> representative_patch(parent(f)) === U, collect(cov))
+  print(io, "Rational function represented by ", representative(f), " "^k, "   on patch $j")
+end
+
 function Base.show(io::IO, ::MIME"text/plain", f::VarietyFunctionFieldElem)
   io = pretty(io)
   KK = parent(f)
+  X = variety(KK)
+  cov = default_covering(X)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
   println(io, "Rational function")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, variety(KK), default_covering(variety(KK)))
+  Oscar._show_semi_compact(io, X, cov)
   println(io, Dedent())
   println(io, "represented by ", representative(f))
-  print(io, Indent(), "over ", Lowercase(), representative_patch(KK))
+  print(io, Indent(), "over patch $j")
   print(io, Dedent())
 end
 

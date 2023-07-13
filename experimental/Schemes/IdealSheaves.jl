@@ -996,7 +996,7 @@ function Base.show(io::IO, I::IdealSheaf)
   end
 end
 
-function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), k::Int = 0)
+function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), n::String = "")
   io = pretty(io)
   X = scheme(I)
   if has_attribute(I, :dim) && has_attribute(X, :dim)
@@ -1013,18 +1013,20 @@ function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute
   else
     # If there is a simplified covering, use it!
     if prim
-      print(io, "Sheaf of prime ideals ")
+      print(io, "Sheaf of prime ideals")
     else
-      print(io, "Sheaf of ideals ")
+      print(io, "Sheaf of ideals")
     end
-    print(io, "with restriction")
-    length(cov) > 1 && print(io, "s")
-    print(io, Indent())
-    for (i, U) in enumerate(patches(cov))
-      println(io)
-      print(io, " "^k, "patch $i: $(I(U))")
+    if length(cov) > 0
+      print(io, " with restriction")
+      length(cov) > 1 && print(io, "s")
+      print(io, Indent())
+      for (i, U) in enumerate(patches(cov))
+        println(io)
+        print(io, "$i"*n*": $(I(U))")
+      end
+      print(io, Dedent())
     end
-    print(io, Dedent())
   end
 end
 
@@ -1035,16 +1037,18 @@ function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = ge
   # If there is a simplified covering, use it!
   println(io, "Sheaf of ideals")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, scheme(I), cov, 3)
-  println(io)
-  print(io, Dedent(), "with restriction")
-  length(cov) > 1 && print(io, "s")
-  print(io, Indent())
-  for (i, U) in enumerate(patches(cov))
+  Oscar._show_semi_compact(io, scheme(I), cov)
+  if length(cov) > 0
     println(io)
-    print(io, "patch $i: $(I(U))")
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for (i, U) in enumerate(patches(cov))
+      println(io)
+      print(io, "$i: $(I(U))")
+    end
+    print(io, Dedent())
   end
-  print(io, Dedent())
 end
 
 function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Covering=default_covering(scheme(first(comp))))

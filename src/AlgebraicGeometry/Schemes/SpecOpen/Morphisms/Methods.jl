@@ -5,19 +5,23 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   io = pretty(io)
   println(io, "Morphism")
   println(io, Indent(), "from ", Lowercase(), domain(f))
-  println(io, "to   ", Lowercase(), codomain(f))
-  print(io, Dedent(), "defined by the map")
+  print(io, "to   ", Lowercase(), codomain(f))
   mop = maps_on_patches(f)
-  length(mop) > 1 && print(io, "s")
-  println(io, Indent())
-  for i in 1:length(mop)-1
-    print(io, Lowercase())
-    Base.show(io, MIME"text/plain"(), mop[i])
+  if length(mop) > 0
     println(io)
-    println(io, "----------------------------------------------------------------------")
+    print(io, Dedent(), "defined by the map")
+    length(mop) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(mop)
+      println(io, Lowercase())
+      Base.show(io, MIME"text/plain"(), mop[i])
+      if i != length(mop)
+        println(io)
+        print(io, "----------------------------------------------------------------------")
+      end
+    end
   end
-  print(io, Lowercase())
-  Base.show(io, MIME"text/plain"(), mop[end])
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, f::SpecOpenMor)

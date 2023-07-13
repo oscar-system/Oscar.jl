@@ -203,7 +203,7 @@ function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
   println(io, Dedent(), "along the open subsets")
   println(io, Indent(), Lowercase(), PU)
   println(io, Lowercase(), PV)
-  print(io, Dedent(), "given by ", Lowercase())
+  print(io, Dedent(), "defined by ", Lowercase())
   Oscar._show_semi_compact(io, f)
 end
 

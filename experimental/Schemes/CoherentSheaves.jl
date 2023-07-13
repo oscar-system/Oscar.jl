@@ -44,15 +44,17 @@ function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
   D = M.ID 
   println(io, "Coherent sheaf of modules")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov, 3)
-  println(io, Dedent())
-  print(io, "with restriction")
-  length(cov) > 1 && print(io, "s")
-  print(io, Indent())
-  for i in 1:length(cov)
-    U = cov[i]
+  Oscar._show_semi_compact(io, X, cov)
+  if length(cov) > 0
     println(io)
-    print(io, "patch $i: ", Lowercase(), D[U])
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(cov)
+      U = cov[i]
+      println(io)
+      print(io, "$i: ", Lowercase(), D[U])
+    end
   end
   print(io, Dedent())
 end

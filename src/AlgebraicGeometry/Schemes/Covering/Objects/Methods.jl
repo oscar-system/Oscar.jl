@@ -245,21 +245,42 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", C::Covering)
   io = pretty(io)
-  print(io, "Covering with $(npatches(C)) affine patch")
-  npatches(C) > 1 && print(io, "es")
-  print(io, Indent())
-  for U in C
+  if length(C) == 0
+    print(io, "Empty covering")
+  else
+    println(io, "Covering")
+    print(io, Indent(), "described by patch") 
+    print(io, Indent())
+    for i in 1:length(C)
+      println(io)
+      print(io, "$i: ", Lowercase(), C[i])
+    end
     println(io)
-    print(io, Lowercase(), U)
+    print(io, Dedent(), "in the coordinate(s)")
+    print(io, Indent())
+    for i in 1:length(C)
+      println(io)
+      print(io, "$i: [")
+      co = coordinates(C[i])
+      if length(co) == 0
+        print(io, "]")
+        continue
+      end
+      for j in 1:length(co)-1
+        print(io, "$(co[j]), ")
+      end
+      print(io, "$(co[end])]")
+    end
+    print(io, Dedent())
+    print(io, Dedent())
   end
-  print(io, Dedent())
 end
 
 function Base.show(io::IO, C::Covering)
   if get(io, :supercompact, false)
     print(io, "Covering")
   else
-    print(io,  "Covering with $(npatches(C)) affine patch") 
+    print(io,  "Covering with $(npatches(C)) patch") 
     npatches(C) > 1 && print(io, "es")
   end
 end

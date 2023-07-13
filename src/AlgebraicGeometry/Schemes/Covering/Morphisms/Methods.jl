@@ -101,76 +101,90 @@ end
 function _show_semi_compact(io::IO, f::CoveringMorphism)
   io = pretty(io)
   mor = morphisms(f)
-  for i in 1:length(patches(domain(f)))-1
-    println(io, "patch $i:")
-    print(io, Indent())
-    U = patches(domain(f))[i]
+  for i in 1:length(domain(f))
+    U = domain(f)[i]
     g = mor[U]
+    j = findfirst(V -> codomain(g) === V, collect(codomain(f)))
+    print(io, "$(i)a -> $(j)b")
+    print(io, Indent())
     x = coordinates(codomain(g))
     pg = pullback(mor[U])
-    for j in 1:length(x)-1
-      println(io, "$(x[j]) -> $(pg(x[j]))")
+    for j in 1:length(x)
+      println(io)
+      print(io, "$(x[j]) -> $(pg(x[j]))")
     end
-    println(io, "$(x[end]) -> $(pg(x[end]))")
+    if i != length(patches(domain(f)))
+      println(io)
+      println(io, "----------------------------------------")
+    end
     print(io, Dedent())
-    println(io, "----------------------------------------")
   end
-  println(io, "patch $(npatches(domain(f))):")
-  print(io, Indent())
-  U = patches(domain(f))[npatches(domain(f))]
-  g = mor[U]
-  x = coordinates(codomain(g))
-  pg = pullback(mor[U])
-  for j in 1:length(x)-1
-    println(io, "$(x[j]) -> $(pg(x[j]))")
-  end
-  print(io, "$(x[end]) -> $(pg(x[end]))")
-  print(io, Dedent(), Dedent())
 end
 
 function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
   io = pretty(io)
   println(io, "Morphism")
-  println(io, Indent(), "from ", Lowercase(), domain(f))
+  print(io, Indent(), "from ", Lowercase(), domain(f))
   print(io, Indent())
-  for U in domain(f)
-    println(io, " "^5, Lowercase(), U)
+  co_str = String[]
+  for i in 1:length(domain(f))
+    U = domain(f)[i]
+    co = coordinates(U)
+    str = reduce(*, ["$x, " for x in co], init = "[")
+    str = str[1:end-2]*"]"
+    push!(co_str, str)
   end
-  print(io, Dedent())
-  println(io, "to   ", Lowercase(), codomain(f))
+  k = max(length.(co_str)...)
+  for i in 1:length(domain(f))
+    U = domain(f)[i]
+    kc = length(co_str[i])
+    println(io)
+    print(io, "$(i)a: "*co_str[i]*" "^(k-kc+3), Lowercase(), U)
+  end
+  println(io, Dedent())
+  print(io, "to   ", Lowercase(), codomain(f))
   print(io, Indent())
-  for U in codomain(f)
-    println(io, " "^5, Lowercase(), U)
+  co_str = String[]
+  for i in 1:length(codomain(f))
+    U = codomain(f)[i]
+    co = coordinates(U)
+    str = reduce(*, ["$x, " for x in co], init = "[")
+    str = str[1:end-2]*"]"
+    push!(co_str, str)
+  end
+  k = max(length.(co_str)...)
+  for i in 1:length(codomain(f))
+    U = codomain(f)[i]
+    kc = length(co_str[i]) 
+    println(io)
+    print(io, "$(i)b: "*co_str[i]*" "^(k-kc+3), Lowercase(), U)
   end
   print(io, Dedent(), Dedent())
-  println(io, "given by")
-  print(io, Indent())
   mor = morphisms(f)
-  for i in 1:length(patches(domain(f)))-1
-    println(io, "patch $i:")
+  if length(mor) > 0
+    println(io)
+    println(io, "given by")
     print(io, Indent())
-    U = patches(domain(f))[i]
-    g = mor[U]
-    x = coordinates(codomain(g))
-    pg = pullback(mor[U])
-    for j in 1:length(x)-1
-      println(io, "$(x[j]) -> $(pg(x[j]))")
+    for i in 1:length(domain(f))
+      U = domain(f)[i]
+      g = mor[U]
+      j = findfirst(V -> codomain(g) === V, collect(codomain(f)))
+      print(io, "$(i)a -> $(j)b")
+      print(io, Indent())
+      x = coordinates(codomain(g))
+      pg = pullback(mor[U])
+      for j in 1:length(x)
+        println(io)
+        print(io, "$(x[j]) -> $(pg(x[j]))")
+      end
+      print(io, Dedent())
+      if i != length(patches(domain(f)))
+        println(io)
+        println(io, "----------------------------------------")
+      end
     end
-    println(io, "$(x[end]) -> $(pg(x[end]))")
-    print(io, Dedent())
-    println(io, "----------------------------------------")
+    print(io, Dedent(), Dedent())
   end
-  println(io, "patch $(npatches(domain(f))):")
-  print(io, Indent())
-  U = patches(domain(f))[npatches(domain(f))]
-  g = mor[U]
-  x = coordinates(codomain(g))
-  pg = pullback(mor[U])
-  for j in 1:length(x)-1
-    println(io, "$(x[j]) -> $(pg(x[j]))")
-  end
-  print(io, "$(x[end]) -> $(pg(x[end]))")
-  print(io, Dedent(), Dedent())
 end
 
 

@@ -10,22 +10,26 @@ function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   f = glueing_morphisms(G)[1]
   pf = pullback(f)
   println(io, Indent(), Lowercase(), domain(f))
-  println(io, Lowercase(), codomain(f))
-  println(io, Dedent(), "given by")
+  print(io, Lowercase(), codomain(f))
   c = coordinates(codomain(f))
-  print(io, Indent())
-  for i in 1:length(c)-1
-    println(io, "$(c[i]) -> $(pf(c[i]))")
+  if length(c) > 0
+    println(io)
+    print(io, Dedent(), "given by")
+    print(io, Indent())
+    for i in 1:length(c)
+      println(io)
+      print(io, "$(c[i]) -> $(pf(c[i]))")
+    end
   end
-  print(io, "$(c[end]) -> $(pf(c[end]))")
   print(io, Dedent())
 end
 
 function Base.show(io::IO, G::AbsGlueing)
+  io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Affine glueing")
+    print(io, "Glueing")
   else
-    print(io, "Glueing of affine patches")
+    print(io, "Glueing: ", Lowercase(), patches(G)[1], " -> ", Lowercase(), patches(G)[2])
   end
 end
 

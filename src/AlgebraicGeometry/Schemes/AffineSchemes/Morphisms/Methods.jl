@@ -148,17 +148,30 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   io = pretty(io)
+  X = domain(f)
+  Y = codomain(f)
   println(io, "Morphism")
-  println(io, Indent(), "from ", Lowercase(), domain(f))
-  println(io, "to   ", Lowercase(), codomain(f))
-  println(io, Dedent(), "given by")
-  pf = pullback(f)
-  print(io, Indent())
-  x = coordinates(codomain(f))
-  for i in 1:length(x)-1
-    println(io, "$(x[i]) -> $(pf(x[i]))")
+  print(io, Indent(), "from ")
+  if X isa AffineVariety{<:Field,<:MPolyRing}
+    print(io, Lowercase())
   end
-  print(io, "$(x[end]) -> $(pf(x[end]))")
+  println(io, X)
+  print(io, "to   ")
+  if Y isa AffineVariety{<:Field,<:MPolyRing}
+    print(io, Lowercase())
+  end
+  print(io, Y)
+  x = coordinates(domain(f))
+  if length(x) > 0
+    println(io)
+    print(io, Dedent(), "given by")
+    pf = pullback(f)
+    print(io, Indent())
+    for i in 1:length(x)
+      println(io)
+      print(io, "$(x[i]) -> $(pf(x[i]))")
+    end
+  end
   print(io, Dedent())
 end
 

@@ -247,26 +247,24 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
   end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov, 3)
+  Oscar._show_semi_compact(io, X, cov)
   println(io, Dedent())
   print(io, "with coefficients in ", Lowercase(), coefficient_ring(D))
   if length(components(D)) != 0
     println(io, Dedent())
     print(io, Dedent(), "given as the formal sum of")
-    println(io, Indent())
-    for i in 1:length(components(D))-1
+    print(io, Indent())
+    for i in 1:length(components(D))
+      println(io)
       I = components(D)[i]
       print(io, "$(D[I])*")
       print(io, Indent(), Lowercase())
-      Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
-      println(io, Dedent())
-      println(io, "--------------------------------------------------------------------------------")
+      Oscar._show_semi_compact(io, I, cov)
+      print(io, Dedent())
+      if i != length(components(D))
+        println(io, "--------------------------------------------------------------------------------")
+      end
     end
-    I = components(D)[end]
-    print(io, "$(D[I])*")
-    print(io, Indent(), Lowercase())
-    Oscar._show_semi_compact(io, I, cov, length("$(D[I])*"))
-    print(io, Dedent())
   end
   print(io, Dedent())
 end
