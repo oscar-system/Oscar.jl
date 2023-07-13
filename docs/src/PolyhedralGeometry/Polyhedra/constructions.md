@@ -152,11 +152,8 @@ fractional_cut_polytope
 fractional_knapsack
 fractional_matching_polytope
 gelfand_tsetlin_polytope
-<<<<<<< HEAD
 hypersimplex
-=======
 goldfarb_cube
->>>>>>> 0c3600fe09b36ad6fc32aa1ae72b43bdb487dfe8
 lecture_hall_simplex
 newton_polytope
 orbit_polytope
