@@ -453,9 +453,10 @@ identifications given by the glueings in the `default_covering`.
       length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
                                                         # Just return the unit ideal so that the 
                                                         # associated subscheme is empty.
-      result = ideal(OO(U), zero(OO(U)))
+      result = ideal(OO(U), one(OO(U)))
+      V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
       for VV in V
-        result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
       end
       return result
     end
@@ -478,9 +479,10 @@ identifications given by the glueings in the `default_covering`.
         length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
         # Just return the unit ideal so that the 
         # associated subscheme is empty.
-        result = ideal(OO(U), zero(OO(U)))
+        result = ideal(OO(U), one(OO(U)))
+        V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
         for VV in V
-          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+          result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
         end
         return result
       end
@@ -509,9 +511,10 @@ identifications given by the glueings in the `default_covering`.
         length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
         # Just return the unit ideal so that the 
         # associated subscheme is empty.
-        result = ideal(OO(U), zero(OO(U)))
+        result = ideal(OO(U), one(OO(U)))
+        V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
         for VV in V
-          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+          result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
         end
         return result
       end
