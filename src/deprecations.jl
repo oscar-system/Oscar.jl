@@ -364,3 +364,29 @@ end
 
 # see https://github.com/oscar-system/Oscar.jl/pull/2368
 @deprecate FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec FreeModElem_dec(coords, parent)
+
+# Polyhedral object wrappers now require a parent field
+function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types
+  Base.depwarn("'Cone{$T}(obj::Polymake.BigObject)' is deprecated, use 'Cone{$T}(obj, f)' with 'f::Field', or 'cone(obj)' instead.", :Cone)
+  return Cone{T}(obj, _detect_default_field(T, obj))
+end
+
+function PolyhedralComplex{T}(obj::Polymake.BigObject) where T<:scalar_types
+  Base.depwarn("'PolyhedralComplex{$T}(obj::Polymake.BigObject)' is deprecated, use 'PolyhedralComplex{$T}(obj, f)' with 'f::Field', or 'polyhedral_complex(obj)' instead.", :PolyhedralComplex)
+  return PolyhedralComplex{T}(obj, _detect_default_field(T, obj))
+end
+
+function PolyhedralFan{T}(obj::Polymake.BigObject) where T<:scalar_types
+  Base.depwarn("'PolyhedralFan{$T}(obj::Polymake.BigObject)' is deprecated, use 'PolyhedralFan{$T}(obj, f)' with 'f::Field', or 'polyhedral_fan(obj)' instead.", :PolyhedralFan)
+  return PolyhedralFan{T}(obj, _detect_default_field(T, obj))
+end
+
+function Polyhedron{T}(obj::Polymake.BigObject) where T<:scalar_types
+  Base.depwarn("'Polyhedron{$T}(obj::Polymake.BigObject)' is deprecated, use 'Polyhedron{$T}(obj, f)' with 'f::Field', or 'polyhedron(obj)' instead.", :Polyhedron)
+  return Polyhedron{T}(obj, _detect_default_field(T, obj))
+end
+
+function SubdivisionOfPoints{T}(obj::Polymake.BigObject) where T<:scalar_types
+  Base.depwarn("'SubdivisionOfPoints{$T}(obj::Polymake.BigObject)' is deprecated, use 'SubdivisionOfPoints{$T}(obj, f)' with 'f::Field', or 'subdivision_of_points(obj)' instead.", :SubdivisionOfPoints)
+  return SubdivisionOfPoints{T}(obj, _detect_default_field(T, obj))
+end

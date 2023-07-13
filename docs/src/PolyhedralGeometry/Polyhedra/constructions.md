@@ -65,7 +65,7 @@ julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
 Polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))
-(A = [-1 0; 0 -1; 1 1], b = Polymake.RationalAllocated[0, 0, 1])
+(A = [-1 0; 0 -1; 1 1], b = QQFieldElem[0, 0, 1])
 
 ```
 
@@ -156,15 +156,15 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
-*(::Int, ::Polyhedron{T}) where T<:scalar_types
-*(::Polyhedron{T}, ::Polyhedron{T})  where T<:scalar_types
++(::Polyhedron{T}, ::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
+*(::Number, ::Polyhedron{T}) where T<:scalar_types
+*(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
 bipyramid
-intersect(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
+intersect(::Polyhedron...)
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
+convex_hull(::Polyhedron...)
 ```

@@ -4,12 +4,12 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, pm_object(C))
-_rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _ray_cone, _nrays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
+_rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _ray_cone, _nrays(C))
 
-_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(view(C.RAYS, i, :))
+_ray_cone(::Type{RayVector{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(C).(view(pm_object(C).RAYS, i, :)))
 
-_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
+_vector_matrix(::Val{_ray_cone}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).RAYS, 0) : pm_object(C).RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -141,26 +141,26 @@ RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0]]
 ```
 """
 function faces(C::Cone{T}, face_dim::Int) where T<:scalar_types
-   face_dim == dim(C) - 1 && return SubObjectIterator{Cone{T}}(pm_object(C), _face_cone_facet, nfacets(C))
+   face_dim == dim(C) - 1 && return SubObjectIterator{Cone{T}}(C, _face_cone_facet, nfacets(C))
    n = face_dim - length(lineality_space(C))
    n < 1 && return nothing
-   return SubObjectIterator{Cone{T}}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
+   return SubObjectIterator{Cone{T}}(C, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
 end
 
-function _face_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer; f_dim::Int = 0) where T<:scalar_types
-   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+function _face_cone(::Type{Cone{T}}, C::Cone, i::Base.Integer; f_dim::Int = 0) where T<:scalar_types
+   return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = pm_object(C).RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(C), f_dim)[i])), :], LINEALITY_SPACE = pm_object(C).LINEALITY_SPACE))
 end
 
-function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
-   f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
+function _ray_indices(::Val{_face_cone}, C::Cone; f_dim::Int = 0)
+   f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(C), f_dim))
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 end
 
-function _face_cone_facet(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
-   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+function _face_cone_facet(::Type{Cone{T}}, C::Cone, i::Base.Integer) where T<:scalar_types
+   return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = pm_object(C).RAYS[collect(pm_object(C).RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = pm_object(C).LINEALITY_SPACE), coefficient_field(C))
 end
 
-_ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
+_ray_indices(::Val{_face_cone_facet}, C::Cone) = pm_object(C).RAYS_IN_FACETS
 
 _incidencematrix(::Val{_face_cone}) = _ray_indices
 
@@ -439,21 +439,21 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
+facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
 
-_facet_cone(::Type{Polyhedron{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = polyhedron(T, -view(C.FACETS, [i], :), 0)
+_facet_cone(::Type{Polyhedron{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = polyhedron(coefficient_field(C), -view(pm_object(C).FACETS, [i], :), 0)
 
-_facet_cone(::Type{AffineHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = AffineHalfspace{T}(-view(C.FACETS, [i], :), 0)
+_facet_cone(::Type{AffineHalfspace{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = affine_halfspace(coefficient_field(C), -view(pm_object(C).FACETS, [i], :), 0)
 
-_facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
+_facet_cone(::Type{LinearHalfspace{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = linear_halfspace(coefficient_field(C), -pm_object(C).FACETS[[i], :])
 
-_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(T, -view(C.FACETS, [i], :))
+_facet_cone(::Type{Cone{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(coefficient_field(C), -view(pm_object(C).FACETS, [i], :))
 
-_linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
+_linear_inequality_matrix(::Val{_facet_cone}, C::Cone) = -pm_object(C).FACETS
 
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
-_ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
+_ray_indices(::Val{_facet_cone}, C::Cone) = pm_object(C).RAYS_IN_FACETS
 
 _incidencematrix(::Val{_facet_cone}) = _ray_indices
 
@@ -477,11 +477,11 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(C), _lineality_cone, lineality_dim(C))
+lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(C, _lineality_cone, lineality_dim(C))
 
-_lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(C.LINEALITY_SPACE, i, :))
+_lineality_cone(::Type{RayVector{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(C).(view(pm_object(C).LINEALITY_SPACE, i, :)))
 
-_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.LINEALITY_SPACE, 0) : C.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_cone}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).LINEALITY_SPACE, 0) : pm_object(C).LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -501,11 +501,11 @@ julia> linear_span(c)
 x₃ = 0
 ```
 """
-linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
+linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(C, _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
 
-_linear_span(::Type{LinearHyperplane{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHyperplane{T}(view(C.LINEAR_SPAN, i, :))
+_linear_span(::Type{LinearHyperplane{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = linear_hyperplane(coefficient_field(C), view(pm_object(C).LINEAR_SPAN, i, :))
 
-_linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
+_linear_equation_matrix(::Val{_linear_span}, C::Cone) = pm_object(C).LINEAR_SPAN
 
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
@@ -529,12 +529,12 @@ julia> matrix(ZZ, hilbert_basis(C))
 """
 function hilbert_basis(C::Cone{QQFieldElem})
    @req is_pointed(C) "Cone not pointed"
-   return SubObjectIterator{PointVector{ZZRingElem}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
+   return SubObjectIterator{PointVector{ZZRingElem}}(C, _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
 end
 
-_hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{ZZRingElem}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))
+_hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Cone, i::Base.Integer) = PointVector{ZZRingElem}(view(pm_object(C).HILBERT_BASIS_GENERATORS[1], i, :))
 
-_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
+_generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0) : pm_object(C).HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
@@ -588,4 +588,4 @@ Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v
 Compute a point in the relative interior point of `C`, i.e. a point in `C` not
 contained in any facet.
 """
-relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(Polymake.common.dense(pm_object(C).REL_INT_POINT))
+relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(coefficient_field(C), view(Polymake.common.dense(pm_object(C).REL_INT_POINT), :)) # broadcast_view
