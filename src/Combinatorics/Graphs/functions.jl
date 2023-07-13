@@ -788,6 +788,35 @@ false
 """
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
+
+function is_isomorphic_with_map(G1::Graph, G2::Graph)
+  f12 = Polymake.graph.find_node_permutation(G1.pm_graph, G2.pm_graph)
+  if isnothing(f12)
+    return false, Vector{Int}()
+  end
+  return true, Polymake.to_one_based_indexing(f12)
+end
+
+function graph(G::MatElem)
+  n = nrows(G)
+  g = Graph{Undirected}(n)
+  for i in 1:n
+    for j in 1:i-1
+      if isone(G[i,j])
+        add_edge!(g,i,j)
+      end
+    end
+  end
+  return g
+end
+
+function is_isomorphic_with_permutation(A1::MatElem, A2::MatElem)
+  b, T = is_isomorphic_with_map(graph(A1),graph(A2))
+  @assert b || A1[T] == A2
+  return b, T
+end
+
+
 ################################################################################
 ################################################################################
 ##  Standard constructions
