@@ -1335,5 +1335,6 @@ INEQUALITIES
   1  0  0
 ```
 """
-fractional_knapsack(b::Vector{Rational}) = Polymake.polytope.fractional_knapsack(b)
+fractional_knapsack(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
 fractional_knapsack(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
+
