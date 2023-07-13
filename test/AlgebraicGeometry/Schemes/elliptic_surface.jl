@@ -23,6 +23,9 @@
   X = elliptic_surface(E, 2)
   triv = trivial_lattice(X)
   =#
+
+  #=
+  # This test takes about 5 minutes
   @testset "mordel weil lattices" begin
     k = GF(29,2)
     # The generic fiber of the elliptic fibration
@@ -38,10 +41,10 @@
     @test det(triv[2]) == 256
     @test length(Oscar.mordell_weil_torsion(X)) == 1
     alg = algebraic_lattice(X)
-    @test det(alg[2]) == -192
+    @test det(alg[3]) == -192
     @test det(mordell_weil_lattice(X)) == 3
-
   end
+  =#
   #=
   # this test is quite expensive
   # probably because it is over QQ
@@ -68,6 +71,7 @@
     X = elliptic_surface(E, 2, mwl_basis)
     ff = QQFieldElem[9, 4, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 0, 0, 0, -1]
     @test det(algebraic_lattice(X)[3])==-1183
+    @test length(Oscar.mordell_weil_torsion(X)) == 0 # no torsion points
     elliptic_parameter(X, ff)
   end
 end
