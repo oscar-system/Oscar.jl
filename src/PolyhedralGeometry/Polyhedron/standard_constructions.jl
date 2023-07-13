@@ -1097,7 +1097,7 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 ```
 """
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
-  if !bounded(P)
+  if !is_bounded(P)
     throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
   end
   nv = nvertices(P)

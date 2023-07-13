@@ -100,7 +100,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> ambient_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 2, 4, -2, 0, 1], [-1, -3//2, -5//2, 1//2, 0, 0], [1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, -1, 1//3], [0, 0, 0, 0, 1, -1//2], [0, 0, 0, 0, 0, 1]]
+Scheme of a toric variety
 ```
 """
 function ambient_space(w::WeierstrassModel)
@@ -121,7 +121,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Scheme of a toric variety
 ```
 """
 fiber_ambient_space(w::WeierstrassModel) = w.fiber_ambient_space

@@ -365,6 +365,9 @@ end
 # see https://github.com/oscar-system/Oscar.jl/pull/2368
 @deprecate FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec FreeModElem_dec(coords, parent)
 
+# Deprecated after 0.13.0
+@deprecate fan(v::AbstractNormalToricVariety) polyhedral_fan(v)
+
 # Polyhedral object wrappers now require a parent field
 function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types
   Base.depwarn("'Cone{$T}(obj::Polymake.BigObject)' is deprecated, use 'Cone{$T}(obj, f)' with 'f::Field', or 'cone(obj)' instead.", :Cone)
@@ -390,3 +393,4 @@ function SubdivisionOfPoints{T}(obj::Polymake.BigObject) where T<:scalar_types
   Base.depwarn("'SubdivisionOfPoints{$T}(obj::Polymake.BigObject)' is deprecated, use 'SubdivisionOfPoints{$T}(obj, f)' with 'f::Field', or 'subdivision_of_points(obj)' instead.", :SubdivisionOfPoints)
   return SubdivisionOfPoints{T}(obj, _detect_default_field(T, obj))
 end
+

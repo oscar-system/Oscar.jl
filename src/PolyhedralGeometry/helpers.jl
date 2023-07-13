@@ -357,7 +357,7 @@ Return the parent `Field` of the coefficients of `P`.
 
 # Examples
 ```jldoctest
-julia> c = cross(2)
+julia> c = cross_polytope(2)
 Polyhedron in ambient dimension 2
 
 julia> coefficient_field(c)
