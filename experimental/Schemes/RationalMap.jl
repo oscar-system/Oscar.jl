@@ -119,15 +119,12 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
   Psi_res = [_restrict_properly(psi, V) for psi in Psi]
   @assert all(phi->codomain(phi) === V, Psi_res)
   append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi_res])
-  @show Psi_res
   while !isone(ideal(OO(U), complement_equations))
     # Find another chart in the codomain which is hopefully easily accessible
     V_next, V_orig = _find_good_neighboring_patch(codomain_covering(Phi), covered_codomain_patches)
     # Get the glueing morphisms for the glueing to some already covered chart
     f, g = glueing_morphisms(glueings(codomain_covering(Phi))[(V_next, V_orig)])
     # Find one morphism which was already realized with this codomomain
-    @show codomain.(Psi_res)
-    @show [psi for psi in Psi_res if codomain(psi) === V_orig]
     phi = first([psi for psi in Psi_res if codomain(psi) === V_orig])
     # We need to express the pullback of the coordinates of V_next as rational functions, 
     # first on V_orig and then pulled back to U
@@ -213,6 +210,7 @@ function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
   if !isempty(good_neighbors)
     return first(good_neighbors)
   end
+  isempty(U) && error("no new neighbor could be found")
   return first(U), first(covered)
 end
 
@@ -272,15 +270,10 @@ function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
     V = codomain(phi)
     pb = pullback(phi)
     Q, pr = quo(OO(U), I(U))
-    @show codomain(pb) === domain(pr)
-    @show codomain(pb) === OO(U)
-    @show domain(pr) === OO(U)
     J = kernel(hom(OO(V), Q, compose(pb, pr).(gens(OO(V))), check=false))
     # If this map is contracting the component, skip
     dim(I(U)) == dim(J) || continue
     JJ = IdealSheaf(Y, V, gens(J))
-    @show JJ
-    @show JJ.(affine_charts(Y))
     # TODO: There is a further multiplicity!
     pushed_comps[JJ] = D[I]
   end
