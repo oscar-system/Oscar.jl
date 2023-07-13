@@ -34,8 +34,8 @@ julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
@@ -61,8 +61,8 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> relative_ambient_dimension(X)
 2
@@ -99,8 +99,8 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
@@ -251,7 +251,7 @@ julia> S, _ = grade(Q["x", "y", "z"][1])
 julia> P = projective_scheme(S);
 
 julia> affine_cone(P)
-(Spec of Quotient of multivariate polynomial ring by ideal with 1 generator, Map with following data
+(Spec of quotient of multivariate polynomial ring, Map with following data
 Domain:
 =======
 S

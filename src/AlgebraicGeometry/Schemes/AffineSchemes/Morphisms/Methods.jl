@@ -161,7 +161,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
     print(io, Lowercase())
   end
   print(io, Y)
-  x = coordinates(domain(f))
+  x = coordinates(codomain(f))
   if length(x) > 0
     println(io)
     print(io, Dedent(), "given by")

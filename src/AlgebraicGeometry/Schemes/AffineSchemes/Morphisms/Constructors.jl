@@ -19,13 +19,13 @@ Note that expensive checks can be turned off by setting `check=false`.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> SpecMor(X, Y, gens(OO(X)));
 ```
@@ -72,8 +72,8 @@ This method constructs the identity morphism from an affine scheme to itself.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> identity_map(X);
 ```
@@ -93,8 +93,8 @@ Return the inclusion map from ``X`` to ``Y``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -107,7 +107,8 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> f = inclusion_morphism(Y, X);
 
@@ -130,8 +131,8 @@ This method computes the composition of two morphisms.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -144,7 +145,8 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> m1 = inclusion_morphism(Y, X);
 
@@ -170,8 +172,8 @@ to ``U`` and its codomain to ``V``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -184,7 +186,8 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true

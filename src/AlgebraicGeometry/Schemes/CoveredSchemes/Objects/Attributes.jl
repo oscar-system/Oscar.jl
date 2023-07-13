@@ -50,10 +50,28 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I);
 
 julia> Xcov = covered_scheme(X)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patch
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(s1//s0), (s2//s0)]
+    2: [(s0//s1), (s2//s1)]
+    3: [(s0//s2), (s1//s2)]
 
 julia> default_covering(Xcov)
-Covering with 3 patches
+Covering
+  described by patch
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(s1//s0), (s2//s0)]
+    2: [(s0//s1), (s2//s1)]
+    3: [(s0//s2), (s1//s2)]
 
 ```
 """
@@ -84,13 +102,23 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I);
 
 julia> Xcov = covered_scheme(X)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patch
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(s1//s0), (s2//s0)]
+    2: [(s0//s1), (s2//s1)]
+    3: [(s0//s2), (s1//s2)]
 
 julia> affine_charts(Xcov)
 3-element Vector{AbsSpec}:
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
- Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+ Spec of quotient of multivariate polynomial ring
+ Spec of quotient of multivariate polynomial ring
+ Spec of quotient of multivariate polynomial ring
 
 ```
 """

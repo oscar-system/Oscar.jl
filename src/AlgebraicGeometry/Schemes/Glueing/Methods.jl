@@ -9,9 +9,22 @@ function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   println(io, Dedent(), "along the open subsets")
   f = glueing_morphisms(G)[1]
   pf = pullback(f)
-  println(io, Indent(), Lowercase(), domain(f))
-  print(io, Lowercase(), codomain(f))
-  c = coordinates(codomain(f))
+  print(io, Indent())
+  co_str = String[]
+  co1 = gens(codomain(pf))
+  co2 = gens(domain(pf))
+  str = reduce(*, ["$x, " for x in co1], init = "[")
+  str = str[1:end-2]*"]"
+  k1 = length(str)
+  push!(co_str, str)
+  str = reduce(*, ["$x, " for x in co2], init = "[")
+  str = str[1:end-2]*"]"
+  k2 = length(str)
+  push!(co_str, str)
+  k = max(k1, k2)
+  println(io, co_str[1], " "^(k-k1+3), Lowercase(), domain(f))
+  print(io, co_str[2], " "^(k-k2+3), Lowercase(), codomain(f))
+  c = gens(domain(pf))
   if length(c) > 0
     println(io)
     print(io, Dedent(), "given by")

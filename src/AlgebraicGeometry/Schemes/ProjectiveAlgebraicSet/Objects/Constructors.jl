@@ -14,13 +14,13 @@ julia> P, (x0, x1, x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 
 julia> X = projective_scheme(ideal([x0*x1^2, x2]))
 Projective scheme
-  over Rational field
-  defined by ideal(x0*x1^2, x2)
+  over rational field
+defined by ideal(x0*x1^2, x2)
 
 julia> Y = algebraic_set(X)
 Algebraic set
-  in projective 2-space over QQ
-  defined by ideal(x2, x0*x1)
+  in projective 2-space over QQ with coordinates x0, x1, x2
+defined by ideal(x2, x0*x1)
 
 ```
 """
@@ -38,8 +38,8 @@ julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 
 julia> algebraic_set(ideal([x0,x1]))
 Algebraic set
-  in projective 1-space over QQ
-  defined by ideal(x1, x0)
+  in projective 1-space over QQ with coordinates x0, x1
+defined by ideal(x1, x0)
 
 ```
 """
@@ -90,15 +90,15 @@ Note that even if ``X`` is irreducible, there may be several geometrically irred
 ```jldoctest
 julia> P1 = projective_space(QQ,1)
 Projective space of dimension 1
-  with homogeneous coordinates s0 s1
-  over Rational field
+  over rational field
+with homogeneous coordinates s0, s1
 
 julia> (s0,s1) = homogeneous_coordinates(P1);
 
 julia> X = algebraic_set((s0^2+s1^2)*s1)
 Algebraic set
-  in projective 1-space over QQ
-  defined by ideal(s0^2*s1 + s1^3)
+  in projective 1-space over QQ with coordinates s0, s1
+defined by ideal(s0^2*s1 + s1^3)
 
 julia> (X1,X2) = irreducible_components(X)
 2-element Vector{ProjectiveAlgebraicSet{QQField, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
@@ -107,8 +107,8 @@ julia> (X1,X2) = irreducible_components(X)
 
 julia> X1  # irreducible but not geometrically irreducible
 Algebraic set
-  in projective 1-space over QQ
-  defined by ideal(s0^2 + s1^2)
+  in projective 1-space over QQ with coordinates s0, s1
+defined by ideal(s0^2 + s1^2)
 
 ```
 """

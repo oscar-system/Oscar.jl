@@ -154,7 +154,7 @@ function Base.show(io::IO, U::SpecOpen)
   else
     print(io, "Complement to V(")
     print(io, join(gens(complement_ideal(U)), ", "), ")")
-    print(IOContext(io, :supercompact => true), " in ", ambient_scheme(U))
+    print(IOContext(io, :supercompact => true), " in ", Lowercase(), ambient_scheme(U))
   end
 end
 
