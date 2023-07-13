@@ -55,6 +55,10 @@ function gens(S::LieSubalgebra)
   return S.gens
 end
 
+function gen(S::LieSubalgebra, i::Int)
+  return S.gens[i]
+end
+
 function ngens(S::LieSubalgebra)
   return length(gens(S))
 end
@@ -65,10 +69,29 @@ function basis_matrix(
   return S.basis_matrix::dense_matrix_type(C)
 end
 
+@doc raw"""
+    basis(S::LieSubalgebra{C}) -> Vector{LieAlgebraElem{C}}
+
+Return a basis of the Lie subalgebra `S`.
+"""
 function basis(S::LieSubalgebra)
   return S.basis_elems
 end
 
+@doc raw"""
+    basis(S::LieSubalgebra{C}, i::Int) -> LieAlgebraElem{C}
+
+Return the `i`-th basis element of the Lie subalgebra `S`.
+"""
+function basis(S::LieSubalgebra, i::Int)
+  return S.basis_elems[i]
+end
+
+@doc raw"""
+  dim(S::LieSubalgebra) -> Int
+
+Return the dimension of the Lie subalgebra `S`.
+"""
 dim(S::LieSubalgebra) = length(basis(S))
 
 ###############################################################################
@@ -129,10 +152,15 @@ end
 
 ###############################################################################
 #
-#   Ideal membership
+#   Subalgebra membership
 #
 ###############################################################################
 
+@doc raw"""
+    in(x::LieAlgebraElem, S::LieSubalgebra) -> Bool
+
+Return `true` if `x` is in the Lie subalgebra `S`, `false` otherwise.
+"""
 function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
   return can_solve(basis_matrix(S), _matrix(x); side=:left)
 end
@@ -143,6 +171,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    bracket(S1::LieSubalgebra, S2::LieSubalgebra) -> LieAlgebraIdeal
+
+Return $[S_1, S_2]$.
+"""
 function bracket(
   S1::LieSubalgebra{C,LieT}, S2::LieSubalgebra{C,LieT}
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
@@ -156,6 +189,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    normalizer(L::LieAlgebra, S::LieSubalgebra) -> LieSubalgebra
+
+Return the normalizer of `S` in `L`, i.e. $\{x \in L \mid [x, S] \subseteq S\}$.
+"""
 function normalizer(L::LieAlgebra, S::LieSubalgebra)
   @req base_lie_algebra(S) == L "Incompatible Lie algebras."
 
@@ -181,6 +219,11 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
+@doc raw"""
+    centralizer(L::LieAlgebra, S::LieSubalgebra) -> LieSubalgebra
+  
+Return the centralizer of `S` in `L`, i.e. $\{x \in L \mid [x, S] = 0\}$.
+"""
 function centralizer(L::LieAlgebra, S::LieSubalgebra)
   return centralizer(L, basis(S))
 end
@@ -191,6 +234,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    is_self_normalizing(S::LieSubalgebra) -> Bool
+
+Return `true` if `S` is self-normalizing, i.e. if its normalizer is `S`.
+"""
 function is_self_normalizing(S::LieSubalgebra)
   return normalizer(base_lie_algebra(S), S) == S
 end
@@ -201,9 +249,12 @@ end
 #
 ###############################################################################
 
-function lie_algebra(
-  S::LieSubalgebra{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+@doc raw"""
+    lie_algebra(S::LieSubalgebra) -> LieAlgebra
+
+Return `S` as a Lie algebra.
+"""
+function lie_algebra(S::LieSubalgebra)
   return lie_algebra(basis(S)) #, embedding_hom   # TODO
 end
 
@@ -213,14 +264,30 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    sub(L::LieAlgebra, gens::Vector{LieAlgebraElem}; is_basis::Bool=false) -> LieSubalgebra
+
+Return the smallest Lie subalgebra of `L` containing `gens`.
+If `is_basis` is `true`, then `gens` is assumed to be a basis of the subalgebra.
+"""
 function sub(L::LieAlgebra, gens::Vector; is_basis::Bool=false)
   return LieSubalgebra{elem_type(coefficient_ring(L)),elem_type(L)}(L, gens; is_basis)
 end
 
+@doc raw"""
+    sub(L::LieAlgebra, gen::LieAlgebraElem) -> LieSubalgebra
+
+Return the smallest Lie subalgebra of `L` containing `gen`.
+"""
 function sub(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
   return sub(L, [gen])
 end
 
+@doc raw"""
+    sub(L::LieAlgebra) -> LieSubalgebra
+
+Return `L` as a Lie subalgebra of itself.
+"""
 function sub(L::LieAlgebra)
   return sub(L, basis(L); is_basis=true)
 end

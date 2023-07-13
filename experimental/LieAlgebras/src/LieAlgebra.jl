@@ -274,11 +274,21 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    derived_algebra(L::LieAlgebra) -> LieAlgebraIdeal
+
+Return the derived algebra of `L`, i.e. $[L, L]$.
+"""
 function derived_algebra(L::LieAlgebra)
   L_ideal = ideal(L)
   return bracket(L_ideal, L_ideal)
 end
 
+@doc raw"""
+    center(L::LieAlgebra) -> LieAlgebraIdeal
+
+Return the center of `L`, i.e. $\{x \in L \mid [x, L] = 0\}$
+"""
 function center(L::LieAlgebra)
   dim(L) == 0 && return ideal(L, [])
 
@@ -293,6 +303,11 @@ function center(L::LieAlgebra)
   return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
+@doc raw"""
+    centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem}) -> LieSubalgebra
+
+Return the centralizer of `xs` in `L`, i.e. $\{y \in L \mid [x, y] = 0 \forall x \in xs\}$.
+"""
 function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
   @req all(x -> parent(x) == L, xs) "Incompatible Lie algebras."
 
@@ -307,6 +322,11 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
+@doc raw"""
+    centralizer(L::LieAlgebra, x::LieAlgebraElem) -> LieSubalgebra
+
+Return the centralizer of `x` in `L`, i.e. $\{y \in L \mid [x, y] = 0\}$.
+"""
 function centralizer(L::LieAlgebra, x::LieAlgebraElem)
   return centralizer(L, [x])
 end
@@ -317,10 +337,23 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    is_abelian(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
+"""
 function is_abelian(L::LieAlgebra)
   return all(iszero, x * y for (x, y) in combinations(basis(L), 2))
 end
 
+@doc raw"""
+    is_simple(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial ideals.
+
+!!! warning
+    This function is not implemented yet.
+"""
 function is_simple(L::LieAlgebra)
   is_abelian(L) && return false
   error("Not implemented.") # TODO
@@ -332,6 +365,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBEAlgRing, Map
+
+Return the universal enveloping algebra of `L` with the given monomial ordering.
+"""
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
   n = dim(L)
@@ -345,9 +383,11 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   ])
   U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=true)
 
-  L_to_U = function (x::LieAlgebraElem)
-    sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
-  end
+  L_to_U = MapFromFunc(
+    L, U, function (x::LieAlgebraElem)
+      sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
+    end
+  )
   return U, L_to_U
 end
 
