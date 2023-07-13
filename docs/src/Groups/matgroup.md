@@ -33,10 +33,10 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 ```@docs
 SesquilinearForm{T<:RingElem}
-is_alternating_form(f::SesquilinearForm)
-is_hermitian_form(f::SesquilinearForm)
-is_quadratic_form(f::SesquilinearForm)
-is_symmetric_form(f::SesquilinearForm)
+is_alternating(f::SesquilinearForm)
+is_hermitian(f::SesquilinearForm)
+is_quadratic(f::SesquilinearForm)
+is_symmetric(f::SesquilinearForm)
 alternating_form(B::MatElem{T}) where T <: FieldElem
 symmetric_form(B::MatElem{T}) where T <: FieldElem
 hermitian_form(B::MatElem{T}) where T <: FieldElem

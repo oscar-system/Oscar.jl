@@ -396,3 +396,13 @@ end
 
 @deprecate is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem is_hermitian(B)
 @alias ishermitian_matrix is_hermitian_matrix
+
+@deprecate is_alternating_form(f::SesquilinearForm) is_alternating(f)
+@deprecate is_hermitian_form(f::SesquilinearForm) is_hermitian(f)
+@deprecate is_quadratic_form(f::SesquilinearForm) is_quadratic(f)
+@deprecate is_symmetric_form(f::SesquilinearForm) is_symmetric(f)
+
+@alias isalternating_form is_alternating_form
+@alias ishermitian_form is_hermitian_form
+@alias isquadratic_form is_quadratic_form
+@alias issymmetric_form is_symmetric_form
