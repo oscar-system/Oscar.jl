@@ -615,10 +615,10 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(fan(v), new_ray)
+    new_fan = star_subdivision(polyhedral_fan(v), new_ray)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
-    old_rays = rays(fan(v))
+    old_rays = rays(v)
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
     new_vars = Vector{String}(undef, length(new_rays))
@@ -660,10 +660,10 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(fan(v), n)
+    new_fan = star_subdivision(polyhedral_fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
-    old_rays = rays(fan(v))
+    old_rays = rays(v)
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
     new_vars = Vector{String}(undef, length(new_rays))
@@ -723,6 +723,7 @@ Normal toric variety
 
 julia> set_coordinate_names(v2, ["x1", "x2", "x3", "y1", "y2", "y3"])
 
+
 julia> cox_ring(v2)
 Multivariate polynomial ring in 6 variables over QQ graded by
   x1 -> [1 0]
@@ -734,7 +735,7 @@ Multivariate polynomial ring in 6 variables over QQ graded by
 ```
 """
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
-    product = normal_toric_variety(fan(v)*fan(w); set_attributes = set_attributes)
+    product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w); set_attributes = set_attributes)
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
 end

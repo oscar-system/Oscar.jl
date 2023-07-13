@@ -17,7 +17,7 @@ using Test
     end
     
     @testset "Basic attributes" begin
-        @test dim(fan(antv)) == 2
+        @test dim(polyhedral_fan(antv)) == 2
         @test dim(cone(antv)) == 2
         @test length(affine_open_covering(antv)) == 1
         @test length(gens(toric_ideal(antv))) == 1

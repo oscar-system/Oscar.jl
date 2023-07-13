@@ -38,7 +38,7 @@ julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
 julia> base_space(h)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety
 ```
 """
 function base_space(h::HypersurfaceModel)
@@ -57,7 +57,7 @@ julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
 julia> ambient_space(h)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 3], [0, 1, 0, 0], [-1, -1, 0, 0], [0, 0, -1, 1//3], [0, 0, 1, -1//2], [0, 0, 0, 1]]
+Scheme of a toric variety
 ```
 """
 function ambient_space(h::HypersurfaceModel)
@@ -76,7 +76,7 @@ julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
 julia> fiber_ambient_space(h)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Scheme of a toric variety
 ```
 """
 fiber_ambient_space(h::HypersurfaceModel) = h.fiber_ambient_space

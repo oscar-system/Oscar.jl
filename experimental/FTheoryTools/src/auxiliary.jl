@@ -7,7 +7,7 @@ function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, au
   # Find candidate base spaces
   candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
   @req length(candidates) > 0 "Could not find a full star triangulation"
-  f = fan(candidates[1])
+  f = polyhedral_fan(candidates[1])
   @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
   
   # Construct one base space of desired dimension

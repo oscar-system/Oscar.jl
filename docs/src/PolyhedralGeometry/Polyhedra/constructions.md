@@ -24,7 +24,7 @@ polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E:
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
 and [`affine_hull`](@ref affine_hull):
 ```jldoctest
-julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
+julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
 
 julia> facets(P)
@@ -38,13 +38,13 @@ julia> affine_hull(P)
 x₂ = 0
 
 
-julia> Q0 = Polyhedron(facets(P))
+julia> Q0 = polyhedron(facets(P))
 Polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
-julia> Q1 = Polyhedron(facets(P), affine_hull(P))
+julia> Q1 = polyhedron(facets(P), affine_hull(P))
 Polyhedron in ambient dimension 2
 
 julia> P == Q1

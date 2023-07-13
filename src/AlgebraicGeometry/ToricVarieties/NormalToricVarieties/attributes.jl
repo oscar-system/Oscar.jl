@@ -938,7 +938,7 @@ julia> dim(mori)
 
 
 @doc raw"""
-    fan(v::AbstractNormalToricVariety)
+    polyhedral_fan(v::AbstractNormalToricVariety)
 
 Return the fan of an abstract normal toric variety `v`.
 
@@ -947,11 +947,15 @@ Return the fan of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> fan(p2)
+julia> polyhedral_fan(p2)
 Polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v), QQ)
+function polyhedral_fan(v::AbstractNormalToricVariety)
+  result = Base.deepcopy(pm_object(v))
+  Polymake.cast!(result, Polymake.BigObjectType("fan::PolyhedralFan<Rational>"))
+  return PolyhedralFan{QQFieldElem}(result, QQ)
+end
 
 
 @doc raw"""

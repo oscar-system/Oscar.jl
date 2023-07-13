@@ -42,7 +42,7 @@ We overload the following attributes from the underlying toric variety:
 * ``dim(X::ToricCoveredScheme)``,
 * ``dim_of_torusfactor(X::ToricCoveredScheme)``,
 * ``euler_characteristic(X::ToricCoveredScheme)``,
-* ``fan(X::ToricCoveredScheme)``,
+* ``polyhedral_fan(X::ToricCoveredScheme)``,
 * ``ideal_of_linear_relations(R::MPolyRing, X::ToricCoveredScheme)``,
 * ``ideal_of_linear_relations(X::ToricCoveredScheme)``,
 * ``irrelevant_ideal(R::MPolyRing, X::ToricCoveredScheme)``,

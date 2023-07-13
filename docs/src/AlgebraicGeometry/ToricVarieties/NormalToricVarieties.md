@@ -109,7 +109,7 @@ torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ### Cones and Fans
 
 ```@docs
-fan(v::AbstractNormalToricVariety)
+polyhedral_fan(v::AbstractNormalToricVariety)
 cone(v::AffineNormalToricVariety)
 dual_cone(v::AffineNormalToricVariety)
 hilbert_basis(v::AffineNormalToricVariety)
