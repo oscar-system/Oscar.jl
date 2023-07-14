@@ -253,7 +253,6 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  
   return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
 end
 
@@ -270,6 +269,5 @@ function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  
   return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
 end
