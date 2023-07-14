@@ -1,15 +1,7 @@
-GAP.Packages.load("sla")
-using Oscar
-using .Generic
-
-import Oscar: parent_type, elem_type, base_ring, parent, MatElem, symbols, dim
-
-import .Generic: CacheDictType
-
-import AbstractAlgebra: get_cached!
-
-import Base: show, +, -, *, ^, ==, !=, inv, isone, iszero, one, zero, rand, deepcopy_internal, hash, setindex!
-
+#use the GAP package sla
+function __init__()
+    GAP.Packages.load("sla")
+  end 
 
 @attributes mutable struct SimpleLieAlgebra{C<:RingElement} <: LieAlgebra{C}
 #Construct a simple Lie algebra over a given ring with a given root system
@@ -20,19 +12,10 @@ import Base: show, +, -, *, ^, ==, !=, inv, isone, iszero, one, zero, rand, deep
   s::Vector{Symbol}
   root_type::Vector{Union{String, Int64}}
 
-  function SimpleLieAlgebra{C}(
-    R::Ring,
-    S::String,
-    cached::Bool
-  ) where {C<:RingElement}
-    l = length(S)
-    n = parse(Int64, S[2:l])
-    Q = GAP.Globals.Rationals
-    S1 = GAP.Obj(string(S[1]))
-    sL = GAP.Globals.SimpleLieAlgebra(S1, n, Q)
-    di = GAP.Globals.Dimension(sL)
-    M = MatrixSpace(R, 1, di)
+  function SimpleLieAlgebra{C}(R::Ring, S::String, cached::Bool) where {C<:RingElement}
     RS = RootSystem(S)
+    di = size(RS,1) + length(RS.simple_roots)
+    M = MatrixSpace(R, 1, di)
     s = [Symbol("e_$i") for i in 1:di]
     st=Union{String, Int64}[S[1:1], n]
     return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
@@ -294,7 +277,8 @@ function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes 
 	
 	Q = GAP.Globals.Rationals
 	S = GAP.Obj(St[1])
-	LG = GAP.Globals.SimpleLieAlgebra(S, n, Q) #define the Lie algebra in Gap over the rationals
+	LG = GAP.Globals.SimpleLieAlgebra(S, n, Q) #define the Lie algebra in Gap over the rationals, we are interested in the structure constants
+  #they remain the same over rings of characteristic 0, otherwise we have the structure constants mod char(R)
 	d = GAP.Globals.Dimension(LG)
 	
 	ch = GAP.Globals.ChevalleyBasis(LG)
