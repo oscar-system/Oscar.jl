@@ -153,8 +153,15 @@ fractional_knapsack
 fractional_matching_polytope
 gelfand_tsetlin_polytope
 goldfarb_cube
+<<<<<<< Updated upstream
 goldfarb_sit_cube
 hypersimplex
+=======
+hypersimplex
+hypertruncacted_cube
+k_cyclic
+klee_minty_cube
+>>>>>>> Stashed changes
 lecture_hall_simplex
 newton_polytope
 orbit_polytope

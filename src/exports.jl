@@ -625,6 +625,7 @@ export homomorphism_to_element
 export hyperplanes
 export hypersimplex
 export hypersurface_complement
+export hypertruncated_cube
 export icosahedron
 export id_hom
 export ideal
@@ -842,9 +843,11 @@ export jacobi_ideal
 export jacobi_matrix
 export jacobi_symbol
 export johnson_solid
+export k_cyclic
 export k_skeleton
 export katsura
 export kernel
+export klee_minty_cube
 export klein_bottle
 export known_class_fusion
 export koszul_complex

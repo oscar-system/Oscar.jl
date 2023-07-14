@@ -1379,9 +1379,9 @@ Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$
 # Keywords
 - `k::Int`: number of ones
 - `d::Int`: ambient dimension
-- `no_vertices::Bool`: optional parameter, if set equal to true, vertices are not computed
-- `no_facets::Bool`: optional parameter, if set equal to true, facets are not computed
-- `no_vif::Bool`: optional parameter, if set equal to true, vertices and facets are not computed
+- `no_vertices::Bool`: This is an optional parameter, if set equal to `true`, vertices are not computed.
+- `no_facets::Bool`: This is an optional parameter, if set equal to `true`, facets are not computed.
+- `no_vif::Bool`: This is an optional parameter, if set equal to `true``, vertices and facets are not computed.
 
 # Example
 ```jldoctest
@@ -1540,3 +1540,68 @@ function goldfarb_sit_cube(d::Int, eps::Real, delta::Real)
     end
     return Polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
 end
+
+@doc raw"""
+
+Produce a $d-$dimensional hypertruncated cube. With symmetric linear objective function $(0,1,1,…,1)$.
+
+# Keywords
+- `d::Int`: the dimension
+- `k::Number`: cutoff parameter
+- `lambda::Number`: scaling of extra vertex
+
+# Example
+```jldoctest
+julia> H = hypertruncated_cube(3,2,3)
+Polyhedron in ambient dimension 3
+
+julia> print_constraints(H)
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
+x₁ ≦ 1
+x₂ ≦ 1
+x₃ ≦ 1
+5*x₁ - 2*x₂ - 2*x₃ ≦ 3
+-2*x₁ + 5*x₂ - 2*x₃ ≦ 3
+-2*x₁ - 2*x₂ + 5*x₃ ≦ 3
+```
+"""
+function hypertruncated_cube(d::Int, k::Number, lambda::Number) 
+    if 1 >= k || k >= d
+        throw(ArgumentError("1 < k < d required"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.hypertruncated_cube(d, k, lambda))
+end
+
+@doc raw"""
+   k_cylic(n::Int, s::Vector) 
+
+Produce a (rounded) $2*k$-dimensional $k$-cyclic polytope with $n$ points, where $k$ is the length of the input vector $s$. Special cases are the bicyclic ($k=2$) and tricyclic ($k=3$) polytopes. Only possible in even dimensions. The parameters $s_i$ can be specified as integer, floating-point, or rational numbers. The coordinates of the $i$-th point are taken as follows:
+$(\cos(s_1 * 2\pi i/n), \sin(s_1 * 2\pi i/n), ... , \cos(s_k * 2\pi i/n), sin(s_k * 2\pi i/n)).
+
+Warning: Some of the $k-$cyclic polytopes are not simplicial. Since the components are rounded, this function might output a polytope which is not a $k-$cyclic polytope! More information see [Sch95](@cite).
+
+# Keywords
+- `n::Int`: number of points
+- `s::Vector`: input Vector
+
+# Example
+To produce a (not exactly) regular pentagon, type this:
+```jldoctest
+julia> k_cyclic(5,[1])
+Polyhedron in ambient dimension 2
+```
+"""
+k_cyclic(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
+
+@doc raw"""
+    klee_minty_cube(d::Int, e::Number)
+
+Produces a $d-$dimensional Klee-Minty-cube if $e < 1/2$. Uses the `goldfarb` method with the argument $g = 0$.
+
+# Example
+For an example see `goldfarb` method.
+```
+"""
+klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
