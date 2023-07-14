@@ -113,7 +113,7 @@ one can compute the *type* of $Lf$, which can be seen as an equivalent of the
 *genus* used to classified single lattices.
 
 ```@docs
-type(::Lf)
+type(::ZZLatWithIsom)
 ```
 
 Since determining whether two pairs of lattices with isometry are isomorphic is
@@ -122,7 +122,7 @@ This set of data keeps track of some local and global invariants of the pair $(L
 f)$ with respect to the action of $f$ on $L$.
 
 ```@docs
-is_of_type(::ZZLatWithIsom, t:Dict)
+is_of_type(::ZZLatWithIsom, t::Dict)
 is_of_same_type(::ZZLatWithIsom, ::ZZLatWithIsom)
 ```
 
@@ -137,7 +137,7 @@ $f$, if it is maximal in the associated number field $\mathbb{Q}[f]$.
 
 ```@docs
 is_of_hermitian_type(::ZZLatWithIsom)
-is_hermitian()
+is_hermitian(::Dict)
 ```
 
 ## Hermitian structure and trace equivalence

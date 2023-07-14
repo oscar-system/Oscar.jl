@@ -943,8 +943,6 @@ If `check == true` the input triple is checked to a `p`-admissible triple of
 integral lattices (with isometry) with `fA` and `fB` having relatively coprime
 irreducible minimal polynomials and imposing that `A` and `B` are orthogonal
 if `A`, `B` and `C` lie in the same ambient quadratic space.
-
-See [BH23, Algorithm 2](@cite).
 """
 function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
                                                      B::ZZLatWithIsom,

@@ -20,7 +20,7 @@ Note that not all admissible triples satisfy this extension property.
 
 For instance, if $f$ is an isometry of an integer lattice `C` of prime order
 `p`, then for $A := \Ker \Phi_1(f)$ and $B := \Ker \Phi_p(f)$, one has that
-`(A, B, C)` is $p$-admissible (see [BH13, Lemma 4.15.](@cite)).
+`(A, B, C)` is $p$-admissible (see Lemma 4.15. in [BH23](@cite)).
 
 We say that a triple `(AA, BB, CC)` of genus symbols for integer lattices is
 *$p$-admissible* if there are some lattices $A \in AA$, $B \in BB$ and
@@ -34,7 +34,7 @@ scale valuations for the Jordan components at all the relevant primes (see
 [`integer_genera`](@ref)).
 
 ```@docs
-admissible_triples(:::ZZGenus, p::Integer)
+admissible_triples(::ZZGenus, p::Integer)
 is_admissible_triple(::ZZGenus, ::ZZGenus, ::ZZGenus, ::Integer)
 ```
 
@@ -84,6 +84,6 @@ Note that an important feature from the theory in [BH23](@cite) is the notion of
 *admissible gluings* and equivariant primitive embeddings for admissible triples.
 In the next chapter, we will develop about the features regarding primitive
 embeddings and their equivariant version. We use this basis to introduce the
-method [`admissible_equivariant_primitive_extension`](@ref) (Algorithm 2 in
+method `admissible_equivariant_primitive_extension` (Algorithm 2 in
 [BH23](@cite)) which is the major tool making the previous enumeration
 possible and fast, from an algorithmic point of view.

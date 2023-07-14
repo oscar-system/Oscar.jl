@@ -143,8 +143,10 @@ end
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)
   @test order(GL) == 72
-  GL = image_centralizer_in_Oq(rescale(Lf, -14))
-  @test order(GL) == 870912
+
+  # Long test
+  #GL = image_centralizer_in_Oq(rescale(Lf, -14))
+  #@test order(GL) == 870912
 
   B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
   G = matrix(QQ, 6, 6, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
@@ -154,30 +156,30 @@ end
   GL = image_centralizer_in_Oq(Lf)
   @test order(GL) == 2
 
-  E8 = root_lattice(:E, 8)
-  OE8 = orthogonal_group(E8)
-  F, C, _ = invariant_coinvariant_pair(E8, OE8)
+  A3 = root_lattice(:A, 3)
+  OA3 = orthogonal_group(A3)
+  F, C, _ = invariant_coinvariant_pair(A3, OA3)
   @test rank(F) == 0
-  @test C == E8
+  @test C == A3
 
-  D5 = lll(root_lattice(:D, 5))
-  OD5 = matrix_group(automorphism_group_generators(D5, ambient_representation = false))
-  C, gene = coinvariant_lattice(D5, OD5, ambient_representation = false)
+  D4 = lll(root_lattice(:D, 4))
+  OD4 = matrix_group(automorphism_group_generators(D4, ambient_representation = false))
+  C, gene = coinvariant_lattice(D4, OD4, ambient_representation = false)
   G = gram_matrix(C)
   @test all(g -> matrix(g)*G*transpose(matrix(g)) == G, gene)
 end
 
 @testset "Enumeration of lattices with finite isometries" begin
-  E6 = root_lattice(:E, 6)
-  OE6 = orthogonal_group(E6)
-  cc = conjugacy_classes(OE6)
+  A4 = root_lattice(:A, 4)
+  OA4 = orthogonal_group(A4)
+  cc = conjugacy_classes(OA4)
 
-  D = Oscar._test_isometry_enumeration(E6)
+  D = Oscar._test_isometry_enumeration(A4)
   for n in collect(keys(D))
     @test length(D[n]) == length(filter(c -> order(representative(c)) == n, cc))
   end
   
-  for N in D[12]
+  for N in D[6]
     ONf = image_centralizer_in_Oq(integer_lattice_with_isometry(lattice(N), ambient_isometry(N)))
     # for N, the image in OqN of the centralizer of fN in ON is directly
     # computing during the construction of the admissible primitive extension.

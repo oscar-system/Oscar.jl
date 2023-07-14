@@ -71,8 +71,6 @@ order_of_isometry(Vf::QuadSpaceWithIsom) = Vf.n
 Given a quadratic space with isometry $(V, f)$, return the rank of the underlying
 space `V`.
 
-See ['rank(::QuadSpace)'](@ref).
-
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -90,8 +88,6 @@ rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))::Integer
 
 Given a quadratic space with isometry $(V, f)$, return the dimension of the
 underlying space of `V`.
-
-See [`dim(::QuadSpace)`](@ref).
 
 # Examples
 ```jldoctest
@@ -147,8 +143,6 @@ minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))::QQPolyRingElem
 Given a quadratic space with isometry $(V, f)$, return the Gram matrix
 of the underlying space `V` with respect to its standard basis.
 
-See [`gram_matrix(::QuadSpace)`](@ref).
-
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -166,8 +160,6 @@ gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))::QQMatrix
 
 Given a quadratic space with isometry $(V, f)$, return the determinant
 of the underlying space `V`.
-
-See [`det(::QuadSpace)`](@ref).
 
 # Examples
 ```jldoctest
@@ -187,8 +179,6 @@ det(Vf::QuadSpaceWithIsom) = det(space(Vf))::QQFieldElem
 Given a quadratic space with isometry $(V, f)$, return the discriminant
 of the underlying space `V`.
 
-See [`discriminant(::QuadSpace)`](@ref).
-
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -206,8 +196,6 @@ discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))::QQFieldElem
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is positive definite.
-
-See [`is_positive_definite(::QuadSpace)`](@ref).
 
 # Examples
 ```jldoctest
@@ -227,8 +215,6 @@ is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))::B
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is negative definite.
 
-See [`is_negative_definite(::QuadSpace)`](@ref).
-
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -247,8 +233,6 @@ is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))::B
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
 space `V` is definite.
 
-See [`is_definite(::QuadSpace)`](@ref).
-
 # Examples
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
@@ -266,8 +250,6 @@ is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))::Bool
 
 Given a quadratic space with isometry $(V, f)$, return the diagonal of the
 underlying space `V`.
-
-See [`diagonal(::QuadSpace)`](@ref).
 
 # Examples
 ```jldoctest
@@ -288,8 +270,6 @@ diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))::Vector{QQFieldElem}
 
 Given a quadratic space with isometry $(V, f)$, return the signature
 tuple of the underlying space `V`.
-
-See [`signature_tuple(::QuadSpace)`](@ref).
 
 # Examples
 ```jldoctest
@@ -399,8 +379,6 @@ end
 
 Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$) where
 $V^a$ is the same space as `V` with the associated quadratic form rescaled by `a`.
-
-See [`rescale(::QuadSpace, ::Hecke.RationalUnion)`](@ref).
 
 # Examples
 ```jldoctest

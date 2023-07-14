@@ -5,7 +5,7 @@ CurrentModule = Oscar
 We introduce here the necessary definitions and results which lie behind the
 methods presented. Most of the content is taken from [Nik79](@cite).
 
-# Primitive embeddings between even lattices
+# Primitive embeddings in even lattices
 
 ## Nikulin's theory
 
@@ -20,11 +20,11 @@ and $i_2$ defines *isomorphic primitive sublattices* [Nik79](@cite).
 
 In his paper, V. V. Nikulin gives necessary and sufficient condition for an even
 integral lattice $M$ to embed primitively into an even unimodular lattice with
-given invariants ([Nik79, Theorem 1.12.2](@cite)). More generally, the author also
-provides methods to compute primitive embeddings of any even lattice into an even
-lattice in a given genus ([Nik79, Proposition 1.15.1](@cite)). In the latter
-proposition, it is explain how to classify such embeddings as isomorphic
-embeddings or as isomorphic sublattices.
+given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally, the
+author also provides methods to compute primitive embeddings of any even lattice
+into an even lattice in a given genus (see Proposition 1.15.1 in [Nik79](@cite)).
+In the latter proposition, it is explain how to classify such embeddings as
+isomorphic embeddings or as isomorphic sublattices.
 
 Such a method can be algorithmically implemented, however it tends to be slow
 and inefficient in general for large rank or determinant. But, in the case
@@ -47,11 +47,11 @@ primitive_embeddings_of_primary_lattice(::ZZLat, ::ZZLat)
 ```
 
 Note that the previous two functions require the first lattice in input to be
-unique in its genus. Otherwise, one can refer a genus, or its invariant, as a
+unique in its genus. Otherwise, one can refer a genus, or its invariants, as a
 first input:
 
 ```@docs
-primitive_embeddings_in_primary_lattice(::ZZgenus, ::ZZLat)
+primitive_embeddings_in_primary_lattice(::ZZGenus, ::ZZLat)
 primitive_embeddings_in_primary_lattice(::TorQuadModule, ::Tuple{Int, Int},
 ::ZZLat)
 primitive_embeddings_of_primary_lattice(::ZZGenus, ::ZZLat)
@@ -74,9 +74,9 @@ classified, by looking for *gluings* between anti-isometric subgroups of the
 respective discriminant groups of `M` and `N`. The construction of an
 overlattice is determined by the graph of such glue map. 
 
-## Admissible equivariant primitive extension
+## Admissible equivariant primitive extensions
 
-The following function is an interesting tool provided by [BH23](2cite). Given
+The following function is an interesting tool provided by [BH23](@cite). Given
 a triple of integer lattices with isometry `((A, a), (B, b), (C, c))` and two prime
 numbers `p` and `q` (possibly equal), if `(A, B, C)` is `p`-admissible, this
 function returns representatives of isomorphism classes of equivariant primitive

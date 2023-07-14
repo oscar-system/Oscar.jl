@@ -74,13 +74,13 @@ end
 
 Given a triple of $\mathbb Z$-genera `(A,B,C)` and a prime number `p`, such
 that the rank of `B` is divisible by $p-1$, return whether `(A,B,C)` is
-`p`-admissible in the sense of [BH23, Definition 4.13](@cite)
+`p`-admissible.
 
 # Examples
 A standard example is the following: let $(L, f)$ be a lattice with isometry of
 prime order $p$, let $F:= L^f$ and $C:= L_f$ be respectively the invariant
 and coinvariant sublattices of $(L, f)$. Then, the triple of genera
-$(g(F), g(C), g(L))$ is $p$-admissible according to [BH23, Lemma 4.15](@cite).
+$(g(F), g(C), g(L))$ is $p$-admissible.
 
 ```jldoctest
 julia> L = root_lattice(:A,5);
@@ -245,8 +245,6 @@ end
 Given a $\mathbb Z$-genus `C` and a prime number `p`, return all tuples of
 $\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
 `B` is of rank divisible by $p-1$.
-
-See [BH23, Algorithm 1](@cite).
 
 # Examples
 ```jldoctest
@@ -419,8 +417,6 @@ hermitian type $(M, g)$ and such that the type of $(B, g^m)$ is equal to the
 type of $(L, f)$. Note that in this case, the isometries `g`'s are of
 order $nm$.
 
-See [BH23, Algorithm 3](@cite).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,2);
@@ -527,8 +523,6 @@ $(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
 Note that `e` can be 0.
 
-See [BH23, Algorithm 4](@cite).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,2);
@@ -604,8 +598,6 @@ order $pq^e$.
 
 Note that `e` can be 0.
 
-See [BH23, Algorithm 5](@cite).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,2);
@@ -673,8 +665,6 @@ isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to the type
 of $(L, f)$.
 
 Note that `e` can be 0, while `d` has to be positive.
-
-See [BH23, Algorithm 6](@cite).
 """
 function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
@@ -737,8 +727,6 @@ If `b == 1`, return only the lattices with isometry $(M, g)$ where `g` is
 of order $p^{d+1}q^e$. 
 
 Note that `d` and `e` can be both zero.
-
-See [BH23, Algorithm 7](@cite).
 
 # Examples
 ```jldoctest

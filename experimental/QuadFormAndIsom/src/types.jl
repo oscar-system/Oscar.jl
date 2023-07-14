@@ -162,7 +162,7 @@ julia> B = matrix(QQ, 4, 6, [1 0 3 0 0 0;
                              0 0 0 0 1 0;
                              0 0 0 0 0 1]);
 
-julia> Cf = lattice(V, B)  # coinvariant sublattice L_f
+julia> Cf = lattice(Vf, B)  # coinvariant sublattice L_f
 Integer lattice of rank 4 and degree 6
   with isometry of finite order 3
   given by

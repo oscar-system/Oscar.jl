@@ -127,8 +127,6 @@ order_of_isometry(Lf::ZZLatWithIsom) = Lf.n
 Given a lattice with isometry $(L, f)$, return the rank of the underlying lattice
 `L`.
 
-See [`rank(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
@@ -183,8 +181,6 @@ minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))::QQPoly
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
 lattice `L`.
 
-See [`genus(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
@@ -206,8 +202,6 @@ genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
 
 Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
 lattice `L`.
-
-See [`basis_matrix(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -244,13 +238,11 @@ basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
 Given a lattice with isometry $(L, f)$, return the gram matrix of the underlying
 lattice `L` with respect to its basis matrix.
 
-See [`gram_matrix(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> gram_matrix(Lf)
 [ 2   -1    0    0    0]
@@ -269,23 +261,21 @@ Given a lattice with isometry $(L, f)$, return the rational span
 $L \otimes \mathbb{Q}$ of the underlying lattice `L` together with the
 underlying isometry of `L`.
 
-See [`rational_span(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> Vf = rational_span(Lf)
 Quadratic space of dimension 5
-  with isometry of finite order 2
+  with isometry of finite order 1
   given by
-  [ 1    0    0    0    0]
-  [-1   -1   -1   -1   -1]
-  [ 0    0    0    0    1]
-  [ 0    0    0    1    0]
-  [ 0    0    1    0    0]
+  [1   0   0   0   0]
+  [0   1   0   0   0]
+  [0   0   1   0   0]
+  [0   0   0   1   0]
+  [0   0   0   0   1]
 
 julia> typeof(Vf)
 QuadSpaceWithIsom
@@ -299,13 +289,11 @@ rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(l
 Given a lattice with isometry $(L, f)$, return the determinant of the
 underlying lattice `L`.
 
-See [`det(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> det(Lf)
 6
@@ -319,13 +307,11 @@ det(Lf::ZZLatWithIsom) = det(lattice(Lf))::QQFieldElem
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
 lattice `L`.
 
-See [`scale(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> scale(Lf)
 1
@@ -339,13 +325,11 @@ scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))::QQFieldElem
 Given a lattice with isometry $(L, f)$, return the norm of the underlying
 lattice `L`.
 
-See [`norm(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> norm(Lf)
 2
@@ -359,13 +343,11 @@ norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))::QQFieldElem
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is positive definite.
 
-See [`is_positive_definite(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> is_positive_definite(Lf)
 true
@@ -379,13 +361,11 @@ is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))::Boo
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is negative definite.
 
-See [`is_positive_definite(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> is_negative_definite(Lf)
 false
@@ -399,13 +379,11 @@ is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))::Boo
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice `L` is definite.
 
-See [`is_definite(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> is_definite(Lf)
 true
@@ -419,13 +397,11 @@ is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))::Bool
 Given a positive definite lattice with isometry $(L, f)$, return the minimum
 of the underlying lattice `L`.
 
-See [`minimum(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> minimum(Lf)
 2
@@ -442,13 +418,11 @@ end
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 `L` is integral.
 
-See [`is_integral(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> is_integral(Lf)
 true
@@ -462,13 +436,11 @@ is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))::Bool
 Given a lattice with isometry $(L, f)$, return the degree of the underlying
 lattice `L`.
 
-See [`degree(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> degree(Lf)
 5
@@ -482,13 +454,11 @@ degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))::Int
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 `L` is even.
 
-See [`is_even(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> is_even(Lf)
 true
@@ -502,13 +472,11 @@ is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))::Bool
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
 lattice `L`.
 
-See [`discriminant(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> discriminant(Lf) == det(Lf) == 6
 true
@@ -522,13 +490,11 @@ discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
 Given a lattice with isometry $(L, f)$, return the signature tuple of the
 underlying lattice `L`.
 
-See [`signature_tuple(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, f);
+julia> Lf = integer_lattice_with_isometry(L);
 
 julia> signature_tuple(Lf)
 (5, 0, 0)
@@ -671,7 +637,8 @@ Integer lattice of rank 5 and degree 5
   [ 0   -1    0    0    0]
   [ 0    0   -1    0    0]
   [ 0    0    0   -1    0]
-  [ 0    0    0    0   -1]```
+  [ 0    0    0    0   -1]
+```
 """
 function integer_lattice_with_isometry(L::ZZLat; neg::Bool = false)
   d = degree(L)
@@ -799,7 +766,7 @@ julia> B = matrix(QQ,3,5,[1 0 0 0 0;
 [0   0   1   0   1]
 [0   0   0   1   0]
 
-julia> lattice_in_same_ambient_space(Lf, B)
+julia> I = lattice_in_same_ambient_space(Lf, B)
 Integer lattice of rank 3 and degree 5
   with isometry of finite order 1
   given by
@@ -828,8 +795,6 @@ end
 
 Given a lattice with isometry $(L, f)$ and a rational number `a`, return the
 lattice with isometry $(L(a), f)$.
-
-See [`rescale(::ZZLat, ::RationalUnion)`](@ref).
 
 # Examples
 ```jldoctest
@@ -931,8 +896,6 @@ Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that
 isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$
 and `h` is induced by `g`.
 
-See [`dual(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
@@ -981,8 +944,6 @@ on the associated gram matrix of `L`.
 
 Note that matrix representing the action of `f` on `L` changes but the global action
 on the ambient space of `L` stays the same.
-
-See [`lll(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1476,8 +1437,6 @@ Given an integral lattice with isometry $(L, f)$, return the discriminant group 
 of the underlying lattice `L` as well as this image of the underlying isometry
 `f` inside $O(q)$.
 
-See [`discriminant_group(::ZZLat)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A,5);
@@ -1535,8 +1494,6 @@ Given an integral lattice with isometry $(L, f)$, return the image $G_L$ in
 $O(q_L, \bar{f})$ of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$
 denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
 $q_L$ induced by `f`.
-
-See [`image_in_Oq(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest

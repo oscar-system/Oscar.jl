@@ -45,8 +45,8 @@ For simplicity, we have gathered the main constructors for objects of type
 user has then the choice on the parameters depending on what they attend to do:
 
 ```@docs
-quadratic_space_with_isometry(::QuadSpace, ::QQMatrix)
-quadratic_space_with_isometry(::QuadSpace)
+quadratic_space_with_isometry(::Hecke.QuadSpace, ::QQMatrix)
+quadratic_space_with_isometry(::Hecke.QuadSpace)
 ```
 
 By default, the first constructor always checks whether the entry matrix defines
