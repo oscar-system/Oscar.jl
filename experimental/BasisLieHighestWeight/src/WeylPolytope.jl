@@ -1,25 +1,3 @@
-#using Gapjm
-using Oscar
-
-include("./RootConversion.jl")
-
-fromGap = Oscar.GAP.gap_to_julia
-
-function weylpolytope(type::String, rank::Int, lie_algebra::GAP.Obj, 
-                      highest_weight::Vector{Int})::Polymake.BigObjectAllocated
-    """
-    returns weyl-polytope in homogeneous coordinates, i.e. convex hull of orbit of weyl-group of 
-    type type and rank rank on highest weight vector highest_weight 
-    """
-    vertices = orbit_weylgroup(type, rank, lie_algebra, highest_weight)
-    vertices = transpose(hcat(vertices ...))
-    vertices = [w for w in eachrow(vertices)]
-    vertices = transpose(hcat(vertices ...))
-    vertices_hom = [ones(Int64, size(vertices)[1]) vertices] # in homogeneous coordinates
-    weylpoly = polytope.Polytope(POINTS=vertices_hom)
-    return weylpoly
-end
-
 function orbit_weylgroup(type::String, rank::Int, lie_algebra::GAP.Obj, weight_vector::Vector{Int})
     """
     operates weyl-group of type type and rank rank on vector weight_vector and returns list of vectors in orbit
@@ -34,7 +12,7 @@ function orbit_weylgroup(type::String, rank::Int, lie_algebra::GAP.Obj, weight_v
     GAP.Globals.IsDoneIterator(orbit_iterator)
     while !(GAP.Globals.IsDoneIterator(orbit_iterator))
         w = GAP.Globals.NextIterator(orbit_iterator) 
-        push!(vertices, fromGap(w))
+        push!(vertices, Vector{Int}(w))
     end
 
     # return

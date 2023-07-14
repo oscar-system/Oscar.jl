@@ -1,8 +1,5 @@
 # manages the linear (in-)dependence of integer vectors
 # this file is only of use to basis_lie_highest_weight for the basis vectors
-
-using Oscar
-
 TVec = SRow{ZZRingElem} # TVec is datatype of basisvectors in basisLieHighestWeight
 Short = UInt8 # for exponents of monomials; max. 255
 
