@@ -6,7 +6,6 @@
   s::Vector{Symbol}
   root_type::Tuple{Symbol,Int64}
   struct_consts::Matrix{SRow{C}}
-
   function SimpleLieAlgebra{C}(
     R::Ring, S::Symbol, n::Int64; cached::Bool=true
   ) where {C<:RingElement}
