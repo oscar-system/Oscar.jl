@@ -1810,24 +1810,13 @@ function Oscar.cohomology_group(A::IdelParent, i::Int)
   return Oscar.cohomology_group(A.data[1], i)
 end
 
-function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
-  or = Set([o])
-  done = false
-  while !done
-    sz = length(or)
-    done = true
-    for f = C.ac
-      while true
-        or = union(or, [f(x) for x = or])
-        if length(or) == sz
-          break
-        end
-        done = false
-        sz = length(or)
-      end
-    end
-  end
-  return collect(or)
+"""
+For a C a G-module with operation on M and an element o of M,
+compute the G-orbit (not the Z[G] orbit!) of o.
+"""
+function Oscar.orbit(C::GModule, o)
+  @assert parent(o) == C.M
+  return orbit(C.G, (x,y) -> action(C, y, x))
 end
 
 """
