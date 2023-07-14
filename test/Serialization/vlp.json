@@ -4,8 +4,8 @@
             "https://github.com/oscar-system/Oscar.jl",
             {
                 "major": 0,
-                "minor": 8,
-                "patch": 3,
+                "minor": 12,
+                "patch": 2,
                 "prerelease": [
                     "DEV"
                 ],
@@ -36,15 +36,16 @@
                         },
                         "_type": "common::Vector<Rational>"
                     },
+                    "parent_field": {
+                       "type": "QQField"
+                    },
                     "convention": "max",
                     "feasible_region": {
                         "id": "d856e6f1-2012-4f3d-86ea-5056298adf55",
                         "type": "Polyhedron{QQFieldElem}",
                         "data": {
-                            "boundedness": {
-                                "id": "2d193e09-7d5e-4dfc-9acd-8ef71fc24c2b",
-                                "type": "Symbol",
-                                "data": {}
+                            "parent_field": {
+                               "type": "QQField"
                             },
                             "pm_polytope": {
                                 "id": "eef32fad-0be8-41a7-81a5-801c8fe717e8",
@@ -201,6 +202,9 @@
                         "_type": "common::Vector<Rational>"
                     },
                     "convention": "max",
+                    "parent_field": {
+                       "type": "QQField"
+                    },
                     "feasible_region": {
                         "version": 1,
                         "id": "d856e6f1-2012-4f3d-86ea-5056298adf55",

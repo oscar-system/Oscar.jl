@@ -359,7 +359,7 @@ function fundamental_group(K::SimplicialComplex)
         for (i, relation) in enumerate(relations)
             relem = one(F)
             for term in relation
-                relem *= F[first(term) + 1]^last(term)
+                relem *= F[first(term) + 1]^Int(last(term))
             end
             rvec[i] = relem
         end

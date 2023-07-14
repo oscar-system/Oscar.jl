@@ -1,5 +1,5 @@
 @doc raw"""
-    visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+    visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}) where T<:Union{QQFieldElem, Float64}
 
 Visualize a polyhedral object of dimension at most four (in 3-space).
 In dimensions up to 3 a usual embedding is shown.
@@ -7,7 +7,7 @@ Four-dimensional polytopes are visualized as a Schlegel diagram, which is a proj
 
 In higher dimensions there is no standard method; use projections to lower dimensions or try ideas from [GJRW10](@cite).
 """
-function visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+function visualize(P::PolyhedralObject{T}) where T<:Union{QQFieldElem, Float64}
   d = ambient_dim(P)
   b = P isa Polyhedron
   if d < 4 || (d == 4 && b && dim(P) == 4)
