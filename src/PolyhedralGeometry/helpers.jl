@@ -386,6 +386,8 @@ const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
 
+const scalar_type_or_field = Union{Type{<:scalar_types}, Field}
+
 _scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
 _scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
 _scalar_type_to_polymake(::Type{Float64}) = Float64

@@ -44,13 +44,13 @@ function linear_program(
 end
 
 linear_program(
-  f::Union{Type{T},Field},
+  f::scalar_type_or_field,
   A::AbstractCollection[AffineHalfspace],
   b,
   c::AbstractVector;
   k=0,
   convention=:max,
-) where {T<:scalar_types} =
+) =
   linear_program(polyhedron(f, A, b), c; k=k, convention=convention)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
