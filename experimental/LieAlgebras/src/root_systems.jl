@@ -158,7 +158,7 @@ function DynkinDiagram(S::String)
 	print(D)
 end
 @doc raw"""
-  `DynkinDiagram(R::RootSystem) `
+  `DynkinDiagram(R::RootSystem)`
  Return the Dynkin diagram of the root system `R`
   """
 function DynkinDiagram(R::RootSystem)
