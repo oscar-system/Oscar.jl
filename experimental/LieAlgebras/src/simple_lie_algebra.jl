@@ -31,7 +31,6 @@ const SimpleLieAlgebraDict = CacheDictType{
 mutable struct SimpleLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
   parent::SimpleLieAlgebra{C}
   mat::MatElem{C}
-  base_ring::Ring
   function SimpleLieAlgebraElem{C}(
   L::SimpleLieAlgebra{C},
   M::MatElem{C}) where {C<:RingElement}
@@ -51,7 +50,7 @@ elem_type(::Type{SimpleLieAlgebra{C}}) where {C<:RingElement} = SimpleLieAlgebra
 
 parent(x::SimpleLieAlgebraElem{C}) where {C<:RingElement} = x.parent
 
-base_ring(x::SimpleLieAlgebraElem{C}) where {C<:RingElement} = x.base_ring
+base_ring(x::SimpleLieAlgebraElem{C}) where {C<:RingElement} = x.parent.base_ring
 
 base_ring(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.base_ring::parent_type(C)
 
@@ -78,14 +77,14 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, V::SimpleLieAlgebra{C}) where {C<:RingElement}
+function Base.show(io::IO, V::SimpleLieAlgebra)
   print(io, "Simple Lie Algebra over ")
   print(IOContext(io, :compact => true), base_ring(V))
 end
 
-show(io::IO, x::SimpleLieAlgebraElem{C}) where {C<:RingElement} = show(io, x.mat)
+show(io::IO, x::SimpleLieAlgebraElem) = show(io, x.mat)
 
-function symbols(L::SimpleLieAlgebra{C}) where {C<:RingElement}
+function symbols(L::SimpleLieAlgebra) 
   return L.s
 end
 
