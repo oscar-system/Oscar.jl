@@ -12,7 +12,7 @@ using AbstractAlgebra.PrettyPrinting
 # functions with new methods
 import ..Oscar:
   _iso_oscar_gap,
-  action,
+  action, 
   base_ring,
   basis,
   basis_matrix,
