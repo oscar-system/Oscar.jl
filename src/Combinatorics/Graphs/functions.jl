@@ -536,8 +536,7 @@ julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); a
 julia> signed_incidence_matrix(g)
 5×5 Matrix{Int64}:
  -1   0   0   0   1
-  1  -1   0   0   0Tuple{Vector{WeilDivisor{CoveredScheme{Nemo.fpField}, ZZRing, ZZRingElem}}, ZZMatrix}
-
+  1  -1   0   0   0
   0   1  -1   0   0
   0   0   1  -1   0
   0   0   0   1  -1
