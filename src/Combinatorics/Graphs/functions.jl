@@ -536,7 +536,8 @@ julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); a
 julia> signed_incidence_matrix(g)
 5×5 Matrix{Int64}:
  -1   0   0   0   1
-  1  -1   0   0   0
+  1  -1   0   0   0Tuple{Vector{WeilDivisor{CoveredScheme{Nemo.fpField}, ZZRing, ZZRingElem}}, ZZMatrix}
+
   0   1  -1   0   0
   0   0   1  -1   0
   0   0   0   1  -1
@@ -788,8 +789,13 @@ false
 """
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
+@doc raw"""
+    is_isomorphic_with_permutation(G1::Graph, G2::Graph) -> Bool, Vector{Int}
 
-function is_isomorphic_with_map(G1::Graph, G2::Graph)
+Return whether `G1` is isomorphic to `G2` as well as a permutation
+of the nodes of `G1` such that both graphs agree.
+"""
+function is_isomorphic_with_data(G1::Graph, G2::Graph)
   f12 = Polymake.graph.find_node_permutation(G1.pm_graph, G2.pm_graph)
   if isnothing(f12)
     return false, Vector{Int}()
@@ -797,22 +803,71 @@ function is_isomorphic_with_map(G1::Graph, G2::Graph)
   return true, Polymake.to_one_based_indexing(f12)
 end
 
-function graph(G::MatElem)
+@doc raw"""
+    graph_from_adjacency_matrix(::Type{T}, G::MatElem) where T<:Union{Directed, Undirected}
+
+Return the graph with adjacency matrix `G`.
+
+This means that the nodes ``i`` and ``j`` are connected by an edge
+if and only if ``G_{i,j}`` is one.
+
+# Examples
+```jldoctest
+julia> G = ZZ[0 1; 0 0]
+
+julia> oscar.graph_from_adjacency_matrix(Directed, G)
+
+julia> oscar.graph_from_adjacency_matrix(Undirected, G)
+
+```
+"""
+graph_from_adjacency_matrix(::Type, G::MatElem)
+
+function graph_from_adjacency_matrix(::Type{Undirected}, G::MatElem)
   n = nrows(G)
-  g = Graph{Undirected}(n)
+  @req nrows(G)==ncols(G) "not a square matrix"
+  g = Graph{T}(n)
   for i in 1:n
     for j in 1:i-1
       if isone(G[i,j])
-        add_edge!(g,i,j)
+        add_edge!(g, i, j)
+      else
+        iszero(G[i,j]) || error("not an adjacency matrix")
       end
     end
   end
   return g
 end
 
-function is_isomorphic_with_permutation(A1::MatElem, A2::MatElem)
-  b, T = is_isomorphic_with_map(graph(A1),graph(A2))
-  @assert b || A1[T] == A2
+function graph_from_adjacency_matrix(::Type{Directed}, G::MatElem)
+  n = nrows(G)
+  @req nrows(G)==ncols(G) "not a square matrix"
+  g = Graph{T}(n)
+  for i in 1:n
+    for j in 1:n
+      if isone(G[i,j])
+        add_edge!(g, i, j)
+      else
+        iszero(G[i,j]) || error("not an adjacency matrix")
+      end
+    end
+  end
+  return g
+end
+
+
+@doc raw"""
+    is_equal_up_to_permutation_with_permutation(A1::MatElem, A2::MatElem) -> Bool, Vector{Int}
+
+Return a permutation `I` such that `A1[I,I] == A2` and whether it exists.
+"""
+function is_equal_up_to_permutation_with_permutation(A1::MatElem, A2::MatElem)
+  g1 = graph_from_adjacency_matrix(Undirected, A1)
+  g2 = graph_from_adjacency_matrix(Undirected, A2)
+  b, T = is_isomorphic_with_map(g1, g2)
+  if b
+    @assert A1[T, T] == A2
+  end
   return b, T
 end
 
