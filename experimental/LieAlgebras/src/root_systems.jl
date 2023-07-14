@@ -1,8 +1,10 @@
 using Oscar
 
-GAP.Packages.load("sla")
- 
 import Base: show, size, getindex
+
+function __init__()
+    GAP.Packages.load("sla")
+  end 
 
 mutable struct RootSystem <: AbstractVector{fmpq}
   roots::Vector
