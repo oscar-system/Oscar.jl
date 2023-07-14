@@ -1007,6 +1007,8 @@ export normal_subgroups, has_normal_subgroups, set_normal_subgroups
 export normal_toric_varieties_from_glsm
 export normal_toric_varieties_from_star_triangulations
 export normal_toric_variety
+export normal_toric_variety_from_glsm
+export normal_toric_variety_from_star_triangulation
 export normal_vector
 export normalization
 export normalization_with_delta
