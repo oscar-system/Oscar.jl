@@ -85,8 +85,8 @@ function CartanMatrix(S::String)
 end
 
  @doc raw"""
-  `CartanMatrix(R::RootString) -> Matrix{QQFieldElem}`
- Return the Cartan matrix of the type of root system specified by `S`
+  `CartanMatrix(R::RootSystem) -> Matrix{QQFieldElem}`
+ Return the Cartan matrix of the type root system `R`
   """
 function CartanMatrix(R::RootSystem)
   S = R.root_system_type
@@ -94,7 +94,11 @@ function CartanMatrix(R::RootSystem)
 	C = CartanMatrix(S2)
 	return C
 end
-
+ 
+@doc raw"""
+  `DynkinDiagram(S::String) `
+ Return the Dynkin diagram of the type of root system specified by `S`
+  """
 function DynkinDiagram(S::String)
   S1 = S[1:1]
 	l = length(S)
@@ -151,7 +155,10 @@ function DynkinDiagram(S::String)
 	end
 	print(D)
 end
-
+@doc raw"""
+  `DynkinDiagram(R::RootSystem) `
+ Return the Dynkin diagram of the root system `R`
+  """
 function DynkinDiagram(R::RootSystem)
 	S = R.root_system_type
   S2 = S[1] * string(S[2])
