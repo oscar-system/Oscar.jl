@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Toric morphisms (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     source = projective_space(NormalToricVariety, 1; set_attributes)

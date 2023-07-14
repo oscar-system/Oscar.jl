@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Normal toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     ntv = normal_toric_variety(Oscar.normal_fan(Oscar.cube(2)))

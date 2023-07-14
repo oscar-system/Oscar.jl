@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Torus-invariant divisors (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     F5 = hirzebruch_surface(NormalToricVariety, 5; set_attributes)
