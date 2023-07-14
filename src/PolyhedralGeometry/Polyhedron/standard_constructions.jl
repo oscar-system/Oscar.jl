@@ -1101,7 +1101,18 @@ julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
 Polyhedron in ambient dimension 2
 ```
 """
-SIM_body(alpha::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
+function SIM_body(alpha::Vector) 
+    n = length(alpha)
+    if n < 1
+        throw(ArgumentError("SIM-body: dimension must be at least 1"))
+    end
+    for i in 1:n-1
+        if alpha[i]<alpha[i+1]
+            throw(ArgumentError("SIM-body: input is not descending"))
+        end
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
+end
 
 
 @doc raw"""
@@ -1195,7 +1206,12 @@ julia> vertices(c)
  [0, 1, 1//2]
 ```
 """
-dwarfed_cube(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
+function dwarfed_cube(d::Int)
+    if d<2
+        throw(ArgumentError("dwarfed_cube: d >= 2 required"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
+end
 
 
 @doc raw"""
@@ -1227,7 +1243,15 @@ julia> vertices(p)
  [3, 9, 0, 0]
 ```
 """
-dwarfed_product_polygons(d::Int, s::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
+function dwarfed_product_polygons(d::Int, s::Int) 
+    if d <= 2 || d%2 != 0
+        throw(ArgumentError("dwarfed_product_polygons: d >= 4 and even required"))
+    end
+    if s<=2
+        throw(ArgumentError("dwarfed_product_polygons: s >= 3 required"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
+end
 
 @doc raw"""
     lecture_hall_simplex(d::Int)
@@ -1255,7 +1279,12 @@ julia> vertices(S)
  [1, 2, 3]
 ```
 """
-lecture_hall_simplex(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
+function lecture_hall_simplex(d::Int) 
+    if d<=0
+        throw(ArgumentError("lecture_hall_simplex: dimension must be positive."))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
+end
 
 @doc raw"""
     explicit_zonotope(zones::Matrix)
@@ -1330,21 +1359,13 @@ Produce a knapsack polytope defined by one linear inequality (and non-negativity
 
 # Example 
 ```jldoctest
-julia> fractional_knapsack([1;2;3])
-type: Polytope<Rational>
-description: knapsack 1 2 3
+julia> p= fractional_knapsack([1;2;3;4])
+Polyhedron in ambient dimension 3
 
-BOUNDED
-        true
-
-CONE_AMBIENT_DIM
-        3
-
-INEQUALITIES
-  1  2  3
-  0  1  0
-  0  0  1
-  1  0  0
+julia> print_constraints(p)
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
 ```
 """
 fractional_knapsack(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
@@ -1383,7 +1404,7 @@ x₄ ≦ 1
 x₃ ≦ 1
 -x₁ - x₃ - x₄ ≦ -2
 x₁ ≦ 1
-````
+```
 """
 function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
     opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
@@ -1397,8 +1418,8 @@ Create a zonotope from a matrix whose rows are input points or vectors.
 
 # Keywords
 - `M::Matrix`: input points or vectors.
-- `rows_are_points::Bool`: This is `true` in case `M` consists of points instead of vectors; the default is `true`.
-- `centered::Bool`: This is `true` if the output should be centered; the default is `true`.
+- `rows_are_points::Bool`: This optional parameter is `true` in case `M` consists of points instead of vectors; the default is `true`.
+- `centered::Bool`: This optional parameter  is `true` if the output should be centered; the default is `true`.
 
 # Examples
 The following produces a parallelogram with the origin as its vertex barycenter: 
@@ -1429,12 +1450,12 @@ julia> vertices(Z)
 zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
 
 @doc raw"""
-    goldfarb
+    goldfarb_cube(d::Int, e::Real, g::Real)
 
 # Keywords
 - `d::Int`: the dimension
-- `e::Number`: first parameter of deformation, it must be $<\frac{1}{2}$. 
-- `g::Number`: second parameter of deformation, it must be $\geq \frac{e}{4}$. 
+- `e::Real`: first parameter of deformation, it must be $<\frac{1}{2}$. 
+- `g::Real`: second parameter of deformation, it must be $\geq \frac{e}{4}$. 
     
 The Goldfarb cube is a combinatorial cube and yields a bad example for the 
 Simplex Algorithm using the Shadow Vertex Pivoting Strategy. 
@@ -1443,21 +1464,79 @@ For $e<\frac{1}{2}$ and $g=0$ we obtain the Klee-Minty cubes,
 in particular for $e=g=0$ we obtain the standard cube. 
 
 # Examples
-The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{4}.
+The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}.
 ```jldoctest
-julia> C = goldfarb_cube(3,1/4,0)
-Polyhedron in ambient dimension 3 with Float64 type coefficients
+julia> c=goldfarb_cube(3,1//3,0)
+Polyhedron in ambient dimension 3
 
-julia> vertices(C)
-8-element SubObjectIterator{PointVector{Float64}}:
- [1.0, 0.75, 0.1875]
- [0.0, 1.0, 0.25]
- [0.0, 0.0, 0.0]
- [1.0, 0.25, 0.0625]
- [0.0, 0.0, 1.0]
- [1.0, 0.25, 0.9375]
- [0.0, 1.0, 0.75]
- [1.0, 0.75, 0.8125]
+julia> vertices(c)
+8-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1//3, 8//9]
+ [1, 2//3, 7//9]
+ [1, 2//3, 2//9]
+ [1, 1//3, 1//9]
+ [0, 0, 0]
+ [0, 1, 1//3]
+ [0, 1, 2//3]
+ [0, 0, 1]
 ```
 """
-goldfarb_cube(d::Int, e::Number, g::Number) = Polyhedron(Polymake.polytope.goldfarb(d,e,g))
+function goldfarb_cube(d::Int, e::Real, g::Real)
+    m = 8*sizeof(Int)-2
+    if d<1 || d>m
+        throw(ArgumentError("goldfarb: dimension ot of range (1,..," * string(m) * ")"))
+    end
+    if e>=1//2
+        throw(ArgumentError("goldfarb: e < 1/2"))
+    end
+    if g>e/4
+        throw(ArgumentError("goldfarb: g <= e/4"))
+    end
+    return Polyhedron(Polymake.polytope.goldfarb(d,e,g))
+end
+
+@doc raw"""
+    goldfarb_sit_cube(d::Int, e::Real, g::Real)
+
+Produces a d-dimensional variation of the Klee-Minty cube, which is scaled in direction $x_{d-i}$ 
+by `eps*delta^i`. 
+This cube is a combinatorial cube and yields a bad example for the Simplex Algorithm using the 
+Steepest Edge Pivoting Strategy. Here we use a scaled description of the construction of Goldfarb and Sit, 
+see [GS79](@cite).
+
+# Keywords
+- `d::Int`: the dimension
+- `eps::Real`: must be $<\frac{1}{2}$.
+- `delta::Real`: must be $\geq\frac{1}{2}$.
+    
+
+# Examples
+```jldoctest
+julia> c=goldfarb_sit_cube(3,1//3,1//2)
+Polyhedron in ambient dimension 3
+
+julia> vertices(c) 
+8-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1//36, 1//18, 8//9]
+ [1//36, 1//9, 7//9]
+ [1//36, 1//9, 2//9]
+ [1//36, 1//18, 1//9]
+ [0, 0, 0]
+ [0, 1//6, 1//3]
+ [0, 1//6, 2//3]
+ [0, 0, 1]
+```
+"""
+function goldfarb_sit_cube(d::Int, eps::Real, delta::Real) 
+    m = 8*sizeof(Int)-2
+    if d<1 || d>m
+        throw(ArgumentError("goldfarb_sit: dimension ot of range (1,..," * string(m) * ")"))
+    end
+    if eps>=1//2
+        throw(ArgumentError("goldfarb_sit: eps < 1/2"))
+    end
+    if delta>1//2
+        throw(ArgumentError("goldfarb_sit: delta <= 1/2"))
+    end
+    return Polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
+end
