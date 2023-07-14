@@ -821,7 +821,7 @@ Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \t
 return its closure in $X$ as a `WeilDivisor`.
 """
 function section(X::EllipticSurface, P::EllCrvPt)
-  if iszero(a[1])&&iszero(a[3])
+  if iszero(P[1])&&iszero(P[3])
     return zero_section(X)
   end
   return _section(X, P)
