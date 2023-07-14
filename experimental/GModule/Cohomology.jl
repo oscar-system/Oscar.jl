@@ -2007,5 +2007,5 @@ using .GrpCoh
 
 export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
-export split_extension, alL_extensions, extension_with_abelian_kernel
+export split_extension, all_extensions, extension_with_abelian_kernel
 
