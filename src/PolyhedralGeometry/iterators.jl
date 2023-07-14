@@ -115,13 +115,13 @@ struct AffineHalfspace{T} <: Halfspace{T}
 end
 
 halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
-halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_halfspace(f, a, b)
+halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(f, a, b)
 
 invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(coefficient_field(H), -normal_vector(H), -negbias(H))
 
-function affine_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-    return AffineHalfspace{scalar_type}(parent_field, a, b)
+function affine_halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+  return AffineHalfspace{scalar_type}(parent_field, a, b)
 end
 
 affine_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_halfspace(QQ, a, b)
@@ -136,13 +136,13 @@ struct LinearHalfspace{T} <: Halfspace{T}
 end
 
 halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
-halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_halfspace(f, a)
+halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(f, a)
 
 invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(coefficient_field(H), -normal_vector(H))
 
-function linear_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-    return LinearHalfspace{scalar_type}(parent_field, a)
+function linear_halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
+  parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+  return LinearHalfspace{scalar_type}(parent_field, a)
 end
 
 linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
@@ -170,11 +170,11 @@ struct AffineHyperplane{T} <: Hyperplane{T}
 end
 
 hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(a, b)
-hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_hyperplane(f, a, b)
+hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(f, a, b)
 
-function affine_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-    return AffineHyperplane{scalar_type}(parent_field, a, b)
+function affine_hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+  return AffineHyperplane{scalar_type}(parent_field, a, b)
 end
 
 affine_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_hyperplane(QQ, a, b)
@@ -189,11 +189,11 @@ struct LinearHyperplane{T} <: Hyperplane{T}
 end
 
 hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(a)
-hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_hyperplane(f, a)
+hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(f, a)
 
-function linear_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-    return LinearHyperplane{scalar_type}(parent_field, a)
+function linear_hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
+  parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+  return LinearHyperplane{scalar_type}(parent_field, a)
 end
 
 linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)

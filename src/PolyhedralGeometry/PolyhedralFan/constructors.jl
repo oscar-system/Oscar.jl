@@ -64,33 +64,33 @@ julia> lineality_dim(PF)
 1
 ```
 """
-function polyhedral_fan(f::Union{Type{T}, Field},
+function polyhedral_fan(f::scalar_type_or_field,
                         Rays::AbstractCollection[RayVector], 
                         LS::Union{AbstractCollection[RayVector], Nothing},
                         Incidence::IncidenceMatrix; 
-                        non_redundant::Bool = false) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, Rays, LS)
-    RM = unhomogenized_matrix(Rays)
-    if isnothing(LS)
-        LM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(RM, 2))
-    else
-        LM = unhomogenized_matrix(LS)
-    end
-    if non_redundant
-        return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
-            RAYS = RM,
-            LINEALITY_SPACE = LM,
-            MAXIMAL_CONES = Incidence,
-        ), parent_field)
-    else
-        return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
-            INPUT_RAYS = RM,
-            INPUT_LINEALITY = LM,
-            INPUT_CONES = Incidence,
-        ), parent_field)
-    end
+                        non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, Rays, LS)
+  RM = unhomogenized_matrix(Rays)
+  if isnothing(LS)
+    LM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(RM, 2))
+  else
+    LM = unhomogenized_matrix(LS)
+  end
+  if non_redundant
+    return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
+      RAYS = RM,
+      LINEALITY_SPACE = LM,
+      MAXIMAL_CONES = Incidence,
+    ), parent_field)
+  else
+    return PolyhedralFan{scalar_type}(Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}(
+      INPUT_RAYS = RM,
+      INPUT_LINEALITY = LM,
+      INPUT_CONES = Incidence,
+    ), parent_field)
+  end
 end
-polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types = polyhedral_fan(f, Rays, nothing, Incidence; non_redundant=non_redundant)
+polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(f, Rays, nothing, Incidence; non_redundant=non_redundant)
 polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
 polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
 
@@ -104,9 +104,9 @@ pm_object(PF::PolyhedralFan) = PF.pm_fan
 polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...), coefficient_field(iterate(itr)[1]))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
+polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) =
   polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
-polyhedral_fan(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types =
+polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) =
   polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 
 
@@ -135,15 +135,15 @@ parent `Field`.
   group acting on the rays of the fan.
 
 """
-function polyhedral_fan_from_rays_action(f::Union{Type{T}, Field}, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, Rays)
-    pf = Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}()
-    Polymake.take(pf, "RAYS", Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(unhomogenized_matrix(Rays)))
-    d = length(Rays)
-    gp = _group_generators_to_pm_arr_arr(perms, d)
-    Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", gp)
-    Polymake.take(pf, "GROUP.MAXIMAL_CONES_ACTION.MAXIMAL_CONES_GENERATORS", MC_reps)
-    return PolyhedralFan{scalar_type}(pf, parent_field)
+function polyhedral_fan_from_rays_action(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem})
+  parent_field, scalar_type = _determine_parent_and_scalar(f, Rays)
+  pf = Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(scalar_type)}()
+  Polymake.take(pf, "RAYS", Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(unhomogenized_matrix(Rays)))
+  d = length(Rays)
+  gp = _group_generators_to_pm_arr_arr(perms, d)
+  Polymake.take(pf, "GROUP.RAYS_ACTION.GENERATORS", gp)
+  Polymake.take(pf, "GROUP.MAXIMAL_CONES_ACTION.MAXIMAL_CONES_GENERATORS", MC_reps)
+  return PolyhedralFan{scalar_type}(pf, parent_field)
 end
 polyhedral_fan_from_rays_action(Rays::AbstractCollection[RayVector], MC_reps::IncidenceMatrix, perms::AbstractVector{PermGroupElem}) = polyhedral_fan_from_rays_action(QQFieldElem, Rays, MC_reps, perms)
 
