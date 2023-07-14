@@ -1,7 +1,7 @@
 using JSON
 using TOPCOM_jll
 
-function _postprocess_polymake_triangs(triangs::Polymake.LibPolymake.Array{Polymake.LibPolymake.Set{Polymake.LibPolymake.Set{Int}}})
+function _postprocess_polymake_triangs(triangs::Polymake.Array{Polymake.Set{Polymake.Set{Polymake.to_cxx_type(Int)}}})
   result = Vector{Vector{Int}}[]
   for triang in triangs
     push!(result, [Polymake.to_one_based_indexing(Vector{Int}(t)) for t in triang])
