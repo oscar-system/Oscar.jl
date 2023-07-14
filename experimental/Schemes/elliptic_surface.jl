@@ -15,21 +15,23 @@ $k(C)$ is the function field of the curve $C$.
 
 For now functionality is restricted to $C = \mathbb{P}^1$.
 """
-@attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
-  Y::CoveredScheme{BaseField}
+@attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredSurface{BaseField}
+  Y::CoveredScheme{BaseField}  # the underlying_scheme
   E::EllCrv{BaseCurveFieldType}
-  MWL::Vector{EllCrvPt{BaseCurveFieldType}}
-  MWLtors::Vector{EllCrvPt{BaseCurveFieldType}}
+  MWL::Vector{EllCrvPt{BaseCurveFieldType}} # basis for the mordell weil group
+  MWLtors::Vector{EllCrvPt{BaseCurveFieldType}} # torsion sections
   Weierstrasschart::AbsSpec
   Weierstrassmodel::CoveredScheme
-  inc_Weierstrass::CoveredClosedEmbedding
-  inc_Y::CoveredClosedEmbedding
+  inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
+  inc_Y::CoveredClosedEmbedding # inclusion of Y in its ambient blown up projective bundle
   euler_characteristic::Int
-  blowup
-  blowups
-  exceptionals
-  ambient_blowups
-  ambient_exceptionals
+  # the following are temporary until we have a dedicated type for
+  # iterated blow ups
+  blowup::AbsCoveredSchemeMorphism
+  blowups::Vector{<:AbsCoveredSchemeMorphism}
+  # exceptionals not used for now
+  ambient_blowups::Vector{<:BlowupMorphism}
+  ambient_exceptionals::Vector{<:EffectiveCartierDivisor}
 
   function EllipticSurface(generic_fiber::EllCrv{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
@@ -460,10 +462,11 @@ function relatively_minimal_model(E::EllipticSurface)
   Y0 = S
   inc_Y0 = inc_S
 
-  exceptionals = []
+
+  ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
-  projectionsX = []
-  projectionsY = []
+  projectionsX = BlowupMorphism{typeof(X0)}[]
+  projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
   @vprint :EllipticSurface 2 "Blowing up Weierstrass model\n"
@@ -507,9 +510,9 @@ function relatively_minimal_model(E::EllipticSurface)
 
     @vprint :EllipticSurface 2 "computing strict transforms\n"
     # compute the exceptional divisors
-    exceptionals = [strict_transform(pr_X1, e) for e in exceptionals]
+    ambient_exceptionals = [strict_transform(pr_X1, e) for e in ambient_exceptionals]
     # move the divisors coming originally from S up to the next chart
-    push!(exceptionals, E1)
+    push!(ambient_exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
 
@@ -525,7 +528,7 @@ function relatively_minimal_model(E::EllipticSurface)
   E.Y = Y0
   E.blowups = projectionsY
   E.ambient_blowups = projectionsX
-  E.ambient_exceptionals = exceptionals
+  E.ambient_exceptionals = ambient_exceptionals
   piY = reduce(*, reverse(projectionsY))
   E.blowup = piY
   E.inc_Y = inc_Y0
@@ -558,6 +561,7 @@ basis of the trivial lattice, gram matrix, fiber_components
   j = j_invariant(generic_fiber(S))
   kt = parent(d)
   k = coefficient_ring(kt)
+  # find the reducible fibers
   sing = elem_type(k)[]
   for (p,v) in factor(d)
     if v == 1
@@ -579,23 +583,24 @@ basis of the trivial lattice, gram matrix, fiber_components
       push!(sing, rt)
     end
   end
-  f = []
+  # the reducible fibers are over the points in sing
+  # and possibly the point at infinity
   f = [[k.([i,1]), fiber_components(S,[i,k(1)])] for  i in sing]
   if degree(d) <= 12*euler_characteristic(S) - 2
     pt = k.([1, 0])
     push!(f, [pt, fiber_components(S, pt)])
   end
-  O = zero_section(S)
 
+  O = zero_section(S)
   pt0, F = fiber(S)
-  set_attribute!(components(F)[1], :self_intersection, 0)
-  set_attribute!(components(O)[1], :self_intersection, -euler_characteristic(S))
+  # we manually set the self-intersections
+  set_attribute!(components(F)[1], :_self_intersection, 0)
+  set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
 
 
   basisT = [F, O]
 
   grams = [ZZ[0 1;1 -euler_characteristic(S)]]
-  # TODO: the -2 self intersection is probably some K3 artefact
   fiber_componentsS = []
   for (pt, ft) in f
     @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
@@ -611,7 +616,7 @@ basis of the trivial lattice, gram matrix, fiber_components
     for (i,I) in enumerate(comp)
       name = string(root_type[1], root_type[2])
       set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
-      set_attribute!(components(I)[1], :self_intersection, -2)
+      set_attribute!(components(I)[1], :_self_intersection, -2)
     end
   end
   return basisT, G, fiber_componentsS
@@ -655,6 +660,11 @@ end
 
 Internal method. Used to prepare for [`reducible_fibers`](@ref).
 `f` must be the list of the components of the reducible fiber `F`.
+Output a list of tuples with each tuple as follows
+- the root type of ``F``, e.g. `(:A, 3)`
+- the class of ``F`` as a divisor with the appropriate multiplicities
+- the irreducible components `[F0,...Fn]` of `F` sorted such that the first entry `F0` is the one intersecting the zero section. The others are sorted in some standard way
+- gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
 function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   @req all(is_prime(i) for i in f) "not a vector of prime divisors"
@@ -847,7 +857,7 @@ function _section(X::EllipticSurface, P::EllCrvPt)
   end
   PY = pullback(X.inc_Y, PX)
   set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
-  set_attribute!(PY, :self_intersection, -euler_characteristic(X))
+  set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
   return WeilDivisor(PY, check=false)
 end
 

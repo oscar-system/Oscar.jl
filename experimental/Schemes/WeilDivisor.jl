@@ -202,7 +202,7 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
     for c2 in components(E)
       a2 = E[c2]
       if c1 === c2
-        result = a1*a2*self_intersection(c1)
+        result = a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
         @assert dim(I) <= 0 "divisors have nontrivial self intersection"
@@ -213,9 +213,15 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
   return result
 end
 
-function self_intersection(I::IdealSheaf)
-  has_attribute(I, :self_intersection) || error("self intersection unknown")
-  return get_attribute(I, :self_intersection)::Int
+"""
+    _self_intersection(I::IdealSheaf) -> Integer
+
+For ``I`` a sheaf of pure codimension ``1`` on a surface,
+return the self-intersection of ``I`` viewed as a Weil-Divisor.
+"""
+function _self_intersection(I::IdealSheaf)
+  has_attribute(I, :_self_intersection) || error("self intersection unknown")
+  return get_attribute(I, :_self_intersection)::Int
 end
 
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
