@@ -273,7 +273,7 @@ ideal(z, x*y)
 function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   singular_assure(I)
   singular_assure(J)
-  K, _ = Singular.saturation2(I.gens.S, J.gens.S)
+  K, _ = Singular.saturation(I.gens.S, J.gens.S)
   return MPolyIdeal(base_ring(I), K)
 end
 
