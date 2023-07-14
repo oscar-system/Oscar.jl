@@ -1,4 +1,4 @@
-export homogenization2  # !!TEMPORARY!!
+export homogenization_via_saturation  # ??TEMPORARY??
 
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -1927,6 +1927,10 @@ end
 ### Homogenization and Dehomogenization
 ############################################################################
 
+## -----------------------------------
+## 2023-07-14   Who wrote this code?
+## (JAA)        Can it be deleted now?
+## -----------------------------------
 
 ###old: special and to be applied with care
 ### needed for: AffinePlaneCurve.jl
@@ -2007,7 +2011,7 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int)
   return _homogenization(f, S, pos)
 end
 
-function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int #== 1+ngens(parent(f))=#)
+function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int)
    W = matrix(ZZ, W)
    return _homogenization(f, W, var, pos)
 end
@@ -2101,6 +2105,12 @@ function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}
 end
 
 
+## ---------------------------------
+## !!OLD!! Homogenization of an ideal
+## Author: John Abbott  2023-07-14
+## >>> use newer code below <<<
+## ---------------------------------
+
 # To homogenize an ideal we look for some additional simple elements
 # (as redundant generators), and then apply the standard algorithm.
 # Seems wasteful, but in many cases leads to faster overall computation.
@@ -2109,7 +2119,7 @@ end
 # Internal function: used only in homogenization (immediately below)
 # This function is an "empirical hack": usually makes homogenization faster.
 # Return gens(I) and some further "small" polys in I.
-function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
+function _gens_for_homog_via_sat(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
 ##    @req  !is_zero(I)  "Ideal must be non-zero"
 ##    @req  !is_one(I)   "Ideal must not be whole ring"
     if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
@@ -2126,10 +2136,10 @@ function gens_for_homog(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
     return vcat(gens(I), GB1, GB2)
 end
 
-function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
+function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
     return homogenization(I, W, var, 1+ngens(base_ring(I)))
 end
-function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
+function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
   # [W.Decker] TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
     if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
         P = parent(I);
@@ -2138,26 +2148,30 @@ function homogenization(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUn
         return ideal(R); # no gens, so it is the zero ideal
     end # of special handling for zero ideal
     # SPECIAL CASE:  check if W is a single row, delegate to specialized ZZ^1-graded code (presumably faster)?
-    Hgens = homogenization(gens_for_homog(I), W, var, pos)  # ??? possibly use gens(I) instead of gens_for_homog(I) ???
+    Hgens = homogenization(_gens_for_homog_via_sat(I), W, var, pos)  # ??? possibly use gens(I) instead of _gens_for_homog_via_sat(I) ???
     R = parent(Hgens[1])
     prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
     Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars))
     return Ih
+######  2023-07-14: (this comment is now old, but probably still valid)
 ######  There is a problem/bug with Singular.satstd: so disable this version
 ######  IH = ideal(R, Hgens);  Y = ideal(R, prod_h_vars);
 ######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S, Y.gens.S)
 end
 
+
 # ============================================
 # 2023-06-30 START: New impl of homogenization
+# By John Abbott, based on K+R Book vol 2
 # ============================================
 
 # sat_poly and kronecker_delta are internal functions
-# homogenization2 is intended as "drop-in replacement" for homogenization
-# homogenization2 seems to be usefully faster with ZZ^m-grading for m > 1
+# homogenization is intended as "drop-in replacement" for homogenization_via_saturation
+# (the new) homogenization seems to be usefully faster with ZZ^m-grading for m > 1
 
 # Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
-function sat_poly(f,h)
+function _sat_poly_by_var(f,h)
+    # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
     # Is there a better way to implement this?
     Ih = ideal([h]);
     while ideal_membership(f, Ih)
@@ -2181,27 +2195,27 @@ end #=function=#
 
 
 # Default value for pos is 1+ngens(base_ring(I))
-function homogenization2(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName) where {T <: MPolyRingElem}
-    return homogenization2(I, W, h, 1+ngens(base_ring(I)))
+function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName) where {T <: MPolyRingElem}
+    return homogenization(I, W, h, 1+ngens(base_ring(I)))
 end
 
-function homogenization2(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int) where {T <: MPolyRingElem}
+function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int) where {T <: MPolyRingElem}
     ## ASSUME NumCols(W) = nvars(P)
     P = base_ring(I); # initial polynomial ring
     if size(W,1) == 1 #=then=#
         # Grading is over ZZ^1, so delegate to faster special-case function.
         # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
         if all(a -> (a == 1), W)  #=then=#
-            return homogenization(I, h, pos) # std graded case, very fast
+            return homogenization(I, h, pos) # std graded case, very fast (uses Singular)
         end #=if=#
         W_ordering = matrix_ordering(P, W);
         GB = groebner_basis(I; ordering=W_ordering);
         return ideal(homogenization(GB, W, h, pos));
     end #=if=#
     if  is_zero(I)  #=then=#
-        return ideal(homogenization(zero(P),W,h,pos)); # zero ideal in correct ring (I hope)
+        return ideal(homogenization(zero(P), W, h, pos)); # zero ideal in correct ring (I hope)
     end #=if=#
-    G = homogenization(gens(I), W, h, 1+ngens(P)); # h come last
+    G = homogenization(gens(I), W, h, 1+ngens(P)); # h come last -- deliberately ignore pos here!
     Ph = parent(G[1]);  # Ph is graded ring, "homog-extn" of P.
     N = ngens(Ph);
     num_x = ngens(P);
@@ -2214,10 +2228,10 @@ function homogenization2(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUn
         M_complete = vcat(M, RevLexMat);
         JohnsOrdering = matrix_ordering(Ph, M_complete);
         Ih = ideal(G);
-        G = groebner_basis(Ih; ordering=JohnsOrdering, complete_reduction=true);
+        G = groebner_basis(Ih; ordering=JohnsOrdering, complete_reduction=true); #complete_reduction not needed
         G = elements(G);
-        h_j = gen(Ph,ngens(Ph)+1-j);
-        G = [sat_poly(g,h_j)  for g in G];
+        h_j = gen(Ph, ngens(Ph)+1-j);
+        G = [_sat_poly_by_var(g, h_j)  for g in G];
         # Loop below: rotate cols in RevLexMat which corr to the "h" variables:
         for i in 1:num_h #=do=#
             col1 = (i+j > num_h+1) ? (N+2+num_h-i-j) : (N+2-i-j);
@@ -2337,7 +2351,7 @@ function homogenization(V::Vector{T}, var::VarName) where {T <: MPolyRingElem}
     return homogenization(V, var, 1+ngens(parent(V[1])))
 end
 function homogenization(V::Vector{T}, var::VarName, pos::Int) where {T <: MPolyRingElem}
-    if isempty(V)  return V end # IS THIS WHAT WE WANT ???  or just @assert !isempty(V)
+    if isempty(V)  return V end # ??? IS THIS WHAT WE WANT ???  or just @assert !isempty(V)
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
   A = copy(symbols(R))
