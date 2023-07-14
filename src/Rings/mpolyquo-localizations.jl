@@ -2162,6 +2162,8 @@ Given an ideal `I` in the localization of a quotient of a  multivariate
 polynomial ring over a field at a point, return an array containing a
 minimal set of generators of `I`. If `I` is the zero ideal an empty list
 is returned.
+
+Note: This is only available for localizations at rational points. 
 """
 function minimal_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
@@ -2172,7 +2174,7 @@ function minimal_generating_set(
   Q = base_ring(I)
   L = localized_ring(Q)
 
-  J = ideal(L, lift.(gens(I))) + modulus(Q)
+  J = pre_image_ideal(I)
   return filter(!iszero, Q.(minimal_generating_set(J)))
 end
 
