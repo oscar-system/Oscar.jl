@@ -146,6 +146,7 @@ fractional_matching_polytope
 gelfand_tsetlin_polytope
 newton_polytope
 orbit_polytope
+perles_nonrational_8_polytope
 rand_spherical_polytope
 rand_subpolytope
 ```

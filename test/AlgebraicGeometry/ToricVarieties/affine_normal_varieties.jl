@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Affine normal toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
