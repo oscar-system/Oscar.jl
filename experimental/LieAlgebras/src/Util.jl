@@ -26,5 +26,7 @@ function coefficient_vector(
   for i in 1:nr, j in 1:nc
     rhs[(i - 1) * nc + j, 1] = M[i, j]
   end
-  return transpose(solve(lgs, rhs))
+  fl, sol = can_solve_with_solution(lgs, rhs)
+  @assert fl
+  return transpose(sol)
 end

@@ -206,6 +206,10 @@ function normalizer(L::LieAlgebra, I::LieAlgebraIdeal)
   return sub(L)
 end
 
+function normalizer(I::LieAlgebraIdeal)
+  return sub(base_lie_algebra(I))
+end
+
 @doc raw"""
     centralizer(L::LieAlgebra, I::LieAlgebraIdeal) -> LieSubalgebra
   
@@ -213,6 +217,10 @@ Return the centralizer of `I` in `L`, i.e. $\{x \in L \mid [x, I] = 0\}$.
 """
 function centralizer(L::LieAlgebra, I::LieAlgebraIdeal)
   return centralizer(L, basis(I))
+end
+
+function centralizer(I::LieAlgebraIdeal)
+  return centralizer(base_lie_algebra(I), basis(I))
 end
 
 ###############################################################################
