@@ -1,20 +1,4 @@
 ################################################################################
-######## Scalar types
-################################################################################
-const scalar_types = Union{QQFieldElem, nf_elem, Float64}
-
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                ("QuadraticExtension<Rational>", nf_elem),
-                                ("Float", Float64)])
-
-const scalar_type_to_polymake = Dict{Type, Type}([(QQFieldElem, Polymake.Rational),
-                                    (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
-                                    (Union{QQFieldElem, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
-                                    (Float64, Float64)])
-
-const scalar_types_extended = Union{scalar_types, ZZRingElem}
-
-################################################################################
 ######## Vector types
 ################################################################################
 
@@ -27,7 +11,7 @@ end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
-Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
+Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[i]
 
 function Base.setindex!(po::PointVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
@@ -39,12 +23,16 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
-PointVector{nf_elem}(p::AbstractVector) = PointVector{nf_scalar}(p)
+PointVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = PointVector{U}(p.(v))
 
-PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
+PointVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(p.(zeros(Int, n)))
+
+PointVector{U}(::UndefInitializer, n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(Vector{U}(undef, n))
+
+PointVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = PointVector{U}(undef, length(n))
 
 function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-    return PointVector{S}(dims...)
+    return PointVector{S}(undef, dims...)
 end
 
 Base.BroadcastStyle(::Type{<:PointVector}) = Broadcast.ArrayStyle{PointVector}()
@@ -64,7 +52,7 @@ end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
-Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
+Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[i]
 
 function Base.setindex!(po::RayVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
@@ -76,12 +64,16 @@ Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
 
-RayVector{nf_elem}(p::AbstractVector) = RayVector{nf_scalar}(p)
+RayVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = RayVector{U}(p.(v))
 
-RayVector{U}(n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(zeros(U, n))
+RayVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(p.(zeros(Int, n)))
+
+RayVector{U}(::UndefInitializer, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(Vector{U}(undef, n))
+
+RayVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = RayVector{U}(undef, length(n))
 
 function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-    return RayVector{S}(dims...)
+    return RayVector{S}(undef, dims...)
 end
 
 Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
@@ -111,29 +103,45 @@ $$H(a,b) = \{ x | ax ≤ b \}.$$
 struct AffineHalfspace{T} <: Halfspace{T}
     a::Vector{T}
     b::T
-    
-    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
+    parent_field::Field
+
+    AffineHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
 end
 
-Halfspace(a, b) = AffineHalfspace(a, b)
-Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
+halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
+halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_halfspace(f, a, b)
 
-invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(-normal_vector(H), -negbias(H))
+invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(coefficient_field(H), -normal_vector(H), -negbias(H))
+
+function affine_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+    return AffineHalfspace{scalar_type}(parent_field, a, b)
+end
+
+affine_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_halfspace(QQ, a, b)
 
 ################################################################################
 
 struct LinearHalfspace{T} <: Halfspace{T}
     a::Vector{T}
+    parent_field::Field
     
-    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
+    LinearHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
 end
 
-Halfspace(a) = LinearHalfspace(a)
-Halfspace{T}(a) where T<:scalar_types = LinearHalfspace{T}(a)
+halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
+halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_halfspace(f, a)
 
-invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(-normal_vector(H))
+invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(coefficient_field(H), -normal_vector(H))
+
+function linear_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+    return LinearHalfspace{scalar_type}(parent_field, a)
+end
+
+linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
+
+coefficient_field(h::Halfspace) = h.parent_field
 
 ################################################################################
 
@@ -150,31 +158,47 @@ $$H(a,b) = \{ x | ax = b \}.$$
 struct AffineHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
     b::T
+    parent_field::Field
     
-    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
-    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{QQFieldElem}(vec(a), b)
+    AffineHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
 end
 
-Hyperplane(a, b) = AffineHyperplane(a, b)
-Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
+hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(a, b)
+hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_hyperplane(f, a, b)
+
+function affine_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+    return AffineHyperplane{scalar_type}(parent_field, a, b)
+end
+
+affine_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_hyperplane(QQ, a, b)
 
 ################################################################################
 
 struct LinearHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
+    parent_field::Field
     
-    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
-    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{QQFieldElem}(vec(a))
+    LinearHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
 end
 
-Hyperplane(a) = LinearHyperplane(a)
-Hyperplane{T}(a) where T<:scalar_types = LinearHyperplane{T}(a)
+hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(a)
+hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_hyperplane(f, a)
+
+function linear_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
+    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+    return LinearHyperplane{scalar_type}(parent_field, a)
+end
+
+linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)
+
+coefficient_field(h::Hyperplane) = h.parent_field
 
 ################################################################################
 
 #  Field access
 negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
-negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
+negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = coefficient_field(H)(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
@@ -195,27 +219,13 @@ Base.hash(x::T, h::UInt) where {T<:Union{LinearHalfspace,LinearHyperplane}} =
   hash(x.a, hash(T, h))
 
 ################################################################################
-
-for T in [LinearHalfspace, LinearHyperplane]
-    @eval begin
-        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $T{nf_scalar}(a)
-    end
-end
-
-for T in [AffineHalfspace, AffineHyperplane]
-    @eval begin
-        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $T{nf_scalar}(a, b)
-    end
-end
-
-################################################################################
 ######## SubObjectIterator
 ################################################################################
 
 @doc raw"""
     SubObjectIterator(Obj, Acc, n, [options])
 
-An iterator over a designated property of `Obj::Polymake.BigObject`.
+An iterator over a designated property of an object `Obj::PolyhedralObject` from Polyhedral Geometry.
 
 `Acc::Function` will be used internally for `getindex`. Further this uniquely
 determines the context the iterator operates in, allowing to extend specific
@@ -231,18 +241,14 @@ Additional data required for specifying the property can be given using
 keyword arguments.
 """
 struct SubObjectIterator{T} <: AbstractVector{T}
-    Obj::Polymake.BigObject
+    Obj::PolyhedralObject
     Acc::Function
     n::Int
     options::NamedTuple
 end
 
 # `options` is empty by default
-SubObjectIterator{T}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
-
-# Force `nf_scalar` for this `Pair` descpription of `Halfspace`s/`Hyperplane`s
-# derived from `nf_elem`templated object
-SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
+SubObjectIterator{T}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
@@ -263,7 +269,7 @@ for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_in
     _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
+        $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
@@ -274,8 +280,8 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
+        $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) = matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
@@ -351,7 +357,7 @@ unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 
 unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
-_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(pm_object(x.Obj))
 
 ################################################################################
 
@@ -360,18 +366,18 @@ _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
 _empty_access() = nothing
 
-function _empty_subobjectiterator(::Type{T}, Obj::Polymake.BigObject) where T
+function _empty_subobjectiterator(::Type{T}, Obj::PolyhedralObject) where T
     return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
 end
 
 for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject; homogenized=false)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+        function $M(::Val{_empty_access}, P::PolyhedralObject; homogenized=false)
+            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(pm_object(P))))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
-            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + homogenized)
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
+            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized)
         end
     end
 end
@@ -379,17 +385,17 @@ end
 for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
     M = Symbol(f)
     @eval begin
-        $M(::Val{_empty_access}, P::Polymake.BigObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+        $M(::Val{_empty_access}, P::PolyhedralObject) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
     end
 end
 
 for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+        function $M(::Val{_empty_access}, P::PolyhedralObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
         end
     end
@@ -398,10 +404,10 @@ end
 for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
     M = Symbol(f)
     @eval begin
-        function $M(::Val{_empty_access}, P::Polymake.BigObject)
+        function $M(::Val{_empty_access}, P::PolyhedralObject)
             scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
             typename = scalar_regexp[1]
-            T = scalar_type_to_polymake[scalar_type_to_oscar[typename]]
+            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
         end
     end

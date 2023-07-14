@@ -87,7 +87,7 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  demonstrate this:
 ```@docs
 weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::AbstractNormalToricVariety; completeness_check::Bool = true)
+weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
 ### A toric scheme as base space
@@ -97,7 +97,7 @@ bases, we can use the optional argument `completeness_check = false` to switch o
 expensive completeness check. The following examples demonstrate this:
 ```@docs
 weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-weierstrass_model(f::MPolyRingElem, g::MPolyRingElem, base::ToricCoveredScheme; completeness_check::Bool = true)
+weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
@@ -125,7 +125,7 @@ the predictions from such an analysis are not limited to the world of toric vari
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-weierstrass_model(weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem, auxiliary_base_ring::MPolyRing, d::Int)
+weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 ```
 
 ### Standard constructions

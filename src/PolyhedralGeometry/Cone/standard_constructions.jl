@@ -4,9 +4,9 @@
 ###############################################################################
 ###############################################################################
 @doc raw"""
-    intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+    intersect(C::Cone...)
 
-Return the intersection $C0 \cap C1$ of `C0` and `C1`.
+Return the intersection $\bigcap\limits_{c \in C} c$.
 
 # Examples
 ```jldoctest
@@ -26,11 +26,12 @@ julia> dim(C01)
 0
 ```
 """
-function intersect(C::Cone{T}...) where T<:scalar_types
+function intersect(C::Cone...)
+    T, f = _promote_scalar_field((coefficient_field(c) for c in C)...)
     pmo = [pm_object(c) for c in C]
-    return Cone{T}(Polymake.polytope.intersection(pmo...))
+    return Cone{T}(Polymake.polytope.intersection(pmo...), f)
 end
-intersect(C::AbstractVector{Cone{T}}) where T<:scalar_types = intersect(C...)
+intersect(C::AbstractVector{<:Cone}) = intersect(C...)
 
 
 @doc raw"""
@@ -54,7 +55,7 @@ julia> rays(Cv)
 ```
 """
 function polarize(C::Cone{T}) where T<:scalar_types
-    return Cone{T}(Polymake.polytope.polarize(pm_object(C)))
+    return Cone{T}(Polymake.polytope.polarize(pm_object(C)), coefficient_field(C))
 end
 
 
@@ -93,38 +94,48 @@ julia> c == ctt
 true
 ```
 """
-function transform(C::Cone{T}, A::Union{AbstractMatrix, MatElem{T}}) where T<:scalar_types
+function transform(C::Cone{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}) where {T<:scalar_types, U<:FieldElem}
   @assert ambient_dim(C) == nrows(A) "Incompatible dimension of cone and transformation matrix"
   @assert nrows(A) == ncols(A) "Transformation matrix must be square"
   @assert Polymake.common.rank(A) == nrows(A) "Transformation matrix must have full rank."
   return _transform(C, A)
 end
-function _transform(C::Cone{T}, A::AbstractMatrix) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
-  raymod = Polymake.Matrix{OT}(permutedims(A))
-  facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
-  return _transform(C, raymod, facetmod)
+function _transform(C::Cone{T}, A::AbstractMatrix{<:FieldElem}) where T<:scalar_types
+    U, f = _promote_scalar_field(A)
+    V, g = _promote_scalar_field(coefficient_field(C), f)
+    OT = _scalar_type_to_polymake(V)
+    raymod = Polymake.Matrix{OT}(permutedims(A))
+    facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
+    return _transform(C, raymod, facetmod, g)
 end
-function _transform(C::Cone{T}, A::MatElem{T}) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
-  raymod = Polymake.Matrix{OT}(transpose(A))
-  facetmod = Polymake.Matrix{OT}(inv(A))
-  return _transform(C, raymod, facetmod)
+function _transform(C::Cone{T}, A::AbstractMatrix{<:Number}) where T<:scalar_types
+    OT = _scalar_type_to_polymake(T)
+    raymod = Polymake.Matrix{OT}(permutedims(A))
+    facetmod = Polymake.Matrix{OT}(Polymake.common.inv(permutedims(raymod)))
+    return _transform(C, raymod, facetmod, coefficient_field(C))
 end
-function _transform(C::Cone{T}, raymod, facetmod) where T<:scalar_types
-  OT = scalar_type_to_polymake[T]
-  result = Polymake.polytope.Cone{OT}()
-  for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
-    if Polymake.exists(pm_object(C), prop)
-      resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * raymod)
-      Polymake.take(result, prop, resultprop)
+function _transform(C::Cone{T}, A::MatElem{U}) where {T<:scalar_types, U<:FieldElem}
+    V, f = _promote_scalar_field(coefficient_field(C), base_ring(A))
+    OT = _scalar_type_to_polymake(V)
+    raymod = Polymake.Matrix{OT}(transpose(A))
+    facetmod = Polymake.Matrix{OT}(inv(A))
+    return _transform(C, raymod, facetmod, f)
+end
+function _transform(C::Cone{T}, raymod, facetmod, f::Field) where T<:scalar_types
+    U = elem_type(f)
+    OT = _scalar_type_to_polymake(U)
+    result = Polymake.polytope.Cone{OT}()
+    for prop in ("RAYS", "INPUT_RAYS", "LINEALITY_SPACE", "INPUT_LINEALITY")
+        if Polymake.exists(pm_object(C), prop)
+            resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * raymod)
+            Polymake.take(result, prop, resultprop)
+        end
     end
-  end
-  for prop in ("INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "FACETS")
-    if Polymake.exists(pm_object(C), prop)
-      resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * facetmod)
-      Polymake.take(result, prop, resultprop)
+    for prop in ("INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "FACETS")
+        if Polymake.exists(pm_object(C), prop)
+            resultprop = Polymake.Matrix{OT}(Polymake.give(pm_object(C), prop) * facetmod)
+            Polymake.take(result, prop, resultprop)
+        end
     end
-  end
-  return Cone{T}(result)
+    return Cone{U}(result, f)
 end

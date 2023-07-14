@@ -2,11 +2,36 @@
 # 1: Construct auxiliary base space
 ################################################################
 
-function _auxiliary_base_space(variable_names::Vector{String}, d::Int)
-  ray_gens = [[if i==j 1 else 0 end for j in 1:length(variable_names)] for i in 1:length(variable_names)]
-  max_cones = Hecke.subsets(length(variable_names), d)
-  auxiliary_base_space = normal_toric_variety(ray_gens, max_cones)
-  set_coordinate_names(auxiliary_base_space, variable_names)
+function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int)
+  
+  # Find candidate base spaces
+  candidates = normal_toric_varieties_from_glsm(matrix(ZZ, auxiliary_base_grading))
+  @req length(candidates) > 0 "Could not find a full star triangulation"
+  f = candidates[1]
+  @req dim(f) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  
+  # Construct one base space of desired dimension
+  fan_rays = matrix(ZZ, rays(f))
+  fan_rays = [vec([Int(a) for a in fan_rays[k,:]]) for k in 1:nrows(fan_rays)]
+  fan_max_cone_matrix = matrix(ZZ, cones(f))
+  new_max_cones = Vector{Int}[]
+  for k in 1:nrows(fan_max_cone_matrix)
+    indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
+    if length(indices) == d
+      push!(new_max_cones, indices)
+    end
+  end
+  auxiliary_base_space = normal_toric_variety(fan_rays, new_max_cones; non_redundant = true)
+  
+  # Set attributes for this base space
+  set_coordinate_names(auxiliary_base_space, auxiliary_base_variable_names)
+  G1 = free_abelian_group(ncols(auxiliary_base_grading))
+  G2 = free_abelian_group(nrows(auxiliary_base_grading))
+  grading_of_cox_ring = hom(G1, G2, transpose(matrix(ZZ, auxiliary_base_grading)))
+  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+  set_attribute!(auxiliary_base_space, :class_group, G2)
+  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
+  
   return auxiliary_base_space
 end
 
@@ -61,7 +86,7 @@ function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::A
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct the ambient space
-  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  ambient_space = normal_toric_variety(ambient_space_rays, ambient_space_max_cones; non_redundant = true)
   
   # Compute torusinvariant weil divisor group and the class group
   ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
@@ -105,10 +130,6 @@ end
 # 3: Construct the Weierstrass/Tate ambient space
 ################################################################
 
-_tate_ambient_space_from_base(base::NormalToricVariety) = _weierstrass_ambient_space_from_base(base)
-
-_tate_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
-
 _weierstrass_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
 
 function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)
@@ -140,7 +161,7 @@ function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct and return the ambient space
-  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  ambient_space = normal_toric_variety(ambient_space_rays, ambient_space_max_cones; non_redundant = true)
   set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
   return ambient_space
   
@@ -226,7 +247,7 @@ function sample_toric_variety()
           [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
           [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
           [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(polyhedral_fan(rays, cones))
+  return normal_toric_variety(rays, cones)
 end
 
 @doc raw"""

@@ -1,8 +1,8 @@
-@doc raw"""
+@doc """
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
-currently, mainly at the Technische Universität Kaiserslautern.
+mainly at the University of Kaiserslautern-Landau.
 
 Written in Julia, it combines the well established systems
  * [`Singular`](@ref Singular)

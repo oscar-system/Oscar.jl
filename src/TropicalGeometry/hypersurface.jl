@@ -236,7 +236,7 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
         error("tropical hypersurface not embedded")
     end
 
-    return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
+    return subdivision_of_points(pm_object(TH).DUAL_SUBDIVISION)
 end
 
 

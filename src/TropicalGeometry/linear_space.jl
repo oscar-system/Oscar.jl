@@ -89,7 +89,7 @@ function TropicalLinearSpace_impl(plv, rank, nElements, M)
     val = Polymake.matroid.ValuatedMatroid{M}(BASES = bases, N_ELEMENTS = nElements,VALUATION_ON_BASES = [plv[i].data for i in indexSet])
     #return Polymake.tropical.linear_space{min}(val)
     P = Polymake.tropical.linear_space{M}(val)
-    P = PolyhedralComplex{QQFieldElem}(P)
+    P = PolyhedralComplex{QQFieldElem}(P, QQ)
     return TropicalLinearSpace{M,true}(P)
 end
 TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(min)}},rank::IntegerUnion, nElements::IntegerUnion) =
