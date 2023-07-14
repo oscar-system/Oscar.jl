@@ -276,6 +276,16 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   K, _ = Singular.saturation(I.gens.S, J.gens.S)
   return MPolyIdeal(base_ring(I), K)
 end
+
+# the following is corresponding to saturation2 from Singular
+# TODO: think about how to use use this properly/automatically
+function _saturation2(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+  singular_assure(I)
+  singular_assure(J)
+  K, _ = Singular.saturation2(I.gens.S, J.gens.S)
+  return MPolyIdeal(base_ring(I), K)
+end
+
 #######################################################
 @doc raw"""
     saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
