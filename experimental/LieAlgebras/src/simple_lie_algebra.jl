@@ -253,7 +253,7 @@ to the Chevalley basis of `L`.
 The i-th adjoint matrix is the matrix of the adjoint representation of the i-th basis element x 
 w.r.t. the Chevalley basis B. The adjoint map is the left multiplication by x. 
 The j-th column of the resulting matrix represents the image of the the j-th basis vector of B 
-under left multiplication by x. 
+under left multiplication by x.
 """
 function adjoint_matrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
   R = base_ring(L)
