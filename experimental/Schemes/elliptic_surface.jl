@@ -1121,7 +1121,7 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
       t0 = t//(t*pt[2]-pt[1])
     end
     while any(F3[i]<0 for i in nonzero)
-      F3 = F2 - f0
+      F3 = F3 - f0
       D = D + Fib0
       D1 = D1 + fiber
       c = c*t0
@@ -1138,6 +1138,8 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   D = D + F3[1]*basisNS[1]
   D1 = D1 + F3[1]*basisNS[1]
   F4 = copy(F3); F4[1]=0
+  @assert all(F4[i]>=0 for i in 1:length(basisNS))
+  D = D + sum(ZZ(F4[i])*basisNS[i] for i in 1:length(basisNS))
   @assert D<=D1
 
   S, piS = weierstrass_model(X);
