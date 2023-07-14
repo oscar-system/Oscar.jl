@@ -163,6 +163,7 @@ k_cyclic
 klee_minty_cube
 >>>>>>> Stashed changes
 lecture_hall_simplex
+long_and_winding_polytope
 newton_polytope
 orbit_polytope
 rand_spherical_polytope

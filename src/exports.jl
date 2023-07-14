@@ -889,6 +889,7 @@ export load_lp
 export load_mps
 export localized_ring
 export loops
+export long_and_winding_polytope
 export low_index_subgroup_reps
 export lower_triangular_matrix
 export map

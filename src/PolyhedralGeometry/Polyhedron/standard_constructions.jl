@@ -1542,6 +1542,7 @@ function goldfarb_sit_cube(d::Int, eps::Real, delta::Real)
 end
 
 @doc raw"""
+    hypertruncated_cube(d::Int, k::Number, lambda::Number) 
 
 Produce a $d-$dimensional hypertruncated cube. With symmetric linear objective function $(0,1,1,…,1)$.
 
@@ -1605,3 +1606,63 @@ For an example see `goldfarb` method.
 ```
 """
 klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
+
+@doc raw"""
+    long_and_winding_polytope()
+
+Produce polytope in dimension $2r$ with $3r+2$ facets such that the total curvature of the central path is at least $\Omega(2^r)$; 
+see [ABGJ18](@cite). See also `perturbed_long_and_winding`. 
+
+#Keywords
+
+- `r::Int`: defining parameter 
+- `eval_ratio::Real`: optional parameter for evaluating the puiseux rational functions 
+- `eval_float::AbstractFloat`: optional parameter  to evaluate at `eval_ratio^eval_exp`, default: $1$. 
+- `eval_exp::Int`: optional parameter for evaluating the puiseux rational functions  
+
+#Examples
+```jldoctest
+julia> p = long_and_winding_polytope(2)
+Polyhedron in ambient dimension 4
+
+julia> p.pm_polytope.FACETS
+PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
+(5) (0 (x^2)) (1 (- 1))
+(5) (0 (x)) (2 (- 1))
+(5) (1 (x)) (3 (- 1))
+(5) (2 (x)) (3 (- 1))
+(0) (x^1/2) (x^1/2) (0) (- 1)
+(5) (3 (1))
+(5) (4 (1))
+
+
+julia> long_and_winding_polytope(2; eval_ratio=2)
+Polyhedron in ambient dimension 4
+
+julia> p.pm_polytope.FACETS
+PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
+(5) (0 (x^2)) (1 (- 1))
+(5) (0 (x)) (2 (- 1))
+(5) (1 (x)) (3 (- 1))
+(5) (2 (x)) (3 (- 1))
+(0) (x^1/2) (x^1/2) (0) (- 1)
+(5) (3 (1))
+(5) (4 (1))
+```
+"""
+function long_and_winding_polytope(r::Int; eval_ratio=nothing, eval_float=nothing, eval_exp=nothing)
+    if r<1
+        throw(ArgumentError("long_and_winding: parameter r >= 1 required"))
+    end
+    opts = Dict{Symbol,Any}()
+    if eval_ratio!=nothing
+        opts[:eval_ratio] = convert(Real, eval_ratio)
+    end
+    if eval_float!=nothing
+        opts[:eval_float] = convert(AbstractFloat, eval_float)
+    end
+    if eval_exp!=nothing
+        opts[:eval_exp] = convert(Int, eval_exp)
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.long_and_winding(r;opts...))
+end
