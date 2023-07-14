@@ -13,6 +13,7 @@ using AbstractAlgebra.PrettyPrinting
 import ..Oscar:
   _iso_oscar_gap,
   action,
+  base_ring,
   basis,
   basis_matrix,
   center,
@@ -53,7 +54,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
+import Base: getindex, deepcopy_internal, hash, inv, isone, issubset, iszero, one, parent, rand, setindex!, show, zero,  +, -, *, ^, ==, !=
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
