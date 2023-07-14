@@ -1,8 +1,3 @@
-#using Gapjm
-using Oscar
-
-fromGap = Oscar.GAP.gap_to_julia
-
 function w_to_eps(type::String, rank::Int, weight::Vector{Int})::Vector{Int}
     """
     converts weight in rootsystem w_i to eps_i
@@ -76,13 +71,7 @@ end
 function get_CartanMatrix(type::String, rank::Int)
     L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     R = GAP.Globals.RootSystem(L)
-    C_list = fromGap(GAP.Globals.CartanMatrix(R))
-    C = zeros(rank, rank)
-    for i in 1:rank
-        for j in 1:rank
-            C[i,j] = C_list[i][j]
-        end
-    end
+    C = Matrix{Int}(GAP.Globals.CartanMatrix(R))
     return C
 end
 

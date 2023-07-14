@@ -3,10 +3,7 @@ using Test
 # using TestSetExtensions
 
 include("MBOld.jl")
-
-G = Oscar.GAP.Globals
 forGap = Oscar.GAP.julia_to_gap
-fromGap = Oscar.GAP.gap_to_julia
 
 """
 We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
@@ -22,19 +19,20 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
 
     # new algorithm
     mons_new = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda) 
-    L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
-    gap_dim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+    L = Oscar.GAP.Globals.SimpleLieAlgebra(forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals)
+    gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
 
     # comparison
     # convert set of monomials over different ring objects to string representation to compare for equality
     @test issetequal(string.(mons_old), string.(mons_new)) # compare if result of old and new algorithm match
     @test gap_dim == length(mons_new) # check if dimension is correct
+    print(".")
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
     w = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda, monomial_order=monomial_order) 
-    L = G.SimpleLieAlgebra(forGap(string(dynkin)), n, G.Rationals)
-    gap_dim = G.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+    L = Oscar.GAP.Globals.SimpleLieAlgebra(forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals)
+    gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
     @test gap_dim == length(w) # check if dimension is correct
 end
 

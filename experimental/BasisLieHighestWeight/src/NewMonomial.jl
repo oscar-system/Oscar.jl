@@ -1,12 +1,3 @@
-include("./VectorSpaceBases.jl")
-include("./TensorModels.jl")
-include("./LieAlgebras.jl")
-include("./MonomialOrder.jl")
-include("./WeylPolytope.jl")
-
-fromGap = Oscar.GAP.gap_to_julia
-
-
 function calc_weight(mon::ZZMPolyRingElem, weights::Vector{Vector{Int}})::Vector{Int}
     """
     calculates weight associated with monomial mon
