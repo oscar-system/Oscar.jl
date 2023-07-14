@@ -821,6 +821,13 @@ Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \t
 return its closure in $X$ as a `WeilDivisor`.
 """
 function section(X::EllipticSurface, P::EllCrvPt)
+  if iszero(a[1])&&iszero(a[3])
+    return zero_section(X)
+  end
+  return _section(X, P)
+end
+
+function _section(X::EllipticSurface, P::EllCrvPt)
   @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
   S0,incS0 = weierstrass_model(X)
   X0 = codomain(incS0)
@@ -850,7 +857,7 @@ end
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr zero_section(S::EllipticSurface) = section(S, generic_fiber(S)([0,1,0]))
+@attr zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
 
 @doc raw"""
     is_isomorphic_with_map(G1::Graph, G2::Graph) -> Bool, Vector{Int}
