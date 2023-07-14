@@ -385,7 +385,8 @@ end
 
 export GModule, gmodule, word, fp_group, confluent_fp_group
 export action, cohomology_group, extension, pc_group
-export induce, is_consistent, istwo_cocycle
+export induce, is_consistent, istwo_cocycle, all_extensions
+export split_extension, extension_with_abelian_kernel
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1876,6 +1877,117 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
 end
 
+"""
+    extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
+
+For a group `K` and an abelian normal subgroup `M`, construct `M` as a
+`X/M`-modul amd find the 2-cochain representing `X`.
+"""
+function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
+  g, pi = quo(X, M)
+  fl, i = is_subgroup(M, X)
+  phi = isomorphism(GrpAbFinGen, M)
+  A = codomain(phi)
+  gg = isomorphism(PermGroup, g)
+  C = gmodule(codomain(gg), [hom(A, A, [phi(preimage(i, i(preimage(phi, a))^preimage(pi, preimage(gg, x)))) for a = gens(A)]) for x = gens(codomain(gg))])
+
+  H2, mH2, _ = cohomology_group(C, 2)
+
+  c = Dict( (gg(a), gg(b)) => phi(preimage(i, preimage(pi, a)*preimage(pi, b)*inv(preimage(pi, a*b)))) for a = g for b = g)
+  return C, CoChain{2, PermGroupElem, GrpAbFinGenElem}(C, c)
+end
+
+"""
+Let C be a G-module with G action on M. Then this function find the
+subgroup of 'Aut(M) x Aut(G)' that is compatibel with the G-module
+structure:
+
+Let 'h: G to Aut(M)'  from C, then '(alpha, gamma) in Aut(M) x Aut(G)'
+are compatible iff
+  for all 'a in M' and 'g in G' we have
+  'h(gamma(g))(a) == alpha(inv(h(g))(alpha^-1(a)))'
+ 
+The group and the action on 2-cochains is returned. Cochains in the
+same orbit parametrize the same group.
+"""
+function compatible_pairs(C::GModule)
+  #not exported
+  G = C.G
+  M = C.M
+
+  autG = automorphism_group(G)
+  autM = automorphism_group(M)
+
+  T, emb, pro = direct_product(autM, autG, morphisms = true)
+
+  function action_on_chain(g::GAPGroupElem, c::CoChain{2, S, T}) where {S, T}
+    al = pro[1](C[2](g))
+    ga = pro[2](C[2](g))
+    d = Dict(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
+    return CoChain{2, S, T}(c.C, d)
+  end
+
+  h = hom(G, autM, [autM(x) for x = C.ac])
+  im = image(h)[1]
+  ke = kernel(h)[1]
+
+  if order(im) == 1
+    C = (T, x->x)
+    return T, action_on_chain
+  end
+
+  N, mN = normalizer(autM, im)
+  S, mS = stabilizer(autG, ke, (x,y)->image(hom(y), x)[1])
+
+  NS, em, pr = direct_product(N, S, morphisms = true)
+  #from Holt/ Eick, ... Handbook of Computational Group Theory, P319
+  C = stabilizer(NS, h, (x, y) -> hom(G, autM,
+            [inv(pr[1](y))*x(inv(pr[2](y))(g))*pr[1](y) for g = gens(G)]))
+
+  #the more direct naive (and slow) approach...
+  #C = sub(T, [t for t in preimage(pro[1], N)[1] if all(ag -> action(C, pro[2](t)(ag[2]), ag[1]) == pro[1](t)(action(C, ag[2], inv(pro[1](t))(ag[1]))), Iterators.product(gens(M), gens(G)))])
+
+  return C[1], action_on_chain
+end
+
+function split_extension(C::GModule)
+  #bypasses the Cohomolgy computation, hopefully
+  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  S = elem_type(C.G)
+  T = elem_type(C.M)
+  return extension(CoChain{2, S, T}(C, c))
+end
+
+function all_extensions(C::GModule)
+  @assert isfinite(C.M)
+  if gcd(order(C.M), order(C.G)) == 1
+    return [split_extension(C)]
+  end
+  H2, mH2, _ = cohomology_group(C, 2)
+  if order(H2) == 1
+    return [extension(mH2(zero(H2)))]
+  end
+  T, mT = compatible_pairs(C)
+  G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
+  O = orbits(G)
+  all_G = []
+  for o = O
+    push!(all_G, extension(mH2(representative(o)))[1])
+  end
+  return all_G
+end
+
+function all_extensions(M::GrpAbFinGen, G::PermGroup) #the cohomology wants it
+  A = automorphism_group(M)
+  l = GAP.Globals.AllHomomorphismClasses(G.X, A.X)
+  all_G = []
+  for i = l
+    C = gmodule(G, [hom(A(i(g.X))) for g = gens(G)])
+    append!(all_G, all_extensions(C))
+  end
+  return all_G
+end
+
 function fp_group(c::CoChain{2})
   return extension(c)[1]
 end
@@ -1895,4 +2007,5 @@ using .GrpCoh
 
 export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
+export split_extension, alL_extensions, extension_with_abelian_kernel
 

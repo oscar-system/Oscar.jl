@@ -278,7 +278,7 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
 end
 
-function gmodule(k::Nemo.fpField, C::GModule{PermGroup, GrpAbFinGen})
+function gmodule(k::Nemo.fpField, C::GModule{<:Oscar.GAPGroup, GrpAbFinGen})
   q, mq = quo(C.M, characteristic(k))
   s, ms = snf(q)
 
@@ -364,6 +364,7 @@ function _character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.Fie
       push!(chr, (c, K(n)))
       continue
     end
+    #use T = action(C, r) instead?
     p = preimage(phi, r)
     T = map_word(p, ac; genimgs_inv = iac)
     push!(chr, (c, trace(mat(T))))
