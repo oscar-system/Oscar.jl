@@ -216,10 +216,9 @@ end
 ###############################################################################
 
 @doc raw"""
-    in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra) -> Bool
+    zero(L::SimpleLieAlgebra{T}) -> SimpleLieAlgebraElem{T}
 
-Return `true` if the simple Lie Algebra element `x` is an element of the Lie algebra `L` and `false`
-otherwise.
+Return the zero element of the Lie algebra `L`.
 """
 function zero(L::SimpleLieAlgebra{T}) where {T <: RingElement} 
   x = zero(L.mat_space)
@@ -227,13 +226,13 @@ function zero(L::SimpleLieAlgebra{T}) where {T <: RingElement}
 	return f
 end
 
-function (R::SimpleLieAlgebra{T})() where {T <: RingElement}
-  return zero(R)
+function (L::SimpleLieAlgebra{T})() where {T <: RingElement}
+  return zero(L)
 end
 
-function (R::SimpleLieAlgebra{T})(A::MatElem{T}) where {T <: RingElem}
-  C = elem_type(R)
-  f = SimpleLieAlgebraElem{T}(R, R.mat_space(A))
+function (L::SimpleLieAlgebra{T})(A::MatElem{T}) where {T <: RingElem}
+  C = elem_type(L)
+  f = SimpleLieAlgebraElem{T}(L, L.mat_space(A))
   return f
 end
 
