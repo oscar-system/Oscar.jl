@@ -74,7 +74,12 @@ base_ring(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.base_ring::parent_t
 
 dim(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.dim
 
-characteristic(R::SimpleLieAlgebra{T}) where T <: RingElement = characteristic(base_ring(R))
+@doc raw"""
+    characteristic(L::SimpleLieAlgebra{T}) -> Int64
+
+Return the characteristic of the base ring of the Lie algebra `L`.
+"""
+characteristic(L::SimpleLieAlgebra{T}) where T <: RingElement = characteristic(base_ring(L))
 
 # linear indexing 
 getindex(f::SimpleLieAlgebraElem, r::Int, c::Int) = f.mat[r, c]
@@ -191,9 +196,14 @@ function isequal(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T
   parent(f) != parent(g) && error("Incompatible Lie algebras")
   return isequal(f.mat, g.mat)
 end
+@doc raw"""
+    in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra) -> Bool
 
-function in(f::SimpleLieAlgebraElem, L::SimpleLieAlgebra)
-	if f.parent == L
+Return `true` if the simple Lie Algebra element `x` is an element of the Lie algebra `L` and `false`
+otherwise.
+"""
+function in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra)
+	if x.parent == L
     return true
 	else
 		return false
@@ -205,9 +215,15 @@ end
 #
 ###############################################################################
 
-function zero(R::SimpleLieAlgebra{T}) where {T <: RingElement} 
-  x = zero(R.mat_space)
-	f = SimpleLieAlgebraElem{T}(R, x)
+@doc raw"""
+    in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra) -> Bool
+
+Return `true` if the simple Lie Algebra element `x` is an element of the Lie algebra `L` and `false`
+otherwise.
+"""
+function zero(L::SimpleLieAlgebra{T}) where {T <: RingElement} 
+  x = zero(L.mat_space)
+	f = SimpleLieAlgebraElem{T}(L, x)
 	return f
 end
 
@@ -238,7 +254,7 @@ end
 
 @doc raw"""
     ChevalleyBasis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
-Give the Chevalley basis of a simple Lie algebra
+Give the Chevalley basis of the simple Lie algebra `L`
 """
 function ChevalleyBasis(L::SimpleLieAlgebra{T}) where {T<: RingElement}
 	RS = L.root_system
@@ -270,7 +286,7 @@ end
 
 @doc raw"""
     AdjointMatrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
-Give the Adjoint matrices of all basis vectors acting on the Lie algebra L with respect to the Chevalley basis of L
+Give the Adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect to the Chevalley basis of `L`
 """
 function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
 	St = L.root_type
