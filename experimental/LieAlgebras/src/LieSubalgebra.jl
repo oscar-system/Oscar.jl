@@ -208,15 +208,14 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  show(stdout, MIME"text/plain"(), mat)
-  println("")
   sol_dim, sol = left_kernel(mat)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)
-  println(c_dim)
-  show(stdout, MIME"text/plain"(), c_basis)
-  println("")
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+end
+
+function normalizer(S::LieSubalgebra)
+  return normalizer(base_lie_algebra(S), S)
 end
 
 @doc raw"""
@@ -226,6 +225,10 @@ Return the centralizer of `S` in `L`, i.e. $\{x \in L \mid [x, S] = 0\}$.
 """
 function centralizer(L::LieAlgebra, S::LieSubalgebra)
   return centralizer(L, basis(S))
+end
+
+function centralizer(S::LieSubalgebra)
+  return centralizer(base_lie_algebra(S), basis(S))
 end
 
 ###############################################################################

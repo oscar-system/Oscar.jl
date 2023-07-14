@@ -115,4 +115,45 @@ include("LinearLieAlgebra-test.jl")
     y = L(rand(-10:10, dim(L)))
     @test L_to_U(x) * L_to_U(y) - L_to_U(y) * L_to_U(x) == L_to_U(x * y)
   end
+
+  @testset "Hum72, Exercise 2.2" begin
+    @testset for n in 2:4, F in [QQ, GF(2)]
+      L = general_linear_lie_algebra(F, n)
+
+      derL = derived_algebra(L) # == sl_n
+
+      @test dim(derL) == dim(L) - 1
+      for b in basis(derL)
+        @test tr(matrix_repr(b)) == 0
+      end
+    end
+  end
+
+  @testset "Hum72, Exercise 2.3" begin
+    @testset for n in 2:4, F in [QQ, GF(2), GF(3)]
+      L = general_linear_lie_algebra(F, n)
+      cen = center(L) # == scalar matrices
+      @test dim(cen) == 1
+      b = matrix_repr(basis(cen, 1))
+      @test divexact(b, b[1, 1]) == identity_matrix(F, n)
+
+      L = special_linear_lie_algebra(F, n)
+      cen = center(L)
+      if is_divisible_by(n, characteristic(F))
+        @test dim(cen) == 1
+        b = matrix_repr(basis(cen, 1))
+        @test divexact(b, b[1, 1]) == identity_matrix(F, n)
+      else
+        @test dim(cen) == 0
+      end
+    end
+  end
+
+  @testset "Hum72, Exercise 2.6" begin
+    @testset for F in [QQ, GF(2), GF(3)]
+      L = special_linear_lie_algebra(F, 3)
+
+      @test_broken is_simple(L) == (characteristic(F) != 3)
+    end
+  end
 end
