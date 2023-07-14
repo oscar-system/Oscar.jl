@@ -86,6 +86,7 @@ function __init__()
                 "forms",
                 "wedderga", # provides a function to compute Schur indices
                 "repsn",
+                "sla",
                ]
       GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
     end
