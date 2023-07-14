@@ -16,7 +16,8 @@ julia> Rq,_ = quo(R,I)
 Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
 
 julia> X = Spec(Rq)
-Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> has_du_val_singularities(X)
 true
@@ -78,7 +79,8 @@ julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)
 
 julia> X = Spec(Rq)
-Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> is_du_val_singularity(X,J)
 true
@@ -149,7 +151,8 @@ julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)
 
 julia> X = Spec(Rq)
-Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 2 generators
 
 julia> decide_du_val_singularity(X,J)
 1-element Vector{Any}:

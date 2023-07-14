@@ -378,8 +378,8 @@ Throws and error if ``X`` does not have an ambient affine space.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> codim(X)
 0
@@ -395,7 +395,8 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient of multivariate polynomial ring by ideal with 1 generator
 
 julia> codim(Y)
 1
@@ -417,8 +418,8 @@ This name can be specified via `set_name!`.
 ```jldoctest
 julia> X = affine_space(QQ, 3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates x1, x2, x3
 
 julia> name(X)
 "unnamed affine variety"

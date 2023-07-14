@@ -97,7 +97,7 @@ julia> (s0,s1) = homogeneous_coordinates(P1);
 
 julia> X = algebraic_set((s0^2+s1^2)*s1)
 Algebraic set
-  in projective 1-space over QQ with coordinates s0, s1
+  in ℙ¹ over QQ
 defined by ideal(s0^2*s1 + s1^3)
 
 julia> (X1,X2) = irreducible_components(X)
@@ -107,7 +107,7 @@ julia> (X1,X2) = irreducible_components(X)
 
 julia> X1  # irreducible but not geometrically irreducible
 Algebraic set
-  in projective 1-space over QQ with coordinates s0, s1
+  in ℙ¹ over QQ
 defined by ideal(s0^2 + s1^2)
 
 ```

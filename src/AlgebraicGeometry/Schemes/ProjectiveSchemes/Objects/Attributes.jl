@@ -179,7 +179,17 @@ to the `coordinate_ring` of `U`.
 julia> P = projective_space(QQ, 2);
 
 julia> Pcov = covered_scheme(P)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patch
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+    3: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(s1//s0), (s2//s0)]
+    2: [(s0//s1), (s2//s1)]
+    3: [(s0//s2), (s1//s2)]
 ```
 """
 @attr AbsCoveredScheme function covered_scheme(P::AbsProjectiveScheme)
