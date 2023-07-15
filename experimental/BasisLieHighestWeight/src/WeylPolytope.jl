@@ -20,17 +20,6 @@ function orbit_weylgroup(lie_algebra::LieAlgebra, weight_vector::Vector{Int})
     return vertices
 end
 
-function get_points_polytope(polytope)
-    """
-    returns all points (interior and vertices) of a polytope in regular (i.e. not homogenoues coordinates).
-    """
-    interior_points = convert(Matrix{Int64}, polytope.INTERIOR_LATTICE_POINTS)
-    vertices_points = convert(Matrix{Int64}, polytope.VERTICES)
-    points = [interior_points; vertices_points][:, 2:end]
-    return points
-end
-
-
 function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
     return [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) 
               for lattice_point in lattice_points_weightspace]

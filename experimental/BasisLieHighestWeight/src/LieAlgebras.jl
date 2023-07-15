@@ -49,8 +49,6 @@ function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators:
     return [
         [(dot(h, v))[findfirst(v .!= 0)] / (v)[findfirst(v .!= 0)] for h in cartan] for v in operators
     ]
-
-
     """
     # TODO delete fromGap. Multiplication of cartan and operators is not regular matrix multiplication
     cartan = fromGap(cartan, recursive=false)

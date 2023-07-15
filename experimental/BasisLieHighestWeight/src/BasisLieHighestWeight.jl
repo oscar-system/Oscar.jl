@@ -7,9 +7,42 @@ using ..Oscar: GAPWrap
 using Polymake
 
 # TODO Change operators from GAP.Obj to Oscar objects
-# TODO Doctests
 # TODO BirationalSequence needs better names for weights and operators
+# TODO Fix weightnames in general
 # TODO Adapt arguments in function outside of BasisLieHighestWeight.jl
+# TODO Summarize function
+# TODO Groundup-structure for the special functions
+# TODO Bugfix cache_size != 0
+
+# TODO Export and docstring: 
+# basis_lie_highest_weight
+# get_dim_weightspace
+# orbit_weylgroup
+# get_lattice_points_of_weightspace
+# convert_lattice_points_to_monomials
+# convert_monomials_to_lattice_points
+
+# tensorMatricesForOperators
+# weights_for_operators
+
+# w_to_eps
+# eps_to_w
+# alpha_to_eps
+# eps_to_alpha
+# w_to_eps
+# eps_to_w
+
+# Unittests for
+# VectorSpaceBases.jl:
+# reduce_col
+# normalize
+# add_and_reduce!
+
+# NewMonomial.jl
+# calc_weight
+# calc_vec
+# highest_calc_sub_monomial
+# calc_new_mon!
 
 struct LieAlgebra
     lie_type::String
@@ -50,10 +83,14 @@ include("./WeylPolytope.jl")
 fromGap = Oscar.GAP.gap_to_julia
 
 @doc """
-    basisLieHighestWeight(type::String, rank::Int, highest_weight::Vector{Int}; 
+basis_lie_highest_weight(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int};
     operators::Union{String, Vector{Int}} = "regular", 
-    monomial_order::Union{String, Function} = "GRevLex", cache_size::Int = 0, return_no_minkowski::Bool = false, 
-    return_operators::Bool = false)
+    monomial_order::Union{String, Function} = "GRevLex", 
+    cache_size::Int = 0,
+)::BasisLieHighestWeightStructure
 
 Computes a monomial basis for the highest weight module with highest weight
 ``highest_weight`` (in terms of the fundamental weights), for a simple Lie algebra of type
