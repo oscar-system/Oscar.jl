@@ -1,12 +1,13 @@
 # manages the linear (in-)dependence of integer vectors
 # this file is only of use to basis_lie_highest_weight for the basis vectors
 
-struct VSBasis
+struct SparseVectorSpaceBasis
     basis_vectors::Vector{SRow{ZZRingElem}} # vector of basisvectors
     pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of basis_vectors[i]
 end
 
-reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) = (b[i]*a - a[i]*b)::SRow{ZZRingElem} # create zero entry in a
+ # create zero entry in i-th entry
+reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) = (b[i]*a - a[i]*b)::SRow{ZZRingElem}
 
 function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem}, Int64}
     """
@@ -20,7 +21,7 @@ function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem}, Int64}
     return divexact(v, gcd(map(y->y[2], union(v)))), pivot
 end
 
-function add_and_reduce!(sp::VSBasis, v::SRow{ZZRingElem})::SRow{ZZRingElem}
+function add_and_reduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})::SRow{ZZRingElem}
     """
     for each pivot of sp.basis_vectors we make entry of v zero and return the result and insert it into sp
     0 => linear dependent
@@ -40,11 +41,10 @@ function add_and_reduce!(sp::VSBasis, v::SRow{ZZRingElem})::SRow{ZZRingElem}
 
     # use pivots of basis basis_vectors to create zeros in v
     for j in 1:length(basis_vectors)
-        i = pivot[j]
-        if i != newPivot
+        if pivot[j] != newPivot
             continue
         end
-        v = reduce_col(v, basis_vectors[j], i)
+        v = reduce_col(v, basis_vectors[j], newPivot)
         v, newPivot = normalize(v)
         if newPivot == 0
             #return 0
