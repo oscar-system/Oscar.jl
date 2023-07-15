@@ -1,10 +1,10 @@
-function orbit_weylgroup(type::String, rank::Int, lie_algebra::GAP.Obj, weight_vector::Vector{Int})
+function orbit_weylgroup(lie_algebra::LieAlgebra, weight_vector::Vector{Int})
     """
     operates weyl-group of type type and rank rank on vector weight_vector and returns list of vectors in orbit
     input and output weights in terms of w_i
     """
     # initialization
-    weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(lie_algebra))
+    weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap))
     orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(weight_vector))
     vertices = []
     
@@ -36,7 +36,7 @@ function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
               for lattice_point in lattice_points_weightspace]
 end
 
-function get_lattice_points_of_weightspace(weights, weight, type)
+function get_lattice_points_of_weightspace(weights, weight, lie_type)
     """
     calculates all lattice points in a given weightspace for a lie algebra of type type
     input:
@@ -45,7 +45,7 @@ function get_lattice_points_of_weightspace(weights, weight, type)
 
     output: all lattice points with weight weight
     """
-    if type in ["A", "G"]
+    if lie_type in ["A", "G"]
         return get_lattice_points_of_weightspace_A_G_n(weights, weight)
     else
         return get_lattice_points_of_weightspace_Xn(weights, weight)
@@ -71,7 +71,7 @@ function get_lattice_points_of_weightspace_A_G_n(weights, weight)
     example:
     weights = [[1, 0, 2], [-1, 1, 1], [0, -1, 0]] (i.e. a_1 = eps_1 - eps_2, a_2 = eps_2 - eps_3, a_12 = eps_1 - eps_3)
     weight = [2, 1, 0]
-    -> poly = polytope.Polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], 
+    -> poly = polytope.polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], 
                                   EQUATIONS=[-2 1 1 0 2; -1 1 -1 1 1; 0 1 0 -1 0])
     => returns [[1 0 0], [1 1 0]]
     """
@@ -97,7 +97,7 @@ end
 
 function get_lattice_points_of_weightspace_Xn(weights, weight)
     """
-    calculates all lattice points in a given weightspace for lie algebras that don't have type A
+    calculates all lattice points in a given weightspace for lie algebras that don't have type A or G
     input:
     weights: the operator weights in eps_i
     weight: lambda - mu

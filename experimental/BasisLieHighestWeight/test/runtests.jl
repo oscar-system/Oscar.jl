@@ -18,7 +18,8 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
     mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
     # new algorithm
-    mons_new = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda) 
+    base = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda)
+    mons_new = base.monomial_basis.set_mon
     L = Oscar.GAP.Globals.SimpleLieAlgebra(forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals)
     gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
 
@@ -30,17 +31,20 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
 end
 
 function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String)
-    w = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda, monomial_order=monomial_order) 
+    base = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda, monomial_order=monomial_order) 
+    mons_new = base.monomial_basis.set_mon
     L = Oscar.GAP.Globals.SimpleLieAlgebra(forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals)
     gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
-    @test gap_dim == length(w) # check if dimension is correct
+    @test gap_dim == length(mons_new) # check if dimension is correct
 end
 
 @testset "Test basisLieHighestWeight" begin
     @testset "Known examples" begin
-        mons = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0])
+        base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0])
+        mons = base.monomial_basis.set_mon
         @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
-        mons = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0], operators=[1,2,1])
+        base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0], operators=[1,2,1])
+        mons = base.monomial_basis.set_mon
         @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
     end
     @testset "Compare with simple algorithm and check dimension" begin
