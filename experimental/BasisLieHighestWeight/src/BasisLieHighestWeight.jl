@@ -13,6 +13,7 @@ using Polymake
 # TODO Summarize function
 # TODO Groundup-structure for the special functions
 # TODO Bugfix cache_size != 0
+# TODO Remove TVec
 
 # TODO Export and docstring: 
 # basis_lie_highest_weight
@@ -33,6 +34,9 @@ using Polymake
 # eps_to_w
 
 # Unittests for
+# BasisLieHighestWeight.jl
+# compute_sub_weights
+
 # VectorSpaceBases.jl:
 # reduce_col
 # normalize
@@ -422,7 +426,7 @@ function add_known_monomials!(
     set_mon_in_weightspace::Dict{Vector{Int64}, 
     Set{ZZMPolyRingElem}},
     matrices_of_operators::Vector{SMat{ZZRingElem}},
-    calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}},
+    calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
     space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.VSBasis},
     v0::SRow{ZZRingElem}, 
     cache_size::Int)
@@ -458,7 +462,7 @@ function add_new_monomials!(
     dim_weightspace::Int,
     weight::Vector{Int},
     set_mon_in_weightspace::Dict{Vector{Int64}, Set{ZZMPolyRingElem}}, 
-    calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}},
+    calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
     space::Dict{Vector{Int64}, 
     Oscar.BasisLieHighestWeight.VSBasis},
     v0::SRow{ZZRingElem}, 
@@ -537,7 +541,7 @@ function add_by_hand(
     space = Dict(0*birational_sequence.weights[1] => nullSpace()) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     # saves the calculated vectors to decrease necessary matrix multiplicatons
-    calc_monomials = Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights[1])) 
+    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights[1])) 
     push!(set_mon, ZZx(1))
     # required monomials of each weightspace
     weightspaces = get_dim_weightspace(lie_algebra, highest_weight)

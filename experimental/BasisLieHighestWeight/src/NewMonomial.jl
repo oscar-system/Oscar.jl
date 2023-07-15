@@ -31,7 +31,7 @@ end
 function highest_calc_sub_monomial(
     x::Vector{ZZMPolyRingElem},
     mon::ZZMPolyRingElem, 
-    calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}},
+    calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
     )::ZZMPolyRingElem
     """
     returns the key in calc_monomials that can be extended by the least amount of left-operations to mon
@@ -54,7 +54,7 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     mon::ZZMPolyRingElem,
     weights::Vector{Vector{Int}}, 
     matrices_of_operators::Vector{SMat{ZZRingElem}},
-    calc_monomials::Dict{ZZMPolyRingElem, Tuple{TVec, Vector{Int}}}, 
+    calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}, 
     space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.VSBasis}, 
     cache_size::Int
     )::SRow{ZZRingElem}
