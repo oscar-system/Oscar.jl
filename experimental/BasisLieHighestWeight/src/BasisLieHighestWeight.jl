@@ -77,6 +77,7 @@ function Base.show(io::IO, birational_sequence::BirationalSequence)
 end
 
 struct MonomialBasis
+    ZZx::ZZMPolyRing
     set_mon::Set{ZZMPolyRingElem}
     dimension::Int
     no_minkowski::Set{Vector{Int}}
@@ -87,7 +88,8 @@ function Base.show(io::IO, monomial_basis::MonomialBasis)
     println(io, "MonomialBasis")
     println(io, "Dimension: ", monomial_basis.dimension)
     println(io, "Generators within semi-group: ", monomial_basis.no_minkowski)
-    print(io, "Monomials: ", monomial_basis.set_mon)
+    print(io, "First 10 Monomials in GRevLex: ", sort(collect(monomial_basis.set_mon), 
+            lt = get_monomial_order_lt("GRevLex", monomial_basis.ZZx))[1:min(end, 10)])
 end
 
 struct BasisLieHighestWeightStructure
@@ -146,65 +148,71 @@ Computes a monomial basis for the highest weight module with highest weight
 
 # Examples
 ```jldoctest
-julia> BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 1], return_no_minkowski = true, return_operators = true)
-(Set(ZZMPolyRingElem[x1*x2, x2, 1, x1*x3, x3^2, x1, x3, x2*x3]), Set([[1, 0], [0, 1]]), GAP: [ v.1, v.2, v.3 ])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 1])
+Lie-Algebra of type A and rank 2
+
+BirationalSequence
+Operators: GAP: [ v.1, v.2, v.3 ]
+Weights in w_i:[[2, -1], [-1, 2], [1, 1]]
+
+Highest-weight: [1, 1]
+Monomial-order: GRevLex
+
+MonomialBasis
+Dimension: 8
+Generators within semi-group: Set([[1, 0], [0, 1]])
+First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2, x1, x3^2, x2*x3, x1*x3, x1*x2]
 
 
-julia> BasisLieHighestWeight.basis_lie_highest_weight("A", 3, [2, 2, 3], monomial_order = "Lex")
-Set{ZZMPolyRingElem} with 1260 elements:
-  x3*x5^2*x6^2
-  x2*x3*x5^2*x6
-  x4^2*x5^2*x6
-  x1^2*x3^3*x5
-  x2*x3*x4*x5^3*x6^2
-  x1*x3*x4*x5^3*x6^2
-  x1^2*x3*x4*x6
-  x1*x3*x4^3
-  x4^2*x5^3*x6^4
-  x1*x2*x3*x5^2
-  x3^2*x4^4*x5^2*x6
-  x2^2*x3*x6^2
-  x1*x2^2*x3^2*x5
-  x1*x3*x4*x5^2
-  x1^2*x2*x6
-  x1*x3^2*x4*x5*x6^3
-  x1^2*x2*x4*x5^2*x6^2
-  x4^4*x5
-  x1^2*x2*x3^2*x6
-  x1*x3^2*x5^2
-  x2*x3*x4*x5^3
-  ⋮
 
-julia> BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 0], operators = [1,2,1])
-Set{ZZMPolyRingElem} with 3 elements:
-  1
-  x3
-  x2*x3
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 3, [2, 2, 3], monomial_order = "Lex")
+Lie-Algebra of type A and rank 3
 
-julia> BasisLieHighestWeight.basis_lie_highest_weight("C", 3, [1, 1, 1], monomial_order = "Lex")
-Set{ZZMPolyRingElem} with 512 elements:
-  x1*x5*x6*x8
-  x6^4
-  x3*x4^2*x8
-  x3*x4*x6*x7
-  x8^3
-  x3*x6^2
-  x2*x3
-  x5*x6^2*x9
-  x6*x8^2*x9
-  x1*x6*x7
-  x5*x6*x9^2
-  x6^2*x7^2*x8
-  x5*x7*x8
-  x4*x6^2*x7*x8^2
-  x4^2*x5*x7
-  x1*x5^2*x6
-  x1*x6*x8
-  x3*x4*x5
-  x2*x4*x6^2*x7
-  x4*x6*x7
-  x1*x4*x7*x8^2
-  ⋮
+BirationalSequence
+Operators: GAP: [ v.1, v.2, v.3, v.4, v.5, v.6 ]
+Weights in w_i:[[2, -1, 0], [-1, 2, -1], [0, -1, 2], [1, 1, -1], [-1, 1, 1], [1, 0, 1]]
+
+Highest-weight: [2, 2, 3]
+Monomial-order: Lex
+
+MonomialBasis
+Dimension: 1260
+Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
+First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x6^2, x5*x6, x4*x6]
+
+
+
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 0], operators = [1,2,1])
+Lie-Algebra of type A and rank 2
+
+BirationalSequence
+Operators: GAP: [ v.1, v.2, v.1 ]
+Weights in w_i:[[2, -1], [-1, 2], [2, -1]]
+
+Highest-weight: [1, 0]
+Monomial-order: GRevLex
+
+MonomialBasis
+Dimension: 3
+Generators within semi-group: Set([[1, 0]])
+First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2*x3]
+
+
+
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight("C", 3, [1, 1, 1], monomial_order = "Lex")
+Lie-Algebra of type C and rank 3
+
+BirationalSequence
+Operators: GAP: [ v.1, v.2, v.3, v.4, v.5, v.6, v.7, v.8, v.9 ]
+Weights in w_i:[[2, -1, 0], [-1, 2, -1], [0, -2, 2], [1, 1, -1], [-1, 0, 1], [1, -1, 1], [-2, 2, 0], [0, 1, 0], [2, 0, 0]]
+
+Highest-weight: [1, 1, 1]
+Monomial-order: Lex
+
+MonomialBasis
+Dimension: 512
+Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 1, 1], [0, 1, 1]])
+First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2, x1]
 ```
 """
 function basis_lie_highest_weight(
@@ -284,6 +292,7 @@ function basis_lie_highest_weight(
         highest_weight,
         monomial_order,
         MonomialBasis(
+            ZZx,
             set_mon,
             length(set_mon),
             no_minkowski
