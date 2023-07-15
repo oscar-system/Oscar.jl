@@ -1,7 +1,6 @@
 using Oscar
 using Test
 # using TestSetExtensions
-
 include("MBOld.jl")
 forGap = Oscar.GAP.julia_to_gap
 
@@ -38,8 +37,21 @@ function check_dimension(dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial
     @test gap_dim == length(mons_new) # check if dimension is correct
 end
 
-@testset "Test basisLieHighestWeight" begin
-    @testset "Known examples" begin
+@testset "Test BasisLieHighestWeight" begin
+    @testset "is_fundamental" begin
+        @test BasisLieHighestWeight.is_fundamental([0, 1, 0])
+        @test !BasisLieHighestWeight.is_fundamental([0, 1, 1])
+    end
+
+    @testset "compute_sub_weights" begin
+        @test isequal(BasisLieHighestWeight.compute_sub_weights([0, 0, 0]), [])
+        sub_weights =  [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 0, 0],
+                        [0, 2, 0], [2, 1, 0], [1, 2, 0], [2, 0, 1], [0, 2, 1], [2, 1, 1], [1, 2, 1], [2, 2, 0],
+                        [0, 3, 0], [2, 2, 1], [1, 3, 0], [0, 3, 1], [1, 3, 1], [2, 3, 0]]
+        @test isequal(BasisLieHighestWeight.compute_sub_weights([2,3,1]), sub_weights)
+    end
+
+    @testset "Known examples basis_lie_highest_weight" begin
         base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1,0])
         mons = base.monomial_basis.set_mon
         @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
@@ -47,7 +59,7 @@ end
         mons = base.monomial_basis.set_mon
         @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
     end
-    @testset "Compare with simple algorithm and check dimension" begin
+    @testset "Compare basis_lie_highest_weight with algorithm of Johannes and check dimension" begin
         @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
             @testset "n = $n" for n in 1:4
                 if (!(dynkin == 'B' && n < 2) && !(dynkin == 'C' && n < 2) && !(dynkin == 'D' && n < 4))

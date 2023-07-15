@@ -32,10 +32,6 @@ using Polymake
 # w_to_eps
 # eps_to_w
 
-# Unittests for
-# BasisLieHighestWeight.jl
-# compute_sub_weights
-
 struct LieAlgebra
     lie_type::String
     rank::Int
@@ -395,16 +391,20 @@ end
 
 function compute_sub_weights(highest_weight::Vector{Int})::Vector{Vector{Int}}
     """
-    returns list of weights w != 0 with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
+    returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
     """
     sub_weights = []
     foreach(Iterators.product((0:x for x in highest_weight)...)) do i
         push!(sub_weights, [i...])
     end
-    popfirst!(sub_weights) # [0, ..., 0]
-    pop!(sub_weights) # highest_weight
-    sort!(sub_weights, by=x->sum((x).^2))
-    return sub_weights
+    if isempty(sub_weights) || length(sub_weights) == 1 # case [] or [[0, ..., 0]]
+        return []
+    else
+        popfirst!(sub_weights) # [0, ..., 0]
+        pop!(sub_weights) # highest_weight
+        sort!(sub_weights, by=x->sum((x).^2))
+        return sub_weights
+    end
 end
 
 function add_known_monomials!(
