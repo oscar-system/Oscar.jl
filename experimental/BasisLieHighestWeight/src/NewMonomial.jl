@@ -13,7 +13,7 @@ end
 function calc_vec(
     v0::SRow{ZZRingElem},
     mon::ZZMPolyRingElem, 
-    matrices_of_operators::Vector{SMat{ZZRingElem}}
+    matrices_of_operators::Union{Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}, Vector{SMat{ZZRingElem}}}
     )::SRow{ZZRingElem}
     """
     calculates vector associated with monomial mon
@@ -22,7 +22,9 @@ function calc_vec(
     degree_mon = degrees(mon)
     for i in length(degree_mon):-1:1
         for j in 1:degree_mon[i]
-            vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
+            # currently there is no sparse matrix * vector mult
+            # this is also the line that takes up almost all the computation time for big examples
+            vec = mul(vec, transpose(matrices_of_operators[i])) 
         end
     end
     return vec
@@ -37,7 +39,7 @@ function highest_calc_sub_monomial(
     returns the key in calc_monomials that can be extended by the least amount of left-operations to mon
     """
     sub_mon = copy(mon)
-    number_of_operators = length(mon)
+    number_of_operators = length(x)
     for i in 1:number_of_operators
         while is_divisible_by(sub_mon, x[i])
             if haskey(calc_monomials, sub_mon)
@@ -53,7 +55,7 @@ end
 function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     mon::ZZMPolyRingElem,
     weights::Vector{Vector{Int}}, 
-    matrices_of_operators::Vector{SMat{ZZRingElem}},
+    matrices_of_operators::Union{Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}, Vector{SMat{ZZRingElem}}},
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}, 
     space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis}, 
     cache_size::Int

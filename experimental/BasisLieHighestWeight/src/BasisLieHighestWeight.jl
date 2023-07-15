@@ -36,12 +36,6 @@ using Polymake
 # BasisLieHighestWeight.jl
 # compute_sub_weights
 
-# NewMonomial.jl
-# calc_weight
-# calc_vec
-# highest_calc_sub_monomial
-# calc_new_mon!
-
 struct LieAlgebra
     lie_type::String
     rank::Int
@@ -324,8 +318,8 @@ function compute_monomials(
         return calc_highest_weight[highest_weight]
     elseif highest_weight == [0 for i in 1:lie_algebra.rank] # we mathematically know the solution
         return Set(ZZx(1))
-    end
-    
+    end 
+
     # calculation required
     # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
     # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
