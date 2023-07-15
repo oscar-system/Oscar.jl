@@ -24,10 +24,6 @@ struct VSBasis
     pivot::Vector{Int} 
 end
 
-
-nullSpace() = VSBasis([], [])
-
-
 function normalize(v::TVec)
     """
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
@@ -244,7 +240,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
 
     vectors = [v0]
     weights = [0 * wts[1]]
-    space = Dict(weights[1] => nullSpace())
+    space = Dict(weights[1] => VSBasis([], []))
     addAndReduce!(space[weights[1]], v0)
 
     deg = 0
@@ -277,7 +273,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
 
                 wt = weights[p] + wts[i]
                 if !haskey(space, wt)
-                    space[wt] = nullSpace()
+                    space[wt] = VSBasis([], [])
                 end
 
                 vec = mul(vectors[p], transpose(mats[i]))
