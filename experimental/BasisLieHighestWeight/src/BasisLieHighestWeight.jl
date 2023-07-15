@@ -1,6 +1,9 @@
 module BasisLieHighestWeight
+export LieAlgebra
 export basis_lie_highest_weight
 export is_fundamental
+export get_dim_weightspace
+export orbit_weylgroup
 
 using ..Oscar
 using ..Oscar: GAPWrap
@@ -12,19 +15,16 @@ using Polymake
 # TODO Adapt arguments in function outside of BasisLieHighestWeight.jl
 # TODO Summarize function
 # TODO Groundup-structure for the special functions
-# TODO Bugfix cache_size != 0
 
-# TODO Export and docstring: 
+# TODO Export and docstring (?): 
 # basis_lie_highest_weight
 # get_dim_weightspace
 # orbit_weylgroup
 # get_lattice_points_of_weightspace
 # convert_lattice_points_to_monomials
 # convert_monomials_to_lattice_points
-
 # tensorMatricesForOperators
 # weights_for_operators
-
 # w_to_eps
 # eps_to_w
 # alpha_to_eps
@@ -32,11 +32,32 @@ using Polymake
 # w_to_eps
 # eps_to_w
 
-struct LieAlgebra
+# TODO GAPWrap-wrappers are missing for
+# ChevalleyBasis
+# DimensionOfHighestWeightModule
+# SimpleLieAlgebra
+# Rationals
+# HighestWeightModule
+# List
+# MatrixOfAction
+# RootSystem
+# CartanMatrix
+# WeylGroup
+# DominantCharacter
+# DimensionOfHighestWeightModule
+# CanonicalGenerators
+
+
+struct LieAlgebraStructure
     lie_type::String
     rank::Int
     lie_algebra_gap::GAP.Obj
 end
+
+function LieAlgebraStructure(lie_type::String, rank::Int)
+    return LieAlgebraStructure(lie_type, rank, create_lie_algebra(lie_type, rank))
+end
+
 
 struct BirationalSequence
     operators::GAP.Obj # TODO Integer 
@@ -53,7 +74,7 @@ struct MonomialBasis
 end
 
 struct BasisLieHighestWeightStructure
-    lie_algebra::LieAlgebra
+    lie_algebra::LieAlgebraStructure
     birational_sequence::BirationalSequence
     highest_weight::Vector{Int}
     monomial_order::Union{String, Function}
@@ -203,15 +224,17 @@ function basis_lie_highest_weight(
     # steps. Then it starts the recursion and returns the result.
 
     # initialization of objects that can be precomputed
-    lie_algebra_gap, chevalley_basis = create_lie_algebra(type, rank) # lie_algebra of type, rank and its chevalley_basis
-    lie_algebra = LieAlgebra(type, rank, lie_algebra_gap)
+    # lie_algebra of type, rank and its chevalley_basis
+    lie_algebra = LieAlgebraStructure(type, rank)
+    chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+
     # operators that are represented by our monomials. x_i is connected to operators[i]
     operators = get_operators(lie_algebra, operators, chevalley_basis) 
     weights = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
     weights = (weight->Int.(weight)).(weights)
     weights_eps = [w_to_eps(type, rank, w) for w in weights] # other root system
     
-    asVec(v) = fromGap(GAP.Globals.ExtRepOfObj(v)) # TODO
+    asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
     birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights, weights_eps)
     
     ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
@@ -249,7 +272,7 @@ function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::GAP.Obj
     return operators
 end
 
-function get_operators(lie_algebra::LieAlgebra, operators::Union{String, Vector{Int}}, 
+function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String, Vector{Int}}, 
                         chevalley_basis::GAP.Obj)::GAP.Obj
     """
     handles user input for operators
@@ -289,7 +312,7 @@ function get_operators(lie_algebra::LieAlgebra, operators::Union{String, Vector{
 end
 
 function compute_monomials(
-    lie_algebra::LieAlgebra,
+    lie_algebra::LieAlgebraStructure,
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing, 
     highest_weight::Vector{Int},
@@ -442,7 +465,7 @@ function add_known_monomials!(
 end
 
 function add_new_monomials!(
-    lie_algebra::LieAlgebra,
+    lie_algebra::LieAlgebraStructure,
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing, 
     matrices_of_operators::Vector{SMat{ZZRingElem}},
@@ -510,7 +533,7 @@ end
 
 
 function add_by_hand(
-    lie_algebra::LieAlgebra,
+    lie_algebra::LieAlgebraStructure,
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing,
     highest_weight::Vector{Int},
@@ -572,34 +595,6 @@ function add_by_hand(
                             cache_size, set_mon)         
     end
     return set_mon
-end
-
-function get_dim_weightspace(
-    lie_algebra::LieAlgebra, 
-    highest_weight::Vector{Int}
-    )::Dict{Vector{Int}, Int}
-    """
-    Calculates dictionary with weights as keys and dimension of corresponding weightspace as value. GAP computes the 
-    dimension for all positive weights. The dimension is constant on orbits of the weylgroup, and we can therefore 
-    calculate the dimension of each weightspace.
-    """
-    # calculate dimension for dominant weights with GAP
-    root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
-    result = GAP.Globals.DominantCharacter(root_system, GAP.Obj(highest_weight))
-    dominant_weights = [map(Int, item) for item in result[1]]
-    dominant_weights_dim = map(Int, result[2])                                                                      
-    dominant_weights = convert(Vector{Vector{Int}}, dominant_weights)
-    weightspaces = Dict{Vector{Int}, Int}() 
-
-    # calculate dimension for the rest by checking which positive weights lies in the orbit.
-    for i in 1:length(dominant_weights)
-        orbit_weights = orbit_weylgroup(lie_algebra, dominant_weights[i])
-        dim_weightspace = dominant_weights_dim[i]
-        for weight in orbit_weights
-            weightspaces[highest_weight - weight] = dim_weightspace
-        end
-    end
-    return weightspaces
 end
 
 end

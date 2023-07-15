@@ -1,4 +1,6 @@
-function orbit_weylgroup(lie_algebra::LieAlgebra, weight_vector::Vector{Int})
+
+
+function orbit_weylgroup(lie_algebra::LieAlgebraStructure, weight_vector::Vector{Int})
     """
     operates weyl-group of type type and rank rank on vector weight_vector and returns list of vectors in orbit
     input and output weights in terms of w_i
@@ -9,9 +11,9 @@ function orbit_weylgroup(lie_algebra::LieAlgebra, weight_vector::Vector{Int})
     vertices = []
     
     # operate with the weylgroup on weight_vector
-    GAP.Globals.IsDoneIterator(orbit_iterator)
-    while !(GAP.Globals.IsDoneIterator(orbit_iterator))
-        w = GAP.Globals.NextIterator(orbit_iterator) 
+    GAPWrap.IsDoneIterator(orbit_iterator)
+    while !(GAPWrap.IsDoneIterator(orbit_iterator))
+        w = GAPWrap.NextIterator(orbit_iterator) 
         push!(vertices, Vector{Int}(w))
     end
 
@@ -19,6 +21,37 @@ function orbit_weylgroup(lie_algebra::LieAlgebra, weight_vector::Vector{Int})
     vertices = convert(Vector{Vector{Int}}, vertices)
     return vertices
 end
+
+function get_dim_weightspace(
+    lie_algebra::LieAlgebraStructure, 
+    highest_weight::Vector{Int}
+    )::Dict{Vector{Int}, Int}
+    """
+    Calculates dictionary with weights as keys and dimension of corresponding weightspace as value. GAP computes the 
+    dimension for all positive weights. The dimension is constant on orbits of the weylgroup, and we can therefore 
+    calculate the dimension of each weightspace.
+    """
+    # calculate dimension for dominant weights with GAP
+    root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
+    result = GAP.Globals.DominantCharacter(root_system, GAP.Obj(highest_weight))
+    dominant_weights = [map(Int, item) for item in result[1]]
+    dominant_weights_dim = map(Int, result[2])                                                                      
+    dominant_weights = convert(Vector{Vector{Int}}, dominant_weights)
+    weightspaces = Dict{Vector{Int}, Int}() 
+
+    # calculate dimension for the rest by checking which positive weights lies in the orbit.
+    for i in 1:length(dominant_weights)
+        orbit_weights = orbit_weylgroup(lie_algebra, dominant_weights[i])
+        dim_weightspace = dominant_weights_dim[i]
+        for weight in orbit_weights
+            weightspaces[highest_weight - weight] = dim_weightspace
+        end
+    end
+    return weightspaces
+end
+
+
+
 
 function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
     return [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) 
