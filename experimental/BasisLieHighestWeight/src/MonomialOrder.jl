@@ -1,10 +1,10 @@
-function get_monomial_order_lt(monomial_order::Union{String, Function}, ZZx::ZZMPolyRing, 
-    x::Vector{ZZMPolyRingElem})::Function
+function get_monomial_order_lt(monomial_order::Union{String, Function}, ZZx::ZZMPolyRing)::Function
     """
     Returns the desired monomial_order function less than
     """
     #if isa(monomial_order, Function)
     #   choosen_monomial_order = monomial_order
+    x = gens(ZZx)
     if monomial_order == "GRevLex"
         choosen_monomial_order = degrevlex(x)
     elseif monomial_order == "RevLex"
