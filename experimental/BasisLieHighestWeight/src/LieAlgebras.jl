@@ -1,12 +1,12 @@
 fromGap = Oscar.GAP.gap_to_julia
 
 
-function create_lie_algebra(type::String, rank::Int)::Tuple{GAP.Obj, GAP.Obj}
+function create_lie_algebra(type::String, rank::Int)::GAP.Obj
     """
     Creates the Lie-algebra as a GAP object that gets used for a lot of other computations with GAP
     """
     lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
-    return lie_algebra, GAP.Globals.ChevalleyBasis(lie_algebra)
+    return lie_algebra
 end
 
 
@@ -25,9 +25,9 @@ function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int},
     """
     used to create tensorMatricesForOperators
     """
-    M = Oscar.GAP.Globals.HighestWeightModule(lie_algebra, Oscar.GAP.julia_to_gap(highest_weight))
-    matrices_of_operators = Oscar.GAP.Globals.List(operators, o -> Oscar.GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o))
-    matrices_of_operators = gapReshape.( Oscar.GAP.gap_to_julia(matrices_of_operators))
+    M = GAP.Globals.HighestWeightModule(lie_algebra, GAP.julia_to_gap(highest_weight))
+    matrices_of_operators = GAP.Globals.List(operators, o -> GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))
+    matrices_of_operators = gapReshape.(GAP.gap_to_julia(matrices_of_operators))
     denominators = map(y->denominator(y[2]), union(union(matrices_of_operators...)...))
     common_denominator = lcm(denominators)# // 1
     matrices_of_operators = (A->change_base_ring(ZZ, multiply_scalar(A, common_denominator))).(matrices_of_operators)
@@ -55,7 +55,7 @@ function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators:
     # TODO delete fromGap. Multiplication of cartan and operators is not regular matrix multiplication
     cartan = fromGap(cartan, recursive=false)
     operators = fromGap(operators, recursive=false)
-    asVec(v) = fromGap(GAP.Globals.ExtRepOfObj(v))
+    asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v))
     #println(cartan)
     #println(operators)
     if any(iszero.(asVec.(operators)))
