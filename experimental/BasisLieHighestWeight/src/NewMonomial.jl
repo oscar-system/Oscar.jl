@@ -70,7 +70,7 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem},
             sub_mon_cur *= x[i]
             weight += weights[i]
             if !haskey(space, weight)
-                space[weight] = nullSpace()
+                space[weight] = VSBasis([], [])
             end
 
             vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult

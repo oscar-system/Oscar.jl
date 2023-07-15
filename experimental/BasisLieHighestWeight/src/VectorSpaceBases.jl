@@ -6,8 +6,6 @@ struct VSBasis
     pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of basis_vectors[i]
 end
 
-nullSpace() = VSBasis([], []) # empty Vektorraum
-
 reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) = (b[i]*a - a[i]*b)::SRow{ZZRingElem} # create zero entry in a
 
 function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem}, Int64}

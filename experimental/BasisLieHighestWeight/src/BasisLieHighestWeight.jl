@@ -13,7 +13,6 @@ using Polymake
 # TODO Summarize function
 # TODO Groundup-structure for the special functions
 # TODO Bugfix cache_size != 0
-# TODO Remove TVec
 
 # TODO Export and docstring: 
 # basis_lie_highest_weight
@@ -447,7 +446,7 @@ function add_known_monomials!(
 
         # check if vec extends the basis
         if !haskey(space, weight)
-            space[weight] = nullSpace()
+            space[weight] = VSBasis([], [])
         end
         add_and_reduce!(space[weight], vec)
     end
@@ -507,7 +506,7 @@ function add_new_monomials!(
 
         # check if vec extends the basis
         if !haskey(space, weight)
-            space[weight] = nullSpace()
+            space[weight] = VSBasis([], [])
         end
         vec_red = add_and_reduce!(space[weight], vec)
         if isempty(vec_red) # v0 == 0
@@ -538,7 +537,7 @@ function add_by_hand(
     # initialization
     # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
     matrices_of_operators = tensorMatricesForOperators(lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators)
-    space = Dict(0*birational_sequence.weights[1] => nullSpace()) # span of basis vectors to keep track of the basis
+    space = Dict(0*birational_sequence.weights[1] => VSBasis([], [])) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     # saves the calculated vectors to decrease necessary matrix multiplicatons
     calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights[1])) 
