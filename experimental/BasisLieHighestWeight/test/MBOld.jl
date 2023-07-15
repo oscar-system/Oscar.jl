@@ -16,15 +16,14 @@ G = Oscar.GAP.Globals
 forGap = Oscar.GAP.julia_to_gap
 fromGap = Oscar.GAP.gap_to_julia
 
-TVec = SRow{ZZRingElem} 
 Short = UInt8 
 
-struct VSBasis
-    A::Vector{TVec} 
+struct SparseVectorSpaceBasis
+    A::Vector{SRow{ZZRingElem}} 
     pivot::Vector{Int} 
 end
 
-function normalize(v::TVec)
+function normalize(v::SRow{ZZRingElem})
     """
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
     used: addAndReduce!
@@ -42,7 +41,7 @@ end
 reduceCol(a, b, i::Int) = b[i]*a - a[i]*b
 
 
-function addAndReduce!(sp::VSBasis, v::TVec)
+function addAndReduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})
     """
     for each pivot of sp.A we make entry of v zero and return the result
     0 => linear dependent
@@ -192,7 +191,7 @@ end
 
 
 """
-    basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; parallel::Bool = true) :: Tuple{Vector{Vector{Short}},Vector{TVec}}
+    basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; parallel::Bool = true) :: Tuple{Vector{Vector{Short}},Vector{SRow{ZZRingElem}}}
 
 Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
 
@@ -204,7 +203,7 @@ julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight("A", 2, [1,0
 ```
 """
 
-function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = []) #--- :: Tuple{Int64,Vector{Vector{Short}},Vector{TVec}}
+function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots = []) #--- :: Tuple{Int64,Vector{Vector{Short}},Vector{SRow{ZZRingElem}}}
     L, CH = lieAlgebra(t, n)
     ops = CH[1] # positive root vectors
     # .. reorder..
@@ -240,7 +239,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
 
     vectors = [v0]
     weights = [0 * wts[1]]
-    space = Dict(weights[1] => VSBasis([], []))
+    space = Dict(weights[1] => SparseVectorSpaceBasis([], []))
     addAndReduce!(space[weights[1]], v0)
 
     deg = 0
@@ -273,7 +272,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
 
                 wt = weights[p] + wts[i]
                 if !haskey(space, wt)
-                    space[wt] = VSBasis([], [])
+                    space[wt] = SparseVectorSpaceBasis([], [])
                 end
 
                 vec = mul(vectors[p], transpose(mats[i]))

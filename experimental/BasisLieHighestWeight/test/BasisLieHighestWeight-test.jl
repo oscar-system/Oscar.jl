@@ -49,7 +49,7 @@ end
     end
     @testset "Compare with simple algorithm and check dimension" begin
         @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
-            @testset "n = $n" for n in 1:4
+            @testset "n = $n" for n in 1:5
                 if (!(dynkin == 'B' && n < 2) && !(dynkin == 'C' && n < 2) && !(dynkin == 'D' && n < 4))
                     for i in 1:n                                # w_i
                        lambda = zeros(Int64,n)

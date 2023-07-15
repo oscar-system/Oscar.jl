@@ -55,7 +55,7 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     weights::Vector{Vector{Int}}, 
     matrices_of_operators::Vector{SMat{ZZRingElem}},
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}, 
-    space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.VSBasis}, 
+    space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis}, 
     cache_size::Int
     )::SRow{ZZRingElem}
     # calculate vector of mon by extending a previous calculated vector to a
@@ -70,7 +70,7 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem},
             sub_mon_cur *= x[i]
             weight += weights[i]
             if !haskey(space, weight)
-                space[weight] = VSBasis([], [])
+                space[weight] = SparseVectorSpaceBasis([], [])
             end
 
             vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
