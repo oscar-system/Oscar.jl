@@ -1,18 +1,16 @@
 # manages the linear (in-)dependence of integer vectors
 # this file is only of use to basis_lie_highest_weight for the basis vectors
-TVec = SRow{ZZRingElem} # TVec is datatype of basisvectors in basisLieHighestWeight
-Short = UInt8 # for exponents of monomials; max. 255
 
 struct VSBasis
-    basis_vectors::Vector{TVec} # vector of basisvectors
+    basis_vectors::Vector{SRow{ZZRingElem}} # vector of basisvectors
     pivot::Vector{Int} # vector of pivotelements, i.e. pivot[i] is first nonzero element of basis_vectors[i]
 end
 
 nullSpace() = VSBasis([], []) # empty Vektorraum
 
-reduce_col(a::TVec, b::TVec, i::Int) = (b[i]*a - a[i]*b)::TVec # create zero entry in a
+reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) = (b[i]*a - a[i]*b)::SRow{ZZRingElem} # create zero entry in a
 
-function normalize(v::TVec)::Tuple{TVec, Int64}
+function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem}, Int64}
     """
     divides vector by gcd of nonzero entries, returns vector and first nonzero index
     used: add_and_reduce!
@@ -24,7 +22,7 @@ function normalize(v::TVec)::Tuple{TVec, Int64}
     return divexact(v, gcd(map(y->y[2], union(v)))), pivot
 end
 
-function add_and_reduce!(sp::VSBasis, v::TVec)::TVec
+function add_and_reduce!(sp::VSBasis, v::SRow{ZZRingElem})::SRow{ZZRingElem}
     """
     for each pivot of sp.basis_vectors we make entry of v zero and return the result and insert it into sp
     0 => linear dependent
