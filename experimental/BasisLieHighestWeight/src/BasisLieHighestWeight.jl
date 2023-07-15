@@ -15,6 +15,7 @@ using Polymake
 # TODO Adapt arguments in function outside of BasisLieHighestWeight.jl
 # TODO Summarize function
 # TODO Groundup-structure for the special functions
+# TODO write methods small when using Polymake, f.e. polyhedron instead of Polyhedron
 
 # TODO Export and docstring (?): 
 # basis_lie_highest_weight
@@ -58,12 +59,21 @@ function LieAlgebraStructure(lie_type::String, rank::Int)
     return LieAlgebraStructure(lie_type, rank, create_lie_algebra(lie_type, rank))
 end
 
+function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
+    print(io, "Lie-Algebra of type ", lie_algebra.lie_type, " and rank ", lie_algebra.rank)
+end
 
 struct BirationalSequence
     operators::GAP.Obj # TODO Integer 
     operators_vectors::Vector{Vector{Any}}
     weights::Vector{Vector{Int}}
     weights_eps::Vector{Vector{Int}}
+end
+
+function Base.show(io::IO, birational_sequence::BirationalSequence)
+    println(io, "BirationalSequence")
+    println(io, "Operators: ", birational_sequence.operators)
+    print(io, "Weights in w_i:", birational_sequence.weights)
 end
 
 struct MonomialBasis
@@ -73,6 +83,13 @@ struct MonomialBasis
     # polytope::polytope
 end
 
+function Base.show(io::IO, monomial_basis::MonomialBasis)
+    println(io, "MonomialBasis")
+    println(io, "Dimension: ", monomial_basis.dimension)
+    println(io, "Generators within semi-group: ", monomial_basis.no_minkowski)
+    print(io, "Monomials: ", monomial_basis.set_mon)
+end
+
 struct BasisLieHighestWeightStructure
     lie_algebra::LieAlgebraStructure
     birational_sequence::BirationalSequence
@@ -80,6 +97,18 @@ struct BasisLieHighestWeightStructure
     monomial_order::Union{String, Function}
     monomial_basis::MonomialBasis
 end
+
+function Base.show(io::IO, base::BasisLieHighestWeightStructure)
+    println(io, base.lie_algebra)
+    println("")
+    println(io, base.birational_sequence)
+    println("")
+    println(io, "Highest-weight: ", base.highest_weight)
+    println(io, "Monomial-order: ", base.monomial_order)
+    println("")
+    print(io, base.monomial_basis)
+end
+
 
 include("./VectorSpaceBases.jl")
 include("./NewMonomial.jl")
