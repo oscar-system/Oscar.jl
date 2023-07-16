@@ -190,8 +190,8 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
-  # inform about the assume Kbar grading
-  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
+  # Inform about the assume Kbar grading
+  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # convert Weierstrass sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
