@@ -52,7 +52,14 @@ function weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _weierstrass_ambient_space_from_base(base)
+  # construct the ambient space
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = 2 * anticanonical_divisor_class(base)
+  D2 = 3 * anticanonical_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  
+  # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
   model = WeierstrassModel(f, g, pw, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
