@@ -435,7 +435,7 @@ function _find_parent_field(::Type{T}, x::AbstractArray) where T <: scalar_types
     return QQ
 end
 
-_determine_parent_and_scalar(f::Field, x...) = (f, elem_type(f))
+_determine_parent_and_scalar(f::Union{Field, ZZRing}, x...) = (f, elem_type(f))
 # isempty(x) => standard/trivial field?
 function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     if T == QQFieldElem
@@ -504,13 +504,13 @@ function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:Pol
 end
 
 # promotion helpers
-function _promote_scalar_field(f::Field...)
-    try
-        x = sum([g(0) for g in f])
-        p = parent(x)
-        return (elem_type(p), p)
-    catch e
-        throw(ArgumentError("Can not find a mutual parent field for $f."))
+function _promote_scalar_field(f::Union{Field, ZZRing}...)
+  try
+    x = sum([g(0) for g in f])
+    p = parent(x)
+    return (elem_type(p), p)
+  catch e
+    throw(ArgumentError("Can not find a mutual parent field for $f."))
     end
 end
 
@@ -518,6 +518,8 @@ function _promote_scalar_field(a::AbstractArray{<:FieldElem})
     isempty(a) && return (QQFieldElem, QQ)
     return _promote_scalar_field(parent.(a)...)
 end
+
+_parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}) = parent(r.x)
 
 function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
   T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))

@@ -1120,6 +1120,7 @@ export pitman_stanley_polytope
 export platonic_solid
 export point_coordinates
 export point_matrix
+export point_vector
 export points
 export pol_elementary_divisors
 export polarize

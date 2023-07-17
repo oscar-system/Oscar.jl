@@ -153,7 +153,7 @@ function optimal_vertex(lp::LinearProgram{T}) where {T<:scalar_types}
     opt_vert = lp.polymake_lp.MINIMAL_VERTEX
   end
   if !isnothing(opt_vert)
-    return PointVector{T}(coefficient_field(lp), view(dehomogenize(opt_vert), :))
+    return point_vector(coefficient_field(lp), view(dehomogenize(opt_vert), :))::PointVector{T}
   else
     return nothing
   end
