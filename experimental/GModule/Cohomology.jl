@@ -346,6 +346,11 @@ function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
   return S, mq
 end
 
+function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::AbstractAlgebra.Generic.DirectSumModule{T}, mp::Vector{AbstractAlgebra.Generic.ModuleHomomorphism{T}})  where T
+  @assert length(M.m) == length(mp) == length(N.m)
+  return hom(M, N, cat(map(mat, mp)..., dims = (1,2)))
+end
+
 function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
@@ -1463,7 +1468,7 @@ function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
 end
 
-function Oscar.id_hom(A::Generic.FreeModule)
+function Oscar.id_hom(A::AbstractAlgebra.FPModule)
   return Generic.ModuleIsomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
 end
 ###########################################################
@@ -1591,11 +1596,11 @@ function (k::fqPolyRepField)(a::Vector)
   return k(polynomial(GF(Int(characteristic(k))), a))
 end
 
-function Oscar.order(F::Generic.FreeModule{<:FinFieldElem})
+function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
   return order(base_ring(F))^dim(F)
 end
 
-function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
+function pc_group(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = true)
   k = base_ring(M)
   p = characteristic(k)
 
