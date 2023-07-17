@@ -568,8 +568,11 @@ function H_zero(C::GModule)
   k = kernel(id - ac[1])[1]
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
+    if length(k) == 2 #GrpAb: intersect yield ONLY intersection, 
+      k = k[1]
+    end
   end
-  fl, inj = is_subgroup(k, M)
+  fl, inj = is_sub_with_data(k, M)
   @assert fl
 
   #this is fix, now it "should" be mod by norm? Only for Tate, see below
@@ -729,7 +732,7 @@ function H_one(C::GModule)
 
   K = kernel(gg)[1]
   D = domain(gg)
-  lf, lft = is_subgroup(K, D)
+  lf, lft = is_sub_with_data(K, D)
   @assert lf
 
   Q, mQ = quo(K, image(g)[1])
@@ -1424,7 +1427,9 @@ end
 
 #########################################################
 #XXX: should be in AA and supplemented by a proper quo
-function Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement 
+Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement = is_submodule(M, N)
+
+function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement 
   fl = is_submodule(N, M)
   if fl
     return fl, hom(M, N, elem_type(N)[N(m) for m = gens(M)])
@@ -1432,6 +1437,7 @@ function Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPMod
     return fl, hom(M, N, elem_type(N)[zero(N) for m = gens(M)])
   end
 end
+is_sub_with_data(M::GrpAbFinGen, N::GrpAbFinGen) = is_subgroup(M, N)
 
 function Oscar.hom(V::Module, W::Module, v::Vector{<:ModuleElem}; check::Bool = true)
   if ngens(V) == 0
