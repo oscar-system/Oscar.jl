@@ -283,14 +283,16 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
   if get(io, :supercompact, false)
     print(io, "Scheme")
   else
-    print(io, "Relative projective scheme over ")
-    if K == QQ
-      print(io, "QQ")
+    if length(projective_patches(CPS)) == 0
+      print(io, "Empty covered projective scheme over ")
     else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
+      print(io, "Relative projective scheme over ")
     end
-    print(io, " covered with $n projective patch")
-    n > 1 && print(io, "es")
+    print(io, Lowercase(), base_scheme(CPS))
+    if n != 0
+      print(io, " covered with $n projective patch")
+      n > 1 && print(io, "es")
+    end
   end
 end
 
@@ -302,16 +304,35 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   print(io, Indent(), "over ", Lowercase())
   Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
   println(io)
-  print(io, Dedent(), " covered with $n projective patch")
+  print(io, Dedent(), "covered with $n projective patch")
   n > 1 && print(io, "es")
   print(io, Indent())
-  for PU in pp
+  l = ndigits(n)
+  for i in 1:n
+    li = ndigits(i)
     println(io)
-    print(io, Lowercase(), U)
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), PU)
   end
   print(io, Dedent())
 end
 
+@doc raw"""
+    empty_covered_projective_scheme(R::T) where T <: Ring
+                                                  -> CoveredProjectiveScheme{T}
+
+Given a ring `R`, return the empty relative projective scheme over the
+empty covered scheme over `R`.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> empty_covered_projective_scheme(R)
+Relative projective scheme
+  over empty covered scheme over multivariate polynomial ring
+covered with 0 projective patch
+```
+"""
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   Y = empty_covered_scheme(R)
   C = default_covering(Y)

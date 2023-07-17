@@ -135,12 +135,13 @@ julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over rational Field
+  over rational field
 defined by ideal(x + y)
 
 julia> P = ambient_space(X)
 Projective space of dimension 2
-  over rational Field
+  over rational field
+with homogeneous coordinates x, y, z
 ```
 """
 @attr function ambient_space(X::AbsProjectiveScheme)

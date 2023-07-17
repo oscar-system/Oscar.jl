@@ -52,7 +52,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
       co_str = String["$(cc)" for cc in c]
       k = max(length.(co_str)...)
       println(io)
-      print(io, Dedent(), "given by")
+      print(io, Dedent(), "given by the pullback function")
       print(io, Indent())
       for i in 1:length(c)
         ki = length(co_str[i])

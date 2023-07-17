@@ -14,7 +14,13 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   if get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(P, :is_empty, false)
-    print(io, "Empty projective scheme")
+    print(io, "Empty projective scheme over ")
+    K = base_ring(P)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     print(io, "Projective scheme in ")
     print(IOContext(io, :supercompact => true), ambient_space(P), " over ", base_ring(P))
@@ -43,7 +49,13 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
       print(io, "IP^$(relative_ambient_dimension(P))")
     end
   elseif get_attribute(P, :is_empty, false)
-    print(io, "Empty projective space")
+    print(io, "Empty projective space over ")
+    K = base_ring(P)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols

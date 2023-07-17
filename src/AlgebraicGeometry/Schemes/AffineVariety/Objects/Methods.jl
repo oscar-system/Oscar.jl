@@ -24,7 +24,13 @@ function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
   if get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine variety")
+    print(io, "Empty affine variety over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     print(io, underlying_scheme(X))
   end
@@ -45,7 +51,13 @@ function Base.show(io::IO, X::AffineVariety)
   if get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine variety")
+    print(io, "Empty affine variety over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     print(io, "Affine open subset of ", Lowercase(), closure(X, ambient_space(X)))
   end
@@ -79,7 +91,13 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing}, show_coord::B
       print(io, "AA^$(dim(X))")
     end
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine space")
+    print(io, "Empty affine space over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols

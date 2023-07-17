@@ -152,8 +152,9 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
     print(io, Dedent())
   else
     println(io, Dedent())
-    println(io, "given by")
-    print(io, Indent())
+    print(io, "given by the pullback function")
+    length(domain(g)) > 1 && print(io, "s")
+    println(io, Indent())
     Oscar._show_semi_compact(io, covering_morphism(f))
   end
 end

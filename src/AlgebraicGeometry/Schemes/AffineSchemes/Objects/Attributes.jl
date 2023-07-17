@@ -221,7 +221,7 @@ julia> inc = ambient_embedding(Y)
 Morphism
   from [x, y]  spec of quotient of multivariate polynomial ring
   to   [x, y]  affine 2-space over QQ
-given by
+given by the pullback function
   x -> 0
   y -> y
 

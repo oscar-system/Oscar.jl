@@ -22,6 +22,29 @@ in every chart.
 ``f : X → Y``, what is actually computed, is ``f⁻¹ ℐ ⋅ 𝒪_{X}``. 
 To obtain the pullback of ``ℐ`` as a sheaf of modules (i.e. ``f* ℐ``), 
 convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P)
+Projective space of dimension 2
+  over rational field
+with homogeneous coordinates x, y, z
+
+julia> IdealSheaf(Y, I)
+Sheaf of ideals
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with restrictions
+  1: ideal(-(y//x)^2*(z//x) + 1)
+  2: ideal((x//y)^3 - (z//y))
+  3: ideal((x//z)^3 - (y//z)^2)
+```
 """
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
@@ -969,7 +992,9 @@ end
 
 ###########################################################################
 ## show functions for Ideal sheaves
-########################################################################### 
+###########################################################################
+
+# If we know things about the ideal sheaf, we print them
 function Base.show(io::IO, I::IdealSheaf)
   io = pretty(io)
   X = scheme(I)
@@ -996,6 +1021,17 @@ function Base.show(io::IO, I::IdealSheaf)
   end
 end
 
+# This semi compact printing is used for nested printings, like in blow-up or
+# for the description of Cartier divisors and algebraic cycles.
+#
+# We want to keep track of a given covering `voc`, for everything to be consistent. In
+# case we may have several charts in the nest, we want to make sure to follow-up
+# with the labels. Hence the string `n` allows one to do this.
+# Usually, in morphisms printing, one would take "a" for the domain's charts
+# and "b" for the codomain's ones.
+#
+# We take also care of left offsets when printing the labels - if there are more
+# than 10 charts, this is necessary to have all the labels aligned on the right
 function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), n::String = "")
   io = pretty(io)
   X = scheme(I)
@@ -1018,12 +1054,14 @@ function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute
       print(io, "Sheaf of ideals")
     end
     if length(cov) > 0
+      l = ndigits(length(cov))
       print(io, " with restriction")
       length(cov) > 1 && print(io, "s")
       print(io, Indent())
       for (i, U) in enumerate(patches(cov))
+        li = ndigits(i)
         println(io)
-        print(io, "$i"*n*": $(I(U))")
+        print(io, " "^(l-li)*"$i"*n*": $(I(U))")
       end
       print(io, Dedent())
     end
@@ -1039,13 +1077,15 @@ function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = ge
   print(io, Indent(), "on ", Lowercase())
   Oscar._show_semi_compact(io, scheme(I), cov)
   if length(cov) > 0
+    l = ndigits(length(cov))
     println(io)
     print(io, Dedent(), "with restriction")
     length(cov) > 1 && print(io, "s")
     print(io, Indent())
     for (i, U) in enumerate(patches(cov))
+      li = ndigits(i)
       println(io)
-      print(io, "$i: $(I(U))")
+      print(io, " "^(l-li)*"$i: $(I(U))")
     end
     print(io, Dedent())
   end

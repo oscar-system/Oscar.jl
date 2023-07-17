@@ -127,17 +127,21 @@ function Base.show(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X,
     print(io, name(X))
   elseif get(io, :supercompact, false)
     print(io, "Scheme")
-  elseif get_attribute(X, :is_empty, false) || npatches(cov) == 0
-    print(io, "Empty covered scheme")
   else
-    print(io, "Scheme over ")
+    if get_attribute(X, :is_empty, false) || npatches(cov) == 0
+      print(io, "Empty covered scheme over ")
+    else
+      print(io, "Scheme over ")
+    end
     if base_ring(X) == QQ
       print(io, "QQ")
     else
       print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
     end
-    print(io, " covered with $n patch")
-    n > 1 && print(io, "es")
+    if n != 0
+      print(io, " covered with $n patch")
+      n > 1 && print(io, "es")
+    end
   end
 end
 

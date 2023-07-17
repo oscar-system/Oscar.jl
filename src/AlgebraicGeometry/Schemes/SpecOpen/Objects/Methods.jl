@@ -189,7 +189,7 @@ function Base.show(io::IO, U::SpecOpen, show_coord::Bool = true)
   elseif get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(U, :is_empty, false)
-    print(io, "Empty open subset of affine scheme")
+    print(io, "Empty open subset of ", Lowercase(), ambient_space(U))
   else
     print(io, "Complement to V(")
     print(io, join(gens(complement_ideal(U)), ", "), ")")

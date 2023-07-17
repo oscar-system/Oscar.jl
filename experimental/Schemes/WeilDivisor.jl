@@ -70,7 +70,6 @@ coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
 coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
-
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
@@ -88,9 +87,28 @@ end
 
 # provide non-camelcase methods
 @doc raw"""
-    weil_divisor(X::AbsCoveredScheme, R::Ring)
+    weil_divisor(X::AbsCoveredScheme, R::Ring) -> WeilDivisor
 
-See the documentation for `WeilDivisor`.
+Return the zero weil divisor on `X` with coefficients in the ring `R`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y);
+
+julia> weil_divisor(Ycov, QQ)
+Zero weil divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+with coefficients in rational field
+```
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
@@ -104,6 +122,36 @@ function WeilDivisor(I::IdealSheaf; check::Bool=true)
   WeilDivisor(I, ZZ, check=check)
 end
 
+@doc raw"""
+    weil_divisor(I::IdealSheaf) -> WeilDivisor
+
+Given an ideal sheaf `I`, return the prime weil divisor $D = 1 ⋅ V(I)$ with
+coefficients in the integer ring.
+
+# Example
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> weil_divisor(II)
+Prime weil divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with coefficients in integer Ring
+given as the formal sum of
+  1*sheaf of ideals with restrictions
+      1: ideal(-(y//x)^2*(z//x) + 1)
+      2: ideal((x//y)^3 - (z//y))
+      3: ideal((x//z)^3 - (y//z)^2)
+```
+"""
 weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
 function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
@@ -130,6 +178,8 @@ function irreducible_decomposition(D::WeilDivisor)
   return WeilDivisor(decomp, check=false)
 end
 
+# If we know something about the Weil divisor, we write it! Always good to have
+# relevant information for free
 function Base.show(io::IO, D::WeilDivisor)
   io = pretty(io)
   X = scheme(D)
@@ -157,6 +207,9 @@ function Base.show(io::IO, D::WeilDivisor)
   end
 end
 
+# Used in nested printing, where we assume that the associated scheme is already
+# printed in the nest - we keep track of the good covering `cov` to describe
+# everything consistenly.
 function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
   io = pretty(io)
   X = scheme(D)
@@ -181,7 +234,8 @@ function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribut
   Oscar._show_semi_compact(io, X, cov)
 end
 
-
+# Take care of some offsets to make sure that the coefficients are all aligned
+# on the right.
 function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
   io = pretty(io)
   X = scheme(D)
@@ -214,10 +268,13 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
     println(io)
     print(io, Dedent(), "given as the formal sum of")
     print(io, Indent())
+    co_str = String["$(C[I])" for I in components(C)]
+    k = max(length.(co_str)...)
     for i in 1:length(components(C))
       println(io)
       I = components(C)[i]
-      print(io, "$(C[I])*")
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(C[I])*")
       print(io, Indent(), Lowercase())
       Oscar._show_semi_compact(io, I)
       print(io, Dedent())

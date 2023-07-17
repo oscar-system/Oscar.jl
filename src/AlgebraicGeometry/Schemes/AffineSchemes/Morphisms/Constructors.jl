@@ -31,7 +31,7 @@ julia> SpecMor(X, Y, gens(OO(X)))
 Morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> x1
   x2 -> x2
   x3 -> x3
@@ -86,7 +86,7 @@ julia> identity_map(X)
 Morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> x1
   x2 -> x2
   x3 -> x3
@@ -130,7 +130,7 @@ julia> f = inclusion_morphism(Y, X)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3
@@ -177,7 +177,7 @@ julia> m1 = inclusion_morphism(Y, X)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3
@@ -186,7 +186,7 @@ julia> m2 = identity_map(X)
 Morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> x1
   x2 -> x2
   x3 -> x3
@@ -195,7 +195,7 @@ julia> m3 = identity_map(Y)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  spec of quotient of multivariate polynomial ring
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3

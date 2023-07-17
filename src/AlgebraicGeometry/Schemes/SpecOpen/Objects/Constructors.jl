@@ -164,7 +164,7 @@ defined by the map
   morphism
     from [x2, y2, z2, x1, y1, z1]  spec of localized quotient of multivariate polynomial ring
     to   [x2, y2, z2]              spec of multivariate polynomial ring
-  given by
+  given by the pullback function
     x2 -> x2
     y2 -> y2
     z2 -> z2
@@ -177,7 +177,7 @@ defined by the map
   morphism
     from [x2, y2, z2, x1, y1, z1]  spec of localized quotient of multivariate polynomial ring
     to   [x1, y1, z1]              spec of quotient of multivariate polynomial ring
-  given by
+  given by the pullback function
     x1 -> x1
     y1 -> y1
     z1 -> z1

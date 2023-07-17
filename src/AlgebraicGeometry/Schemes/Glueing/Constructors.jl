@@ -29,7 +29,7 @@ Glueing
 along the open subsets
   [x, y]   spec of localized ring
   [u, v]   spec of localized ring
-given by
+given by the pullback function
   u -> 1/x
   v -> y/x
 
@@ -55,7 +55,7 @@ defined by the map
   morphism
     from [x, y]  spec of localized ring
     to   [u, v]  spec of multivariate polynomial ring
-  given by
+  given by the pullback function
     u -> 1/x
     v -> y/x
 

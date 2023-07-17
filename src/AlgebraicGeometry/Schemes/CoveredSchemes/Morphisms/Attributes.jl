@@ -50,7 +50,7 @@ Morphism
     1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
     2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
     3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
-given by
+given by the pullback function
   1a -> 3b
     (x//z) -> 0
     (y//z) -> 0

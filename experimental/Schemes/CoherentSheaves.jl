@@ -37,23 +37,28 @@ function sheaf_of_rings(F::AbsCoherentSheaf)
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
 
+# Manage some left offsets so that the labels are aligned on the right - could
+# have alignment issues in the case where we have more than 10 patches to
+# describe the restrictions of the sheaf
 function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
   io = pretty(io)
-  cov = default_covering(M)
   X = scheme(M)
+  cov = default_covering(X)
   D = M.ID 
   println(io, "Coherent sheaf of modules")
   print(io, Indent(), "on ", Lowercase())
   Oscar._show_semi_compact(io, X, cov)
   if length(cov) > 0
+    l = ndigits(length(cov))
     println(io)
     print(io, Dedent(), "with restriction")
     length(cov) > 1 && print(io, "s")
     print(io, Indent())
     for i in 1:length(cov)
+      li = ndigits(i)
       U = cov[i]
       println(io)
-      print(io, "$i: ", Lowercase(), D[U])
+      print(io, " "^(l-li)*"$i: ", Lowercase(), D[U])
     end
   end
   print(io, Dedent())
@@ -695,6 +700,27 @@ restrictions_dict(M::SheafOfModules) = M.ID
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
 ``𝒪(d)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates s0, s1, s2, s3
+
+julia> twisting_sheaf(P, 4)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   # First, look up whether this sheaf has already been computed:
@@ -735,6 +761,27 @@ end
     tautological_bundle(IP::AbsProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates s0, s1, s2, s3
+
+julia> tautological_bundle(P)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)

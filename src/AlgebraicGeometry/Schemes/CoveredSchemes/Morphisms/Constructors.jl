@@ -23,7 +23,7 @@ julia> Xcov = covered_scheme(X)
 Scheme
   over rational field
 with default covering
-  described by patch
+  described by patches
     1: spec of quotient of multivariate polynomial ring
     2: spec of quotient of multivariate polynomial ring
     3: spec of quotient of multivariate polynomial ring
@@ -42,7 +42,7 @@ Morphism
     1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
     2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
     3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
-given by
+given by the pullback functions
   1a -> 1b
     (y//x) -> 0
     (z//x) -> 0

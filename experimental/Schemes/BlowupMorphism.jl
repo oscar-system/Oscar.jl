@@ -11,6 +11,67 @@ export projection
 # handle blowups. This is work in progress and will one day serve as 
 # a building block for sequences of blowups
 ########################################################################
+
+@doc raw"""
+    BlowupMorphism
+
+A datastructure to encode blowups of covered schemes in some sheaves of ideals.
+
+It is described as a morphism from the new scheme to the blown-up scheme, with
+information about its center (i.e. the ideal sheaves blown-up in the bottom
+scheme) and its exceptional locus (i.e. the preimage of the center under the
+blowup).
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> A3 = Spec(R)
+Spectrum
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+
+julia> I = ideal(R, [x,y,z])
+ideal(x, y, z)
+
+julia> bl = blow_up(A3, I)
+Blow up
+  of scheme over QQ covered with 1 patch
+    1b: [x, y, z]   spec of multivariate polynomial ring
+  in sheaf of ideals with restriction
+    1b: ideal(x, y, z)
+with domain
+  scheme over QQ covered with 3 patches
+    1a: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
+    2a: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
+    3a: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+and exceptional divisor
+  effective cartier divisor defined by
+    sheaf of ideals with restrictions
+      1a: ideal(x)
+      2a: ideal(y)
+      3a: ideal(z)
+
+julia> E = exceptional_divisor(bl)
+Effective cartier divisor
+  on scheme over QQ covered with 3 patches
+    1: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+defined by
+  sheaf of ideals with restrictions
+    1: ideal(x)
+    2: ideal(y)
+    3: ideal(z)
+
+julia> Z = center(bl)
+Sheaf of ideals
+  on scheme over QQ covered with 1 patch
+    1: [x, y, z]   spec of multivariate polynomial ring
+with restriction
+  1: ideal(x, y, z)
+```
+"""
 @attributes mutable struct BlowupMorphism{
                               CodomainType<:AbsCoveredScheme
                              } # TODO: Derive this from AbsCoveredSchemeMorphism ? 
@@ -391,21 +452,21 @@ function show(io::IO, ::MIME"text/plain", Bl::BlowupMorphism)
   io = pretty(io)
   println(io, "Blow up")
   print(io, Indent(), "of ", Lowercase())
-  Oscar._show_semi_compact(io, X0, C0, "a")
+  Oscar._show_semi_compact(io, X0, C0, "b")
   println(io)
 
   print(io, "in ", Lowercase())
-  Oscar._show_semi_compact(io, C_X0, C0, "a")
+  Oscar._show_semi_compact(io, C_X0, C0, "b")
   println(io, Dedent())
 
   println(io, "with domain")
   print(io, Indent(), Lowercase())
-  Oscar._show_semi_compact(io, X1, C1, "b")
+  Oscar._show_semi_compact(io, X1, C1, "a")
   println(io, Dedent())
 
   println(io, "and exceptional divisor")
   print(io, Indent(), Lowercase())
-  Oscar._show_semi_compact(io, ED, C1, "b")
+  Oscar._show_semi_compact(io, ED, C1, "a")
   print(io, Dedent())
 end
 

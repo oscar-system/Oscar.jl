@@ -193,8 +193,9 @@ function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
   mor = morphisms(f)
   if length(mor) > 0
     println(io)
-    println(io, "given by")
-    print(io, Indent())
+    print(io, "given by the pullback function")
+    length(mor) > 1 && print(io, "s")
+    println(io, Indent())
     for i in 1:length(domain(f))
       li = ndigits(i)
       U = domain(f)[i]

@@ -47,7 +47,13 @@ function Base.show(io::IO, X::AbsSpec)
   elseif get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine scheme")
+    print(io, "Empty affine scheme over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
     print(io, "Spec of ")
     print(IOContext(io, :supercompact => true), Lowercase(), OO(X))

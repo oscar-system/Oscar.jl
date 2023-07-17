@@ -44,7 +44,7 @@ julia> f = inclusion_morphism(X, Y)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3
@@ -91,7 +91,7 @@ julia> f = inclusion_morphism(X, Y)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3
@@ -248,7 +248,7 @@ julia> f = inclusion_morphism(X, Y)
 Morphism
   from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
   to   [x1, x2, x3]  affine 3-space over QQ
-given by
+given by the pullback function
   x1 -> 0
   x2 -> x2
   x3 -> x3

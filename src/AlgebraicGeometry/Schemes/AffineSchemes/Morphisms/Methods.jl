@@ -196,7 +196,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   # empty then)
   if length(x) > 0
     println(io)
-    print(io, Dedent(), "given by")
+    print(io, Dedent(), "given by the pullback function")
     pf = pullback(f)
     print(io, Indent())
     for i in 1:length(x)
