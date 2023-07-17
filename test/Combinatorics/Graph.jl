@@ -71,10 +71,10 @@
         add_edge!(gg, 4, 3)
         @test is_isomorphic(g, gg)
 
-        G = matrix(ZZ, 3, 3, [0,1,0,0,0,1,0,0,0])
+        G = matrix(ZZ, 3, 3, [0,1,0,1,0,1,0,1,0])
         J = [2,3,1]
         H = G[J,J]
-        b, I = oscar.is_equal_up_to_permutation_with_permutation(G, H)
+        b, I = oscar._is_equal_up_to_permutation_with_permutation(G, H)
         @assert G[I,I] == H
     end
 
