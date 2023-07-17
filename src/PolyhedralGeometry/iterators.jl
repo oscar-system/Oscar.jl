@@ -2,107 +2,68 @@
 ######## Vector types
 ################################################################################
 
-struct PointVector{U} <: AbstractVector{U}
-  p::MatElem{U}
+for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
+  
+  @eval begin
 
-  PointVector{U}(p::MatElem{U}) where U<:scalar_types_extended = new{U}(p)
-end
+    struct $T{U} <: AbstractVector{U}
+      p::MatElem{U}
 
-Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
+      $T{U}(p::MatElem{U}) where U<:scalar_types_extended = new{U}(p)
+    end
 
-Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[1, i]
+    Base.IndexStyle(::Type{<:$T}) = IndexLinear()
 
-function Base.setindex!(po::PointVector, val, i::Base.Integer)
-    @boundscheck 1 <= length(po) <= i
-    po.p[1, i] = val
-    return val
-end
+    Base.getindex(po::$T, i::Base.Integer) = po.p[1, i]
 
-Base.firstindex(::PointVector) = 1
-Base.lastindex(iter::PointVector) = length(iter)
-Base.size(po::PointVector) = (size(po.p, 2),)
+    function Base.setindex!(po::$T, val, i::Base.Integer)
+      @boundscheck 1 <= length(po) <= i
+      po.p[1, i] = val
+      return val
+    end
 
-coefficient_field(po::PointVector) = base_ring(po.p)
+    Base.firstindex(::$T) = 1
+    Base.lastindex(iter::$T) = length(iter)
+    Base.size(po::$T) = (size(po.p, 2),)
 
-function point_vector(p::Union{scalar_type_or_field, ZZRing}, v::AbstractVector)
-  parent_field, scalar_type = _determine_parent_and_scalar(p, v)
-  n = length(v)
-  mat = matrix(parent_field, 1, n, collect(v)) # collect: workaround for constructor typing
-  return PointVector{scalar_type}(mat)
-end
+    coefficient_field(po::$T) = base_ring(po.p)
 
-function point_vector(p::Union{scalar_type_or_field, ZZRing}, n::Base.Integer)
-  parent_field, scalar_type = _determine_parent_and_scalar(p)
-  mat = zero_matrix(parent_field, 1, n)
-  return PointVector{scalar_type}(mat)
-end
+    function $_t(p::Union{scalar_type_or_field, ZZRing}, v::AbstractVector)
+      parent_field, scalar_type = _determine_parent_and_scalar(p, v)
+      n = length(v)
+      mat = matrix(parent_field, 1, n, collect(v)) # collect: workaround for constructor typing
+      return $T{scalar_type}(mat)
+    end
 
-point_vector(x::Union{AbstractVector, Base.Integer}) = point_vector(QQ, x)
+    function $_t(p::Union{scalar_type_or_field, ZZRing}, n::Base.Integer)
+      parent_field, scalar_type = _determine_parent_and_scalar(p)
+      mat = zero_matrix(parent_field, 1, n)
+      return $T{scalar_type}(mat)
+    end
 
-# PointVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = PointVector{U}(undef, length(n))
+    $_t(x::Union{AbstractVector, Base.Integer}) = $_t(QQ, x)
 
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-  return point_vector(coefficient_field(X), dims...)
-end
+    # $T{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = $T{U}(undef, length(n))
 
-Base.BroadcastStyle(::Type{<:PointVector}) = Broadcast.ArrayStyle{PointVector}()
+    function Base.similar(X::$T, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
+      return $_t(coefficient_field(X), dims...)
+    end
 
-_parent_or_coefficient_field(po::PointVector) = coefficient_field(po)
+    Base.BroadcastStyle(::Type{<:$T}) = Broadcast.ArrayStyle{$T}()
 
-function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector}}, ::Type{ElType}) where ElType
-  T, f = _promote_scalar_field(_parent_or_coefficient_field.(bc.args)...)
-  return point_vector(f, axes(bc)...)
-end
+    _parent_or_coefficient_field(po::$T) = coefficient_field(po)
 
-################################################################################
+    function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType
+      U, f = _promote_scalar_field(_parent_or_coefficient_field.(bc.args)...)
+      return $_t(f, axes(bc)...)
+    end
 
-struct RayVector{U} <: AbstractVector{U}
-    p::Vector{U}
+    Base.:*(k::scalar_types_extended, po::$T) = k .* po
+
+    Base.:*(A::MatElem, v::$T) = A * v.p
     
-    RayVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
-    RayVector(p::AbstractVector) = new{QQFieldElem}(p)
+  end
 end
-
-Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
-
-Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[i]
-
-function Base.setindex!(po::RayVector, val, i::Base.Integer)
-    @boundscheck checkbounds(po.p, i)
-    po.p[i] = val
-    return val
-end
-
-Base.firstindex(::RayVector) = 1
-Base.lastindex(iter::RayVector) = length(iter)
-Base.size(po::RayVector) = size(po.p)
-
-# Forward multiplication with oscar matrices.
-Base.:*(A::MatElem, v::RayVector) = A*v.p
-
-RayVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = RayVector{U}(p.(v))
-
-RayVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(p.(zeros(Int, n)))
-
-RayVector(p::Union{Field, ZZRing}, x::Union{<:AbstractVector, <:Base.Integer}) = RayVector{elem_type(p)}(p, x)
-
-RayVector{U}(::UndefInitializer, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(Vector{U}(undef, n))
-
-RayVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = RayVector{U}(undef, length(n))
-
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-    return RayVector{S}(undef, dims...)
-end
-
-Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
-
-function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}, ::Type{ElType}) where ElType
-    return RayVector{ElType}(axes(bc)...)
-end
-
-################################################################################
-
-Base.:*(k::scalar_types_extended, po::Union{PointVector, RayVector}) = k .* po
 
 ################################################################################
 ######## Halfspaces and Hyperplanes

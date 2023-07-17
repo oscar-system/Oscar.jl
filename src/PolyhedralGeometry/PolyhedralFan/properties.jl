@@ -46,7 +46,7 @@ julia> matrix(QQ, rays(NF))
 rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
 _rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
 
-_ray_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))
+_ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).RAYS, 0) : pm_object(PF).RAYS
 
@@ -385,7 +385,7 @@ julia> lineality_space(PF)
 """
 lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _lineality_fan, lineality_dim(PF))
 
-_lineality_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))
+_lineality_fan(U::Type{RayVector{T}}, PF::_FanLikeType{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).LINEALITY_SPACE, 0) : pm_object(PF).LINEALITY_SPACE
 
