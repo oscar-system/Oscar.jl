@@ -2233,7 +2233,7 @@ If the localization is at a point, a minimal set of generators is returned.
 end
 
 function small_generating_set(
-    I::MPolyQuoLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
+    I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyElem,
                                           <:MPolyPowersOfElement}
                           }
