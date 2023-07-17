@@ -160,7 +160,7 @@ function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyI
                          # the Laurent polynomial ring R
     _R = base_ring(II)
     for g in gens(_R)
-      II = saturation(II, g*_R)
+      II = Oscar._saturation2(II, g*_R)
     end
     # We need to translate to an ideal of R
     return ideal(R, map(x -> map_coefficients(identity, x, parent = R), gens(II)))
