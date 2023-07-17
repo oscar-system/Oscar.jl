@@ -13,7 +13,6 @@
 #@alias isabsolutely_irreducible is_absolutely_irreducible
 @alias isaffine is_affine
 @alias isalmostsimple is_almostsimple
-@alias isalternating_form is_alternating_form
 @alias isample is_ample
 @alias isbicoset is_bicoset
 @alias isbinomial is_binomial
@@ -38,7 +37,6 @@
 @alias isgenerated_by_standard_unit_vectors is_generated_by_standard_unit_vectors
 @alias isglobal is_global
 @alias isgraded is_graded
-@alias ishermitian_form is_hermitian_form
 @alias isinner_automorphism is_inner_automorphism
 @alias isinvariant is_invariant
 @alias isisomorphic_with_alternating_group is_isomorphic_with_alternating_group
@@ -57,7 +55,6 @@
 @alias ispointed is_pointed
 @alias isprojective is_projective
 @alias ispure is_pure
-@alias isquadratic_form is_quadratic_form
 @alias isquaternion_group is_quaternion_group
 @alias isright is_right
 @alias issemiregular is_semiregular
@@ -68,7 +65,6 @@
 @alias issmooth_curve is_smooth_curve
 @alias issolvable is_solvable
 @alias issupersolvable is_supersolvable
-@alias issymmetric_form is_symmetric_form
 @alias istransitive is_transitive
 @alias isunipotent is_unipotent
 @alias isunital is_unital

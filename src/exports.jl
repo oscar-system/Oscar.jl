@@ -683,7 +683,7 @@ export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
 export is_almostsimple, has_is_almostsimple, set_is_almostsimple
-export is_alternating_form
+export is_alternating
 export is_ample
 export is_basepoint_free
 export is_basic_serialization_type
@@ -738,7 +738,6 @@ export is_global
 export is_gorenstein
 export is_graded
 export is_groebner_basis
-export is_hermitian_form
 export is_homogeneous
 export is_identity_map
 export is_injective
@@ -789,7 +788,6 @@ export is_projective_space
 export is_pure
 export is_q_cartier
 export is_q_gorenstein
-export is_quadratic_form
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
@@ -813,7 +811,6 @@ export is_strongly_connected
 export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
-export is_symmetric_form
 export is_ternary
 export is_total
 export is_transitive

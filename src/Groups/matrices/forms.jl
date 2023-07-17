@@ -61,32 +61,32 @@ SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 
 """
-    is_alternating_form(f::SesquilinearForm)
+    is_alternating(f::SesquilinearForm)
 
 Return whether the form `f` is an alternating form.
 """
-is_alternating_form(f::SesquilinearForm) = f.descr==:alternating
+is_alternating(f::SesquilinearForm) = f.descr==:alternating
 
 """
-    is_hermitian_form(f::SesquilinearForm)
+    is_hermitian(f::SesquilinearForm)
 
 Return whether the form `f` is a hermitian form.
 """
-is_hermitian_form(f::SesquilinearForm) = f.descr==:hermitian
+is_hermitian(f::SesquilinearForm) = f.descr==:hermitian
 
 """
-    is_quadratic_form(f::SesquilinearForm)
+    is_quadratic(f::SesquilinearForm)
 
 Return whether the form `f` is a quadratic form.
 """
-is_quadratic_form(f::SesquilinearForm) = f.descr==:quadratic
+is_quadratic(f::SesquilinearForm) = f.descr==:quadratic
 
 """
-    is_symmetric_form(f::SesquilinearForm)
+    is_symmetric(f::SesquilinearForm)
 
 Return whether the form `f` is a symmetric form.
 """
-is_symmetric_form(f::SesquilinearForm) = f.descr==:symmetric
+is_symmetric(f::SesquilinearForm) = f.descr==:symmetric
 
 
 ########################################################################
