@@ -288,10 +288,7 @@ false
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
-Element of
-(General) abelian group with relation matrix
-[1 -1]
-with components [0 1]
+Element of G with components [0 1]
 
 julia> W = [g, g, g, g];
 
@@ -748,11 +745,10 @@ function has_weighted_ordering(R::MPolyDecRing)
 end
 
 function default_ordering(R::MPolyDecRing)
-  fl, w_ord = has_weighted_ordering(R)
-  if fl
-    return w_ord
+  return get_attribute!(R, :default_ordering) do
+    fl, w_ord = has_weighted_ordering(R)
+    fl ? w_ord : degrevlex(gens(R))
   end
-  return degrevlex(gens(R))
 end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
@@ -1336,7 +1332,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     return v
   end
-  h = MapFromFunc(x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g, F, R)
+  h = MapFromFunc(F, R, x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g)
 
   return F, h
 end
@@ -1456,8 +1452,7 @@ function Oscar.degree(H::HilbertData)
   return numerator(deg)
 end
 
-function (P::QQRelPowerSeriesRing)(H::HilbertData)
-  n, d = hilbert_series_reduced(H)
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
@@ -1466,6 +1461,20 @@ function (P::QQRelPowerSeriesRing)(H::HilbertData)
   nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
   return P(map(QQFieldElem, c), length(c), max_precision(P), 0)
+end
+
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
+  return _rational_function_to_power_series(P, numerator(f), denominator(f))
+end
+
+function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
+  T, t = power_series_ring(QQ, d+1, "t")   
+  return _rational_function_to_power_series(T, f)
+end
+
+function (P::QQRelPowerSeriesRing)(H::HilbertData)
+  n, d = hilbert_series_reduced(H)
+  return _rational_function_to_power_series(P, n, d)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)

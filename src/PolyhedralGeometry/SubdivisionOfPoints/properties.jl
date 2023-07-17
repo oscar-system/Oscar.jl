@@ -30,12 +30,12 @@ julia> points(MOAE)
 ```
 """
 function points(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{PointVector{QQFieldElem}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
+    return SubObjectIterator{PointVector{QQFieldElem}}(SOP, _point, size(pm_object(SOP).POINTS, 1))
 end
 
-_point(::Type{PointVector{QQFieldElem}}, SOP::Polymake.BigObject, i::Base.Integer) = PointVector{QQFieldElem}(SOP.POINTS[i, 2:end])
+_point(::Type{PointVector{QQFieldElem}}, SOP::SubdivisionOfPoints, i::Base.Integer) = PointVector{QQFieldElem}(pm_object(SOP).POINTS[i, 2:end])
 
-_point_matrix(::Val{_point}, SOP::Polymake.BigObject; homogenized=false) = SOP.POINTS[:, (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_point}, SOP::SubdivisionOfPoints; homogenized=false) = pm_object(SOP).POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_point}) = _point_matrix
 
@@ -86,10 +86,10 @@ julia> maximal_cells(MOAE)
 """
 maximal_cells(SOP::SubdivisionOfPoints) = maximal_cells(Vector{Int}, SOP)
 function maximal_cells(::Type{Vector{Int}}, SOP::SubdivisionOfPoints)
-    return SubObjectIterator{Vector{Int}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
+    return SubObjectIterator{Vector{Int}}(SOP, _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-_maximal_cell(::Type{Vector{Int}}, SOP::Polymake.BigObject, i::Base.Integer) = Vector{Int}(Polymake.row(SOP.MAXIMAL_CELLS, i))
+_maximal_cell(::Type{Vector{Int}}, SOP::SubdivisionOfPoints, i::Base.Integer) = Vector{Int}(Polymake.row(pm_object(SOP).MAXIMAL_CELLS, i))
 
 
 ###############################################################################

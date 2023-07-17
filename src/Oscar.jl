@@ -1,8 +1,8 @@
-@doc raw"""
+@doc """
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
-currently, mainly at the Technische Universität Kaiserslautern.
+mainly at the University of Kaiserslautern-Landau.
 
 Written in Julia, it combines the well established systems
  * [`Singular`](@ref Singular)
@@ -197,11 +197,12 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
 
+include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs.jl")
+include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")

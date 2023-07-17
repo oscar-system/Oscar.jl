@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "del Pezzo surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
 
     dP0 = del_pezzo_surface(NormalToricVariety, 0; set_attributes)

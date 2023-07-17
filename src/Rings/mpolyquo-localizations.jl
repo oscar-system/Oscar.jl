@@ -315,7 +315,7 @@ RQ to Localization of quotient of multivariate polynomial ring at complement of 
 
 function Localization(Q::MPolyQuoRing{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
   L = MPolyQuoLocRing(base_ring(Q), modulus(Q), S, Q, Localization(S)[1])
-  return L, MapFromFunc((x->L(lift(x))), Q, L)
+  return L, MapFromFunc(Q, L, (x->L(lift(x))))
 end
 
 function Localization(
@@ -323,10 +323,10 @@ function Localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  issubset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
+  issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
   U = inverted_set(L)*S
   W = MPolyQuoLocRing(base_ring(L), modulus(underlying_quotient(L)), U, underlying_quotient(L), Localization(U)[1])
-  return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
+  return W, MapFromFunc(L, W, (x->W(lifted_numerator(x), lifted_denominator(x), check=false)))
 end
 
 function MPolyQuoLocRing(R::RT, I::Ideal{RET}, T::MultSetType) where {RT<:MPolyRing, RET<:MPolyRingElem, MultSetType<:AbsMultSet} 
@@ -1570,10 +1570,10 @@ Ideals in localizations of affine algebras.
       W::MPolyQuoLocRing, 
       g::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
+          base_ring(W), 
+          W,
           x->W(x),
           y->(isone(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
-          base_ring(W), 
-          W
         )
     ) where {LocRingElemType<:MPolyQuoLocRingElem}
     for f in g
@@ -2024,7 +2024,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing;
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
   V, id = vector_space(kk, A)
-  return V, MapFromFunc(v->g(id(v)), a->preimage(id, f(a)), V, W)
+  return V, MapFromFunc(V, W, v->g(id(v)), a->preimage(id, f(a)))
 end
 
 function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem, 
@@ -2100,7 +2100,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
     end
     return result
   end
-  return V, MapFromFunc(im, prim, V, W)
+  return V, MapFromFunc(V, W, im, prim)
 end
 
 

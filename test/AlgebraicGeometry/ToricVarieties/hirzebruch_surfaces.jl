@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Hirzebruch surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     F0 = hirzebruch_surface(NormalToricVariety, 0; set_attributes)
@@ -36,7 +33,7 @@ using Test
         @test betti_number(F5, 3) == 0
         @test betti_number(F5, 4) == 1
         @test length(affine_open_covering(F5)) == 4
-        @test dim(fan(F5)) == 2
+        @test dim(polyhedral_fan(F5)) == 2
         @test rank(torusinvariant_weil_divisor_group(F5)) == 4
         @test rank(character_lattice(F5)) == 2
         @test ngens(cox_ring(F5)) == 4

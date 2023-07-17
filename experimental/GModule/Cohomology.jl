@@ -567,7 +567,7 @@ function H_zero(C::GModule)
   @assert fl
 
   #this is fix, now it "should" be mod by norm? Only for Tate, see below
-  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => inj(x))), y->preimage(inj, y()), k, AllCoChains{0,elem_type(G),elem_type(M)}())
+  z = MapFromFunc(k, AllCoChains{0,elem_type(G),elem_type(M)}(), x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => inj(x))), y->preimage(inj, y()))
   set_attribute!(C, :H_zero => z)
   return k, z
 end
@@ -594,7 +594,7 @@ function H_zero_tate(C::GModule)
   q, mq = quo(k, image(inj)[1])
   fl, Inj = is_subgroup(k, M)
 
-  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => Inj(preimage(mq, x)))), y->mq(preimage(Inj, y())), q, AllCoChains{0,elem_type(G),elem_type(M)}())
+  z = MapFromFunc(q, AllCoChains{0,elem_type(G),elem_type(M)}(), x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => Inj(preimage(mq, x)))), y->mq(preimage(Inj, y())))
   set_attribute!(C, :H_zero_tate => z)
 
   if isfinite(G) && isa(q, GrpAbFinGen)
@@ -732,8 +732,9 @@ function H_one(C::GModule)
   G = group(C)
 
   z = MapFromFunc(
+    Q, AllCoChains{1, elem_type(G), elem_type(M)}(),
     x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])),
-    y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))), Q, AllCoChains{1, elem_type(G), elem_type(M)}())
+    y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))))
 
   set_attribute!(C, :H_one => z)
   return Q, z    
@@ -1333,8 +1334,8 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     return mH2(preimage(mE, T))
   end
 
-  z = (MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
-                  z2, H2, AllCoChains{2,elem_type(G),elem_type(M)}()),
+  z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(), 
+                   x->TailToCoChain(mE(preimage(mH2, x))), z2),
 #                         y->TailFromCoChain(y), D, AllCoChains{2,elem_type(G),elem_type(M)}()),
              is_coboundary)
   set_attribute!(C, :H_two => z)
@@ -1571,9 +1572,9 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   @assert is_isomorphic(B, fp_group(M)[1])
 
   return B, MapFromFunc(
+    B, codomain(mM),
     x->image(mM, gap_to_julia(x.X)),
-    y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
-    B, codomain(mM))
+    y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))))
 end
 
 function fp_group(::Type{PcGroup}, M::GrpAbFinGen; refine::Bool = true)
@@ -1661,9 +1662,9 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   @assert order(B) == order(M)
 
   return B, MapFromFunc(
+    B, M,
     x->gap_to_julia(x.X),
-    y->PcGroupElem(B, Julia_to_gap(y)),
-    B, M)
+    y->PcGroupElem(B, Julia_to_gap(y)))
 end
 
 

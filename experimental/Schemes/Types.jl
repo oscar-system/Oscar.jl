@@ -334,7 +334,7 @@ identifications given by the glueings in the `default_covering`.
       V in default_covering(X) || return false
       ambient_scheme(W) in default_covering(X) || return false
       if V === ambient_scheme(W)
-        return MapFromFunc(x->(OW(x)), OV, OW)
+        return MapFromFunc(OV, OW, x->(OW(x)))
       else
         G = default_covering(X)[V, ambient_scheme(W)]
         f, g = glueing_morphisms(G)
@@ -342,7 +342,7 @@ identifications given by the glueings in the `default_covering`.
           parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(domain(f))(a)), W, check=false)
         end
-        return MapFromFunc(rho_func, OV, OW)
+        return MapFromFunc(OV, OW, rho_func)
       end
     end
 
@@ -359,7 +359,7 @@ identifications given by the glueings in the `default_covering`.
           parent(a) === OV || error("element does not belong to the correct ring")
           return OW(a)
         end
-        return MapFromFunc(rho_func, OV, OW)
+        return MapFromFunc(OV, OW, rho_func)
       else
         G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
@@ -371,7 +371,7 @@ identifications given by the glueings in the `default_covering`.
           parent(a) === OV || error("element does not belong to the correct ring")
           return pullback(inc)(pullback(gres)(OO(preV)(a)))
         end
-        return MapFromFunc(rho_func2, OV, OW)
+        return MapFromFunc(OV, OW, rho_func2)
       end
     end
     function restriction_func(F::AbsPreSheaf, V::SpecOpen, W::SpecOpen)
@@ -379,7 +379,7 @@ identifications given by the glueings in the `default_covering`.
       OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V, check=false)
-        return MapFromFunc(pullback(inc), OV, OW)
+        return MapFromFunc(OV, OW, pullback(inc))
       else
         G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
@@ -388,8 +388,7 @@ identifications given by the glueings in the `default_covering`.
         preV = preimage(g, VG, check=false)
         gres = restrict(g, preV, VG, check=false)
         inc = inclusion_morphism(W, preV, check=false)
-        return MapFromFunc(x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))),
-                           OV, OW)
+        return MapFromFunc(OV, OW, x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))))
       end
     end
 

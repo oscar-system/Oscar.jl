@@ -35,27 +35,28 @@ function push_attribute_if_exists!(result::Vector{String},
 end
 
 include("NormalToricVarieties/constructors.jl")
-include("NormalToricVarieties/auxiliary.jl")
+include("NormalToricVarieties/toric_ideal.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
-include("NormalToricVarieties/methods.jl")
+include("NormalToricVarieties/betti_numbers.jl")
+include("NormalToricVarieties/standard_constructions.jl")
 
 include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
 
 include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
-include("ToricDivisors/special_attributes.jl")
+include("ToricDivisors/standard_constructions.jl")
 
 include("ToricDivisorClasses/constructors.jl")
 include("ToricDivisorClasses/properties.jl")
 include("ToricDivisorClasses/attributes.jl")
-include("ToricDivisorClasses/special_attributes.jl")
+include("ToricDivisorClasses/standard_constructions.jl")
 
 include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
-include("ToricLineBundles/special_attributes.jl")
+include("ToricLineBundles/standard_constructions.jl")
 
 include("CohomologyClasses/constructors.jl")
 include("CohomologyClasses/properties.jl")
