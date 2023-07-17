@@ -1280,8 +1280,6 @@ function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, <:AbstractAlgebra.FPMo
   return Oscar.gmodule(A, Group(C), [hom(A, A, mat(x)) for x = C.ac])
 end
 
-
-
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
   A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
