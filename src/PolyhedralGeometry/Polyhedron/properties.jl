@@ -200,7 +200,7 @@ julia> vertices(PointVector, P)
 vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, P)
 _vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = PointVector{T}(coefficient_field(P).(@view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end]))
+_vertex_polyhedron(U::Type{PointVector{T}}, P::Polyhedron{T}, i::Base.Integer) where T<:scalar_types = point_vector(coefficient_field(P), @view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end])::U
 
 _point_matrix(::Val{_vertex_polyhedron}, P::Polyhedron; homogenized=false) = @view pm_object(P).VERTICES[_vertex_indices(pm_object(P)), (homogenized ? 1 : 2):end]
 
@@ -615,7 +615,7 @@ function lattice_points(P::Polyhedron{QQFieldElem})
     return SubObjectIterator{PointVector{ZZRingElem}}(P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
-_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])
+_lattice_point(T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
 _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) = @view pm_object(P).LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
@@ -646,7 +646,7 @@ function interior_lattice_points(P::Polyhedron{QQFieldElem})
     return SubObjectIterator{PointVector{ZZRingElem}}(P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
-_interior_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])
+_interior_lattice_point(T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).INTERIOR_LATTICE_POINTS : @view pm_object(P).INTERIOR_LATTICE_POINTS[:, 2:end]
 
@@ -686,7 +686,7 @@ function boundary_lattice_points(P::Polyhedron{QQFieldElem})
     return SubObjectIterator{PointVector{ZZRingElem}}(P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
-_boundary_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])
+_boundary_lattice_point(T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).BOUNDARY_LATTICE_POINTS : @view pm_object(P).BOUNDARY_LATTICE_POINTS[:, 2:end]
 
@@ -1213,7 +1213,7 @@ julia> matrix(QQ, vertices(square))
 [ 1    1]
 ```
 """
-relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(coefficient_field(P).(view(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)), :))) #view_broadcast
+relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = point_vector(coefficient_field(P), view(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)), :))::PointVector{T} #view_broadcast
 
 
 @doc raw"""

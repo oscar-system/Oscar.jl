@@ -530,7 +530,7 @@ function hilbert_basis(C::Cone{QQFieldElem})
    return SubObjectIterator{PointVector{ZZRingElem}}(C, _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
 end
 
-_hilbert_generator(::Type{PointVector{ZZRingElem}}, C::Cone, i::Base.Integer) = PointVector{ZZRingElem}(view(pm_object(C).HILBERT_BASIS_GENERATORS[1], i, :))
+_hilbert_generator(T::Type{PointVector{ZZRingElem}}, C::Cone, i::Base.Integer) = point_vector(ZZ, view(pm_object(C).HILBERT_BASIS_GENERATORS[1], i, :))::T
 
 _generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0) : pm_object(C).HILBERT_BASIS_GENERATORS[1]
 
@@ -586,4 +586,4 @@ Base.in(v::AbstractVector, C::Cone) = Polymake.polytope.contains(pm_object(C), v
 Compute a point in the relative interior point of `C`, i.e. a point in `C` not
 contained in any facet.
 """
-relative_interior_point(C::Cone{T}) where T<:scalar_types = PointVector{T}(coefficient_field(C), view(Polymake.common.dense(pm_object(C).REL_INT_POINT), :)) # broadcast_view
+relative_interior_point(C::Cone{T}) where T<:scalar_types = point_vector(coefficient_field(C), view(Polymake.common.dense(pm_object(C).REL_INT_POINT), :))::PointVector{T} # broadcast_view

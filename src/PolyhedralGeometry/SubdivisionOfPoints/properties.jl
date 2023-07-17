@@ -33,7 +33,7 @@ function points(SOP::SubdivisionOfPoints)
     return SubObjectIterator{PointVector{QQFieldElem}}(SOP, _point, size(pm_object(SOP).POINTS, 1))
 end
 
-_point(::Type{PointVector{QQFieldElem}}, SOP::SubdivisionOfPoints, i::Base.Integer) = PointVector{QQFieldElem}(pm_object(SOP).POINTS[i, 2:end])
+_point(T::Type{PointVector{QQFieldElem}}, SOP::SubdivisionOfPoints, i::Base.Integer) = point_vector(QQ, pm_object(SOP).POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_point}, SOP::SubdivisionOfPoints; homogenized=false) = pm_object(SOP).POINTS[:, (homogenized ? 1 : 2):end]
 

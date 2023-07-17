@@ -63,12 +63,10 @@ vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_ty
 _vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where {T<:scalar_types} =
   SubObjectIterator{as}(PC, _vertex_complex, length(_vertex_indices(pm_object(PC))))
 
-_vertex_complex(
-  ::Type{PointVector{T}}, PC::PolyhedralComplex, i::Base.Integer
-) where {T<:scalar_types} = PointVector{T}(
+_vertex_complex(U::Type{PointVector{T}}, PC::PolyhedralComplex{T}, i::Base.Integer) where {T<:scalar_types} = point_vector(
   coefficient_field(PC),
   @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC))[i], 2:end]
-)
+)::U
 
 _point_matrix(::Val{_vertex_complex}, PC::PolyhedralComplex; homogenized=false) =
   @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC)), (homogenized ? 1 : 2):end]
@@ -85,20 +83,18 @@ function _all_vertex_indices(P::Polymake.BigObject)
   return vi
 end
 
-function _vertex_or_ray_complex(
-  ::Type{Union{PointVector{T},RayVector{T}}}, PC::PolyhedralComplex, i::Base.Integer
-) where {T<:scalar_types}
+function _vertex_or_ray_complex(::Type{Union{PointVector{T}, RayVector{T}}}, PC::PolyhedralComplex{T}, i::Base.Integer) where T<:scalar_types
   A = pm_object(PC).VERTICES
   if iszero(A[_all_vertex_indices(pm_object(PC))[i], 1])
-    return RayVector{T}(
+    return ray_vector(
       coefficient_field(PC),
       @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end]
-    )
+    )::RayVector{T}
   else
-    return PointVector{T}(
+    return point_vector(
       coefficient_field(PC),
       @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end]
-    )
+    )::PointVector{T}
   end
 end
 
