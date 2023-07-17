@@ -2166,16 +2166,46 @@ is returned.
 Note: This is only available for localizations at rational points. 
 """
 function minimal_generating_set(
-    I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
-                                          <:MPolyRing, <:MPolyElem,
+    I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:Any,
+                                          <:Any, <:Any,
                                           <:MPolyComplementOfKPointIdeal},
                               <:Any,<:Any}
   )
   Q = base_ring(I)
+  !is_zero(I) || return typeof(zero(Q))[]
   L = localized_ring(Q)
 
-  J = pre_image_ideal(I)
-  return filter(!iszero, Q.(minimal_generating_set(J)))
+  ## list of generators in the localized ring, append modulus
+  Jlist = lift.(gens(I))
+  nJlist = length(Jlist)
+  append!(Jlist,gens(modulus(Q)))
+
+  ## move to origing
+  shift, back_shift = base_ring_shifts(L)
+  I_shift = shifted_ideal(ideal(L,Jlist))
+  R = base_ring(I_shift)
+  oL = negdegrevlex(R)                    # the default local ordering
+
+
+  ## determine the relations
+  singular_assure(I_shift, oL)
+  syz_mod=Singular.syz(I_shift.gens.S)
+
+  ## prepare Nakayama-check for minimal generating system
+  F = free_module(R, length(Jlist))
+  Imax = ideal(R,gens(R))
+  M = sub(F,[F(syz_mod[i]) for i=1:Singular.ngens(syz_mod)])[1] + (Imax*F)[1]
+  oF =  negdegrevlex(R)*revlex(F)
+  res_vec = typeof(gen(I,1))[]
+
+  ## select by Nakayama
+  for i in 1:nJlist
+    if !(gen(F,i) in leading_module(M,oF))
+      append!(res_vec,[Q.(gen(I,i))])
+    end
+  end
+
+  return res_vec
 end
 
 @doc raw"""
