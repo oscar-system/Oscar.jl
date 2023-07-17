@@ -123,7 +123,7 @@ function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumber
   return _gmodule(base_ring(codomain(mu)), H, mu, mG)
 end
 
-function Oscar.gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_group(PermGroup, nf(codomain(mu)))[2])
   #TODO: preimage for sunits can fail (inf. loop) if
   # (experimentally) the ideals in S are not coprime or include 1
   # or if the s-unit is not in the image (eg. action and not closed set S)
