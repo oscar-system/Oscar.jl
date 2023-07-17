@@ -2165,7 +2165,7 @@ is returned.
 
 Note: This is only available for localizations at rational points. 
 """
-function minimal_generating_set(
+@attr Vector{<:MPolyQuoLocRingElem}function minimal_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:Any,
                                           <:Any, <:Any,
                                           <:MPolyComplementOfKPointIdeal},
@@ -2219,7 +2219,7 @@ If `I` is the zero ideal an empty list is returned.
 
 If the localization is at a point, a minimal set of generators is returned.
 """
-function small_generating_set(
+@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyElem,
                                           <:MPolyComplementOfKPointIdeal},
@@ -2228,7 +2228,7 @@ function small_generating_set(
   Q = base_ring(I)
   L = localized_ring(Q)
 
-  J = ideal(L, lift.(gens(I))) + modulus(Q)
+  J = pre_image_ideal(I)
   return filter(!iszero, Q.(small_generating_set(J)))
 end
 
