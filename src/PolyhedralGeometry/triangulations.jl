@@ -1,41 +1,19 @@
 using JSON
 using TOPCOM_jll
 
+function _postprocess_polymake_triangs(triangs::Polymake.Array{Polymake.Set{Polymake.Set{Polymake.to_cxx_type(Int)}}})
+  result = Vector{Vector{Int}}[]
+  for triang in triangs
+    push!(result, [Polymake.to_one_based_indexing(Vector{Int}(t)) for t in triang])
+  end
+  return result
+end
+
 function topcom_regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
-    input = homogenized_matrix(pts, 1)
-    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
-    in = Pipe()
-    out = Pipe()
-    err = Pipe()
-    Base.link_pipe!(in, writer_supports_async=true)
-    Base.link_pipe!(out, reader_supports_async=true)
-    Base.link_pipe!(err, reader_supports_async=true)
-    cmd = Oscar.TOPCOM_jll.points2triangs()
-    if full
-        cmd = Oscar.TOPCOM_jll.points2finetriangs()
-    end
-    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
-    task = @async begin
-        write(in, "[\n$inputstr\n]\n")
-        close(in)
-    end
-    close(in.out)
-    close(out.in)
-    close(err.in)
-    result = Vector{Vector{Vector{Int}}}()
-    for line in eachline(out)
-        m = match(r"{{.*}}", line)
-        triang = replace(m.match, "{"=>"[")
-        triang = replace(triang, "}"=>"]")
-        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
-        push!(result, Polymake.to_one_based_indexing(triang))
-    end
-    wait(task)
-    if !success(proc)
-        msg = eof(err) ? "unknown error" : readchomp(err)
-        error("Failed to run TOPCOM: $msg")
-    end
-    return result
+  input = homogenized_matrix(pts, 1)
+  PC = Polymake.polytope.PointConfiguration(POINTS=input)
+  result = full ? Polymake.polytope.topcom_fine_and_regular_triangulations(PC) : Polymake.polytope.topcom_regular_triangulations(PC)
+  return _postprocess_polymake_triangs(result)
 end
 
 function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
@@ -47,11 +25,9 @@ function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full
     Base.link_pipe!(in, writer_supports_async=true)
     Base.link_pipe!(out, reader_supports_async=true)
     Base.link_pipe!(err, reader_supports_async=true)
-    cmd = Oscar.TOPCOM_jll.points2triangs()
+    cmd = Oscar.TOPCOM_jll.points2placingtriang()
     if full
         cmd = Oscar.TOPCOM_jll.points2finetriang()
-    else
-        cmd = Oscar.TOPCOM_jll.points2placingtriang()
     end
     proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
     task = @async begin
@@ -77,26 +53,7 @@ function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full
     return result
 end
 
-################################################################################
-# TODO: Remove the following two functions after next polymake release 4.7
-function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
-    u = Set{Int}()
-    for v in triang
-        union!(u, v)
-        if length(u) == npoints
-            return true
-        end
-    end
-    return false
-end
 
-function _postprocess(triangs::Vector{Vector{Vector{Int}}}, npoints::Int, full::Bool)
-    result = Polymake.to_one_based_indexing(triangs)
-    if full
-        result = [t for t in result if _is_full_triangulation(t, npoints)]
-    end
-    return result
-end
 ################################################################################
 
 function _is_star_triangulation(triang::Vector{Vector{Int}})
@@ -144,9 +101,8 @@ function all_triangulations(pts::AbstractCollection[PointVector]; full::Bool=fal
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    triangs = Polymake.polytope.topcom_all_triangulations(PC)
-    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, nrows(input), full)
+    result = full ? Polymake.polytope.topcom_fine_triangulations(PC) : Polymake.polytope.topcom_all_triangulations(PC)
+    return _postprocess_polymake_triangs(result)
 end
 
 
@@ -233,7 +189,7 @@ julia> star_triangulations(hex; full=true)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
 
 julia> star_triangulations(hex; full=true, regular=true)
-([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 2, 7]]])
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
 ```
 A three-dimensional example with two star triangulations.
 ```jldoctest
@@ -290,7 +246,7 @@ julia> V = vertices(c)
 julia> regular_triangulations(V)
 2-element Vector{Vector{Vector{Int64}}}:
  [[1, 2, 3], [2, 3, 4]]
- [[1, 3, 4], [1, 2, 4]]
+ [[1, 2, 4], [1, 3, 4]]
 ```
 """
 function regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
@@ -326,7 +282,7 @@ Polyhedron in ambient dimension 2
 julia> regular_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
  [[1, 2, 3], [2, 3, 4]]
- [[1, 3, 4], [1, 2, 4]]
+ [[1, 2, 4], [1, 3, 4]]
 ```
 """
 function regular_triangulations(P::Polyhedron)
@@ -439,7 +395,7 @@ Polyhedron in ambient dimension 8
 ```
 """
 function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
+    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)), coefficient_field(P))
 end
 
 @doc raw"""

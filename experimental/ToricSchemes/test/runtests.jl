@@ -23,7 +23,7 @@ end
     @test is_smooth(X) == true
     @test is_smooth(underlying_scheme(X)) == true
     @test is_smooth(underlying_toric_variety(X)) == true
-    @test dim(fan(X)) == 2
+    @test dim(polyhedral_fan(X)) == 2
   end
   
   IP1 = projective_space(NormalToricVariety, 1)

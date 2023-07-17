@@ -16,6 +16,33 @@ General textbooks offering details on theory and algorithms include:
 - [JT13](@cite)
 - [Zie95](@cite)
 
+## Scalar types
+
+The objects from polyhedral geometry operate on a given type, which (usually) resembles a field. This is indicated by the template parameter, e.g. the properties of a `Polyhedron{QQFieldElem}` are rational numbers of type `QQFieldElem`, if applicable.
+Supported scalar types are `FieldElem` and `Float64`, but some functionality might not work properly if the parent `Field` does not satisfy certain mathematic conditions, like being ordered.
+When constructing a polyhedral object from scratch, for the "simpler" types `QQFieldElem` and `Float64` it suffices to pass the `Type`, but more complex `FieldElem`s require a parent `Field` object. This can be set by either passing the desired `Field` instead of the type, or by inserting the type and have a matching `FieldElem` in your input data. If no type or field is given, the scalar type defaults to `QQFieldElem`.
+
+The parent `Field` of the coefficients of an object `O` with coefficients of type `T` can be retrieved with the `coefficient_field` function, and it holds `elem_type(coefficient_field(O)) == T`.
+
+```@docs
+coefficient_field(x::PolyhedralObject)
+```
+
+!!! warning
+    Support for fields other than the rational numbers is currently in an experimental stage.
+
+These three lines result in the same polytope over rational numbers. Besides the general support mentioned above, naming a `Field` explicitly is encouraged because it allows user control and increases efficiency.
+```jldoctest
+julia> P = convex_hull(QQ, [1 0 0; 0 0 1]) # passing a `Field` always works
+Polyhedron in ambient dimension 3
+
+julia> P == convex_hull(QQFieldElem, [1 0 0; 0 0 1]) # passing the type works for `QQFieldElem` and `Float64` only
+true
+
+julia> P == convex_hull([1 0 0; 0 0 1]) # `Field` defaults to `QQ`
+true
+
+```
 
 ## Type compatibility
 
@@ -134,7 +161,7 @@ fan for its construction, see [`polyhedral_fan`](@ref).
 Lower dimensional polyhedral objects can be visualized through polymake's backend.
 
 ```@docs
-visualize(P::Union{Polyhedron, Cone, PolyhedralFan, PolyhedralComplex})
+visualize(P::PolyhedralObject{T}) where T<:Union{QQFieldElem, Float64}
 ```
 
 

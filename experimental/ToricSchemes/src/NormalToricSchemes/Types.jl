@@ -20,9 +20,9 @@ end
 ###############################
 
 function Base.show(io::IO, X::ToricSpec)
-  print(io, "Spec of an affine toric variety with cone spanned by $(rays(fan(X)))")
+  print(io, "Spec of an affine toric variety")
 end
 
 function Base.show(io::IO, X::ToricCoveredScheme)
-  print(io, "Scheme of a toric variety with fan spanned by $(rays(fan(X)))")
+  print(io, "Scheme of a toric variety")
 end

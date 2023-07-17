@@ -64,7 +64,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1]
  -1  0
   0  1
 
-julia> PC = PolyhedralComplex{QQFieldElem}(IM, VR)
+julia> PC = polyhedral_complex(QQFieldElem, IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> TC = TropicalCurve(PC)
