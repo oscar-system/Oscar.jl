@@ -1,11 +1,32 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
+
+# For the printing, we describe the domain and codomain with coordinates
+# for the ambient space and the description of the complement (and we do not
+# forget to avoid printing again the coordinates by using the `false`) argument
+# in both the show function for `domain(f)` and `codomain(f)`).
 function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   io = pretty(io)
+  X = domain(f)
+  cX = ambient_coordinates(X)
+  Y = codomain(f)
+  cY = ambient_coordinates(Y)
+  co_str = String[]
+  str = "["*join(cX, ", ")*"]"
+  kX = length(str)
+  push!(co_str, str)
+  str = "["*join(cY, ", ")*"]"
+  kY = length(str)
+  push!(co_str, str)
+  k = max(length.(co_str)...)
   println(io, "Morphism")
-  println(io, Indent(), "from ", Lowercase(), domain(f))
-  print(io, "to   ", Lowercase(), codomain(f))
+  print(io, Indent(), "from ")
+  print(io, co_str[1]*" "^(k-kX+2), Lowercase())
+  show(io, domain(f), false)
+  println(io)
+  print(io, "to   ", co_str[2]*" "^(k-kY+2), Lowercase())
+  show(io, codomain(f), false)
   mop = maps_on_patches(f)
   if length(mop) > 0
     println(io)

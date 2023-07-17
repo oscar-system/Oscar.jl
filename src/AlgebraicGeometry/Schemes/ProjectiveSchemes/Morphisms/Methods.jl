@@ -21,6 +21,73 @@ end
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
 return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
 of ``X`` and ``Y``, respectively.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> f = identity_map(Y)
+Morphism
+  from projective scheme in IP^2 over QQ
+  to   projective scheme in IP^2 over QQ
+
+julia> covered_scheme_morphism(f)
+Morphism
+  from scheme over QQ covered with 9 patches
+    1a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
+    2a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
+    3a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
+    4a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
+    5a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
+    6a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
+    7a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
+    8a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
+    9a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
+  to   scheme over QQ covered with 3 patches
+    1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+given by
+  1a -> 2b
+    (x//y) -> 1/(y//x)
+    (z//y) -> (z//x)/(y//x)
+    ----------------------------------------
+  2a -> 2b
+    (x//y) -> (x//y)
+    (z//y) -> (z//y)
+    ----------------------------------------
+  3a -> 3b
+    (x//z) -> 1/(z//x)
+    (y//z) -> (y//x)/(z//x)
+    ----------------------------------------
+  4a -> 3b
+    (x//z) -> (x//y)/(z//y)
+    (y//z) -> 1/(z//y)
+    ----------------------------------------
+  5a -> 1b
+    (y//x) -> 1/(x//y)
+    (z//x) -> (z//y)/(x//y)
+    ----------------------------------------
+  6a -> 1b
+    (y//x) -> (y//x)
+    (z//x) -> (z//x)
+    ----------------------------------------
+  7a -> 1b
+    (y//x) -> (y//z)/(x//z)
+    (z//x) -> 1/(x//z)
+    ----------------------------------------
+  8a -> 3b
+    (x//z) -> (x//z)
+    (y//z) -> (y//z)
+    ----------------------------------------
+  9a -> 2b
+    (x//y) -> (x//z)/(y//z)
+    (z//y) -> 1/(y//z)
+```
 """
 @attr function covered_scheme_morphism(f::ProjectiveSchemeMor)
   PX = domain(f)
@@ -82,12 +149,12 @@ function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
   Y = codomain(f)
   println(io, "Morphism")
   print(io, Indent(), "from ")
-  if X isa AbsProjectiveScheme{<:Any, <:MPolyDecRing}
+  if typeof(X) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # X is not a V(bla)
     print(io, Lowercase())
   end
   println(io, X)
   print(io, "to   ")
-  if Y isa AbsProjectiveScheme{<:Any, <:MPolyDecRing}
+  if typeof(Y) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # same as above
     print(io, Lowercase())
   end
   print(io, Y)

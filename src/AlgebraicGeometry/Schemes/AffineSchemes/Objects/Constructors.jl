@@ -18,7 +18,9 @@ julia> I = ideal(R, [x]);
 
 julia> Spec(R, I)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x)
 ```
 """
 Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
@@ -41,7 +43,9 @@ julia> U = complement_of_prime_ideal(I);
 
 julia> Spec(R, U)
 Spectrum
-  of localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal
+  of localization
+    of multivariate polynomial ring in 2 variables over QQ
+    at complement of prime ideal(x)
 ```
 """
 Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
@@ -65,7 +69,9 @@ julia> U = complement_of_prime_ideal(ideal(R, [y]));
 
 julia> Spec(R, I, U)
 Spectrum
-  of localization of quotient of multivariate polynomial ring at complement of prime ideal
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at complement of prime ideal(y)
 ```
 """
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, I, U))
@@ -92,11 +98,15 @@ julia> I = ideal(R, [x]);
 
 julia> X = Spec(R, I)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x)
 
 julia> Y = Spec(X)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x)
 ```
 """
 Spec(X::Spec) = Spec(OO(X))
@@ -184,7 +194,9 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 ```jldoctest
 julia> standard_spec(affine_space(QQ,5))
 Spectrum
-  of localization of quotient of multivariate polynomial ring at products of 1 element
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at products of 1 element
 
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
@@ -192,11 +204,15 @@ julia> I = ideal(R, [x]);
 
 julia> X = Spec(R, I)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x)
 
 julia> standard_spec(X)
 Spectrum
-  of localization of quotient of multivariate polynomial ring at products of 1 element
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at products of 1 element
 
 julia> I = ideal(R, [x]);
 
@@ -204,11 +220,15 @@ julia> U = complement_of_prime_ideal(I);
 
 julia> X = Spec(R, U)
 Spectrum
-  of localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal
+  of localization
+    of multivariate polynomial ring in 2 variables over QQ
+    at complement of prime ideal(x)
 
 julia> standard_spec(X)
 Spectrum
-  of localization of quotient of multivariate polynomial ring at complement of prime ideal
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at complement of prime ideal(x)
 ```
 """
 function standard_spec(X::AbsSpec)
@@ -264,11 +284,15 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> subscheme(X,x1)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> subscheme(X,[x1,x2])
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1, x2)
 ```
 """
 subscheme(X::AbsSpec, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
@@ -304,7 +328,9 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> subscheme(X,ideal(R,[x1*x2]))
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1*x2)
 ```
 """
 function subscheme(X::AbsSpec, I::Ideal)
@@ -346,7 +372,9 @@ julia> (x1, x2, x3) = gens(R)
 
 julia> hypersurface_complement(X, x1)
 Spectrum
-  of localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
+  of localization
+    of multivariate polynomial ring in 3 variables over QQ
+    at products of 1 element
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::RingElem)
@@ -422,7 +450,9 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> hypersurface_complement(X,[x1,x2])
 Spectrum
-  of localization of multivariate polynomial ring in 3 variables over QQ at products of 2 elements
+  of localization
+    of multivariate polynomial ring in 3 variables over QQ
+    at products of 2 elements
 ```
 """
 function hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
@@ -515,15 +545,21 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y1 = subscheme(X,[x1])
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> Y2 = subscheme(X,[x2])
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x2)
 
 julia> intersect(Y1, Y2)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1, x2)
 ```
 """
 function Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
@@ -689,11 +725,15 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> H = subscheme(X,ideal(R,[x1]))
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> closure(H, X)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 ```
 """
 function closure(X::AbsSpec, Y::AbsSpec, check= true)

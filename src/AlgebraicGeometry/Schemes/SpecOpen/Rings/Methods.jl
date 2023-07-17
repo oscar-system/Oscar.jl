@@ -454,6 +454,7 @@ function Base.show(io::IO, R::SpecOpenRing)
   end
 end
 
+# Here we just need some details on the domain `U`.
 function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
   io = pretty(io)
   println(io, "Ring of regular functions")
@@ -471,23 +472,30 @@ function Base.show(io::IO, a::SpecOpenRingElem)
   end
 end
 
+# Since regular functions are described on each affine patches of the domain `U`
+# on which they are defined, we need to extract details about the affine patches
+# on `U` and label them so that one can see how the regular function is defined
+# on each patch
 function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
   io = pretty(io)
   R = parent(a)
-  println("Regular function")
+  U = domain(R)
+  println(io, "Regular function")
   print(io, Indent(), "on ", Lowercase())
-  show(io, domain(R))
+  Oscar._show_semi_compact(io, domain(R))
   print(io, Dedent())
   r = restrictions(a)
   ap = affine_patches(a)
   if length(r) > 0
+    l = ndigits(length(r))
     println(io)
     print(io, "with restriction")
     length(r) > 1 && print(io, "s")
     print(io, Indent())
     for i in 1:length(r)
+      li = ndigits(i)
       println(io)
-      print(io, Lowercase(), ap[i], " -> ", r[i])
+      print(io, " "^(l-li)*"$(i): ", r[i])
     end
     print(io, Dedent())
   end

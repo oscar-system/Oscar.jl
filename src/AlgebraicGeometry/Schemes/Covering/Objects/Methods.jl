@@ -214,7 +214,7 @@ julia> U2 = Spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
     2: spec of multivariate polynomial ring
   in the coordinate(s)
@@ -233,7 +233,7 @@ julia> G = Glueing(U1, U2, f, g); # Construct the glueing
 
 julia> add_glueing!(C, G) # Make the glueing part of the Covering
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
     2: spec of multivariate polynomial ring
   in the coordinate(s)
@@ -255,33 +255,33 @@ end
 # Printing                                                             #
 ########################################################################
 
+# We print the details on the charts, and we label them
+#
+# Note: we may more than 10 charts, so we decide to align the labels on the
+# right and we need to take of a little left offset for small labels
 function Base.show(io::IO, ::MIME"text/plain", C::Covering)
   io = pretty(io)
   if length(C) == 0
     print(io, "Empty covering")
   else
+    l = ndigits(length(C))
     println(io, "Covering")
-    print(io, Indent(), "described by patch") 
+    print(io, Indent(), "described by patches") 
     print(io, Indent())
     for i in 1:length(C)
+      li = ndigits(i)
       println(io)
-      print(io, "$i: ", Lowercase(), C[i])
+      print(io, " "^(l-li)*"$(i): ", Lowercase(), C[i])
     end
     println(io)
     print(io, Dedent(), "in the coordinate(s)")
     print(io, Indent())
     for i in 1:length(C)
+      li = ndigits(i)
       println(io)
-      print(io, "$i: [")
       co = coordinates(C[i])
-      if length(co) == 0
-        print(io, "]")
-        continue
-      end
-      for j in 1:length(co)-1
-        print(io, "$(co[j]), ")
-      end
-      print(io, "$(co[end])]")
+      str = "["*join(co, ", ")*"]"
+      print(io, " "^(l-li)*"$(i): ", str)
     end
     print(io, Dedent())
     print(io, Dedent())

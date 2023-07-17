@@ -27,7 +27,14 @@ Affine space of dimension 3
   over rational field
 with coordinates x1, x2, x3
 
-julia> SpecMor(X, Y, gens(OO(X)));
+julia> SpecMor(X, Y, gens(OO(X)))
+Morphism
+  from [x1, x2, x3]  affine 3-space over QQ
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by
+  x1 -> x1
+  x2 -> x2
+  x3 -> x3
 ```
 """
 function SpecMor(
@@ -75,7 +82,14 @@ Affine space of dimension 3
   over rational field
 with coordinates x1, x2, x3
 
-julia> identity_map(X);
+julia> identity_map(X)
+Morphism
+  from [x1, x2, x3]  affine 3-space over QQ
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by
+  x1 -> x1
+  x2 -> x2
+  x3 -> x3
 ```
 """
 identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
@@ -108,9 +122,18 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X, x1)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
-julia> f = inclusion_morphism(Y, X);
+julia> f = inclusion_morphism(Y, X)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 
 julia> I = kernel(pullback(f))  # this is a way to obtain the ideal ``I ⊆  O(X)`` cutting out ``Y`` from ``X``.
 ideal(x1)
@@ -146,13 +169,38 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X, x1)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
-julia> m1 = inclusion_morphism(Y, X);
+julia> m1 = inclusion_morphism(Y, X)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 
-julia> m2 = identity_map(X);
+julia> m2 = identity_map(X)
+Morphism
+  from [x1, x2, x3]  affine 3-space over QQ
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by
+  x1 -> x1
+  x2 -> x2
+  x3 -> x3
 
-julia> compose(m1, m2) == m1
+julia> m3 = identity_map(Y)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+given by
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
+
+julia> compose(m3, compose(m1, m2)) == m1
 true
 ```
 """
@@ -187,7 +235,9 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X, x1)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true

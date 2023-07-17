@@ -1,6 +1,13 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
+
+# As for coverings and covered schemes, we need to manage offsets when printings
+# coordinates so that on each open subset, the coordinates and the respective
+# descriptions are all aligned on the left, in an appropriate alignment and
+# distance. Moreover, since the glueing is given by some maps, we take care that
+# the arrows are aligned and so arguments are alignes on the right and their
+# respective images are aligned on the left.
 function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   io = pretty(io)
   println(io, "Glueing")
@@ -11,30 +18,50 @@ function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   pf = pullback(f)
   print(io, Indent())
   co_str = String[]
-  co1 = gens(codomain(pf))
-  co2 = gens(domain(pf))
-  str = reduce(*, ["$x, " for x in co1], init = "[")
-  str = str[1:end-2]*"]"
+  co1 = ambient_coordinates(domain(f))
+  co2 = ambient_coordinates(codomain(f))
+  str = "["*join(co1, ", ")*"]"
   k1 = length(str)
   push!(co_str, str)
-  str = reduce(*, ["$x, " for x in co2], init = "[")
-  str = str[1:end-2]*"]"
+  str = "["*join(co2, ", ")*"]"
   k2 = length(str)
   push!(co_str, str)
   k = max(k1, k2)
   println(io, co_str[1], " "^(k-k1+3), Lowercase(), domain(f))
   print(io, co_str[2], " "^(k-k2+3), Lowercase(), codomain(f))
-  c = gens(domain(pf))
-  if length(c) > 0
-    println(io)
-    print(io, Dedent(), "given by")
-    print(io, Indent())
-    for i in 1:length(c)
+  if codomain(f) isa SpecOpen
+    mop = maps_on_patches(f)
+    if length(mop) > 0
       println(io)
-      print(io, "$(c[i]) -> $(pf(c[i]))")
+      print(io, Dedent(), "defined by the map")
+      length(mop) > 1 && print(io, "s")
+      print(io, Indent())
+      for i in 1:length(mop)
+        println(io, Lowercase())
+        Base.show(io, MIME"text/plain"(), mop[i])
+        if i != length(mop)
+          println(io)
+          print(io, "------------------------------------------------------------")
+        end
+      end
     end
+    print(io, Dedent())
+  else
+    c = coordinates(codomain(f))
+    if length(c) > 0
+      co_str = String["$(cc)" for cc in c]
+      k = max(length.(co_str)...)
+      println(io)
+      print(io, Dedent(), "given by")
+      print(io, Indent())
+      for i in 1:length(c)
+        ki = length(co_str[i])
+        println(io)
+        print(io, " "^(k-ki)*"$(c[i]) -> $(pf(c[i]))")
+      end
+    end
+    print(io, Dedent())
   end
-  print(io, Dedent())
 end
 
 function Base.show(io::IO, G::AbsGlueing)

@@ -26,7 +26,7 @@ julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
 Affine algebraic set
-  in 𝔸² over GF(2) with coordinates x, y
+  in affine 2-space over GF(2) with coordinates x, y
 defined by ideal(x^3 + y^2 + y + 1, x)
 
 ```
@@ -46,14 +46,14 @@ julia> R, (x,y) = QQ[:x,:y];
 
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Affine algebraic set
-  in 𝔸² over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates x, y
 defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Affine algebraic set
-  in 𝔸² over GF(2) with coordinates x, y
+  in affine 2-space over GF(2) with coordinates x, y
 defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 ```
@@ -85,17 +85,17 @@ julia> (x, y) = coordinates(A)
 
 julia> X = algebraic_set(ideal([y - x^2]))
 Affine algebraic set
-  in 𝔸² over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates x, y
 defined by ideal(-x^2 + y)
 
 julia> Y = algebraic_set(ideal([y]))
 Affine algebraic set
-  in 𝔸² over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates x, y
 defined by ideal(y)
 
 julia> Zred = set_theoretic_intersection(X, Y)
 Affine algebraic set
-  in 𝔸² over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates x, y
 defined by ideal(-x^2 + y, y)
 
 
@@ -106,7 +106,9 @@ which the scheme theoretic intersection remembers. Therefore they are different.
 ```jldoctest set_theoretic_intersection
 julia> Z = intersect(X, Y) # a non reduced scheme
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x^2 - y, y)
 
 julia> Zred == Z
 false

@@ -29,10 +29,14 @@ end
 # (2) Display
 ########################################################
 
+# We show a detailed version of the coordinate ring since they are all the
+# details we can get.. Otherwise our detailed printing is quite poor and
+# "useless".
 function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
   io = pretty(io)
   println(io, "Spectrum")
-  print(io, Indent(), "of ", Lowercase(), OO(X))
+  print(io, Indent(), "of ", Lowercase())
+  show(io, MIME"text/plain"(), OO(X))
   print(io, Dedent())
 end
 

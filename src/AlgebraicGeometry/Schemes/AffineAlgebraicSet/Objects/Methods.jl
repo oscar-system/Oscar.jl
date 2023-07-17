@@ -2,21 +2,40 @@
 # (1) Display
 ########################################################
 
+# As a set, corresponding the fat ideal or the radical does not change anything.
+# If one already knows the reduced scheme structure on this algebraic set, we
+# print it (more convenient to see the ideal)
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   io = pretty(io)
   println(io, "Affine algebraic set")
   println(io, Indent(), "in ", Lowercase(), ambient_space(X))
-  print(io, Dedent(), "defined by ", fat_ideal(X))
+  if isdefined(X, :Xred)
+    I = ambient_closure_ideal(X)
+  else
+    I = fat_ideal(X)
+  end
+  print(io, Dedent(), "defined by ", I)
 end
 
+# As a set, corresponding the fat ideal or the radical does not change anything.
+# If one already knows the reduced scheme structure on this algebraic set, we
+# print it (more convenient to see the ideal)
+#
+# For compact printing, we value the notation V(bla) since it tells everything
+# we need to know, in a given contextual printing
 function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   if get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine algebraic set")
   else
+    if isdefined(X, :Xred)
+      I = ambient_closure_ideal(X)
+    else
+      I = fat_ideal(X)
+    end
     print(io, "V(")
-    join(io, gens(fat_ideal(X)), ", ")
+    join(io, gens(I), ", ")
     print(io,")")
   end
 end

@@ -62,7 +62,9 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1*x2)
 
 julia> is_subset(X, Y)
 false
@@ -314,14 +316,18 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1*x2)
 
 julia> is_open_embedding(Y, X)
 false
 
 julia> Z = hypersurface_complement(X, x1)
 Spectrum
-  of localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
+  of localization
+    of multivariate polynomial ring in 3 variables over QQ
+    at products of 1 element
 
 julia> is_open_embedding(Z, X)
 true
@@ -384,14 +390,18 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1*x2)
 
 julia> is_closed_embedding(Y, X)
 true
 
 julia> Z = hypersurface_complement(X, x1)
 Spectrum
-  of localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
+  of localization
+    of multivariate polynomial ring in 3 variables over QQ
+    at products of 1 element
 
 julia> is_closed_embedding(Z, X)
 false
@@ -533,11 +543,15 @@ ideal(x - 1, y - 2)
 
 julia> X = Spec(R,I)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x - y)
 
 julia> Y = Spec(R,I*J)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
 
 julia> is_equidimensional(X)
 true
@@ -627,14 +641,18 @@ ideal(x^2 - y^2)
 
 julia> X = Spec(R, I)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x - y^2)
 
 julia> is_smooth(X)
 true
 
 julia> Y = Spec(R, J)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x^2 - y^2)
 
 julia> is_smooth(Y)
 false
@@ -646,7 +664,9 @@ Complement
 
 julia> Z = Spec(R, J, U)
 Spectrum
-  of localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at complement of maximal ideal of point (1, 1)
 
 julia> is_smooth(Z)
 true

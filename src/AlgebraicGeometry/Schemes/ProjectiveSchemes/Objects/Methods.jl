@@ -91,7 +91,8 @@ julia> X = covered_scheme(P);
 
 julia> U = first(affine_charts(X))
 Spectrum
-  of multivariate polynomial ring in 2 variables over QQ
+  of multivariate polynomial ring in 2 variables (x1//x0), (x2//x0)
+    over rational field
 
 julia> phi = dehomogenization_map(P, U);
 
@@ -199,18 +200,27 @@ Projective space of dimension 2
   over multivariate polynomial ring in 2 variables over QQ
 with homogeneous coordinates x0, x1, x2
 
-julia> X = covered_scheme(P);
-
+julia> X = covered_scheme(P)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+    3: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(x1//x0), (x2//x0), u, v]
+    2: [(x0//x1), (x2//x1), u, v]
+    3: [(x0//x2), (x1//x2), u, v]
 
 julia> U = first(affine_charts(X))
 Spectrum
-  of multivariate polynomial ring in 4 variables over QQ
+  of multivariate polynomial ring in 4 variables (x1//x0), (x2//x0), u, v
+    over rational field
 
 julia> phi = homogenization_map(P, U);
 
-
 julia> R = OO(U);
-
 
 julia> phi.(gens(R))
 4-element Vector{Tuple{MPolyDecRingElem{QQMPolyRingElem, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}}, MPolyDecRingElem{QQMPolyRingElem, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}}}}:

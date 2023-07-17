@@ -77,7 +77,6 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   PPP -> [1]
   ? -> [1]
-
 ```
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})

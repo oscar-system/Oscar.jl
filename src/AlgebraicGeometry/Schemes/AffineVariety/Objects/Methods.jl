@@ -2,14 +2,21 @@
 # (1) Display
 ########################################################
 
-# detailed printing
+# detailed printing: if the variety if reduced, we preferably print the
+# a radical ideal.. Otherwise, we do not compute anything and we print an ideal
+# whose radical is the vanishing of X
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyQuoRing})
   io = pretty(io)
   println(io, "Affine variety")
   print(io, Indent(), "in ")
   println(io, Lowercase(), ambient_space(X))
   print(io, Dedent(), "defined by ")
-  print(io, Lowercase(), fat_ideal(X))
+  if get_attribute(X, :is_reduced, false)
+    I = ambient_closure_ideal(X)
+  else
+    I = fat_ideal(X)
+  end
+  print(io, Dedent(), "defined by ", I)
 end
 
 function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
@@ -40,12 +47,12 @@ function Base.show(io::IO, X::AffineVariety)
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine variety")
   else
-    print(io, "Affine open subset of ", Lowercase(), closure(X))
+    print(io, "Affine open subset of ", Lowercase(), closure(X, ambient_space(X)))
   end
 end
 
 
-# For affine space
+# For affine space: we print the coordinates, can be useful
 function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyRing})
   io = pretty(io)
   println(io, "Affine space of dimension $(dim(X))")
@@ -57,8 +64,12 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyR
   print(io, join(coordinates(X), ", "))
 end
 
-
-function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
+# In a more compact printing, we allow unicode printing, whenever unicode is
+# allowed, but we keep as an option of not printing the coordinates. For
+# instance, in some nested printings for morphisms, we might have already
+# mentioned the coordinates, and so `show_coord = false` ensures that we avoid
+# redundacy
+function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing}, show_coord::Bool = true)
   io = pretty(io)
   if get(io, :supercompact, false)
     if is_unicode_allowed()
@@ -83,11 +94,13 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
       else
         print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
       end
-      c = coordinates(X)
-      print(io, " with coordinate")
-      length(c) > 1 && print(io, "s")
-      print(io, " ")
-      print(io, join(c, ", "))
+      if show_coord
+        c = coordinates(X)
+        print(io, " with coordinate")
+        length(c) > 1 && print(io, "s")
+        print(io, " ")
+        print(io, join(c, ", "))
+      end
     else
       print(io, "Affine $(dim(X))-space over ")
       if base_ring(X) == QQ
@@ -95,11 +108,13 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
       else
         print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
       end
-      c = coordinates(X)
-      print(io, " with coordinate")
-      length(c) > 1 && print(io, "s")
-      print(io, " ")
-      print(io, join(c, ", "))
+      if show_coord
+        c = coordinates(X)
+        print(io, " with coordinate")
+        length(c) > 1 && print(io, "s")
+        print(io, " ")
+        print(io, join(c, ", "))
+      end
     end
   end
 end

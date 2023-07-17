@@ -78,13 +78,19 @@ Return an ideal whose radical is the vanishing ideal of `X`.
 If `X` is constructed from an ideal `I` this returns `I`.
 
 ```jldoctest
-julia> A2 = affine_space(QQ, [:x,:y]);
+julia> A2 = affine_space(QQ, [:x,:y])
+Affine space of dimension 2
+  over rational field
+with coordinates x, y
 
 julia> (x, y) = coordinates(A2);
 
 julia> I = ideal([x^2, y]);
 
-julia> X = algebraic_set(I);
+julia> X = algebraic_set(I)
+Affine algebraic set
+  in affine 2-space over QQ with coordinates x, y
+defined by ideal(x^2, y)
 
 julia> fat_ideal(X) === I
 true

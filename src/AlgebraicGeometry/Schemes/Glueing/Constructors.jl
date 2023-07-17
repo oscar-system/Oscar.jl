@@ -49,11 +49,15 @@ Glueing
   of  spec of multivariate polynomial ring
   and spec of multivariate polynomial ring
 along the open subsets
-  [Regular function on complement to V(x) in scheme, Regular function on complement to V(x) in scheme]   complement to V(x) in scheme
-  [Regular function on complement to V(u) in scheme, Regular function on complement to V(u) in scheme]   complement to V(u) in scheme
-given by
-  Regular function on complement to V(u) in scheme -> Regular function on complement to V(x) in scheme
-  Regular function on complement to V(u) in scheme -> Regular function on complement to V(x) in scheme
+  [x, y]   complement to V(x) in affine scheme with coordinates [x, y]
+  [u, v]   complement to V(u) in affine scheme with coordinates [u, v]
+defined by the map
+  morphism
+    from [x, y]  spec of localized ring
+    to   [u, v]  spec of multivariate polynomial ring
+  given by
+    u -> 1/x
+    v -> y/x
 
 julia> typeof(H)<:Glueing
 true

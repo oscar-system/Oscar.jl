@@ -23,7 +23,7 @@ julia> U2 = Spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
     2: spec of multivariate polynomial ring
   in the coordinate(s)
@@ -66,21 +66,21 @@ julia> U2 = Spec(P2);
 
 julia> C1 = Covering(U1) # Set up the trivial covering with only one patch
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
   in the coordinate(s)
     1: [x, y]
 
 julia> C2 = Covering(U2)
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
   in the coordinate(s)
     1: [u, v]
 
 julia> C = disjoint_union(C1, C2)
 Covering
-  described by patch
+  described by patches
     1: spec of multivariate polynomial ring
     2: spec of multivariate polynomial ring
   in the coordinate(s)

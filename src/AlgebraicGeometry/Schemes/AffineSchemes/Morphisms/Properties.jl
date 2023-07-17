@@ -49,7 +49,9 @@ julia> (x1,x2,x3) = gens(R)
 
 julia> Y = subscheme(X, x1)
 Spectrum
-  of quotient of multivariate polynomial ring by ideal with 1 generator
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false

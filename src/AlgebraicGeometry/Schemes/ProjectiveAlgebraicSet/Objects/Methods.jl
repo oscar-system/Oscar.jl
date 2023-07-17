@@ -10,7 +10,8 @@ function Base.show(io::IO, ::MIME"text/plain",
   print(io, Dedent(), "defined by ", Lowercase(), defining_ideal(X))
 end
 
-
+# If we know a radical ideal describing our algebraic set, we preferably print
+# that one (it is easier to read...)
 function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing})
   io = pretty(io)
   if get(io, :supercompact, false)

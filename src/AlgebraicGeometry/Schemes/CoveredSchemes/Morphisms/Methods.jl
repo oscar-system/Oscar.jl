@@ -118,6 +118,11 @@ end
 #
 ###############################################################################
 
+# We use a pattern for printings morphisms, glueings, etc...
+#
+# In supercompact printing, we just write what it is, super shortly.
+# For normal compact printing, we mention what it is, then use colons to
+# describe "domain -> codomain".
 function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   if get(io, :supercompact, false)
@@ -127,6 +132,13 @@ function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
   end
 end
 
+# Here the `_show_semi_compact` allows us to avoid the redundancy on the
+# printing of the domain/codomain, choose the covering of the scheme to print,
+# and associate a letter to the labels of the charts - "a" for the domain and
+# "b" for the codomain.
+#
+# We also have a `_show_semi_compact` for the associate covering morphism, where
+# again we just avoid to re-write what are the domain and codomain.
 function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   g = covering_morphism(f)
@@ -136,8 +148,12 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   println(io)
   print(io, "to   ", Lowercase())
   Oscar._show_semi_compact(io, codomain(f), codomain(g), "b")
-  println(io, Dedent())
-  println(io, "given by")
-  print(io, Indent())
-  Oscar._show_semi_compact(io, covering_morphism(f))
+  if min(length(domain(g)), length(codomain(g))) == 0
+    print(io, Dedent())
+  else
+    println(io, Dedent())
+    println(io, "given by")
+    print(io, Indent())
+    Oscar._show_semi_compact(io, covering_morphism(f))
+  end
 end
