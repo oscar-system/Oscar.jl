@@ -1,8 +1,8 @@
 NF, sr2 = quadratic_field(2)
 Qx, x = QQ["x"]
-K, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
+K, a = Hecke.embedded_field(NF, real_embeddings(NF)[2])
 
-for f in (QQ, NF, K)
+for f in (QQ, K)
 
     T = elem_type(f)
     @testset "PolyhedralComplex{$T}" begin
