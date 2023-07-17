@@ -314,7 +314,7 @@ julia> rays(RayVector, PO)
 rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, P)
 _rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(P).(@view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end]))
+_ray_polyhedron(U::Type{RayVector{T}}, P::Polyhedron{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(P), @view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end])::U
 
 _facet_indices(::Val{_ray_polyhedron}, P::Polyhedron) = pm_object(P).FACETS_THRU_RAYS[_ray_indices(pm_object(P)), _facet_indices(pm_object(P))]
 
@@ -753,7 +753,7 @@ julia> lineality_space(UH)
 """
 lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(P, _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(P).(@view pm_object(P).LINEALITY_SPACE[i, 2:end]))
+_lineality_polyhedron(U::Type{RayVector{T}}, P::Polyhedron{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(P), @view pm_object(P).LINEALITY_SPACE[i, 2:end])::U
 
 _generator_matrix(::Val{_lineality_polyhedron}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).LINEALITY_SPACE : @view pm_object(P).LINEALITY_SPACE[:, 2:end]
 

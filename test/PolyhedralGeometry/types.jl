@@ -17,8 +17,7 @@
 
   NF, sr2 = quadratic_field(2)
 
-  #TODO: RayVector
-  @testset "$T" for (T, fun) in ((PointVector, point_vector),)
+  @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
 
     @test fun(a) isa T{QQFieldElem}
 

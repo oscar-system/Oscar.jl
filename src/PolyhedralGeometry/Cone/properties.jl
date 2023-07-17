@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
 _rays(as::Type{RayVector{T}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _ray_cone, _nrays(C))
 
-_ray_cone(::Type{RayVector{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(C).(view(pm_object(C).RAYS, i, :)))
+_ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
 
 _vector_matrix(::Val{_ray_cone}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).RAYS, 0) : pm_object(C).RAYS
 
@@ -477,7 +477,7 @@ julia> lineality_space(UH)
 """
 lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(C, _lineality_cone, lineality_dim(C))
 
-_lineality_cone(::Type{RayVector{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(C).(view(pm_object(C).LINEALITY_SPACE, i, :)))
+_lineality_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where T<:scalar_types = ray_vector(coefficient_field(C), view(pm_object(C).LINEALITY_SPACE, i, :))::U
 
 _generator_matrix(::Val{_lineality_cone}, C::Cone; homogenized=false) = homogenized ? homogenize(pm_object(C).LINEALITY_SPACE, 0) : pm_object(C).LINEALITY_SPACE
 
