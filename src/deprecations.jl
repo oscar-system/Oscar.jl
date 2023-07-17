@@ -394,3 +394,5 @@ function SubdivisionOfPoints{T}(obj::Polymake.BigObject) where T<:scalar_types
   return SubdivisionOfPoints{T}(obj, _detect_default_field(T, obj))
 end
 
+@deprecate is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem is_hermitian(B)
+@alias ishermitian_matrix is_hermitian_matrix

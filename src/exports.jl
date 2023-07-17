@@ -739,7 +739,6 @@ export is_gorenstein
 export is_graded
 export is_groebner_basis
 export is_hermitian_form
-export is_hermitian_matrix
 export is_homogeneous
 export is_identity_map
 export is_injective

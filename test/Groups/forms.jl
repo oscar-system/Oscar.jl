@@ -10,7 +10,7 @@
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
    @test !is_symmetric(B)
-   @test !is_hermitian_matrix(B)
+   @test !is_hermitian(B)
    @test is_alternating_form(f)
    @test !is_quadratic_form(f)
    @test !is_symmetric_form(f)
@@ -19,7 +19,7 @@
    @test_throws AssertionError f = hermitian_form(B)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
-   @test is_hermitian_matrix(B)
+   @test is_hermitian(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
