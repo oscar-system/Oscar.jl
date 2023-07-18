@@ -30,10 +30,12 @@
         "description": "SU(5)xU(1) restricted Tate model",
         "buzzwords": ["GUT model", "Tate", "U(1)", "SU(5)"]
     },
-    "model_data": {
+    "model_descriptors": {
         "type": "tate",
         "description": "SU(5)xU(1) restricted Tate model",
-        "gauge_algebra": ["su(5)", "u(1)"],
+        "gauge_algebra": ["su(5)", "u(1)"]
+    },
+    "model_data": {
         "base_dim": 3,
         "base_coordinates": ["a1", "a21", "a32", "a43", "w"],
         "a1": "a1",

@@ -31,14 +31,16 @@
         "description": "",
         "buzzwords": [""]
     },
-    "model_parameters": [""],
-    "model_data": {
+    "model_descriptors": {
         "type": "",
         "description": "",
         "comment": "",
         "gauge_algebra": [""],
         "global_gauge_quotients": [""],
-        "discrete_factors": [""],
+        "discrete_factors": [""]
+    },
+    "model_parameters": [""],
+    "model_data": {
         "base_dim": 3,
         "base_coordinates": [""],
         "a1": "",

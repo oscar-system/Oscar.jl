@@ -252,6 +252,9 @@ function Base.show(io::IO, t::GlobalTateModel)
   end
   if has_model_description(t)
     push!(properties_string, "-- " * string(get_attribute(t, :model_description)))
+    if has_model_parameters(t)
+      push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
+    end
   end
   if has_arxiv_id(t)
     push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))

@@ -28,10 +28,18 @@ function _eval_poly(E::Number, vars)
 end
 
 function eval_poly(s::String, R)
-  symR = symbols(R) # Symbol[]
-  genR = gens(R)
+  if typeof(R) <: Union{PolyRing, MPolyRing}
+    symR = symbols(R) # Symbol[]
+    genR = gens(R)
+  else
+    symR = []
+    genR = []
+  end
+
   return R(_eval_poly(Meta.parse(s), Dict(symR[i] => genR[i] for i in 1:length(symR))))
 end
+
+eval_poly(n::Number, R) = R(n)
 
 # Example
 # julia> Qx, (x1, x2) = QQ["x1", "x2"];

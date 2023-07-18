@@ -31,10 +31,12 @@
         "description": "General construction of U(1) model",
         "buzzwords": ["U(1)", "Mordell–Weil", "rational sections"]
     },
-    "model_data": {
+    "model_descriptors": {
         "type": "hypersurface",
         "description": "U(1) hypersurface model",
-        "gauge_algebra": ["u1"],
+        "gauge_algebra": ["u1"]
+    },
+    "model_data": {
         "base_dim": 2,
         "base_coordinates": ["Kbar", "b", "c0", "c1", "c2", "c3"],
         "auxiliary_base_grading": [

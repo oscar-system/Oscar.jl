@@ -31,10 +31,12 @@
         "description": "Systematic classification of ADE Tate models and their resolutions",
         "buzzwords": ["Tate", "classification", "resolution"]
     },
-    "model_data": {
+    "model_descriptors": {
         "type": "tate",
         "description": "E8 Tate model",
-        "gauge_algebra": ["e8"],
+        "gauge_algebra": ["e8"]
+    },
+    "model_data": {
         "base_dim": 3,
         "base_coordinates": ["Kbar", "b1", "b2", "b3", "b4", "b6", "ζ0"],
         "a1": "b1*ζ0",
