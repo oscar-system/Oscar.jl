@@ -65,5 +65,6 @@ include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
 include("Schemes/duValSing.jl")
+include("Schemes/elliptic_surface.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

@@ -85,3 +85,31 @@ function has_decomposition_info(C::Covering)
   all(x->haskey(C.decomp_info, x), patches(C)) || return false
   return true
 end
+
+function inherit_decomposition_info!(
+    X::AbsCoveredScheme, ref_cov::Covering; 
+    orig_cov::Covering=default_covering(X)
+  )
+  !has_decomposition_info(orig_cov) && return ref_cov
+  OX = OO(X)
+
+  decomp_dict = IdDict{AbsSpec, Tuple{AbsSpec, Vector{RingElem}}}()
+  for U in patches(ref_cov)
+    inc_U, d_U = _find_chart(U, orig_cov)
+    decomp_dict[U] = (codomain(inc_U), d_U)
+  end
+
+  for V in patches(orig_cov)
+    V_ref = [U for U in patches(ref_cov) if decomp_dict[U][1] === V]
+    comp_eqns = [decomp_dict[U][2] for U in V_ref]
+    dec_inf = copy(decomposition_info(orig_cov)[V])
+    for U in V_ref
+      tmp = elem_type(OO(U))[OX(V, U)(i) for i in dec_inf] # help the compiler
+      set_decomposition_info!(ref_cov, U, tmp)
+      append!(dec_inf, decomp_dict[U][2])
+    end
+  end
+  return ref_cov
+end
+
+

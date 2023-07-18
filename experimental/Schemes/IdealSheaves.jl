@@ -344,19 +344,18 @@ function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal};
     all_dense::Bool=false
   )
-  gg = glueing_graph(C, all_dense=all_dense)
   # push all nodes on which I is known in a heap
   visited = collect(keys(D))
   # The nodes which can be used for extension
-  fat = [U for U in visited if !isone(D[U])]
+  fat = AbsSpec[U for U in visited if !isone(D[U])]
   # Nodes which are leafs
-  flat = [U for U in visited if isone(D[U])]
+  flat = AbsSpec[U for U in visited if isone(D[U])]
   # Nodes to which we might need to extend
-  leftover = [U for U in patches(C) if !(U in keys(D))]
+  leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = [U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  neighbors = AbsSpec[U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
   # All other nodes
-  leftover = [U for U in leftover if !any(W->W===U, neighbors)]
+  leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
   while length(neighbors) > 0
     good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
     for V in neighbors
@@ -524,8 +523,11 @@ end
 #  return W, spec_dict
 #end
 #
-@attr function isone(I::IdealSheaf)
-  return all(x->isone(I(x)), affine_charts(scheme(I)))
+
+function is_one(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
+  return get_attribute!(I, :is_one) do
+    return all(x->isone(I(x)), covering)
+  end::Bool
 end
 
 @doc raw"""
@@ -551,7 +553,7 @@ Return whether ``I`` is locally prime.
 A sheaf of ideals $\mathcal{I}$ is locally prime if its stalk $\mathcal{I}_p$
 at every point $p$ is one or prime.
 """
-function is_locally_prime(I::IdealSheaf)
+@attr Bool function is_locally_prime(I::IdealSheaf)
   return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
 end
 

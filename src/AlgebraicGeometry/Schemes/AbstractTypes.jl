@@ -99,4 +99,4 @@ abstract type AbsProjectiveSurface{BaseField<:Field, RingType<:Ring} <: AbsProje
 A geometrically integral scheme of dimension 2 of finite type over a field
 represented in terms of a covering.
 """
-abstract type AbsCoveredSurface{BaseField} <: Scheme{BaseField} end
+abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField} end

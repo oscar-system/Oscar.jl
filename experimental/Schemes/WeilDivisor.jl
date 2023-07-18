@@ -315,7 +315,9 @@ end
 For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
 as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
 """
-function intersect(D::WeilDivisor, E::WeilDivisor)
+function intersect(D::WeilDivisor, E::WeilDivisor;
+    covering::Covering=default_covering(scheme(D))
+  )
   X = scheme(D)
   @assert dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
   X === scheme(E) || error("divisors do not live on the same scheme")
@@ -341,12 +343,27 @@ function intersect(D::WeilDivisor, E::WeilDivisor)
     a1 = D[c1]
     for c2 in components(E)
       a2 = E[c2]
-      I = c1 + c2
-      @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-      result = result + a1 * a2 * colength(I)
+      if c1 === c2
+        result = a1*a2*_self_intersection(c1)
+      else
+        I = c1 + c2
+        @assert dim(I) <= 0 "divisors have nontrivial self intersection"
+        result = result + a1 * a2 * colength(I, covering=covering)
+      end
     end
   end
   return result
+end
+
+"""
+    _self_intersection(I::IdealSheaf) -> Integer
+
+For ``I`` a sheaf of pure codimension ``1`` on a surface,
+return the self-intersection of ``I`` viewed as a Weil-Divisor.
+"""
+function _self_intersection(I::IdealSheaf)
+  has_attribute(I, :_self_intersection) || error("self intersection unknown")
+  return get_attribute(I, :_self_intersection)::Int
 end
 
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
@@ -532,6 +549,9 @@ function subsystem(L::LinearSystem, D::WeilDivisor)
   Lnew = L
   T = identity_matrix(base_ring(scheme(L)), ngens(L))
   for P in components(E)
+    if coeff(D,P) == coeff(E,P)
+      continue
+    end
     Lnew, Tnew = _subsystem(Lnew, P, -coeff(D,P))
     T = Tnew*T
   end
@@ -552,6 +572,9 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   # find one chart in which P is supported
   # TODO: There might be preferred choices for charts with
   # the least complexity.
+  if coeff(weil_divisor(L),P) == -n
+    return L, identity_matrix(ZZ, length(gens(L)))
+  end
   X = variety(L)
   X === space(P) || error("input incompatible")
   C = default_covering(X)
@@ -607,7 +630,11 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   end
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
+  W = weil_divisor(L)
+  PW = WeilDivisor(P, check=false)
+  k = coeff(W,P)
+  D = W + (min(-n,k)-k)*PW
+  return LinearSystem(new_gens, D, check=false), K[1:r,:]
 end
 
 function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)

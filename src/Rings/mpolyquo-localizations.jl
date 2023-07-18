@@ -2142,7 +2142,7 @@ end
     success || error("element can not be mapped")
     return c
   end
-  id = MapFromFunc(my_fun, L, Q)
+  id = MapFromFunc(L, Q, my_fun)
   #id = hom(L, Q, gens(A)[r+1:end], check=false)
   id_inv = hom(Q, L, vcat([L(one(R), b, check=false) for b in f], gens(L)), check=false)
   set_attribute!(id, :inverse, id_inv)
