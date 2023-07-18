@@ -83,3 +83,145 @@ function base_change(phi::Any, f::CoveringMorphism;
   return domain_map, CoveringMorphism(DD, CC, mor_dict, check=true), codomain_map # TODO: Set to false after testing.
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, f::CoveringMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+# Like the detailed printing but we avoid to mention the domain and codomain -
+# this printing is used in nested printed where we assumed that the domain and
+# codomain of `f` are already in the nest.
+function _show_semi_compact(io::IO, f::CoveringMorphism)
+  io = pretty(io)
+  mor = morphisms(f)
+  lX = ndigits(length(domain(f)))
+  lY = ndigits(length(codomain(f)))
+  for i in 1:length(domain(f))
+    li = ndigits(i)
+    U = domain(f)[i]
+    g = mor[U]
+    j = findfirst(V -> codomain(g) === V, collect(codomain(f)))
+    lj = ndigits(j)
+    print(io, " "^(lX-li)*"$(i)a -> "*" "^(lY-lj)*"$(j)b")
+    print(io, Indent())
+    x = coordinates(codomain(g))
+    pg = pullback(mor[U])
+    co_str = String["$(y)" for y in x]
+    pushfirst!(co_str, "")
+    k = max(length.(co_str)...)
+    for j in 1:length(x)
+      kj = length(co_str[j+1])
+      println(io)
+      print(io, " "^(k-kj)*"$(x[j]) -> $(pg(x[j]))")
+    end
+    if i != length(patches(domain(f)))
+      println(io)
+      println(io, "----------------------------------------")
+    end
+    print(io, Dedent())
+  end
+end
+
+# As for covered scheme morphisms, we mention the domain and the codomain with a
+# fix covering. The charts in each covering are labeled by a number and a letter
+# - "a" for the domain and "b" for the codomain.
+#
+# We need to take care of some offsets for the alignments:
+# - when mentioning the coordinates of all charts of a given covering, we take
+# care of the length of the longest printed system of coordinated - this gives
+# us a sample to use to create our offsets. Doing so, we align our coordinates
+# systems on the left, and the description of the charts are also aligned on the
+# left, 3 spaces after the systems of coordinates;
+# - for the labels, we have to take care that if we have more that 10 charts,
+# the small labels will need a left offset in order to align all labels on the
+# right
+# - for the description on the map by pullbacks between given charts, we want to
+# have all the arrows at the same level - to do so, we take care of some left
+# offsets so that the elements in the "domain of the pullback morphism" are
+# aligned on the right, and their respective images are aligned on the left.
+function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
+  io = pretty(io)
+  println(io, "Morphism")
+  print(io, Indent(), "from ", Lowercase(), domain(f))
+  print(io, Indent())
+  co_str = String[""]
+  lX = ndigits(length(domain(f)))
+  lY = ndigits(length(codomain(f)))
+  for i in 1:length(domain(f))
+    U = domain(f)[i]
+    co = coordinates(U)
+    str = "["*join(co, ", ")*"]"
+    push!(co_str, str)
+  end
+  k = max(length.(co_str)...)
+  for i in 1:length(domain(f))
+    li = ndigits(i)
+    U = domain(f)[i]
+    kc = length(co_str[i+1])
+    println(io)
+    print(io, " "^(lX-li)*"$(i)a: "*co_str[i+1]*" "^(k-kc+3), Lowercase(), U)
+  end
+  println(io, Dedent())
+  print(io, "to   ", Lowercase(), codomain(f))
+  print(io, Indent())
+  co_str = String[""]
+  for i in 1:length(codomain(f))
+    U = codomain(f)[i]
+    co = coordinates(U)
+    str = "["*join(co, ", ")*"]"
+    push!(co_str, str)
+  end
+  k = max(length.(co_str)...)
+  for i in 1:length(codomain(f))
+    li = ndigits(i)
+    U = codomain(f)[i]
+    kc = length(co_str[i+1]) 
+    println(io)
+    print(io, " "^(lY-li)*"$(i)b: "*co_str[i+1]*" "^(k-kc+3), Lowercase(), U)
+  end
+  print(io, Dedent(), Dedent())
+  mor = morphisms(f)
+  if length(mor) > 0
+    println(io)
+    print(io, "given by the pullback function")
+    length(mor) > 1 && print(io, "s")
+    println(io, Indent())
+    for i in 1:length(domain(f))
+      li = ndigits(i)
+      U = domain(f)[i]
+      g = mor[U]
+      j = findfirst(V -> codomain(g) === V, collect(codomain(f)))
+      lj = ndigits(j)
+      print(io, " "^(lX-li)*"$(i)a -> "*" "^(lY-lj)*"$(j)b")
+      print(io, Indent())
+      x = coordinates(codomain(g))
+      co_str = String["$(y)" for y in x]
+      pushfirst!(co_str, "")
+      k = max(length.(co_str)...)
+      pg = pullback(mor[U])
+      for j in 1:length(x)
+        kj = length(co_str[j+1])
+        println(io)
+        print(io, " "^(k-kj)*"$(x[j]) -> $(pg(x[j]))")
+      end
+      print(io, Dedent())
+      if i != length(patches(domain(f)))
+        println(io)
+        println(io, "----------------------------------------")
+      end
+    end
+    print(io, Dedent(), Dedent())
+  end
+end
+
+

@@ -8071,7 +8071,7 @@ end
 #TODO move to Hecke
 #  re-evaluate and use or not
 
-function getindex(r::Hecke.SRow, u::UnitRange)
+function getindex(r::Hecke.SRow, u::AbstractUnitRange)
   R = base_ring(r)
   s = sparse_row(R)
   shift = 1-first(u)
@@ -8084,7 +8084,7 @@ function getindex(r::Hecke.SRow, u::UnitRange)
   return s
 end
 
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
+function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
   for (p,v) = r

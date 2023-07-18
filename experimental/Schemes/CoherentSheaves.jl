@@ -37,8 +37,44 @@ function sheaf_of_rings(F::AbsCoherentSheaf)
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
 
+# Manage some left offsets so that the labels are aligned on the right - could
+# have alignment issues in the case where we have more than 10 patches to
+# describe the restrictions of the sheaf
+function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
+  io = pretty(io)
+  X = scheme(M)
+  cov = default_covering(X)
+  D = M.ID 
+  println(io, "Coherent sheaf of modules")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  if length(cov) > 0
+    l = ndigits(length(cov))
+    println(io)
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(cov)
+      li = ndigits(i)
+      U = cov[i]
+      println(io)
+      print(io, " "^(l-li)*"$i: ", Lowercase(), D[U])
+    end
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, M::AbsCoherentSheaf)
-  print(io, "sheaf of $(sheaf_of_rings(M))-modules on $(scheme(M))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    if is_unicode_allowed()
+      print(io, "Coherent sheaf of $(sheaf_of_rings(M))-modules on ", Lowercase(), scheme(M))
+    else
+      print(io, "Coherent sheaf of modules on ", Lowercase(), scheme(M))
+    end
+  end
 end
 
 
@@ -657,13 +693,34 @@ sheaf_of_rings(M::SheafOfModules) = M.OOX
 
 ### Implementing the additional getters
 default_covering(M::SheafOfModules) = M.C
-
+restrictions_dict(M::SheafOfModules) = M.ID
 
 @doc raw"""
     twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
 ``𝒪(d)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates s0, s1, s2, s3
+
+julia> twisting_sheaf(P, 4)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   # First, look up whether this sheaf has already been computed:
@@ -704,6 +761,27 @@ end
     tautological_bundle(IP::AbsProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates s0, s1, s2, s3
+
+julia> tautological_bundle(P)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
@@ -926,7 +1004,19 @@ function direct_sum(summands::Vector{<:AbsCoherentSheaf})
 end
 
 function Base.show(io::IO, M::DirectSumSheaf)
-  print(io, "direct sum of $(summands(M))")
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    s = summands(M)
+    if is_unicode_allowed() && length(s) > 0
+      for i in 1:length(M) - 1
+        print(io, "$(s[i]) ⊕ ")
+      end
+      print(io, "$(s[end])")
+    else
+      print(io, "Sheaf of modules on covered scheme")
+    end
+  end
 end
 
 @doc raw"""

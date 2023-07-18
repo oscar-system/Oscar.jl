@@ -3,6 +3,49 @@
 # Constructors for SpecOpenRing                                        #
 ########################################################################
 
+@doc raw"""
+    OO(U::SpecOpen) -> SpecOpenRing
+
+Given a Zariski open subset `U` of an affine scheme `X`, return the ring
+`𝒪(X, U)` of regular functions on `U`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> A = Spec(P)
+Spectrum
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+
+julia> Y = Spec(P, I)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x^3 - y^2*z)
+
+julia> U = complement(A, Y)
+Open subset
+  of spec of multivariate polynomial ring
+complement to V(x^3 - y^2*z)
+
+julia> OO(U)
+Ring of regular functions
+  on complement to V(x^3 - y^2*z) in affine scheme with coordinates [x, y, z]
+
+julia> one(OO(U))
+Regular function
+  on zariski open subset
+    of affine scheme with coordinates [x, y, z]
+  complement to V(x^3 - y^2*z)
+  covered by 1 affine patch
+    1: [x, y, z]   spec of localized ring
+with restriction
+  1: 1
+```
+"""
 function OO(U::SpecOpen) 
   if !isdefined(U, :ring_of_functions) 
     U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U, check=false)
