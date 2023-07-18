@@ -37,15 +37,15 @@
         "description": "SO(4k+2) Tate model",
         "gauge_algebra": ["so(4k+2)"],
         "base_dim": 3,
-        "base_coordinates": ["b1", "b2", "b3", "b4", "b6", "ζ0"],
+        "base_coordinates": ["Kbar", "b1", "b2", "b3", "b4", "b6", "ζ0"],
         "a1": "b1*ζ0",
         "a2": "b2*ζ0",
         "a3": "b3*ζ0^k",
         "a4": "b4*ζ0^(k + 1)",
         "a6": "b6*ζ0^(2*k + 1)",
         "auxiliary_base_grading": [
-            [1, 2, 3, 4, 6, 0],
-            [-1, -1, "-k", "-(k + 1)", "-(2*k + 1)", 1]
+            [1, 1, 2, 3, 4, 6, 0],
+            [0, -1, -1, "-k", "-(k + 1)", "-(2*k + 1)", 1]
         ],
         "resolutions": [
             [
