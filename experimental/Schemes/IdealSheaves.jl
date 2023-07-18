@@ -528,7 +528,7 @@ function is_one(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
   return get_attribute!(I, :is_one) do
     return all(x->isone(I(x)), covering)
   end::Bool
-
+end
 
 @doc raw"""
     is_prime(I::IdealSheaf) -> Bool
