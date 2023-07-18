@@ -35,58 +35,20 @@ Morphism
   from projective scheme in IP^2 over QQ
   to   projective scheme in IP^2 over QQ
 
-julia> covered_scheme_morphism(f)
-Morphism
-  from scheme over QQ covered with 9 patches
-    1a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
-    2a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
-    3a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
-    4a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
-    5a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
-    6a: [(y//x), (z//x)]   spec of localized quotient of multivariate polynomial ring
-    7a: [(x//y), (z//y)]   spec of localized quotient of multivariate polynomial ring
-    8a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
-    9a: [(x//z), (y//z)]   spec of localized quotient of multivariate polynomial ring
-  to   scheme over QQ covered with 3 patches
-    1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
-given by the pullback functions
-  1a -> 2b
-    (x//y) -> 1/(y//x)
-    (z//y) -> (z//x)/(y//x)
-    ----------------------------------------
-  2a -> 3b
-    (x//z) -> (x//y)/(z//y)
-    (y//z) -> 1/(z//y)
-    ----------------------------------------
-  3a -> 1b
-    (y//x) -> 1/(x//y)
-    (z//x) -> (z//y)/(x//y)
-    ----------------------------------------
-  4a -> 2b
-    (x//y) -> (x//z)/(y//z)
-    (z//y) -> 1/(y//z)
-    ----------------------------------------
-  5a -> 3b
-    (x//z) -> 1/(z//x)
-    (y//z) -> (y//x)/(z//x)
-    ----------------------------------------
-  6a -> 1b
-    (y//x) -> (y//x)
-    (z//x) -> (z//x)
-    ----------------------------------------
-  7a -> 2b
-    (x//y) -> (x//y)
-    (z//y) -> (z//y)
-    ----------------------------------------
-  8a -> 1b
-    (y//x) -> (y//z)/(x//z)
-    (z//x) -> 1/(x//z)
-    ----------------------------------------
-  9a -> 3b
-    (x//z) -> (x//z)
-    (y//z) -> (y//z)
+julia> fcov = covered_scheme_morphism(f);
+
+julia> codomain(fcov)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
 ```
 """
 @attr function covered_scheme_morphism(f::ProjectiveSchemeMor)

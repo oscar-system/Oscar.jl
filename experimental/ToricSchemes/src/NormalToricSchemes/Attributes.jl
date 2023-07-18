@@ -22,7 +22,10 @@ julia> affine_toric_scheme = ToricSpec(antv)
 Spec of an affine toric variety
 
 julia> underlying_scheme(affine_toric_scheme)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(0)
 ```
 """
 @attr underlying_scheme(X::ToricSpec) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
@@ -45,7 +48,17 @@ julia> toric_scheme = ToricCoveredScheme(P2)
 Scheme of a toric variety
 
 julia> underlying_scheme(toric_scheme)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of an affine toric variety
+    2: spec of an affine toric variety
+    3: spec of an affine toric variety
+  in the coordinate(s)
+    1: [x1, x2]
+    2: [x1, x2]
+    3: [x1, x2]
 ```
 """
 @attr function underlying_scheme(Z::ToricCoveredScheme)
