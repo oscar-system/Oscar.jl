@@ -698,7 +698,7 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   @assert length(rt)==1
   rt = rt[1]
   R = root_lattice(rt[1], rt[2])
-  b, I = _is_equal_up_to_permutation_with_permutation1(G, -gram_matrix(R))
+  b, I = _is_equal_up_to_permutation_with_permutation(G, -gram_matrix(R))
   @assert b
   gensF = vcat([f0], f[I])
   Gext, v = extended_ade(rt[1],rt[2])
@@ -868,62 +868,6 @@ Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
 @attr zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
-
-
-
-################################################################################
-#
-# To be deleted once #2559 is merged
-#
-################################################################################
-
-
-
-@doc raw"""
-    _is_isomorphic_with_map(G1::Graph, G2::Graph) -> Bool, Vector{Int}
-
-Return an isomorphism from `G1` to `G2` given in terms of a
-vector of integers.
-"""
-function _is_isomorphic_with_map(G1::Graph, G2::Graph)
-  f12 = Polymake.graph.find_node_permutation(G1.pm_graph, G2.pm_graph)
-  if isnothing(f12)
-    return false, Vector{Int}()
-  end
-  return true, Polymake.to_one_based_indexing(f12)
-end
-
-@doc raw"""
-    _graph(G::MatElem)
-
-Return the undirected graph defined by the square matrix ``G = (g_{ij})_{ij}``.
-
-Two nodes $i,j \in \{1, \dots n\} with $i>j$ are joined by an edge
-if and only if $g_{ij} == 1$.
-"""
-function _graph(G::MatElem)
-  n = nrows(G)
-  g = Graph{Undirected}(n)
-  for i in 1:n
-    for j in 1:i-1
-      if G[i,j] == 1
-        add_edge!(g,i,j)
-      end
-    end
-  end
-  return g
-end
-
-@doc raw"""
-    _is_equal_up_to_permutation_with_permutation1(A1::MatElem, A2::MatElem) -> Bool, Vector{Int}
-
-Return a permutation ``T`` with ``A1[T,T] == A2`` and whether it exists.
-"""
-function _is_equal_up_to_permutation_with_permutation1(A1::MatElem, A2::MatElem)
-  b, T = is_isomorphic_with_map(graph(A1),graph(A2))
-  @assert b || A1[T,T] == A2
-  return b, T
-end
 
 ################################################################################
 #
