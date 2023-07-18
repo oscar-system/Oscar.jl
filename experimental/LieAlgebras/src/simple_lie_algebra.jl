@@ -103,9 +103,6 @@ function Base.show(io::IO, L::SimpleLieAlgebra)
     print(IOContext(io, :supercompact => true), coefficient_ring(L))
   end
 
-function symbols(L::SimpleLieAlgebra) 
-  return L.s
-end
 
 # function Base.show(io::IO, V::SimpleLieAlgebra)
 #   print(io, "Simple Lie Algebra over ")
