@@ -1,5 +1,7 @@
 export CartierDivisor
+export cartier_divisor
 export EffectiveCartierDivisor
+export effective_cartier_divisor
 export trivializing_covering
 
 @attributes mutable struct EffectiveCartierDivisor{
@@ -131,6 +133,54 @@ function iszero(C::CartierDivisor)
   return iszero(length(keys(coefficient_dict(C)))) || all(k->iszero(C[k]), components(C))
 end
 
+@doc raw"""
+    cartier_divisor(E::EffectiveCartierDivisor) -> CartierDivisor
+
+Given an effective cartier divisor `E`, return the cartier divisor
+$1*E$.
+
+Mathematically both objects are the same, this function is a coercion method
+to see effective cartier divisors as irreducible cartier divisor with coefficient
+1.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> E = effective_cartier_divisor(II)
+Effective cartier divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+defined by
+  sheaf of ideals with restrictions
+    1: ideal(-(y//x)^2*(z//x) + 1)
+    2: ideal((x//y)^3 - (z//y))
+    3: ideal((x//z)^3 - (y//z)^2)
+
+julia> cartier_divisor(E)
+Cartier divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with coefficients in integer Ring
+defined by the formal sum of
+  1*sheaf of ideals with restrictions
+    1: ideal(-(y//x)^2*(z//x) + 1)
+    2: ideal((x//y)^3 - (z//y))
+    3: ideal((x//z)^3 - (y//z)^2)
+```
+"""
+cartier_divisor(E::EffectiveCartierDivisor) = CartierDivisor(E)
+
 function CartierDivisor(C::EffectiveCartierDivisor)
   return CartierDivisor(scheme(C), ZZ, IdDict([C => one(ZZ)]))
 end
@@ -157,6 +207,38 @@ function ==(C::CartierDivisor, D::CartierDivisor)
   return true
 end
 
+@doc raw"""
+    effective_cartier_divisor(I::IdealSheaf;
+                              trivializing_covering::Covering = default_covering(scheme(I)))
+                                                                -> EffectiveCartierDivisor
+
+Return the effective Cartier divisor defined by the ideal sheaf `I`, given
+that `I` is principal in the given covering of the scheme on which it is defined.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> effective_cartier_divisor(II)
+Effective cartier divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+defined by
+  sheaf of ideals with restrictions
+    1: ideal(-(y//x)^2*(z//x) + 1)
+    2: ideal((x//y)^3 - (z//y))
+    3: ideal((x//z)^3 - (y//z)^2)
+```
+"""
+effective_cartier_divisor(I::IdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)
 
 function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
@@ -320,30 +402,126 @@ dim(C::CartierDivisor) = dim(scheme(C))-1
 ## show functions for Cartier divisors
 ########################################################################### 
 function Base.show(io::IO, C::EffectiveCartierDivisor)
-  I = ideal_sheaf(C)
-  X = C.X
-  covering = C.C
-  n = npatches(covering)
-
-  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Cartier divisor")
+  else
+    print(io, "Effective cartier divisor on ", Lowercase())
+    show(io, scheme(C))
+  end
 end
 
-function show_details(C::EffectiveCartierDivisor)
-   show_details(stdout,C)
+# We keep track of the covering, so that we have more flexibility and
+# consistency
+function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  I = ideal_sheaf(C)
+  X = scheme(C)
+
+  println(io, "Effective cartier divisor")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, scheme(C), cov)
+  println(io, Dedent())
+  println(io, "defined by", Lowercase())
+  print(io, Indent())
+  Oscar._show_semi_compact(io, I)
+  print(io, Dedent())
 end
 
-function show_details(io::IO,C::EffectiveCartierDivisor)
-  I = ideal_sheaf(C)
-  X = C.X
+# Use for nested printings: we omit the ambient variety, but we keep track of
+# covering used in the nested printing, and we use `cov`
+#
+# For nested printings in morphisms, we need to distinguish labels from charts
+# of the domain and of the codomain, to pass it to the description of ideal
+# sheaves - this is done via the string `n`
+#
+# We usually use "a" for the domain and "b" for the codomain
+function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))), n::String = "")
+  io = pretty(io)
+  X = scheme(C)
+  println(io, "Effective cartier divisor defined by")
+  print(io, Indent(), Lowercase())
+  Oscar._show_semi_compact(io, ideal_sheaf(C), cov, n)
+  print(io, Dedent())
+end
 
-  covering = C.C
-  n = npatches(covering)
+function Base.show(io::IO, C::CartierDivisor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Cartier divisor")
+  else
+    print(io, "Cartier divisor on ", Lowercase())
+    show(io, scheme(C))
+  end
+end
 
-  println(io,"Effective Cartier Divisor on Covered Scheme with ",n," Charts:\n")
+# We keep track of the covering, so that we have more flexibility and
+# consistency
+#
+# We have to take care of some offsets to have our coefficients aligned on the
+# right.
+function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+  io = pretty(io)
+  X = scheme(C)
+  cc = components(C)
+  if length(cc) == 0
+    print(io, "Zero cartier divisor ")
+    print(io, Indent(), "on ", Lowercase())
+    Oscar._show_semi_compact(io, scheme(C), cov)
+    print(io, Dedent())
+  else
+    println(io, "Cartier divisor")
+    print(io, Indent(), "on ", Lowercase())
+    Oscar._show_semi_compact(io, scheme(C), cov)
+    println(io)
+    println(io, Dedent(), "with coefficients in ", Lowercase(), coefficient_ring(C))
+    print(io, "defined by the formal sum of")
+    println(io, Indent())
+    co_str = String["$(C[I])" for I in cc]
+    k = max(length.(co_str)...)
+    for i in 1:length(components(C))
+      I = cc[i]
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, ideal_sheaf(I), cov)
+      if i != length(components(C))
+        println(io, "--------------------------------------------------------------------------------")
+      end
+    end
+    print(io, Dedent())
+  end
+end
 
-  for (i,U) in enumerate(patches(covering))
-    println(io,"Chart $i:")
-    println(io,"   $(I(U))")
-    println(io," ")
+# Use for nested printings: we omit the ambient variety, but we keep track of
+# covering used in the nested printing, and we use `cov`
+#
+# For nested printings in morphisms, we need to distinguish labels from charts
+# of the domain and of the codomain, to pass it to the description of ideal
+# sheaves - this is done via the string `n`
+#
+# We usually use "a" for the domain and "b" for the codomain
+function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))), n::String = "")
+  io = pretty(io)
+  X = scheme(C)
+  cc = components(C)
+  if length(cc) == 0
+    print(io, "Zero cartier divisor")
+  else
+    println(io, "Cartier divisor defined by the formal sum of")
+    print(io, Indent())
+    co_str = String["$(C[I])" for I in cc]
+    k = max(length.(co_str)...)
+    for i in 1:length(components(C))
+      I = cc[i]
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, ideal_sheaf(I), cov, n)
+      if i != length(components(C))
+        println(io, "--------------------------------------------------------------------------------")
+      end
+    end
+    print(io, Dedent())
   end
 end

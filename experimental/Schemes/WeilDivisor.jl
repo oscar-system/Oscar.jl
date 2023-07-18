@@ -70,7 +70,6 @@ coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
 coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
-
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
@@ -88,9 +87,28 @@ end
 
 # provide non-camelcase methods
 @doc raw"""
-    weil_divisor(X::AbsCoveredScheme, R::Ring)
+    weil_divisor(X::AbsCoveredScheme, R::Ring) -> WeilDivisor
 
-See the documentation for `WeilDivisor`.
+Return the zero weil divisor on `X` with coefficients in the ring `R`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y);
+
+julia> weil_divisor(Ycov, QQ)
+Zero weil divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+with coefficients in rational field
+```
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
@@ -104,6 +122,36 @@ function WeilDivisor(I::IdealSheaf; check::Bool=true)
   WeilDivisor(I, ZZ, check=check)
 end
 
+@doc raw"""
+    weil_divisor(I::IdealSheaf) -> WeilDivisor
+
+Given an ideal sheaf `I`, return the prime weil divisor $D = 1 ⋅ V(I)$ with
+coefficients in the integer ring.
+
+# Example
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> weil_divisor(II)
+Prime weil divisor
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with coefficients in integer Ring
+given as the formal sum of
+  1*sheaf of ideals with restrictions
+      1: ideal(-(y//x)^2*(z//x) + 1)
+      2: ideal((x//y)^3 - (z//y))
+      3: ideal((x//z)^3 - (y//z)^2)
+```
+"""
 weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
 function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
@@ -130,18 +178,112 @@ function irreducible_decomposition(D::WeilDivisor)
   return WeilDivisor(decomp, check=false)
 end
 
+# If we know something about the Weil divisor, we write it! Always good to have
+# relevant information for free
 function Base.show(io::IO, D::WeilDivisor)
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  if length(components(C)) == 1
+    prim = C[components(C)[1]] == 1
+  else
+    prim = false
+  end
   if has_name(D)
     print(io, name(D))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Algebraic cycle")
+  elseif length(components(D)) == 0
+    print(io, "Zero weil divisor on ", Lowercase(),  X)
+  elseif eff
+    if prim
+      print(io, "Prime weil divisor on ", Lowercase(), X)
+    else
+      print(io, "Effective Weil divisor on ", Lowercase(), X)
+    end
+  else
+    print(io, "Weil divisor on ", Lowercase(), X)
+  end
+end
+
+# Used in nested printing, where we assume that the associated scheme is already
+# printed in the nest - we keep track of the good covering `cov` to describe
+# everything consistenly.
+function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  if length(components(C)) == 1
+    prim = C[components(C)[1]] == 1
+  else
+    prim = false
   end
   if length(components(D)) == 0
-    print(io, "the zero Weil divisor on $(scheme(D))")
-    return
+    print(io, "Zero weil divisor on ", Lowercase())
+  elseif eff
+    if prim
+      print(io, "Prime weil divisor on ", Lowercase())
+    else
+      print(io, "Effective Weil divisor on ", Lowercase())
+    end
+  else
+    print(io, "Weil divisor on ", Lowercase())
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum:")
-  comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  join(io, comp, " + ")
+  Oscar._show_semi_compact(io, X, cov)
+end
+
+# Take care of some offsets to make sure that the coefficients are all aligned
+# on the right.
+function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  if length(components(C)) == 1
+    prim = C[components(C)[1]] == 1
+  else
+    prim = false
+  end
+  if length(components(C)) == 0
+    print(io, "Zero weil divisor")
+  else
+    if eff
+      if prim
+        print(io, "Prime weil divisor")
+      else
+        print(io, "Effective weil divisor")
+      end
+    else
+      print(io, "Weil divisor")
+    end
+  end
+  println(io)
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  println(io, Dedent())
+  print(io, "with coefficients in ", Lowercase(), coefficient_ring(C))
+  if length(components(C)) != 0
+    println(io)
+    print(io, Dedent(), "given as the formal sum of")
+    print(io, Indent())
+    co_str = String["$(C[I])" for I in components(C)]
+    k = max(length.(co_str)...)
+    for i in 1:length(components(C))
+      println(io)
+      I = components(C)[i]
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, Indent(), Lowercase())
+      Oscar._show_semi_compact(io, I)
+      print(io, Dedent())
+      if i != length(components(C))
+        println(io)
+        print(io, "--------------------------------------------------------------------------------")
+      end
+    end
+  end
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
@@ -309,6 +451,40 @@ generated by rational functions ``f₁,…,fᵣ ∈ K(X)``.
     end
     f = Vector{VarietyFunctionFieldElem}(f)
     return new{typeof(D)}(D, f)
+  end
+end
+
+function Base.show(io::IO, L::LinearSystem)
+  io = pretty(io)
+  if get(io, :supercompact, true)
+    print(io, "Linear system")
+  else
+    print(io, "Linear system of ", Lowercase(), weil_divisor(L))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
+  io = pretty(io)
+  X = scheme(L)
+  cov = default_covering(X)
+  println(io, "Linear system")
+  print(io, Indent(), "of ", Lowercase())
+  Oscar._show_semi_compact(io, weil_divisor(L), cov)
+  gg = gens(L)
+  if length(gg) > 0
+    println(io)
+    print(io, Dedent(), "generated by")
+    print(io, Indent())
+    ll = String["$(representative(f))" for f in gg]
+    k = max(length.(ll)...)
+    offset = Int[k-length(s) for s in ll]
+    for i in 1:length(gg)
+      f = gg[i]
+      println(io)
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, f, cov, offset[i])
+    end
+    print(io, Dedent())
   end
 end
 

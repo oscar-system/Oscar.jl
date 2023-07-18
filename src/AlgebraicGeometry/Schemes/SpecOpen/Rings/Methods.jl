@@ -439,3 +439,65 @@ function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
   return f
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, R::SpecOpenRing)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Ring")
+  else
+    print(io, "Ring of regular functions on ", Lowercase(), domain(R))
+  end
+end
+
+# Here we just need some details on the domain `U`.
+function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
+  io = pretty(io)
+  println(io, "Ring of regular functions")
+  print(io, Indent(), "on ", Lowercase())
+  show(io, domain(R))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, a::SpecOpenRingElem)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Ring element")
+  else
+    print(io, "Regular function on ", Lowercase(), domain(parent(a)))
+  end
+end
+
+# Since regular functions are described on each affine patches of the domain `U`
+# on which they are defined, we need to extract details about the affine patches
+# on `U` and label them so that one can see how the regular function is defined
+# on each patch
+function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
+  io = pretty(io)
+  R = parent(a)
+  U = domain(R)
+  println(io, "Regular function")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, domain(R))
+  print(io, Dedent())
+  r = restrictions(a)
+  ap = affine_patches(a)
+  if length(r) > 0
+    l = ndigits(length(r))
+    println(io)
+    print(io, "with restriction")
+    length(r) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(r)
+      li = ndigits(i)
+      println(io)
+      print(io, " "^(l-li)*"$(i): ", r[i])
+    end
+    print(io, Dedent())
+  end
+end
+  

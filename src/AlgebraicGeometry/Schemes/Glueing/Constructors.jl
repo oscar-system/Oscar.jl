@@ -23,17 +23,15 @@ julia> f = SpecMor(V1, V2, [1//x, y//x]); # The glueing isomorphism
 julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
-Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map morphism from
-
-	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
-
-to
-
-	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
-
-with coordinates
-
-	1/x, y/x
+Glueing
+  of  spec of multivariate polynomial ring
+  and spec of multivariate polynomial ring
+along the open subsets
+  [x, y]   spec of localized ring
+  [u, v]   spec of localized ring
+given by the pullback function
+  u -> 1/x
+  v -> y/x
 
 julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
 true
@@ -47,7 +45,19 @@ julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
 julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
 julia> H = Glueing(U1, U2, h1, h2)
-Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map Morphism from complement of zero locus of QQMPolyRingElem[x] in Spec of Multivariate polynomial ring in 2 variables over QQ to complement of zero locus of QQMPolyRingElem[u] in Spec of Multivariate polynomial ring in 2 variables over QQ
+Glueing
+  of  spec of multivariate polynomial ring
+  and spec of multivariate polynomial ring
+along the open subsets
+  [x, y]   complement to V(x) in affine scheme with coordinates [x, y]
+  [u, v]   complement to V(u) in affine scheme with coordinates [u, v]
+defined by the map
+  morphism
+    from [x, y]  spec of localized ring
+    to   [u, v]  spec of multivariate polynomial ring
+  given by the pullback function
+    u -> 1/x
+    v -> y/x
 
 julia> typeof(H)<:Glueing
 true

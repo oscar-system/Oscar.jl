@@ -5,8 +5,6 @@ export order_on_divisor
 export scheme
 export subscheme
 
-export show_details
-
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -24,6 +22,29 @@ in every chart.
 ``f : X → Y``, what is actually computed, is ``f⁻¹ ℐ ⋅ 𝒪_{X}``. 
 To obtain the pullback of ``ℐ`` as a sheaf of modules (i.e. ``f* ℐ``), 
 convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P)
+Projective space of dimension 2
+  over rational field
+with homogeneous coordinates x, y, z
+
+julia> IdealSheaf(Y, I)
+Sheaf of ideals
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with restrictions
+  1: ideal(-(y//x)^2*(z//x) + 1)
+  2: ideal((x//y)^3 - (z//y))
+  3: ideal((x//z)^3 - (y//z)^2)
+```
 """
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
@@ -260,7 +281,6 @@ function simplify!(I::IdealSheaf)
       push!(new_gens, new_gen)
       K = ideal(OO(U), new_gens)
     end
-    Oscar.object_cache(underlying_presheaf(I))[U] = K 
   end
   return I
 end
@@ -420,10 +440,6 @@ function _iterative_saturation(I::Ideal, f::RingElem)
   return I
 end
 
-#function Base.show(io::IO, I::IdealSheaf)
-#  print(io, "sheaf of ideals on $(space(I))")
-#end
-
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
   X = space(I)
@@ -508,7 +524,7 @@ end
 #  return W, spec_dict
 #end
 #
-function isone(I::IdealSheaf)
+@attr function isone(I::IdealSheaf)
   return all(x->isone(I(x)), affine_charts(scheme(I)))
 end
 
@@ -520,7 +536,7 @@ Return whether ``I`` is prime.
 We say that a sheaf of ideals is prime if its support is irreducible and
 ``I`` is locally prime. (Note that the empty set is not irreducible.)
 """
-function is_prime(I::IdealSheaf)
+@attr function is_prime(I::IdealSheaf)
   is_locally_prime(I) || return false
   # TODO: this can be made more efficient
   PD = maximal_associated_points(I)
@@ -976,36 +992,102 @@ end
 
 ###########################################################################
 ## show functions for Ideal sheaves
-########################################################################### 
-function Base.show(io::IO, I::IdealSheaf)
-  X = scheme(I)
-  if has_attribute(I,:name)
-    println(io, get_attribute(I, :name))
-  else
+###########################################################################
 
-    # If there is a simplified covering, use it!
-    covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-    n = npatches(covering)
-    println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+# If we know things about the ideal sheaf, we print them
+function Base.show(io::IO, I::IdealSheaf)
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
+
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    if get_attribute(I, :is_one, false)
+      print(io, "Sheaf of unit ideals")
+    elseif z
+      print(io, "Sheaf of zero ideals")
+    elseif prim
+      print(io, "Sheaf of prime ideals")
+    else
+      print(io, "Sheaf of ideals")
+    end
+    print(io," on ", Lowercase(), X)
   end
 end
 
-function show_details(I::IdealSheaf)
-   show_details(stdout,I)
+# This semi compact printing is used for nested printings, like in blow-up or
+# for the description of Cartier divisors and algebraic cycles.
+#
+# We want to keep track of a given covering `voc`, for everything to be consistent. In
+# case we may have several charts in the nest, we want to make sure to follow-up
+# with the labels. Hence the string `n` allows one to do this.
+# Usually, in morphisms printing, one would take "a" for the domain's charts
+# and "b" for the codomain's ones.
+#
+# We take also care of left offsets when printing the labels - if there are more
+# than 10 charts, this is necessary to have all the labels aligned on the right
+function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), n::String = "")
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
+
+  if get_attribute(I, :is_one, false)
+    print(io, "Sheaf of unit ideals")
+  elseif z
+    print(io, "Sheaf of zero ideals")
+  else
+    # If there is a simplified covering, use it!
+    if prim
+      print(io, "Sheaf of prime ideals")
+    else
+      print(io, "Sheaf of ideals")
+    end
+    if length(cov) > 0
+      l = ndigits(length(cov))
+      print(io, " with restriction")
+      length(cov) > 1 && print(io, "s")
+      print(io, Indent())
+      for (i, U) in enumerate(patches(cov))
+        li = ndigits(i)
+        println(io)
+        print(io, " "^(l-li)*"$i"*n*": $(I(U))")
+      end
+      print(io, Dedent())
+    end
+  end
 end
 
-function show_details(io::IO, I::IdealSheaf)
+function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))))
+  io = pretty(io)
   X = scheme(I)
 
   # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
-
-  for (i,U) in enumerate(patches(covering))
-    println(io,"Chart $i:")
-    println(io,"   $(I(U))")
-    println(io," ")
+  println(io, "Sheaf of ideals")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, scheme(I), cov)
+  if length(cov) > 0
+    l = ndigits(length(cov))
+    println(io)
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for (i, U) in enumerate(patches(cov))
+      li = ndigits(i)
+      println(io)
+      print(io, " "^(l-li)*"$i: $(I(U))")
+    end
+    print(io, Dedent())
   end
 end
 

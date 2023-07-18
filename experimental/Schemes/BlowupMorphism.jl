@@ -11,6 +11,67 @@ export projection
 # handle blowups. This is work in progress and will one day serve as 
 # a building block for sequences of blowups
 ########################################################################
+
+@doc raw"""
+    BlowupMorphism
+
+A datastructure to encode blowups of covered schemes in some sheaves of ideals.
+
+It is described as a morphism from the new scheme to the blown-up scheme, with
+information about its center (i.e. the ideal sheaves blown-up in the bottom
+scheme) and its exceptional locus (i.e. the preimage of the center under the
+blowup).
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> A3 = Spec(R)
+Spectrum
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+
+julia> I = ideal(R, [x,y,z])
+ideal(x, y, z)
+
+julia> bl = blow_up(A3, I)
+Blow up
+  of scheme over QQ covered with 1 patch
+    1b: [x, y, z]   spec of multivariate polynomial ring
+  in sheaf of ideals with restriction
+    1b: ideal(x, y, z)
+with domain
+  scheme over QQ covered with 3 patches
+    1a: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
+    2a: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
+    3a: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+and exceptional divisor
+  effective cartier divisor defined by
+    sheaf of ideals with restrictions
+      1a: ideal(x)
+      2a: ideal(y)
+      3a: ideal(z)
+
+julia> E = exceptional_divisor(bl)
+Effective cartier divisor
+  on scheme over QQ covered with 3 patches
+    1: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+defined by
+  sheaf of ideals with restrictions
+    1: ideal(x)
+    2: ideal(y)
+    3: ideal(z)
+
+julia> Z = center(bl)
+Sheaf of ideals
+  on scheme over QQ covered with 1 patch
+    1: [x, y, z]   spec of multivariate polynomial ring
+with restriction
+  1: ideal(x, y, z)
+```
+"""
 @attributes mutable struct BlowupMorphism{
                               CodomainType<:AbsCoveredScheme
                              } # TODO: Derive this from AbsCoveredSchemeMorphism ? 
@@ -364,115 +425,49 @@ end
 ##############################################################################
 # show functions for Blowup morphisms
 ##############################################################################
-function Base.show(io::IO,Bl::BlowupMorphism)
-
-## data of the original scheme
-  X0 = codomain(Bl)
-  C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
-  n0 = npatches(C0)
-
-## data of the blown up scheme
-  X1 = domain(Bl)
-  C1 = (has_attribute(X1, :simplified_covering) ? simplified_covering(X1) : default_covering(X1))
-  n1 = npatches(C1)
-
-## create the output
-  println(io,"Blow up of a Covered Scheme with ",n0," Charts leading to a Covered Scheme with ",n1," Charts")
+function Base.show(io::IO, Bl::BlowupMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Blow-up: ", Lowercase(), domain(Bl))
+    print(io, " -> ", Lowercase(), codomain(Bl))
+  end
 end
 
-@doc raw"""
-  show_details(Bl::BlowupMorphism)
-
-For a `BlowupMorphism` ``p : Y → X`` display domain, codomain, center and exceptional divisor in a detailed view.
-# Examples
-```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
-
-julia> A3 = Spec(R);
-
-julia> I = ideal(R,[x,y,z]);
-
-julia> bl = blow_up(A3,I)
-Blow up of a Covered Scheme with 1 Charts leading to a Covered Scheme with 3 Charts
-
-julia> show_details(bl)
-Blow up of a Covered Scheme with 1 Charts at a 0-dimensional Center leading to a Covered Scheme with 3 Charts.
-
-=====================================
-Affine charts of the original scheme:
-Spec of Multivariate polynomial ring in 3 variables over QQ
-
-=====================================
-Affine charts of the blown up scheme:
-Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
-
-Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
-
-Spec of Quotient of multivariate polynomial ring by ideal with 3 generators
-
-=====================================
-Data of center:
-Ideal Sheaf on Covered Scheme with 1 Charts:
-
-Chart 1:
-   ideal(x, y, z)
-
-=====================================
-Exceptional divisor:
-Effective Cartier Divisor on Covered Scheme with 3 Charts:
-
-Chart 1:
-   ideal(x)
-
-Chart 2:
-   ideal(y)
-
-Chart 3:
-   ideal(z)
-
-```
-"""
-function show_details(Bl::BlowupMorphism)
-   show_details(stdout, Bl)
-end
-
-function show_details(io::IO, Bl::BlowupMorphism)
-## data of the original scheme
+function show(io::IO, ::MIME"text/plain", Bl::BlowupMorphism)
+  ## data of the original scheme
   X0 = codomain(Bl)
-  C0 = (has_attribute(X0, :simplified_covering) ? simplified_covering(X0) : default_covering(X0))
-  n0 = npatches(C0)
+  C0 = get_attribute(X0, :simplified_covering, default_covering(X0))
 
-## data of the blown up scheme
+  ## data of the blown up scheme
   X1 = domain(Bl)
-  C1 = (has_attribute(X1, :simplified_covering) ? simplified_covering(X1) : default_covering(X1))
-  n1 = npatches(C1)
+  C1 = get_attribute(X1, :simplified_covering, default_covering(X1))
 
-## data of the blowing up itself
+  ## data of the blowing up itself
   ED = exceptional_divisor(Bl)
-  C_X0 = Bl.center
+  C_X0 = center(Bl)
 
-## create the output
-  println(io,"Blow up of a Covered Scheme with ",n0," Charts at a ",dim(C_X0),"-dimensional Center leading to a Covered Scheme with ",n1," Charts.\n")
+  ## create the output
+  io = pretty(io)
+  println(io, "Blow up")
+  print(io, Indent(), "of ", Lowercase())
+  Oscar._show_semi_compact(io, X0, C0, "b")
+  println(io)
 
-  println(io,"=====================================")
-  println(io,"Affine charts of the original scheme:")
-  for U in patches(C0)
-    println(io,U,"\n")
-  end
+  print(io, "in ", Lowercase())
+  Oscar._show_semi_compact(io, C_X0, C0, "b")
+  println(io, Dedent())
 
-  println(io,"=====================================")
-  println(io,"Affine charts of the blown up scheme:")
-  for V in patches(C1)
-    println(io,V,"\n")
-  end
+  println(io, "with domain")
+  print(io, Indent(), Lowercase())
+  Oscar._show_semi_compact(io, X1, C1, "a")
+  println(io, Dedent())
 
-  println(io,"=====================================")
-  println(io,"Data of center:")
-  show_details(io,Bl.center)
-
-  println(io,"=====================================")
-  println(io,"Exceptional divisor:")
-  show_details(io,exceptional_divisor(Bl))
+  println(io, "and exceptional divisor")
+  print(io, Indent(), Lowercase())
+  Oscar._show_semi_compact(io, ED, C1, "a")
+  print(io, Dedent())
 end
 
 @attr AbsCoveredSchemeMorphism function isomorphism_on_complement_of_center(f::BlowupMorphism)

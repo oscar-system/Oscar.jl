@@ -1,8 +1,8 @@
 export AbsAlgebraicCycle
 export AlgebraicCycle
+export algebraic_cycle
 export components
 export scheme
-
 
 
 ########################################################################
@@ -171,9 +171,31 @@ end
 
 # provide non-camelcase methods
 @doc raw"""
-    algebraic_cycle(X::AbsCoveredScheme, R::Ring)
+    algebraic_cycle(X::AbsCoveredScheme, R::Ring) -> AlgebraicCycle
 
-See the documentation for `AlgebraicCycle`.
+Return the zero `AlgebraicCycle` over `X` with coefficients
+in `R`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y);
+
+julia> R = ZZ;
+
+julia> algebraic_cycle(Ycov, R)
+Zero algebraic cycle
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+with coefficients in integer Ring
+```
 """
 algebraic_cycle(X::AbsCoveredScheme, R::Ring) = AlgebraicCycle(X, R)
 
@@ -189,6 +211,39 @@ function AlgebraicCycle(I::IdealSheaf, R::Ring)
   return D
 end
 
+@doc raw"""
+    algebraic_cycle(I::IdealSheaf, R::Ring) -> AlgebraicCycle
+
+Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
+in ``R`` for a sheaf of prime ideals ``I``.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> R = ZZ;
+
+julia> algebraic_cycle(II, R)
+Irreducible algebraic cycle
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with coefficients in integer Ring
+given as the formal sum of
+  1*sheaf of ideals with restrictions
+      1: ideal(-(y//x)^2*(z//x) + 1)
+      2: ideal((x//y)^3 - (z//y))
+      3: ideal((x//z)^3 - (y//z)^2)
+
+```
+"""
 algebraic_cycle(I::IdealSheaf, R::Ring) = AlgebraicCycle(I, R)
 
 @doc raw"""
@@ -203,6 +258,38 @@ function AlgebraicCycle(I::IdealSheaf)
   return D
 end
 
+@doc raw"""
+    algebraic_cycle(I::IdealSheaf) -> AlgebraicCycle
+
+Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
+in ``ℤ`` for a sheaf of prime ideals ``I``.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> R = ZZ;
+
+julia> algebraic_cycle(II, R)
+Irreducible algebraic cycle
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with coefficients in integer Ring
+given as the formal sum of
+  1*sheaf of ideals with restrictions
+      1: ideal(-(y//x)^2*(z//x) + 1)
+      2: ideal((x//y)^3 - (z//y))
+      3: ideal((x//z)^3 - (y//z)^2)
+```
+"""
 algebraic_cycle(I::IdealSheaf) = AlgebraicCycle(I)
 
 ### copy constructor
@@ -214,25 +301,98 @@ function copy(D::AlgebraicCycle)
   return AlgebraicCycle(scheme(D), coefficient_ring(D), new_dict)
 end
 
-function Base.show(io::IO, D::AlgebraicCycle)
-  if has_name(D)
-    print(io, name(D))
-    return
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+# Method quite nice: if it knowns something about the algebraic cycle, it will
+# tell us! (Irreducibility, effectivity, zero cycle,...)
+#
+# As it is given as a formal sum, we want a nice printing where all the
+# coefficients of the respective ideal sheaves are aligned on the right - one
+# needs to take care about some left offsets.
+function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  if length(components(D)) == 1
+    prim = D[components(D)[1]] == 1
+  else
+    prim = false
   end
   if length(components(D)) == 0
-    println(io, "the zero Weil divisor on $(scheme(D))")
-    return
+    print(io, "Zero algebraic cycle")
+  else
+    if eff
+      if prim
+        print(io, "Irreducible algebraic cycle")
+      else
+        print(io, "Effective algebraic cycle")
+      end
+    else
+      print(io, "Algebraic cycle")
+    end
+    if has_attribute(D, :dim)
+      print(io, " of dimension $(dim(D))")
+    end
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum")
-  comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  out_str = comp[1]
-  for c in comp[2:end]
-    out_str = out_str* " + " * c
+  println(io)
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  println(io, Dedent())
+  print(io, "with coefficients in ", Lowercase(), coefficient_ring(D))
+  if length(components(D)) != 0
+    println(io, Dedent())
+    print(io, Dedent(), "given as the formal sum of")
+    print(io, Indent())
+    co_str = String["$(D[I])" for I in components(D)]
+    k = max(length.(co_str)...)
+    for i in 1:length(components(D))
+      println(io)
+      I = components(D)[i]
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(D[I])*")
+      print(io, Indent(), Lowercase())
+      Oscar._show_semi_compact(io, I, cov)
+      print(io, Dedent())
+      if i != length(components(D))
+        println(io, "--------------------------------------------------------------------------------")
+      end
+    end
   end
-  println(io, out_str)
+  print(io, Dedent())
 end
 
-function dim(D::AlgebraicCycle)
+function Base.show(io::IO, D::AlgebraicCycle)
+  io = pretty(io)
+  X = scheme(D)
+  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  if length(components(D)) == 1
+    prim = D[components(D)[1]] == 1 ? true : false
+  else
+    prim = false
+  end
+  if has_name(D)
+    print(io, name(D))
+  elseif get(io, :supercompact, false)
+    print(io, "Algebraic cycle")
+  elseif length(components(D)) == 0
+    print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))
+  elseif eff
+    if prim
+      print(io, "Irreducible algebraic cycle on ", Lowercase(), scheme(D))
+    else
+      print(io, "Effective algebraic cycle on ", Lowercase(), scheme(D))
+    end
+  else
+    print(io, "Algebraic cycle on ", Lowercase(), scheme(D))
+  end
+end
+
+
+@attr function dim(D::AlgebraicCycle)
   result = -1
   for I in components(D)
     d = dim(I)
@@ -387,5 +547,4 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
   end
   return result
 end
-
 

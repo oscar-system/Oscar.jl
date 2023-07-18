@@ -25,7 +25,9 @@ scheme(KK::VarietyFunctionField) = variety(KK)
 coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
-### user facing constructors 
+### user facing constructors
+
+
 @doc raw"""
     function_field(X::AbsCoveredScheme)
 
@@ -33,6 +35,46 @@ Return the function field of the irreducible variety `X`.
 
 Internally, a rational function is represented by an element in the field of
 fractions of the `ambient_coordinate_ring` of the `representative_patch`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> K = function_field(Ycov)
+Field of rational functions
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+represented by
+  patch 1: fraction field of multivariate polynomial ring
+
+julia> one(K)
+Rational function
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+represented by
+  patch 1: 1
+```
 """
 @attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
 
@@ -247,10 +289,6 @@ function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool
   return KK(numerator(h), denominator(h), check=check)
 end
 
-function Base.show(io::IO, f::VarietyFunctionFieldElem)
-  print(io, representative(f))
-end
-
 ### given the fraction field of the `ambient_coordinate_ring` in one
 # affine chart, return a representative of `f` in that field
 function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
@@ -333,7 +371,62 @@ end
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)
-  print(io, "function field of $(variety(KK))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field")
+  else
+    print(io, "Function field of ", Lowercase(), variety(KK))
+  end
+end
+
+# The function field is global, but we know how it is represented on a given
+# chart of the covering of X: once we have described and labeled the charts, we
+# mention on which chart we have that representation
+function Base.show(io::IO, ::MIME"text/plain", KK::VarietyFunctionField)
+  io = pretty(io)
+  X = variety(KK)
+  cov = default_covering(X)
+  println(io, "Field of rational functions")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
+  println(io, Dedent())
+  println(io, "represented by")
+  print(io, Indent(), "patch $j: ", Lowercase(), representative_field(KK))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field element")
+  else
+    print(io, "Rational function on ", Lowercase(), variety(parent(f)))
+  end
+end
+
+# Needed in nested printings where we already know the parent, but need only a
+# description of the rational function on the appropriate charts
+function _show_semi_compact(io::IO, f::VarietyFunctionFieldElem, cov::Covering = get_attribute(variety(parent(f)), :simplified_covering, default_covering(variety(parent(f)))), k::Int = 0)
+  io = pretty(io)
+  j = findfirst(U -> representative_patch(parent(f)) === U, collect(cov))
+  print(io, "Rational function represented by ", representative(f), " "^k, " on patch $j")
+end
+
+# Same details as for the printing of the parent
+function Base.show(io::IO, ::MIME"text/plain", f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  KK = parent(f)
+  X = variety(KK)
+  cov = default_covering(X)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
+  println(io, "Rational function")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  println(io, Dedent())
+  println(io, "represented by")
+  print(io, Indent(), "patch $j: ", representative(f))
+  print(io, Dedent())
 end
 
 function divexact(f::VarietyFunctionFieldElem, 

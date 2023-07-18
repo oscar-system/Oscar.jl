@@ -87,7 +87,7 @@ end
 An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another 
 one ``X``. 
 """
-@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
+@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal
   Z::Spec
