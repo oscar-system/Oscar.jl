@@ -1,15 +1,11 @@
-using Oscar
-
-import Base: show, size, getindex
-
 function __init__()
     GAP.Packages.load("sla")
   end 
 
 mutable struct RootSystem <: AbstractVector{fmpq}
-  roots::Vector
-  simple_roots::Vector
-  positive_roots::Vector
+  roots::Vector{Vector{Int}}
+  simple_roots::Vector{Vector{Int}}
+  positive_roots::Vector{Vector{Int}}
   root_system_type::Vector{Union{String, Int64}}
   @doc raw"""
     `RootSystem(S::String) -> RootSystem`
@@ -29,9 +25,9 @@ mutable struct RootSystem <: AbstractVector{fmpq}
     sR = [[sR[i][j] for j=1:length(sR[i])] for i=1:length(sR)]
     Ro1 = [[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
     Ro2 = [[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
-    Ro = reduce(vcat, (Ro1, Ro2))
     S = Union{String, Int64}[S[1:1], n]
-    new(Ro,sR,Ro1,S)
+    Ro = reduce(vcat, (Ro1, Ro2))
+    return new(Ro,sR,Ro1,S)
   end
 end
 
@@ -72,36 +68,38 @@ end
 #
 ###############################################################################
  @doc raw"""
-  `CartanMatrix(S::String) -> Matrix{QQFieldElem}`
+  `cartan_matrix(S::String) -> Matrix{QQFieldElem}`
  Return the Cartan matrix of the type of root system specified by `S`
   """
-function CartanMatrix(S::String)
+function cartan_matrix(S::String)
   S1 = S[1:1]
   l = length(S)
   n = parse(Int64, S[2:l])
   S1 = GAP.Obj(string(S[1:1]))
   RS = GAP.Globals.RootSystem(S1, n)
   CG = GAP.Globals.CartanMatrix(RS)
-  C = Matrix{fmpq}(CG)
+  m = length(CG)
+  M = MatrixSpace(QQ, m, m)
+  C = M(Matrix{fmpq}(CG))
 	return C
 end
 
  @doc raw"""
-  `CartanMatrix(R::RootSystem) -> Matrix{QQFieldElem}`
+  `cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}`
  Return the Cartan matrix of the type root system `R`
   """
-function CartanMatrix(R::RootSystem)
+function cartan_matrix(R::RootSystem)
   S = R.root_system_type
   S2 = S[1] * string(S[2])
-	C = CartanMatrix(S2)
+	C = cartan_matrix(S2)
 	return C
 end
  
 @doc raw"""
-  `DynkinDiagram(S::String) `
+  `dynkin_diagram(S::String) `
  Return the Dynkin diagram of the type of root system specified by `S`
   """
-function DynkinDiagram(S::String)
+function dynkin_diagram(S::String)
   S1 = S[1:1]
 	l = length(S)
 	n = parse(Int64,S[2:l])
@@ -158,11 +156,11 @@ function DynkinDiagram(S::String)
 	print(D)
 end
 @doc raw"""
-  `DynkinDiagram(R::RootSystem)`
+  `dynkin_diagram(R::RootSystem)`
  Return the Dynkin diagram of the root system `R`
   """
-function DynkinDiagram(R::RootSystem)
+function dynkin_diagram(R::RootSystem)
 	S = R.root_system_type
   S2 = S[1] * string(S[2])
-	DynkinDiagram(S2)
+	dynkin_diagram(S2)
 end
