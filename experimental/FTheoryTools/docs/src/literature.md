@@ -40,10 +40,12 @@ journal_volume(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
 model_description(m::AbstractFTheoryModel)
+model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
+related_literature_models(m::AbstractFTheoryModel)
 resolutions(m::AbstractFTheoryModel)
 resolution_generating_sections(m::AbstractFTheoryModel)
 resolution_zero_sections(m::AbstractFTheoryModel)
@@ -79,6 +81,7 @@ set of information. This is achieved with the following methods:
 * `has_journal_year(m::AbstractFTheoryModel)`,
 * `has_literature_identifier(m::AbstractFTheoryModel)`,
 * `has_model_description(m::AbstractFTheoryModel)`,
+* `has_model_parameters(m::AbstractFTheoryModel)`,
 * `has_paper_authors(m::AbstractFTheoryModel)`,
 * `has_paper_buzzwords(m::AbstractFTheoryModel)`,
 * `has_paper_description(m::AbstractFTheoryModel)`,

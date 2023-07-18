@@ -31,11 +31,13 @@
         "description": "Systematic classification of ADE Tate models and their resolutions",
         "buzzwords": ["Tate", "classification", "resolution"]
     },
-    "model_parameters": ["k"],
-    "model_data": {
+    "model_descriptors": {
         "type": "tate",
         "description": "SU(2k) Tate model",
-        "gauge_algebra": ["su(2k)"],
+        "gauge_algebra": ["su(2k)"]
+    },
+    "model_parameters": ["k"],
+    "model_data": {
         "base_dim": 3,
         "base_coordinates": ["b1", "b2", "b3", "b4", "b6", "z0"],
         "a1": "b1",

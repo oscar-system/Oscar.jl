@@ -421,6 +421,28 @@ function model_description(m::AbstractFTheoryModel)
 end
 
 @doc raw"""
+    model_parameters(m::AbstractFTheoryModel)
+
+Return the `model_parameters` of the given model.
+If no `model_parameters` are known, an error is raised.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(2k+1) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+
+julia> model_parameters(m)
+Dict{String, Int64} with 1 entry:
+  "k" => 5
+```
+"""
+function model_parameters(m::AbstractFTheoryModel)
+  @req has_model_parameters(m) "No model parameters known for this model"
+  return get_attribute(m, :model_parameters)
+end
+
+@doc raw"""
     paper_authors(m::AbstractFTheoryModel)
 
 Return the `paper_authors` of the paper that introduced the given model.
@@ -511,35 +533,34 @@ function paper_title(m::AbstractFTheoryModel)
   return get_attribute(m, :paper_title)
 end
 
-# This example cannot be used until we support literature model parameters
-# At that point, we should simply be able to uncomment this block
+@doc raw"""
+    related_literature_models(m::AbstractFTheoryModel)
 
-# @doc raw"""
-#     related_literature_models(m::AbstractFTheoryModel)
+Return a list of the unique identifiers of any `related_literature_models` of
+the given model. These are models that are introduced in the same paper as
+the given model, but that are distinct from the given model. If no
+`related_literature_models` are known, an error is raised.
 
-# Return a list of the unique identifiers any `related_literature_models` of
-# the given model. These are models that are introduced in the same paper as
-# the given model, but that are distinct from the given model. If no
-# `related_literature_models` are known, an error is raised.
+```jldoctest
+julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+Assuming that the first row of the given grading is the grading under Kbar
 
-# ```jldoctest
-# julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2")
-# Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
+Global Tate model over a not fully specified base -- SU(2k+1) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
 
-# julia> related_literature_models(m)
-# 6-element Vector{String}:
-#  "1212_2949-2"
-#  "1212_2949-3"
-#  "1212_2949-4"
-#  "1212_2949-5"
-#  "1212_2949-6"
-#  "1212_2949-7"
-# ```
-# """
-# function related_literature_models(m::AbstractFTheoryModel)
-#   @req has_related_literature_models(m) "No associated models known for this model"
-#   return get_attribute(m, :related_literature_models)
-# end
+julia> related_literature_models(m)
+6-element Vector{String}:
+ "1212_2949-2"
+ "1212_2949-3"
+ "1212_2949-4"
+ "1212_2949-5"
+ "1212_2949-6"
+ "1212_2949-7"
+```
+"""
+function related_literature_models(m::AbstractFTheoryModel)
+  @req has_related_literature_models(m) "No associated models known for this model"
+  return get_attribute(m, :related_literature_models)
+end
 
 @doc raw"""
     resolutions(m::AbstractFTheoryModel)
