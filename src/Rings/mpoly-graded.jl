@@ -2124,20 +2124,19 @@ function _gens_for_homog_via_sat(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
 ##    @req  !is_zero(I)  "Ideal must be non-zero"
 ##    @req  !is_one(I)   "Ideal must not be whole ring"
     if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
-#    if isempty(I.gb)  return gens(I); end # JAA still thinks it is better to compute a DegRevLex GB even if none already exists
-        # G=gens(I); for GB in values(I.gb)  G=vcat(G, filter(f -> (length(f) < 2*AveNumTerms), GB)); end; return G;
     OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
     # Next few lines: we adjoin some more small, redundant gens.
     # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
     AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
-##?    G = gens(I);
-##?    for GB in values(I.gb) #=do=# G = vcat(G, filter(f -> (length(f) < 2*AveNumTerms), elements(GB))); end #=for=#
-##?    return G;
-    GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
-    GB1 = filter(f -> (length(f) < 2*AveNumTerms), GB1)
-    GB2 = elements(groebner_basis(I, ordering=deglex(OrigR)))  # or degrevlex with vars in reverse order?
-    GB2 = filter(f -> (length(f) < 2*AveNumTerms), GB2)
-    return vcat(gens(I), GB1, GB2)
+    G = gens(I);
+#    if isempty(I.gb) #=then=#  ignore = groebner_basis(I, ordering=degrevlex(OrigR)); end; # JAA thinks it is better to compute a DegRevLex GB if no GB already exists
+    for GB in values(I.gb) #=do=# G = vcat(G, filter(f -> (length(f) < 2*AveNumTerms), elements(GB))); end #=for=#
+    return G;
+##    GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
+##    GB1 = filter(f -> (length(f) < 2*AveNumTerms), GB1)
+##    GB2 = elements(groebner_basis(I, ordering=deglex(OrigR)))  # or degrevlex with vars in reverse order?
+##    GB2 = filter(f -> (length(f) < 2*AveNumTerms), GB2)
+##    return vcat(gens(I), GB1, GB2)
 end
 
 function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
