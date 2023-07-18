@@ -1,7 +1,3 @@
-function __init__()
-    GAP.Packages.load("sla")
-  end 
-
 mutable struct RootSystem <: AbstractVector{fmpq}
   roots::Vector{Vector{Int}}
   simple_roots::Vector{Vector{Int}}
