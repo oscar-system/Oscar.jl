@@ -1255,12 +1255,16 @@ codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
 @doc raw"""
     degree(I::MPolyIdeal)
 
-Return the degree of `I` if it is homogeneous. Otherwise return the degree
-of its `homogenization`.
+If `base_ring(I)` is standard-graded, in which case `I` is necessarily
+homogeneous with respect to this grading, return the degree of `I` (that
+is, the degree of the quotient of `base_ring(I)` modulo `I`). Otherwise,
+return the degree of the homogenization of `I` with respect to the
+standard-grading.
 
-The degree of a homogeneous ideal `I` is the number of intersection points
-of its projective variety with a generic linear subspace of complementary
-dimension (counted with multiplicities). See also [MS21](@cite).
+!!! note
+Geometrically, the degree of a homogeneous ideal as above is the number of
+intersection points of its projective variety with a generic linear subspace
+of complementary dimension (counted with multiplicities). See also [MS21](@cite).
 
 # Examples
 ```jldoctest
@@ -1275,9 +1279,8 @@ julia> degree(I)
 ```
 """
 @attr Int function degree(I::MPolyIdeal)
-  J = homogenization(I, "_h")
-  A, _ = quo(base_ring(J), J)
-  return Int(degree(A))
+  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  return Int(degree(HilbertData(I)))
 end
 
 ################################################################################
