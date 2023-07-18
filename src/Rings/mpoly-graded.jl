@@ -2143,7 +2143,6 @@ function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Mat
     return homogenization_via_saturation(I, W, var, 1+ngens(base_ring(I)))
 end
 function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
-println("START: homogenization_via_saturation");
   # [W.Decker] TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
     if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
         P = parent(I);
@@ -2153,7 +2152,6 @@ println("START: homogenization_via_saturation");
     end # of special handling for zero ideal
     # SPECIAL CASE:  check if W is a single row, delegate to specialized ZZ^1-graded code (presumably faster)?
     Hgens = homogenization(_gens_for_homog_via_sat(I), W, var, pos)  # ??? possibly use gens(I) instead of _gens_for_homog_via_sat(I) ???
- println("HERE  length(Hgens)=$(length(Hgens))");
     R = parent(Hgens[1])
     SatByProduct = false; # either SatByProduct or SatByCascade -- cascade is probably faster (in most cases?)
     if SatByProduct #=then=#
@@ -2231,7 +2229,6 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
 end
 
 function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int) where {T <: MPolyRingElem}
-println("START homogenization (K+R)");
     ## ASSUME NumCols(W) = nvars(P)
     if !is_positive_grading_matrix(W) #=then=#
         return homogenization_via_saturation(I, W, h, pos);
