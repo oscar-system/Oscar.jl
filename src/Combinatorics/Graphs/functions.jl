@@ -35,6 +35,70 @@ function Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
     return Graph{T}(pmg)
 end
 
+@doc raw"""
+    graph_from_adjacency_matrix(::Type{T}, G) where {T <:Union{Directed, Undirected}}
+
+Return the graph with adjacency matrix `G`.
+
+This means that the nodes ``i, j`` are connected by an edge
+if and only if ``G_{i,j}`` is one.
+In the undirected case, it is assumed that ``i > j`` i.e. the upper triangular
+part of ``G`` is ignored.
+
+# Examples
+```jldoctest
+julia> G = ZZ[0 0; 1 0]
+[0   0]
+[1   0]
+
+julia> graph_from_adjacency_matrix(Directed, G)
+Graph{Directed}(pm::graph::Graph<pm::graph::Directed>
+{}
+{0}
+)
+
+julia> graph_from_adjacency_matrix(Undirected, G)
+Graph{Undirected}(pm::graph::Graph<pm::graph::Undirected>
+{1}
+{0}
+)
+
+```
+"""
+graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
+
+function graph_from_adjacency_matrix(::Type{Undirected}, G::Union{MatElem, Matrix})
+  n = nrows(G)
+  @req nrows(G)==ncols(G) "not a square matrix"
+  g = Graph{Undirected}(n)
+  for i in 1:n
+    for j in 1:i-1
+      if isone(G[i,j])
+        add_edge!(g, i, j)
+      else
+        iszero(G[i,j]) || error("not an adjacency matrix")
+      end
+    end
+  end
+  return g
+end
+
+function graph_from_adjacency_matrix(::Type{Directed}, G::Union{MatElem, Matrix})
+  n = nrows(G)
+  @req nrows(G)==ncols(G) "not a square matrix"
+  g = Graph{Directed}(n)
+  for i in 1:n
+    for j in 1:n
+      if isone(G[i,j])
+        add_edge!(g, i, j)
+      else
+        iszero(G[i,j]) || error("not an adjacency matrix")
+      end
+    end
+  end
+  return g
+end
+
 _has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
 @doc raw"""
@@ -787,6 +851,48 @@ false
 ```
 """
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
+
+@doc raw"""
+    is_isomorphic_with_permutation(G1::Graph, G2::Graph) -> Bool, Vector{Int}
+
+Return whether `G1` is isomorphic to `G2` as well as a permutation
+of the nodes of `G1` such that both graphs agree.
+
+# Examples
+```jldoctest
+julia> is_isomorphic_with_permutation(edgegraph(simplex(3)), dualgraph(simplex(3)))
+(true, [1, 2, 3, 4])
+
+```
+"""
+function is_isomorphic_with_permutation(G1::Graph, G2::Graph)
+  f12 = Polymake.graph.find_node_permutation(G1.pm_graph, G2.pm_graph)
+  if isnothing(f12)
+    return false, Vector{Int}()
+  end
+  return true, Polymake.to_one_based_indexing(f12)
+end
+
+@doc raw"""
+    _is_equal_up_to_permutation_with_permutation(A1::MatElem, A2::MatElem) -> Bool, Vector{Int}
+
+Return a permutation `I` such that `A1[I,I] == A2` and whether it exists.
+
+The method assumes that both matrices are symmetric, their diagonal entries
+are all equal (and so irrelevant) and the off-diagonal entries are either ``0``
+or ``1``. It is assumed that `A1` and `A2` are symmetric and
+their upper triangular part is ignored.
+"""
+function _is_equal_up_to_permutation_with_permutation(A1::MatElem, A2::MatElem)
+  g1 = graph_from_adjacency_matrix(Undirected, A1)
+  g2 = graph_from_adjacency_matrix(Undirected, A2)
+  b, T = is_isomorphic_with_permutation(g1, g2)
+  if b
+    @assert A1[T, T] == A2
+  end
+  return b, T
+end
+
 
 ################################################################################
 ################################################################################
