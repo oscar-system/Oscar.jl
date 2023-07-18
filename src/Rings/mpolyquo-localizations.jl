@@ -366,7 +366,7 @@ end
 
 
 ### generation of random elements 
-function rand(W::MPolyQuoLocRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(W::MPolyQuoLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return W(rand(localized_ring(W), v1, v2, v3))
 end
 
