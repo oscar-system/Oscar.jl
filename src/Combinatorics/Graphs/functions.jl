@@ -40,8 +40,10 @@ end
 
 Return the graph with adjacency matrix `G`.
 
-This means that the nodes ``i > j`` are connected by an edge
+This means that the nodes ``i, j`` are connected by an edge
 if and only if ``G_{i,j}`` is one.
+In the undirected case, it is assumed that ``i > j`` i.e. the upper triangular
+part of ``G`` is ignored.
 
 # Examples
 ```jldoctest
@@ -878,7 +880,8 @@ Return a permutation `I` such that `A1[I,I] == A2` and whether it exists.
 
 The method assumes that both matrices are symmetric, their diagonal entries
 are all equal (and so irrelevant) and the off-diagonal entries are either ``0``
-or ``1``.
+or ``1``. It is assumed that `A1` and `A2` are symmetric and
+their upper triangular part is ignored.
 """
 function _is_equal_up_to_permutation_with_permutation(A1::MatElem, A2::MatElem)
   g1 = graph_from_adjacency_matrix(Undirected, A1)
