@@ -1958,10 +1958,7 @@ julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> t = type(Lf)
-Dict{Integer, Tuple} with 2 entries:
-  5 => (Genus symbol for hermitian lattices of rank 1 over relative maximal order of Relative number field…
-  1 => (Genus symbol: II_(1, 0) 2^1_7 3^1 5^1, Genus symbol: II_(1, 0) 2^1_7 3^1 5^1)
+julia> t = type(Lf);
 
 julia> genus(invariant_lattice(Lf)) == t[1][1]
 true

@@ -145,8 +145,7 @@ is_hermitian(::Dict)
 As mentioned in the previous section, to a lattice with isometry $Lf := (L, f)$
 such that the minimal polynomial of $f$ is irreducible, one can associate a
 hermitian lattice $\mathfrak{L}$ over the equation order of $f$, if it is
-maximal, for which $Lf$ is the associated trace lattice (see
-[`trace_lattice_with_isometry(::AbstractLat)`](@ref)). Hecke provides the tools
+maximal, for which $Lf$ is the associated trace lattice. Hecke provides the tools
 to perform the trace equivalence for lattices with isometry of hermitian type.
 
 ```@docs
@@ -179,7 +178,7 @@ image_centralizer_in_Oq(::ZZLatWithIsom)
 ```
 
 For an implementation of the regular Miranda-Morisson theory, we refer to the
-function [`image_in_Oq(::ZZLat)`](@ref) which actually computes the image of
+function `image_in_Oq` which actually computes the image of
 $\pi$ in both the definite and the indefinite case.
 
 We will see later in the section about enumeration of lattices with isometry
