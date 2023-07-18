@@ -3,7 +3,7 @@ using Oscar
 
 @testset "Printings" begin
   function _show_details(io::IO, X::Union{ZZLatWithIsom, QuadSpaceWithIsom})
-    return show(io, MIME"text/plain"(), Lf)
+    return show(io, MIME"text/plain"(), X)
   end
   L = root_lattice(:A, 2)
   Lf = integer_lattice_with_isometry(L)
