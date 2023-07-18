@@ -2078,11 +2078,12 @@ function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUni
 end
 
 # Without pos: default value determined by 1st elem of V
-function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
+function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
     @assert !isempty(V)
+    # NB: call below checks that all elements of V are in the same ring
     return homogenization(V, W, var, 1+ngens(parent(V[1])))
 end
-function homogenization(V::Vector{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
+function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
     @assert !isempty(V) # OR ALLOW EMPTY V???   if isempty(V) return V end
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
@@ -2106,9 +2107,9 @@ end
 
 
 ## ---------------------------------
-## !!OLD!! Homogenization of an ideal
+## Homogenization of an ideal -- works for all gradings (incl. non-positive),
+## but is slow.  If grading is positive: use newer code below!
 ## Author: John Abbott  2023-07-14
-## >>> use newer code below <<<
 ## ---------------------------------
 
 # To homogenize an ideal we look for some additional simple elements
@@ -2116,7 +2117,7 @@ end
 # Seems wasteful, but in many cases leads to faster overall computation.
 
 
-# Internal function: used only in homogenization (immediately below)
+# Internal function: used only in homogenization_via_saturation (immediately below)
 # This function is an "empirical hack": usually makes homogenization faster.
 # Return gens(I) and some further "small" polys in I.
 function _gens_for_homog_via_sat(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
@@ -2127,8 +2128,11 @@ function _gens_for_homog_via_sat(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
         # G=gens(I); for GB in values(I.gb)  G=vcat(G, filter(f -> (length(f) < 2*AveNumTerms), GB)); end; return G;
     OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
     # Next few lines: we adjoin some more small, redundant gens.
-    # !!HEURISTIC!!  We use AveNumTerms as size limit for redundant gens we shall adjoin.
+    # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
     AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
+##?    G = gens(I);
+##?    for GB in values(I.gb) #=do=# G = vcat(G, filter(f -> (length(f) < 2*AveNumTerms), elements(GB))); end #=for=#
+##?    return G;
     GB1 = elements(groebner_basis(I, ordering=degrevlex(OrigR)))
     GB1 = filter(f -> (length(f) < 2*AveNumTerms), GB1)
     GB2 = elements(groebner_basis(I, ordering=deglex(OrigR)))  # or degrevlex with vars in reverse order?
@@ -2137,9 +2141,10 @@ function _gens_for_homog_via_sat(I::MPolyIdeal{T}) where {T <: MPolyRingElem}
 end
 
 function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName) where {T <: MPolyRingElem}
-    return homogenization(I, W, var, 1+ngens(base_ring(I)))
+    return homogenization_via_saturation(I, W, var, 1+ngens(base_ring(I)))
 end
 function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int) where {T <: MPolyRingElem}
+println("START: homogenization_via_saturation");
   # [W.Decker] TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
     if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
         P = parent(I);
@@ -2149,9 +2154,16 @@ function homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Mat
     end # of special handling for zero ideal
     # SPECIAL CASE:  check if W is a single row, delegate to specialized ZZ^1-graded code (presumably faster)?
     Hgens = homogenization(_gens_for_homog_via_sat(I), W, var, pos)  # ??? possibly use gens(I) instead of _gens_for_homog_via_sat(I) ???
+ println("HERE  length(Hgens)=$(length(Hgens))");
     R = parent(Hgens[1])
-    prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
-    Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars))
+    SatByProduct = false; # either SatByProduct or SatByCascade -- cascade is probably faster (in most cases?)
+    if SatByProduct #=then=#
+        prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
+        Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars)); # consider also Oscar._saturation2 instead of saturation
+    else #not SatByProduct, so SatByCascade
+        Ih = ideal(R,Hgens);
+        for i in pos:(pos+size(W, 1)-1) #=do=#  Ih = saturation(Ih, ideal(R, gen(R,i))); end #=for=#  # consider also Oscar._saturation2 instead of saturation
+    end #=if=#
     return Ih
 ######  2023-07-14: (this comment is now old, but probably still valid)
 ######  There is a problem/bug with Singular.satstd: so disable this version
@@ -2163,6 +2175,7 @@ end
 # ============================================
 # 2023-06-30 START: New impl of homogenization
 # By John Abbott, based on K+R Book vol 2
+# This code delegates to homogenization_via_saturation for non-positive gradings
 # ============================================
 
 # sat_poly and kronecker_delta are internal functions
@@ -2193,6 +2206,25 @@ function kronecker_delta(i::Int, j::Int)
     return (i == j) ? 1 : 0;
 end #=function=#
 
+# Check that W defines a positive grading:
+# each col contains a non-zero entry, and first non-zero going down the col is positive.
+# Follows defn 4.2.4 from R+K vol 2.
+function is_positive_grading_matrix(W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
+    nrows = size(W,1);
+    ncols = size(W,2);
+    for c in 1:ncols #=do=#
+        IsGoodCol = false;
+        for r in 1:nrows #=do=#
+            if is_zero(W[r,c])  #=then=# continue; end; #=if=#
+            if W[r,c] < 0 #=then=# return false; end #=if=#
+            IsGoodCol = true;
+            break
+        end #=for=#
+        if !IsGoodCol #=then=# return false; end #=if=#
+    end #=for=#
+    return true;
+end #=function=#
+
 
 # Default value for pos is 1+ngens(base_ring(I))
 function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName) where {T <: MPolyRingElem}
@@ -2200,21 +2232,30 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
 end
 
 function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName, pos::Int) where {T <: MPolyRingElem}
+println("START homogenization (K+R)");
     ## ASSUME NumCols(W) = nvars(P)
+    if !is_positive_grading_matrix(W) #=then=#
+        return homogenization_via_saturation(I, W, h, pos);
+    end #=if=#
+    # Henceforth we know that W defines a positive grading
     P = base_ring(I); # initial polynomial ring
     if size(W,1) == 1 #=then=#
-        # Grading is over ZZ^1, so delegate to faster special-case function.
+        # Case: grading is over ZZ^1, so delegate to faster special-case function.
         # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
+# Std-graded case not necessary as special case???
         if all(a -> (a == 1), W)  #=then=#
-            return homogenization(I, h, pos) # std graded case, very fast (uses Singular)
+            W_ordering = degrevlex(P);
+###            return homogenization(I, h, pos) # std graded case, very fast (uses Singular)
+        else
+            W_ordering = wdegrevlex(P, W[1,:]);
         end #=if=#
-        W_ordering = matrix_ordering(P, W);
         GB = groebner_basis(I; ordering=W_ordering);
-        return ideal(homogenization(GB, W, h, pos));
+        return ideal(homogenization(elements(GB), W, h, pos));
     end #=if=#
     if  is_zero(I)  #=then=#
         return ideal(homogenization(zero(P), W, h, pos)); # zero ideal in correct ring (I hope)
     end #=if=#
+    # Case: grading is over ZZ^k with k > 1
     G = homogenization(gens(I), W, h, 1+ngens(P)); # h come last -- deliberately ignore pos here!
     Ph = parent(G[1]);  # Ph is graded ring, "homog-extn" of P.
     N = ngens(Ph);
