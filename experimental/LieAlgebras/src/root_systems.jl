@@ -140,7 +140,7 @@ function dynkin_diagram(S::Symbol, n::Int64)
    D = ""
   
   if S == :A
-      for i = 1:(n-1)
+    for i = 1:(n-1)
       D = D * string(i) * " - "
     end
     D = D * string(n)
