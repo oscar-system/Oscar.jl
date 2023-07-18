@@ -56,6 +56,12 @@ base_ring(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.base_ring::parent_t
 
 dim(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.dim
 
+root_system(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.root_system
+
+root_type(L::SimpleLieAlgebra{C}) where {C<:RingElement} = L.root_type
+
+matrix(f::SimpleLieAlgebraElem) = f.mat
+
 @doc raw"""
     characteristic(L::SimpleLieAlgebra{T}) -> Int64
 
@@ -67,8 +73,12 @@ characteristic(L::SimpleLieAlgebra{T}) where T <: RingElement = characteristic(b
 getindex(f::SimpleLieAlgebraElem, r::Int, c::Int) = f.mat[r, c]
 
 Base.@propagate_inbounds function Base.setindex!(f::SimpleLieAlgebraElem{T}, d, r) where {T <: RingElem}
-	f.mat[1, r]=d
+	matrix(f)[1, r]=d
 	return f
+end
+
+function symbols(L::SimpleLieAlgebra) 
+  return L.s
 end
 
 ###############################################################################
@@ -82,19 +92,7 @@ function Base.show(io::IO, V::SimpleLieAlgebra)
   print(IOContext(io, :compact => true), base_ring(V))
 end
 
-show(io::IO, x::SimpleLieAlgebraElem) = show(io, x.mat)
-
-function symbols(L::SimpleLieAlgebra) 
-  return L.s
-end
-
-###############################################################################
-#
-#   Parent object call overload
-#
-###############################################################################
-
-# no special ones
+show(io::IO, x::SimpleLieAlgebraElem) = show(io, matrix(x))
 
 ###############################################################################
 #
@@ -106,7 +104,7 @@ end
 
 function -(f::SimpleLieAlgebraElem)
   R = parent(f)
-  return R(-f.mat)
+  return R(-matrix(f))
 end
 
 # Binary operations
@@ -114,13 +112,13 @@ end
 function +(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
   parent(f) != parent(g) && error("Incompatible Lie algebras")
   R = parent(f)
-  return R(f.mat + g.mat)
+  return R(matrix(f) + matrix(g))
 end
 
 function -(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
   parent(f) != parent(g) && error("Incompatible Lie algebras")
   R = parent(f)
-  return R(f.mat - g.mat)
+  return R(matrix(f) - matrix(g))
 end
 
 *(x::RingElem, f::SimpleLieAlgebraElem{T}) where T <: RingElement = parent(f)(x*f.mat)
@@ -130,17 +128,15 @@ function *(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: Ri
   L = parent(f)
   ad = AdjointMatrix(L)
   r = L()
-  for i = 1:ncols(f.mat)
-    for j = 1:ncols(g.mat)
+  for i = 1:ncols(matrix(f))
+    for j = 1:ncols(matrix(g))
       r = r+f[i]*g[j]*L(transpose(ad[i][:, j]))
    	end
   end
   return r
 end
 
-function bracket(
-  x::SimpleLieAlgebraElem{C}, y::SimpleLieAlgebraElem{C}
-) where {C<:RingElement}
+function bracket(x::SimpleLieAlgebraElem{C}, y::SimpleLieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x, y)
   return x*y
 end
@@ -156,28 +152,11 @@ function ==(L::SimpleLieAlgebra{T}, M::SimpleLieAlgebra{T}) where T <: RingEleme
   return L.mat_space == M.mat_space
 end
 
-function !=(L::SimpleLieAlgebra{T}, M::SimpleLieAlgebra{T}) where T <: RingElement
-  if (L.root_system).root_system_type != (M.root_system).root_system_type 
-    return true
-  else
-   	return L.mat_space != M.mat_space
-  end
-end
-
 function ==(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
   parent(f) != parent(g) && error("Incompatible Lie algebras")
-  return f.mat == g.mat
+  return matrix(f) == matrix(g)
 end
 
-function !=(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
-  parent(f) != parent(g) && error("Incompatible Lie algebras")
-  return f.mat != g.mat
-end
-
-function isequal(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
-  parent(f) != parent(g) && error("Incompatible Lie algebras")
-  return isequal(f.mat, g.mat)
-end
 @doc raw"""
     in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra) -> Bool
 
@@ -185,7 +164,7 @@ Return `true` if the simple Lie Algebra element `x` is an element of the Lie alg
 otherwise.
 """
 function in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra)
-	if x.parent == L
+	if parent(x) == L
     return true
 	else
 		return false
@@ -213,16 +192,15 @@ function (L::SimpleLieAlgebra{T})() where {T <: RingElement}
 end
 
 function (L::SimpleLieAlgebra{T})(A::MatElem{T}) where {T <: RingElem}
-  C = elem_type(L)
   f = SimpleLieAlgebraElem{T}(L, L.mat_space(A))
   return f
 end
 
 @doc raw"""
-    LieAlgebra(R::Ring, S::String, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
+    lie_algebra(R::Ring, S::String, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
 Construct the simple Lie algebra over the ring `R` with root system of type `S`
 """
-function LieAlgebra(R::Ring, S::String, cached::Bool=true)
+function lie_algebra(R::Ring, S::String, cached::Bool=true)
   T = elem_type(R)
   return SimpleLieAlgebra{T}(R, S, cached)
 end
@@ -234,19 +212,19 @@ end
 ###############################################################################
 
 @doc raw"""
-    ChevalleyBasis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
+    chevalley_basis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
 Give the Chevalley basis of the simple Lie algebra `L`
 """
-function ChevalleyBasis(L::SimpleLieAlgebra{T}) where {T<: RingElement}
-	RS = L.root_system
+function chevalley_basis(L::SimpleLieAlgebra)
+	RS = root_system(L)
 	Rp = RS.positive_roots
 	sR = RS.simple_roots
 	
 	n = length(Rp)
 	m = length(sR)
 	#root vectors
-	e1 = [ ]
-	e2 = [ ]
+	e1 = elem_type(L)[]
+	e2 = elem_type(L)[]
 	for i = 1:n
 		z1 = L()
 		z1[i] = 1
@@ -256,7 +234,7 @@ function ChevalleyBasis(L::SimpleLieAlgebra{T}) where {T<: RingElement}
 		e2 = reduce(vcat, (e2, z2))
 	end
 	#basis for cartan algebra
-	e3 = [ ]
+	e3 = elem_type(L)[]
 	for i = 1:m
 		z = L()
 		z[i+2*n] = 1
@@ -267,7 +245,8 @@ end
 
 @doc raw"""
     AdjointMatrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
-Give the Adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect to the Chevalley basis of `L`
+Give the Adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
+to the Chevalley basis of `L`
 """
 function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
 	St = L.root_type
@@ -288,16 +267,15 @@ function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes 
 	GAP.Globals.Append(ch, ch2)
 	GAP.Globals.Append(ch, ch3)
 	BL = GAP.Globals.Basis(LG, ch)
-	M = MatrixSpace(R, d, d)
-	ad = [ ]
+	ad = dense_matrix_type(R)[]
 	for i = 1:d
 		Ad = GAP.Globals.AdjointMatrix(BL, BL[i])
 		A = [[Ad[i][j] for j = 1:length(Ad[i])] for i = 1:length(Ad)]
-		MA = M()
+		MA = zero_matrix(R, d, d)
 		for j = 1:d
 			MA[j, 1:d] = A[j]
 		end
-		append!(ad,[MA])
+		push!(ad, MA)
 		
 	end 
 	return ad
