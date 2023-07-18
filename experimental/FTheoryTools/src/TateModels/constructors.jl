@@ -212,7 +212,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   end
   
   # inform about the assume Kbar grading
-  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
+  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # convert Tate sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)

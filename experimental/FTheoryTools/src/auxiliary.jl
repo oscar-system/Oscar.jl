@@ -127,49 +127,7 @@ end
 
 
 ################################################################
-# 3: Construct the Weierstrass/Tate ambient space
-################################################################
-
-_weierstrass_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
-
-function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)
-  
-  # Extract information about the toric base
-  base_rays = matrix(ZZ, rays(base))
-  base_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
-  
-  # Construct the rays for the fibre ambient space
-  xray = [0 for i in 1:ncols(base_rays)+2]
-  yray = [0 for i in 1:ncols(base_rays)+2]
-  zray = [0 for i in 1:ncols(base_rays)+2]
-  xray[ncols(base_rays)+1] = 1
-  yray[ncols(base_rays)+2] = 1
-  zray[ncols(base_rays)+1] = -2
-  zray[ncols(base_rays)+2] = -3
-  
-  # Construct the rays of the toric ambient space
-  ambient_space_rays = hcat([r for r in base_rays], [-2 for i in 1:nrows(base_rays)], [-3 for i in 1:nrows(base_rays)])
-  ambient_space_rays = vcat(ambient_space_rays, transpose(xray), transpose(yray), transpose(zray))
-  
-  # Construct the incidence matrix for the maximal cones of the ambient space
-  ambient_space_max_cones = []
-  for i in 1:nrows(base_cones)
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [1 1 0])])
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [1 0 1])])
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [0 1 1])])
-  end
-  ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
-  
-  # Construct and return the ambient space
-  ambient_space = normal_toric_variety(ambient_space_rays, ambient_space_max_cones; non_redundant = true)
-  set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
-  return ambient_space
-  
-end
-
-
-################################################################
-# 4: Construct the Weierstrass polynomial
+# 3: Construct the Weierstrass polynomial
 ################################################################
 
 function _weierstrass_sections(base::AbstractNormalToricVariety)

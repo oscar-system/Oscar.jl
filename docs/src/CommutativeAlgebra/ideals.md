@@ -67,6 +67,13 @@ dim(I::MPolyIdeal)
 ```@docs
 codim(I::MPolyIdeal)
 ```
+
+### Degree
+
+```@docs
+degree(I::MPolyIdeal)
+```
+
 ### Minimal Sets of Generators
 
 In the graded case, we have:

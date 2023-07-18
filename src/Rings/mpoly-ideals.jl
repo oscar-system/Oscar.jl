@@ -1260,6 +1260,39 @@ julia> codim(I)
 """
 codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
 
+#######################################################
+#######################################################
+@doc raw"""
+    degree(I::MPolyIdeal)
+
+If `base_ring(I)` is standard-graded, in which case `I` is necessarily
+homogeneous with respect to this grading, return the degree of `I` (that
+is, the degree of the quotient of `base_ring(I)` modulo `I`). Otherwise,
+return the degree of the homogenization of `I` with respect to the
+standard-grading.
+
+!!! note
+Geometrically, the degree of a homogeneous ideal as above is the number of
+intersection points of its projective variety with a generic linear subspace
+of complementary dimension (counted with multiplicities). See also [MS21](@cite).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia> degree(I)
+6
+```
+"""
+@attr Int function degree(I::MPolyIdeal)
+  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  return Int(degree(HilbertData(I)))
+end
+
 ################################################################################
 #
 #  iszero and isone functions

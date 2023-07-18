@@ -116,6 +116,7 @@ function __init__()
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
     add_verbose_scope(:HypersurfaceModel)
+    add_verbose_scope(:FTheoryConstructorInformation)
     
     add_verbosity_scope(:LinearQuotients)
 end

@@ -86,7 +86,7 @@ end
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
    @test is_symmetric(y)
-   @test is_hermitian_matrix(x+conjugate_transpose(x))
+   @test is_hermitian(x+conjugate_transpose(x))
    @test is_skewsymmetric_matrix(y)
    y[1,1]=1
    @test !is_skewsymmetric_matrix(y)

@@ -256,8 +256,8 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
-  # inform about the assume Kbar grading
-  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
+  # Inform about the assume Kbar grading
+  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct auxiliary base space
   auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
