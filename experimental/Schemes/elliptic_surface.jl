@@ -1185,7 +1185,7 @@ end
 
 # Disable simplification for the usage of (decorated) quotient rings within the
 # schemes framework (speedup of ~2).
-function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, MPolyQuoLocRingElem,
-                                              <:MPolyQuoRingElem, MPolyLocRingElem}})
+function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, <:MPolyQuoLocRingElem,
+                                              <:MPolyQuoRingElem, <:MPolyLocRingElem}})
   return f
 end
