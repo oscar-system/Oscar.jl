@@ -1,8 +1,3 @@
-#use the GAP package sla
-function __init__()
-    GAP.Packages.load("sla")
-  end 
-
 @attributes mutable struct SimpleLieAlgebra{C<:RingElement} <: LieAlgebra{C}
 #Construct a simple Lie algebra over a given ring with a given root system
   mat_space::MatSpace
