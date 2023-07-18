@@ -784,12 +784,13 @@ end
 #
 ###############################################################################
 
-function to_oscar(Vf::QuadSpaceWithIsom)
+function to_oscar(io::IO, Vf::QuadSpaceWithIsom)
   V = space(Vf)
   f = isometry(Vf)
-  println(stdout, "G = matrix(QQ, $(dim(V)), $(dim(V)), ", gram_matrix(V), ");")
-  println(stdout, "V = quadratic_space(QQ, G);")
-  println(stdout, "f = matrix(QQ, $(dim(V)), $(dim(V)), ", f, ");")
-  println(stdout, "Vf = quadratic_space_with_isometry(V, f);")
+  println(io, "G = matrix(QQ, $(dim(V)), $(dim(V)), ", gram_matrix(V), ");")
+  println(io, "V = quadratic_space(QQ, G);")
+  println(io, "f = matrix(QQ, $(dim(V)), $(dim(V)), ", f, ");")
+  println(io, "Vf = quadratic_space_with_isometry(V, f);")
 end
 
+to_oscar(Vf::QuadSpaceWithIsom) = to_oscar(stdout, Vf)

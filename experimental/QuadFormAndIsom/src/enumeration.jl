@@ -501,7 +501,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     if is_even(M) != is_even(Lf)
       continue
     end
-    if !is_of_same_type(Lf, integer_lattice_with_isometry(lattice(M), ambient_isometry(M)^m))
+    if !is_of_same_type(Lf, M^m)
       continue
     end
     gr = genus_representatives(H)
@@ -574,11 +574,8 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
     RA = representatives_of_hermitian_type(LA, q^e)
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB], inplace=false)
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
-      if !is_empty(E) && (E[1] isa AutomorphismGroup{TorQuadModule})
-        return E
-      end
-      GC.gc()
       append!(reps, E)
+      GC.gc()
     end
   end
   return reps
@@ -647,9 +644,9 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B], inplace=false)
     b == 1 && !Hecke.divides(order_of_isometry(L1), p)[1] && !Hecke.divides(order_of_isometry(L2), p)[1] && continue
     E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p)
-    GC.gc()
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
+    GC.gc()
   end
   return reps
 end

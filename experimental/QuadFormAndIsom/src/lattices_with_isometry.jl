@@ -2094,13 +2094,15 @@ end
 #
 ###############################################################################
 
-function to_oscar(Lf::ZZLatWithIsom)
+function to_oscar(io::IO, Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
-  println(stdout, "B = matrix(QQ, $(rank(L)), $(degree(L)), " , basis_matrix(L), ");")
-  println(stdout, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), ");")
-  println(stdout, "L = integer_lattice(B, gram = G);")
-  println(stdout, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, ");")
-  println(stdout, "Lf = integer_lattice_with_isometry(L, f);")
+  println(io, "B = matrix(QQ, $(rank(L)), $(degree(L)), " , basis_matrix(L), ");")
+  println(io, "G = matrix(QQ, $(degree(L)), $(degree(L)), ", gram_matrix(ambient_space(L)), ");")
+  println(io, "L = integer_lattice(B, gram = G);")
+  println(io, "f = matrix(QQ, $(degree(L)), $(degree(L)), ", f, ");")
+  println(io, "Lf = integer_lattice_with_isometry(L, f);")
 end
+
+to_oscar(Lf::ZZLatWithIsom) = to_oscar(stdout, Lf)
 

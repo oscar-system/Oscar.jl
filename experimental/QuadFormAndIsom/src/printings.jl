@@ -5,10 +5,10 @@
 ###############################################################################
 
 function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   println(io, lattice(Lf))
   n = order_of_isometry(Lf)
-  print(io, AbstractAlgebra.Indent())
+  print(io, Indent())
   if is_finite(n)
     println(io, "with isometry of finite order $n")
   else
@@ -16,7 +16,7 @@ function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
   end
   println(io, "given by")
   show(io, MIME"text/plain"(), isometry(Lf))
-  print(io, AbstractAlgebra.Dedent())
+  println(io)
 end
 
 function Base.show(io::IO, Lf::ZZLatWithIsom)
@@ -39,10 +39,10 @@ end
 ###############################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", Vf::QuadSpaceWithIsom)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   println(io, space(Vf))
   n = order_of_isometry(Vf)
-  print(io, AbstractAlgebra.Indent())
+  print(io, Indent())
   if is_finite(n)
     println(io, "with isometry of finite order $n")
   else
@@ -50,7 +50,7 @@ function Base.show(io::IO, ::MIME"text/plain", Vf::QuadSpaceWithIsom)
   end
   println(io, "given by")
   show(io, MIME"text/plain"(), isometry(Vf))
-  print(io, AbstractAlgebra.Dedent())
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, Vf::QuadSpaceWithIsom)

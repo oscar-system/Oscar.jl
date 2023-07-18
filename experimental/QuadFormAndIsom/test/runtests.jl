@@ -1,6 +1,21 @@
 using Test
 using Oscar
 
+@testset "Printings" begin
+  function _show_details(io::IO, X::Union{ZZLatWithIsom, QuadSpaceWithIsom})
+    return show(io, MIME"text/plain"(), Lf)
+  end
+  L = root_lattice(:A, 2)
+  Lf = integer_lattice_with_isometry(L)
+  Vf = ambient_space(Lf)
+  for X in [Lf, Vf]
+    @test sprint(_show_details, X) isa String
+    @test sprint(Oscar.to_oscar, X) isa String
+    @test sprint(show, X) isa String
+    @test sprint(show, X, context=:supercompact => true) isa String
+  end
+end
+
 @testset "Spaces with isometry" begin
   D5 = root_lattice(:D, 5)
   V = ambient_space(D5)
@@ -42,9 +57,9 @@ using Oscar
 end
 
 @testset "Lattices with isometry" begin
-  A4 = root_lattice(:A, 4)
-  agg = automorphism_group_generators(A4, ambient_representation = false)
-  agg_ambient = automorphism_group_generators(A4, ambient_representation = true)
+  A3 = root_lattice(:A, 3)
+  agg = automorphism_group_generators(A3, ambient_representation = false)
+  agg_ambient = automorphism_group_generators(A3, ambient_representation = true)
   f = rand(agg)
   g_ambient = rand(agg_ambient)
 
@@ -52,7 +67,8 @@ end
   Lf = integer_lattice_with_isometry(L, neg = true)
   @test order_of_isometry(Lf) == -1
 
-  L = @inferred integer_lattice_with_isometry(A4)
+  L = @inferred integer_lattice_with_isometry(A3)
+  @test length(unique([L, L, L])) == 1
   @test ambient_space(L) isa QuadSpaceWithIsom
   @test isone(isometry(L))
   @test isone(ambient_isometry(L))
@@ -63,33 +79,31 @@ end
                gram_matrix, det, scale, norm, is_integral, is_negative_definite,
                degree, is_even, discriminant, signature_tuple, is_definite]
     k = @inferred func(L)
-    @test k == func(A4)
+    @test k == func(A3)
   end
-
-  GL = image_centralizer_in_Oq(L)
-  @test order(GL) == 2
 
   LfQ = @inferred rational_span(L)
   @test LfQ isa QuadSpaceWithIsom
   @test evaluate(minimal_polynomial(L), 1) == 0
-  @test evaluate(characteristic_polynomial(L), 0) == 1
+  @test evaluate(characteristic_polynomial(L), 0) == -1
 
   @test minimum(L) == 2
   @test is_positive_definite(L)
   @test is_definite(L)
 
   nf = multiplicative_order(f)
-  @test_throws ArgumentError integer_lattice_with_isometry(A4, zero_matrix(QQ, 0, 0))
+  @test_throws ArgumentError integer_lattice_with_isometry(A3, zero_matrix(QQ, 0, 0))
 
-  L2 = @inferred integer_lattice_with_isometry(A4, f, ambient_representation = false)
+  L2 = @inferred integer_lattice_with_isometry(A3, f, ambient_representation = false)
   @test order_of_isometry(L2) == nf
   L2v = @inferred dual(L2)
   @test order_of_isometry(L2v) == nf
   @test ambient_isometry(L2v) == ambient_isometry(L2)
   
-  L3 = @inferred integer_lattice_with_isometry(A4, g_ambient, ambient_representation = true)
+  L3 = @inferred integer_lattice_with_isometry(A3, g_ambient, ambient_representation = true)
   @test order_of_isometry(L3) == multiplicative_order(g_ambient)
   @test L3^(order_of_isometry(L3)+1) == L3
+  @test genus(lll(L3, same_ambient=false)) == genus(L3)
 
   L4 = @inferred rescale(L3, QQ(1//4))
   @test !is_integral(L4)
@@ -161,6 +175,8 @@ end
   F, C, _ = invariant_coinvariant_pair(A3, OA3)
   @test rank(F) == 0
   @test C == A3
+  _, _, G = invariant_coinvariant_pair(A3, OA3, ambient_representation = false)
+  @test order(G) == order(OA3)
 
   D4 = lll(root_lattice(:D, 4))
   OD4 = matrix_group(automorphism_group_generators(D4, ambient_representation = false))
@@ -192,13 +208,18 @@ end
   E8 = root_lattice(:E, 8)
   @test length(enumerate_classes_of_lattices_with_isometry(E8, 20)) == 3
   @test length(enumerate_classes_of_lattices_with_isometry(E8, 18)) == 4
+  @test length(enumerate_classes_of_lattices_with_isometry(genus(E8), 1)) == 1
+
+  @test length(admissible_triples(E8, 2, pA=2)) == 1
+  @test length(admissible_triples(rescale(E8, 2), 2, pB = 4)) == 2
+  @test length(admissible_triples(E8, 3, pA=4, pB = 4)) == 1
 end
 
 @testset "Primitive embeddings" begin
   # Compute orbits of short vectors
   k = integer_lattice(gram=matrix(QQ,1,1,[4]))
   E8 = root_lattice(:E, 8)
-  ok, sv = primitive_embeddings_of_primary_lattice(E8, k, classification =:sublat, check=false)
+  ok, sv = primitive_embeddings_of_primary_lattice(E8, k, classification =:sublat, check=true)
   @test ok
   @test length(sv) == 1
   ok, sv = primitive_embeddings_in_primary_lattice(rescale(E8, 2), rescale(k, QQ(1//2)), check=false)
@@ -208,9 +229,20 @@ end
 
   k = integer_lattice(gram=matrix(QQ,1,1,[6]))
   E7 = root_lattice(:E, 7)
-  ok, sv = primitive_embeddings_in_primary_lattice(E7, k, classification = :emb, check=false)
+  ok, sv = primitive_embeddings_in_primary_lattice(E7, k, classification = :emb, check=true)
   @test ok
   @test length(sv) == 2
+  q = discriminant_group(E7)
+  p, z, n = signature_tuple(E7)
+  ok, _ = primitive_embeddings_in_primary_lattice(q, (p,n), E7, classification = :none)
+  @test ok
+  k = integer_lattice(gram=matrix(QQ,1,1,[2]))
+  ok, sv = primitive_embeddings_of_primary_lattice(E7, k, check=true)
+  @test ok
+  @test length(sv) == 1
+
+  ok, _ = primitive_embeddings_of_primary_lattice(q, (p,n), E7, classification = :none)
+  @test ok
 
   @test !primitive_embeddings_in_primary_lattice(rescale(E7, 2), k, classification = :none, check = false)[1]
 

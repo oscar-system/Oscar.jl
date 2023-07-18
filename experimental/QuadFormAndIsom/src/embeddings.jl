@@ -636,9 +636,9 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if rank(M) == rank(G)
-    !(genus(M) == G) && return results
+    !(genus(M) == G) && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
-    return results
+    return true, results
   end
 
   @req rank(M) < rank(G) "The rank of M must be smaller or equal than the one of the lattices in G"
@@ -837,9 +837,9 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if rank(M) == rank(G)
-    !(genus(M) == G) && return results
+    !(genus(M) == G) && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
-    return results
+    return true, results
   end
 
   @req rank(M) < rank(G) "The rank of M must be smaller or equal than the one of the lattices in G"
