@@ -5,8 +5,6 @@ export order_on_divisor
 export scheme
 export subscheme
 
-export show_details
-
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
