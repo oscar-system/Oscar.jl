@@ -284,7 +284,7 @@ function realize(Phi::RationalMap)
     phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict, check=false)
     # Make the refinement known to the domain
     push!(coverings(domain(Phi)), domain_ref)
-    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov, check=false)
+    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov)
   end
   return Phi.full_realization
 end
