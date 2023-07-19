@@ -266,4 +266,3 @@ function adjoint_matrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes
   end 
   return ad
 end
-
