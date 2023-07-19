@@ -19,7 +19,7 @@ $p$-elementary subgroups of the respective discriminant groups of `A` and `B`.
 Note that not all admissible triples satisfy this extension property.
 
 For instance, if $f$ is an isometry of an integer lattice `C` of prime order
-`p`, then for $A := \Ker \Phi_1(f)$ and $B := \Ker \Phi_p(f)$, one has that
+`p`, then for $A := \ker \Phi_1(f)$ and $B := \ker \Phi_p(f)$, one has that
 `(A, B, C)` is $p$-admissible (see Lemma 4.15. in [BH23](@cite)).
 
 We say that a triple `(AA, BB, CC)` of genus symbols for integer lattices is

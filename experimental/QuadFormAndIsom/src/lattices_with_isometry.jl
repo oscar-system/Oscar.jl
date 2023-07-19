@@ -1574,7 +1574,7 @@ is irreducible cyclotomic, return the signatures of $(L, f)$.
 In this context, if we denote $z$ a primitive `n`-th root of unity, where `n`
 is the order of `f`, then for each $1 \leq i \leq n/2$ such that $(i, n) = 1$,
 the $i$-th signature of $(L, f)$ is given by the signatures of the real quadratic
-form $\Ker(f + f^{-1} - z^i - z^{-i})$.
+form $\ker(f + f^{-1} - z^i - z^{-i})$.
 
 # Examples
 ```jldoctest
@@ -1942,9 +1942,9 @@ type of $(L, f)$.
 
 In this context, the type is defined as follows: for each divisor `k` of `n`,
 the `k`-type of $(L, f)$ is the tuple $(H_k, A_K)$ consisting of the genus
-$H_k$ of the lattice $\Ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k]$-
+$H_k$ of the lattice $\ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k]$-
 lattice (so a $\mathbb{Z}$-lattice for k= 1, 2) and of the genus $A_k$ of the
-$\mathbb{Z}$-lattice $\Ker(f^k-1)$.
+$\mathbb{Z}$-lattice $\ker(f^k-1)$.
 
 # Examples
 ```jldoctest

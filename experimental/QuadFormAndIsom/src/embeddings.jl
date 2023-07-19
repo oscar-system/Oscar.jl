@@ -527,13 +527,9 @@ If `T == false`, then `V` will always be the empty list. If `T == true`, then
 the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
-  - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$
-  and $O(q)$ where `q` is the discriminant group of `L`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices of `L` isometric to `M` up to the action of
-  $O(q)$ where `q` is the discriminant group of `L`.
+  - `classification = :first`: `V` consists on the first primitive embedding found;
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of `L`;
+  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
@@ -586,13 +582,9 @@ If `T == false`, then `V` will always be the empty list. If `T == true`, then
 the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
-  - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in lattices in `G`, up to the actions of
-  $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices of lattices in `G` isometric to `M`, up to the
-  action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :first`: `V` consists on the first primitive embedding found;
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
+  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 
 If the pair `(q, sign)` does not define a non-empty genus for integer lattices,
 an error is thrown.
@@ -620,13 +612,9 @@ If `T == false`, then `V` will always be the empty list. If `T == true`, then
 the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
-  - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in lattices in `G`, up to the actions of
-  $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant of a lattice in `G`;
-  - `classification = :emb`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices of lattices in `G` isometric to `M`, up to the
-  action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :first`: `V` consists on the first primitive embedding found;
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant of a lattice in `G`;
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 """
 function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classification::Symbol = :sublat)
   @req classification in [:none, :emb, :sublat, :first] "Wrong symbol for classification"
@@ -731,13 +719,9 @@ If `T == false`, then `V` will always be the empty list. If `T == true`, then
 the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
-  - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$
-  and $O(q)$ where `q` is the discriminant group of `L`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices of `L` isometric to `M` up to the action of
-  $O(q)$ where `q` is the discriminant group of `L`.
+  - `classification = :first`: `V` consists on the first primitive embedding found;
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of `L`;
+  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
@@ -787,13 +771,9 @@ If `T == false`, then `V` will always be the empty list. If `T == true`, then
 the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
-  - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in lattices in `G`, up to the actions of
-  $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices of lattices in `G` isometric to `M`, up to the
-  action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :first`: `V` consists on the first primitive embedding found;
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
+  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 
 If the pair `(q, sign)` does not define a non-empty genus for integer lattices,
 an error is thrown.
@@ -822,12 +802,8 @@ the content of `V` actually depends on the value of the symbol `classification`.
 There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: V` consists on the first primitive embedding found;
-  - `classification = :sublat`: `V` consists on representatives for all isomorphism
-  classes of primitive embeddings of `M` in lattices in `G`, up to the actions of
-  $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism
-  classes of primitive sublattices in lattices in `G` isometric to `M`, up to the
-  action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
+  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices in lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 """
 function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classification::Symbol = :sublat)
   @req classification in [:none, :first, :emb, :sublat] "Wrong symbol for classification"
@@ -931,13 +907,10 @@ end
 
 Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a
 prime number `p`, such that `(A, B, C)` is `p`-admissible, return a set of
-representatives of the double coset $G_B\backslash S\slash/G_A$ where:
+representatives of the double coset $G_B\backslash S/G_A$ where:
 
-  - $G_A$ and $G_B$ are the respective images of the morphisms
-    $O(A, fa) -> O(q_A, \bar{fa})$ and $O(B, fb) -> O(q_B, \bar{fb})$;
-  - $S$ is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry
-    $fc'$ where $p\cdot C' \subseteq A\perpB$ and such that the type of $(C', fc'^q)$
-    is equal to the type of `(C, fc)`.
+  - ``G_A`` and ``G_B`` are the respective images of the morphisms $O(A, fa) \to O(q_A, \bar{fa})$ and $O(B, fb) \to O(q_B, \bar{fb})$;
+  - ``S`` is the set of all primitive extensions $A \perp B \subseteq C'$ with isometry $fc'$ where $p\cdot C' \subseteq A\perp B$ and such that the type of $(C', fc'^q)$ is equal to the type of `(C, fc)`.
 
 If `check == true` the input triple is checked to a `p`-admissible triple of
 integral lattices (with isometry) with `fA` and `fB` having relatively coprime
