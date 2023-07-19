@@ -566,6 +566,7 @@ export graded_polynomial_ring
 export grading
 export grading_group
 export graph
+export graph_from_adjacency_matrix
 export grassmann_pluecker_ideal
 export grid_morphism
 export groebner_basis
@@ -750,6 +751,7 @@ export is_irreducible
 export is_isomorphic
 export is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group
 export is_isomorphic_with_map
+export is_isomorphic_with_permutation
 export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
@@ -800,7 +802,6 @@ export is_semisimple
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
-export is_skewsymmetric_matrix
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple

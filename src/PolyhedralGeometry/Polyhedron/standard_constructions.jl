@@ -695,7 +695,7 @@ below.
           Regular polytope with 20 triangular facets.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"[Hecke.]*Embedded.*"
 julia> T = platonic_solid("icosahedron")
 Polyhedron in ambient dimension 3 with Hecke.EmbeddedNumFieldElem{nf_elem} type coefficients
 
@@ -1013,7 +1013,7 @@ Construct an 8-dimensional polytope with 12 vertices which is not combinatoriall
 - [Gru03](@cite), p.94f
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"[Hecke.]*Embedded.*"
 julia> perles_nonrational_8_polytope()
 Polyhedron in ambient dimension 8 with Hecke.EmbeddedNumFieldElem{nf_elem} type coefficients
 ```

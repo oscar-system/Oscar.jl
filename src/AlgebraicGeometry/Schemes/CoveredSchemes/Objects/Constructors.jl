@@ -21,7 +21,13 @@ julia> U1 = Spec(P1);
 julia> U2 = Spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
-Covering with 2 patches
+Covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [x, y]
+    2: [u, v]
 
 julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
 
@@ -34,10 +40,24 @@ julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 julia> G = Glueing(U1, U2, f, g); # Construct the glueing
 
 julia> add_glueing!(C, G) # Make the glueing part of the Covering
-Covering with 2 patches
+Covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [x, y]
+    2: [u, v]
 
 julia> X = CoveredScheme(C) # Create a CoveredScheme from the Glueing
-covered scheme with 2 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [x, y]
+    2: [u, v]
 
 ```
 """

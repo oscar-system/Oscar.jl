@@ -69,15 +69,14 @@ where `x₀,…,xₙ` is a list of variable names.
 ```jldoctest
 julia> projective_space(QQ, [:x, :PPP, :?])
 Projective space of dimension 2
-  with homogeneous coordinates x PPP ?
-  over Rational field
+  over rational field
+with homogeneous coordinates x, PPP, ?
 
 julia> homogeneous_coordinate_ring(ans)
 Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   PPP -> [1]
   ? -> [1]
-
 ```
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})

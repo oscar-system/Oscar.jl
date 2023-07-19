@@ -180,7 +180,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   OOX = OO(X)
   OOY = OO(Y)
   # We need to do the following:
-  # The covering CC has patches Vⱼ in the codomain Y of f.
+  # The covering DD has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
   # the domain's covering for phi. 
   res_dict = IdDict{AbsSpec, AbsSpecMor}()
@@ -203,7 +203,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
         ff = SpecMor(UW, W_flat, 
-                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(gens(OO(V)))), check=false),
+                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(OOY(par, V).(gens(OO(par))))), check=false),
                      check=false
                     )
         f_res = compose(ff, inverse(iso_W_flat))

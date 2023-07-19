@@ -112,3 +112,49 @@ function _register_birationality!(f::AbsCoveredSchemeMorphism,
   set_attribute!(f, :iso_on_open_subset, g)
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+# We use a pattern for printings morphisms, glueings, etc...
+#
+# In supercompact printing, we just write what it is, super shortly.
+# For normal compact printing, we mention what it is, then use colons to
+# describe "domain -> codomain".
+function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+# Here the `_show_semi_compact` allows us to avoid the redundancy on the
+# printing of the domain/codomain, choose the covering of the scheme to print,
+# and associate a letter to the labels of the charts - "a" for the domain and
+# "b" for the codomain.
+#
+# We also have a `_show_semi_compact` for the associate covering morphism, where
+# again we just avoid to re-write what are the domain and codomain.
+function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
+  io = pretty(io)
+  g = covering_morphism(f)
+  println(io, "Morphism")
+  print(io, Indent(), "from ", Lowercase())
+  Oscar._show_semi_compact(io, domain(f), domain(g), "a")
+  println(io)
+  print(io, "to   ", Lowercase())
+  Oscar._show_semi_compact(io, codomain(f), codomain(g), "b")
+  if min(length(domain(g)), length(codomain(g))) == 0
+    print(io, Dedent())
+  else
+    println(io, Dedent())
+    print(io, "given by the pullback function")
+    length(domain(g)) > 1 && print(io, "s")
+    println(io, Indent())
+    Oscar._show_semi_compact(io, covering_morphism(f))
+  end
+end
