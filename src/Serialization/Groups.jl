@@ -1,3 +1,19 @@
+
+# Cache families of GAP objects that have been serialized,
+# in order to be able to deserialize the objects in the *same* GAP session,
+# and to get equal objects.
+# If deserialization takes place in a *different* GAP session then
+# we have to create the families in question anew.
+
+const _GAP_Families = Dict{String, Dict{String, GapObj}}()
+const _GAP_session_id = Ref{String}("")
+
+function __init_group_serialization()
+    _GAP_session_id[] = string(objectid(GAP))
+    _GAP_Families[_GAP_session_id[]] = Dict{UInt64, GapObj}()
+end
+
+
 ################################################################################
 # PermGroup
 
@@ -55,43 +71,84 @@ end
 
 function save_internal(s::SerializerState, G::FPGroup)
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G.X))
+    id = string(objectid(elfam))
+    D = _GAP_Families[_GAP_session_id[]]
+    if !haskey(D, id)
+      D[id] = elfam
+    end
+
     free = GAP.getbangproperty(elfam, :freeGroup)::GapObj
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(free))
     names = GAP.getbangproperty(elfam, :names)::GapObj
-    if is_full_fp_group(G)
-      rels = map(syllables, Oscar.relators(G))
-      rels = [vcat([[x[1], x[2]] for x in l]...) for l in rels]
-      return Dict(
-          :symbols => save_type_dispatch(s, Vector{Symbol}(names)),
-          :relators => save_type_dispatch(s, rels),
-      )
-    else
+
+    res = Dict(
+            :session => _GAP_session_id[],
+            :family => string(id),
+            :symbols => save_type_dispatch(s, Vector{Symbol}(names)),
+          )
+
+    if !is_full_fp_group(G)
       # We have no Oscar object corresponding to the full f.p. group.
       whole = GAP.getbangproperty(GAPWrap.FamilyObj(G.X), :wholeGroup)::GapObj
-      rels = Vector{Vector{Int}}(GAP.Globals.List(GAPWrap.RelatorsOfFpGroup(whole), GAPWrap.ExtRepOfObj))
       generators = Vector{Vector{Int}}(GAP.Globals.List(GAPWrap.GeneratorsOfGroup(G.X), GAPWrap.ExtRepOfObj))
-      return Dict(
-          :symbols => save_type_dispatch(s, Vector{Symbol}(names)),
-          :relators => save_type_dispatch(s, rels),
-          :generators => save_type_dispatch(s, generators),
-      )
+      res[:generators] = save_type_dispatch(s, generators)
+      if !GAP.Globals.IsFreeGroup(G.X)
+        rels = Vector{Vector{Int}}(GAP.Globals.List(GAPWrap.RelatorsOfFpGroup(whole), GAPWrap.ExtRepOfObj))
+        res[:relators] = save_type_dispatch(s, rels)
+      end
+    elseif !GAP.Globals.IsFreeGroup(G.X)
+      rels = map(syllables, Oscar.relators(G))
+      rels = [vcat([[x[1], x[2]] for x in l]...) for l in rels]
+      res[:relators] = save_type_dispatch(s, rels)
     end
+
+    return res
 end
 
 function load_internal(s::DeserializerState, ::Type{FPGroup}, dict::Dict)
-    names = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
-    F = free_group(names)
-    elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F.X))
-    rels = load_type_dispatch(s, Vector{Vector{Int}}, dict[:relators])
-    rels_pairs = Vector{Pair{Int, Int}}[]
-    for l in rels
-      rel = Pair{Int, Int}[]
-      for i in 1:2:(length(l)-1)
-        push!(rel, Pair{Int, Int}(l[i], l[i+1]))
-      end
-      push!(rels_pairs, rel)
+    if !haskey(_GAP_Families, dict[:session])
+      # This is the first time we deserialize an object from that session id.
+      _GAP_Families[dict[:session]] = Dict{UInt64, GapObj}()
     end
-    G = quo(F, [F(l) for l in rels_pairs])[1]
+    D = _GAP_Families[dict[:session]]
+
+    if !haskey(dict, :relators)
+      # (subgroup of) a free group,
+      if haskey(D, dict[:family])
+        # Use the stored elements family.
+        elfam = D[dict[:family]]
+        G = FPGroup(GAP.getbangproperty(elfam, :freeGroup))
+      else
+        # Create the family anew, and store it (under the *old* key).
+        names = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
+        G = free_group(names)
+        elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G.X))
+        D[dict[:family]] = elfam
+      end
+    else
+      # (subgroup of) quotient of a free group
+      if haskey(D, dict[:family])
+        # Use the stored elements family.
+        elfam = D[dict[:family]]
+        G = FPGroup(GAP.getbangproperty(GAPWrap.CollectionsFamily(elfam), :wholeGroup))
+      else
+        # Create the family anew, and store it (under the *old* key).
+        names = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
+        F = free_group(names)
+        rels = load_type_dispatch(s, Vector{Vector{Int}}, dict[:relators])
+        rels_pairs = Vector{Pair{Int, Int}}[]
+        for l in rels
+          rel = Pair{Int, Int}[]
+          for i in 1:2:(length(l)-1)
+            push!(rel, Pair{Int, Int}(l[i], l[i+1]))
+          end
+          push!(rels_pairs, rel)
+        end
+        G = quo(F, [F(l) for l in rels_pairs])[1]
+        elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G.X))
+        D[dict[:family]] = elfam
+      end
+    end
 
     if haskey(dict, :generators)
       generators = load_type_dispatch(s, Vector{Vector{Int}}, dict[:generators])
