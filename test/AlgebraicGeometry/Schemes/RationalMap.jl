@@ -64,5 +64,47 @@ end
   @test any(x->x==pbE2, H)
   pbE3 = pushforward(Phi)(E3)
   @test any(x->x==pbE3, H)
-end
 
+  # Test the different versions of realization and their compatibility
+  realizations = []
+  for U in affine_charts(X)
+    realizations = vcat(realizations, oscar.realize_on_patch(Phi, U))
+  end
+
+  new_patches = [domain(phi) for phi in realizations]
+  new_cod = unique!([codomain(phi) for phi in realizations])
+  dom_cov = Covering(new_patches)
+  cod_cov = Covering(new_cod)
+
+  oscar.inherit_glueings!(dom_cov, default_covering(X))
+  oscar.inherit_glueings!(cod_cov, default_covering(X))
+  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for phi in realizations
+    mor_dict[domain(phi)] = phi
+  end
+
+  # Call with check=true implitictly
+  phi_cov = CoveringMorphism(dom_cov, cod_cov, mor_dict)
+
+  realizations = []
+  for U in affine_charts(X)
+    for V in affine_charts(X) 
+      realizations = vcat(realizations, oscar.realize_maximally_on_open_subset(Phi, U, V))
+    end
+  end
+
+
+  new_patches = [domain(phi) for phi in realizations]
+  new_cod = unique!([codomain(phi) for phi in realizations])
+  dom_cov = Covering(new_patches)
+  cod_cov = Covering(new_cod)
+
+  oscar.inherit_glueings!(dom_cov, default_covering(X))
+  oscar.inherit_glueings!(cod_cov, default_covering(X))
+  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for phi in realizations
+    mor_dict[domain(phi)] = phi
+  end
+  # Call with check=true implitictly
+  phi_cov = CoveringMorphism(dom_cov, cod_cov, mor_dict)
+end
