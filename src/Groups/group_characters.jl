@@ -338,10 +338,10 @@ Return the ordinary character table of the group described by the series
 # Examples
 ```jldoctest
 julia> println(character_table(:Symmetric, 5))
-character_table("Sym(5)")
+character table of Sym(5)
 
 julia> println(character_table(:WeylB, 3))
-character_table("W(B3)")
+character table of W(B3)
 ```
 
 Currently the following series are supported.
@@ -384,7 +384,8 @@ end
 
 # Use the isomorphism.
 function preimages(iso::MapFromFunc{GrpAbFinGen, GapObj}, H::GapObj)
-  return sub(domain(iso), [preimage(iso, x) for x in GAPWrap.GeneratorsOfGroup(H)])
+  return sub(domain(iso),
+             GrpAbFinGenElem[preimage(iso, x) for x in GAPWrap.GeneratorsOfGroup(H)])
 end
 
 
@@ -1933,6 +1934,8 @@ the values of `chi`.
 
 # Examples
 ```jldoctest
+julia> tbl = character_table(alternating_group(4));
+
 julia> println([findfirst(y -> y == conj(x), tbl) for x in tbl])
 [1, 3, 2, 4]
 ```
@@ -2218,7 +2221,7 @@ function character_field(chi::GAPGroupClassFunction)
     if p != 0
       # Brauer character, construct a finite field
       q = order_field_of_definition(chi)
-      flag, pp, e = is_prime_power_with_data(q)
+      flag, e, pp = is_prime_power_with_data(q)
       (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
       F = Nemo._GF(p, e)
       return (F, identity_map(F))
@@ -2313,6 +2316,8 @@ in order to compute `order_field_of_definition(chi)`.
 
 # Examples
 ```jldoctest
+julia> tbl = character_table("A5", 2);
+
 julia> println([order_field_of_definition(chi) for chi in tbl])
 ZZRingElem[2, 4, 4, 2]
 ```

@@ -211,7 +211,7 @@ GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
-GAP.@wrap NormalSubgroupClasses(x::GapObj)::GapObj
+GAP.@wrap NormalSubgroupClasses(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap NrCols(x::GapObj)::Int
 GAP.@wrap NrConjugacyClasses(x::Any)::GapInt
 GAP.@wrap NrRows(x::GapObj)::Int
