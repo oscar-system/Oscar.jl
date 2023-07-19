@@ -64,16 +64,25 @@ export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSystem
+export SimpleLieAlgebra, SimpleLieAlgebraElem
 
 export abelian_lie_algebra
 export abstract_module
+export adjoint_matrix
 export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export cartan_matrix
+export chevalley_basis
 export coefficient_vector
 export combinations
+<<<<<<< HEAD
 export derived_algebra
+=======
+export dynkin_diagram
+>>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -127,14 +136,23 @@ export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSystem
+export SimpleLieAlgebra, SimpleLieAlgebraElem
 
 export abelian_lie_algebra
 export abstract_module
+export adjoint_matrix
 export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+<<<<<<< HEAD
 export derived_algebra
+=======
+export cartan_matrix
+export chevalley_basis
+export dynkin_diagram
+>>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module

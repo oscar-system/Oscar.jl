@@ -121,7 +121,7 @@ end
 function *(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: RingElement
   parent(f) != parent(g) && error("Incompatible Lie algebras")
   L = parent(f)
-  ad = AdjointMatrix(L)
+  ad = adjoint_matrix(L)
   r = L()
   for i = 1:ncols(matrix(f))
     for j = 1:ncols(matrix(g))
@@ -239,11 +239,11 @@ function chevalley_basis(L::SimpleLieAlgebra)
 end 
 
 @doc raw"""
-    AdjointMatrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
-Give the Adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
+    adjoint_matrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
+Give the adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
 to the Chevalley basis of `L`
 """
-function AdjointMatrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
+function adjoint_matrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
 	St = L.root_type
 	R = base_ring(L)	
 	n = St[2]
