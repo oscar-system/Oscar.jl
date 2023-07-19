@@ -1782,7 +1782,7 @@ end
 
 
 @doc raw"""
-  primitive_by_shape(ct::Set{CycleType}, n::Int)
+    primitive_by_shape(ct::Set{CycleType}, n::Int)
 
 Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
 matching the cycle types in `ct` must be primitive, otherwise return `false`.
