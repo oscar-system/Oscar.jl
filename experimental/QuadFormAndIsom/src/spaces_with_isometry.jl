@@ -14,7 +14,7 @@ Given a quadratic space with isometry $(V, f)$, return the underlying space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> space(Vf) === V
 true
@@ -32,7 +32,7 @@ Given a quadratic space with isometry $(V, f)$, return the underlying isometry
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> isometry(Vf)
 [-1    0]
@@ -51,7 +51,7 @@ underlying isometry `f`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> order_of_isometry(Vf) == 2
 true
@@ -75,7 +75,7 @@ space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> rank(Vf) == 2
 true
@@ -93,7 +93,7 @@ underlying space of `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> dim(Vf) == 2
 true
@@ -111,7 +111,7 @@ polynomial of the underlying isometry `f`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> characteristic_polynomial(Vf)
 x^2 + 2*x + 1
@@ -129,7 +129,7 @@ polynomial of the underlying isometry `f`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> minimal_polynomial(Vf)
 x + 1
@@ -147,7 +147,7 @@ of the underlying space `V` with respect to its standard basis.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> is_one(gram_matrix(Vf))
 true
@@ -165,7 +165,7 @@ of the underlying space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> is_one(det(Vf))
 true
@@ -183,7 +183,7 @@ of the underlying space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> discriminant(Vf)
 -1
@@ -201,7 +201,7 @@ space `V` is positive definite.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> is_positive_definite(Vf)
 true
@@ -219,7 +219,7 @@ space `V` is negative definite.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> is_negative_definite(Vf)
 false
@@ -237,7 +237,7 @@ space `V` is definite.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> is_definite(Vf)
 true
@@ -255,7 +255,7 @@ underlying space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> diagonal(Vf)
 2-element Vector{QQFieldElem}:
@@ -275,7 +275,7 @@ tuple of the underlying space `V`.
 ```jldoctest
 julia> V = quadratic_space(QQ, 2);
 
-julia> Vf = quadratic_space_with_isometry(V, neg = true);
+julia> Vf = quadratic_space_with_isometry(V; neg = true);
 
 julia> signature_tuple(Vf)
 (2, 0, 0)
@@ -365,7 +365,7 @@ Quadratic space of dimension 2
 function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool = false)
   f = identity_matrix(QQ, dim(V))
   f = neg ? -f : f
-  return quadratic_space_with_isometry(V, f, check=false)
+  return quadratic_space_with_isometry(V, f; check=false)
 end
 
 ###############################################################################
@@ -412,8 +412,8 @@ with gram matrix
 [-1//2       1]
 ```
 """
-function rescale(Vf::QuadSpaceWithIsom, a::Hecke.RationalUnion)
-  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf), check = false)
+function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
+  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf); check = false)
 end
 
 @doc raw"""
@@ -453,7 +453,7 @@ Quadratic space of dimension 2
 ```
 """
 function Base.:^(Vf::QuadSpaceWithIsom, n::Int)
-  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n, check=false)
+  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n; check=false)
 end
 
 @doc raw"""
@@ -546,7 +546,7 @@ with gram matrix
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj = direct_sum(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f, check=false), inj
+  return quadratic_space_with_isometry(V, f; check=false), inj
 end
 
 direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
@@ -641,7 +641,7 @@ with gram matrix
 function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, proj = direct_product(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f, check=false), proj
+  return quadratic_space_with_isometry(V, f; check=false), proj
 end
 
 direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
@@ -757,7 +757,7 @@ julia> matrix(compose(inj[1], proj[2]))
 function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj, proj = biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f, check=false), inj, proj
+  return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
 biproduct(x::Vararg{QuadSpaceWithIsom}) = biproduct(collect(x))

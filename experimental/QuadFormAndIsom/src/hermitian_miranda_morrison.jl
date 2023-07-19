@@ -13,7 +13,7 @@
 function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   OE = order(P)
   E = nf(OE)
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
 
   Pabs = EabstoE\P
   OEabs = order(Pabs)
@@ -61,7 +61,7 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
   K = base_field(E)
   p = minimum(P)
 
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   Rp, mRp = quo(OK, p^i)
@@ -130,7 +130,7 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   end
   j = Int(ceil(jj))
 
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
   OK = order(p)
   Rp, mRp = quo(OK, p^j)
   URp, mURp = unit_group(Rp)
@@ -318,7 +318,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
   if rank(Lf) != degree(Lf)
-    Lf2 = integer_lattice_with_isometry(integer_lattice(gram = gram_matrix(Lf)), isometry(Lf), ambient_representation = false)
+    Lf2 = integer_lattice_with_isometry(integer_lattice(gram = gram_matrix(Lf)), isometry(Lf); ambient_representation = false)
     qL2, fqL2 = discriminant_group(Lf2)
     OqL2 = orthogonal_group(qL2)
     ok, phi12 = is_isometric_with_isometry(qL, qL2)
@@ -416,7 +416,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
 
   # Now according to Theorem 6.15 of BH23, it remains to quotient out the image
   # of the units in E of norm 1.
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
   OEabs = maximal_order(Eabs)
   UOEabs, mUOEabs = unit_group(OEabs)
   OK = base_ring(OE)
@@ -468,7 +468,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   end
 
   GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
-  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs), check=false)
+  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs); check=false)
   f = compose(GtoG2, f2)
 
   return f
@@ -530,7 +530,7 @@ Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
 
 function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   q = domain(g)
@@ -680,7 +680,7 @@ function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::Automorph
     return identity_matrix(E, 1)
   end
 
-  BHp = local_basis_matrix(H, minimum(P), type = :submodule)
+  BHp = local_basis_matrix(H, minimum(P); type = :submodule)
   BHp_inv = inv(BHp)
   Bps = _local_basis_modular_submodules(H2, minimum(P), a, res)
   Bp = reduce(vcat, Bps)
@@ -727,7 +727,7 @@ function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfOrdIdl, a:
       B2 = basis_matrix(L2)
       gene = [res(vec(collect(B2[i, :]))) for i in 1:nrows(B2)]
       H2 = lattice(ambient_space(H), gene)
-      b = local_basis_matrix(H2, p, type = :submodule)
+      b = local_basis_matrix(H2, p; type = :submodule)
     end
     push!(subs, b)
   end
@@ -758,7 +758,7 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
     return Hecke._special_unit(P, minimum(P))
   end
   K = base_field(E)
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
+  Eabs, EabstoE = absolute_simple_field(E)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   while true
@@ -768,7 +768,7 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
     nug = valuation(g, Pabs)
     if nu == nug
       d = denominator(g+1, OEabs)
-      rt = roots(t^2 - (g+1)*d^2, max_roots = 1, ispure = true, is_normal=true)
+      rt = roots(t^2 - (g+1)*d^2; max_roots = 1, ispure = true, is_normal=true)
       if !is_empty(rt)
         rho = (1+rt[1])//2
         @hassert :ZZLatWithIsom 1 valuation(rho, Pabs) == 1-e

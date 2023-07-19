@@ -13,8 +13,8 @@ forms.
 ## Content
 
 We introduce two new structures
-* `QuadSpaceWithIsom`
-* `ZZLatWithIsom`
+* [`QuadSpaceWithIsom`](@ref)
+* [`ZZLatWithIsom`](@ref)
 The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
 and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
 $L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$

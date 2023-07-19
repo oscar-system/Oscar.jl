@@ -85,7 +85,7 @@ Base.:^(::QuadSpaceWithIsom, ::Int)
 biproduct(::Vector{QuadSpaceWithIsom})
 direct_product(::Vector{QuadSpaceWithIsom})
 direct_sum(::Vector{QuadSpaceWithIsom})
-rescale(::QuadSpaceWithIsom, ::Hecke.RationalUnion)
+rescale(::QuadSpaceWithIsom, ::RationalUnion)
 ```
 
 ## Equality

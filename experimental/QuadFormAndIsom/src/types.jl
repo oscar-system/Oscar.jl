@@ -52,11 +52,7 @@ Quadratic space of dimension 6
   n::IntExt
 
   function QuadSpaceWithIsom(V::Hecke.QuadSpace, f::QQMatrix, n::IntExt)
-    z = new()
-    z.V = V
-    z.f = f
-    z.n = n
-    return z
+    return new(V, f, n)
   end
 end
 
@@ -198,11 +194,6 @@ space, we can compare them as $\mathbb Z$-modules, endowed with an isometry.
   n::IntExt
 
   function ZZLatWithIsom(Vf::QuadSpaceWithIsom, Lb::ZZLat, f::QQMatrix, n::IntExt)
-    z = new()
-    z.Lb = Lb
-    z.f = f
-    z.Vf = Vf
-    z.n = n
-    return z
+    return new(Vf, Lb, f, n)
   end
 end

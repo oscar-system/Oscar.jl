@@ -14,7 +14,7 @@ Given a lattice with isometry $(L, f)$, return the underlying lattice `L`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> lattice(Lf) === L
 true
@@ -31,7 +31,7 @@ Given a lattice with isometry $(L, f)$, return the underlying isometry `f`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> isometry(Lf)
 [-1    0    0    0    0]
@@ -57,7 +57,7 @@ together with `V` into a container type `QuadSpaceWithIsom`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> Vf = ambient_space(Lf)
 Quadratic space of dimension 5
@@ -85,7 +85,7 @@ space of `L` inducing `f` on `L`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> ambient_isometry(Lf)
 [-1    0    0    0    0]
@@ -107,7 +107,7 @@ isometry `f`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> order_of_isometry(Lf) == 2
 true
@@ -131,7 +131,7 @@ Given a lattice with isometry $(L, f)$, return the rank of the underlying lattic
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> rank(Lf)
 5
@@ -149,7 +149,7 @@ underlying isometry `f`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> factor(characteristic_polynomial(Lf))
 1 * (x + 1)^5
@@ -167,7 +167,7 @@ underlying isometry `f`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> minimal_polynomial(Lf)
 x + 1
@@ -185,7 +185,7 @@ lattice `L`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true);
+julia> Lf = integer_lattice_with_isometry(L; neg=true);
 
 julia> genus(Lf)
 Genus symbol for integer lattices
@@ -541,7 +541,7 @@ julia> G = matrix(QQ, 5, 5, [ 2 -1  0  0  0;
                               0  0 -1  2 -1;
                               0  0  0 -1  2]);
 
-julia> L = integer_lattice(B, gram = G);
+julia> L = integer_lattice(B; gram = G);
 
 julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
                              -1 -1 -1 -1 -1;
@@ -564,7 +564,7 @@ julia> ambient_isometry(Lf)
 [ 0    0    0    1    0]
 [ 0    0    1    0    0]
 
-julia> Lf2 = integer_lattice_with_isometry(L, isometry(Lf), ambient_representation=false)
+julia> Lf2 = integer_lattice_with_isometry(L, isometry(Lf); ambient_representation=false)
 Integer lattice of rank 3 and degree 5
   with isometry of finite order 1
   given by
@@ -593,9 +593,9 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
 
   if ambient_representation
     f_ambient = f
-    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient, check=check)
+    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check=check)
     B = basis_matrix(L)
-    ok, f = can_solve_with_solution(B, B*f_ambient, side = :left)
+    ok, f = can_solve_with_solution(B, B*f_ambient; side = :left)
     @req ok "Isometry does not restrict to L"
   else
     V = ambient_space(L)
@@ -604,7 +604,7 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
     C = vcat(B, B2)
     f_ambient = block_diagonal_matrix([f, identity_matrix(QQ, nrows(B2))])
     f_ambient = inv(C)*f_ambient*C
-    Vf = quadratic_space_with_isometry(V, f_ambient, check=check)
+    Vf = quadratic_space_with_isometry(V, f_ambient; check=check)
   end
 
   n = multiplicative_order(f)
@@ -629,7 +629,7 @@ If `neg` is set to `true`, then the isometry `f` is negative the identity of `L`
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> Lf = integer_lattice_with_isometry(L, neg=true)
+julia> Lf = integer_lattice_with_isometry(L; neg=true)
 Integer lattice of rank 5 and degree 5
   with isometry of finite order 2
   given by
@@ -646,7 +646,7 @@ function integer_lattice_with_isometry(L::ZZLat; neg::Bool = false)
   if neg
     f = -f
   end
-  return integer_lattice_with_isometry(L, f, check = false, ambient_representation = true)::ZZLatWithIsom
+  return integer_lattice_with_isometry(L, f; check = false, ambient_representation = true)::ZZLatWithIsom
 end
 
 @doc raw"""
@@ -729,8 +729,8 @@ Integer lattice of rank 3 and degree 5
 ```
 """
 function lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion}; isbasis::Bool = true, check::Bool = true)
-  L = lattice(space(Vf), B, isbasis=isbasis, check=check)
-  ok, fB = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*isometry(Vf), side = :left)
+  L = lattice(space(Vf), B; isbasis=isbasis, check=check)
+  ok, fB = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*isometry(Vf); side = :left)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   @req ok "The lattice defined by B is not preserved under the action of the isometry of Vf"
   return ZZLatWithIsom(Vf, L, fB, n)
@@ -781,7 +781,7 @@ true
 function lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem; check::Bool = true)
   @req !check || (rank(B) == nrows(B)) "The rows of B must define a free system of vectors"
   Vf = ambient_space(L)
-  return lattice(Vf, B, check = check)
+  return lattice(Vf, B; check = check)
 end
 
 ###############################################################################
@@ -843,8 +843,8 @@ with gram matrix
 [    0       0       0   -1//2       1]
 ```
 """
-function rescale(Lf::ZZLatWithIsom, a::Hecke.RationalUnion)
-  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf), check=false)
+function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
+  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check=false)
 end
 
 @doc raw"""
@@ -932,7 +932,7 @@ true
 """
 function dual(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
-  return lattice_in_same_ambient_space(Lf, basis_matrix(dual(lattice(Lf))), check = false)
+  return lattice_in_same_ambient_space(Lf, basis_matrix(dual(lattice(Lf))); check = false)
 end
 
 @doc raw"""
@@ -980,11 +980,11 @@ true
 ```
 """
 function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
-  L2 = lll(lattice(Lf), same_ambient = same_ambient)
+  L2 = lll(lattice(Lf); same_ambient = same_ambient)
   if same_ambient
-    return lattice_in_same_ambient_space(Lf, basis_matrix(L2), check=false)
+    return lattice_in_same_ambient_space(Lf, basis_matrix(L2); check=false)
   else
-    return integer_lattice_with_isometry(L2, isometry(Lf), check=false, ambient_representation=false)
+    return integer_lattice_with_isometry(L2, isometry(Lf); check=false, ambient_representation=false)
   end
 end
 
@@ -1076,7 +1076,7 @@ Integer lattice of rank 10 and degree 10
 function direct_sum(x::Vector{ZZLatWithIsom})
   Vf, inj = direct_sum(ambient_space.(x))
   Bs = diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs, check=false), inj
+  return lattice(Vf, Bs; check=false), inj
 end
 
 direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
@@ -1169,7 +1169,7 @@ Integer lattice of rank 10 and degree 10
 function direct_product(x::Vector{ZZLatWithIsom})
   Vf, proj = direct_product(ambient_space.(x))
   Bs = diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs, check=false), proj
+  return lattice(Vf, Bs; check=false), proj
 end
 
 direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
@@ -1291,7 +1291,7 @@ julia> matrix(compose(inj[1], proj[2]))
 function biproduct(x::Vector{ZZLatWithIsom})
   Vf, inj, proj = biproduct(ambient_space.(x))
   Bs = diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs, check=false), inj, proj
+  return lattice(Vf, Bs; check=false), inj, proj
 end
 
 biproduct(x::Vararg{ZZLatWithIsom}) = biproduct(collect(x))
@@ -1418,7 +1418,7 @@ true
   @req is_of_hermitian_type(Lf) "Lf is not of hermitian type"
   f = isometry(Lf)
 
-  H, res = Hecke.hermitian_structure_with_transfer_data(lattice(Lf), f, ambient_representation = false)
+  H, res = hermitian_structure_with_transfer_data(lattice(Lf), f; ambient_representation = false)
 
   set_attribute!(Lf, :transfer_data, res)
   return H
@@ -1484,7 +1484,7 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
-  return (q, Oq(gens(matrix_group(f))[1], check = false))::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
+  return (q, Oq(gens(matrix_group(f))[1]; check = false))::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
 end
 
 @doc raw"""
@@ -1524,12 +1524,12 @@ julia> order(G)
     qL = discriminant_group(L)
     UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)])) for g in UL]
     unique!(UL)
-    GL = Oscar._orthogonal_group(qL, UL, check = false)
+    GL = Oscar._orthogonal_group(qL, UL; check = false)
   elseif rank(L) == euler_phi(n)
     qL = discriminant_group(L)
     UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(-lift(t)) for t in gens(qL)]))]
     unique!(UL)
-    GL = Oscar._orthogonal_group(qL, UL, check = false)
+    GL = Oscar._orthogonal_group(qL, UL; check = false)
   else
     @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
     dets = Oscar._local_determinants_morphism(Lf)
@@ -1622,7 +1622,7 @@ end
 ###############################################################################
 
 function _divides(k::IntExt, n::Int)
-  is_finite(k) && return Hecke.divides(k, n)[1]
+  is_finite(k) && return divides(k, n)[1]
   return true
 end
 
@@ -1784,7 +1784,7 @@ with gram matrix
 ```
 """
 function invariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  return invariant_lattice(L, matrix.(gens(G)), ambient_representation = ambient_representation)
+  return invariant_lattice(L, matrix.(gens(G)); ambient_representation = ambient_representation)
 end
 
 @doc raw"""
@@ -1858,7 +1858,7 @@ true
 ```
 """
 function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  F = invariant_lattice(L, G, ambient_representation = ambient_representation)
+  F = invariant_lattice(L, G; ambient_representation = ambient_representation)
   C = orthogonal_submodule(L, F)
   gene = QQMatrix[]
   for g in gens(G)
@@ -1911,7 +1911,7 @@ with gram matrix
 ```
 """
 function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  F = invariant_lattice(L, G, ambient_representation = ambient_representation)
+  F = invariant_lattice(L, G; ambient_representation = ambient_representation)
   C = orthogonal_submodule(L, F)
   gene = QQMatrix[]
   for g in gens(G)
@@ -1976,7 +1976,7 @@ true
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false)
+      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl); check=false, ambient_representation=false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
@@ -2015,7 +2015,7 @@ function is_of_type(L::ZZLatWithIsom, t::Dict)
     Hl = kernel_lattice(L, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1, 1, 2])
       t[l][1] isa Hecke.HermGenus || return false
-      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
+      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl); check=false, ambient_representation=false, E = base_field(t[l][1]))
     end
     genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)

@@ -59,7 +59,7 @@ this genus, and the order wanted (as long as the number of distinct prime
 divisors is at most 2).
 
 ```@docs
-enumerate_classes_of_lattices_with_isometry(::ZZLat, ::Hecke.IntegerUnion)
+enumerate_classes_of_lattices_with_isometry(::ZZLat, ::IntegerUnion)
 ```
 
 As a remark: if $n = p^dq^e$ is the chosen order, with $p < q$ prime numbers,

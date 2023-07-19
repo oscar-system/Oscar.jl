@@ -1,4 +1,3 @@
-const GG = GAP.Globals
 
 ################################################################################
 #
@@ -37,8 +36,8 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
     fD = OD(hom(D, D, fab.map))
     push!(geneOBinOD, fD)
   end
-  OAtoOD = hom(OA, OD, geneOAinOD, check = false)
-  OBtoOD = hom(OB, OD, geneOBinOD, check = false)
+  OAtoOD = hom(OA, OD, geneOAinOD; check = false)
+  OBtoOD = hom(OB, OD, geneOBinOD; check = false)
   return D, AinD, BinD, OD, OAtoOD, OBtoOD
 end
 
@@ -57,18 +56,18 @@ function _direct_sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQ
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
     m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
-    fD = OD(hom(D, D, m), check=false)
+    fD = OD(hom(D, D, m); check=false)
     push!(geneOAinOD, fD)
   end
 
   geneOBinOD = elem_type(OD)[]
   for f in gens(OB)
     m = block_diagonal_matrix([identity_matrix(ZZ, ngens(A)), matrix(f)])
-    fD = OD(hom(D, D, m), check=false)
+    fD = OD(hom(D, D, m); check=false)
     push!(geneOBinOD, fD)
   end
-  OAtoOD = hom(OA, OD, geneOAinOD, check = false)
-  OBtoOD = hom(OB, OD, geneOBinOD, check = false)
+  OAtoOD = hom(OA, OD, geneOAinOD; check = false)
+  OBtoOD = hom(OB, OD, geneOBinOD; check = false)
   return D, AinD, BinD, OD, OAtoOD, OBtoOD
 end
 
@@ -113,7 +112,7 @@ function _rho_functor(q::TorQuadModule, p, l::Union{Integer, fmpz}; quad::Bool =
   if l == 0 
     Gl = N
     Gm = intersect(1//p*N, Nv)
-    rholN = torsion_quadratic_module(Gl, p*Gm, modulus = QQ(1), modulus_qf = mqf)
+    rholN = torsion_quadratic_module(Gl, p*Gm; modulus = QQ(1), modulus_qf = mqf)
   else
     k = l-1
     m = l+1
@@ -121,7 +120,7 @@ function _rho_functor(q::TorQuadModule, p, l::Union{Integer, fmpz}; quad::Bool =
     Gl = intersect((1//(p^l))*N, Nv)
     Gm = intersect((1//(p^m))*N, Nv)
     B = Gk+p*Gm
-    rholN = torsion_quadratic_module(Gl, B, modulus = QQ(1), modulus_qf = mqf)
+    rholN = torsion_quadratic_module(Gl, B; modulus = QQ(1), modulus_qf = mqf)
   end
   return rholN
 end
@@ -129,7 +128,7 @@ end
 # A finite bilinear module over the 2-adic integers is even if all square are
 # zeros.
 function _is_even(T, p, l)
-  B = gram_matrix_bilinear(_rho_functor(T, p, l, quad=false))
+  B = gram_matrix_bilinear(_rho_functor(T, p, l; quad = false))
   return is_empty(B) || (all(is_zero, diagonal(B)) && all(is_integral, 2*B))
 end
 
@@ -168,7 +167,7 @@ function _overlattice(gamma::TorQuadModuleMor,
   if same_ambient
     _glue = Vector{QQFieldElem}[lift(g) + lift(gamma(g)) for g in gens(domain(gamma))]
     z = zero_matrix(QQ, 0, degree(A))
-    glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue], init=z)
+    glue = reduce(vcat, [matrix(QQ, 1, degree(A), g) for g in _glue]; init=z)
     glue = vcat(basis_matrix(A+B), glue)
     glue = FakeFmpqMat(glue)
     _B = hnf(glue)
@@ -180,7 +179,7 @@ function _overlattice(gamma::TorQuadModuleMor,
   else
     _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(domain(gamma))]
     z = zero_matrix(QQ, 0, degree(cover(D)))
-    glue = reduce(vcat, [matrix(QQ, 1, degree(cover(D)), g) for g in _glue], init=z)
+    glue = reduce(vcat, [matrix(QQ, 1, degree(cover(D)), g) for g in _glue]; init=z)
     glue = vcat(block_diagonal_matrix(basis_matrix.([A, B])), glue)
     glue = FakeFmpqMat(glue)
     _B = hnf(glue)
@@ -210,7 +209,7 @@ function _overlattice(HAinD::TorQuadModuleMor,
   zA, _ = sub(HA, TorQuadModuleElem[])
   zB, _ = sub(HB, TorQuadModuleElem[])
   gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0))
-  return _overlattice(gamma, HAinD, HBinD, fA, fB, same_ambient = same_ambient)
+  return _overlattice(gamma, HAinD, HBinD, fA, fB; same_ambient = same_ambient)
 end
 
 ##############################################################################
@@ -237,7 +236,7 @@ end
 
 function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor,
                                                           O::AutomorphismGroup{TorQuadModule},
-                                                          order::Hecke.IntegerUnion = -1,
+                                                          order::IntegerUnion = -1,
                                                           f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)))
   fV = f isa TorQuadModuleMor ? restrict_endomorphism(f, Vinq) : restrict_endomorphism(hom(f), Vinq)
   V = domain(Vinq)
@@ -245,7 +244,7 @@ function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor
   if order == -1
     subs = collect(stable_submodules(V, [fV]))
   else
-    subs = collect(submodules(V, order = order))
+    subs = collect(submodules(V; order = order))
     filter!(s -> is_invariant(fV, s[2]), subs)
   end
   subs = TorQuadModule[s[1] for s in subs]
@@ -304,9 +303,9 @@ end
 # same orbit if they are G-automorphic).
 function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModuleMor,
                                                                      G::AutomorphismGroup{TorQuadModule},
-                                                                     ord::Hecke.IntegerUnion,
+                                                                     ord::IntegerUnion,
                                                                      f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
-                                                                     l::Hecke.IntegerUnion = -1)
+                                                                     l::IntegerUnion = -1)
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
@@ -376,7 +375,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   act_GV_Vp = FpMatrix[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
   act_GV_Qp = FpMatrix[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV_Vp]
   MGp = matrix_group(dim(Qp), base_ring(Qp), act_GV_Qp)
-  GVtoMGp = hom(GV, MGp, MGp.(act_GV_Qp), check = false)
+  GVtoMGp = hom(GV, MGp, MGp.(act_GV_Qp); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
 
   @hassert :ZZLatWithIsom g-ngens(snf(abelian_group(H0))[1]) < dim(Qp)
@@ -490,7 +489,7 @@ function _isomorphism_classes_primitive_extensions(N::ZZLat, M::ZZLat, H::TorQua
     stabNphi, _ = sub(OHM, stabNphi)
 
     reps = double_cosets(OHM, stabNphi, imM)
-    @vprint :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions\n"
+    @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
 
     for g in reps
       g = representative(g)
@@ -501,7 +500,7 @@ function _isomorphism_classes_primitive_extensions(N::ZZLat, M::ZZLat, H::TorQua
       M2 = lattice_in_same_ambient_space(L, hcat(zero_matrix(QQ, rank(M), degree(N)), basis_matrix(M)))
       @hassert :ZZLatWithIsom 1 genus(M) == genus(M2)
       push!(results, (L, M2, N2))
-      @vprint :ZZLatWithIsom 1 "Gluing done\n"
+      @vprintln :ZZLatWithIsom 1 "Gluing done"
       GC.gc()
       classification == :first && return results
     end
@@ -557,11 +556,11 @@ To be understood here that there exists a unique class of embedding of the root
 lattice $A_4$ in the root lattice $E_8$, and the orthogonal primitive sublattice
 is isometric to $A_4$.
 """
-function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = false)
+function primitive_embeddings_in_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = true)
   if check
     @req length(genus_representatives(L)) == 1 "L must be unique in its genus"
   end
-  return primitive_embeddings_in_primary_lattice(genus(L), M, classification = classification)
+  return primitive_embeddings_in_primary_lattice(genus(L), M; classification = classification)
 end
 
 @doc raw"""
@@ -592,7 +591,7 @@ an error is thrown.
 function primitive_embeddings_in_primary_lattice(q::TorQuadModule, sign::Tuple{Int, Int}, M::ZZLat; classification::Symbol = :sublat)
   @req is_genus(q, sign) "Invariants define the empty genus"
   G = genus(q, sign)
-  return primitive_embeddings_in_primary_lattice(G, M, classification = classification)
+  return primitive_embeddings_in_primary_lattice(G, M; classification = classification)
 end
 
 @doc raw"""
@@ -651,7 +650,7 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
   end
 
   for k in divisors(gcd(order(VM), order(qL)))
-    @vprint :ZZLatWithIsom 1 "Glue order: $(k)\n"
+    @vprintln :ZZLatWithIsom 1 "Glue order: $(k)"
 
     if el
       subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(id_hom(qL), GL, k)
@@ -659,15 +658,15 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       subsL = _subgroups_orbit_representatives_and_stabilizers(id_hom(qL), GL, k)
     end
 
-    @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
+    @vprintln :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)"
     for H in subsL
       HL = domain(H[1])
-      it = submodules(VM, order = order(HL))
+      it = submodules(VM; order = order(HL))
       subsM = TorQuadModuleMor[j[2] for j in it]
       filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
       isempty(subsM)  && continue
 
-      @vprint :ZZLatWithIsom 1 "Possible gluings\n"
+      @vprintln :ZZLatWithIsom 1 "Possible gluings"
       HM = subsM[1]
       ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
       @hassert :ZZLatWithIsom 1 ok
@@ -675,7 +674,7 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       _glue = [lift(qMinD(qM(lift((g))))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
-      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
+      disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
       disc2 = rescale(disc, -1)
       !is_genus(disc2, (pL-pM, nL-nM))  && continue
@@ -683,9 +682,9 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       classification == :none && return true, results
 
       G2 = genus(disc2, (pL-pM, nL-nM))
-      @vprint :ZZLatWithIsom 1 "We can glue: $(G2)\n"
+      @vprintln :ZZLatWithIsom 1 "We can glue: $(G2)"
       Ns = representatives(G2)
-      @vprint :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)\n"
+      @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
@@ -746,11 +745,11 @@ julia> sv
  (Integer lattice of rank 5 and degree 5, Integer lattice of rank 1 and degree 5, Integer lattice of rank 4 and degree 5)
 ```
 """
-function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = false)
+function primitive_embeddings_of_primary_lattice(L::ZZLat, M::ZZLat; classification::Symbol = :sublat, check::Bool = true)
   if check
     @req length(genus_representatives(L)) == 1 "L must be unique in its genus"
   end
-  return primitive_embeddings_of_primary_lattice(genus(L), M, classification = classification)
+  return primitive_embeddings_of_primary_lattice(genus(L), M; classification = classification)
 end
 
 @doc raw"""
@@ -781,7 +780,7 @@ an error is thrown.
 function primitive_embeddings_of_primary_lattice(q::TorQuadModule, sign::Tuple{Int, Int}, M::ZZLat; classification::Symbol = :sublat)
   @req is_genus(q, sign) "Invariants define the empty genus"
   G = genus(q, sign)
-  return primitive_embeddings_of_primary_lattice(G, M, classification = classification)
+  return primitive_embeddings_of_primary_lattice(G, M; classification = classification)
 end
 
 @doc raw"""
@@ -840,7 +839,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
   end
 
   for k  in divisors(gcd(order(qM), order(VL)))
-    @vprint :ZZLatWithIsom 1 "Glue order: $(k)\n"
+    @vprintln :ZZLatWithIsom 1 "Glue order: $(k)"
 
     if el
       subsL = _subgroups_orbit_representatives_and_stabilizers_elementary(VLinqL, GL, k)
@@ -848,15 +847,15 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       subsL = _subgroups_orbit_representatives_and_stabilizers(VLinqL, GL, k)
     end
     
-    @vprint :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)\n"
+    @vprintln :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)"
     for H in subsL
       HL = domain(H[1])
-      it = submodules(qM, order = order(HL))
+      it = submodules(qM; order = order(HL))
       subsM = TorQuadModuleMor[j[2] for j in it]
       filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
       isempty(subsM)  && continue
 
-      @vprint :ZZLatWithIsom 1 "Possible gluings\n"
+      @vprintln :ZZLatWithIsom 1 "Possible gluings"
       HM = subsM[1]
       ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
       @hassert :ZZLatWithIsom 1 ok
@@ -864,7 +863,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       _glue = [lift(qMinD(qM(lift(g)))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
       ext, _ = sub(D, D.(_glue))
       perp, j = orthogonal_submodule(D, ext)
-      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
+      disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
       disc = rescale(disc, -1)
       !is_genus(disc, (pL-pM, nL-nM))  && continue
@@ -872,9 +871,9 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       classification == :none && return true, results
 
       G2 = genus(disc, (pL-pM, nL-nM))
-      @vprint :ZZLatWithIsom 1 "We can glue: $(G2)\n"
+      @vprintln :ZZLatWithIsom 1 "We can glue: $(G2)"
       Ns = representatives(G2)
-      @vprint :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)\n"
+      @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
       qM2, _ = orthogonal_submodule(qM, domain(HM))
       for N in Ns
@@ -902,7 +901,7 @@ end
                                                 Bfb::ZZLatWithIsom,
                                                 Cfc::ZZLatWithIsom,
                                                 p::Integer,
-                                                q::Integer = p; check=true)
+                                                q::Integer = p; check::Bool = true)
                                                      -> Vector{ZZLatWithIsom}
 
 Given a triple of lattices with isometry `(A, fa)`, `(B, fb)` and `(C, fc)` and a
@@ -921,7 +920,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
                                                      B::ZZLatWithIsom,
                                                      C::ZZLatWithIsom,
                                                      p::Integer,
-                                                     q::Integer = p; check=true)
+                                                     q::Integer = p; check::Bool = true)
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be a prime number" 
 
@@ -973,8 +972,8 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     GCAB, _ = sub(OD, gene)
 
     # We compute the overlattice in this context
-    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B), same_ambient = amb)
-    C2fC2 = integer_lattice_with_isometry(C2, fC2, ambient_representation = false)
+    C2, fC2, _ = _overlattice(qAinD, qBinD, isometry(A), isometry(B); same_ambient = amb)
+    C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation = false)
 
     qC2 = discriminant_group(C2)
     phi2 = hom(qC2, D, TorQuadModuleElem[D(lift(x)) for x in gens(qC2)])
@@ -1114,8 +1113,8 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
 
       # We compute the overlattice in this context, keeping track whether we
       # cork in a fixed ambient quadratic space
-      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B), same_ambient = amb)
-      C2fC2 = integer_lattice_with_isometry(C2, fC2, ambient_representation = false)
+      C2, fC2, extinD = _overlattice(phig, SAinD, SBinD, isometry(A), isometry(B); same_ambient = amb)
+      C2fC2 = integer_lattice_with_isometry(C2, fC2; ambient_representation = false)
 
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
       !is_of_type(C2fC2^q, type(C)) && continue
@@ -1126,7 +1125,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
       # O(C2, fC2) in O(qC2, fqC2) using GA and GB.
       ext = domain(extinD)
       perp, j = orthogonal_submodule(D, ext)
-      disc = torsion_quadratic_module(cover(perp), cover(ext), modulus = modulus_bilinear_form(perp),
+      disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
       qC2 = discriminant_group(C2)
       OqC2 = orthogonal_group(qC2)

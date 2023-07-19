@@ -16,7 +16,7 @@ function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
   end
   println(io, "given by")
   show(io, MIME"text/plain"(), isometry(Lf))
-  println(io)
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, Lf::ZZLatWithIsom)
