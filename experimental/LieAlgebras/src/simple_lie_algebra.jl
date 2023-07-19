@@ -153,6 +153,7 @@ function Base.hash(x::SimpleLieAlgebra{C}, h::UInt) where {C<:RingElement}
   h = hash(root_type(L),h)
   return xor(h, b)
 end
+
 ###############################################################################
 #
 #   Constructors
