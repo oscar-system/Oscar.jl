@@ -1,21 +1,33 @@
 @testset "LieAlgebras.SimpleLieAlgebra" begin
-    L = lie_algebra(QQ, "A2")
-    a = L()
-    M = matrix_space(QQ, 8, 8)
-    @test parent(a) == L
-    @test parent_type(a) == SimpleLieAlgebra{QQFieldElem}
-    @test elem_type(L) == SimpleLieAlgebraElem{QQFieldElem}
+  @testset "conformance tests" begin
+    @testset "B2(QQ)" begin
+      L = lie_algebra(QQ, :B, 2)
+      lie_algebra_conformance_test(
+        L, SimpleLieAlgebra{QQFieldElem}, SimpleLieAlgebraElem{QQFieldElem}
+      )
+    end
+
+    # @testset "A3(CF(4))" begin
+    #   L = lie_algebra(cyclotomic_field(4)[1], :A, 3)
+    #   lie_algebra_conformance_test(
+    #     L, SimpleLieAlgebra{nf_elem}, SimpleLieAlgebraElem{nf_elem}
+    #   )
+    # end
+  end
+
+  @testset "constructors and basic properties" begin
+    L = lie_algebra(QQ, :A, 2)
     @test dim(L) == 8
-    @test base_ring(L) == QQ
-    @test base_ring(a) == QQ
-    @test root_system(L) == RootSystem(:A,2)
+    @test coefficient_ring(L) == QQ
+    @test root_system(L) == RootSystem(:A, 2)
     @test root_type(L) == (:A, 2)
-    @test Generic._matrix(a) == zero_matrix(QQ, 1, 8)
     @test characteristic(L) == 0
-    @test symbols(L) == [Symbol("e_$i") for i in 1:8]
-    @test chevalley_basis(L) == [[L([1,0,0,0,0,0,0,0]), L([0,1,0,0,0,0,0,0]), L([0,0,1,0,0,0,0,0])], 
-                                 [L([0,0,0,1,0,0,0,0]), L([0,0,0,0,1,0,0,0]), L([0,0,0,0,0,1,0,0])],
-                                 [L([0,0,0,0,0,0,1,0]), L([0,0,0,0,0,0,0,1])]]
+    @test chevalley_basis(L) == [
+      [L([1, 0, 0, 0, 0, 0, 0, 0]), L([0, 1, 0, 0, 0, 0, 0, 0]), L([0, 0, 1, 0, 0, 0, 0, 0])],
+      [L([0, 0, 0, 1, 0, 0, 0, 0]), L([0, 0, 0, 0, 1, 0, 0, 0]), L([0, 0, 0, 0, 0, 1, 0, 0])],
+      [L([0, 0, 0, 0, 0, 0, 1, 0]), L([0, 0, 0, 0, 0, 0, 0, 1])],
+      ]
+    M = matrix_space(QQ, 8, 8)
     @test adjoint_matrix(L) == [M([0 0 0 0 0 0 -2 1; 0 0 0 0 0 0 0 0; 0 -1 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 0 0 0]),
                                 M([0 0 0 0 0 0 0 0; 0 0 0 0 0 0 1 -2; 1 0 0 0 0 0 0 0; 0 0 0 0 0 -1 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 1 0 0 0]),
                                 M([0 0 0 0 -1 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 0 -1 -1; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 1 0 0]),
@@ -24,5 +36,5 @@
                                 M([0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; -1 0 0 0 0 0 0 0; 0 0 0 0 0 0 1 1; 0 0 -1 0 0 0 0 0; 0 0 -1 0 0 0 0 0]),
                                 M([2 0 0 0 0 0 0 0; 0 -1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 -2 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 -1 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0]),
                                 M([-1 0 0 0 0 0 0 0; 0 2 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 -2 0 0 0; 0 0 0 0 0 -1 0 0; 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0])]
+  end
 end
-
