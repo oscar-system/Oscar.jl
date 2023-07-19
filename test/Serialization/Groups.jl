@@ -64,5 +64,14 @@
       test_save_load_roundtrip(path, v) do loaded
         @test v == loaded
       end
+
+      # Load objects from another Oscar session,
+      # and check consistency.
+      # (The file contains the vector `v`.)
+      x, F, U, G, Sgens = load(joinpath(@__DIR__, "Groups_input.json"))
+      @test x == gen(F, 1)
+      @test x == gen(U, 1)
+      @test Sgens[1] == gen(G, 1)
     end
+  end
 end
