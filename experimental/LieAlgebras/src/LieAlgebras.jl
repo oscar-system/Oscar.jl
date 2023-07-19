@@ -101,6 +101,7 @@ export permutations
 export permutations_with_sign
 export root_system
 export root_type
+export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
@@ -168,6 +169,7 @@ export matrix_repr_basis
 export number_of_roots
 export root_system
 export root_type
+export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
