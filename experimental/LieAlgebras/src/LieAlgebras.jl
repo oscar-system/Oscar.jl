@@ -75,22 +75,11 @@ export base_module
 export base_modules
 export bracket
 export cartan_matrix
-<<<<<<< HEAD
-export characteristic
-=======
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export chevalley_basis
 export coefficient_vector
 export combinations
-<<<<<<< HEAD
 export derived_algebra
-<<<<<<< HEAD
 export dynkin_diagram
-=======
-=======
-export dynkin_diagram
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -111,7 +100,7 @@ export parse_root_string
 export permutations
 export permutations_with_sign
 export root_system
-export root_type
+export root_system_type
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
@@ -158,20 +147,10 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
-<<<<<<< HEAD
 export derived_algebra
-<<<<<<< HEAD
-export cartan_matrix
-export characteristic
-export chevalley_basis
-export dynkin_diagram
-=======
-=======
 export cartan_matrix
 export chevalley_basis
 export dynkin_diagram
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -188,7 +167,7 @@ export lower_central_series
 export matrix_repr_basis
 export number_of_roots
 export root_system
-export root_type
+export root_system_type
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
