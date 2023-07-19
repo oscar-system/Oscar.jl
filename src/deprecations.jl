@@ -394,9 +394,6 @@ function SubdivisionOfPoints{T}(obj::Polymake.BigObject) where T<:scalar_types
   return SubdivisionOfPoints{T}(obj, _detect_default_field(T, obj))
 end
 
-@deprecate is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem is_alternating(B)
-@alias isskewsymmetric_matrix is_skewsymmetric_matrix
-
 @deprecate is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem is_hermitian(B)
 @alias ishermitian_matrix is_hermitian_matrix
 
