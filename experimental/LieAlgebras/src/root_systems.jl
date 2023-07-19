@@ -1,19 +1,18 @@
-mutable struct RootSystem <: AbstractVector{fmpq}
+mutable struct RootSystem
   roots::Vector{Vector{Int}}
   simple_roots::Vector{Vector{Int}}
   positive_roots::Vector{Vector{Int}}
-  root_system_type::Vector{Union{String, Int64}}
+  root_system_type::Tuple{String, Int64}
   @doc raw"""
-    `RootSystem(S::String) -> RootSystem`
+    RootSystem(S::String) -> RootSystem
   Return the root system of type `S` where `S` is a string consisting out of
   a letter `A`, `B`, `C`, `D`, `E`, `F`, `G` followed by an integer.
   For the exceptional root system, the integers are fixed, e.g. `G2`, `F4`, `E6`, ...
   """
   function RootSystem(S::String)
     # S is a string detailing the type of the indecomposable root system made out of a letter, e.g. "A", "B", "C",... and an integer for the number of simple roots
-    l = length(S)
-    n = parse(Int64, S[2:l])
-    S1 = GAP.Obj(string(S[1]))
+    n = parse(Int64, S[2:end])
+    S1 = GAP.Obj(S[1:1])
     RS = GAP.Globals.RootSystem(S1, n)
     Ro_1 = GAP.Globals.PositiveRoots(RS)
     Ro_2 = GAP.Globals.NegativeRoots(RS)
@@ -21,7 +20,7 @@ mutable struct RootSystem <: AbstractVector{fmpq}
     sR = [[sR[i][j] for j=1:length(sR[i])] for i=1:length(sR)]
     Ro1 = [[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
     Ro2 = [[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
-    S = Union{String, Int64}[S[1:1], n]
+    S = (S[1:1], n)
     Ro = reduce(vcat, (Ro1, Ro2))
     return new(Ro,sR,Ro1,S)
   end
@@ -33,15 +32,18 @@ end
 #
 ###############################################################################
  @doc raw"""
-  `size(R::RootSystem, [dim::Int])`
- Return a tuple containing the dimensions of the vector of roots, i.e. the number of roots in the first entry. 
- Optionally you can specify a dimension to just get the length of that dimension.
+   numer_of_roots(R::RootSystem)
+
+ Returns the numbers of roots in the root system `R`
   """
-size(R::RootSystem, dim::Int) = size(R.roots, dim)
+number_of_roots(R::RootSystem) = size(R.roots)[1]
 
-size(R::RootSystem) = size(R.roots)
+@doc raw"""
+numer_of_roots(S::String)
 
-size(S::String) = size(RootSystem(S))
+Returns the numbers of roots in the root system of type `S`
+"""
+number_of_roots(S::String) = number_of_roots(RootSystem(S))
 
  @doc raw"""
   `getindex(R::RootSystem, r::Int)`
@@ -57,7 +59,7 @@ getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
 function show(io::IO, R::RootSystem)
   print(io, "Root system of type ")
-  show(io, R.root_system_type)
+  show(io, R.root_system_type[1] * string(R.root_system_type[2]))
 end
 
 ###############################################################################
