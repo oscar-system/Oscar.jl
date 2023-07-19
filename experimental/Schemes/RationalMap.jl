@@ -8,16 +8,38 @@ The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some
 `affine_chart` ``V`` of the codomain ``Y`` under this map. 
 ```jldoctest
 julia> IP1 = covered_scheme(projective_space(QQ, [:s, :t]))
-covered scheme with 2 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(t//s)]
+    2: [(s//t)]
 
 julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+    3: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
 
 julia> U = first(affine_charts(IP1))
-Spec of Multivariate polynomial ring in 1 variable over QQ
+Spectrum
+  of multivariate polynomial ring in 1 variable (t//s)
+    over rational field
 
 julia> V = first(affine_charts(IP2))
-Spec of Multivariate polynomial ring in 2 variables over QQ
+Spectrum
+  of multivariate polynomial ring in 2 variables (y//x), (z//x)
+    over rational field
 
 julia> t = first(gens(OO(U)))
 (t//s)
@@ -27,17 +49,12 @@ julia> Phi = oscar.RationalMap(IP1, IP2, U, V, [1//t, 1//t^2]);
 julia> realizations = oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
-morphism from
-
-	Spec of Localization of multivariate polynomial ring in 1 variable over QQ at products of 0 elements
-
-to
-
-	Spec of Multivariate polynomial ring in 2 variables over QQ
-
-with coordinates
-
-	(t//s)^2, (t//s)
+Morphism
+  from [(t//s)]          spec of localized ring
+  to   [(x//z), (y//z)]  spec of multivariate polynomial ring
+given by the pullback function
+  (x//z) -> (t//s)^2
+  (y//z) -> (t//s)
 
 ```
 """
