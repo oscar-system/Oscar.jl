@@ -668,7 +668,9 @@ function convert(
   isone(I) && return zero(L)
   denoms = denominators(inverted_set(W))
   if iszero(length(denoms)) || all(x->isone(x), denoms)
-    return L(Q(a)*inv(Q(b)))
+    success, q = divides(Q(a), Q(b))
+    success || error("element can not be converted")
+    return L(q)
   end
   d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
