@@ -1,0 +1,68 @@
+@testset "Rational maps" begin
+  IP3 = projective_space(QQ, [:x, :y, :z, :w])
+  S = homogeneous_coordinate_ring(IP3)
+  (x, y, z, w) = gens(S)
+  I = ideal(S, x*w - y*z)
+  X_proj = subscheme(IP3, I)
+  X = covered_scheme(X_proj)
+
+  P1 = projective_space(QQ, 1)
+  IP1 = covered_scheme(P1)
+  U = X[1][4]
+  V = IP1[1][2]
+  (x, y, z) = gens(ambient_coordinate_ring(U))
+  Phi = oscar.RationalMap(X, IP1, U, V, [x//y])
+
+  @test domain(Phi) === X 
+  @test codomain(Phi) === IP1
+
+  oscar.realize_on_patch(Phi, U)
+  oscar.realize_on_patch(Phi, X[1][1])
+  oscar.realize_on_patch(Phi, X[1][2])
+  oscar.realize_on_patch(Phi, X[1][3])
+  oscar.realize(Phi)
+end
+
+@testset "The standard Cremona transformation" begin
+  IP2_proj = projective_space(QQ, [:x, :y, :z])
+  IP2 = covered_scheme(IP2_proj)
+  S = homogeneous_coordinate_ring(IP2_proj)
+  (x, y, z) = gens(S)
+  I1 = ideal(S, [x, y])
+  I2 = ideal(S, [x, z])
+  I3 = ideal(S, [y, z])
+  I = I1*I2*I3
+  II = simplify!(IdealSheaf(IP2_proj, I))
+  bl = blow_up(II)
+  X = domain(projection(bl))
+  set_attribute!(X, :is_irreducible, true)
+  V = first(affine_charts(IP2))
+  U = first(affine_charts(X))
+  pr_cov = covering_morphism(projection(bl))
+  U_simp = first(patches(oscar.simplified_covering(X)))
+  pb_y, pb_z = pullback(pr_cov[U]).(gens(OO(V)))
+  Phi = oscar.RationalMap(X, X, U, U, [inv(fraction(pb_y)), fraction(pb_z)//fraction(pb_y), fraction(pb_z)])
+  oscar.realize_on_patch(Phi, U)
+
+  Hx = IdealSheaf(IP2_proj, ideal(S, x))
+  Hy = IdealSheaf(IP2_proj, ideal(S, y))
+  Hz = IdealSheaf(IP2_proj, ideal(S, z))
+
+  pr = projection(bl)
+  pbHx = strict_transform(bl, Hx)
+  pbHy = strict_transform(bl, Hy)
+  pbHz = strict_transform(bl, Hz)
+
+  E = oscar.irreducible_decomposition(weil_divisor(exceptional_divisor(bl)))
+
+  H = weil_divisor.([pbHx, pbHy, pbHz])
+  E1, E2, E3 = weil_divisor.(components(E))
+  set_attribute!(Phi, :is_isomorphism, true)
+  pbE1 = pushforward(Phi)(E1)
+  @test any(x->x==pbE1, H)
+  pbE2 = pushforward(Phi)(E2)
+  @test any(x->x==pbE2, H)
+  pbE3 = pushforward(Phi)(E3)
+  @test any(x->x==pbE3, H)
+end
+

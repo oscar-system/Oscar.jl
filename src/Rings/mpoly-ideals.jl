@@ -794,6 +794,7 @@ julia> L = equidimensional_decomposition_weak(I)
 """
 @attr function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
+  iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
