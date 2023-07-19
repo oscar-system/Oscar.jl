@@ -802,7 +802,6 @@ export is_semisimple
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
-export is_skewsymmetric_matrix
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple

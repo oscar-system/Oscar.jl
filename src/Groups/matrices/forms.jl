@@ -26,7 +26,7 @@ mutable struct SesquilinearForm{T<:RingElem}
       elseif sym==:symmetric
          @assert is_symmetric(B) "The matrix is not symmetric"
       elseif sym==:alternating
-         @assert is_skewsymmetric_matrix(B) "The matrix is not skew-symmetric"
+         @assert is_alternating(B) "The matrix does not correspond to an alternating form"
       elseif sym != :quadratic
          error("Unsupported description")
       end

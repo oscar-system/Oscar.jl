@@ -3,7 +3,7 @@
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
-   @test is_skewsymmetric_matrix(B)
+   @test is_alternating(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
@@ -473,7 +473,7 @@ end
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test is_skewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+      @test is_alternating(g.elm*B*transpose(g.elm)-B)
    end
 
    G = GU(4,5)
