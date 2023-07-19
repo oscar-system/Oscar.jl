@@ -209,9 +209,6 @@ function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
 end
 
 function random_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
-  if haskey(random_realizations(Phi), (U, V))
-    return random_realizations(Phi)[(U, V)]
-  end
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
   phi = SpecMor(U_sub, ambient_space(V), img_gens, check=true) # Set to false
