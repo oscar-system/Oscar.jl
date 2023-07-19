@@ -8,8 +8,8 @@
     @test dim(L) == 8
     @test base_ring(L) == QQ
     @test base_ring(a) == QQ
-    @test root_system(L) == RootSystem("A2")
-    @test root_type(L) == ("A", 2)
+    @test root_system(L) == RootSystem(:A,2)
+    @test root_type(L) == (:A, 2)
     @test Generic._matrix(a) == zero_matrix(QQ, 1, 8)
     @test characteristic(L) == 0
     @test symbols(L) == [Symbol("e_$i") for i in 1:8]

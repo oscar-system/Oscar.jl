@@ -75,6 +75,7 @@ export base_module
 export base_modules
 export bracket
 export cartan_matrix
+export characteristic
 export chevalley_basis
 export coefficient_vector
 export combinations
@@ -150,6 +151,7 @@ export base_modules
 export bracket
 export derived_algebra
 export cartan_matrix
+export characteristic
 export chevalley_basis
 export dynkin_diagram
 export exterior_power
