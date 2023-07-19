@@ -247,7 +247,7 @@ end
 
 @doc raw"""
     adjoint_matrix(L::SimpleLieAlgebra{T}) -> Vector{MatSpaceElem{T}}
-
+    
 Give the adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
 to the Chevalley basis of `L`.
 The i-th adjoint matrix is the matrix of the adjoint representation of the i-th basis element x 
