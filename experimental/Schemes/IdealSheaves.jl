@@ -161,9 +161,15 @@ charts can not be inferred.
 """
 function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
-  U in patches(C) || error("the affine open patch does not belong to the covering")
   for f in g
     parent(f) === OO(U) || error("the generators do not belong to the correct ring")
+  end
+  if !any(x->x===U, patches(C))
+    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+    U_flat = codomain(inc_U_flat)::PrincipalOpenSubset
+    V = ambient_scheme(U_flat)
+    J = saturated_ideal(pullback(inverse(inc_U_flat))(ideal(OO(U), g)))
+    return IdealSheaf(X, V, OO(V).(gens(J)))
   end
   D = IdDict{AbsSpec, Ideal}()
   D[U] = ideal(OO(U), g)
@@ -350,6 +356,7 @@ function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal};
     all_dense::Bool=false
   )
+  all(x->any(y->x===y, patches(C)), keys(D)) || error("ideals must be given on the `patches` of the covering")
   # push all nodes on which I is known in a heap
   visited = collect(keys(D))
   # The nodes which can be used for extension
