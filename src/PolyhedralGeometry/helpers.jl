@@ -521,6 +521,8 @@ end
 
 _parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}) = parent(r.x)
 
+_parent_or_coefficient_field(v::AbstractVector{T}) where T<:Union{FieldElem, ZZRingElem} = _determine_parent_and_scalar(T, v)[1]
+
 function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
   T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))
 end

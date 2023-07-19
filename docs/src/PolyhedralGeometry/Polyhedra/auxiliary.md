@@ -64,7 +64,7 @@ is_smooth(P::Polyhedron{QQFieldElem})
 is_very_ample(P::Polyhedron{QQFieldElem})
 lattice_points(P::Polyhedron{QQFieldElem})
 lattice_volume(P::Polyhedron{QQFieldElem})
-normalized_volume(P::Polyhedron{T}) where T<:scalar_types
+normalized_volume(P::Polyhedron)
 polarize(P::Polyhedron{T}) where T<:scalar_types
 project_full(P::Polyhedron{T}) where T<:scalar_types
 print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
