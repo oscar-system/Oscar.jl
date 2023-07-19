@@ -209,8 +209,8 @@ function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
 end
 
 function random_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
-  if haskey(cheap_realizations(Phi), (U, V))
-    return cheap_realizations(Phi)[(U, V)]
+  if haskey(random_realizations(Phi), (U, V))
+    return random_realizations(Phi)[(U, V)]
   end
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
