@@ -41,6 +41,8 @@ size(R::RootSystem, dim::Int) = size(R.roots, dim)
 
 size(R::RootSystem) = size(R.roots)
 
+size(S::String) = size(RootSystem(S))
+
  @doc raw"""
   `getindex(R::RootSystem, r::Int)`
  Return the rth root in the vector of roots in the root system `R`

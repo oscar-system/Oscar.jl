@@ -78,11 +78,8 @@ export cartan_matrix
 export chevalley_basis
 export coefficient_vector
 export combinations
-<<<<<<< HEAD
 export derived_algebra
-=======
 export dynkin_diagram
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -100,6 +97,7 @@ export matrix_repr_basis
 export multicombinations
 export permutations
 export permutations_with_sign
+export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
@@ -146,13 +144,10 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
-<<<<<<< HEAD
 export derived_algebra
-=======
 export cartan_matrix
 export chevalley_basis
 export dynkin_diagram
->>>>>>> updated LieAlgebras.jl by adding functions to be exported
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -167,6 +162,7 @@ export is_tensor_product
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis
+export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
