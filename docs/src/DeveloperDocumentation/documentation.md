@@ -79,6 +79,14 @@ build_doc
 ```
 Please also read the section below on repairing the `jldoctest`s using
 `build_doc`.
+!!! note "Browser reports denied access"
+    Depending on your system, it might happen that the browser opens after a
+    successful build, but only informs you that the access to the file was denied.
+    This happens, for example, on Ubuntu which comes with a sandboxed Firefox.
+    A workaround for this is to move the directory containing the documentation
+    `docs/build` to a more accessible place on your computer (for example, the
+    desktop).
+    Of course, this has to be repeated everytime you (re-)build the documentation.
 
 
 ### Automatically repairing `jldoctest`s
