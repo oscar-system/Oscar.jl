@@ -52,7 +52,7 @@ _vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) = homogeniz
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
-_maximal_cone(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1), coefficient_field(PF))
+_maximal_cone(::Type{Cone{T}}, PF::_FanLikeType{T}, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1), coefficient_field(PF))
 
 
 @doc raw"""                                                 
@@ -87,14 +87,20 @@ julia> rays(NF)
 0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
-rays_modulo_lineality(PF::_FanLikeType) = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{_get_scalar_type(PF)}}, SubObjectIterator{RayVector{_get_scalar_type(PF)}}}}, PF)
-function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
+rays_modulo_lineality(F::_FanLikeType{T}) where {T<:scalar_types} =
+  rays_modulo_lineality(
+    NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}},
+    F
+  )
+
+function rays_modulo_lineality(::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType{T}) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(F),
         lineality_basis = lineality_space(F)
     )
 end
-rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
+
+rays_modulo_lineality(::Type{<:RayVector}, F::_FanLikeType) = _rays(F)
     
 
 
@@ -158,8 +164,8 @@ function cones(PF::_FanLikeType, cone_dim::Int)
     return SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
-function _cone_of_dim(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
-    return Cone{T}(Polymake.polytope.Cone{_scalar_type_to_polymake(T)}(RAYS = pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)),:], LINEALITY_SPACE = pm_object(PF).LINEALITY_SPACE), coefficient_field(PF))
+function _cone_of_dim(U::Type{Cone{T}}, PF::_FanLikeType{T}, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
+    return cone(coefficient_field(PF), pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)),:], pm_object(PF).LINEALITY_SPACE)::U
 end
 
 _ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int = 0) = Polymake.fan.cones_of_dim(pm_object(PF), c_dim)

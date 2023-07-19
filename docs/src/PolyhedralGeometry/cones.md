@@ -27,7 +27,7 @@ reason for keeping cones as a distinct type.
 ## Construction
 
 ```@docs
-positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+positive_hull(::Oscar.scalar_type_or_field, ::Union{Oscar.MatElem, AbstractMatrix})
 cone_from_inequalities
 cone_from_equations
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types

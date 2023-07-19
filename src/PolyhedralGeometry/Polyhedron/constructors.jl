@@ -106,7 +106,7 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing; parent_field::Union{Nothing, Field} = nothing)
+function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
   parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
   if isnothing(I) || _isempty_halfspace(I)
     EM = affine_matrix_for_polymake(E)
