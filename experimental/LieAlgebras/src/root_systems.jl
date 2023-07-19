@@ -32,23 +32,24 @@ end
 #
 ###############################################################################
  @doc raw"""
-   numer_of_roots(R::RootSystem)
+   number_of_roots(R::RootSystem)
 
- Returns the numbers of roots in the root system `R`
+ Return the numbers of roots in the root system `R`
   """
 number_of_roots(R::RootSystem) = size(R.roots)[1]
 
 @doc raw"""
-numer_of_roots(S::String)
+number_of_roots(S::String)
 
-Returns the numbers of roots in the root system of type `S`
+Return the numbers of roots in the root system of type `S`
 """
 number_of_roots(S::String) = number_of_roots(RootSystem(S))
 
- @doc raw"""
-  `getindex(R::RootSystem, r::Int)`
- Return the rth root in the vector of roots in the root system `R`
-  """
+@doc raw"""
+getindex(R::RootSystem, r::Int)
+
+Return the `r`=th root in the vector of roots in the root system `R`.
+"""
 getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
 ###############################################################################
