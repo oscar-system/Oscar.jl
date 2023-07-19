@@ -23,6 +23,7 @@ end
 #   Basic manipulation
 #
 ###############################################################################
+<<<<<<< HEAD
 @doc raw"""
     number_of_roots(R::RootSystem)
 
@@ -32,15 +33,32 @@ number_of_roots(R::RootSystem) = size(R.roots)[1]
 
 @doc raw"""
     number_of_roots(S::Symbol, n::Int64)
+=======
+ @doc raw"""
+   number_of_roots(R::RootSystem)
+
+ Return the numbers of roots in the root system `R`
+  """
+number_of_roots(R::RootSystem) = size(R.roots)[1]
+
+@doc raw"""
+number_of_roots(S::String)
+>>>>>>> updated root_systems.jl
 
 Return the numbers of roots in the root system of type `S`
 """
 number_of_roots(S::Symbol, n::Int64) = number_of_roots(RootSystem(S, n))
 
 @doc raw"""
+<<<<<<< HEAD
     getindex(R::RootSystem, r::Int)
 
 Return the `r`-th root of the root system `R`.
+=======
+getindex(R::RootSystem, r::Int)
+
+Return the `r`=th root in the vector of roots in the root system `R`.
+>>>>>>> updated root_systems.jl
 """
 getindex(R::RootSystem, r::Int) = getindex(R.roots, r)
 
