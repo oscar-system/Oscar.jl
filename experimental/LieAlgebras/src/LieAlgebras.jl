@@ -96,6 +96,7 @@ export lower_central_series
 export matrix_repr_basis
 export multicombinations
 export number_of_roots
+export parse_root_string
 export permutations
 export permutations_with_sign
 export root_system

@@ -151,20 +151,6 @@ function ==(f::SimpleLieAlgebraElem{T}, g::SimpleLieAlgebraElem{T}) where T <: R
   parent(f) != parent(g) && error("Incompatible Lie algebras")
   return matrix(f) == matrix(g)
 end
-
-@doc raw"""
-    in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra) -> Bool
-
-Return `true` if the simple Lie Algebra element `x` is an element of the Lie algebra `L` and `false`
-otherwise.
-"""
-function in(x::SimpleLieAlgebraElem, L::SimpleLieAlgebra)
-	if parent(x) == L
-    return true
-	else
-		return false
-	end
-end
 ###############################################################################
 #
 #   Constructors
@@ -193,6 +179,7 @@ end
 
 @doc raw"""
     lie_algebra(R::Ring, S::String, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
+
 Construct the simple Lie algebra over the ring `R` with root system of type `S`
 """
 function lie_algebra(R::Ring, S::String, cached::Bool=true)
@@ -208,6 +195,7 @@ end
 
 @doc raw"""
     chevalley_basis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
+
 Give the Chevalley basis of the simple Lie algebra `L`
 """
 function chevalley_basis(L::SimpleLieAlgebra)
@@ -240,6 +228,7 @@ end
 
 @doc raw"""
     adjoint_matrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
+
 Give the adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
 to the Chevalley basis of `L`
 """

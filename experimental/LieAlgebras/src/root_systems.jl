@@ -11,16 +11,15 @@ mutable struct RootSystem
   """
   function RootSystem(S::String)
     # S is a string detailing the type of the indecomposable root system made out of a letter, e.g. "A", "B", "C",... and an integer for the number of simple roots
-    n = parse(Int64, S[2:end])
-    S1 = GAP.Obj(S[1:1])
-    RS = GAP.Globals.RootSystem(S1, n)
+    S = parse_root_string(S)
+    S1 = GAP.Obj(S[1])
+    RS = GAP.Globals.RootSystem(S1, S[2])
     Ro_1 = GAP.Globals.PositiveRoots(RS)
     Ro_2 = GAP.Globals.NegativeRoots(RS)
     sR = GAP.Globals.SimpleSystem(RS)
     sR = [[sR[i][j] for j=1:length(sR[i])] for i=1:length(sR)]
     Ro1 = [[Ro_1[i][j] for j=1:length(Ro_1[i])] for i=1:length(Ro_1)]
     Ro2 = [[Ro_2[i][j] for j=1:length(Ro_2[i])] for i=1:length(Ro_2)]
-    S = (S[1:1], n)
     Ro = reduce(vcat, (Ro1, Ro2))
     return new(Ro,sR,Ro1,S)
   end
@@ -39,14 +38,14 @@ end
 number_of_roots(R::RootSystem) = size(R.roots)[1]
 
 @doc raw"""
-number_of_roots(S::String)
+   number_of_roots(S::String)
 
 Return the numbers of roots in the root system of type `S`
 """
 number_of_roots(S::String) = number_of_roots(RootSystem(S))
 
 @doc raw"""
-getindex(R::RootSystem, r::Int)
+   getindex(R::RootSystem, r::Int)
 
 Return the `r`=th root in the vector of roots in the root system `R`.
 """
@@ -69,41 +68,40 @@ end
 #
 ###############################################################################
  @doc raw"""
-  `cartan_matrix(S::String) -> Matrix{QQFieldElem}`
+   cartan_matrix(S::String) -> Matrix{QQFieldElem}
+
  Return the Cartan matrix of the type of root system specified by `S`
   """
 function cartan_matrix(S::String)
-  S1 = S[1:1]
-  l = length(S)
-  n = parse(Int64, S[2:l])
-  S1 = GAP.Obj(string(S[1:1]))
-  RS = GAP.Globals.RootSystem(S1, n)
+  S = parse_root_string(S)
+  S1 = GAP.Obj(S[1])
+  RS = GAP.Globals.RootSystem(S1, S[2])
   CG = GAP.Globals.CartanMatrix(RS)
-  m = length(CG)
-  M = MatrixSpace(QQ, m, m)
-  C = M(Matrix{fmpq}(CG))
-	return C
+  C = matrix(QQ, CG)
+  return C
 end
 
  @doc raw"""
-  `cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}`
+   cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}
+
  Return the Cartan matrix of the type root system `R`
   """
 function cartan_matrix(R::RootSystem)
   S = R.root_system_type
   S2 = S[1] * string(S[2])
-	C = cartan_matrix(S2)
-	return C
+  C = cartan_matrix(S2)
+  return C
 end
  
 @doc raw"""
-  `dynkin_diagram(S::String) `
+   dynkin_diagram(S::String)
+
  Return the Dynkin diagram of the type of root system specified by `S`
   """
 function dynkin_diagram(S::String)
-  S1 = S[1:1]
-	l = length(S)
-	n = parse(Int64,S[2:l])
+  S = parse_root_string(S)
+  S1 = S[1]
+	n = S[2]
 	D = ""
 	if S1 == "A"
     for i = 1:(n-1)
@@ -157,11 +155,22 @@ function dynkin_diagram(S::String)
 	print(D)
 end
 @doc raw"""
-  `dynkin_diagram(R::RootSystem)`
+   dynkin_diagram(R::RootSystem)
+
  Return the Dynkin diagram of the root system `R`
   """
 function dynkin_diagram(R::RootSystem)
 	S = R.root_system_type
   S2 = S[1] * string(S[2])
 	dynkin_diagram(S2)
+end
+
+###############################################################################
+#
+#   helper functions
+#
+###############################################################################
+function parse_root_string(S::String)
+  n = parse(Int64, S[2:end])
+  return (S[1:1], n)  
 end
