@@ -12,7 +12,7 @@
     di = size(RS,1) + length(RS.simple_roots)
     M = MatrixSpace(R, 1, di)
     s = [Symbol("e_$i") for i in 1:di]
-    st=Union{String, Int64}[S[1:1], n]
+    st=RS.root_system_type
     return get_cached!(SimpleLieAlgebraDict, (R, RS, M), cached) do
     new{C}(M,R,RS,di,s,st)
     end::SimpleLieAlgebra{C}
@@ -29,7 +29,7 @@ mutable struct SimpleLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
   function SimpleLieAlgebraElem{C}(
   L::SimpleLieAlgebra{C},
   M::MatElem{C}) where {C<:RingElement}
-     return new{C}(L,M,base_ring(L))
+     return new{C}(L,M)
   end
 end
 

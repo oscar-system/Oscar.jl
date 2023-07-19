@@ -97,6 +97,8 @@ export matrix_repr_basis
 export multicombinations
 export permutations
 export permutations_with_sign
+export root_system
+export root_type
 export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
@@ -162,6 +164,8 @@ export is_tensor_product
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis
+export root_system
+export root_type
 export size
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
