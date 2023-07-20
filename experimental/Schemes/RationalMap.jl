@@ -321,7 +321,7 @@ function _random_extension(U::AbsSpec, a::Vector{<:FieldElem})
     J = quotient(ideal(OO(U), denominator(f)), ideal(OO(U), numerator(f)))
     I_undef = intersect(I_undef, J)
   end
-  I_undef = radical(I_undef)
+  #I_undef = radical(I_undef)
 # @show I_undef
 # @show equidimensional_decomposition_radical(saturated_ideal(I_undef))
 # I_undef = last(equidimensional_decomposition_radical(I_undef))
@@ -384,7 +384,7 @@ function _extend(U::AbsSpec, a::Vector{<:FieldElem})
     I_undef = intersect(I_undef, J)
   end
   #I_undef = ideal(OO(U), small_generating_set(I_undef))
-  I_undef = radical(I_undef)
+  #I_undef = radical(I_undef)
 
   result = Vector{Tuple{AbsSpec, Vector{RingElem}}}()
 
@@ -510,20 +510,29 @@ function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
   R = coefficient_ring(C)
   comps = IdDict{IdealSheaf, elem_type(R)}()
   for I in components(C)
-    # Find a patch in Y on which this component is visible
-    all_V = [V for V in affine_charts(Y) if !isone(I(V))]
-    for V in all_V
-  # @show all_V
-  # min_var = minimum([ngens(OO(V)) for V in all_V])
-  # @show min_var
-  # all_V = [V for V in all_V if ngens(OO(V)) == min_var]
-  # @show all_V
-  # deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
-  # @show deg_bound
-  # all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
-  # @show all_V
-  # V = first(all_V)
-  # @show findfirst(x->x===V, affine_charts(Y))
+    @show "trying cheap"
+    pbI = _try_pullback_cheap(phi, I)
+    if pbI === nothing
+      @show "trying randomized"
+      pbI = _try_randomized_pullback(phi, I)
+      if pbI === nothing
+        @show "trying hard"
+        pbI = _pullback(phi, I)
+      end
+    end
+    comps[pbI] = C[I]
+  end
+
+  return AlgebraicCycle(X, R, comps)
+end
+
+function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
+  X = domain(phi)
+  Y = codomain(phi)
+  scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
+  # Find a patch in Y on which this component is visible
+  all_V = [V for V in affine_charts(Y) if !isone(I(V))]
+  for V in all_V
 
     # Find a patch in X in which the pullback is visible
     JJ = IdealSheaf(X)
@@ -535,70 +544,108 @@ function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
     sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
 
     # First try to get hold of the component via cheap realizations 
-    success = false
     for U in all_U
       psi = cheap_realization(phi, U, V)
       U_sub = domain(psi)
       J = pullback(psi)(saturated_ideal(I(V)))
       if !isone(J)
         JJ = IdealSheaf(X, domain(psi), gens(J))
-        comps[JJ] = C[I]
-        success = true
-        break
-      end
-    end
-
-    success && break
-
-
-    success = false
-    for U in all_U
-      psi = random_realization(phi, U, V)
-      U_sub = domain(psi)
-
-      J = pullback(psi)(saturated_ideal(I(V)))
-      if !isone(J)
-        JJ = IdealSheaf(X, domain(psi), gens(J))
-        comps[JJ] = C[I]
-        success = true
-        break
-      end
-    end
-
-    !success && break
-
-    # If that fails, try the hard way
-    for U in all_U
-      psi_loc = realize_maximally_on_open_subset(phi, U, V)
-      # If we are in different components, skip
-      length(psi_loc) > 0 || continue
-      found = 0
-      J = ideal(OO(domain(first(psi_loc))), elem_type(OO(domain(first(psi_loc))))[])
-      cod_ideal = ideal(OO(U), elem_type(OO(U))[])
-      for (k, psi) in enumerate(psi_loc)
-        if dim(cod_ideal) < dim(I)
-          found = 0
-          break
-        end
-        J = pullback(psi)(I(V))
-        if !isone(J)
-          @assert dim(J) == dim(I)
-          found = k
-          break
-        end
-        cod_ideal = cod_ideal + ideal(OO(U), complement_equation(domain(psi)))
-      end
-      if found != 0
-        psi = psi_loc[found]
-        @assert dim(J) == dim(I)
-        JJ = IdealSheaf(X, domain(psi), gens(J))
-        comps[JJ] = C[I]
+        return JJ
         break
       end
     end
   end
+  return nothing
 end
-  return AlgebraicCycle(X, R, comps)
+
+function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
+  X = domain(phi)
+  Y = codomain(phi)
+  scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
+  # Find a patch in Y on which this component is visible
+  all_V = [V for V in affine_charts(Y) if !isone(I(V))]
+
+  @show all_V
+  min_var = minimum([ngens(OO(V)) for V in all_V])
+  @show min_var
+  all_V = [V for V in all_V if ngens(OO(V)) == min_var]
+  @show all_V
+  deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
+  @show deg_bound
+  all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
+  @show all_V
+  V = first(all_V)
+  @show findfirst(x->x===V, affine_charts(Y))
+
+  all_U = copy(affine_charts(X))
+  function complexity(U::AbsSpec)
+    a = realization_preview(phi, U, V)
+    return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
+  end
+  sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+
+  for U in all_U
+    psi = random_realization(phi, U, V)
+    U_sub = domain(psi)
+
+    J = pullback(psi)(saturated_ideal(I(V)))
+    if !isone(J)
+      JJ = IdealSheaf(X, domain(psi), gens(J))
+      return JJ
+      break
+    end
+  end
+  return nothing
+end
+
+function _pullback(phi::RationalMap, I::IdealSheaf)
+  X = domain(phi)
+  Y = codomain(phi)
+  scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
+  # Find a patch in Y on which this component is visible
+  all_V = [V for V in affine_charts(Y) if !isone(I(V))]
+
+  @show all_V
+  min_var = minimum([ngens(OO(V)) for V in all_V])
+  @show min_var
+  all_V = [V for V in all_V if ngens(OO(V)) == min_var]
+  @show all_V
+  deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
+  @show deg_bound
+  all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
+  @show all_V
+  V = first(all_V)
+  @show findfirst(x->x===V, affine_charts(Y))
+
+  all_U = copy(affine_charts(X))
+  function complexity(U::AbsSpec)
+    a = realization_preview(phi, U, V)
+    return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
+  end
+  sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+
+  for U in all_U
+    psi_loc = realize_maximally_on_open_subset(phi, U, V)
+    # If we are in different components, skip
+    length(psi_loc) > 0 || continue
+    found = 0
+    J = ideal(OO(domain(first(psi_loc))), elem_type(OO(domain(first(psi_loc))))[])
+    cod_ideal = ideal(OO(U), elem_type(OO(U))[])
+    for (k, psi) in enumerate(psi_loc)
+      if dim(cod_ideal) < dim(I)
+        found = 0
+        break
+      end
+      J = pullback(psi)(I(V))
+      if !isone(J)
+        @assert dim(J) == dim(I)
+        JJ = IdealSheaf(X, domain(psi), gens(J))
+        return JJ
+      end
+      cod_ideal = cod_ideal + ideal(OO(U), complement_equation(domain(psi)))
+    end
+  end
+  error("ideal sheaf could not be pulled back")
 end
 
 function pullback(phi::RationalMap, D::WeilDivisor)
