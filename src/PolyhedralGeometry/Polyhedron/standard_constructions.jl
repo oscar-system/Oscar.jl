@@ -1544,7 +1544,7 @@ end
 @doc raw"""
     hypertruncated_cube(d::Int, k::Number, lambda::Number) 
 
-Produce a $d-$dimensional hypertruncated cube. With symmetric linear objective function $(0,1,1,…,1)$.
+Produce a $d$-dimensional hypertruncated cube with symmetric linear objective function $(0,1,1,…,1)$.
 
 # Keywords
 - `d::Int`: the dimension
@@ -1579,7 +1579,7 @@ end
    k_cylic(n::Int, s::Vector) 
 
 Produce a (rounded) $2*k$-dimensional $k$-cyclic polytope with $n$ points, where $k$ is the length of the input vector $s$. Special cases are the bicyclic ($k=2$) and tricyclic ($k=3$) polytopes. Only possible in even dimensions. The parameters $s_i$ can be specified as integer, floating-point, or rational numbers. The coordinates of the $i$-th point are taken as follows:
-$(\cos(s_1 * 2\pi i/n), \sin(s_1 * 2\pi i/n), ... , \cos(s_k * 2\pi i/n), sin(s_k * 2\pi i/n)).
+$(\cos(s_1 * 2\pi i/n), \sin(s_1 * 2\pi i/n), ... , \cos(s_k * 2\pi i/n), sin(s_k * 2\pi i/n))$.
 
 Warning: Some of the $k-$cyclic polytopes are not simplicial. Since the components are rounded, this function might output a polytope which is not a $k-$cyclic polytope! More information see [Sch95](@cite).
 
@@ -1600,28 +1600,24 @@ k_cyclic(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic
     klee_minty_cube(d::Int, e::Number)
 
 Produces a $d-$dimensional Klee-Minty-cube if $e < 1/2$. Uses the `goldfarb` method with the argument $g = 0$.
-
-# Example
 For an example see `goldfarb` method.
-```
 """
 klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
 
-<<<<<<< Updated upstream
 @doc raw"""
     long_and_winding_polytope()
 
 Produce polytope in dimension $2r$ with $3r+2$ facets such that the total curvature of the central path is at least $\Omega(2^r)$; 
 see [ABGJ18](@cite). See also `perturbed_long_and_winding`. 
 
-#Keywords
+# Keywords
 
 - `r::Int`: defining parameter 
 - `eval_ratio::Real`: optional parameter for evaluating the puiseux rational functions 
 - `eval_float::AbstractFloat`: optional parameter  to evaluate at `eval_ratio^eval_exp`, default: $1$. 
 - `eval_exp::Int`: optional parameter for evaluating the puiseux rational functions  
 
-#Examples
+# Examples
 ```jldoctest
 julia> p = long_and_winding_polytope(2)
 Polyhedron in ambient dimension 4
@@ -1667,5 +1663,134 @@ function long_and_winding_polytope(r::Int; eval_ratio=nothing, eval_float=nothin
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.long_and_winding(r;opts...))
 end
-=======
->>>>>>> Stashed changes
+
+@doc raw"""
+    max_GC_rank(d::Int)
+
+Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log\(d\))$, integrally infeasible. With symmetric linear objective function $(0,1,1..,1)$. Construction due to Pokutta and Schulz.
+
+# Keywords
+- `d::Int`: the dimension
+
+# Examples
+
+"""
+function max_gc_rank(d::Int) 
+    if d < 2
+        throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
+    end
+    if sizeof(d) >= sizeof(Int)*8-1
+        throw(ArgumentError("max_GC_rank: dimension too high, number of inequalities would not fit into Int"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
+end
+
+@doc raw"""
+    multiplex(d::Int, n::Int)
+
+Produce a combinatorial description of a multiplex with parameters `d` and `n`. 
+This yields a self-dual $d$-dimensional polytope with $n+1$ vertices. They are introduced by [BIS96](@cite). 
+See also [BBS02](@cite).
+
+# Keywords
+- `d::Int`: the dimension, has to be greater than 2
+- `n::Int`: number of vertices - 1, has to be greater than `d``
+"""
+function multiplex(d::Int, n::Int)
+    if d < 2 || d > n
+        throw(ArgumentError("multiplex: 2 <= d <= n required"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.multiplex(d,n))
+end
+
+@doc raw"""
+    n_gon(n::Int; r::Rational=1, alpha_0::Rational=0)
+
+Produce a regular $n$-gon. All vertices lie on a circle of radius $r$. The radius defaults to 1.
+
+# Keywords
+- `n::Int`: the number of vertices
+- `r::Float`: the radius (defaults to 1)
+- `alpha_0::Float`: the initial angle divided by pi (defaults to 0)
+
+# Examples
+To store the regular pentagon in the variable p, do this:
+```jldoctest
+julia> p = n_gon(3)
+Polyhedron in ambient dimension 2
+
+julia> n_gon(3,r=3)
+Polyhedron in ambient dimension 2
+```
+"""
+function n_gon(n::Int; r::Real=1, alpha_0::Real=0)
+    if n < 3 || r <= 0
+        throw(ArgumentError("n_gon: n >= 3 and r > 0 required"))
+    end
+    return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
+end
+
+@doc raw"""
+    neighborly_cubical(d::Int, n::Int) 
+
+Produce the combinatorial description of a neighborly cubical polytope. 
+The facets are labelled in oriented matroid notation as in the cubical Gale evenness criterion. 
+See [JZ00](@cite)
+
+# Keywords
+- `d::Int`: dimension of the polytope
+- `n::Int`: dimension of the equivalent cube
+"""
+function neighborly_cubical(d::Int, n::Int)
+    m = 8*sizeof(Int)-2
+    if (d < 2 || d > n || n > m)
+      throw(ArgumentError(string("neighborly_cubical: 2 <= d <= n <= ", m)))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.neighborly_cubical(d,n))
+end
+
+@doc raw"""
+    perles_irrational_8_polytope()
+
+Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru00](@cite).
+"""
+perles_irrational_8_polytope() = Polyhedron{QQFieldElem}(Polymake.polytope.perles_irrational_8_polytope())
+
+@doc raw"""
+    permutahedron(d::Int)
+
+Produce a $d$-dimensional permutahedron. The vertices correspond to the elements of the symmetric group of degree $d+1$.
+
+# Keywords
+-`d::Int`: the dimension
+"""
+permutahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
+
+@doc raw"""
+    pile(d::Int)
+
+Produce a $(d+1)$-dimensional polytope from a pile of cubes. Start with a $d$-dimensional pile of cubes. 
+Take a generic convex function to lift this polytopal complex to the boundary of a $(d+1)$-polytope.
+
+# Keywords
+- `sizes::Vector{Int}`: a vector $(s_1,…,s_d)$ where $s_i$ specifies the number of boxes in the $i$-th dimension.
+"""
+pile(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
+
+@doc raw"""
+    pitman_stanley(y::AbstractVector)
+
+Produce a Pitman-Stanley polytope of dimension $n-1$. See 
+
+# Keywords:
+-`y::AbstractVector`: Vector of $n$ positive parameters
+
+# Examples:
+Pitman-Stanley polytopes are combinatorial cubes:
+```jldoctest
+>julia p = pitman_stanley([1,1,2,3])
+
+>julia f_vector(p)
+
+```
+"""
