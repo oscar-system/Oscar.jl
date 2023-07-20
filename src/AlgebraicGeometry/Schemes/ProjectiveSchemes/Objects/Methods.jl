@@ -35,8 +35,8 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:M
   println(io, Lowercase(), base_ring(P))
   print(io, Dedent(), "with homogeneous coordinate")
   length(homogeneous_coordinates(P)) > 1 && print(io, "s")
-  print(io, " ")
-  print(io, join(homogeneous_coordinates(P), ", "))
+  print(io, " [")
+  print(io, join(homogeneous_coordinates(P), ", "), "]")
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
@@ -80,8 +80,8 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
       c = homogeneous_coordinates(P)
       print(io, " with coordinate")
       length(c) > 1 && print(io, "s")
-      print(io, " ")
-      print(io, join(c, ", "))
+      print(io, " [")
+      print(io, join(c, ", "), "]")
     end
   end
 end
@@ -97,7 +97,7 @@ Return the restriction morphism from the graded coordinate ring of ``X`` to `ð’
 julia> P = projective_space(QQ, ["x0", "x1", "x2"])
 Projective space of dimension 2
   over rational field
-with homogeneous coordinates x0, x1, x2
+with homogeneous coordinates [x0, x1, x2]
 
 julia> X = covered_scheme(P);
 
@@ -210,7 +210,7 @@ julia> A, _ = QQ["u", "v"];
 julia> P = projective_space(A, ["x0", "x1", "x2"])
 Projective space of dimension 2
   over multivariate polynomial ring in 2 variables over QQ
-with homogeneous coordinates x0, x1, x2
+with homogeneous coordinates [x0, x1, x2]
 
 julia> X = covered_scheme(P)
 Scheme

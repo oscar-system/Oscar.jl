@@ -668,7 +668,9 @@ function convert(
   isone(I) && return zero(L)
   denoms = denominators(inverted_set(W))
   if iszero(length(denoms)) || all(x->isone(x), denoms)
-    return L(Q(a)*inv(Q(b)))
+    success, q = divides(Q(a), Q(b))
+    success || error("element can not be converted")
+    return L(q)
   end
   d = prod(denominators(inverted_set(W)); init=one(R))
   powers_of_d = [d]
@@ -1276,7 +1278,7 @@ end
 
 ### The following method is also required for the internals of the generic 
 # kernel routine for localized rings.
-function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
+@attr MPolyIdeal function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   P = domain(f)
   L = codomain(f)
   I = ideal(L, zero(L))
@@ -1289,6 +1291,14 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing})
   h = hom(P, A, id.(f.(gens(P))), check=false)
   gg = Vector{elem_type(A)}(id.(W.(gens(J))))
   return preimage(h, ideal(A, gg))
+end
+
+@attr MPolyQuoIdeal function kernel(f::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoLocRing})
+  A = domain(f)
+  R = base_ring(A)
+  ff = hom(R, codomain(f), f.(gens(A)), check=false)
+  K = kernel(ff)
+  return ideal(A, [g for g in A.(gens(K)) if !iszero(g)])
 end
 
 function is_isomorphism(

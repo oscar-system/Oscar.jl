@@ -191,9 +191,6 @@ julia> R = ZZ;
 julia> algebraic_cycle(Ycov, R)
 Zero algebraic cycle
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
 with coefficients in integer Ring
 ```
 """
@@ -230,17 +227,11 @@ julia> II = IdealSheaf(Y, I);
 julia> R = ZZ;
 
 julia> algebraic_cycle(II, R)
-Irreducible algebraic cycle
+Effective algebraic cycle
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
 with coefficients in integer Ring
 given as the formal sum of
-  1*sheaf of ideals with restrictions
-      1: ideal(-(y//x)^2*(z//x) + 1)
-      2: ideal((x//y)^3 - (z//y))
-      3: ideal((x//z)^3 - (y//z)^2)
+  1 * sheaf of ideals
 
 ```
 """
@@ -277,17 +268,11 @@ julia> II = IdealSheaf(Y, I);
 julia> R = ZZ;
 
 julia> algebraic_cycle(II, R)
-Irreducible algebraic cycle
+Effective algebraic cycle
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
 with coefficients in integer Ring
 given as the formal sum of
-  1*sheaf of ideals with restrictions
-      1: ideal(-(y//x)^2*(z//x) + 1)
-      2: ideal((x//y)^3 - (z//y))
-      3: ideal((x//z)^3 - (y//z)^2)
+  1 * sheaf of ideals
 ```
 """
 algebraic_cycle(I::IdealSheaf) = AlgebraicCycle(I)
@@ -317,22 +302,16 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
   io = pretty(io)
   X = scheme(D)
   eff = all(i >= 0 for i in collect(values(D.coefficients)))
-  if length(components(D)) == 1
-    prim = D[components(D)[1]] == 1
-  else
-    prim = false
-  end
   if length(components(D)) == 0
     print(io, "Zero algebraic cycle")
   else
     if eff
-      if prim
-        print(io, "Irreducible algebraic cycle")
-      else
-        print(io, "Effective algebraic cycle")
-      end
+      print(io, "Effective algebraic cycle")
     else
       print(io, "Algebraic cycle")
+    end
+    if has_name(D)
+      print(io, " ", get_attribute(D, :name))
     end
     if has_attribute(D, :dim)
       print(io, " of dimension $(dim(D))")
@@ -340,7 +319,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
   end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov)
+  show(io, X, cov)
   println(io, Dedent())
   print(io, "with coefficients in ", Lowercase(), coefficient_ring(D))
   if length(components(D)) != 0
@@ -353,13 +332,10 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
       println(io)
       I = components(D)[i]
       kI = length(co_str[i])
-      print(io, " "^(k-kI)*"$(D[I])*")
+      print(io, " "^(k-kI)*"$(D[I]) * ")
       print(io, Indent(), Lowercase())
-      Oscar._show_semi_compact(io, I, cov)
+      show(io, I, false)
       print(io, Dedent())
-      if i != length(components(D))
-        println(io, "--------------------------------------------------------------------------------")
-      end
     end
   end
   print(io, Dedent())

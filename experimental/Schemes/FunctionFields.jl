@@ -282,6 +282,21 @@ function move_representative(
   iszero(pbb) && error("pullback of denominator is zero")
   # in the next line, A is either a SpecOpen or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
+  if domain(f) isa PrincipalOpenSubset
+    fac = factor(lifted_numerator(complement_equation(domain(f))))
+    p = OO(U)(numerator(h_generic))
+    q = OO(U)(denominator(h_generic))
+    for (a, e) in fac
+      aa = OO(U)(a)
+      k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1])
+      k_den, _ = _minimal_power_such_that(aa, x->divides(q, x)[1])
+      k = minimum([k_num, k_den])
+      aa = aa^k
+      _, p = divides(p, aa)
+      _, q = divides(q, aa)
+    end
+    h_generic = fraction(p)//fraction(q)
+  end
   return h_generic
 end
 

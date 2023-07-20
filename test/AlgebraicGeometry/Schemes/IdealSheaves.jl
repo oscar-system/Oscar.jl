@@ -173,6 +173,5 @@ end
   CC = oscar._one_patch_per_component(C, JJ)
   for P in JJ
     @test isone(sum(!isone(P(U)) for U in patches(CC)))
-    @show sum(!isone(P(U)) for U in patches(CC))
   end
 end

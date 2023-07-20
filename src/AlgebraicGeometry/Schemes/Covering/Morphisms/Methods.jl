@@ -80,7 +80,7 @@ function base_change(phi::Any, f::CoveringMorphism;
     mor_dict[UU] = ff
   end
 
-  return domain_map, CoveringMorphism(DD, CC, mor_dict, check=true), codomain_map # TODO: Set to false after testing.
+  return domain_map, CoveringMorphism(DD, CC, mor_dict, check=false), codomain_map
 end
 
 ###############################################################################

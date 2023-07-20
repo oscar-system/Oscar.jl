@@ -35,7 +35,7 @@ This method checks if a morphism is the identity map.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3

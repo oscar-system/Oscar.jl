@@ -5,7 +5,9 @@ Many models have been created in the F-theory literature.
 A significant number of them have even been given specific
 names, for instance the "U(1)-restricted SU(5)-GUT model".
 This method has access to a database, from which it can
-look up such literature models. Currently, you can provide
+look up such literature models.
+
+Currently, you can provide
 any combination of the following optional arguments
 to the method `literature_model`:
 * `doi`: A string representing the DOI of the publication that
@@ -19,8 +21,12 @@ introduced the model in question.
 * `version`: A string representing the version of the arXiv upload.
 The method `literature_model` attempts to find a model in our database
 for which the provided data matches the information in our record. If no such
-model could be found, or multiple models exist with information matching the
+model can be found, or multiple models exist with information matching the
 provided information, then an error is raised.
+
+Some literature models require additional parameters to specified to single out
+a model from a family of models. Such models can be provided using the optional
+argument `model_parameters`, which should be a dictionary such as `Dict("k" => 5)`.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -51,7 +57,7 @@ Multivariate polynomial ring in 9 variables over QQ graded by
   e -> [2 -1 -1 0]
 ```
 """
-function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="")
+function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}())
   # Try to find the file with the desired model
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
 
@@ -85,10 +91,29 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
   # We were able to find a unique model, so read that model)
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
 
+  # Deal with any model parameters
+  if haskey(model_dict, "model_parameters")
+    needed_model_parameters = string.(model_dict["model_parameters"])
+
+    # Make sure the user has provided values for all the model parameters
+    for param in needed_model_parameters
+      @req (param in keys(model_parameters)) "Some model parameters not provided; the given model requires these parameters:\n  $(join(needed_model_parameters, "\n  "))"
+    end
+
+    # Function to map a function of strings over arbitrarily nested Vectors of strings
+    nested_string_map(f, s::String) = f(s)
+    nested_string_map(f, v::Vector) = map(x -> nested_string_map(f, x), v)
+    nested_string_map(f, a::Any) = a
+
+    for (key, val) in model_parameters
+      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
+    end
+  end
+
   # Appropriately construct each possible type of model
-  if model_dict["model_data"]["type"] == "tate"
+  if model_dict["model_descriptors"]["type"] == "tate"
     model = _construct_literature_tate_model(model_dict)
-  elseif model_dict["model_data"]["type"] == "weierstrass"
+  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
     model = _construct_literature_weierstrass_model(model_dict)
   else
     @req false "Model is not a Tate or Weierstrass model"
@@ -153,8 +178,11 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
   end
   # This removes 'model' from the front and '.json' from the end of the file name
   set_attribute!(model, :literature_identifier => candidate_files[1][6:end - 5])
-  if haskey(model_dict["model_data"], "description")
-    set_attribute!(model, :model_description => model_dict["model_data"]["description"])
+  if haskey(model_dict["model_descriptors"], "description")
+    set_attribute!(model, :model_description => model_dict["model_descriptors"]["description"])
+  end
+  if haskey(model_dict, "model_parameters")
+    set_attribute!(model, :model_parameters => model_parameters)
   end
   if haskey(model_dict["paper_metadata"], "authors")
     set_attribute!(model, :paper_authors => string.(model_dict["paper_metadata"]["authors"]))
@@ -223,7 +251,7 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any})
   a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
   
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat(model_dict["model_data"]["auxiliary_base_grading"]...)))
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   
   return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
@@ -240,7 +268,7 @@ function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
   g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
   
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat(model_dict["model_data"]["auxiliary_base_grading"]...)))
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   
   return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)

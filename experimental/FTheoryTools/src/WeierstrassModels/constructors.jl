@@ -232,6 +232,9 @@ function Base.show(io::IO, w::WeierstrassModel)
   end
   if has_model_description(w)
     push!(properties_string, "-- " * string(get_attribute(w, :model_description)))
+    if has_model_parameters(t)
+      push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
+    end
   end
   if has_arxiv_id(w)
     push!(properties_string, "based on arXiv paper " * string(get_attribute(w, :arxiv_id)))

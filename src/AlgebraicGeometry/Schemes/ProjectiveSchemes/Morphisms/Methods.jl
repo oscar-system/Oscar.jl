@@ -83,7 +83,7 @@ with default covering
   # Eventually, they should be made lazy.
   CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
   inherit_glueings!(CC, default_covering(X))
-  phi = CoveringMorphism(CC, default_covering(Y), mor_dict)
+  phi = CoveringMorphism(CC, default_covering(Y), mor_dict, check=false)
   push!(coverings(X), CC)
 
   ff = CoveredSchemeMorphism(X, Y, phi)

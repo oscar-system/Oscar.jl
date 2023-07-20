@@ -131,12 +131,12 @@ and so on. This choice can be overwritten with a third optional argument.
 julia> affine_space(QQ, 5)
 Affine space of dimension 5
   over rational field
-with coordinates x1, x2, x3, x4, x5
+with coordinates [x1, x2, x3, x4, x5]
 
 julia> affine_space(QQ,5,variable_name="y")
 Affine space of dimension 5
   over rational field
-with coordinates y1, y2, y3, y4, y5
+with coordinates [y1, y2, y3, y4, y5]
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
@@ -157,7 +157,7 @@ The following example demonstrates this.
 julia> affine_space(QQ,[:y1,:z2,:a])
 Affine space of dimension 3
   over rational field
-with coordinates y1, z2, a
+with coordinates [y1, z2, a]
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
@@ -270,7 +270,7 @@ the subscheme ``V(f_1, f_2, \dots)`` of ``X``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -314,7 +314,7 @@ return the closed subscheme defined by ``I``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -358,7 +358,7 @@ defined by the complement of the vanishing locus of ``f``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -436,7 +436,7 @@ defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -531,7 +531,7 @@ schemes that reside in the same ambient affine space.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -711,7 +711,7 @@ Return the closure of ``X`` in ``Y``.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3

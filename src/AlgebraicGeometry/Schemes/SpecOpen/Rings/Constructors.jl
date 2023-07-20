@@ -43,7 +43,7 @@ Regular function
   covered by 1 affine patch
     1: [x, y, z]   spec of localized ring
 with restriction
-  1: 1
+  patch 1: 1
 ```
 """
 function OO(U::SpecOpen) 
