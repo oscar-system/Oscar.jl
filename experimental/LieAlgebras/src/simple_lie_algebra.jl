@@ -139,10 +139,6 @@ function bracket(
   )
   return L(mat)
 end
-<<<<<<< HEAD
-
-=======
->>>>>>> updated LieAlgebras.jl, root_systems.jl, simple_lie_algebra.jlm root_systems-test.jl, and runtests.jl
 ###############################################################################
 #
 #   Constructors
@@ -152,29 +148,6 @@ end
 @doc raw"""
     lie_algebra(R::Ring, S::Symbol, n::Int64, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
 
-<<<<<<< HEAD
-=======
-Return the zero element of the Lie algebra `L`.
-"""
-function zero(L::SimpleLieAlgebra{T}) where {T <: RingElement} 
-  x = zero(L.mat_space)
-	f = SimpleLieAlgebraElem{T}(L, x)
-	return f
-end
-
-function (L::SimpleLieAlgebra{T})() where {T <: RingElement}
-  return zero(L)
-end
-
-function (L::SimpleLieAlgebra{T})(A::MatElem{T}) where {T <: RingElem}
-  f = SimpleLieAlgebraElem{T}(L, L.mat_space(A))
-  return f
-end
-
-@doc raw"""
-    lie_algebra(R::Ring, S::String, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
-
->>>>>>> updated LieAlgebras.jl, root_systems.jl, simple_lie_algebra.jlm root_systems-test.jl, and runtests.jl
 Construct the simple Lie algebra over the ring `R` with root system of type `S`
 The internally used basis of this Lie algebra is the Chevalley basis.
 """
@@ -191,13 +164,9 @@ end
 @doc raw"""
     chevalley_basis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
 
-<<<<<<< HEAD
 Give the Chevalley basis of the simple Lie algebra `L` in three vectors, stating first the positive root vectors, 
 then the negative root vectors and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
 to the order or the roots in the root system.
-=======
-Give the Chevalley basis of the simple Lie algebra `L`
->>>>>>> updated LieAlgebras.jl, root_systems.jl, simple_lie_algebra.jlm root_systems-test.jl, and runtests.jl
 """
 function chevalley_basis(L::SimpleLieAlgebra)
   RS = root_system(L)
@@ -210,46 +179,3 @@ function chevalley_basis(L::SimpleLieAlgebra)
   h = B[(2 * n + 1):dim(L)]
   return [r_plus, r_minus, h]
 end 
-<<<<<<< HEAD
-=======
-
-@doc raw"""
-    adjoint_matrix(L::SimpleLieAlgebra{T}) -> Vector{Any}
-
-Give the adjoint matrices of all basis vectors acting on the Lie algebra `L` with respect 
-to the Chevalley basis of `L`
-"""
-function adjoint_matrix(L::SimpleLieAlgebra{T}) where T <: RingElement #computes the adjoint matrix with respect to the Chevalley basis.
-	St = L.root_type
-	R = base_ring(L)	
-	n = St[2]
-	
-	Q = GAP.Globals.Rationals
-	S = GAP.Obj(St[1])
-	LG = GAP.Globals.SimpleLieAlgebra(S, n, Q) #define the Lie algebra in Gap over the rationals, we are interested in the structure constants
-  #they remain the same over rings of characteristic 0, otherwise we have the structure constants mod char(R)
-	d = GAP.Globals.Dimension(LG)
-	
-	ch = GAP.Globals.ChevalleyBasis(LG)
-	ch1 = GAP.Globals.ShallowCopy(ch[1])
-	ch2 = GAP.Globals.ShallowCopy(ch[2])
-	ch3 = GAP.Globals.ShallowCopy(ch[3])
-	ch = ch1
-	GAP.Globals.Append(ch, ch2)
-	GAP.Globals.Append(ch, ch3)
-	BL = GAP.Globals.Basis(LG, ch)
-	ad = dense_matrix_type(R)[]
-	for i = 1:d
-		Ad = GAP.Globals.AdjointMatrix(BL, BL[i])
-		A = [[Ad[i][j] for j = 1:length(Ad[i])] for i = 1:length(Ad)]
-		MA = zero_matrix(R, d, d)
-		for j = 1:d
-			MA[j, 1:d] = A[j]
-		end
-		push!(ad, MA)
-		
-	end 
-	return ad
-end
-
->>>>>>> updated LieAlgebras.jl, root_systems.jl, simple_lie_algebra.jlm root_systems-test.jl, and runtests.jl
