@@ -116,7 +116,7 @@ SpecOpen(X::AbsSpec) = SpecOpen(X, [one(ambient_coordinate_ring(X))], check=fals
 Given a Zariski open subset `U` of an affine scheme `X`, complement to
 a subscheme `Y` of `X`, and given an affine scheme `Z`, return the product
 scheme $V := U \times Z$ as a Zariski open subset of the affine scheme
-$X\times Z$ complement to the closed subschme $Y\times Z$.
+$X\times Z$ complement to the closed subscheme $Y\times Z$.
 
 It is returned with the two product maps $U \to V$ and $Z \to V$.
 
@@ -153,7 +153,7 @@ julia> V, iU, iZ = product(U2, Y1)
 
 julia> V
 Open subset
-  of affine 6-space over QQ with coordinates x2, y2, z2, x1, y1, z1
+  of affine 6-space over QQ with coordinates [x2, y2, z2, x1, y1, z1]
 complement to V(x2^2 - y2^2 + z2^2)
 
 julia> iU

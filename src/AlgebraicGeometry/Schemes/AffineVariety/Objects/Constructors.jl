@@ -32,7 +32,7 @@ julia> R, (x,y) = QQ[:x,:y]
 
 julia> variety(ideal([x,y]))
 Affine variety
-  in affine 2-space over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates [x, y]
 defined by defined by ideal(x, y)
 
 ```
@@ -44,7 +44,7 @@ julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> variety(x^3+y+1, check=false)
 Affine variety
-  in affine 2-space over GF(2) with coordinates x, y
+  in affine 2-space over GF(2) with coordinates [x, y]
 defined by defined by ideal(x^3 + y + 1)
 
 ```
@@ -71,7 +71,7 @@ julia> Q,_ = quo(R,ideal([x,y]));
 
 julia> variety(Q)
 Affine variety
-  in affine 2-space over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates [x, y]
 defined by defined by ideal(x, y)
 
 ```
@@ -89,13 +89,13 @@ This checks that `f` is irreducible over the algebraic closure.
 julia> A2 = affine_space(QQ,[:x,:y])
 Affine space of dimension 2
   over rational field
-with coordinates x, y
+with coordinates [x, y]
 
 julia> (x,y) = coordinates(A2);
 
 julia> variety(y^2-x^3-1)
 Affine variety
-  in affine 2-space over QQ with coordinates x, y
+  in affine 2-space over QQ with coordinates [x, y]
 defined by defined by ideal(-x^3 + y^2 - 1)
 
 ```

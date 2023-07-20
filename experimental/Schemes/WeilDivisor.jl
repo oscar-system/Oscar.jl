@@ -104,9 +104,6 @@ julia> Ycov = covered_scheme(Y);
 julia> weil_divisor(Ycov, QQ)
 Zero weil divisor
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
 with coefficients in rational field
 ```
 """
@@ -139,17 +136,11 @@ julia> Y = projective_scheme(P);
 julia> II = IdealSheaf(Y, I);
 
 julia> weil_divisor(II)
-Prime weil divisor
+Effective weil divisor
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
 with coefficients in integer Ring
 given as the formal sum of
-  1*sheaf of ideals with restrictions
-      1: ideal(-(y//x)^2*(z//x) + 1)
-      2: ideal((x//y)^3 - (z//y))
-      3: ideal((x//z)^3 - (y//z)^2)
+  1 * sheaf of ideals
 ```
 """
 weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
@@ -185,11 +176,7 @@ function Base.show(io::IO, D::WeilDivisor)
   X = scheme(D)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(C.coefficients)))
-  if length(components(C)) == 1
-    prim = C[components(C)[1]] == 1
-  else
-    prim = false
-  end
+  prim = eff && get_attribute(D, :is_prime, false)
   if has_name(D)
     print(io, name(D))
   elseif get(io, :supercompact, false)
@@ -215,12 +202,10 @@ function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribut
   X = scheme(D)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(C.coefficients)))
-  if length(components(C)) == 1
-    prim = C[components(C)[1]] == 1
-  else
-    prim = false
-  end
-  if length(components(D)) == 0
+  prim = eff && get_attribute(D, :is_prime, false)
+  if has_name(D)
+    print(io, name(D))
+  elseif length(components(D)) == 0
     print(io, "Zero weil divisor on ", Lowercase())
   elseif eff
     if prim
@@ -241,11 +226,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
   X = scheme(D)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(C.coefficients)))
-  if length(components(C)) == 1
-    prim = C[components(C)[1]] == 1
-  else
-    prim = false
-  end
+  prim = eff && get_attribute(D, :is_prime, false)
   if length(components(C)) == 0
     print(io, "Zero weil divisor")
   else
@@ -259,9 +240,12 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
       print(io, "Weil divisor")
     end
   end
+  if has_name(D)
+    print(io, " ", name(D))
+  end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov)
+  show(io, X, cov)
   println(io, Dedent())
   print(io, "with coefficients in ", Lowercase(), coefficient_ring(C))
   if length(components(C)) != 0
@@ -274,14 +258,10 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
       println(io)
       I = components(C)[i]
       kI = length(co_str[i])
-      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Indent(), Lowercase())
-      Oscar._show_semi_compact(io, I)
+      show(io, I, false)
       print(io, Dedent())
-      if i != length(components(C))
-        println(io)
-        print(io, "--------------------------------------------------------------------------------")
-      end
     end
   end
 end
@@ -643,14 +623,22 @@ function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)
   return subsystem(L, I, n)
 end
 
+# Prime Weil divisor are those written as 1*Sheaf of prime ideals
 @attr Bool function is_prime(D::WeilDivisor)
-  length(components(D)) == 0 && return true
+  length(components(D)) == 0 && return false # Cannot be prime if there are no components
+  # Two cases:
+  # - D is a sum of at least 2 disinct sheaf of prime ideals -> not prime
+  # - D is not, we then compute an irreducible decomposition as sum of distinct
+  # sheaf of prime ideals, with some coefficients, and we check whether this
+  # irreducible decomposition is prime
   if length(components(D))>1
-    all(I->isprime(I), components(D)) && return false
+    all(I -> is_prime(I), components(D)) && return false
     return is_prime(irreducible_decomposition(D))
   end
-  c = components(D)[1]
-  return coefficient_dict(D)[c] == 1
+  # If D = a*C, then D is prime if and only if C is prime and a == 1
+  C = components(D)[1]
+  !is_prime(C) && return false
+  return coefficient_dict(D)[C] == 1
 end
 
 is_irreducible(D::WeilDivisor) = is_prime(D)

@@ -75,7 +75,7 @@ in the coordinate ring of an affine scheme.
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:

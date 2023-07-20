@@ -495,7 +495,7 @@ function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
     for i in 1:length(r)
       li = ndigits(i)
       println(io)
-      print(io, " "^(l-li)*"$(i): ", r[i])
+      print(io, "patch", " "^(l-li+1)*"$(i): ", r[i])
     end
     print(io, Dedent())
   end

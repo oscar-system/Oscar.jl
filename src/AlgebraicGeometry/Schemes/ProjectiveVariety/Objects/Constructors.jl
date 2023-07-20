@@ -26,13 +26,13 @@ Note that the ideal ``I`` must live in a standard graded ring.
 julia> P3 = projective_space(QQ,3)
 Projective space of dimension 3
   over rational field
-with homogeneous coordinates s0, s1, s2, s3
+with homogeneous coordinates [s0, s1, s2, s3]
 
 julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 
 julia> X = variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
-  in projective 3-space over QQ with coordinates s0, s1, s2, s3
+  in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
 defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
 
 julia> dim(X)
@@ -40,7 +40,7 @@ julia> dim(X)
 
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
-  in projective 3-space over QQ with coordinates s0, s1, s2, s3
+  in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
 defined by ideal(s0, s1^3 + s2^3 + s3^3)
 
 julia> dim(Y)

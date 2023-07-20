@@ -32,7 +32,7 @@ julia> I = ideal([x^3-y^2*z]);
 julia> Y = projective_scheme(P)
 Projective space of dimension 2
   over rational field
-with homogeneous coordinates x, y, z
+with homogeneous coordinates [x, y, z]
 
 julia> IdealSheaf(Y, I)
 Sheaf of ideals
@@ -1008,7 +1008,7 @@ end
 ###########################################################################
 
 # If we know things about the ideal sheaf, we print them
-function Base.show(io::IO, I::IdealSheaf)
+function Base.show(io::IO, I::IdealSheaf, show_scheme::Bool = true)
   io = pretty(io)
   X = scheme(I)
   if has_attribute(I, :dim) && has_attribute(X, :dim)
@@ -1017,8 +1017,9 @@ function Base.show(io::IO, I::IdealSheaf)
     z = false
   end
   prim = get_attribute(I, :is_prime, false)
-
-  if get(io, :supercompact, false)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+  elseif get(io, :supercompact, false)
     print(io, "Presheaf")
   else
     if get_attribute(I, :is_one, false)
@@ -1030,7 +1031,9 @@ function Base.show(io::IO, I::IdealSheaf)
     else
       print(io, "Sheaf of ideals")
     end
-    print(io," on ", Lowercase(), X)
+    if show_scheme
+      print(io," on ", Lowercase(), X)
+    end
   end
 end
 
