@@ -1424,6 +1424,12 @@ function fp_group(M::GrpAbFinGen)
   return domain(mp), mp
 end
 
+function fp_group(M::AbstractAlgebra.FPModule{<:FinFieldElem})
+  p, mp = pc_group(M, refine = false)
+  mf = isomorphism(FPGroup, p)
+  return codomain(mf), inv(mf)*mp
+end
+
 
 #########################################################
 #XXX: should be in AA and supplemented by a proper quo
@@ -1619,7 +1625,7 @@ function pc_group(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = tr
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem}})
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
@@ -1631,7 +1637,7 @@ function pc_group(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = tr
     return g
   end
 
-  function Julia_to_gap(a::Generic.FreeModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
+  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
@@ -1746,7 +1752,7 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
     return mQ(h1(underlying_word(g))*h2(underlying_word(preimage(mfM, m))))
   end
 
-  return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
+  return Q, pseudo_inv(mfM)*MtoQ, QtoG, GMtoQ
 end
 
 function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
