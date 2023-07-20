@@ -15,7 +15,7 @@ free. Two primitive embeddings $i_1\colon S\hookrightarrow M_1$ and
 $i_2\colon S \hookrightarrow M_2$ of $S$ into two lattices $M_1$ and $M_2$ are
 called *isomorphic* if there exists an isometry $M_1 \to M_2$ which restricts to
 the identity of $S$. Moreover, if there exists an isometry between $M_1$ and
-$M_2$ which maps $S$ to itself (non-necessarily identically), we say that $i_1$
+$M_2$ which maps $S$ to itself (not necessarily identically), we say that $i_1$
 and $i_2$ defines *isomorphic primitive sublattices* [Nik79](@cite).
 
 In his paper, V. V. Nikulin gives necessary and sufficient condition for an even
@@ -23,7 +23,7 @@ integral lattice $M$ to embed primitively into an even unimodular lattice with
 given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally, the
 author also provides methods to compute primitive embeddings of any even lattice
 into an even lattice in a given genus (see Proposition 1.15.1 in [Nik79](@cite)).
-In the latter proposition, it is explain how to classify such embeddings as
+In the latter proposition, it is explained how to classify such embeddings as
 isomorphic embeddings or as isomorphic sublattices.
 
 Such a method can be algorithmically implemented, however it tends to be slow
@@ -46,8 +46,8 @@ primitive_embeddings_in_primary_lattice(::ZZLat, ::ZZLat)
 primitive_embeddings_of_primary_lattice(::ZZLat, ::ZZLat)
 ```
 
-Note that the previous two functions require the first lattice in input to be
-unique in its genus. Otherwise, one can refer a genus, or its invariants, as a
+Note that the previous two functions require the first lattice of the input to be
+unique in its genus. Otherwise, one can specify a genus, or its invariants, as a
 first input:
 
 ```@docs
@@ -60,7 +60,7 @@ primitive_embeddings_of_primary_lattice(::TorQuadModule, ::Tuple{Int, Int},
 ```
 
 In order to compute such primitive embeddings of a lattice `M` into a lattice
-`L`, one first compute the possible genera for the orthogonal of `M` in `L`
+`L`, one first computes the possible genera for the orthogonal of `M` in `L`
 (after embedding), and for each lattice `N` in such a genus, one computes
 isomorphism classes of *primitive extensions* of $M \perp N$ modulo $\bar{O}(N)$
 (and $\bar{O}(M)$ in the case of classification of primitive sublattices of `L`
@@ -68,7 +68,7 @@ isometric to `M`).
 
 We recall that a *primitive extension* of the orthogonal direct sum of two
 integral integer lattices `M` and `N` is an overlattice `L` of $M\perp N$ such
-that both `M` and `N` embeds primitively in `L` (via the natural embeddings
+that both `M` and `N` embed primitively in `L` (via the natural embeddings
 $M,N \to M\perp N\subseteq L$). Such primitive extensions are obtained, and
 classified, by looking for *gluings* between anti-isometric subgroups of the
 respective discriminant groups of `M` and `N`. The construction of an

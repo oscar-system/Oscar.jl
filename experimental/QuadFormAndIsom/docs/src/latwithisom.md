@@ -8,16 +8,16 @@ We call *lattice with isometry* any pair $(L, f)$ consisting of an integer
 lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
 about integer lattices of the documentation for new users.
 
-On Oscar, such a pair is contained into a type called `ZZLatWithIsom`:
+In Oscar, such a pair is encoded in the type called `ZZLatWithIsom`:
 
 ```@docs
 ZZLatWithIsom
 ```
 
-and it is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists on
+and it is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists of
 the ambient rational quadratic space $V$ of $L$ and an isometry $f_a$ of $V$
-preserving $L$ and inducing $f$ on $L$. $n$ is the order of $f$, which is a
-divisor of the order of the isometry $f_a\in O(V)$.
+preserving $L$ and inducing $f$ on $L$. The integer $n$ is the order of $f$,
+which is a divisor of the order of the isometry $f_a\in O(V)$.
 
 Given a lattice with isometry $(L, f)$, we provide the following accessors to the
 elements of the previously described quadruple:
@@ -36,24 +36,24 @@ quadratic space inducing it on the lattice.
 
 ## Constructor
 
-We provide two ways to construct a pair $Lf = (L,f)$ consisting on an integer
+We provide two ways to construct a pair $Lf = (L,f)$ consisting of an integer
 lattice endowed with an isometry. One way to construct an object of type
 `ZZLatWithIsom` is through the methods `integer_lattice_with_isometry`. These
-two methods does not require as input an ambient quadratic space with isometry.
+two methods do not require as input an ambient quadratic space with isometry.
 
 ```@docs
 integer_lattice_with_isometry(::ZZLat, ::QQMatrix)
 integer_lattice_with_isometry(::ZZLat)
 ```
 
-By default, the first constructor will always check whether the entry matrix
+By default, the first constructor will always check whether the matrix
 defines an isometry of the lattice, or its ambient space. We recommend not to
 disable this parameter to avoid any further issues. Note that as in the case of
-quadratic space with isometries, both isometries of integer lattices of *finite
+quadratic spaces with isometry, both isometries of integer lattices of *finite
 order* and *infinite order* are supported.
 
 Another way of constructing such lattices with isometry is by fixing an ambient
-quadratic space with isometry, of type `QuadSpaceWithIsom`, and specify a basis
+quadratic space with isometry, of type `QuadSpaceWithIsom`, and specifying a basis
 for an integral lattice in that space. If this lattice is preserved by the fixed
 isometry of the quadratic space considered, then we endow it with the induced
 action.
@@ -67,7 +67,7 @@ lattice_in_same_ambient_space(::ZZLatWithIsom, ::MatElem)
 ## Attributes and first operations
 
 Given a lattice with isometry $Lf := (L, f)$, one can have access most of the
-attributes of $L$ and $f$ by calling the similar function to the pair. For
+attributes of $L$ and $f$ by calling the similar function for the pair. For
 instance, in order to know the genus of $L$, one can simply call `genus(Lf)`.
 Here is a list of what are the current accessible attributes:
 
@@ -127,7 +127,7 @@ is_of_same_type(::ZZLatWithIsom, ::ZZLatWithIsom)
 ```
 
 Finally, if the minimal polynomial of $f$ is irreducible, then we say that the
-pair $(L, f)$ is *of hermitian type*. The type of a lattice with isometry of
+pair $(L, f)$ is of *hermitian type*. The type of a lattice with isometry of
 hermitian type is called *hermitian* (note that the type is only defined for
 finite order isometries).
 
@@ -154,13 +154,13 @@ hermitian_structure(::ZZLatWithIsom)
 
 ## Discriminant group
 
-Given an integral lattice with isometry $Lf := (L, f)$, if one denotes $D_L$ the
+Given an integral lattice with isometry $Lf := (L, f)$, if one denotes by $D_L$ the
 discriminant group of $L$, there exists a natural map $\pi\colon O(L) \to O(D_L)$
-sending any isometry to its induced action on the discriminant form of $L$. In
-general, this map is neither injective nor surjective. If we denote $D_f :=
+sending any isometry to its induced action on the discriminant group of $L$. In
+general, this map is neither injective nor surjective. If we denote by $D_f :=
 \pi(f)$ then $\pi$ induces a map between centralizers $O(L, f)\to O(D_L, D_f)$.
 Again, this induced map is in general neither injective nor surjective, and we
-denote its image $G_{L,f}$.
+denote its image by $G_{L,f}$.
 
 ```@docs
 discriminant_group(::ZZLatWithIsom)

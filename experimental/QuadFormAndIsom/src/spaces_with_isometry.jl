@@ -81,7 +81,7 @@ julia> rank(Vf) == 2
 true
 ```
 """
-rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))::Integer
+rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))
 
 @doc raw"""
     dim(Vf::QuadSpaceWithIsom) -> Integer
@@ -99,7 +99,7 @@ julia> dim(Vf) == 2
 true
 ```
 """
-dim(Vf::QuadSpaceWithIsom) = dim(space(Vf))::Integer
+dim(Vf::QuadSpaceWithIsom) = dim(space(Vf))
 
 @doc raw"""
     characteristic_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
@@ -117,7 +117,7 @@ julia> characteristic_polynomial(Vf)
 x^2 + 2*x + 1
 ```
 """
-characteristic_polynomial(Vf::QuadSpaceWithIsom) = characteristic_polynomial(isometry(Vf))::QQPolyRingElem
+characteristic_polynomial(Vf::QuadSpaceWithIsom) = characteristic_polynomial(isometry(Vf))
 
 @doc raw"""
     minimal_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
@@ -135,7 +135,7 @@ julia> minimal_polynomial(Vf)
 x + 1
 ```
 """
-minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))::QQPolyRingElem
+minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))
 
 @doc raw"""
     gram_matrix(Vf::QuadSpaceWithIsom) -> QQMatrix
@@ -153,7 +153,7 @@ julia> is_one(gram_matrix(Vf))
 true
 ```
 """
-gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))::QQMatrix
+gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))
 
 @doc raw"""
     det(Vf::QuadSpaceWithIsom) -> QQFieldElem
@@ -171,7 +171,7 @@ julia> is_one(det(Vf))
 true
 ```
 """
-det(Vf::QuadSpaceWithIsom) = det(space(Vf))::QQFieldElem
+det(Vf::QuadSpaceWithIsom) = det(space(Vf))
 
 @doc raw"""
     discriminant(Vf::QuadSpaceWithIsom) -> QQFieldElem
@@ -189,7 +189,7 @@ julia> discriminant(Vf)
 -1
 ```
 """
-discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))::QQFieldElem
+discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))
 
 @doc raw"""
     is_positive_definite(Vf::QuadSpaceWithIsom) -> Bool
@@ -207,7 +207,7 @@ julia> is_positive_definite(Vf)
 true
 ```
 """
-is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))::Bool
+is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))
 
 @doc raw"""
     is_negative_definite(Vf::QuadSpaceWithIsom) -> Bool
@@ -225,7 +225,7 @@ julia> is_negative_definite(Vf)
 false
 ```
 """
-is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))::Bool
+is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))
 
 @doc raw"""
     is_definite(Vf::QuadSpaceWithIsom) -> Bool
@@ -243,7 +243,7 @@ julia> is_definite(Vf)
 true
 ```
 """
-is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))::Bool
+is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))
 
 @doc raw"""
     diagonal(Vf::QuadSpaceWithIsom) -> Vector{QQFieldElem}
@@ -263,7 +263,7 @@ julia> diagonal(Vf)
  1
 ```
 """
-diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))::Vector{QQFieldElem}
+diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))
 
 @doc raw"""
     signature_tuple(Vf::QuadSpaceWithIsom) -> Tuple{Int, Int, Int}
@@ -281,7 +281,7 @@ julia> signature_tuple(Vf)
 (2, 0, 0)
 ```
 """
-signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))::Tuple{Int, Int, Int}
+signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))
 
 ###############################################################################
 #
@@ -417,7 +417,7 @@ function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
 end
 
 @doc raw"""
-    Base.:^(Vf::QuadSpaceWithIsom, n::Int)
+    ^(Vf::QuadSpaceWithIsom, n::Int) -> QuadSpaceWithIsom
 
 Given a quadratic space with isometry $(V, f)$ and an integer $n$, return the pair
 $(V, f^n)$.

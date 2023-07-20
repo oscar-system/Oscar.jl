@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Enumeration of isometries
 
-One of the main feature of this project is the enumeration of lattices with
+One of the main features of this project is the enumeration of lattices with
 isometry of finite order with at most two prime divisors. This is the content
 of [BH23](@cite) which has been implemented. We guide the user here to the global
 aspects of the available theory, and we refer to the paper [BH23](@cite) for further
@@ -14,7 +14,7 @@ reference.
 
 Roughly speaking, for a prime number $p$, a *$p$-admissible triple* `(A, B, C)`
 is a triple of integer lattices such that, in certain cases, `C` can be obtained
-has a primitive extension $A \perp B \to C$ where one can glue along
+as a primitive extension $A \perp B \to C$ where one can glue along
 $p$-elementary subgroups of the respective discriminant groups of `A` and `B`.
 Note that not all admissible triples satisfy this extension property.
 
@@ -82,7 +82,7 @@ splitting_of_mixed_prime_power(::ZZLatWithIsom, ::Int, ::Int)
 
 Note that an important feature from the theory in [BH23](@cite) is the notion of
 *admissible gluings* and equivariant primitive embeddings for admissible triples.
-In the next chapter, we will develop about the features regarding primitive
+In the next chapter, we present the methods regarding Nikulins's theory on primitive
 embeddings and their equivariant version. We use this basis to introduce the
 method `admissible_equivariant_primitive_extension` (Algorithm 2 in
 [BH23](@cite)) which is the major tool making the previous enumeration

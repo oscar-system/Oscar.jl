@@ -137,7 +137,7 @@ julia> rank(Lf)
 5
 ```
 """
-rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))::Integer
+rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))
 
 @doc raw"""
     characteristic_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
@@ -155,7 +155,7 @@ julia> factor(characteristic_polynomial(Lf))
 1 * (x + 1)^5
 ```
 """
-characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))::QQPolyRingElem
+characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometry(Lf))
 
 @doc raw"""
     minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
@@ -173,7 +173,7 @@ julia> minimal_polynomial(Lf)
 x + 1
 ```
 """
-minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))::QQPolyRingElem
+minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))
 
 @doc raw"""
     genus(Lf::ZZLatWithIsom) -> ZZGenus
@@ -195,7 +195,7 @@ Local symbols:
   Local genus symbol at 3: 1^-4 3^1
 ```
 """
-genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))::ZZGenus
+genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))
 
 @doc raw"""
     basis_matrix(Lf::ZZLatWithIsom) -> QQMatrix
@@ -230,7 +230,7 @@ julia> basis_matrix(I)
 [0   0   0   1   0]
 ```
 """
-basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))::QQMatrix
+basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))
 
 @doc raw"""
     gram_matrix(Lf::ZZLatWithIsom) -> QQMatrix
@@ -252,7 +252,7 @@ julia> gram_matrix(Lf)
 [ 0    0    0   -1    2]
 ```
 """
-gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))::QQMatrix
+gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))
 
 @doc raw"""
     rational_span(Lf::ZZLatWithIsom) -> QuadSpaceWithIsom
@@ -281,7 +281,7 @@ julia> typeof(Vf)
 QuadSpaceWithIsom
 ```
 """
-rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(lattice(Lf)), isometry(Lf))::QuadSpaceWithIsom
+rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(lattice(Lf)), isometry(Lf))
 
 @doc raw"""
     det(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -299,7 +299,7 @@ julia> det(Lf)
 6
 ```
 """
-det(Lf::ZZLatWithIsom) = det(lattice(Lf))::QQFieldElem
+det(Lf::ZZLatWithIsom) = det(lattice(Lf))
 
 @doc raw"""
     scale(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -317,7 +317,7 @@ julia> scale(Lf)
 1
 ```
 """
-scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))::QQFieldElem
+scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))
 
 @doc raw"""
     norm(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -335,7 +335,7 @@ julia> norm(Lf)
 2
 ```
 """
-norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))::QQFieldElem
+norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))
 
 @doc raw"""
     is_positive_definite(Lf::ZZLatWithIsom) -> Bool
@@ -353,7 +353,7 @@ julia> is_positive_definite(Lf)
 true
 ```
 """
-is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))::Bool
+is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))
 
 @doc raw"""
     is_negative_definite(Lf::ZZLatWithIsom) -> Bool
@@ -371,7 +371,7 @@ julia> is_negative_definite(Lf)
 false
 ```
 """
-is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))::Bool
+is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))
 
 @doc raw"""
     is_definite(Lf::ZZLatWithIsom) -> Bool
@@ -389,7 +389,7 @@ julia> is_definite(Lf)
 true
 ```
 """
-is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))::Bool
+is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))
 
 @doc raw"""
     minimum(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -428,7 +428,7 @@ julia> is_integral(Lf)
 true
 ```
 """
-is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))::Bool
+is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))
 
 @doc raw"""
     degree(Lf::ZZLatWithIsom) -> Int
@@ -446,7 +446,7 @@ julia> degree(Lf)
 5
 ```
 """
-degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))::Int
+degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))
 
 @doc raw"""
     is_even(Lf::ZZLatWithIsom) -> Bool
@@ -464,7 +464,7 @@ julia> is_even(Lf)
 true
 ```
 """
-is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))::Bool
+is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))
 
 @doc raw"""
     discriminant(Lf::ZZLatWithIsom) -> QQFieldElem
@@ -482,7 +482,7 @@ julia> discriminant(Lf) == det(Lf) == 6
 true
 ```
 """
-discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))::QQFieldElem
+discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))
 
 @doc raw"""
     signature_tuple(Lf::ZZLatWithIsom) -> Tuple{Int, Int, Int}
@@ -500,7 +500,7 @@ julia> signature_tuple(Lf)
 (5, 0, 0)
 ```
 """
-signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))::Tuple{Int, Int, Int}
+signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))
 
 ###############################################################################
 #
@@ -527,7 +527,7 @@ The way we construct the lattice can have an influence on the isometry of the
 ambient space we store. Indeed, if one mentions an isometry of the lattice,
 this isometry will be extended by the identity on the orthogonal complement
 of the rational span of the lattice. In the following example, `Lf` and `Lf2` are
-the same object, but the isometry of their ambient space stored are totally
+the same object, but the isometry of their ambient space stored are
 different (one has order 2, the other one is the identity).
 
 ```jldoctest
@@ -848,7 +848,7 @@ function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
 end
 
 @doc raw"""
-    Base.:^(Lf::ZZLatWithIsom, n::Int)
+    ^(Lf::ZZLatWithIsom, n::Int) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$ and an integer $n$, return the pair
 $(L, f^n)$.
@@ -1562,7 +1562,7 @@ function _real_kernel_signatures(L::ZZLat, M)
   k1 = count(z -> z > 0, diagC)
   k2 = length(diagC) - k1
 
-  return (k1, k2)
+  return k1, k2
 end
 
 @doc raw"""
@@ -1622,7 +1622,7 @@ end
 ###############################################################################
 
 function _divides(k::IntExt, n::Int)
-  is_finite(k) && return divides(k, n)[1]
+  is_finite(k) && return is_divisible_by(k, n)
   return true
 end
 
@@ -1681,13 +1681,6 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
   d = denominator(M)
   k, K = left_kernel(change_base_ring(ZZ, d*M))
   return lattice(ambient_space(Lf), K*basis_matrix(L))
-  #f2 = solve_left(change_base_ring(QQ, K), K*f)
-  #@hassert :ZZLatWithIsom 1 f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
-  #chi = parent(p)(collect(coefficients(minimal_polynomial(f2))))
-  #chif = parent(p)(collect(coefficients(minimal_polynomial(Lf))))
-  #_chi = gcd(p, chif)
-  #@hassert :ZZLatWithIsom 1 (rank(L2) == 0) || (chi == _chi)
-  #return integer_lattice_with_isometry(L2, f2, ambient_representation = false)
 end
 
 kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change_base_ring(QQ, p))

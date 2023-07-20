@@ -348,7 +348,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # H0 should be contained in the group we want. So either H0 is the only one
   # and we return it, or if order(H0) > ord, there are no subgroups as wanted
   if order(H0) >= ord
-    order(H0) > ord && (return res)
+    order(H0) > ord && return res
     push!(res, (H0inq, G))
     return res
   end
@@ -361,7 +361,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   Vp = codomain(VtoVp)
 
   # Should never happend, but who knows...
-  dim(Qp) == 0 && (return res)
+  dim(Qp) == 0 && return res
 
   # We descend G to V for computing stabilizers later on
   GV, GtoGV = restrict_automorphism_group(G, Vinq)
@@ -528,7 +528,7 @@ There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: `V` consists on the first primitive embedding found;
   - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of `L`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
@@ -583,7 +583,7 @@ There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: `V` consists on the first primitive embedding found;
   - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 
 If the pair `(q, sign)` does not define a non-empty genus for integer lattices,
 an error is thrown.
@@ -623,7 +623,7 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if rank(M) == rank(G)
-    !(genus(M) == G) && return false, results
+    genus(M) != G && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
     return true, results
   end
@@ -640,8 +640,9 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
   qL = discriminant_group(rescale(G, -1))
   GL = orthogonal_group(qL)
 
-  D, inj = direct_sum(qM, qL)
+  D, inj, proj = biproduct(qM, qL)
   qMinD, qLinD = inj
+  DtoqM, _ = proj
 
   if el
     VM, VMinqM = _get_V(id_hom(qM), minimal_polynomial(identity_matrix(QQ,1)), p)
@@ -686,7 +687,8 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       Ns = representatives(G2)
       @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
-      qM2, _ = orthogonal_submodule(qM, domain(HM))
+      
+      qM2, _ = sub(qM, DtoqM.(D.(lift.(gens(disc)))))
       for N in Ns
         temp = _isomorphism_classes_primitive_extensions(N, M, qM2, classification)
         if !is_empty(temp)
@@ -720,7 +722,7 @@ There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: `V` consists on the first primitive embedding found;
   - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in `L`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of `L`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices of `L` isometric to `M` up to the action of $O(q)$ where `q` is the discriminant group of `L`.
 
 If `check` is set to true, the function determines whether `L` is in fact unique
 in its genus.
@@ -772,7 +774,7 @@ There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: `V` consists on the first primitive embedding found;
   - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices of lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 
 If the pair `(q, sign)` does not define a non-empty genus for integer lattices,
 an error is thrown.
@@ -802,7 +804,7 @@ There are 4 possibilities:
   - `classification = :none`: `V` is the empty list;
   - `classification = :first`: V` consists on the first primitive embedding found;
   - `classification = :sublat`: `V` consists on representatives for all isomorphism classes of primitive embeddings of `M` in lattices in `G`, up to the actions of $\bar{O}(M)$ and $O(q)$ where `q` is the discriminant group of a lattice in `G`;
-  - `classification = :emd`: `V` consists on representatives for all isomorphism classes of primitive sublattices in lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
+  - `classification = :emb`: `V` consists on representatives for all isomorphism classes of primitive sublattices in lattices in `G` isometric to `M`, up to the action of $O(q)$ where `q` is the discriminant group of a lattice in `G`.
 """
 function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classification::Symbol = :sublat)
   @req classification in [:none, :first, :emb, :sublat] "Wrong symbol for classification"
@@ -812,7 +814,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if rank(M) == rank(G)
-    !(genus(M) == G) && return false, results
+    genus(M) != G && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
     return true, results
   end
@@ -831,6 +833,7 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
 
   D, inj, proj = biproduct(qM, qL)
   qMinD, qLinD = inj
+  DtoqM, _ = proj
 
   if el
     VL, VLinqL = _get_V(id_hom(qL), minimal_polynomial(identity_matrix(QQ,1)), p)
@@ -875,7 +878,8 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       Ns = representatives(G2)
       @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
-      qM2, _ = orthogonal_submodule(qM, domain(HM))
+      
+      qM2, _ = sub(qM, DtoqM.(D.(lift.(gens(disc)))))
       for N in Ns
         temp = _isomorphism_classes_primitive_extensions(N, M, qM2, classification)
         if length(temp) > 0

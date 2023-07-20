@@ -12,7 +12,7 @@ new users.
 Note that currently, we support only rational quadratic forms, i.e.
 quadratic spaces defined over the rational.
 
-On Oscar, such a pair is contained into a type called `QuadSpaceWithIsom`:
+In Oscar, such a pair is encoded by the type called `QuadSpaceWithIsom`:
 
 ```@docs
 QuadSpaceWithIsom
@@ -32,7 +32,7 @@ order_of_isometry(::QuadSpaceWithIsom)
 space(::QuadSpaceWithIsom)
 ```
 
-The main purpose of the definition of such objects is to defined a fix
+The main purpose of the definition of such objects is to define a
 contextual ambient space for quadratic lattices endowed with an isometry.
 Indeed, as we will see in the next section, *lattices with isometry* are
 attached to an ambient quadratic space with an isometry inducing the one on the
@@ -42,22 +42,22 @@ lattice.
 
 For simplicity, we have gathered the main constructors for objects of type
 `QuadSpaceWithIsom` under the same name `quadratic_space_with_isometry`. The
-user has then the choice on the parameters depending on what they attend to do:
+user has then the choice on the parameters depending on what they intend to do:
 
 ```@docs
 quadratic_space_with_isometry(::Hecke.QuadSpace, ::QQMatrix)
 quadratic_space_with_isometry(::Hecke.QuadSpace)
 ```
 
-By default, the first constructor always checks whether the entry matrix defines
+By default, the first constructor always checks whether the matrix defines
 an isometry of the quadratic space. We recommend not to disable this parameter
 to avoid any complications. Note however that in the rank 0 case, the checks are
 avoided since all isometries are necessarily trivial.
 
 ## Attributes and first operations
 
-Given a quadratic space with isometry $Vf := (V, f)$, one can have access to
-most of the attributes of $V$ and $f$ by calling the similar functions to the
+Given a quadratic space with isometry $Vf := (V, f)$, one has access to
+most of the attributes of $V$ and $f$ by calling the similar functions on the
 pair $(V, f)$ itself. For instance, in order to know the rank of $V$, one can
 simply call `rank(Vf)`. Here is a list of what are the current accessible
 attributes:

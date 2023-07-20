@@ -32,7 +32,7 @@ function _find_D(d::T, m::Int, p::Int) where T <: IntegerUnion
   
   D = Tuple{T, T}[]
   # We try all the values of g possible, from 1 to p^m
-  for j=0:m 
+  for j in 0:m 
     g = p^j
     dj = _tuples_divisors(d*g^2)
     for (d1,dp) in dj
@@ -225,12 +225,12 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
 
   qA, qB, qC = discriminant_group.([A, B, C])
   spec = (p == 2) && (_is_free(qA, p, l+1)) && (_is_free(qB, p, l+1)) && (_is_even(qC, p, l))
-  rA = Oscar._rho_functor(qA, p, l+1)
-  rB = Oscar._rho_functor(qB, p, l+1)
+  rA = _rho_functor(qA, p, l+1)
+  rB = _rho_functor(qB, p, l+1)
   if spec
     return is_anti_isometric_with_anti_isometry(rA, rB)[1]
   else
-    return Oscar._anti_isometry_bilinear(rA, rB)[1]
+    return _anti_isometry_bilinear(rA, rB)[1]
   end
 end
 

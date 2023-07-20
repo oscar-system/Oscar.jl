@@ -1,9 +1,9 @@
 # Quadratic forms and isometries
 
 This project is a complement to the code about *hermitian lattices* available
-on Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
+in Hecke. We aim here to connect Hecke and GAP to handle some algorithmic
 methods regarding quadratic forms with their isometries. In particular,
-the integration of this code to Oscar is necessary to benefit all the
+the integration of this code within Oscar is necessary to benefit from all the
 performance of GAP with respect to computations with groups and automorphisms in
 general.
 
@@ -18,8 +18,8 @@ We introduce two new structures
 The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
 and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
 $L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
-is an isometry of $L$. One of the main feature of this project is the
-enumeration of isomorphism classes of pairs $(L, f)$ where $f$ is an isometry
+is an isometry of $L$. One of the main features of this project is the
+enumeration of isomorphism classes of pairs $(L, f)$, where $f$ is an isometry
 of finite order with at most two prime divisors. The methods we resort to
 for this purpose are developed in the paper [BH23](@cite).
 
@@ -35,11 +35,11 @@ in the case were the discriminant groups have a large number of subgroups.
 
 This project has been slightly tested on simple and known examples. It is
 currently being tested on a larger scale to test its reliability. Moreover,
-there are still computational bottlenecks due to non optimized algorithms.
+there are still computational bottlenecks due to non-optimized algorithms.
 
 Among the possible improvements and extensions:
 * Implement extra methods for lattices with isometries of infinite order;
-* Extend the methods for classification of primitive embeddings for the more
+* Extend the methods for classification of primitive embeddings to the more
   general case (knowing that we lose efficiency for large discriminant groups);
 * Extend existing methods for equivariant primitive embeddings/extensions.
 
@@ -47,9 +47,9 @@ Among the possible improvements and extensions:
 
 The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use
-this code, and further extension of it, to classify finite subgroups of
+this code, and further extensions of it, to classify finite subgroups of
 bimeromorphic self-maps of *hyperkaehler manifolds*, which are a higher
-dimensional analog of K3 surface.
+dimensional analogues of K3 surface.
 
 ## Notice to the user
 
