@@ -5,11 +5,11 @@
   root_system::RootSystem
   dim::Int
   s::Vector{Symbol}
-  root_type::Vector{Union{String, Int64}}
+  root_type::Tuple{String,Int64}
 
   function SimpleLieAlgebra{C}(R::Ring, S::String, cached::Bool) where {C<:RingElement}
     RS = RootSystem(S)
-    di = size(RS,1) + length(RS.simple_roots)
+    di = number_of_roots(RS) + length(RS.simple_roots)
     M = MatrixSpace(R, 1, di)
     s = [Symbol("e_$i") for i in 1:di]
     st=RS.root_system_type
