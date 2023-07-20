@@ -640,9 +640,8 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
   qL = discriminant_group(rescale(G, -1))
   GL = orthogonal_group(qL)
 
-  D, inj, proj = biproduct(qM, qL)
+  D, inj = direct_sum(qM, qL)
   qMinD, qLinD = inj
-  DtoqM, _ = proj
 
   if el
     VM, VMinqM = _get_V(id_hom(qM), minimal_polynomial(identity_matrix(QQ,1)), p)
@@ -659,17 +658,18 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       subsL = _subgroups_orbit_representatives_and_stabilizers(id_hom(qL), GL, k)
     end
 
+    VMinD = compose(VMinqM, qMinD)
     @vprintln :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)"
     for H in subsL
-      HL = domain(H[1])
-      it = submodules(VM; order = order(HL))
+      HL = H[1]
+      it = submodules(VM; order = order(domain(HL)))
       subsM = TorQuadModuleMor[j[2] for j in it]
-      filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
+      filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), domain(HL))[1], subsM)
       isempty(subsM)  && continue
 
       @vprintln :ZZLatWithIsom 1 "Possible gluings"
       HM = subsM[1]
-      ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
+      ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), domain(HL))
       @hassert :ZZLatWithIsom 1 ok
 
       _glue = [lift(qMinD(qM(lift((g))))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
@@ -687,8 +687,30 @@ function primitive_embeddings_in_primary_lattice(G::ZZGenus, M::ZZLat; classific
       Ns = representatives(G2)
       @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
-      
-      qM2, _ = sub(qM, DtoqM.(D.(lift.(gens(disc)))))
+
+      # We want to compute the subgroup of `qM` which is identified with a
+      # subgroup if `disc`. For this, we need to project `disc` into `qM`.
+      # Here `qL` is given as $L1/L2$ for some lattice $L2 \subset L1$. We
+      # construct an overlattice `S` of $M\perp L2$ inside $Mv\perp L1$ with
+      # respect to `phi`, and we have
+      # $M\perp L2 \subset S\subset Sv\subset Mv\perpL1$
+      #
+      # To have the subgroup, we embed `qM` in `D`. This gives a group `TT`
+      # which is of the form $T/M\perp L2$ for some overlattice
+      # $M\perp L2 \subset T \subset Mv\perp L1$.
+      #
+      # The upshot is that both $(T\cap S)/(M\perp L2)$ and
+      # $(T\cap Sv)/(M\perpL2) lies in the embedding of $qM \to D$. Their
+      # quotient is isometric to the quotient of their preimage.
+      # The quotient of their preimage is precisely the subgroup of `qM`
+      # we look for.
+      S, _, _ = _overlattice(phi, compose(HM, VMinD), compose(HL, qLinD))
+      TT, _ = sub(D, qMinD.(gens(qM)))
+      qM2 = torsion_quadratic_module(intersect(cover(TT), dual(S)),
+                                     intersect(cover(TT), S);
+                                     modulus = QQ(1),
+                                     modulus_qf = QQ(2))
+
       for N in Ns
         temp = _isomorphism_classes_primitive_extensions(N, M, qM2, classification)
         if !is_empty(temp)
@@ -831,9 +853,8 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
   qL = discriminant_group(rescale(G, -1))
   GL = orthogonal_group(qL)
 
-  D, inj, proj = biproduct(qM, qL)
+  D, inj = direct_sum(qM, qL)
   qMinD, qLinD = inj
-  DtoqM, _ = proj
 
   if el
     VL, VLinqL = _get_V(id_hom(qL), minimal_polynomial(identity_matrix(QQ,1)), p)
@@ -852,15 +873,15 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
     
     @vprintln :ZZLatWithIsom 1 "$(length(subsL)) subgroup(s)"
     for H in subsL
-      HL = domain(H[1])
-      it = submodules(qM; order = order(HL))
+      HL = H[1]
+      it = submodules(qM; order = order(domain(HL)))
       subsM = TorQuadModuleMor[j[2] for j in it]
-      filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), HL)[1], subsM)
+      filter!(HM -> is_anti_isometric_with_anti_isometry(domain(HM), domain(HL))[1], subsM)
       isempty(subsM)  && continue
 
       @vprintln :ZZLatWithIsom 1 "Possible gluings"
       HM = subsM[1]
-      ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), HL)
+      ok, phi = is_anti_isometric_with_anti_isometry(domain(HM), domain(HL))
       @hassert :ZZLatWithIsom 1 ok
 
       _glue = [lift(qMinD(qM(lift(g)))) + lift(qLinD(qL(lift(phi(g))))) for g in gens(domain(HM))]
@@ -868,18 +889,40 @@ function primitive_embeddings_of_primary_lattice(G::ZZGenus, M::ZZLat; classific
       perp, j = orthogonal_submodule(D, ext)
       disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = modulus_bilinear_form(perp),
                                                                modulus_qf = modulus_quadratic_form(perp))
-      disc = rescale(disc, -1)
-      !is_genus(disc, (pL-pM, nL-nM))  && continue
+      disc2 = rescale(disc, -1)
+      !is_genus(disc2, (pL-pM, nL-nM))  && continue
 
       classification == :none && return true, results
 
-      G2 = genus(disc, (pL-pM, nL-nM))
+      G2 = genus(disc2, (pL-pM, nL-nM))
       @vprintln :ZZLatWithIsom 1 "We can glue: $(G2)"
       Ns = representatives(G2)
       @vprintln :ZZLatWithIsom 1 "$(length(Ns)) possible orthogonal complement(s)"
       Ns = lll.(Ns)
-      
-      qM2, _ = sub(qM, DtoqM.(D.(lift.(gens(disc)))))
+
+      # We want to compute the subgroup of `qM` which is identified with a
+      # subgroup if `disc`. For this, we need to project `disc` into `qM`.
+      # Here `qL` is given as $L1/L2$ for some lattice $L2 \subset L1$. We
+      # construct an overlattice `S` of $M\perp L2$ inside $Mv\perp L1$ with
+      # respect to `phi`, and we have
+      # $M\perp L2 \subset S\subset Sv\subset Mv\perpL1$
+      #
+      # To have the subgroup, we embed `qM` in `D`. This gives a group `TT`
+      # which is of the form $T/M\perp L2$ for some overlattice
+      # $M\perp L2 \subset T \subset Mv\perp L1$.
+      #
+      # The upshot is that both $(T\cap S)/(M\perp L2)$ and
+      # $(T\cap Sv)/(M\perpL2) lies in the embedding of $qM \to D$. Their
+      # quotient is isometric to the quotient of their preimage.
+      # The quotient of their preimage is precisely the subgroup of `qM`
+      # we look for.      S, _, _ = _overlattice(phi, compose(HM, qMinD), compose(HL, qLinD))
+      S, _, _ = _overlattice(phi, compose(HM, qMinD), compose(HL, qLinD))
+      TT, _ = sub(D, qMinD.(gens(qM)))
+      qM2 = torsion_quadratic_module(intersect(cover(TT), dual(S)),
+                                     intersect(cover(TT), S);
+                                     modulus = QQ(1),
+                                     modulus_qf = QQ(2))
+
       for N in Ns
         temp = _isomorphism_classes_primitive_extensions(N, M, qM2, classification)
         if length(temp) > 0
