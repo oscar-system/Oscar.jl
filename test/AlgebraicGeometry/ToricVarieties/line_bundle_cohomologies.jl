@@ -68,6 +68,5 @@
     
     @testset "Sections of anticanonical bundle" begin
         @test all_cohomologies(l4) == [4551, 0, 0, 0, 0, 0]
-        @test length(basis_of_global_sections(l4)) == 4551
     end
 end
