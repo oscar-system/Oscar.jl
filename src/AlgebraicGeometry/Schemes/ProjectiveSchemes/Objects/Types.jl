@@ -19,7 +19,7 @@ julia> Sgr, _ = grade(S);
 julia> P = ProjectiveScheme(Sgr)
 Projective space of dimension 2
   over rational field
-with homogeneous coordinates x, y, z
+with homogeneous coordinates [x, y, z]
 
 julia> (x, y, z) = gens(Sgr);
 

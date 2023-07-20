@@ -72,8 +72,8 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyR
   println(io, Lowercase(), base_ring(X))
   print(io, Dedent(), "with coordinate")
   length(coordinates(X)) > 1 && print(io, "s")
-  print(io, " ")
-  print(io, join(coordinates(X), ", "))
+  print(io, " [")
+  print(io, join(coordinates(X), ", "), "]")
 end
 
 # In a more compact printing, we allow unicode printing, whenever unicode is
@@ -116,8 +116,8 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing}, show_coord::B
         c = coordinates(X)
         print(io, " with coordinate")
         length(c) > 1 && print(io, "s")
-        print(io, " ")
-        print(io, join(c, ", "))
+        print(io, " [")
+        print(io, join(c, ", "), "]")
       end
     else
       print(io, "Affine $(dim(X))-space over ")
@@ -130,8 +130,8 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing}, show_coord::B
         c = coordinates(X)
         print(io, " with coordinate")
         length(c) > 1 && print(io, "s")
-        print(io, " ")
-        print(io, join(c, ", "))
+        print(io, " [")
+        print(io, join(c, ", "), "]")
       end
     end
   end

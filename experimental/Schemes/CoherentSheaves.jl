@@ -45,7 +45,11 @@ function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
   X = scheme(M)
   cov = default_covering(X)
   D = M.ID 
-  println(io, "Coherent sheaf of modules")
+  print(io, "Coherent sheaf of modules")
+  if has_attribute(M, :name)
+    print(io, " ", get_attribute(M, :name))
+  end
+  println(io)
   print(io, Indent(), "on ", Lowercase())
   Oscar._show_semi_compact(io, X, cov)
   if length(cov) > 0
@@ -68,6 +72,8 @@ function Base.show(io::IO, M::AbsCoherentSheaf)
   io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Presheaf")
+  elseif has_attribute(M, :name)
+    print(io, get_attribute(M, :name))
   else
     if is_unicode_allowed()
       print(io, "Coherent sheaf of $(sheaf_of_rings(M))-modules on ", Lowercase(), scheme(M))
@@ -706,7 +712,7 @@ For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf
 julia> P = projective_space(QQ,3)
 Projective space of dimension 3
   over rational field
-with homogeneous coordinates s0, s1, s2, s3
+with homogeneous coordinates [s0, s1, s2, s3]
 
 julia> twisting_sheaf(P, 4)
 Coherent sheaf of modules
@@ -767,7 +773,7 @@ For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentShe
 julia> P = projective_space(QQ,3)
 Projective space of dimension 3
   over rational field
-with homogeneous coordinates s0, s1, s2, s3
+with homogeneous coordinates [s0, s1, s2, s3]
 
 julia> tautological_bundle(P)
 Coherent sheaf of modules

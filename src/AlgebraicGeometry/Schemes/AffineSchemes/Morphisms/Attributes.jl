@@ -22,7 +22,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -69,7 +69,7 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -99,7 +99,7 @@ given by the pullback function
 julia> codomain(f)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 ```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
@@ -116,7 +116,7 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -226,7 +226,7 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
   over rational field
-with coordinates x1, x2, x3
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -254,7 +254,7 @@ given by the pullback function
   x3 -> x3
 
 julia> graph(f)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> affine 3-space over QQ with coordinates x1, x2, x3)
+(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> affine 3-space over QQ with coordinates [x1, x2, x3])
 ```
 """
 function graph(f::AbsSpecMor{<:AbsSpec{BRT}, <:AbsSpec{BRT}}) where {BRT}

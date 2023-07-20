@@ -168,15 +168,9 @@ defined by
 julia> cartier_divisor(E)
 Cartier divisor
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
 with coefficients in integer Ring
 defined by the formal sum of
-  1*sheaf of ideals with restrictions
-    1: ideal(-(y//x)^2*(z//x) + 1)
-    2: ideal((x//y)^3 - (z//y))
-    3: ideal((x//z)^3 - (y//z)^2)
+  1 * sheaf of ideals
 ```
 """
 cartier_divisor(E::EffectiveCartierDivisor) = CartierDivisor(E)
@@ -405,6 +399,8 @@ function Base.show(io::IO, C::EffectiveCartierDivisor)
   io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Cartier divisor")
+  elseif has_attribute(C, :name)
+    print(io, get_attribute(C, :name))
   else
     print(io, "Effective cartier divisor on ", Lowercase())
     show(io, scheme(C))
@@ -418,7 +414,11 @@ function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor, cov::
   I = ideal_sheaf(C)
   X = scheme(C)
 
-  println(io, "Effective cartier divisor")
+  print(io, "Effective cartier divisor")
+  if has_attribute(C, :name)
+    print(io, " ", get_attribute(C, :name))
+  end
+  println(io)
   print(io, Indent(), "on ", Lowercase())
   Oscar._show_semi_compact(io, scheme(C), cov)
   println(io, Dedent())
@@ -439,7 +439,11 @@ end
 function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))), n::String = "")
   io = pretty(io)
   X = scheme(C)
-  println(io, "Effective cartier divisor defined by")
+  print(io, "Effective cartier divisor")
+  if has_attribute(C, :name)
+    print(io, " ", get_attribute(C, :name))
+  end
+  println(io, " defined by")
   print(io, Indent(), Lowercase())
   Oscar._show_semi_compact(io, ideal_sheaf(C), cov, n)
   print(io, Dedent())
@@ -449,6 +453,8 @@ function Base.show(io::IO, C::CartierDivisor)
   io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Cartier divisor")
+  elseif has_attribute(C, :name)
+    print(io, get_attribute(C, :name))
   else
     print(io, "Cartier divisor on ", Lowercase())
     show(io, scheme(C))
@@ -467,12 +473,16 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering 
   if length(cc) == 0
     print(io, "Zero cartier divisor ")
     print(io, Indent(), "on ", Lowercase())
-    Oscar._show_semi_compact(io, scheme(C), cov)
+    show(io, scheme(C), cov)
     print(io, Dedent())
   else
-    println(io, "Cartier divisor")
+    print(io, "Cartier divisor")
+    if has_attribute(C, :name)
+      print(io, " ", get_attribute(C, :name))
+    end
+    println(io)
     print(io, Indent(), "on ", Lowercase())
-    Oscar._show_semi_compact(io, scheme(C), cov)
+    show(io, scheme(C), cov)
     println(io)
     println(io, Dedent(), "with coefficients in ", Lowercase(), coefficient_ring(C))
     print(io, "defined by the formal sum of")
@@ -482,12 +492,9 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering 
     for i in 1:length(components(C))
       I = cc[i]
       kI = length(co_str[i])
-      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
-      Oscar._show_semi_compact(io, ideal_sheaf(I), cov)
-      if i != length(components(C))
-        println(io, "--------------------------------------------------------------------------------")
-      end
+      show(io, ideal_sheaf(I), false)
     end
     print(io, Dedent())
   end
@@ -508,14 +515,18 @@ function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering = get_attri
   if length(cc) == 0
     print(io, "Zero cartier divisor")
   else
-    println(io, "Cartier divisor defined by the formal sum of")
+    print(io, "Cartier divisor")
+    if has_attribute(C, :name)
+      print(io, " ", get_attribute(C, :name))
+    end
+    println(io, " defined by the formal sum of")
     print(io, Indent())
     co_str = String["$(C[I])" for I in cc]
     k = max(length.(co_str)...)
     for i in 1:length(components(C))
       I = cc[i]
       kI = length(co_str[i])
-      print(io, " "^(k-kI)*"$(C[I])*")
+      print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
       Oscar._show_semi_compact(io, ideal_sheaf(I), cov, n)
       if i != length(components(C))

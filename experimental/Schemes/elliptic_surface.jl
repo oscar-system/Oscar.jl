@@ -228,7 +228,7 @@ Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 function Base.show(io::IO, S::EllipticSurface)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Elliptic surface")
+    print(io, "Scheme")
   else
     E = generic_fiber(S)
     print(io, "Elliptic surface with generic fiber ", equation(E))
@@ -246,20 +246,23 @@ julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
 
 julia> X3 = elliptic_surface(E, 2)
 Elliptic surface
-  with generic fiber
-    elliptic curve with equation
-        y^2 = x^3 + t^7 - 2*t^6 + t^5
+  over rational field
+with generic fiber
+  -x^3 + y^2 - t^7 + 2*t^6 - t^5
+and relatively minimal model
+  scheme over QQ covered with 45 patches
 
 ```
 """
 function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
   io = pretty(io)
   println(io, "Elliptic surface")
-  println(io, Indent(), "with generic fiber")
-  print(io, Indent(), Lowercase(), generic_fiber(S), Dedent())
+  println(io, Indent(), "over ", Lowercase(), base_ring(S))
+  println(io, Dedent(), "with generic fiber")
+  print(io, Indent(), Lowercase(), equation(generic_fiber(S)), Dedent())
   if isdefined(S, :Y)
-    println(io, "")
-    println(io, "with relatively minimal model")
+    println(io)
+    println(io, "and relatively minimal model")
     print(io, Indent(), Lowercase(), relatively_minimal_model(S)[1], Dedent())
   end
   print(io, Dedent())

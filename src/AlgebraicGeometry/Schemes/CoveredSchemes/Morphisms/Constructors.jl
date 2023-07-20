@@ -16,7 +16,7 @@ julia> P, x = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> X = variety(ideal(x[1:2]))
 Projective variety
-  in projective 2-space over QQ with coordinates x, y, z
+  in projective 2-space over QQ with coordinates [x, y, z]
 defined by ideal(y, x)
 
 julia> Xcov = covered_scheme(X)
