@@ -481,16 +481,16 @@ end
   inherit_glueings!(cod_cov, default_covering(Y))
   XU = CoveredScheme(dom_cov)
   YV = CoveredScheme(cod_cov)
-  p_res_cov = CoveringMorphism(dom_cov, cod_cov, iso_dict)
+  p_res_cov = CoveringMorphism(dom_cov, cod_cov, iso_dict, check=false)
   p_res = CoveredSchemeMorphism(XU, YV, p_res_cov)
 
   # Assemble the inverse
   iso_inv_dict = IdDict{AbsSpec, AbsSpecMor}()
-  for (U, q) in keys(iso_dict)
+  for (U, q) in iso_dict
     V = codomain(q)
     iso_inv_dict[V] = inverse(q)
   end
-  p_res_inv_cov = CoveringMorphism(cod_cov, dom_cov, iso_inv_dict)
+  p_res_inv_cov = CoveringMorphism(cod_cov, dom_cov, iso_inv_dict, check=false)
   p_res_inv = CoveredSchemeMorphism(YV, XU, p_res_inv_cov)
 
   set_attribute!(p_res, :inverse, p_res_inv)
@@ -498,3 +498,49 @@ end
   return p_res
 end
 
+@attr AbsSpecMor function isomorphism_on_open_subset(f::BlowupMorphism)
+  pr = isomorphism_on_complement_of_center(f)
+  X = domain(pr)
+  Y = codomain(pr)
+  pr_cov = covering_morphism(pr)
+  U = first(patches(domain(pr_cov)))
+  pr_res = pr_cov[U]
+  V = codomain(pr_res)
+  iso_U = _flatten_open_subscheme(U, default_covering(X))
+  U_flat = codomain(iso_U)
+  iso_V = _flatten_open_subscheme(V, default_covering(Y))
+  V_flat = codomain(iso_V)
+  phi = SpecMor(U_flat, V_flat, pullback(inverse(iso_U)).(pullback(pr_res).(pullback(iso_V).(gens(OO(V_flat))))), check=false)
+  phi_inv = SpecMor(V_flat, U_flat, pullback(inverse(iso_V)).(pullback(inverse(pr_res)).(pullback(iso_U).(gens(OO(U_flat))))), check=false)
+  set_attribute!(phi, :inverse, phi_inv)
+  set_attribute!(phi_inv, :inverse, phi)
+  return phi
+end
+
+function pullback(f::BlowupMorphism, g::VarietyFunctionFieldElem)
+  X = domain(projection(f))
+  Y = codomain(projection(f))
+  FX = function_field(X)
+  FY = function_field(Y)
+  phi = isomorphism_on_open_subset(f)
+  U = ambient_scheme(domain(phi))
+  V = ambient_scheme(codomain(phi))
+  parent(g) === FY || error("element does not belong to the correct field")
+  h = g[V]
+  pbg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
+  return FX.(pbg)
+end
+
+function pushforward(f::BlowupMorphism, g::VarietyFunctionFieldElem)
+  X = domain(projection(f))
+  Y = codomain(projection(f))
+  FX = function_field(X)
+  FY = function_field(Y)
+  phi = inverse(isomorphism_on_open_subset(f))
+  U = ambient_scheme(domain(phi))
+  V = ambient_scheme(codomain(phi))
+  parent(g) === FX || error("element does not belong to the correct field")
+  h = g[V]
+  pfg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
+  return FY.(pfg)
+end

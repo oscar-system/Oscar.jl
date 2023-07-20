@@ -410,5 +410,5 @@ function base_change(phi::Any, C::Covering)
   end
   set_decomposition_info!(CC, decomp_dict)
 
-  return CC, CoveringMorphism(CC, C, mor_dict, check=true) # TODO: Set to false after testing
+  return CC, CoveringMorphism(CC, C, mor_dict, check=false)
 end
