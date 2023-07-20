@@ -1607,6 +1607,7 @@ For an example see `goldfarb` method.
 """
 klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
 
+<<<<<<< Updated upstream
 @doc raw"""
     long_and_winding_polytope()
 
@@ -1666,3 +1667,5 @@ function long_and_winding_polytope(r::Int; eval_ratio=nothing, eval_float=nothin
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.long_and_winding(r;opts...))
 end
+=======
+>>>>>>> Stashed changes
