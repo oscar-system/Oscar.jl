@@ -97,6 +97,7 @@ function root_system(S::Symbol, n::Int64)
   # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
   return RootSystem(S, n)
 end
+
 ###############################################################################
 #
 #   further functions
