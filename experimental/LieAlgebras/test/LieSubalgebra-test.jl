@@ -18,6 +18,11 @@
 
       @test dim(b) == 6
       @test dim(n) == 3
+
+      @test n == sub(L, [basis(b, 2), basis(b, 3), basis(b, 5)])
+      @test n == sub(L, [basis(b, 2) + basis(b, 3), basis(b, 3), basis(b, 5)])
+      @test n ==
+        sub(L, [basis(b, 2) + basis(b, 3), basis(b, 3), basis(b, 5)]; is_basis=true)
     end
   end
 
