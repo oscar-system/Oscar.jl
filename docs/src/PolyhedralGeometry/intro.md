@@ -72,6 +72,13 @@ any of the corresponding notions below.
 
 ### Vectors
 
+There are two specialized `Vector`-like types, `PointVector` and `RayVector`, which commonly are returned by functions from Polyhedral Geometry. These can also be manually constructed:
+
+```@docs
+point_vector
+ray_vector
+```
+
 While `RayVector`s can not be used do describe `PointVector`s (and vice versa),
 matrices are generally allowed.
 
@@ -97,6 +104,15 @@ Type                               | A `RayVector` corresponds to...
 
 
 ### Halfspaces and Hyperplanes
+
+Similar to points and rays, there are types `AffineHalfspace`, `LinearHalfspace`, `AffineHyperplane` and `LinearHyperplane`:
+
+```@docs
+affine_halfspace
+linear_halfspace
+affine_hyperplane
+linar_hyperplane
+```
 
 These collections allow to mix up affine halfspaces/hyperplanes and their linear
 counterparts, but note that an error will be produced when trying to convert
