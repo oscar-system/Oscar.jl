@@ -2317,7 +2317,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
-  r = roots(GC, 5)
+  r = roots(GC, bound_to_precision(GC, GC.B))
   ts = find_transformation(r, a, T, RNG = MersenneTwister(1))
 
   B = upper_bound(GC, a, ts)
