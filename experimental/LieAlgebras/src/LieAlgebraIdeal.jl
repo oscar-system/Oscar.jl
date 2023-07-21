@@ -200,6 +200,7 @@ end
     normalizer(L::LieAlgebra, I::LieAlgebraIdeal) -> LieSubalgebra
 
 Return the normalizer of `I` in `L`, i.e. $\{x \in L \mid [x, I] \subseteq I\} = L$.
+As `I` is an ideal in `L`, this is just `L`.
 """
 function normalizer(L::LieAlgebra, I::LieAlgebraIdeal)
   return sub(L)
