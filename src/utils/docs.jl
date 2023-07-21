@@ -155,7 +155,7 @@ terminated, so the proposed usage for this option is to run
 `build_doc(open_browser = false)` for following builds and only refresh the
 browser tab.
 
-When working on the manual the `Revise` package can significantly sped
+When working on the manual the `Revise` package can significantly speed
 up running `build_doc`. First, install `Revise` in the following way:
 ```
 using Pkg ; Pkg.add("Revise")
@@ -164,7 +164,7 @@ Second, restart Julia and load `Revise` before Oscar:
 ```
 using Revise, Oscar;
 ```
-The first run of `build_doc` will take the usual few minutes, subsequently runs
+The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
 function build_doc(; doctest=false, strict=false, open_browser=true, start_server = false)
