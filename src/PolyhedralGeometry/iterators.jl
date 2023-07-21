@@ -63,6 +63,22 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
   end
 end
 
+@doc """
+    point_vector(p = QQ, v::AbstractVector)
+
+Return a `PointVector` resembling a point whose coordinates equal the entries of `v`.
+`p` specifies the `Field` or `Type` of its coefficient.
+"""
+point_vector
+
+@doc """
+    ray_vector(p = QQ, v::AbstractVector)
+
+Return a `RayVector` resembling a ray from the origin through the point whose coordinates equal the entries of `v`.
+`p` specifies the `Field` or `Type` of its coefficient.
+"""
+ray_vector
+
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################
@@ -94,9 +110,9 @@ for (h, comp) in (("alfspace", "≤"), ("yperplane", "="))
     invert(H::$Haff{T}) where T<:scalar_types = $Haff{T}(-H.a, -negbias(H))
 
     @doc """
-    """ * string($Faff) * """([p,] a, b)
+    """ * string($Faff) * """(p = QQ, a, b)
 
-Return the """ * string($Haff) * raw""" `H(a,b)`, which is given by a vector `a` and a value `b` such that
+Return the `""" * string($Haff) * raw"""` `H(a,b)`, which is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax """ * $comp * raw""" b \}.$$
 `p` specifies the `Field` or `Type` of its coefficient.
     """
@@ -123,9 +139,9 @@ $$H(a,b) = \{ x | ax """ * $comp * raw""" b \}.$$
     invert(H::$Hlin{T}) where T<:scalar_types = $Hlin{T}(-H.a)
 
     @doc """
-    """ * string($Flin) * """([p,] a, b)
+    """ * string($Flin) * """(p = QQ, a, b)
 
-Return the """ * string($Hlin) * raw""" `H(a,b)`, which is given by a vector `a` such that
+Return the `""" * string($Hlin) * raw"""` `H(a,b)`, which is given by a vector `a` such that
 $$H(a,b) = \{ x | ax """ * $comp * raw""" 0 \}.$$
 `p` specifies the `Field` or `Type` of its coefficient.
     """
