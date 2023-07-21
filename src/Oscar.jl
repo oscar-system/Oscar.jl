@@ -119,6 +119,9 @@ function __init__()
     add_verbose_scope(:FTheoryConstructorInformation)
     
     add_verbosity_scope(:LinearQuotients)
+
+    add_assertion_scope(:ZZLatWithIsom)
+    add_verbosity_scope(:ZZLatWithIsom)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
