@@ -11,7 +11,7 @@ end
 
 mutable struct SubField
   coeff_field::Union{Nothing, SubField}
-  fld::AbstractAlgebra.Field # Q or a NumField
+  fld::AbstractAlgebra.Field # Q or a NumField or not...
 
   grp::PermGroup #the fix group
 
@@ -19,14 +19,14 @@ mutable struct SubField
   conj::Vector{PermGroupElem}        # the absolute conjugates
   ts::ZZPolyRingElem # tschirnhaus
 
-  exact_den::Union{QQFieldElem, NumFieldElem} # in this field! f'(alpha)
+  exact_den::FieldElem #Union{QQFieldElem, NumFieldElem} # in this field! f'(alpha)
   dual_basis::Vector # symbolic: coeffs of f/t-pe
   basis::Vector # in fld, symbolic: [pe^i//exact_den for i=0:n-1]
   basis_abs::Vector
 
   #Caches:
-  num_basis::MatElem{qadic}
-  num_dual_basis::Vector{Vector{qadic}}
+  num_basis::MatElem{<:RingElem} # qadic or power series
+  num_dual_basis::Vector{Vector{<:RingElem}} #padic or power series
 
   function SubField()
     return new()
@@ -177,13 +177,15 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
     PE, _ = Oscar.GaloisGrp.relative_invariant(S.grp, U)
   end
 
-  rt = roots(C, 5)
+  rt = roots(C, Oscar.GaloisGrp.bound_to_precision(C, C.B))
   ts = Oscar.GaloisGrp.find_transformation(rt, PE, t)
   B1 = length(t)*Oscar.GaloisGrp.upper_bound(C, PE^(1+length(t)), ts)
   B2 = dual_basis_bound(C, S)
   B = B2*B1 #maybe dual_basis_bound should do bound_ring stuff?
   pr = Oscar.GaloisGrp.bound_to_precision(C, B)
-  pr = min(pr, max_prec)
+  if isa(pr, Int)
+    pr = min(pr, max_prec)
+  end
   rt = roots(C, pr)
   if ts != gen(parent(ts))
     rt = map(ts, rt)
@@ -217,7 +219,8 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   f = power_sums_to_polynomial(pp)
 
   SS = SubField()
-  SS.fld, a = number_field(f, cached = false, check = false)
+  SS.fld, a =extension_field(f, cached = false, check = false)
+  f = defining_polynomial(SS.fld)
   SS.exact_den = derivative(f)(a)
   SS.basis = basis(SS.fld)
   KT, T = polynomial_ring(SS.fld, cached = false)
@@ -230,6 +233,13 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   SS.grp = U
 
   return SS
+end
+
+function extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+  C = base_ring(f)
+  Qt, t = RationalFunctionField(QQ, symbols(C)[1], cached = false)
+  ff = map_coefficients(x->x(t), f)
+  return extension_field(ff, cached = cached, check = check)
 end
 
 function refined_derived_series(G::PermGroup)
@@ -295,7 +305,7 @@ end
 #a bound on the largest conjugate of an absolute dual basis (product basis)
 function dual_basis_bound(C::GaloisCtx, S::SubField)
   if S.fld == QQ
-    return ZZRingElem(1)
+    return parent(C.B)(ZZRingElem(1))
   end
 #  return upper_bound(ZZRingElem, maximum(x->maximum(abs, Oscar.conjugates(x)), S.dual_basis))*dual_basis_bound(S.coeff_field)
 return maximum([length_bound(C, S, x) for x = S.dual_basis])*dual_basis_bound(C, S.coeff_field)
@@ -316,6 +326,42 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val
   return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
 end
+
+function (R::AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem, QQPolyRingElem}})(b::AbstractAlgebra.Generic.FunctionFieldElem{QQFieldElem})
+  S = base_ring(R)
+  return map_coefficients(x->S(x, b.den), b.num, parent = R)
+end
+
+function length_bound(C::GaloisCtx, S::SubField, x::AbstractAlgebra.Generic.RationalFunctionFieldElem)
+  R = parent(C.B)
+  if iszero(x)
+    return R(0)
+  end
+
+  if degree(S.fld) == 1
+    return R(1)
+  end
+
+  f = parent(defining_polynomial(S.fld))(x)
+  @assert x.den == 1
+  n = numerator(x)
+  @assert denominator(x) == 1
+  return R(numerator(x))
+end
+
+
+function length_bound(C::GaloisCtx, S::SubField, x::AbstractAlgebra.Generic.FunctionFieldElem)
+  R = parent(C.B)
+  if iszero(x)
+    return R(0)
+  end
+  f = parent(defining_polynomial(S.fld))(x)
+
+  B = Oscar.GaloisGrp.upper_bound(C, S.pe)
+  return sum(length_bound(C, S.coeff_field, coeff(f, i))*B^i for i=0:degree(f))
+end
+
+
 function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = arb)
   return sum(x^2 for x = Oscar.conjugates(x, abs_tol, T))
 end
@@ -585,23 +631,48 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   return K, Vector{Any}(map(h, R))
 end
 
+function basis_at_prec(C::GaloisCtx, S::SubField, pr)
+  rt = roots(C, pr)
+  if isdefined(S, :ts)
+    rt = map(S.ts, rt)
+  end
+  for i=1:length(S.conj)
+    S.num_basis[1, i] = one(parent(rt[1]))
+    c = S.conj[i]
+    p = evaluate(S.pe, c, rt)
+    S.num_basis[2, i] = p
+    for j=3:degree(S.fld)
+      S.num_basis[j, i] = p*S.num_basis[j-1, i]
+    end
+  end
+end
+
 function conjugates(C::GaloisCtx, S::SubField, a::NumFieldElem, pr::Int = 10)
   @assert parent(a) == S.fld
   if !isdefined(S, :num_basis) || precision(S.num_basis[1,1]) < pr
-    rt = roots(C, pr)
-    if isdefined(S, :ts)
-      rt = map(S.ts, rt)
-    end
-    for i=1:length(S.conj)
-      S.num_basis[1, i] = setprecision(S.num_basis[1, i], pr)
-      c = S.conj[i]
-      p = evaluate(S.pe, c, rt)
-      S.num_basis[2, i] = p
-      for j=3:degree(S.fld)
-        S.num_basis[j, i] = p*S.num_basis[j-1, i]
-      end
-    end
+    basis_at_prec(C, S, pr)
   end
+
+  return conj_from_basis(C, S, a, pr)
+end
+
+function conjugates(C::GaloisCtx, S::SubField, a::Generic.FunctionFieldElem, pr::Tuple{Int, Int} = (10, 5))
+  @assert parent(a) == S.fld
+  if !isdefined(S, :num_basis) || precision(S.num_basis[1,1]) < pr[2] || precision(coeff(S.num_basis[1,1], 0)) < pr[1]
+    basis_at_prec(C, S, pr)
+  end
+
+  return conj_from_basis(C, S, a, pr)
+end
+
+function conjugates(C::GaloisCtx, S::SubField, a::Generic.RationalFunctionFieldElem, pr::Tuple{Int, Int} = (10, 5))
+  r = roots(C, pr)
+  @assert denominator(a) == 1
+  return [numerator(a)(gen(parent(r[1])))]
+end
+
+
+function conj_from_basis(C::GaloisCtx, S::SubField, a, pr)
   nb = S.num_basis
   K = base_ring(nb)
   coef = zero_matrix(K, 1, degree(S.fld))
@@ -618,7 +689,7 @@ function conjugates(C::GaloisCtx, S::SubField, a::NumFieldElem, pr::Int = 10)
 end
 
 
-function dual_basis_conj(C::GaloisCtx, S::SubField, pr::Int = 10)
+function dual_basis_conj(C::GaloisCtx, S::SubField, pr::Any = 10)
   r = roots(C, pr)
   if S.fld == QQ
     return [[parent(r[1])(1)]]
