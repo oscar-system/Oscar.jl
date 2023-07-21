@@ -203,11 +203,12 @@ Return the normalizer of `I` in `L`, i.e. $\{x \in L \mid [x, I] \subseteq I\} =
 As `I` is an ideal in `L`, this is just `L`.
 """
 function normalizer(L::LieAlgebra, I::LieAlgebraIdeal)
+  @req base_lie_algebra(I) == L "Incompatible Lie algebras."
   return sub(L)
 end
 
 function normalizer(I::LieAlgebraIdeal)
-  return sub(base_lie_algebra(I))
+  return normalizer(base_lie_algebra(I), I)
 end
 
 @doc raw"""
