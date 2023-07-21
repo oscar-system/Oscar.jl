@@ -20,6 +20,11 @@
 
       @test dim(b) == 6
       @test dim(n) == 3
+
+      @test n == ideal(b, [basis(b, 2), basis(b, 3), basis(b, 5)])
+      @test n == ideal(b, [basis(b, 2) + basis(b, 3), basis(b, 3), basis(b, 5)])
+      @test n ==
+        ideal(b, [basis(b, 2) + basis(b, 3), basis(b, 3), basis(b, 5)]; is_basis=true)
     end
 
     let # Example where ideal basis is only found after two steps
