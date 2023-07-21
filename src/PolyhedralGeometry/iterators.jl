@@ -43,8 +43,6 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     $_t(x::Union{AbstractVector, Base.Integer}) = $_t(QQ, x)
 
-    # $T{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = $T{U}(undef, length(n))
-
     function Base.similar(X::$T, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
       return $_t(coefficient_field(X), dims...)
     end
@@ -69,116 +67,86 @@ end
 ######## Halfspaces and Hyperplanes
 ################################################################################
 
-abstract type Halfspace{T} end
+for (h, comp) in (("alfspace", "≤"), ("yperplane", "="))
 
-################################################################################
+  Habs = Symbol("H", h)
+  Haff = Symbol("AffineH", h)
+  Hlin = Symbol("LinearH", h)
+  Fabs = Symbol("h", h)
+  Faff = Symbol("affine_h", h)
+  Flin = Symbol("linear_h", h)
 
-@doc raw"""
-    Halfspace(a, b)
+  @eval begin
 
-One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax ≤ b \}.$$
-"""
-struct AffineHalfspace{T} <: Halfspace{T}
-    a::Vector{T}
-    b::T
-    parent_field::Field
+    abstract type $Habs{T} end
 
-    AffineHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
-end
+    # Affine types
+    struct $Haff{T} <: $Habs{T}
+      a::MatElem{T}
+      b::T
 
-halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
-halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(f, a, b)
+      $Haff{T}(a::MatElem{T}, b::T) where T<:scalar_types = new{T}(a, b)
+    end
 
-invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(coefficient_field(H), -normal_vector(H), -negbias(H))
+    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(a, b)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(f, a, b)
 
-function affine_halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
-  parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-  return AffineHalfspace{scalar_type}(parent_field, a, b)
-end
+    invert(H::$Haff{T}) where T<:scalar_types = $Haff{T}(-H.a, -negbias(H))
 
-affine_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_halfspace(QQ, a, b)
+    @doc """
+    """ * string($Faff) * """([p,] a, b)
 
-################################################################################
+Return the """ * string($Haff) * raw""" `H(a,b)`, which is given by a vector `a` and a value `b` such that
+$$H(a,b) = \{ x | ax """ * $comp * raw""" b \}.$$
+`p` specifies the `Field` or `Type` of its coefficient.
+    """
+    function $Faff(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
+      parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+      mat = matrix(parent_field, 1, length(a), collect(a))
+      return $Haff{scalar_type}(mat, parent_field(b))
+    end
 
-struct LinearHalfspace{T} <: Halfspace{T}
-    a::Vector{T}
-    parent_field::Field
+    $Faff(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $Faff(QQ, a, b)
+
+
+    # Linear types
+
+    struct $Hlin{T} <: $Habs{T}
+      a::MatElem{T}
     
-    LinearHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
+      $Hlin{T}(a::MatElem{T}) where T<:scalar_types = new{T}(a)
+    end
+
+    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(a)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(f, a)
+
+    invert(H::$Hlin{T}) where T<:scalar_types = $Hlin{T}(-H.a)
+
+    @doc """
+    """ * string($Flin) * """([p,] a, b)
+
+Return the """ * string($Hlin) * raw""" `H(a,b)`, which is given by a vector `a` such that
+$$H(a,b) = \{ x | ax """ * $comp * raw""" 0 \}.$$
+`p` specifies the `Field` or `Type` of its coefficient.
+    """
+    function $Flin(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
+      parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+      mat = matrix(parent_field, 1, length(a), collect(a))
+      return $Hlin{scalar_type}(mat)
+    end
+
+    $Flin(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(QQ, a)
+
+    coefficient_field(h::$Habs) = base_ring(h.a)
+
+  end
+
 end
-
-halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
-halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(f, a)
-
-invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(coefficient_field(H), -normal_vector(H))
-
-function linear_halfspace(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
-  parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-  return LinearHalfspace{scalar_type}(parent_field, a)
-end
-
-linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
-
-coefficient_field(h::Halfspace) = h.parent_field
-
-################################################################################
-
-abstract type Hyperplane{T} end
-
-################################################################################
-
-@doc raw"""
-    AffineHyperplane(a, b)
-
-One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax = b \}.$$
-"""
-struct AffineHyperplane{T} <: Hyperplane{T}
-    a::Vector{T}
-    b::T
-    parent_field::Field
-    
-    AffineHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
-end
-
-hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(a, b)
-hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(f, a, b)
-
-function affine_hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
-  parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-  return AffineHyperplane{scalar_type}(parent_field, a, b)
-end
-
-affine_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_hyperplane(QQ, a, b)
-
-################################################################################
-
-struct LinearHyperplane{T} <: Hyperplane{T}
-    a::Vector{T}
-    parent_field::Field
-    
-    LinearHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
-end
-
-hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(a)
-hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(f, a)
-
-function linear_hyperplane(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
-  parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-  return LinearHyperplane{scalar_type}(parent_field, a)
-end
-
-linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)
-
-coefficient_field(h::Hyperplane) = h.parent_field
-
-################################################################################
 
 #  Field access
-negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
-negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = coefficient_field(H)(0)
-normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
+negbias(H::Union{AffineHalfspace, AffineHyperplane}) = H.b
+negbias(H::Union{LinearHalfspace, LinearHyperplane}) = coefficient_field(H)(0)
+normal_vector(H::Union{Halfspace, Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
 
