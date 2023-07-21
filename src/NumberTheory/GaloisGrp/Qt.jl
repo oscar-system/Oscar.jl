@@ -586,7 +586,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
 
-  Qx = parent(numerator(gen(base_ring(G.f))))
+  Qx = parent((gen(base_ring(G.f))))
   if iszero(r) 
     return true, Qx(0)
   end
@@ -622,6 +622,10 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
+end
+
+function (a::Generic.RationalFunctionFieldElem)(b::RingElem)
+  return divexact(numerator(a)(b), denominator(a)(b))
 end
 
 function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{QQFieldElem}})
