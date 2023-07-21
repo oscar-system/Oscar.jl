@@ -418,9 +418,11 @@ function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(
-  v::LieAlgebraModuleElem{C}, c::U
-) where {C<:RingElement,U<:Union{Rational,Integer}}
+function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+  return parent(v)(_matrix(v) * c)
+end
+
+function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
   return parent(v)(_matrix(v) * c)
 end
 
@@ -429,9 +431,11 @@ function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
   return parent(v)(c * _matrix(v))
 end
 
-function Base.:*(
-  c::U, v::LieAlgebraModuleElem{C}
-) where {C<:RingElement,U<:Union{Rational,Integer}}
+function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:Union{Rational,IntegerUnion}}
+  return parent(v)(c * _matrix(v))
+end
+
+function Base.:*(c::ZZRingElem, v::LieAlgebraModuleElem{ZZRingElem})
   return parent(v)(c * _matrix(v))
 end
 
@@ -870,7 +874,7 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   s = if k == 1
     symbols(V)
   elseif is_standard_module(V)
-    s = [
+    [
       Symbol(
         join(
           (
@@ -882,7 +886,7 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
       ) for inds in ind_map
     ]
   else
-    s = [
+    [
       Symbol(
         join(
           (

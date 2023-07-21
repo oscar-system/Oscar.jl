@@ -229,9 +229,11 @@ function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(
-  x::LieAlgebraElem{C}, c::U
-) where {C<:RingElement,U<:Union{Rational,Integer}}
+function Base.:*(x::LieAlgebraElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+  return parent(x)(_matrix(x) * c)
+end
+
+function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
   return parent(x)(_matrix(x) * c)
 end
 
@@ -240,9 +242,11 @@ function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(
-  c::U, x::LieAlgebraElem{C}
-) where {C<:RingElement,U<:Union{Rational,Integer}}
+function Base.:*(c::U, x::LieAlgebraElem) where {U<:Union{Rational,IntegerUnion}}
+  return parent(x)(c * _matrix(x))
+end
+
+function Base.:*(c::ZZRingElem, x::LieAlgebraElem{ZZRingElem})
   return parent(x)(c * _matrix(x))
 end
 
