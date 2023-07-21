@@ -140,14 +140,13 @@ function Base.:(==)(
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
   base_lie_algebra(I1) === base_lie_algebra(I2) || return false
   gens(I1) == gens(I2) && return true
-  return basis_matrix(I1) == basis_matrix(I2)
+  return issubset(I1, I2) && issubset(I2, I1)
 end
 
 function Base.hash(I::LieAlgebraIdeal, h::UInt)
   b = 0xd745d725d0b66431 % UInt
   h = hash(base_lie_algebra(I), h)
-  h = hash(gens(I), h)
-  h = hash(basis_matrix(I), h)
+  h = hash(rref(basis_matrix(I)), h)
   return xor(h, b)
 end
 
