@@ -214,7 +214,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
 
   if length(Fac) == 0
     A = abelian_group()
-    function dlog_0(x::Hecke.NfRelElem); return id(A); end;
+    function dlog_0(x::Vector); return id(A); end;
     function exp_0(x::GrpAbFinGenElem); return one(E); end;
     return A, dlog_0, exp_0
   end
@@ -226,10 +226,6 @@ function _get_product_quotient(E::Hecke.NfRel, Fac)
     push!(exps, f)
     push!(dlogs, g)
     push!(Ps, P)
-  end
-
-  if length(groups) == 1
-    return groups[1], dlogs[1], exps[1]
   end
 
   G, proj, inj = biproduct(groups...)
@@ -410,8 +406,8 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
 
   RmodF, Flog, _ = _get_product_quotient(E, Fdata)
 
-  A = [Flog(Fsharpexp(g)) for g in gens(RmodFsharp)]
-  f = hom(gens(RmodFsharp), A)
+  A = elem_type(RmodF)[Flog(Fsharpexp(g)) for g in gens(RmodFsharp)]
+  f = hom(RmodFsharp, RmodF, A)
   FmodFsharp, j = kernel(f)
 
   # Now according to Theorem 6.15 of BH23, it remains to quotient out the image
@@ -422,7 +418,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   OK = base_ring(OE)
   UOK, mUOK = unit_group(OK)
 
-  fU = hom(UOEabs, UOK, [mUOK\norm(OE(mUOK(m))) for m in gens(UOK)])
+  fU = hom(UOEabs, UOK, elem_type(UOK)[mUOK\norm(OE(mUOK(m))) for m in gens(UOK)])
   KU, jU = kernel(fU)
 
   gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]

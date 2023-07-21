@@ -931,9 +931,9 @@ function _get_isometry_composite!(D, n)
   return nothing
 end
 
-function _test_isometry_enumeration(L::ZZLat)
+function _test_isometry_enumeration(L::ZZLat, k::Int = 2*rank(L)^2)
   n = rank(L)
-  ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:2*n^2)
+  ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:k)
   pds = union(reduce(vcat, prime_divisors.(ord)))
   vals = [maximum([valuation(x, p) for x in ord]) for p in pds]
   D = Dict{Int, Vector{ZZLatWithIsom}}()

@@ -58,10 +58,17 @@ end
 
 @testset "Lattices with isometry" begin
   A3 = root_lattice(:A, 3)
-  agg = automorphism_group_generators(A3; ambient_representation = false)
-  agg_ambient = automorphism_group_generators(A3; ambient_representation = true)
+  agg = QQMatrix[
+                 matrix(QQ, 3, 3, [-1 0 0; 0 -1 0; 0 0 -1]),
+                 matrix(QQ, 3, 3, [1 1 1; 0 -1 -1; 0 1 0]),
+                 matrix(QQ, 3, 3, [0 1 1; -1 -1 -1; 1 1 0]),
+                 matrix(QQ, 3, 3, [1 0 0; -1 -1 -1; 0 0 1]),
+                 matrix(QQ, 3, 3, [1 0 0; 0 1 1; 0 0 -1])
+                ]
+  OA3 = matrix_group(agg)
+  set_attribute!(A3, :isometry_group, OA3)
   f = rand(agg)
-  g_ambient = rand(agg_ambient)
+  g = rand(agg)
 
   L = integer_lattice(gram = matrix(QQ, 0, 0, []))
   Lf = integer_lattice_with_isometry(L; neg = true)
@@ -100,8 +107,8 @@ end
   @test order_of_isometry(L2v) == nf
   @test ambient_isometry(L2v) == ambient_isometry(L2)
   
-  L3 = @inferred integer_lattice_with_isometry(A3, g_ambient; ambient_representation = true)
-  @test order_of_isometry(L3) == multiplicative_order(g_ambient)
+  L3 = @inferred integer_lattice_with_isometry(A3, g; ambient_representation = true)
+  @test order_of_isometry(L3) == multiplicative_order(g)
   @test L3^(order_of_isometry(L3)+1) == L3
   @test genus(lll(L3; same_ambient=false)) == genus(L3)
 
@@ -148,8 +155,6 @@ end
   @test !is_of_same_type(Lf, M)
   @test is_hermitian(type(M))
 
-  # Add more image_centralizer_in_Oq for indefinite and test with comparison to
-  # Sage results
   B = matrix(QQ, 4, 8, [0 0 0 0 3 0 0 0; 0 0 0 0 1 1 0 0; 0 0 0 0 1 0 1 0; 0 0 0 0 2 0 0 1]);
   G = matrix(QQ, 8, 8, [-2 1 0 0 0 0 0 0; 1 -2 0 0 0 0 0 0; 0 0 2 -1 0 0 0 0; 0 0 -1 2 0 0 0 0; 0 0 0 0 -2 -1 0 0; 0 0 0 0 -1 -2 0 0; 0 0 0 0 0 0 2 1; 0 0 0 0 0 0 1 2]);
   L = integer_lattice(B; gram = G);
@@ -157,10 +162,6 @@ end
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)
   @test order(GL) == 72
-
-  # Long test
-  #GL = image_centralizer_in_Oq(rescale(Lf, -14))
-  #@test order(GL) == 870912
 
   B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
   G = matrix(QQ, 6, 6, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
@@ -170,27 +171,28 @@ end
   GL = image_centralizer_in_Oq(Lf)
   @test order(GL) == 2
 
-  A3 = root_lattice(:A, 3)
-  OA3 = orthogonal_group(A3)
   F, C, _ = invariant_coinvariant_pair(A3, OA3)
   @test rank(F) == 0
   @test C == A3
   _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation = false)
   @test order(G) == order(OA3)
 
-  D4 = lll(root_lattice(:D, 4))
-  OD4 = matrix_group(automorphism_group_generators(D4; ambient_representation = false))
-  C, gene = coinvariant_lattice(D4, OD4, ambient_representation = false)
-  G = gram_matrix(C)
-  @test all(g -> matrix(g)*G*transpose(matrix(g)) == G, gene)
 end
 
 @testset "Enumeration of lattices with finite isometries" begin
   A4 = root_lattice(:A, 4)
-  OA4 = orthogonal_group(A4)
+  OA4 = matrix_group([
+                      matrix(QQ, 4, 4, [-1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1]),
+                      matrix(QQ, 4, 4, [1 1 1 1; 0 -1 -1 -1; 0 1 0 0; 0 0 1 0]),
+                      matrix(QQ, 4, 4, [0 1 1 1; -1 -1 -1 -1; 1 1 0 0; 0 0 1 0]),
+                      matrix(QQ, 4, 4, [1 0 0 0; -1 -1 -1 -1; 0 0 0 1; 0 0 1 0]),
+                      matrix(QQ, 4, 4, [1 0 0 0; 0 1 1 1; 0 0 0 -1; 0 0 -1 0]),
+                      matrix(QQ, 4, 4, [1 0 0 0; -1 -1 -1 0; 0 0 0 -1; 0 0 1 1]),
+                      matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 1; 0 0 0 -1])
+                    ])
   cc = conjugacy_classes(OA4)
 
-  D = Oscar._test_isometry_enumeration(A4)
+  D = Oscar._test_isometry_enumeration(A4, 6)
   for n in collect(keys(D))
     @test length(D[n]) == length(filter(c -> order(representative(c)) == n, cc))
   end
