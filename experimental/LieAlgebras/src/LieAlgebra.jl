@@ -200,7 +200,7 @@ end
 Return `x`. Fails if `x` is not an element of `L`.
 """
 function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:RingElement}
-  @req L == parent(x) "Incompatible modules."
+  @req L === parent(x) "Incompatible modules."
   return x
 end
 
@@ -313,7 +313,7 @@ end
 Return the centralizer of `xs` in `L`, i.e. $\{y \in L \mid [x, y] = 0 \forall x \in xs\}$.
 """
 function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
-  @req all(x -> parent(x) == L, xs) "Incompatible Lie algebras."
+  @req all(x -> parent(x) === L, xs) "Incompatible Lie algebras."
 
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L) * length(xs))
   for (i, bi) in enumerate(basis(L))

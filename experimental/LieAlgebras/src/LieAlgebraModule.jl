@@ -329,10 +329,10 @@ Return `v`. Fails, in general, if `v` is not an element of `V`.
 If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  if is_dual(V) && base_module(V) == parent(v)
+  if is_dual(V) && base_module(V) === parent(v)
     return V(coefficients(v))
   end
-  @req V == parent(v) "Incompatible modules."
+  @req V === parent(v) "Incompatible modules."
   return v
 end
 
@@ -352,7 +352,7 @@ function (V::LieAlgebraModule{C})(
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
   if is_direct_sum(V) || is_tensor_product(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
-    @req all(i -> parent(a[i]) == base_modules(V)[i], 1:length(a)) "Incompatible modules."
+    @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
     if is_direct_sum(V)
       return V(vcat([coefficients(x) for x in a]...))
     elseif is_tensor_product(V)
@@ -364,7 +364,7 @@ function (V::LieAlgebraModule{C})(
     end
   elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
-    @req all(x -> parent(x) == base_module(V), a) "Incompatible modules."
+    @req all(x -> parent(x) === base_module(V), a) "Incompatible modules."
     mat = zero_matrix(coefficient_ring(V), 1, dim(V))
     if is_exterior_power(V)
       for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
@@ -492,7 +492,7 @@ function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Rin
 end
 
 function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  @req parent(x) == base_lie_algebra(parent(v)) "Incompatible Lie algebras."
+  @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = coefficients(x)
   V = parent(v)
@@ -733,7 +733,7 @@ function direct_sum(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
   L = base_lie_algebra(V)
-  @req all(x -> base_lie_algebra(x) == L, Vs) "All modules must have the same base Lie algebra."
+  @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
 
   dim_direct_sum_V = dim(V) + sum(dim, Vs; init=0)
   transformation_matrices = map(1:dim(L)) do i
@@ -769,7 +769,7 @@ function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
   L = base_lie_algebra(V)
-  @req all(x -> base_lie_algebra(x) == L, Vs) "All modules must have the same base Lie algebra."
+  @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
 
   dim_tensor_product_V = dim(V) * prod(dim, Vs; init=1)
   ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse([V, Vs...])])))

@@ -213,7 +213,7 @@ function lie_algebra(
   basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:RingElement}
   parent_L = parent(basis[1])
-  @req all(parent(x) == parent_L for x in basis) "Elements not compatible."
+  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)
   n = parent_L.n
   s = map(AbstractAlgebra.obj_to_string, basis)
