@@ -2,7 +2,7 @@ module LieAlgebras
 
 using ..Oscar
 
-import Oscar: GAPWrap
+import Oscar: GAPWrap, IntegerUnion
 
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
