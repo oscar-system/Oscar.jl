@@ -246,7 +246,7 @@ function lie_algebra(
   basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:RingElement}
   parent_L = parent(basis[1])
-  @req all(parent(x) == parent_L for x in basis) "Elements not compatible."
+  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)
   basis_matrix = if length(basis) == 0
     matrix(R, 0, dim(L), C[])

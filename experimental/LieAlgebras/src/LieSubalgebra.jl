@@ -194,7 +194,7 @@ end
 Return the normalizer of `S` in `L`, i.e. $\{x \in L \mid [x, S] \subseteq S\}$.
 """
 function normalizer(L::LieAlgebra, S::LieSubalgebra)
-  @req base_lie_algebra(S) == L "Incompatible Lie algebras."
+  @req base_lie_algebra(S) === L "Incompatible Lie algebras."
 
   mat = zero_matrix(coefficient_ring(L), dim(L) + dim(S)^2, dim(L) * dim(S))
   for (i, bi) in enumerate(basis(L))
