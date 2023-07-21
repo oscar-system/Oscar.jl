@@ -518,7 +518,7 @@ end
 @doc raw"""
     is_standard_module(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a standard module.
+Check whether `V` has been constructed as a standard module.
 """
 function is_standard_module(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :standard_module
@@ -527,7 +527,7 @@ end
 @doc raw"""
     is_dual(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a dual module.
+Check whether `V` has been constructed as a dual module.
 """
 function is_dual(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :dual
@@ -536,7 +536,7 @@ end
 @doc raw"""
     is_direct_sum(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a direct sum of modules.
+Check whether `V` has been constructed as a direct sum of modules.
 """
 function is_direct_sum(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :direct_sum
@@ -545,7 +545,7 @@ end
 @doc raw"""
     is_tensor_product(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a tensor product of modules.
+Check whether `V` has been constructed as a tensor product of modules.
 """
 function is_tensor_product(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :tensor_product
@@ -554,7 +554,7 @@ end
 @doc raw"""
     is_exterior_power(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is an exterior power of a module.
+Check whether `V` has been constructed as an exterior power of a module.
 """
 function is_exterior_power(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :exterior_power
@@ -563,7 +563,7 @@ end
 @doc raw"""
     is_symmetric_power(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a symmetric power of a module.
+Check whether `V` has been constructed as a symmetric power of a module.
 """
 function is_symmetric_power(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :symmetric_power
@@ -572,7 +572,7 @@ end
 @doc raw"""
     is_tensor_power(V::LieAlgebraModule{C}) -> Bool
 
-Check whether `V` is a tensor power of a module.
+Check whether `V` has been constructed as a tensor power of a module.
 """
 function is_tensor_power(V::LieAlgebraModule)
   return get_attribute(V, :type, :fallback)::Symbol == :tensor_power
@@ -581,7 +581,7 @@ end
 @doc raw"""
     base_module(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
 
-Returns the base module of `V`, if `V` is a power module.
+Returns the base module of `V`, if `V` has been constructed as a power module.
 """
 function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
@@ -591,8 +591,8 @@ end
 @doc raw"""
     base_modules(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModule{C}}
 
-Returns the summands or tensor factors base modules of `V`,
-if `V` is a direct sum or tensor product module.
+Returns the summands or tensor factors of `V`,
+if `V` has been constructed as a direct sum or tensor product of modules.
 """
 function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
   @req is_direct_sum(V) || is_tensor_product(V) "Not a direct sum or tensor product module."
