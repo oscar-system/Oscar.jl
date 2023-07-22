@@ -83,7 +83,7 @@ end
         end
     end
     @testset "Check dimension" begin
-        @testset "Monomial order $monomial_order" for monomial_order in ("Lex", "RevLex", "GRevLex")
+        @testset "Monomial order $monomial_order" for monomial_order in ("lex", "revlex", "degrevlex")
             # the functionality longest-word was temporarily removed because it required coxeter groups from 
             # https://github.com/jmichel7/Gapjm.jl
             #@testset "Operators $ops" for ops in ("regular", "longest-word") 

@@ -12,12 +12,10 @@ using Polymake
 # TODO Change operators from GAP.Obj to Oscar objects
 # TODO BirationalSequence needs better names for weights and operators
 # TODO Fix weightnames in general
-# TODO Adapt arguments in function outside of BasisLieHighestWeight.jl
-# TODO Summarize function
 # TODO Groundup-structure for the special functions
-# TODO write methods small when using Polymake, f.e. polyhedron instead of Polyhedron
+# TODO (?) write methods small when using Polymake, f.e. polyhedron instead of Polyhedron 
 
-# TODO Export and docstring (?): 
+# TODO (?) Export and docstring: 
 # basis_lie_highest_weight
 # get_dim_weightspace
 # orbit_weylgroup
@@ -33,7 +31,7 @@ using Polymake
 # w_to_eps
 # eps_to_w
 
-# TODO GAPWrap-wrappers are missing for
+# TODO (?) GAPWrap-wrappers are missing for 
 # ChevalleyBasis
 # DimensionOfHighestWeightModule
 # SimpleLieAlgebra
@@ -81,15 +79,23 @@ struct MonomialBasis
     set_mon::Set{ZZMPolyRingElem}
     dimension::Int
     no_minkowski::Set{Vector{Int}}
-    # polytope::polytope
+    polytope::Oscar.Polymake.BigObjectAllocated
+end
+
+function MonomialBasis(ZZx::ZZMPolyRing, set_mon::Set{ZZMPolyRingElem}, no_minkowski::Set{Vector{Int}})
+    vertices = degrees.(collect(set_mon))
+    vertices_hom = transpose(reduce(hcat, [prepend!(vec, 1) for vec in vertices])) # homogenoues coordinate system
+    poly = Oscar.Polymake.polytope.Polytope(POINTS=vertices_hom)
+    return MonomialBasis(ZZx, set_mon, length(set_mon), no_minkowski, poly)
 end
 
 function Base.show(io::IO, monomial_basis::MonomialBasis)
     println(io, "MonomialBasis")
     println(io, "Dimension: ", monomial_basis.dimension)
     println(io, "Generators within semi-group: ", monomial_basis.no_minkowski)
-    print(io, "First 10 Monomials in GRevLex: ", sort(collect(monomial_basis.set_mon), 
-            lt = get_monomial_order_lt("GRevLex", monomial_basis.ZZx))[1:min(end, 10)])
+    println(io, "First 10 Monomials in degrevlex: ", sort(collect(monomial_basis.set_mon), 
+            lt = get_monomial_order_lt("degrevlex", monomial_basis.ZZx))[1:min(end, 10)])
+    print(io, "Volume polytope: ", monomial_basis.polytope.VOLUME)
 end
 
 struct BasisLieHighestWeightStructure
@@ -163,8 +169,6 @@ Dimension: 8
 Generators within semi-group: Set([[1, 0], [0, 1]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2, x1, x3^2, x2*x3, x1*x3, x1*x2]
 
-
-
 julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 3, [2, 2, 3], monomial_order = "Lex")
 Lie-Algebra of type A and rank 3
 
@@ -180,8 +184,6 @@ Dimension: 1260
 Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x6^2, x5*x6, x4*x6]
 
-
-
 julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 0], operators = [1,2,1])
 Lie-Algebra of type A and rank 2
 
@@ -196,8 +198,6 @@ MonomialBasis
 Dimension: 3
 Generators within semi-group: Set([[1, 0]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2*x3]
-
-
 
 julia> base = BasisLieHighestWeight.basis_lie_highest_weight("C", 3, [1, 1, 1], monomial_order = "Lex")
 Lie-Algebra of type C and rank 3
@@ -220,7 +220,7 @@ function basis_lie_highest_weight(
         rank::Int, 
         highest_weight::Vector{Int};
         operators::Union{String, Vector{Int}} = "regular", 
-        monomial_order::Union{String, Function} = "GRevLex", 
+        monomial_order::Union{String, Function} = "degrevlex", 
         cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
 
@@ -294,8 +294,7 @@ function basis_lie_highest_weight(
         MonomialBasis(
             ZZx,
             set_mon,
-            length(set_mon),
-            no_minkowski
+            no_minkowski,
         )
     )
 end
@@ -586,7 +585,7 @@ function add_by_hand(
     """
     # initialization
     # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-    matrices_of_operators = tensorMatricesForOperators(lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators)
+    matrices_of_operators = tensorMatricesForOperators(lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators)    
     space = Dict(0*birational_sequence.weights[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     # saves the calculated vectors to decrease necessary matrix multiplicatons
