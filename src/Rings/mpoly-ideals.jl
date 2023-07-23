@@ -1273,9 +1273,10 @@ return the degree of the homogenization of `I` with respect to the
 standard-grading.
 
 !!! note
-Geometrically, the degree of a homogeneous ideal as above is the number of
-intersection points of its projective variety with a generic linear subspace
-of complementary dimension (counted with multiplicities). See also [MS21](@cite).
+    Geometrically, the degree of a homogeneous ideal as above is the number
+    of intersection points of its projective variety with a generic linear
+    subspace of complementary dimension (counted with multiplicities).
+    See also [MS21](@cite).
 
 # Examples
 ```jldoctest
