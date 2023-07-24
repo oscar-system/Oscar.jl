@@ -483,17 +483,12 @@ basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(I
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)
   n = degree(G)
-  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{QQFieldElem, ZZRingElem, nf_elem}
-    Gp, GtoGp = isomorphic_group_over_finite_field(G)
-  else
-    Gp, GtoGp = (G, id_hom(G))
-  end
   K = coefficient_ring(I)
   Kt, _ = polynomial_ring(K, "t", cached = false)
-  C = conjugacy_classes(Gp)
+  C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
-    g = (GtoGp\(representative(c)))::elem_type(G)
+    g = representative(c)
     if g isa MatrixGroupElem
       f = charpoly(Kt, g.elm)
     elseif g isa PermGroupElem
@@ -503,7 +498,7 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
     end
     res = res + length(c)::ZZRingElem * 1//reverse(f)
   end
-  res = divexact(res, order(Gp)::ZZRingElem)
+  res = divexact(res, order(ZZRingElem, G))
   num = change_coefficient_ring(coefficient_ring(S),
                                 numerator(res), parent = S)
   den = change_coefficient_ring(coefficient_ring(S),
