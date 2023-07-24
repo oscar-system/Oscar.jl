@@ -41,19 +41,21 @@ end
 
 ################################################################################
 # non-ZZRingElem variant
-@registerSerializationType(fpFieldElem)
 @registerSerializationType(Nemo.fpField)
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
+    open_dict(s)
     save_type_dispatch(s, UInt64(characteristic(F)), :characteristic)
+    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
-    return Nemo.fpField(UInt64(dict[:characteristic]))
+    return Nemo.fpField(parse(UInt64, dict[:characteristic]))
 end
 
 # elements
+@registerSerializationType(fpFieldElem)
 is_type_serializing_parent(T::Type{fpFieldElem}) = true
 
 function save_internal(s::SerializerState, elem::fpFieldElem)
@@ -62,7 +64,7 @@ end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
     F = load_type_dispatch(s, Nemo.fpField, dict[:parent])
-    return F(parse(UInt64, dict[:class_rep]))
+    return F(parse(UInt64, dict[:data]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -83,7 +85,6 @@ end
 
 ################################################################################
 # ZZRingElem variant
-@registerSerializationType(FpFieldElem)
 @registerSerializationType(Nemo.FpField)
 has_elem_basic_encoding(obj::Nemo.FpField) = true
 
@@ -98,6 +99,7 @@ function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
 end
 
 # elements
+@registerSerializationType(FpFieldElem)
 is_type_serializing_parent(T::Type{FpFieldElem}) = true
 
 function save_internal(s::SerializerState, elem::FpFieldElem)
@@ -640,14 +642,13 @@ end
 ################################################################################
 # Padic Field
 @registerSerializationType(FlintPadicField)
-@registerSerializationType(padic)
 has_elem_basic_encoding(obj::FlintPadicField) = true
 
 function save_internal(s::SerializerState, P::FlintPadicField)
-    return Dict(
-        :prime => save_type_dispatch(s, prime(P)),
-        :precision => save_type_dispatch(s, precision(P))
-    )
+    open_dict(s)
+    save_type_dispatch(s, prime(P), :prime)
+    save_type_dispatch(s, precision(P), :precision)
+    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
@@ -658,20 +659,15 @@ function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict
 end
 
 #elements
+@registerSerializationType(padic)
+is_type_serializing_parent(::Type{padic}) = true
 
-function save_internal(s::SerializerState, n::padic; include_parents::Bool=true)
-    rational_rep = string(lift(QQ, n))
-    if include_parents
-        return Dict(
-            :parent => save_as_ref(s, parent(n)),
-            :rational_rep => rational_rep
-        )
-    end
-    return rational_rep
+function save_internal(s::SerializerState, n::padic)
+    return string(lift(QQ, n))
 end
 
 function load_internal(s::DeserializerState, ::Type{padic}, dict::Dict)
-    rational_rep = load_type_dispatch(s, QQFieldElem, dict[:rational_rep])
+    rational_rep = load_type_dispatch(s, QQFieldElem, dict[:data])
     parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
 
     return parent_field(rational_rep)

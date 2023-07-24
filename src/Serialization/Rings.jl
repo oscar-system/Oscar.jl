@@ -30,9 +30,9 @@ end
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
-    return Dict(
-        :modulus => save_type_dispatch(s, modulus(R))
-    )
+    open_dict(s)
+    save_type_dispatch(s, modulus(R), :modulus)
+    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, dict::Dict)
@@ -42,21 +42,15 @@ end
 
 #elements
 @registerSerializationType(zzModRingElem)
+is_type_serializing_parent(T::Type{zzModRingElem}) = true
 
-function save_internal(s::SerializerState, r::zzModRingElem; include_parents::Bool=true)
-    class_rep = string(r)
-    if include_parents
-        return Dict(
-            :parent => save_as_ref(s, parent(r)),
-            :class_rep => class_rep
-        )
-    end
+function save_internal(s::SerializerState, r::zzModRingElem)
     return string(r)
 end
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
     parent_ring = load_unknown_type(s, dict[:parent])
-    class_rep = load_type_dispatch(s, ZZRingElem, dict[:class_rep])
+    class_rep = load_type_dispatch(s, ZZRingElem, dict[:data])
     return parent_ring(class_rep)
 end
 

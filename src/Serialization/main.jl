@@ -183,8 +183,9 @@ is_basic_serialization_type(::Type) = false
 is_basic_serialization_type(::Type{ZZRingElem}) = true
 is_basic_serialization_type(::Type{QQFieldElem}) = true
 is_basic_serialization_type(::Type{Bool}) = true
+is_basic_serialization_type(::Type{String}) = true
 is_basic_serialization_type(::Type{Symbol}) = true
-# this deals with int32, int64 etc.
+# this deals with int32, int64 etc.:precision
 is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
 # ATTENTION
@@ -286,6 +287,9 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
         add_object(s, encode_type(T), :type)
         s.depth -= 1
         close(s, key)
+    else
+        # added to catch singleton types
+        add_object(s, encode_type(T), :type)
     end
 
     if s.depth == 0
