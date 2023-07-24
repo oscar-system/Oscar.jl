@@ -1,19 +1,66 @@
 using JSON
 using UUIDs
 
+mutable struct JSONSerializer
+    open_objects::Array{Any}
+end
+
+function JSONSerializer()
+    return JSONSerializer(Any[])
+end
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
     objmap::IdDict{Any, UUID}
     depth::Int
     refs::Dict{Symbol, Any}
+    serializer::JSONSerializer
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
     # io::IO
 end
 
 function SerializerState()
-    return SerializerState(IdDict{Any, UUID}(), 0, Dict())
+    return SerializerState(IdDict{Any, UUID}(), 0, Dict(), JSONSerializer())
 end
+
+## operations for an in-order tree traversals
+## all nodes (dicts or arrays) contain all child nodes
+
+# create node and descent
+function open_dict(s::SerializerState)
+    push!(s.serializer.open_objects, Dict{Symbol, Any}())
+end
+
+function open_array(s::SerializerState)
+    push!(s.serializer.open_objects, Any[])
+end
+
+# add to child to current node
+function add_object(s::SerializerState, obj::Any, key::Symbol)
+    s.serializer.open_objects[end][key] = obj
+end
+
+function add_object(s::SerializerState, obj::Any)
+    push!(s.serializer.open_objects, obj)
+end
+
+# ascend and append to parent
+function close(s::SerializerState, key::Symbol)
+    obj = pop!(s.serializer.open_objects)
+    add_object(s, obj, key)
+end
+
+function close(s::SerializerState)
+    obj = pop!(s.serializer.open_objects)
+
+    if s.serializer.open_objects[end] isa Array
+        add_object(s, obj)
+    else
+        add_object(s, obj, :data)
+    end
+end
+
 
 struct DeserializerState
     objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
@@ -74,7 +121,7 @@ function registerSerializationType(ex::Any,
     return esc(
         quote
             registerSerializationType($ex, $str)
-            encodeType(::Type{<:$ex}) = $str
+            encode_type(::Type{<:$ex}) = $str
             # There exist types where equality cannot be discerned from the serialization
             # these types require an id so that equalities can be forced upon load.
             # The ids are only necessary for parent types, checking for element type equality
@@ -102,11 +149,11 @@ macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothin
 end
 
 
-function encodeType(::Type{T}) where T
+function encode_type(::Type{T}) where T
     error("unsupported type '$T' for encoding")
 end
 
-function decodeType(input::String)
+function decode_type(input::String)
     get(reverseTypeMap, input) do
         error("unsupported type '$input' for decoding")
     end
@@ -173,6 +220,9 @@ end
 
 has_elem_basic_encoding(obj::T) where T = false
 
+# used for types that require parents when serialized
+is_type_serializing_parent(::Type) where Type = false
+
 ################################################################################
 # High level
 
@@ -188,10 +238,6 @@ function load_ref(s::DeserializerState, id::String)
 end
 
 function save_as_ref(s::SerializerState, obj::T) where T
-    if !serialize_with_id(T)
-        return save_type_dispatch(s, obj)
-    end
-
     # find ref or create one
     ref = get(s.objmap, obj, nothing)
     if ref !== nothing
@@ -199,7 +245,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
     end
 
     ref = s.objmap[obj] = uuid4()
-    result = Dict{Symbol, Any}(:type => encodeType(T))
+    result = Dict{Symbol, Any}(:type => encode_type(T))
 
     if Base.issingletontype(T)
         return result
@@ -212,28 +258,45 @@ function save_as_ref(s::SerializerState, obj::T) where T
     return string(ref)
 end
 
-function save_type_dispatch(s::SerializerState, obj::T) where T
+function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
     # this is used when serializing basic types like "3//4"
     # when s.depth == 0 file should know it belongs to QQ
     if s.depth != 0 && has_basic_encoding(obj)
-        return save_internal(s, obj)
-    end
-    result = Dict{Symbol, Any}(:type => encodeType(T))
-
-    if !Base.issingletontype(T)
+        add_object(s, save_internal(s, obj), key)
+    elseif s.depth == 0 && has_basic_encoding(obj)
+        if is_type_serializing_parent(T)
+            open_dict(s)
+            s.depth += 1
+            add_object(s, save_internal(s, obj), :data)
+            save_type_dispatch(s, parent(obj), :parent)
+            close(s)
+            s.depth -= 1
+        else
+            add_object(s, save_internal(s, obj), :data)
+        end
+        add_object(s, encode_type(T), :type)
+    elseif serialize_with_id(T)
+        ref = save_as_ref(s, obj)
+        add_object(s, ref, key)
+    elseif !Base.issingletontype(T)
         s.depth += 1
+        open_dict(s)
         # invoke the actual serializer
-        result[:data] = save_internal(s, obj)
+        save_internal(s, obj)
+        add_object(s, encode_type(T), :type)
         s.depth -= 1
+        close(s, key)
     end
+
     if s.depth == 0
-        result[:_ns] = oscarSerializationVersion
+        add_object(s, oscarSerializationVersion, :_ns)
 
         if !isempty(s.refs)
-            result[:refs] = s.refs
+            add_object(s, s.refs, :refs)
         end
     end
-    return result
+    
+    #store_serialized(s, result, key)
 end
 
 # ATTENTION
@@ -265,7 +328,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # However, we actually do not currently check for the types being concrete,
     # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
     # these checks later on, depending on what we actually need...
-    U = decodeType(dict[:type])
+    U = decode_type(dict[:type])
     U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
@@ -286,7 +349,7 @@ end
 function load_unknown_type(s::DeserializerState,
                            dict::Dict;
                            parent=nothing)
-    T = decodeType(dict[:type])
+    T = decode_type(dict[:type])
     Base.issingletontype(T) && return T()
     return load_type_dispatch(s, T, dict; parent=parent)
 end
@@ -388,7 +451,9 @@ julia> load("/tmp/fourtitwo.json")
 """
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
-    jsoncompatible = save_type_dispatch(state, obj)
+    open_dict(state)
+    save_type_dispatch(state, obj, :obj)
+    jsoncompatible = pop!(state.serializer.open_objects)
     if !isnothing(metadata)
         meta_dict = Dict()
         for key in fieldnames(MetaData)

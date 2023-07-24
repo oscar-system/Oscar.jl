@@ -41,14 +41,12 @@ end
 
 ################################################################################
 # non-ZZRingElem variant
-@registerSerializationType(Nemo.fpFieldElem)
+@registerSerializationType(fpFieldElem)
 @registerSerializationType(Nemo.fpField)
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
-    return Dict(
-        :characteristic => UInt64(characteristic(F))
-    )
+    save_type_dispatch(s, UInt64(characteristic(F)), :characteristic)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
@@ -56,13 +54,9 @@ function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, elem::fpFieldElem; include_parents::Bool=true)
-    if include_parents
-        return Dict(
-            :parent => save_as_ref(s, parent(elem)),
-            :class_rep => string(elem)
-        )
-    end
+is_type_serializing_parent(T::Type{fpFieldElem}) = true
+
+function save_internal(s::SerializerState, elem::fpFieldElem)
     return string(elem)
 end
 
@@ -89,14 +83,14 @@ end
 
 ################################################################################
 # ZZRingElem variant
-@registerSerializationType(Nemo.FpFieldElem)
+@registerSerializationType(FpFieldElem)
 @registerSerializationType(Nemo.FpField)
 has_elem_basic_encoding(obj::Nemo.FpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.FpField)
-    return Dict(
-        :characteristic => save_type_dispatch(s, characteristic(F))
-    )
+    open_dict(s)
+    save_type_dispatch(s, characteristic(F), :characteristic)
+    close(s)
 end
 
 function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
@@ -104,19 +98,15 @@ function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
 end
 
 # elements
-function save_internal(s::SerializerState, elem::FpFieldElem; include_parents::Bool=true)
-    if include_parents
-        return Dict(
-            :parent => save_as_ref(s, parent(elem)),
-            :class_rep => string(Nemo.data(elem))
-        )
-    end
+is_type_serializing_parent(T::Type{FpFieldElem}) = true
+
+function save_internal(s::SerializerState, elem::FpFieldElem)
     return string(Nemo.data(elem))
 end
 
 function load_internal(s::DeserializerState, z::Type{FpFieldElem}, dict::Dict)
     F = load_type_dispatch(s, Nemo.FpField, dict[:parent])
-    return F(ZZRingElem(dict[:class_rep]))
+    return F(ZZRingElem(dict[:data]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
