@@ -55,7 +55,7 @@ base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fi
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
 
 # Examples
-```
+```jldoctest
 julia> Qt, t = polynomial_ring(QQ, :t);
 
 julia> Qtf = fraction_field(Qt);
