@@ -67,8 +67,6 @@ Elliptic surface
   over rational field
 with generic fiber
   -x^3 + y^2 - t^7 + 2*t^6 - t^5
-and relatively minimal model
-  scheme over QQ covered with 45 patches
 
 julia> Base.show(stdout, X3)
 Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
