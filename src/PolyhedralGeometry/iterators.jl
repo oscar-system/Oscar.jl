@@ -13,7 +13,6 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
     end
 
     Base.IndexStyle(::Type{<:$T}) = IndexLinear()
-
     Base.getindex(po::$T, i::Base.Integer) = po.p[1, i]
 
     function Base.setindex!(po::$T, val, i::Base.Integer)
@@ -67,7 +66,7 @@ end
     point_vector(p = QQ, v::AbstractVector)
 
 Return a `PointVector` resembling a point whose coordinates equal the entries of `v`.
-`p` specifies the `Field` or `Type` of its coefficient.
+`p` specifies the `Field` or `Type` of its coefficients.
 """
 point_vector
 
@@ -75,7 +74,7 @@ point_vector
     ray_vector(p = QQ, v::AbstractVector)
 
 Return a `RayVector` resembling a ray from the origin through the point whose coordinates equal the entries of `v`.
-`p` specifies the `Field` or `Type` of its coefficient.
+`p` specifies the `Field` or `Type` of its coefficients.
 """
 ray_vector
 
@@ -110,11 +109,11 @@ for (h, comp) in (("alfspace", "≤"), ("yperplane", "="))
     invert(H::$Haff{T}) where T<:scalar_types = $Haff{T}(-H.a, -negbias(H))
 
     @doc """
-    """ * string($Faff) * """(p = QQ, a, b)
+    $($Faff)(p = QQ, a, b)
 
-Return the `""" * string($Haff) * raw"""` `H(a,b)`, which is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax """ * $comp * raw""" b \}.$$
-`p` specifies the `Field` or `Type` of its coefficient.
+Return the `$($Haff)` `H(a,b)`, which is given by a vector `a` and a value `b` such that
+\$\$H(a,b) = \\{ x | ax $($comp) b \\}.\$\$
+`p` specifies the `Field` or `Type` of its coefficients.
     """
     function $Faff(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
       parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
@@ -139,11 +138,11 @@ $$H(a,b) = \{ x | ax """ * $comp * raw""" b \}.$$
     invert(H::$Hlin{T}) where T<:scalar_types = $Hlin{T}(-H.a)
 
     @doc """
-    """ * string($Flin) * """(p = QQ, a, b)
+    $($Flin)(p = QQ, a, b)
 
-Return the `""" * string($Hlin) * raw"""` `H(a,b)`, which is given by a vector `a` such that
-$$H(a,b) = \{ x | ax """ * $comp * raw""" 0 \}.$$
-`p` specifies the `Field` or `Type` of its coefficient.
+Return the `$($Hlin)` `H(a)`, which is given by a vector `a` such that
+\$\$H(a,b) = \\{ x | ax $($comp) 0 \\}.\$\$
+`p` specifies the `Field` or `Type` of its coefficients.
     """
     function $Flin(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
       parent_field, scalar_type = _determine_parent_and_scalar(f, a)

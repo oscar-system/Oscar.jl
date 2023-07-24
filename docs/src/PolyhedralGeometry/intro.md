@@ -111,7 +111,7 @@ Similar to points and rays, there are types `AffineHalfspace`, `LinearHalfspace`
 affine_halfspace
 linear_halfspace
 affine_hyperplane
-linar_hyperplane
+linear_hyperplane
 ```
 
 These collections allow to mix up affine halfspaces/hyperplanes and their linear
