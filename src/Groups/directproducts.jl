@@ -293,11 +293,10 @@ julia> proj2(g)
 ```
 """
 function projection(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
-  f = GAP.Globals.Projection(G.Xfull, j)
-  H = G.L[j]
-  p = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(G, H, p)
+  @req j in 1:number_of_factors(G) "index not valid"
+  f = GAPWrap.Projection(G.Xfull, j)
+  p = GAPWrap.RestrictedMapping(f, G.X)
+  return GAPGroupHomomorphism(G, factor_of_direct_product(G, j), p)
 end
 
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
@@ -446,10 +445,9 @@ end
 Return the projection of `G` into the second component of `G`.
 """
 function projection(G::SemidirectProductGroup)
-  f = GAP.Globals.Projection(G.Xfull)
-  H = G.H
-  p = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(G, H, p)
+  f = GAPWrap.Projection(G.Xfull)
+  p = GAPWrap.RestrictedMapping(f, G.X)
+  return GAPGroupHomomorphism(G, acting_subgroup(G), p)
 end
 
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T}
@@ -620,10 +618,9 @@ Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
 """
 function projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
-  f = GAP.Globals.Projection(W.Xfull)
-  H = W.H
-  p = GAPWrap.GroupHomomorphismByFunction(W.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(W, H, p)
+  f = GAPWrap.Projection(W.Xfull)
+  p = GAPWrap.RestrictedMapping(f, W.X)
+  return GAPGroupHomomorphism(W, acting_subgroup(W), p)
 end
 
 """
