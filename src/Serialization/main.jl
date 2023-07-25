@@ -283,7 +283,9 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
         s.depth += 1
         open_dict(s)
         # invoke the actual serializer
+        open_dict(s)
         save_internal(s, obj)
+        close(s)
         add_object(s, encode_type(T), :type)
         s.depth -= 1
         close(s, key)

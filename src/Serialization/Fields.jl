@@ -45,9 +45,7 @@ end
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.fpField)
-    open_dict(s)
     save_type_dispatch(s, UInt64(characteristic(F)), :characteristic)
-    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
@@ -89,9 +87,7 @@ end
 has_elem_basic_encoding(obj::Nemo.FpField) = true
 
 function save_internal(s::SerializerState, F::Nemo.FpField)
-    open_dict(s)
     save_type_dispatch(s, characteristic(F), :characteristic)
-    close(s)
 end
 
 function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
@@ -645,10 +641,8 @@ end
 has_elem_basic_encoding(obj::FlintPadicField) = true
 
 function save_internal(s::SerializerState, P::FlintPadicField)
-    open_dict(s)
     save_type_dispatch(s, prime(P), :prime)
     save_type_dispatch(s, precision(P), :precision)
-    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)

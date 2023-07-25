@@ -30,9 +30,7 @@ end
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_internal(s::SerializerState, R::Nemo.zzModRing)
-    open_dict(s)
     save_type_dispatch(s, modulus(R), :modulus)
-    close(s)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, dict::Dict)
