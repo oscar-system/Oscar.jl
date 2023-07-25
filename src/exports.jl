@@ -314,6 +314,7 @@ export circuits
 export class_group
 export class_lengths
 export class_multiplication_coefficient
+export class_names
 export class_parameters
 export class_positions_of_center
 export class_positions_of_kernel
@@ -1046,7 +1047,9 @@ export orbits
 export order, has_order, set_order
 export orders_centralizers
 export orders_class_representatives
+export order_field_of_definition
 export orders_perfect_groups
+export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign

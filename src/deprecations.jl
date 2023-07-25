@@ -365,6 +365,12 @@ end
 # see https://github.com/oscar-system/Oscar.jl/pull/2368
 @deprecate FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec FreeModElem_dec(coords, parent)
 
+# see https://github.com/oscar-system/Oscar.jl/pull/2519
+@deprecate group_class_function(tbl::GAPGroupCharacterTable, values::GapObj) class_function(tbl, values)
+@deprecate group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem}) class_function(tbl, values)
+@deprecate group_class_function(G::GAPGroup, values::GapObj) class_function(G, values)
+@deprecate group_class_function(G::GAPGroup, values::Vector{<:QQAbElem}) class_function(G, values)
+
 # Deprecated after 0.13.0
 @deprecate fan(v::AbstractNormalToricVariety) polyhedral_fan(v)
 
