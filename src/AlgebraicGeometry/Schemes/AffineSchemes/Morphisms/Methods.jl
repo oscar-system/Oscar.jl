@@ -31,6 +31,37 @@ end
 # (2) The direct product of two affine schemes
 ###########################################################
 
+# First the product of the ambient spaces. Documented below.
+function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
+    change_var_names_to::Vector{String}=["", ""]
+  ) where {BRT, RT<:MPolyRing}
+  K = OO(X)
+  L = OO(Y)
+  # V = localized_ring(K)
+  # W = localized_ring(L)
+  k = base_ring(K)
+  k == base_ring(L) || error("varieties are not defined over the same base ring")
+
+  m = ngens(K)
+  n = ngens(L)
+  new_symb = Symbol[]
+  if length(change_var_names_to[1]) == 0
+    new_symb = symbols(K)
+  else
+    new_symb = Symbol.([change_var_names_to[1]*"$i" for i in 1:ngens(L)])
+  end
+  if length(change_var_names_to[2]) == 0
+    new_symb = vcat(new_symb, symbols(L))
+  else
+    new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
+  end
+  KL, z = polynomial_ring(k, new_symb)
+  XxY = Spec(KL)
+  pr1 = SpecMor(XxY, X, gens(KL)[1:m], check=false)
+  pr2 = SpecMor(XxY, Y, gens(KL)[m+1:m+n], check=false)
+  return XxY, pr1, pr2
+end
+
 @doc raw"""
     product(X::AbsSpec, Y::AbsSpec)
     
@@ -41,13 +72,20 @@ the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 function product(X::AbsSpec, Y::AbsSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
+  # take the product of the ambient spaces and restrict
   base_ring(X) == base_ring(Y) || error("schemes are not defined over the same base ring")
-  Xstd = standard_spec(X)
-  Ystd = standard_spec(Y)
-  XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)), check=false)), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd)), check=false))
+  A = ambient_space(X)
+  B = ambient_space(Y)
+  AxB,prA, prB  = product(A, B, change_var_names_to=change_var_names_to)
+  XxY = intersect(preimage(prA, X, check=false), preimage(prB, Y,check=false))
+  prX = restrict(prA, XxY, X, check=false)
+  prY = restrict(prB, XxY, Y, check=false)
+  return XxY, prX, prY
 end
 
+
+
+#=
 function product(X::StdSpec, Y::StdSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
@@ -85,6 +123,9 @@ function product(X::StdSpec, Y::StdSpec;
   pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
+=#
+
+
 
 
 ########################################
@@ -105,18 +146,85 @@ end
 # (5) Display
 ########################################
 
-function Base.show(io::IO, f::AbsSpecMor)
-  println(io, "morphism from\n")
-  println(io, "\t$(domain(f))\n")
-  println(io, "to\n")
-  println(io, "\t$(codomain(f))\n")
-  println(io, "with coordinates\n")
-  x = coordinates(codomain(f))
-  print(io,"\t")
-  for i in 1:length(x)-1
-    print(io, "$(pullback(f)(x[i])), ")
+# Since the morphism is given in terms of pullback on the local coordinates,
+# we need to adapt the printing to have everything aligned.
+function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
+  io = pretty(io)
+  X = domain(f)
+  cX = coordinates(X)
+  Y = codomain(f)
+  cY = coordinates(Y)
+  co_str = String[]
+  str = "["*join(cX, ", ")*"]"
+  kX = length(str)                                  # Length coordinates domain
+  push!(co_str, str)
+  str = "["*join(cY, ", ")*"]"
+  kY = length(str)                                  # Length coordinates codomain
+  push!(co_str, str)
+  k = max(length.(co_str)...)                       # Maximum to estimate offsets
+  println(io, "Morphism")
+  print(io, Indent(), "from ")
+  print(io, co_str[1]*" "^(k-kX+2))                 # Consider offset for alignment
+  if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}} # Take care of the case where the domain is not given as a V(bla)
+    print(io, Lowercase())
+    if typeof(X) <: AffineVariety{<:Field, <:MPolyRing}
+      show(io, X, false)        # The false here indicates that we do not
+                                # print the coordinates, in the case of affine
+                                # spaces (since the coordinates already appear
+                                # before)
+    else
+      print(io, X)
+    end
+    println(io)
+  else
+    println(io, X)
   end
-  print(io, "$(pullback(f)(last(x)))")
+  print(io, "to   ")
+  print(io, co_str[2]*" "^(k-kY+2))                 # Consider offset for alignment
+  if typeof(Y) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}   # same as before but for the codomain
+    print(io, Lowercase())
+    if typeof(Y) <: AffineVariety{<:Field, <:MPolyRing}
+      show(io, Y, false)            # same as before but for the codomain
+    else
+      print(io, Y)
+    end
+  else
+    print(io, Y)
+  end
+  x = coordinates(codomain(f))
+  # If there are no coordinates, we do not print anything (since the target is
+  # empty then)
+  if length(x) > 0
+    println(io)
+    print(io, Dedent(), "given by the pullback function")
+    pf = pullback(f)
+    print(io, Indent())
+    for i in 1:length(x)
+      println(io)
+      print(io, "$(x[i]) -> $(pf(x[i]))")
+    end
+  end
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AbsSpecMor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    X = domain(f)
+    Y = codomain(f)
+    print(io, "Morphism: ")
+    if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the domain is not given as a V(bla)
+      print(io, Lowercase())
+    end
+    print(io, X)
+    print(io, " -> ")
+    if typeof(Y) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the codomain is not given as a V(bla)
+      print(io, Lowercase())
+    end
+    print(io, Y)
+  end
 end
 
 ########################################################################
@@ -167,5 +275,19 @@ function base_change(phi::Any, f::AbsSpecMor;
   pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
 
   return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+end
+
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor, ginv::AbsSpecMor)
+  set_attribute!(g, :inverse, ginv)
+  set_attribute!(ginv, :inverse, g)
+  return _register_birationality(f, g)
+end
+
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor
+  )
+  set_attribute!(f, :is_birational, true)
+  set_attribute!(f, :iso_on_open_subset, g)
 end
 

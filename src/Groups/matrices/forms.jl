@@ -22,11 +22,11 @@ mutable struct SesquilinearForm{T<:RingElem}
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
-         @assert is_hermitian_matrix(B) "The matrix is not hermitian"
+         @assert is_hermitian(B) "The matrix is not hermitian"
       elseif sym==:symmetric
          @assert is_symmetric(B) "The matrix is not symmetric"
       elseif sym==:alternating
-         @assert is_skewsymmetric_matrix(B) "The matrix is not skew-symmetric"
+         @assert is_alternating(B) "The matrix does not correspond to an alternating form"
       elseif sym != :quadratic
          error("Unsupported description")
       end
@@ -61,32 +61,32 @@ SesquilinearForm(f::MPolyRingElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 
 """
-    is_alternating_form(f::SesquilinearForm)
+    is_alternating(f::SesquilinearForm)
 
 Return whether the form `f` is an alternating form.
 """
-is_alternating_form(f::SesquilinearForm) = f.descr==:alternating
+is_alternating(f::SesquilinearForm) = f.descr==:alternating
 
 """
-    is_hermitian_form(f::SesquilinearForm)
+    is_hermitian(f::SesquilinearForm)
 
 Return whether the form `f` is a hermitian form.
 """
-is_hermitian_form(f::SesquilinearForm) = f.descr==:hermitian
+is_hermitian(f::SesquilinearForm) = f.descr==:hermitian
 
 """
-    is_quadratic_form(f::SesquilinearForm)
+    is_quadratic(f::SesquilinearForm)
 
 Return whether the form `f` is a quadratic form.
 """
-is_quadratic_form(f::SesquilinearForm) = f.descr==:quadratic
+is_quadratic(f::SesquilinearForm) = f.descr==:quadratic
 
 """
-    is_symmetric_form(f::SesquilinearForm)
+    is_symmetric(f::SesquilinearForm)
 
 Return whether the form `f` is a symmetric form.
 """
-is_symmetric_form(f::SesquilinearForm) = f.descr==:symmetric
+is_symmetric(f::SesquilinearForm) = f.descr==:symmetric
 
 
 ########################################################################
@@ -176,7 +176,14 @@ end
 ########################################################################
 
 #TODO: checking whether two quadratic forms coincide by checking their polynomials is not possible yet.
-==(B::SesquilinearForm, C::SesquilinearForm) = gram_matrix(B)==gram_matrix(C) && B.descr==C.descr
+==(B::SesquilinearForm, C::SesquilinearForm) = B.descr == C.descr && gram_matrix(B) == gram_matrix(C)
+
+function Base.hash(f::SesquilinearForm, h::UInt)
+   b = 0xf64440baac005f8c % UInt
+   h = hash(f.descr, h)
+   h = hash(gram_matrix(f), h)
+   return xor(h, b)
+end
 
 function base_ring(B::SesquilinearForm)
    if isdefined(B,:matrix) return base_ring(gram_matrix(B))

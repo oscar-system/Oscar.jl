@@ -17,17 +17,31 @@ global_tate_model_over_projective_space(d::Int) = global_tate_model(projective_s
 
 
 @doc raw"""
-    global_weierstrass_model_over_projective_space(d::Int)
+    weierstrass_model_over_projective_space(d::Int)
 
-This method constructs a global Weierstrass model over the projective space.
+This method constructs a Weierstrass model over the projective space.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_projective_space(3)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_projective_space(3)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_projective_space(d::Int) = global_weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
+weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
+
+
+@doc raw"""
+    hypersurface_model_over_projective_space(d::Int)
+
+This method constructs a hypersurface model over the projective space.
+
+# Examples
+```jldoctest
+julia> hypersurface_model_over_projective_space(2)
+Hypersurface model over a concrete base
+```
+"""
+hypersurface_model_over_projective_space(d::Int) = hypersurface_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
 #####################################################
@@ -49,17 +63,31 @@ global_tate_model_over_hirzebruch_surface(r::Int) = global_tate_model(hirzebruch
 
 
 @doc raw"""
-    global_weierstrass_model_over_hirzebruch_surface(r::Int)
+    weierstrass_model_over_hirzebruch_surface(r::Int)
 
-This method constructs a global Weierstrass model over a Hirzebruch surface.
+This method constructs a Weierstrass model over a Hirzebruch surface.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_hirzebruch_surface(1)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_hirzebruch_surface(1)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_hirzebruch_surface(r::Int) = global_weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
+
+
+@doc raw"""
+    hypersurface_model_over_hirzebruch_surface(r::Int)
+
+This method constructs a hypersurface model over a Hirzebruch surface.
+
+# Examples
+```jldoctest
+julia> hypersurface_model_over_hirzebruch_surface(1)
+Hypersurface model over a concrete base
+```
+"""
+hypersurface_model_over_hirzebruch_surface(r::Int) = hypersurface_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
 #####################################################
@@ -81,17 +109,31 @@ global_tate_model_over_del_pezzo_surface(b::Int) = global_tate_model(del_pezzo_s
 
 
 @doc raw"""
-    global_weierstrass_model_over_del_pezzo_surface(b::Int)
+    weierstrass_model_over_del_pezzo_surface(b::Int)
 
-This method constructs a global Weierstrass model over a del-Pezzo surface.
+This method constructs a Weierstrass model over a del-Pezzo surface.
 
 # Examples
 ```jldoctest
-julia> global_weierstrass_model_over_del_pezzo_surface(3)
-Global Weierstrass model over a concrete base
+julia> weierstrass_model_over_del_pezzo_surface(3)
+Weierstrass model over a concrete base
 ```
 """
-global_weierstrass_model_over_del_pezzo_surface(b::Int) = global_weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
+weierstrass_model_over_del_pezzo_surface(b::Int) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
+
+
+@doc raw"""
+    hypersurface_model_over_del_pezzo_surface(b::Int)
+
+This method constructs a hypersurface model over a del-Pezzo surface.
+
+# Examples
+```jldoctest
+julia> hypersurface_model_over_del_pezzo_surface(3)
+Hypersurface model over a concrete base
+```
+"""
+hypersurface_model_over_del_pezzo_surface(b::Int) = hypersurface_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 #####################################################
@@ -107,6 +149,8 @@ e.g. [Wei18](@cite) and references therein.
 
 ```jldoctest
 julia> tm = su5_tate_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base
 
 julia> v = underlying_toric_variety(ambient_space(tm))
@@ -120,28 +164,29 @@ julia> v2 = blow_up(v,I)
 Normal toric variety
 
 julia> cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by
-  a10 -> [0 0]
-  a21 -> [0 0]
-  a32 -> [0 0]
-  a43 -> [0 0]
-  a65 -> [0 0]
-  w -> [1 0]
-  x -> [1 2]
-  y -> [1 3]
-  z -> [0 1]
-  e -> [-1 0]
+Multivariate polynomial ring in 10 variables over QQ graded by 
+  a10 -> [1 0 0 0]
+  a21 -> [0 1 0 0]
+  a32 -> [-1 2 0 0]
+  a43 -> [-2 3 0 0]
+  a65 -> [-4 5 0 0]
+  w -> [0 0 1 0]
+  x -> [0 1 1 2]
+  y -> [1 1 1 3]
+  z -> [0 0 0 1]
+  e -> [2 -1 -1 0]
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()
     auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
-    a1 = a10;
-    a2 = a21 * w;
-    a3 = a32 * w^2;
-    a4 = a43 * w^3;
-    a6 = a65 * w^5;
-    ais = [a1, a2, a3, a4, a6];
-    return global_tate_model(ais, auxiliary_base_ring, 3)
+    auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
+    a1 = a10
+    a2 = a21 * w
+    a3 = a32 * w^2
+    a4 = a43 * w^3
+    a6 = a65 * w^5
+    ais = [a1, a2, a3, a4, a6]
+    return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
 end
 
 @doc raw"""
@@ -153,7 +198,9 @@ e.g. [Wei18](@cite) and references therein.
 
 ```jldoctest
 julia> tm = su5_weierstrass_model_over_arbitrary_3d_base()
-Global Weierstrass model over a not fully specified base
+Assuming that the first row of the given grading is the grading under Kbar
+
+Weierstrass model over a not fully specified base
 ```
 """
-su5_weierstrass_model_over_arbitrary_3d_base() = global_weierstrass_model(su5_tate_model_over_arbitrary_3d_base())
+su5_weierstrass_model_over_arbitrary_3d_base() = weierstrass_model(su5_tate_model_over_arbitrary_3d_base())

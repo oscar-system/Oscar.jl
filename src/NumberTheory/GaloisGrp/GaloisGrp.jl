@@ -259,7 +259,7 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int; cached::Bool = false)
   return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n], cached = cached)
 end
 
-function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...; cached::Bool = false)
+function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, <:AbstractVector{Int}}...; cached::Bool = false)
   return SLPolynomialRing(R, p..., cached = cached)
 end
 
@@ -476,7 +476,7 @@ mutable struct ComplexRootCtx
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
     @assert ismonic(f)
-    rt = roots(f, AcbField(20))
+    rt = roots(AcbField(20), f)
     return new(f, 20, rt)
   end
   function ComplexRootCtx(f::QQPolyRingElem)
@@ -492,7 +492,7 @@ function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = fal
   if C.C.pr >= pr
     return C.C.rt
   end
-  rt = roots(C.C.f, AcbField(pr))
+  rt = roots(AcbField(pr), C.C.f)
   C.C.pr = pr
   n = length(rt)
   for i=1:n
@@ -580,7 +580,7 @@ function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
   @assert !iszero(dis(t))
-  rt = roots(dis, AcbField(20))
+  rt = roots(AcbField(20), dis)
   r = Hecke.lower_bound(minimum([abs(x-t) for x = rt]), ZZRingElem)
   @assert r > 0
   ff = map_coefficients(abs, f)
@@ -1664,13 +1664,13 @@ If `prime` is given, no search is performed.
 function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
   if prime != 0
     p = prime
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
 
@@ -1693,7 +1693,7 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
     if k(leading_coefficient(f)) == 0
       continue
     end
-    lf = factor(f, GF(p))
+    lf = factor(GF(p), f)
     if any(x->x>1, values(lf.fac))
       continue
     end
@@ -1782,7 +1782,7 @@ end
 
 
 @doc raw"""
-  primitive_by_shape(ct::Set{CycleType}, n::Int)
+    primitive_by_shape(ct::Set{CycleType}, n::Int)
 
 Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
 matching the cycle types in `ct` must be primitive, otherwise return `false`.
@@ -2466,7 +2466,7 @@ ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x
 julia> k, _ = number_field(i);
 
 
-julia> length(roots(x^4-2, k))
+julia> length(roots(k, x^4-2))
 4
 
 ```
@@ -2532,7 +2532,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
         push!(id, sum(evaluate(I^length(h), x) for I = PE) - v)
       end
       h = Hecke.power_sums_to_polynomial(h)
-      q = roots(h, number_field(C.f)[1])
+      q = roots(number_field(C.f)[1], h)
       @assert length(q) > 0
       q = parent(defining_polynomial(parent(q[1])))(q[1])
       #TODO: think h(q(y)) is probably boring, while q(y) == pe might be 
@@ -2605,7 +2605,7 @@ function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
    if degree(k) > 1
     phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
   else
-    phi = MapFromFunc(x->K((coeff(x, 0))), y->k((coeff(y, 0))), k, K)
+    phi = MapFromFunc(k, K, x->K((coeff(x, 0))), y->k((coeff(y, 0))))
   end
   return phi
 end

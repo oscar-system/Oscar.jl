@@ -24,8 +24,8 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '1.8'
-          - '~1.9.0-0'
+          - '1.9'
+          - '~1.10.0-0'
           - 'nightly'
         os:
           - ubuntu-latest
@@ -53,16 +53,16 @@ jobs:
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
-          annotate: ${{ matrix.julia-version == '1.8' }}
-          coverage: ${{ matrix.julia-version == '1.8' }}
+          annotate: ${{ matrix.julia-version == '1.9' }}
+          coverage: ${{ matrix.julia-version == '1.9' }}
           depwarn: error
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.8'
+        if: matrix.julia-version == '1.9'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.8'
+        if: matrix.julia-version == '1.9'
         continue-on-error: true
         uses: codecov/codecov-action@v3
 
@@ -74,14 +74,14 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.8'
-          - '~1.9.0-0'
+          - '1.9'
+          - '~1.10.0-0'
           - 'nightly'
         os:
           - ubuntu-latest
         include:
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
-          - julia-version: '1.8'
+          - julia-version: '1.9'
             os: macOS-latest
 
     steps:
@@ -106,8 +106,8 @@ jobs:
         if: runner.os == 'macOS'
         uses: julia-actions/julia-runtest@latest
         with:
-          annotate: ${{ matrix.julia-version == '1.8' }}
-          coverage: ${{ matrix.julia-version == '1.8' }}
+          annotate: ${{ matrix.julia-version == '1.9' }}
+          coverage: ${{ matrix.julia-version == '1.9' }}
           depwarn: error
       - name: "Setup package"
         run: |
@@ -117,17 +117,17 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia --project=docs --color=yes -e '
+          julia --project=docs --depwarn=error --color=yes -e'
             using Documenter
             using Oscar
             DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
             doctest(Oscar)'
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.8'
+        if: matrix.julia-version == '1.9'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.8'
+        if: matrix.julia-version == '1.9'
         continue-on-error: true
         uses: codecov/codecov-action@v3

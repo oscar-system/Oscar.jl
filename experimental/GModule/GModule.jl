@@ -164,10 +164,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function Hecke.number_field(::QQField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
-  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
-end
-
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -362,16 +358,16 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   QQAb = abelian_closure(QQ)[1]
   K = cyclotomic_field(QQAb, Int(c))[1]
   fl, em = is_subfield(k, K)
-  return Oscar.group_class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
+  return Oscar.class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{QQFieldElem}})
   QQAb = abelian_closure(QQ)[1]
-  return Oscar.group_class_function(group(C), [QQAb(x[2]) for x = _character(C)])
+  return Oscar.class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.FieldElem}})
-  return Oscar.group_class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
+  return Oscar.class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
 end
 
 
@@ -381,7 +377,7 @@ function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFi
 end
 
 function Hecke.frobenius(K::FinField, i::Int=1)
-  MapFromFunc(x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i), K, K)
+  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i))
 end
 
 function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{fpFieldElem}})
@@ -500,7 +496,7 @@ function gmodule_over(::QQField, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}
 end
 
 function Oscar.hom(M::MultGrp, N::MultGrp, h::Map)
-  return MapFromFunc(x->N(h(x.data)), y->M(preimage(h, y.data)), M, N)
+  return MapFromFunc(M, N, x->N(h(x.data)), y->M(preimage(h, y.data)))
 end
 
 function Oscar.content_ideal(M::MatElem{nf_elem})
@@ -869,7 +865,7 @@ function Oscar.hom(F::Generic.FreeModule{T}, G::Generic.FreeModule{T}) where T
   k = base_ring(F)
   @assert base_ring(G) == k
   H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(mat(y))))), H, Hecke.MapParent(F, G, "homomorphisms"))
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(mat(y))))))
 end
 
 function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}
@@ -1158,11 +1154,7 @@ function Oscar.abelian_group(M::Generic.FreeModule{fqPolyRepFieldElem})
     end
     return M(m)
   end
-  return A, MapFromFunc(to_M, to_A, A, M)
-end
-
-function Oscar.group(chi::Oscar.GAPGroupClassFunction)
-  return chi.table.GAPGroup
+  return A, MapFromFunc(A, M, to_M, to_A)
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)

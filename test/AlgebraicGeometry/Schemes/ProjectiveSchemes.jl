@@ -254,7 +254,7 @@ end
   @test compose(UYtoY, YtoX) == UYtoX
 
   WW = hypersurface_complement(ambient_scheme(W), [x-y])
-  phi = MapFromFunc(restriction_map(W, WW), OO(W), OO(WW))
+  phi = MapFromFunc(OO(W), OO(WW), restriction_map(W, WW))
   IP2_WW, map = fiber_product(phi, IP2_W)
   @test base_scheme(IP2_WW) == WW
   @test !(base_scheme(IP2_WW) === WW)
@@ -294,3 +294,9 @@ end
   @test is_geometrically_reduced(Y)
 end
 
+@testset "simple projective spaces" begin
+  # Make sure we don't find complicated qoutient rings if not necessary
+  P = projective_space(QQ, 1)
+  X = covered_scheme(P)
+  @test all(U->(OO(U) isa MPolyRing), affine_charts(X))
+end

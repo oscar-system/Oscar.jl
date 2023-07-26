@@ -25,29 +25,67 @@ scheme(KK::VarietyFunctionField) = variety(KK)
 coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
-### user facing constructors 
+### user facing constructors
+
+
 @doc raw"""
-    function_field(X::CoveredScheme)
+    function_field(X::AbsCoveredScheme)
 
 Return the function field of the irreducible variety `X`.
 
 Internally, a rational function is represented by an element in the field of
 fractions of the `ambient_coordinate_ring` of the `representative_patch`.
-"""
-function_field(X::CoveredScheme; 
-               check::Bool=true, 
-               representative_patch::AbsSpec=default_covering(X)[1]
-              ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)
 
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> K = function_field(Ycov)
+Field of rational functions
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+represented by
+  patch 1: fraction field of multivariate polynomial ring
+
+julia> one(K)
+Rational function
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+represented by
+  patch 1: 1
+```
+"""
+@attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
 
 @doc raw"""
-    FunctionField(X::CoveredScheme; kw...)
+    FunctionField(X::AbsCoveredScheme; kw...)
 
 Return the function field of the irreducible variety `X`.
 
-See [`function_field(X::CoveredScheme)`](@ref).
+See [`function_field(X::AbsCoveredScheme)`](@ref).
 """
-FunctionField(X::CoveredScheme; kw... ) = function_field(X; kw...)
+FunctionField(X::AbsCoveredScheme; kw... ) = function_field(X; kw...)
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #
@@ -128,6 +166,14 @@ function *(b::T, a::RingElem) where {T<:VarietyFunctionFieldElem}
   return a*b
 end
 
+function *(a::Integer, b::T) where {T<:VarietyFunctionFieldElem}
+  return coefficient_ring(parent(b))(a)*b
+end
+
+function *(b::T, a::Integer) where {T<:VarietyFunctionFieldElem}
+  return a*b
+end
+
 # try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
@@ -136,6 +182,12 @@ isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 ########################################################################
 # Conversion of rational functions on arbitrary patches                #
 ########################################################################
+
+function (KK::VarietyFunctionField)(a::RingElem; check::Bool=true)
+  return KK(a, one(parent(a)), check=check)
+end
+
+
 
 function (KK::VarietyFunctionField)(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   return KK(lift(a), lift(b), check=check)
@@ -159,24 +211,49 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
   R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
   
   # otherwise check whether we can find the ring of h among the affine patches
-  R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
-  # allocate a variable for the patch in which a and be are living
-  V = representative_patch(KK)
-  X = variety(KK)
-  C = default_covering(X)
-  for i in 1:npatches(C)
-    if ambient_coordinate_ring(C[i]) === R
-      V = C[i]
-      break
+  if R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] 
+    # allocate a variable for the patch in which a and be are living
+    V = representative_patch(KK)
+    X = variety(KK)
+    C = default_covering(X)
+    for i in 1:npatches(C)
+      if ambient_coordinate_ring(C[i]) === R
+        V = C[i]
+        break
+      end
+    end
+
+    # convert it 
+    U = representative_patch(KK)
+    h_generic = move_representative(a, b, V, U, C)
+    return VarietyFunctionFieldElem(KK, numerator(h_generic),
+                                    denominator(h_generic)
+                                   )
+  else
+    # go through the registered coverings and look for the ring
+    X = variety(KK)
+    for C in coverings(X)
+      for U in patches(C)
+        if R === ambient_coordinate_ring(U)
+          iso = _flatten_open_subscheme(U, default_covering(X))
+          pb = pullback(inverse(iso))
+          pb_num = fraction(pb(OO(U)(a)))
+          pb_den = fraction(pb(OO(U)(b)))
+          h = pb_num//pb_den # a representative on an affine chart of X
+          V = representative_patch(KK)
+          W = ambient_scheme(codomain(iso))
+          if ambient_coordinate_ring(V) === base_ring(parent(h))
+            return VarietyFunctionFieldElem(KK, numerator(h), denominator(h))
+          else
+            hh = move_representative(numerator(h), denominator(h), W, V, default_covering(X))
+            return VarietyFunctionFieldElem(KK, numerator(hh), denominator(hh))
+          end
+        end
+      end
     end
   end
 
-  # convert it 
-  U = representative_patch(KK)
-  h_generic = move_representative(a, b, V, U, C)
-  return VarietyFunctionFieldElem(KK, numerator(h_generic),
-                                  denominator(h_generic)
-                                  )
+  error("no open subset found with admissible ring")
 end
 
 @doc raw"""
@@ -205,15 +282,26 @@ function move_representative(
   iszero(pbb) && error("pullback of denominator is zero")
   # in the next line, A is either a SpecOpen or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
+  if domain(f) isa PrincipalOpenSubset
+    fac = factor(lifted_numerator(complement_equation(domain(f))))
+    p = OO(U)(numerator(h_generic))
+    q = OO(U)(denominator(h_generic))
+    for (a, e) in fac
+      aa = OO(U)(a)
+      k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1])
+      k_den, _ = _minimal_power_such_that(aa, x->divides(q, x)[1])
+      k = minimum([k_num, k_den])
+      aa = aa^k
+      _, p = divides(p, aa)
+      _, q = divides(q, aa)
+    end
+    h_generic = fraction(p)//fraction(q)
+  end
   return h_generic
 end
 
 function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool=true)
   return KK(numerator(h), denominator(h), check=check)
-end
-
-function Base.show(io::IO, f::VarietyFunctionFieldElem)
-  print(io, representative(f))
 end
 
 ### given the fraction field of the `ambient_coordinate_ring` in one
@@ -237,12 +325,27 @@ end
 
 function getindex(f::VarietyFunctionFieldElem, V::AbsSpec)
   C = default_covering(variety(parent(f))) 
-  V in C || error("patch not found")
-  return move_representative(numerator(f), denominator(f), 
-                             representative_patch(parent(f)),
-                             V, C
-                            )
+  if any(x->x===V, patches(C))
+    return move_representative(numerator(f), denominator(f), 
+                               representative_patch(parent(f)),
+                               V, C
+                              )
+  else
+    KK = parent(f)
+    X = variety(KK)
+    iso = _flatten_open_subscheme(V, C)
+    VV = codomain(iso)
+    W = ambient_scheme(VV)
+    g = f[W] # Will go to the first case above
+    num = pullback(iso)(OO(VV)(numerator(g)))
+    den = pullback(iso)(OO(VV)(denominator(g)))
+    return fraction(num)//fraction(den)
+  end
 end
+
+# some dummy methods for compatibility
+fraction(a::MPolyQuoRingElem) = lift(a)//one(lift(a))
+fraction(a::MPolyRingElem) = a//one(a)
 
 ########################################################################
 # Implementation of the rest of the interfaces                         #
@@ -283,7 +386,62 @@ end
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)
-  print(io, "function field of $(variety(KK))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field")
+  else
+    print(io, "Function field of ", Lowercase(), variety(KK))
+  end
+end
+
+# The function field is global, but we know how it is represented on a given
+# chart of the covering of X: once we have described and labeled the charts, we
+# mention on which chart we have that representation
+function Base.show(io::IO, ::MIME"text/plain", KK::VarietyFunctionField)
+  io = pretty(io)
+  X = variety(KK)
+  cov = default_covering(X)
+  println(io, "Field of rational functions")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
+  println(io, Dedent())
+  println(io, "represented by")
+  print(io, Indent(), "patch $j: ", Lowercase(), representative_field(KK))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Field element")
+  else
+    print(io, "Rational function on ", Lowercase(), variety(parent(f)))
+  end
+end
+
+# Needed in nested printings where we already know the parent, but need only a
+# description of the rational function on the appropriate charts
+function _show_semi_compact(io::IO, f::VarietyFunctionFieldElem, cov::Covering = get_attribute(variety(parent(f)), :simplified_covering, default_covering(variety(parent(f)))), k::Int = 0)
+  io = pretty(io)
+  j = findfirst(U -> representative_patch(parent(f)) === U, collect(cov))
+  print(io, "Rational function represented by ", representative(f), " "^k, " on patch $j")
+end
+
+# Same details as for the printing of the parent
+function Base.show(io::IO, ::MIME"text/plain", f::VarietyFunctionFieldElem)
+  io = pretty(io)
+  KK = parent(f)
+  X = variety(KK)
+  cov = default_covering(X)
+  j = findfirst(U -> representative_patch(KK) === U, collect(cov))
+  println(io, "Rational function")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  println(io, Dedent())
+  println(io, "represented by")
+  print(io, Indent(), "patch $j: ", representative(f))
+  print(io, Dedent())
 end
 
 function divexact(f::VarietyFunctionFieldElem, 
@@ -341,5 +499,29 @@ end
 
 function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
   return all(U->is_regular(f, U), affine_patches(W))
+end
+
+function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+end
+
+function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+  fcov = covering_morphism(f)
+  KK = parent(a)
+  V = representative_patch(KK)
+  if any(U->codomain(fcov[U])===V, patches(domain(fcov)))
+    j = findfirst(U->codomain(fcov[U])===V, patches(domain(fcov)))
+    U = patches(domain(fcov))[j]
+    phi = pullback(fcov[U])
+    return function_field(domain(f))(phi(OO(V)(numerator(a))), 
+                                     phi(OO(V)(denominator(a))))
+  else 
+    U = first(patches(domain(fcov)))
+    W = codomain(fcov[U])
+    #(any(x->x===V, affine_charts(codomain(f))) && any(x->x===W, affine_charts(codomain(f)))) || error("method not implemented for too complicated transitions")
+    b = a[W]
+    phi = pullback(fcov[U])
+    return function_field(domain(f))(phi(OO(W)(numerator(b))), 
+                                     phi(OO(W)(denominator(b))))
+  end
 end
 

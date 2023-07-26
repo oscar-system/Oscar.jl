@@ -23,7 +23,7 @@ ideal ``I ⊂ R``.
   U::SpecOpen
 
   # On an affine scheme X return the subscheme defined by I ⊂ 𝒪(X).
-  function ClosedEmbedding(X::AbsSpec, I::Ideal)
+  function ClosedEmbedding(X::AbsSpec, I::Ideal; check=true)
     base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
     Y = subscheme(X, I)
     inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)

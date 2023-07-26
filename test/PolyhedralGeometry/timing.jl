@@ -4,10 +4,14 @@
     # to avoid unnecessary failures we skip the timing tests
     haskey(ENV, "JULIA_PKGEVAL") && return
 
-    using Oscar
+    # If running multiple workers, and many OMP threads, CPU oversubscription may occur
+    # which fails the timing tests. In this situation, skip instead.
+    if isdefined(Main, :Distributed) && nworkers() > 1
+        get(ENV, "OMP_NUM_THREADS", "") == "1" || return
+    end
 
     # macos on github actions is very slow
-    factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 5.0 : 1.0
+    factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 8.0 : 2.0
 
     lp_provide = ["FACETS", "VERTICES", "VERTICES_IN_FACETS", "LATTICE", "BOUNDED"]
 
@@ -106,7 +110,8 @@
             result = 10
             for i in 1:repeat
                 copy = deepcopy(poly)
-                result = min(@elapsed fun(copy), result)
+                stats = @timed fun(copy)
+                result = min(stats.time - stats.gctime, result)
                 if result <= bound*factor
                     return true
                 else

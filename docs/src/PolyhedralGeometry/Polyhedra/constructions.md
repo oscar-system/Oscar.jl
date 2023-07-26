@@ -24,7 +24,7 @@ polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E:
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
 and [`affine_hull`](@ref affine_hull):
 ```jldoctest
-julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
+julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
 
 julia> facets(P)
@@ -38,13 +38,13 @@ julia> affine_hull(P)
 x₂ = 0
 
 
-julia> Q0 = Polyhedron(facets(P))
+julia> Q0 = polyhedron(facets(P))
 Polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
-julia> Q1 = Polyhedron(facets(P), affine_hull(P))
+julia> Q1 = polyhedron(facets(P), affine_hull(P))
 Polyhedron in ambient dimension 2
 
 julia> P == Q1
@@ -65,7 +65,7 @@ julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
 Polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))
-(A = [-1 0; 0 -1; 1 1], b = Polymake.RationalAllocated[0, 0, 1])
+(A = [-1 0; 0 -1; 1 1], b = QQFieldElem[0, 0, 1])
 
 ```
 
@@ -166,10 +166,10 @@ n_gon
 neighborly_cubical
 newton_polytope
 orbit_polytope
-perles_irrational_8_polytope
 permutahedron
 pile
 pitman_stanley
+perles_nonrational_8_polytope
 rand_spherical_polytope
 rand_subpolytope
 zonotope
@@ -181,15 +181,15 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
-*(::Int, ::Polyhedron{T}) where T<:scalar_types
-*(::Polyhedron{T}, ::Polyhedron{T})  where T<:scalar_types
++(::Polyhedron{T}, ::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
+*(::Number, ::Polyhedron{T}) where T<:scalar_types
+*(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
 bipyramid
-intersect(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
+intersect(::Polyhedron...)
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
+convex_hull(::Polyhedron...)
 ```

@@ -266,3 +266,64 @@ end
   K = phiQ2L1(phiQ2(I2*I3*I4*I5))
   @test saturation(K,J) == phiQ2L1(phiQ2(ideal(R,[x-y])))
 end
+
+@testset "algebras as vector spaces" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, [x^3- 2, y^2+3*x])
+  I = (x-8)^2*I
+  L, _ = localization(R, powers_of_element(x-8))
+  A, pr = quo(L, L(I))
+  V, id = vector_space(QQ, A)
+  @test dim(V) == 6
+  @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
+  f = (x*3*y-4)^5
+  f = A(f)
+  @test id(preimage(id, f)) == f
+  v = V[3] - 4*V[5]
+  @test preimage(id, id(v)) == v
+
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, [x^3, (y-1)^2+3*x])
+  I = (x-8)^2*I
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
+  A, pr = quo(L, L(I))
+  V, id = vector_space(QQ, A)
+  @test dim(V) == 6
+  f = (x*3*y-4)^5
+  f = A(f)
+  @test id(preimage(id, f)) == f
+  v = V[3] - 4*V[5]
+  @test preimage(id, id(v)) == v
+end
+
+@testset "minimal and small generating sets" begin
+  R, (x,y,z) = QQ["x","y","z"]
+  IQ = ideal(R,[x-z])
+  U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
+  U3 = MPolyPowersOfElement(y)
+  Q1 = MPolyQuoLocRing(R,IQ,U1)
+  Q2 = MPolyQuoLocRing(R,IQ,U2)
+  Q3 = MPolyQuoLocRing(R,IQ,U3)
+  J1 = ideal(Q1,[x^2-y^2,y^2-z^2,x^2-z^2])
+  @test length(minimal_generating_set(J1)) == 1
+  @test length(small_generating_set(J1)) == 1
+  @test ideal(Q1, small_generating_set(J1)) == ideal(Q1, minimal_generating_set(J1))
+  @test ideal(Q1, minimal_generating_set(J1)) == J1
+
+  J2 = ideal(Q2,[x^2-y^2,y^2-z^2,x^2-z^2])
+  @test length(minimal_generating_set(J2)) == 1
+  @test ideal(Q2, minimal_generating_set(J2)) == J2
+  J3 = ideal(Q3,[x^2-z^2,y*(y-1)])
+  @test length(small_generating_set(J3)) == 1
+  @test ideal(Q3,small_generating_set(J3)) == J3
+
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x^6-y)
+  U = complement_of_point_ideal(R, [1, 1])
+  L = MPolyQuoLocRing(R, I, U)
+  J = ideal(L, [x-1, y-1])^2
+  minJ = minimal_generating_set(J)
+  @test length(minJ) == 1
+  @test ideal(L,minJ) == J
+end

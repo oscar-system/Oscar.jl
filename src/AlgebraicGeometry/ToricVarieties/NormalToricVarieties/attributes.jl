@@ -394,11 +394,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
     @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
     @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
-
-    indeterminates = gens(R)
-    d = rank(character_lattice(v))
-    generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
-    return ideal(generators)
+    return ideal(transpose(matrix(ZZ, rays(v))) * gens(R))
 end
 
 
@@ -912,7 +908,13 @@ julia> dim(nef)
 1
 ```
 """
-@attr Cone nef_cone(v::NormalToricVariety) = cone(pm_object(v).NEF_CONE)
+@attr Cone{QQFieldElem} function nef_cone(v::NormalToricVariety)
+  result = cone(pm_object(v).NEF_CONE)
+  oscar_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(v).map
+  polymake_lift = matrix(ZZ, pm_object(v).RATIONAL_DIVISOR_CLASS_GROUP.LIFTING)
+  A = convert(Polymake.PolymakeType, transpose(polymake_lift * oscar_projection))
+  return transform(result, A)
+end
 
 
 """
@@ -932,11 +934,11 @@ julia> dim(mori)
 1
 ```
 """
-@attr Cone mori_cone(v::NormalToricVariety) = cone(pm_object(v).MORI_CONE)
+@attr Cone{QQFieldElem} mori_cone(v::NormalToricVariety) = polarize(nef_cone(v))
 
 
 @doc raw"""
-    fan(v::AbstractNormalToricVariety)
+    polyhedral_fan(v::AbstractNormalToricVariety)
 
 Return the fan of an abstract normal toric variety `v`.
 
@@ -945,11 +947,15 @@ Return the fan of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> fan(p2)
+julia> polyhedral_fan(p2)
 Polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan{QQFieldElem} fan(v::AbstractNormalToricVariety) = PolyhedralFan{QQFieldElem}(pm_object(v))
+function polyhedral_fan(v::AbstractNormalToricVariety)
+  result = Base.deepcopy(pm_object(v))
+  Polymake.cast!(result, Polymake.BigObjectType("fan::PolyhedralFan<Rational>"))
+  return PolyhedralFan{QQFieldElem}(result, QQ)
+end
 
 
 @doc raw"""

@@ -34,14 +34,13 @@ julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
   of graded multivariate polynomial ring in 3 variables over QQ
   by ideal(x + y)
-
 ```
 """
 homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_ring(underlying_scheme(P))
@@ -61,15 +60,14 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> relative_ambient_dimension(X)
 2
 
 julia> dim(X)
 1
-
 ```
 """
 relative_ambient_dimension(P::AbsProjectiveScheme) = relative_ambient_dimension(underlying_scheme(P))
@@ -99,8 +97,8 @@ ideal(x + y)
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational field
-  defined by ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
@@ -112,7 +110,6 @@ true
 
 julia> ambient_coordinate_ring(X) === homogeneous_coordinate_ring(X)
 false
-
 ```
 """
 ambient_coordinate_ring(P::AbsProjectiveScheme)
@@ -138,14 +135,14 @@ julia> I = ideal(S, S[1] + S[2]);
 
 julia> X = ProjectiveScheme(S, I)
 Projective scheme
-  over Rational Field
-  defined by
-ideal(x + y)
+  over rational field
+defined by ideal(x + y)
 
 julia> P = ambient_space(X)
 Projective space of dimension 2
-  over Rational Field
-
+  over rational field
+with homogeneous coordinates [x, y, z]
+```
 """
 @attr function ambient_space(X::AbsProjectiveScheme)
   return projective_scheme(ambient_coordinate_ring(X))
@@ -179,7 +176,17 @@ to the `coordinate_ring` of `U`.
 julia> P = projective_space(QQ, 2);
 
 julia> Pcov = covered_scheme(P)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+    3: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(s1//s0), (s2//s0)]
+    2: [(s0//s1), (s2//s1)]
+    3: [(s0//s2), (s1//s2)]
 ```
 """
 @attr AbsCoveredScheme function covered_scheme(P::AbsProjectiveScheme)
@@ -210,14 +217,15 @@ julia> R, (u, v) = QQ["u", "v"];
 
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
-julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+julia> S, _ = grade(Q["x", "y", "z"][1]);
 
-julia> P = projective_scheme(S);
+julia> P = projective_scheme(S)
+Projective space of dimension 2
+  over quotient of multivariate polynomial ring by ideal with 1 generator
+with homogeneous coordinates [x, y, z]
 
 julia> defining_ideal(P)
 ideal()
-
 ```
 """
 defining_ideal(X::AbsProjectiveScheme)
@@ -245,20 +253,21 @@ julia> R, (u, v) = QQ["u", "v"];
 
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
-julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+julia> S, _ = grade(Q["x", "y", "z"][1]);
 
-julia> P = projective_scheme(S);
+julia> P = projective_scheme(S)
+Projective space of dimension 2
+  over quotient of multivariate polynomial ring by ideal with 1 generator
+with homogeneous coordinates [x, y, z]
 
 julia> affine_cone(P)
-(Spec of Quotient of multivariate polynomial ring by ideal with 1 generator, Map with following data
+(Spec of quotient of multivariate polynomial ring, Map with following data
 Domain:
 =======
 S
 Codomain:
 =========
 Quotient of multivariate polynomial ring by ideal with 1 generator)
-
 ```
 """
 affine_cone(P::AbsProjectiveScheme)
@@ -373,10 +382,12 @@ julia> R, (u, v) = QQ["u", "v"];
 
 julia> Q, _ = quo(R, ideal(R, u^2 + v^2));
 
-julia> S, _ = grade(Q["x", "y", "z"][1])
-(Graded multivariate polynomial ring in 3 variables over quotient of multivariate polynomial ring, MPolyDecRingElem{MPolyQuoRingElem{QQMPolyRingElem}, AbstractAlgebra.Generic.MPoly{MPolyQuoRingElem{QQMPolyRingElem}}}[x, y, z])
+julia> S, _ = grade(Q["x", "y", "z"][1]);
 
-julia> P = projective_scheme(S);
+julia> P = projective_scheme(S)
+Projective space of dimension 2
+  over quotient of multivariate polynomial ring by ideal with 1 generator
+with homogeneous coordinates [x, y, z]
 
 julia> homogeneous_coordinates_on_affine_cone(P)
 3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:

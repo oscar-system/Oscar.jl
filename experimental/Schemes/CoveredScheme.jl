@@ -100,25 +100,67 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  CX, _ = affine_cone(X)
+@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     push!(U, Spec(quo(R, I)[1]))
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
+                  [1//x[j-1]],
+                  [x[k-1]//x[j-1] for k in i+1:j-1],
+                  [x[k]//x[j-1] for k in j:r],
+                  x[r+1:end])
+      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
+                    [y[k+1]//y[i] for k in i:j-2],
+                    [1//y[i]],
+                    [y[k]//y[i] for k in j:r],
+                    y[r+1:end])
+      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+    end
+  end
+  return result
+end
+
+
+@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+  kk = base_ring(X)
+  S = ambient_coordinate_ring(X)
+  r = relative_ambient_dimension(X)
+  U = Vector{AbsSpec}()
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
+  s = symbols(S)
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  for i in 0:r
+    R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    push!(U, Spec(R))
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
+  end
+  result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(OO(U[i]))
+      y = gens(OO(U[j]))
       Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
       Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
       f = SpecMor(Ui, Uj,
@@ -143,8 +185,8 @@ affine_refinements(C::Covering) = C.affine_refinements
   return result
 end
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
-  CX, _ = affine_cone(X)
+
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyQuoRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
@@ -157,6 +199,7 @@ end
   # ideal sheaf is trivial on some affine open part. 
   if r == 0
     result = Covering(Y)
+    set_decomposition_info!(result, Y, elem_type(OO(Y))[])
     pU[Y] = identity_map(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
@@ -166,6 +209,7 @@ end
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     F = Spec(R_fiber)
@@ -175,12 +219,73 @@ end
     patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
     pU[patch] = restrict(pY, patch, Y, check=false)
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
   for i in 1:r
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
+                  [1//x[j-1]],
+                  [x[k-1]//x[j-1] for k in i+1:j-1],
+                  [x[k]//x[j-1] for k in j:r],
+                  x[r+1:end])
+      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
+                    [y[k+1]//y[i] for k in i:j-2],
+                    [1//y[i]],
+                    [y[k]//y[i] for k in j:r],
+                    y[r+1:end])
+      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+    end
+  end
+  covered_projection = CoveringMorphism(result, Covering(Y), pU, check=false)
+  set_attribute!(X, :covering_projection_to_base, covered_projection)
+  return result
+end
+
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+  Y = base_scheme(X)
+  R = ambient_coordinate_ring(Y)
+  kk = coefficient_ring(R)
+  S = ambient_coordinate_ring(X)
+  r = relative_ambient_dimension(X)
+  U = Vector{AbsSpec}()
+  pU = IdDict{AbsSpec, AbsSpecMor}()
+
+  # The case of ℙ⁰-bundles appears frequently in blowups when the
+  # ideal sheaf is trivial on some affine open part.
+  if r == 0
+    result = Covering(Y)
+    set_decomposition_info!(result, Y, elem_type(OO(Y))[])
+    pU[Y] = identity_map(Y)
+    covered_projection = CoveringMorphism(result, result, pU, check=false)
+    set_attribute!(X, :covering_projection_to_base, covered_projection)
+    return result
+  end
+
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  s = symbols(S)
+  # for each homogeneous variable, set up the chart
+  for i in 0:r
+    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    F = Spec(R_fiber)
+    ambient_space, pF, pY = product(F, Y)
+    push!(U, ambient_space)
+    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
+    pU[ambient_space] = pY
+  end
+  result = Covering(U)
+  set_decomposition_info!(result, decomp_info)
+  for i in 1:r
+    for j in i+1:r+1
+      x = ambient_coordinates(U[i])
+      y = ambient_coordinates(U[j])
       Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
       Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
       f = SpecMor(Ui, Uj,
@@ -206,6 +311,7 @@ end
   set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
+
 
 ########################################################################
 # Methods for CoveringMorphism                                         #
@@ -410,6 +516,15 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              BaseMorType
             }
     ff = CoveredSchemeMorphism(X, Y, f)
+    if has_decomposition_info(codomain(f))
+      for U in patches(domain(f))
+        floc = f[U]
+        phi = pullback(floc)
+        V = codomain(floc)
+        g = Vector{elem_type(OO(V))}(decomposition_info(codomain(f))[V])
+        set_decomposition_info!(domain(f), U, Vector{elem_type(OO(U))}(phi.(g)))
+      end
+    end
     #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
     return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
   end
@@ -448,8 +563,8 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
     end
   end
 
-  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=check))
-  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=check)
-  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=check)
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=false))
+  cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=false)
+  return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
 end
 

@@ -2,7 +2,7 @@ import Oscar: GAPWrap
 
 function test_iso_oscar_gap(LO::LieAlgebra; num_random_tests::Int=10)
   iso = Oscar.iso_oscar_gap(LO)
-  @test domain(iso) == LO
+  @test domain(iso) === LO
   LG = codomain(iso)
   @test GAPWrap.IsLieAlgebra(LG)
   # @test codomain(Oscar.iso_gap_oscar(LG)) === LO

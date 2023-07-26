@@ -5,8 +5,6 @@ export order_on_divisor
 export scheme
 export subscheme
 
-export show_details
-
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -24,6 +22,29 @@ in every chart.
 ``f : X → Y``, what is actually computed, is ``f⁻¹ ℐ ⋅ 𝒪_{X}``. 
 To obtain the pullback of ``ℐ`` as a sheaf of modules (i.e. ``f* ℐ``), 
 convert ``ℐ`` into a `CoherentSheaf` on ``Y``, first.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P)
+Projective space of dimension 2
+  over rational field
+with homogeneous coordinates [x, y, z]
+
+julia> IdealSheaf(Y, I)
+Sheaf of ideals
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
+    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
+    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+with restrictions
+  1: ideal(-(y//x)^2*(z//x) + 1)
+  2: ideal((x//y)^3 - (z//y))
+  3: ideal((x//z)^3 - (y//z)^2)
+```
 """
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
@@ -47,8 +68,8 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
+  for U in patches(C)
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
@@ -126,7 +147,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
 on one affine open subset ``U`` among the `basic_patches` of the 
@@ -136,11 +157,17 @@ on one affine open subset ``U`` among the `basic_patches` of the
 of ``X`` since otherwise, the extension of the ideal sheaf to other 
 charts can not be inferred. 
 """
-function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
+function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
-  U in patches(C) || error("the affine open patch does not belong to the covering")
   for f in g
     parent(f) === OO(U) || error("the generators do not belong to the correct ring")
+  end
+  if !any(x->x===U, patches(C))
+    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+    U_flat = codomain(inc_U_flat)::PrincipalOpenSubset
+    V = ambient_scheme(U_flat)
+    J = saturated_ideal(pullback(inverse(inc_U_flat))(ideal(OO(U), g)))
+    return IdealSheaf(X, V, OO(V).(gens(J)))
   end
   D = IdDict{AbsSpec, Ideal}()
   D[U] = ideal(OO(U), g)
@@ -149,7 +176,7 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   return I
 end
 
-ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme, 
@@ -246,6 +273,8 @@ set of random linear combinations in every affine patch.
 """
 function simplify!(I::IdealSheaf)
   for U in basic_patches(default_covering(space(I)))
+    Oscar.object_cache(underlying_presheaf(I))[U] = ideal(OO(U), small_generating_set(I(U)))
+    #=
     n = ngens(I(U)) 
     n == 0 && continue
     R = ambient_coordinate_ring(U)
@@ -261,6 +290,7 @@ function simplify!(I::IdealSheaf)
       K = ideal(OO(U), new_gens)
     end
     Oscar.object_cache(underlying_presheaf(I))[U] = K 
+    =#
   end
   return I
 end
@@ -276,6 +306,7 @@ function subscheme(I::IdealSheaf)
   C = default_covering(X)
   new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
   new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
   for (U, V) in keys(glueings(C))
     i = C[U]
     j = C[V]
@@ -290,6 +321,15 @@ function subscheme(I::IdealSheaf)
     new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
   end
   Cnew = Covering(new_patches, new_glueings, check=false)
+
+  # Inherit decomposition information if applicable
+  if has_decomposition_info(C)
+    for k in 1:length(new_patches)
+      U = new_patches[k]
+      V = basic_patches(C)[k]
+      set_decomposition_info!(Cnew, U, elem_type(OO(U))[OO(U)(a, check=false) for a in decomposition_info(C)[V]])
+    end
+  end
   return CoveredScheme(Cnew)
 end
 
@@ -311,38 +351,104 @@ on which ``I`` had already been described.
 Note that the covering `C` is not modified.  
 """
 function extend!(
-    C::Covering, D::IdDict{AbsSpec, Ideal}
+    C::Covering, D::IdDict{AbsSpec, Ideal};
+    all_dense::Bool=false
   )
-  gg = glueing_graph(C)
+  all(x->any(y->x===y, patches(C)), keys(D)) || error("ideals must be given on the `patches` of the covering")
   # push all nodes on which I is known in a heap
-  dirty_patches = collect(keys(D))
-  while length(dirty_patches) > 0
-    U = pop!(dirty_patches)
-    N = neighbor_patches(C, U)
-    Z = subscheme(U, D[U])
-    for V in N
-      # check whether this node already knows about D
-      haskey(D, V)  && continue
+  visited = collect(keys(D))
+  # The nodes which can be used for extension
+  fat = AbsSpec[U for U in visited if !isone(D[U])]
+  # Nodes which are leafs
+  flat = AbsSpec[U for U in visited if isone(D[U])]
+  # Nodes to which we might need to extend
+  leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
+  # Nodes to which we can extend in one step
+  neighbors = AbsSpec[U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  # All other nodes
+  leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
+  while length(neighbors) > 0
+    good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
+    for V in neighbors
+      for U in fat
+        G = C[U, V]
+        if (G isa SimpleGlueing || (G isa LazyGlueing && is_computed(G)))
+          push!(good_pairs, (U, V))
+        end
+      end
+    end
+
+    # Initialize some variables
+    U = first(visited) # The visited node
+    V = first(visited) # The neighboring node for which we do the extension
+    if !isempty(good_pairs)
+      # In case we find a good neighboring pair, use that
+      (U, V) = first(good_pairs)
+    else
+      # If there is no good neighboring pair, compute a new glueing
+      V = first(neighbors)
+      k = findfirst(U->haskey(glueings(C), (U, V)), fat)
+      U = fat[k]
+    end
+    f, _ = glueing_morphisms(C[V, U])
+    if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+
+      # Take a shortcut if possible
+      _, UV = glueing_domains(C[V, U])
+      if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
+        D[V] = ideal(OO(V), one(OO(V)))
+        # Register this patch as a leaf
+        push!(flat, V)
+        # Update the neighbors
+        neighbors = [W for W in neighbors if !(W===V)]
+        continue
+      end
 
       # if not, extend D to this patch
       f, _ = glueing_morphisms(C[V, U])
+      pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
+      J = ideal(OO(V), lifted_numerator.(pbI_gens))
+      #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
+      J_sat = _iterative_saturation(J, lifted_numerator(complement_equation(domain(f))))
+      D[V] = J_sat
+    else 
+      Z = subscheme(U, D[U])
       pZ = preimage(f, Z, check=false)
-      ZV = closure(pZ, V)
-      D[V] = ideal(OO(V), gens(saturated_ideal(modulus(OO(ZV)))))
-      V in dirty_patches || push!(dirty_patches, V)
+      ZV = closure(pZ, V, check=false)
+      D[V] = ideal(OO(V), [g for g in OO(V).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)])
+    end
+
+    # Update the neighbors
+    neighbors = [W for W in neighbors if !(W===V)]
+    # Put that new node in the correct list
+    if isone(D[V])
+      push!(flat, V)
+    else
+      push!(fat, V)
+      for W in leftover
+        if haskey(glueings(C), (V, W))
+          push!(neighbors, W)
+        end
+      end
+      leftover = [W for W in leftover if !any(x->x===W, neighbors)]
     end
   end
   for U in basic_patches(C) 
     if !haskey(D, U)
-      D[U] = ideal(OO(U), zero(OO(U)))
+      D[U] = ideal(OO(U), one(OO(U)))
     end
   end
   return D
 end
 
-#function Base.show(io::IO, I::IdealSheaf)
-#  print(io, "sheaf of ideals on $(space(I))")
-#end
+function _iterative_saturation(I::Ideal, f::RingElem)
+  fac = factor(f)
+  R = base_ring(I)
+  for (u, k) in fac
+    I = saturation(I, ideal(R, u))
+  end
+  return I
+end
 
 function ==(I::IdealSheaf, J::IdealSheaf)
   I === J && return true
@@ -429,8 +535,63 @@ end
 #end
 #
 
-function is_prime(I::IdealSheaf) 
-  return all(U->is_prime(I(U)), basic_patches(default_covering(space(I))))
+function is_one(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
+  return get_attribute!(I, :is_one) do
+    return all(x->isone(I(x)), covering)
+  end::Bool
+end
+
+@doc raw"""
+    is_prime(I::IdealSheaf) -> Bool
+
+Return whether ``I`` is prime.
+
+We say that a sheaf of ideals is prime if its support is irreducible and
+``I`` is locally prime. (Note that the empty set is not irreducible.)
+"""
+@attr function is_prime(I::IdealSheaf)
+  is_locally_prime(I) || return false
+  # TODO: this can be made more efficient
+  PD = maximal_associated_points(I)
+  return length(PD)==1
+end
+
+@doc raw"""
+    is_locally_prime(I::IdealSheaf) -> Bool
+
+Return whether ``I`` is locally prime.
+
+A sheaf of ideals $\mathcal{I}$ is locally prime if its stalk $\mathcal{I}_p$
+at every point $p$ is one or prime.
+"""
+@attr Bool function is_locally_prime(I::IdealSheaf)
+  return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
+end
+
+function is_equidimensional(I::IdealSheaf; covering=default_covering(scheme(I)))
+  local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
+  length(local_dims) == 0 && return true # This only happens if I == OO(X)
+  d = first(local_dims)
+  all(x->x==d, local_dims) || return false
+  all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
+  return true
+end
+
+function is_equidimensional(I::MPolyIdeal)
+  decomp = equidimensional_decomposition_weak(I)
+  return isone(length(decomp))
+end
+
+function is_equidimensional(I::MPolyQuoIdeal)
+  is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyLocalizedIdeal)
+  return is_equidimensional(saturated_ideal(I))
+end
+
+function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+  return is_equidimensional(pre_image_ideal(I))
 end
 
 function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
@@ -466,9 +627,8 @@ function order_on_divisor(
     I::IdealSheaf;
     check::Bool=true
   )
-  if check
-    is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
-  end
+  @check is_prime(I) "ideal sheaf must be a sheaf of prime ideals"
+
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
   
@@ -483,26 +643,34 @@ function order_on_divisor(
   complexity = inf
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
-    one(base_ring(I(U))) in I(U) && continue
+    is_one(I(U)) && continue
     tmp = sum([total_degree(lifted_numerator(g)) for g in gens(I(U)) if !iszero(g)]) # /ngens(Oscar.pre_image_ideal(I(U)))
-    if tmp < complexity 
+    if tmp < complexity
       complexity = tmp
       V = U
     end
   end
+  flag = false
   if complexity == inf
-    error("divisor is empty")
+    for U in X[1]
+      is_one(I(U)) && continue
+      # no chart has been computed, so we just take the first one
+      flag = true
+      V = U
+      break
+    end
+    flag || error("divisor is empty")
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
+  K = ambient_closure_ideal(V)
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))
 
-
   # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
-  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, aR), J)))[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
   return num_mult - den_mult
 #    # Deprecated code computing symbolic powers explicitly:
 #    L, map = Localization(OO(U), 
@@ -577,41 +745,62 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::IdealSheaf)
+function maximal_associated_points(I::IdealSheaf; covering=default_covering(scheme(I)))
+  !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
 
-  charts_todo = copy(affine_charts(X))            ## todo-list of charts
+  charts_todo = copy(patches(covering))           ## todo-list of charts
 
   associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
                                                   ## may not yet contain all relevant charts. but
                                                   ## at least one for each identified component
 
-# run through all charts and try to match the components
+  result = IdealSheaf[]
+  # run through all charts and try to match the components
   while length(charts_todo) > 0
+    @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
     U = pop!(charts_todo)
+    J = I(U)
+    # Do a quick check whether we even need to worry about this chart
+    if has_decomposition_info(covering)
+      J = J + ideal(OO(U), Vector{elem_type(OO(U))}(decomposition_info(covering)[U]))
+      isone(J) && continue
+    end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     components_here = minimal_primes(I(U))
+    if has_decomposition_info(covering)
+      # We only need those components which are located at the locus presrcibed by the 
+      # decomposition_info in this chart
+      components_here = [ C for C in components_here if all(g->g in C, decomposition_info(covering)[U])]
+      result = vcat(result, [IdealSheaf(X, U, gens(C)) for C in components_here])
+      continue
+    else
+      ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
+      for comp in components_here
+        matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
+        nmatches = length(matches)
 
-## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for comp in components_here
-      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
-      nmatches = length(matches)
-
-      if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
-        add_dict[U] = comp                         ## and fill it
-        push!(associated_primes_temp, add_dict)
-      elseif nmatches == 1                         ## unique match, update it
-        component_index = matches[1]
-        associated_primes_temp[component_index][U] = comp
-      else                                                ## more than one match, form union
-        target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = comp
+        if nmatches == 0                             ## not found
+          add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+          add_dict[U] = comp                         ## and fill it
+          push!(associated_primes_temp, add_dict)
+        elseif nmatches == 1                         ## unique match, update it
+          component_index = matches[1]
+          associated_primes_temp[component_index][U] = comp
+        else                                                ## more than one match, form union
+          target_comp = pop!(matches)
+          merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+          deleteat!(associated_primes_temp,matches)
+          associated_primes_temp[target_comp][U] = comp
+        end
       end
     end
+  end
+
+  # In case we could use the decomposition info, quit here.
+  if has_decomposition_info(covering)
+    return result
   end
 
 # fill the gaps arising from a support not meeting a patch
@@ -642,6 +831,7 @@ If ``U = Spec(A)`` is an affine open on a locally noetherian scheme ``X``, ``x \
 
 """
 function associated_points(I::IdealSheaf)
+  !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
   charts_todo = copy(affine_charts(X))            ## todo-list of charts
@@ -694,13 +884,12 @@ end
 function match_on_intersections(
       X::AbsCoveredScheme,
       U::AbsSpec,
-      I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
-      associated_list::Vector{IdDict{AbsSpec,Ideal}},
+      I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
+      associated_list::Vector{<:IdDict{<:AbsSpec, <:Ideal}},
       check::Bool=true)
-
+  @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
   OOX = OO(X)
-
 # run through all components in associated_list and try to match up I
   for i in 1:length(associated_list)
     match_found = false
@@ -710,19 +899,33 @@ function match_on_intersections(
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
       VU, UV = glueing_domains(G)
-      I_res = OOX(U,UV)(I)
-      IV_res = OOX(V,UV)(IV)
-      if (I_res == IV_res)
-        match_found = !is_one(I_res)                               ## count only non-trivial matches
-        check || break
+      if UV isa SpecOpen && VU isa SpecOpen
+        I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
+        IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
+        if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
+          match_found = !all(I->is_one(I), I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
+      elseif UV isa AbsSpec && VU isa AbsSpec
+        I_res = OOX(U,UV)(I)
+        IV_res = OOX(V,UV)(IV)
+        if (I_res == IV_res)
+          match_found = !is_one(I_res)                               ## count only non-trivial matches
+          check || break
+        else
+          match_contradicted = true
+          check || break
+        end
       else
-        match_contradicted = true
-        check || break
+        error("case not implemented")
       end
     end
 
 ## make sure we are working on consistent data
-    if check
+   @check begin
       if match_found && match_contradicted
         error("contradictory matching result!!")                     ## this should not be reached for ass. points
       end
@@ -802,31 +1005,197 @@ end
 
 ###########################################################################
 ## show functions for Ideal sheaves
-########################################################################### 
-function Base.show(io::IO, I::IdealSheaf)
-    X = scheme(I)
+###########################################################################
 
-  # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts")
+# If we know things about the ideal sheaf, we print them
+function Base.show(io::IO, I::IdealSheaf, show_scheme::Bool = true)
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+  elseif get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    if get_attribute(I, :is_one, false)
+      print(io, "Sheaf of unit ideals")
+    elseif z
+      print(io, "Sheaf of zero ideals")
+    elseif prim
+      print(io, "Sheaf of prime ideals")
+    else
+      print(io, "Sheaf of ideals")
+    end
+    if show_scheme
+      print(io," on ", Lowercase(), X)
+    end
+  end
 end
 
-function show_details(I::IdealSheaf)
-   show_details(stdout,I)
+# This semi compact printing is used for nested printings, like in blow-up or
+# for the description of Cartier divisors and algebraic cycles.
+#
+# We want to keep track of a given covering `voc`, for everything to be consistent. In
+# case we may have several charts in the nest, we want to make sure to follow-up
+# with the labels. Hence the string `n` allows one to do this.
+# Usually, in morphisms printing, one would take "a" for the domain's charts
+# and "b" for the codomain's ones.
+#
+# We take also care of left offsets when printing the labels - if there are more
+# than 10 charts, this is necessary to have all the labels aligned on the right
+function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), n::String = "")
+  io = pretty(io)
+  X = scheme(I)
+  if has_attribute(I, :dim) && has_attribute(X, :dim)
+    z = dim(X) - dim(I) == 0 ? true : false
+  else
+    z = false
+  end
+  prim = get_attribute(I, :is_prime, false)
+
+  if get_attribute(I, :is_one, false)
+    print(io, "Sheaf of unit ideals")
+  elseif z
+    print(io, "Sheaf of zero ideals")
+  else
+    # If there is a simplified covering, use it!
+    if prim
+      print(io, "Sheaf of prime ideals")
+    else
+      print(io, "Sheaf of ideals")
+    end
+    if length(cov) > 0
+      l = ndigits(length(cov))
+      print(io, " with restriction")
+      length(cov) > 1 && print(io, "s")
+      print(io, Indent())
+      for (i, U) in enumerate(patches(cov))
+        li = ndigits(i)
+        println(io)
+        print(io, " "^(l-li)*"$i"*n*": $(I(U))")
+      end
+      print(io, Dedent())
+    end
+  end
 end
 
-function show_details(io::IO, I::IdealSheaf)
+function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))))
+  io = pretty(io)
   X = scheme(I)
 
   # If there is a simplified covering, use it!
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  n = npatches(covering)
-  println(io,"Ideal Sheaf on Covered Scheme with ",n," Charts:\n")
-
-  for (i,U) in enumerate(patches(covering))
-    println(io,"Chart $i:")
-    println(io,"   $(I(U))")
-    println(io," ")
+  println(io, "Sheaf of ideals")
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, scheme(I), cov)
+  if length(cov) > 0
+    l = ndigits(length(cov))
+    println(io)
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for (i, U) in enumerate(patches(cov))
+      li = ndigits(i)
+      println(io)
+      print(io, " "^(l-li)*"$i: $(I(U))")
+    end
+    print(io, Dedent())
   end
+end
+
+function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Covering=default_covering(scheme(first(comp))))
+  isempty(comp) && error("list of components must not be empty")
+  X = scheme(first(comp))
+  all(x->scheme(x) === X, comp) || error("components must be defined over the same scheme")
+  isone(length(comp)) && return covering
+  new_patches = Vector{AbsSpec}()
+  for U in patches(covering) 
+    isempty(U) && continue
+    loc_comp = [I(U) for I in comp]
+    loc_comp = [a for a in loc_comp if !isone(a)]
+    if isempty(loc_comp) || isone(length(loc_comp))
+      push!(new_patches, U)
+      continue
+    end
+    cof = _cofactors(loc_comp)
+    if isempty(cof)
+      push!(new_patches, U)
+    else
+      new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
+    end
+  end
+  new_cov = Covering(new_patches)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+function _cofactors(comp::Vector{<:Ideal})
+  R = base_ring(first(comp))
+  all(x->base_ring(x)===R, comp) || error("ideals must be defined over the same ring")
+  n = length(comp)
+  pairwise_cof = one(MatrixSpace(R, n, n))
+  for i in 1:n-1
+    for j in i+1:n
+      I = ideal(R, vcat(gens(comp[i]), gens(comp[j])))
+      r = ngens(comp[i])
+      s = ngens(comp[j])
+      z = coordinates(one(R), I)
+      x = z isa MatElem ? [z[1, k] for k in 1:r] : z[1:r]
+      y = z isa MatElem ? [z[1, r+k] for k in 1:s] : z[r+1:r+s]
+      pairwise_cof[i, j] = sum(x[k]*gen(comp[i], k) for k in 1:r; init=zero(R))
+      pairwise_cof[j, i] = sum(y[k]*gen(comp[j], k) for k in 1:s; init=zero(R))
+    end
+  end
+  result = [prod(pairwise_cof[1:n, i]) for i in 1:n]
+  return result
+end
+
+function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf})
+  new_patches2 = Vector{AbsSpec}()
+  patches_todo = copy(patches(covering))
+  for P in comp
+    # Find one patch in which this component is supported
+    i = findfirst(U->!isone(P(U)), patches_todo)
+    U = patches_todo[i]
+    # Take this patch out of the list
+    deleteat!(patches_todo, i)
+    # Add it to the list of patches for the new covering
+    push!(new_patches2, U)
+    # For every other patch V in which P appears we do the following:
+    # Replace V by the complement of the support of P.
+    # This will not be affine in general, but can be covered by hypersurface 
+    # complements. Even though this may lead to many charts, they will be harmless
+    # in the mext blowup.
+    done = Int[]
+    for (j, V) in enumerate(patches_todo)
+      # Check whether P is visible in this patch; if not leave it
+      isone(P(V)) && continue
+      # Remember this patch to be done 
+      push!(done, j)
+      sg = small_generating_set(P(V))
+      new_patches2 = append!(new_patches2, [PrincipalOpenSubset(V,a) for a in sg])
+      # TODO: Cache that P = 1 on all these new patches?
+    end
+    deleteat!(patches_todo, done)
+  end
+  new_patches2 = append!(new_patches2, patches_todo)
+  new_cov = Covering(new_patches2)
+  inherit_glueings!(new_cov, covering)
+  return new_cov
+end
+
+@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
+end
+
+@attr Vector{<:MPolyLocRingElem} function small_generating_set(I::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  g = small_generating_set(saturated_ideal(I))
+  return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end

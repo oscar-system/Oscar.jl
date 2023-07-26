@@ -78,9 +78,8 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSem
         error("Tropical hypersurfaces of constant polynomials not supported.")
     end
     M = convention(base_ring(f))
-    fstr = Tuple(tropical_polynomial_to_polymake(f))
-    pmpoly = Polymake.common.totropicalpolynomial(fstr...)
-    pmhypproj = Polymake.tropical.Hypersurface{M}(POLYNOMIAL=pmpoly)
+    coeffs, exps = homogenize_and_convert_to_pm(f)
+    pmhypproj = Polymake.tropical.Hypersurface{M}(MONOMIALS=exps, COEFFICIENTS=coeffs)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
     Vf = TropicalHypersurface{M, true}(polyhedral_complex(pmhyp))
     w = pmhypproj.WEIGHTS
@@ -237,7 +236,7 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
         error("tropical hypersurface not embedded")
     end
 
-    return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
+    return subdivision_of_points(pm_object(TH).DUAL_SUBDIVISION)
 end
 
 

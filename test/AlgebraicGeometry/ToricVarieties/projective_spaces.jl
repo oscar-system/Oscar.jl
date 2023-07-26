@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "(Weighted) projective spaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     P2 = projective_space(NormalToricVariety, 2; set_attributes)

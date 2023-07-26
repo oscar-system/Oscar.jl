@@ -98,7 +98,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
 
   right_action_by_M = (f::MPolyRingElem{T}) -> evaluate(f, vars)
 
-  return MapFromFunc(right_action_by_M, R, R)
+  return MapFromFunc(R, R, right_action_by_M)
 end
 
 right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
@@ -111,7 +111,7 @@ function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
 
   right_action_by_p = (f::MPolyRingElem{T}) -> on_indeterminates(f, p)
 
-  return MapFromFunc(right_action_by_p, R, R)
+  return MapFromFunc(R, R, right_action_by_p)
 end
 
 right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
@@ -138,7 +138,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  IR.reynolds_operator = MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
   return IR.reynolds_operator
 end
 
@@ -264,7 +264,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
 end
 
 @doc raw"""
@@ -315,8 +315,8 @@ julia> x = gens(R);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -446,8 +446,8 @@ julia> R = invariant_ring(QQ, S2);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -483,17 +483,12 @@ basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(I
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)
   n = degree(G)
-  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{QQFieldElem, ZZRingElem, nf_elem}
-    Gp, GtoGp = isomorphic_group_over_finite_field(G)
-  else
-    Gp, GtoGp = (G, id_hom(G))
-  end
   K = coefficient_ring(I)
   Kt, _ = polynomial_ring(K, "t", cached = false)
-  C = conjugacy_classes(Gp)
+  C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
-    g = (GtoGp\(representative(c)))::elem_type(G)
+    g = representative(c)
     if g isa MatrixGroupElem
       f = charpoly(Kt, g.elm)
     elseif g isa PermGroupElem
@@ -503,7 +498,7 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
     end
     res = res + length(c)::ZZRingElem * 1//reverse(f)
   end
-  res = divexact(res, order(Gp)::ZZRingElem)
+  res = divexact(res, order(ZZRingElem, G))
   num = change_coefficient_ring(coefficient_ring(S),
                                 numerator(res), parent = S)
   den = change_coefficient_ring(coefficient_ring(S),
@@ -578,8 +573,8 @@ julia> IR = invariant_ring(QQ, S2);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)

@@ -39,19 +39,20 @@ end
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
+  fiber_ambient_space::AbsCoveredScheme
   hypersurface_equation::MPolyRingElem
-  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, hypersurface_equation)
+  HypersurfaceModel(base_space::AbsCoveredScheme, ambient_space::AbsCoveredScheme, fiber_ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, fiber_ambient_space, hypersurface_equation)
 end
 
 
-@attributes mutable struct GlobalWeierstrassModel
+@attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
   weierstrass_f::MPolyRingElem
   weierstrass_g::MPolyRingElem
   weierstrass_polynomial::MPolyRingElem
   base_space::AbsCoveredScheme
   ambient_space::AbsCoveredScheme
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalWeierstrassModel(weierstrass_f::MPolyRingElem,
+  function WeierstrassModel(weierstrass_f::MPolyRingElem,
                             weierstrass_g::MPolyRingElem,
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::AbsCoveredScheme,
@@ -61,7 +62,7 @@ end
 end
 
 
-@attributes mutable struct GlobalTateModel
+@attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
   tate_a1::MPolyRingElem
   tate_a2::MPolyRingElem
   tate_a3::MPolyRingElem
@@ -100,6 +101,6 @@ end
   # do something
 end
 
-@attr HypersurfaceModel function conceptual_parent(gwm::GlobalWeierstrassModel)
+@attr HypersurfaceModel function conceptual_parent(gwm::WeierstrassModel)
   # do something
 end

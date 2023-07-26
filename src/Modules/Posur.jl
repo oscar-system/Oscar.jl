@@ -475,7 +475,7 @@ function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocaliz
     # # generator_matrix(M).
     # result = S(one(R), d_u)*(yc*Tr) 
     # return sparse_row(result)
-    return S(one(R), d_u)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
+    return S(one(R), d_u, check=false)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
                                                pre_saturation_data_gens(M))
   end
 

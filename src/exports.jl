@@ -30,9 +30,10 @@ export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
 export AffineVariety
+export affine_halfspace
+export affine_hyperplane
 export affine_normal_toric_variety
-export affine_variety
-export affine_algebraic_set
+export algebraic_set
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BorcherdsCtx
@@ -75,9 +76,11 @@ export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
 export Halfspace
+export halfspace
 export Hecke
 export HilbertData
 export Hyperplane
+export hyperplane
 export IncidenceMatrix
 export K3Chamber
 export K3_surface_automorphism_group
@@ -86,6 +89,8 @@ export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
+export linear_halfspace
+export linear_hyperplane
 export Localization
 export MPolyComplementOfKPointIdeal
 export MPolyComplementOfPrimeIdeal
@@ -312,6 +317,7 @@ export circuits
 export class_group
 export class_lengths
 export class_multiplication_coefficient
+export class_names
 export class_parameters
 export class_positions_of_center
 export class_positions_of_kernel
@@ -326,6 +332,7 @@ export codim
 export codomain
 export codomain_covering
 export codomain_type
+export coefficient_field
 export coefficient_ring
 export coefficients
 export coefficients_and_exponents
@@ -405,6 +412,7 @@ export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
 export data
+export decide_du_val_singularity
 export decomposition_matrix
 export decorate
 export decoration
@@ -488,6 +496,7 @@ export exponents
 export ext
 export extension_field
 export exterior_power
+export expand
 export f_vector
 export face_fan
 export faces
@@ -499,6 +508,8 @@ export factorisations
 export fan
 export fano_matroid
 export fano_simplex
+export fat_ideal
+export fat_scheme
 export feasible_region
 export fglm
 export fiber_product
@@ -566,6 +577,7 @@ export graded_polynomial_ring
 export grading
 export grading_group
 export graph
+export graph_from_adjacency_matrix
 export grassmann_pluecker_ideal
 export grid_morphism
 export groebner_basis
@@ -582,6 +594,7 @@ export halfspace_matrix_pair
 export hall_subgroup
 export hall_subgroup_reps
 export hall_system, has_hall_system, set_hall_system
+export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
@@ -684,7 +697,7 @@ export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
 export is_almostsimple, has_is_almostsimple, set_is_almostsimple
-export is_alternating_form
+export is_alternating
 export is_ample
 export is_basepoint_free
 export is_basic_serialization_type
@@ -712,6 +725,7 @@ export is_degenerate
 export is_dense
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
 export is_duplicate_table
+export is_du_val_singularity
 export is_effective
 export is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian
 export is_elimination_ordering
@@ -738,8 +752,6 @@ export is_global
 export is_gorenstein
 export is_graded
 export is_groebner_basis
-export is_hermitian_form
-export is_hermitian_matrix
 export is_homogeneous
 export is_identity_map
 export is_injective
@@ -752,6 +764,7 @@ export is_irreducible
 export is_isomorphic
 export is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group
 export is_isomorphic_with_map
+export is_isomorphic_with_permutation
 export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
@@ -790,7 +803,6 @@ export is_projective_space
 export is_pure
 export is_q_cartier
 export is_q_gorenstein
-export is_quadratic_form
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
@@ -803,7 +815,6 @@ export is_semisimple
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
-export is_skewsymmetric_matrix
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
@@ -814,7 +825,6 @@ export is_strongly_connected
 export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
-export is_symmetric_form
 export is_ternary
 export is_total
 export is_transitive
@@ -982,6 +992,7 @@ export name
 export names_of_fusion_sources
 export natural_character
 export ne
+export nedges
 export nef_cone
 export negbias
 export negdeglex
@@ -1056,7 +1067,9 @@ export orbits
 export order, has_order, set_order
 export orders_centralizers
 export orders_class_representatives
+export order_field_of_definition
 export orders_perfect_groups
+export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
@@ -1071,7 +1084,7 @@ export pc_group
 export pcore
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
-export perles_irrational_8_polytope
+export perles_nonrational_8_polytope
 export perm
 export permutahedron
 export permutation
@@ -1132,8 +1145,6 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
-export projective_variety
-export projective_algebraic_set
 export pullback
 export pullback_type
 export pyramid
@@ -1218,6 +1229,7 @@ export saturation_with_index
 export save
 export save_lp
 export save_mps
+export metadata
 export scalar_product
 export scheme
 export schur_index
@@ -1329,6 +1341,7 @@ export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
+export transform
 export transition_graph
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
@@ -1366,10 +1379,11 @@ export valuation_of_roots
 export valued_weighted_degree
 export vamos_matroid
 export vanishing_sets
-export vanishing_locus
 export vanishing_ideal
-export vdim
+export variety
 export vector_matrix
+export vector_space_basis
+export vector_space_dimension
 export vertex_and_ray_indices
 export vertex_indices
 export vertexindices

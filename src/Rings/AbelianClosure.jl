@@ -89,12 +89,12 @@ or slower.
 julia> K, z = abelian_closure(QQ);
 
 julia> z(36)
-z(36)
+zeta(36)
 
 julia> K, z = abelian_closure(QQ, sparse = true);
 
 julia> z(36)
--z(36, 9)*z(36, 4)^4 - z(36, 9)*z(36, 4)
+-zeta(36, 9)*zeta(36, 4)^4 - zeta(36, 9)*zeta(36, 4)
 
 ```
 """
@@ -157,7 +157,7 @@ function _variable(K::QQAbField)
     if Oscar.is_unicode_allowed()
       return "ζ"
     else
-      return "z"
+      return "zeta"
     end
   end
 end

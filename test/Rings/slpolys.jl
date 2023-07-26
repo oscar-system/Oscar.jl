@@ -1,5 +1,7 @@
 using Oscar: SLPolynomialRing
 
+const SLP = Oscar.StraightLinePrograms
+
 replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
 
 @testset "LazyPolyRing" begin

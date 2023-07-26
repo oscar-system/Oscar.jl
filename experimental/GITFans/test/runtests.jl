@@ -20,7 +20,7 @@
     Qt, T = polynomial_ring(QQ, :T => 1:n)
     D = free_abelian_group(ncols(Q))
     w = [D(Q[i, :]) for i = 1:n]
-    R = grade(Qt, w)
+    R, T = grade(Qt, w)
     a = ideal([
         T[5]*T[10] - T[6]*T[9] + T[7]*T[8],
         T[1]*T[9]  - T[2]*T[7] + T[4]*T[5],
@@ -52,7 +52,10 @@
            BitSet([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
            BitSet([1])]
 
-    intergraph = Polymake.graph.graph_from_edges(collect(edges));
+    orbit_graph = Graph{Undirected}(length(hash_list));
+    [add_edge!(orbit_graph, e...) for e in edges];
+    # The following works in an interactive session.
+    # visualize(orbit_graph)
 
     expanded = GITFans.orbits_of_maximal_GIT_cones(orbit_list, hash_list, matrix_action);
     orbit_lengths = map(length, expanded)
@@ -62,10 +65,25 @@
     full_edges = GITFans.edges_intersection_graph(maxcones, size(Q, 2) - 1);
     @test length(full_edges) == 180
 
-    full_intergraph = Polymake.graph.graph_from_edges(collect(full_edges));
+    full_graph = Graph{Undirected}(length(maxcones));
+    [add_edge!(full_graph, e...) for e in full_edges];
+    # The following works in an interactive session.
+    # visualize(full_graph)
 
     fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
+
+    # Inspect the fan object.
     @test f_vector(fanobj) == [20, 110, 240, 225, 76]
+    c = cones(fanobj, 5)[1]
+    @test nrays(fanobj) == 20
+    @test dim(fanobj) == 5
+    @test n_maximal_cones(fanobj) == 76
+    @test n_cones(fanobj) == 671
+    @test !is_complete(fanobj)
+    @test is_pointed(fanobj)
+    @test !is_regular(fanobj)
+    @test !is_simplicial(fanobj)
+    @test !is_smooth(fanobj)
 
 #   # Now try the construction with trivial symmetry group (takes longer).
 #   G2 = trivial_subgroup(G)[1]

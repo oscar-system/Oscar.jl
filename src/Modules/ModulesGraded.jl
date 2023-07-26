@@ -1044,9 +1044,7 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of
-GrpAb: Z
-with components [5]
+Element of Z with components [5]
 
 julia> degree(Int, m)
 5
@@ -1130,9 +1128,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> degree(a)
-Element of
-GrpAb: Z
-with components [2]
+Element of Z with components [2]
 ```
 """
 function degree(f::SubQuoHom)
@@ -1644,6 +1640,11 @@ function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
   return forget_decoration(F) == forget_decoration(G) && F.d == G.d
 end
 
+function Base.hash(F::FreeMod_dec, h::UInt)
+  b = 0x13d6e1b453cb661a % UInt
+  return xor(hash(forget_decoration(F), hash(F.d, h)), b)
+end
+
 ###############################################################################
 # FreeModElem_dec constructors
 ###############################################################################
@@ -1872,7 +1873,7 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   if task == :none
     return F
   end
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 
@@ -1919,7 +1920,7 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
     return FreeModElem_dec(undecorated_v, GH)
   end
 
-  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = MapFromFunc(GH, X, im, pre)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end

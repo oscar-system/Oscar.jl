@@ -3,27 +3,27 @@
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
-   @test is_skewsymmetric_matrix(B)
+   @test is_alternating(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
    @test !is_symmetric(B)
-   @test !is_hermitian_matrix(B)
-   @test is_alternating_form(f)
-   @test !is_quadratic_form(f)
-   @test !is_symmetric_form(f)
-   @test !is_hermitian_form(f)
+   @test !is_hermitian(B)
+   @test is_alternating(f)
+   @test !is_quadratic(f)
+   @test !is_symmetric(f)
+   @test !is_hermitian(f)
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
-   @test is_hermitian_matrix(B)
+   @test is_hermitian(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test is_hermitian_form(f)
+   @test is_hermitian(f)
    @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
@@ -35,8 +35,8 @@
    f = symmetric_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test is_symmetric_form(f)
-   @test !is_hermitian_form(f)
+   @test is_symmetric(f)
+   @test !is_hermitian(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
    R = polynomial_ring(F,4)[1]
@@ -61,9 +61,9 @@
    R,x = polynomial_ring(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
-   @test is_quadratic_form(Q)
+   @test is_quadratic(Q)
    f = corresponding_bilinear_form(Q)
-   @test is_symmetric_form(f)
+   @test is_symmetric(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
    T,t = polynomial_ring(GF(2),"t")
@@ -71,10 +71,10 @@
    R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
-   @test is_quadratic_form(Q)
+   @test is_quadratic(Q)
    @test gram_matrix(Q)==matrix(F,4,4,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
    f = corresponding_bilinear_form(Q)
-   @test is_alternating_form(f)
+   @test is_alternating(f)
    @test gram_matrix(f)==matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
    @test_throws ArgumentError corresponding_quadratic_form(f)
 
@@ -129,7 +129,7 @@ end
    f = symmetric_form(x+transpose(x))
    @test radical(f)[1]==sub(V,[V[1],V[2]])[1]
    @test f*F(3)==F(3)*f;
-   @test is_symmetric_form(f*F(3))
+   @test is_symmetric(f*F(3))
    @test gram_matrix(f*F(3))==F(3)*(x+transpose(x))
    @test is_degenerate(f)
    x[1,2]=1;
@@ -473,7 +473,7 @@ end
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test is_skewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+      @test is_alternating(g.elm*B*transpose(g.elm)-B)
    end
 
    G = GU(4,5)

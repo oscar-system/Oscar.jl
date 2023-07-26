@@ -288,10 +288,7 @@ false
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
-Element of
-(General) abelian group with relation matrix
-[1 -1]
-with components [0 1]
+Element of G with components [0 1]
 
 julia> W = [g, g, g, g];
 
@@ -570,7 +567,7 @@ parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, paren
 
 ### Coercion of elements of the underlying polynomial ring 
 # into the graded ring. 
-function (W::MPolyDecRing{S, T})(f::U) where {S, T, U}
+function (W::MPolyDecRing{S, T})(f::U) where {S, T, U<:MPolyRingElem}
   if parent_type(U) === T
     @assert forget_decoration(W) === parent(f)
     return MPolyDecRingElem(f, W)
@@ -579,11 +576,16 @@ function (W::MPolyDecRing{S, T})(f::U) where {S, T, U}
   end
 end
 
+function (W::MPolyDecRing)(f)
+  return W(forget_decoration(W)(f))
+end
+
+
 function (W::MPolyDecRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
   return W(forget_decoration(W)(c, e))
 end
 
-(W::MPolyDecRing)(g::MPolyDecRingElem) = MPolyDecRingElem(forget_decoration(g), W)
+(W::MPolyDecRing)(g::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(forget_decoration(W)(forget_decoration(g)), W)
 one(W::MPolyDecRing) = MPolyDecRingElem(one(forget_decoration(W)), W)
 zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 
@@ -743,11 +745,10 @@ function has_weighted_ordering(R::MPolyDecRing)
 end
 
 function default_ordering(R::MPolyDecRing)
-  fl, w_ord = has_weighted_ordering(R)
-  if fl
-    return w_ord
+  return get_attribute!(R, :default_ordering) do
+    fl, w_ord = has_weighted_ordering(R)
+    fl ? w_ord : degrevlex(gens(R))
   end
-  return degrevlex(gens(R))
 end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
@@ -1331,7 +1332,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     return v
   end
-  h = MapFromFunc(x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g, F, R)
+  h = MapFromFunc(F, R, x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g)
 
   return F, h
 end
@@ -1399,19 +1400,17 @@ mutable struct HilbertData
   end
 end
 
-function hilbert_series(H::HilbertData, i::Int= 1)
+function hilbert_series(H::HilbertData)
   Zt, t = ZZ["t"]
   den = prod([1-t^w for w in H.weights])
-  if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
-    return Zt(map(ZZRingElem, H.data[1:end-1])), den
-  elseif i==2   ### the reduced Hilbert series
-    h = hilbert_series(H, 1)[1]
-    c = gcd(h, den)
-    h = divexact(h, c)
-    den = divexact(den, c)
-    return den(0)*h, den(0)*den
-  end
-  error("2nd parameter must be 1 or 2")
+  h = Zt(map(ZZRingElem, H.data[1:end-1]))
+  return h, den
+end
+
+function hilbert_series_reduced(H::HilbertData)
+  h, den = hilbert_series(H)
+  _, h, den = gcd_with_cofactors(h, den)
+  return den(0)*h, den(0)*den
 end
 
 #Decker-Lossen, p23/24
@@ -1419,7 +1418,7 @@ function hilbert_polynomial(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
   
-  q, dn = hilbert_series(H, 2)
+  q, dn = hilbert_series_reduced(H)
   a = QQFieldElem[]
   nf = QQFieldElem(1)
   d = degree(dn)-1
@@ -1429,10 +1428,9 @@ function hilbert_polynomial(H::HilbertData)
     q = derivative(q)
   end
   Qt, t = QQ["t"]
-  t = gen(Qt)
-  bin = one(parent(t))
+  d==-1 && return zero(Qt)
+  bin = one(Qt)
   b = QQPolyRingElem[]
-  if d==-1 return zero(parent(t)) end
   for i=0:d
     push!(b, (-1)^(d-i)*a[d-i+1]*bin)
     bin *= (t+i+1)*QQFieldElem(1, i+1)
@@ -1446,7 +1444,7 @@ function Oscar.degree(H::HilbertData)
   
   P = hilbert_polynomial(H)
   if iszero(P)
-     q, _ = hilbert_series(H, 2)
+     q, _ = hilbert_series_reduced(H)
      return q(1)
   end
   deg = leading_coefficient(P)*factorial(ZZ(degree(P)))
@@ -1454,16 +1452,29 @@ function Oscar.degree(H::HilbertData)
   return numerator(deg)
 end
 
-function (P::QQRelPowerSeriesRing)(H::HilbertData)
-  n, d = hilbert_series(H, 2)
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
-  gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
+  gg, ee, _ = gcdx(dd, t^max_precision(P))
   @assert isone(gg)
   nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
   return P(map(QQFieldElem, c), length(c), max_precision(P), 0)
+end
+
+function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
+  return _rational_function_to_power_series(P, numerator(f), denominator(f))
+end
+
+function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
+  T, t = power_series_ring(QQ, d+1, "t")   
+  return _rational_function_to_power_series(T, f)
+end
+
+function (P::QQRelPowerSeriesRing)(H::HilbertData)
+  n, d = hilbert_series_reduced(H)
+  return _rational_function_to_power_series(P, n, d)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)

@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "del Pezzo surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
 
     dP0 = del_pezzo_surface(NormalToricVariety, 0; set_attributes)
@@ -74,4 +71,17 @@ using Test
             @test coordinate_names(dP3) == ["x1", "x2", "x3", "e1", "e2", "e3"]
         end
     end
+
+  @testset "nef cone" begin
+    dP3 = del_pezzo_surface(NormalToricVariety,3)
+    nc = nef_cone(dP3)
+    rnc = matrix(ZZ, rays(nc))
+    lnc = [toric_line_bundle(dP3, vec([ZZ(k) for k in rnc[l,:]])) for l in 1:nrows(rnc)]
+    cnc = [cohomology_class(l) for l in lnc]
+    dnc = [toric_divisor(l) for l in lnc]
+    for d in dnc
+      @test is_nef(d)
+    end
+    @test is_nef(dnc[1] + dnc[2])
+  end
 end

@@ -176,7 +176,7 @@ end
   R = polynomial_ring(RS2)
   x = gens(R)
   F = abelian_closure(QQ)[1]
-  chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+  chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
   @test reynolds_operator(RS2, x[1] - x[2], chi) == x[1] - x[2]
   @test reynolds_operator(RS2, x[1] + x[2], chi) == zero(R)
 

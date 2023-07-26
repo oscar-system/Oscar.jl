@@ -33,10 +33,10 @@ is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 ```@docs
 SesquilinearForm{T<:RingElem}
-is_alternating_form(f::SesquilinearForm)
-is_hermitian_form(f::SesquilinearForm)
-is_quadratic_form(f::SesquilinearForm)
-is_symmetric_form(f::SesquilinearForm)
+is_alternating(f::SesquilinearForm)
+is_hermitian(f::SesquilinearForm)
+is_quadratic(f::SesquilinearForm)
+is_symmetric(f::SesquilinearForm)
 alternating_form(B::MatElem{T}) where T <: FieldElem
 symmetric_form(B::MatElem{T}) where T <: FieldElem
 hermitian_form(B::MatElem{T}) where T <: FieldElem
@@ -83,8 +83,8 @@ lower_triangular_matrix(L)
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
-is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
-is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+is_alternating(B::MatElem)
+is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 ```
 
 ## Classical groups

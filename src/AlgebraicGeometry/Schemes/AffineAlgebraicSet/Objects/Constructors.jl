@@ -3,96 +3,124 @@
 ########################################################
 
 @doc raw"""
-    affine_algebraic_set(X::Spec; check::Bool=true) -> AffineAlgebraicSet
+    algebraic_set(X::Spec; is_reduced=false, check=true) -> AffineAlgebraicSet
 
-Convert `X` to an `AffineAlgebraicSet` by taking the underlying reduced scheme.
+Convert `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
-If `check=false`, assumes that `X` is already reduced.
+If `is_reduced` is set, assume that `X` is already reduced.
+If `is_reduced` and `check` are set,
+check that `X` is actually geometrically reduced as claimed.
 """
-function affine_algebraic_set(X::Spec; check::Bool=true)
-  if check
-    Xred,_ = reduced_scheme(X)
-  else
-    Xred = X
-  end
-  AffineAlgebraicSet(Xred, check=check)
+function algebraic_set(X::Spec; is_reduced::Bool=false, check::Bool=true)
+  return AffineAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
 @doc raw"""
-    vanishing_locus(I::MPolyIdeal; check::Bool=true)
+    algebraic_set(I::MPolyIdeal; is_radical::Bool=false, check::Bool=true)
 
-Return the vanishing locus of ``I`` as an algebraic set.
+Return the affine algebraic set defined ``I``.
 
-This computes the radical of ``I`` if `check=true`.
-Otherwise, Oscar takes on faith that ``I`` is radical.
-
+If `is_radical` is set, assume that ``I`` is a radical ideal.
 ```jldoctest
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus(ideal([y^2+y+x^3+1,x]))
-Vanishing locus
-  in Affine 2-space over GF(2)
-  of ideal(x, y^2 + y + 1)
+julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
+Affine algebraic set
+  in affine 2-space over GF(2) with coordinates [x, y]
+defined by ideal(x^3 + y^2 + y + 1, x)
 
 ```
 """
-function vanishing_locus(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
-  if check
-    Irad = radical(I)
-  else
-    Irad = I
-  end
-  X = Spec(base_ring(Irad), Irad)
-  return AffineAlgebraicSet(X, check=check)
+function algebraic_set(I::MPolyIdeal{<:MPolyElem}; is_radical::Bool=false, check::Bool=true)
+  X = Spec(base_ring(I), I)
+  return algebraic_set(X, is_reduced=is_radical, check=check)
 end
 
-affine_algebraic_set(I::MPolyIdeal{<:MPolyElem}; check::Bool=true) = vanishing_locus(I, check=check)
-
 @doc raw"""
-    vanishing_locus(p::MPolyRingElem, check::Bool=true)
+    algebraic_set(p::MPolyRingElem)
 
-Return the vanishing locus of the multivariate polynomial `p`.
-
-This computes the radical of ``I`` if `check=true`.
-Otherwise Oscar takes on faith that ``I`` is radical.
+Return the affine algebraic set defined by the multivariate polynomial `p`.
 
 ```jldoctest
 julia> R, (x,y) = QQ[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
-Vanishing locus
-  in Affine 2-space over QQ
-  of ideal(x^4 + x*y^2 + x*y + x)
+julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
+Affine algebraic set
+  in affine 2-space over QQ with coordinates [x, y]
+defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
-julia> X = vanishing_locus((y^2+y+x^3+1)*x^2)
-Vanishing locus
-  in Affine 2-space over GF(2)
-  of ideal(x^4 + x*y^2 + x*y + x)
+julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
+Affine algebraic set
+  in affine 2-space over GF(2) with coordinates [x, y]
+defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 ```
 """
-vanishing_locus(p::MPolyRingElem, check::Bool=true) = vanishing_locus(ideal(parent(p),p), check=check)
-
-affine_algebraic_set(p::MPolyElem, check::Bool) = vanishing_locus(p, check=check)
+function algebraic_set(p::MPolyRingElem, is_radical::Bool =false, check::Bool=true)
+  I = ideal(parent(p), p)
+  return algebraic_set(I, check=check, is_radical=is_radical)
+end
 
 ########################################################
 # (2) Intersections of algebraic sets
 ########################################################
 
 @doc raw"""
-    set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet) -> AbsAffineAlgebraicSet
+    set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
 
-Return the set theoretic intersection of `X` and `Y` as an AlgebraicSet.
+Return the set theoretic intersection of `X` and `Y` as an algebraic set.
 
-This is the reduced subscheme of the scheme theoretic intersection.
+```jldoctest set_theoretic_intersection
+julia> A = affine_space(QQ, [:x,:y])
+Affine space of dimension 2
+  over rational field
+with coordinates [x, y]
+
+julia> (x, y) = coordinates(A)
+2-element Vector{QQMPolyRingElem}:
+ x
+ y
+
+julia> X = algebraic_set(ideal([y - x^2]))
+Affine algebraic set
+  in affine 2-space over QQ with coordinates [x, y]
+defined by ideal(-x^2 + y)
+
+julia> Y = algebraic_set(ideal([y]))
+Affine algebraic set
+  in affine 2-space over QQ with coordinates [x, y]
+defined by ideal(y)
+
+julia> Zred = set_theoretic_intersection(X, Y)
+Affine algebraic set
+  in affine 2-space over QQ with coordinates [x, y]
+defined by ideal(-x^2 + y, y)
+
+
+```
+Note that the set theoretic intersection forgets the intersection multiplicities
+which the scheme theoretic intersection remembers. Therefore they are different.
+
+```jldoctest set_theoretic_intersection
+julia> Z = intersect(X, Y) # a non reduced scheme
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(x^2 - y, y)
+
+julia> Zred == Z
+false
+
+julia> Zred == reduced_scheme(Z)[1]
+true
+
+```
 """
 function set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
-  Z = intersect(underlying_scheme(X), underlying_scheme(Y))
-  Zred,_ = reduced_scheme(Z)
-  # not sure how reduced vs geometrically reduced behaves hence check=true
-  return AffineAlgebraicSet(Zred, check=true)
+  Z = intersect(fat_scheme(X), fat_scheme(Y))
+  return algebraic_set(Z)
 end
 
 ########################################################
@@ -105,8 +133,8 @@ end
 Return the closure of ``X`` in its ambient affine space.
 """
 function closure(X::AbsAffineAlgebraicSet)
-  Xcl = closure(X, ambient_space(X))
-  return affine_algebraic_set(Xcl, check=false)
+  Xcl = closure(fat_scheme(X), ambient_space(X))
+  return algebraic_set(Xcl, check=false)
 end
 
 ########################################################
@@ -126,15 +154,15 @@ function irreducible_components(X::AbsAffineAlgebraicSet)
 end
 
 # special case for affine space
-irreducible_components(X::AbsAffineAlgebraicSet{<:Field,MPolyRing}) = [X]
+irreducible_components(X::AbsAffineAlgebraicSet{<:Field, MPolyRing}) = [X]
 
-function irreducible_components(X::T) where {T <: AbsAffineAlgebraicSet{<:Field, <:MPolyQuoRing}}
-  I = vanishing_ideal(X)
-  if is_one(I) # catch the empty set
-    return T[]
-  end
+function irreducible_components(X::AbsAffineAlgebraicSet{S,T}) where {S<:Field, T<:MPolyQuoRing}
+  I = fat_ideal(X)
   P = minimal_primes(I)
-  return T[vanishing_locus(p, check=false) for p in P]
+  if length(P)==1 && is_one(P[1]) # catch the empty set for now :-(
+    return AffineAlgebraicSet{S,T}[]
+  end
+  return AffineAlgebraicSet{S,T}[algebraic_set(p, is_radical=true, check=false) for p in P]
 end
 
 @doc raw"""
@@ -157,11 +185,11 @@ end
 
 geometric_irreducible_components(X::AbsAffineAlgebraicSet{<:Field, <:MPolyRing}) = [X]
 
-function geometric_irreducible_components(X::AbsAffineAlgebraicSet{QQField, <:MPolyQuoRing})
+function geometric_irreducible_components(X::AbsAffineAlgebraicSet{QQField, T} where {T<:MPolyQuoRing})
   I = vanishing_ideal(X)
-  if is_one(I) # catch the empty set
-    return []
+  if is_one(I) # catch the empty set ... not typestable anyways
+    return AffineAlgebraicSet{QQField, T}[]
   end
   Pabs = absolute_primary_decomposition(I)
-  return [(vanishing_locus(p[2], check=false), affine_variety(p[3], check=false),p[4]) for p in Pabs]
+  return [(algebraic_set(p[2], is_radical=true, check=false), variety(p[3], check=false),p[4]) for p in Pabs]
 end

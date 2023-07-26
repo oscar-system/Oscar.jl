@@ -19,7 +19,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
       return b
     end
     f = minpoly(x)
-    r = roots(f, k)
+    r = roots(k, f)
     pr = 10
     while true
       C = AcbField(pr)
@@ -40,7 +40,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   end
   #TODO: make map canonical?
   # ... and return gen(k) instead?
-  return k, MapFromFunc(to_qqbar, to_k, k, parent(a))
+  return k, MapFromFunc(k, parent(a), to_qqbar, to_k)
 end
 
 Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
@@ -172,5 +172,4 @@ end
 Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
 Base.getindex(::QQField, a::Vector{QQAbElem}) = number_field(QQ, a)
 Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x =a])
-Base.getindex(::QQField, chi::Oscar.GAPGroupClassFunction) = number_field(QQ, chi)
 

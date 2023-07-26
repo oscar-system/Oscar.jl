@@ -22,8 +22,8 @@ function _iso_oscar_gap_lie_algebra_functions(
   return (f, finv)
 end
 
-function _iso_oscar_gap(LO::LinearLieAlgebra{C}) where {C<:RingElement}
-  coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
+function _iso_oscar_gap(LO::LinearLieAlgebra)
+  coeffs_iso = Oscar.iso_oscar_gap(coefficient_ring(LO))
   LG = GAP.Globals.LieAlgebra(
     codomain(coeffs_iso),
     GAP.Obj([map_entries(coeffs_iso, xi) for xi in matrix_repr_basis(LO)]),
@@ -32,24 +32,22 @@ function _iso_oscar_gap(LO::LinearLieAlgebra{C}) where {C<:RingElement}
 
   f, finv = _iso_oscar_gap_lie_algebra_functions(LO, LG, coeffs_iso)
 
-  return MapFromFunc(f, finv, LO, LG)
+  return MapFromFunc(LO, LG, f, finv)
 end
 
-function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
-  coeffs_iso = Oscar.iso_oscar_gap(base_ring(LO))
+function _iso_oscar_gap(LO::AbstractLieAlgebra)
+  coeffs_iso = Oscar.iso_oscar_gap(coefficient_ring(LO))
   sc_table_G = [
     [
       [
         begin
-          pairs = filter(
-            pair -> !iszero(last(pair)), collect(enumerate(Generic._matrix(xi * xj)))
-          )
+          pairs = filter(pair -> !iszero(last(pair)), collect(enumerate(_matrix(xi * xj))))
           (map(first, pairs), GAP.Obj[coeffs_iso(c) for c in map(last, pairs)])
         end for xj in basis(LO)
       ] for xi in basis(LO)
     ]
     -1
-    coeffs_iso(zero(base_ring(LO)))
+    coeffs_iso(zero(coefficient_ring(LO)))
   ]
 
   LG = GAP.Globals.LieAlgebraByStructureConstants(
@@ -58,5 +56,5 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra{C}) where {C<:RingElement}
 
   f, finv = _iso_oscar_gap_lie_algebra_functions(LO, LG, coeffs_iso)
 
-  return MapFromFunc(f, finv, LO, LG)
+  return MapFromFunc(LO, LG, f, finv)
 end

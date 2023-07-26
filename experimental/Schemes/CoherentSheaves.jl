@@ -37,8 +37,50 @@ function sheaf_of_rings(F::AbsCoherentSheaf)
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
 
+# Manage some left offsets so that the labels are aligned on the right - could
+# have alignment issues in the case where we have more than 10 patches to
+# describe the restrictions of the sheaf
+function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
+  io = pretty(io)
+  X = scheme(M)
+  cov = default_covering(X)
+  D = M.ID 
+  print(io, "Coherent sheaf of modules")
+  if has_attribute(M, :name)
+    print(io, " ", get_attribute(M, :name))
+  end
+  println(io)
+  print(io, Indent(), "on ", Lowercase())
+  Oscar._show_semi_compact(io, X, cov)
+  if length(cov) > 0
+    l = ndigits(length(cov))
+    println(io)
+    print(io, Dedent(), "with restriction")
+    length(cov) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(cov)
+      li = ndigits(i)
+      U = cov[i]
+      println(io)
+      print(io, " "^(l-li)*"$i: ", Lowercase(), D[U])
+    end
+  end
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, M::AbsCoherentSheaf)
-  print(io, "sheaf of $(sheaf_of_rings(M))-modules on $(scheme(M))")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  elseif has_attribute(M, :name)
+    print(io, get_attribute(M, :name))
+  else
+    if is_unicode_allowed()
+      print(io, "Coherent sheaf of $(sheaf_of_rings(M))-modules on ", Lowercase(), scheme(M))
+    else
+      print(io, "Coherent sheaf of modules on ", Lowercase(), scheme(M))
+    end
+  end
 end
 
 
@@ -657,13 +699,34 @@ sheaf_of_rings(M::SheafOfModules) = M.OOX
 
 ### Implementing the additional getters
 default_covering(M::SheafOfModules) = M.C
-
+restrictions_dict(M::SheafOfModules) = M.ID
 
 @doc raw"""
     twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
 
 For a `ProjectiveScheme` ``ℙ`` return the ``d``-th twisting sheaf 
 ``𝒪(d)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates [s0, s1, s2, s3]
+
+julia> twisting_sheaf(P, 4)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   # First, look up whether this sheaf has already been computed:
@@ -689,8 +752,8 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
     (UU, VV) = glueing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
-    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*identity_matrix(OO(VV), 1)
-    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*identity_matrix(OO(UU), 1)
+    MG[(U, V)] = diagonal_matrix((d>= 0 ? (x->OO(VV)(x, check=false))(h_V^d) : (inv((x->OO(VV)(x, check=false))(h_V))^(-d))), 1)
+    MG[(V, U)] = diagonal_matrix((d>= 0 ? (x->OO(UU)(x, check=false))(h_U^d) : (inv((x->OO(UU)(x, check=false))(h_U))^(-d))), 1)
   end
 
   M = SheafOfModules(X, MD, MG)
@@ -704,6 +767,27 @@ end
     tautological_bundle(IP::AbsProjectiveScheme{<:Field})
 
 For a `ProjectiveScheme` ``ℙ`` return the sheaf ``𝒪(-1)`` as a `CoherentSheaf` on ``ℙ``.
+
+# Examples
+```jldoctest
+julia> P = projective_space(QQ,3)
+Projective space of dimension 3
+  over rational field
+with homogeneous coordinates [s0, s1, s2, s3]
+
+julia> tautological_bundle(P)
+Coherent sheaf of modules
+  on scheme over QQ covered with 4 patches
+    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
+    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
+    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
+    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+with restrictions
+  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+```
 """
 function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
@@ -926,7 +1010,19 @@ function direct_sum(summands::Vector{<:AbsCoherentSheaf})
 end
 
 function Base.show(io::IO, M::DirectSumSheaf)
-  print(io, "direct sum of $(summands(M))")
+  if get(io, :supercompact, false)
+    print(io, "Presheaf")
+  else
+    s = summands(M)
+    if is_unicode_allowed() && length(s) > 0
+      for i in 1:length(M) - 1
+        print(io, "$(s[i]) ⊕ ")
+      end
+      print(io, "$(s[end])")
+    else
+      print(io, "Sheaf of modules on covered scheme")
+    end
+  end
 end
 
 @doc raw"""
@@ -1345,7 +1441,28 @@ end
   end
   C = Covering(patch_list)
   inherit_glueings!(C, default_covering(X))
+  if has_decomposition_info(default_covering(X))
+    for U in patches(C)
+      V = __find_chart(U, default_covering(X))
+      phi = OOX(V, U)
+      set_decomposition_info!(C, U, phi.(decomposition_info(default_covering(X))[V]))
+    end
+  end
+
   push!(coverings(X), C)
+  return C
+end
+
+function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
+  D = default_covering(X)
+  OOX = OO(X)
+  if has_decomposition_info(D)
+    for U in patches(C)
+      V = __find_chart(U, D)
+      phi = OOX(V, U)
+      set_decomposition_info!(C, U, phi.(decomposition_info(D)[V]))
+    end
+  end
   return C
 end
 

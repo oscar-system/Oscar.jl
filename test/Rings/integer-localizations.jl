@@ -144,17 +144,17 @@ inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extensions of the localization function
 function Localization(S::FmpzComplementOfPrimeIdeal) 
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 function Localization(S::FmpzComplementOfZeroIdeal)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 function Localization(S::FmpzPowersOfElement)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 
@@ -173,9 +173,9 @@ mutable struct FmpzLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{ZZRing
   denominator::ZZRingElem
   R::FmpzLocalizedRing{MultSetType} # the parent ring
 
-  function FmpzLocalizedRingElem(R::FmpzLocalizedRing{MultSetType}, a::ZZRingElem, b::ZZRingElem) where {MultSetType}
+  function FmpzLocalizedRingElem(R::FmpzLocalizedRing{MultSetType}, a::ZZRingElem, b::ZZRingElem; check::Bool=true) where {MultSetType}
     # Perform some sanity checks
-    b in inverted_set(R) || error("$b does not belong to the units of $R")
+    @check b in inverted_set(R) "$b does not belong to the units of $R"
     return new{MultSetType}(a, b, R)
   end
 end
@@ -212,13 +212,13 @@ function reduce_fraction(f::FmpzLocalizedRingElem)
 end
 
 ### required conversions
-(W::FmpzLocalizedRing)(f::ZZRingElem) = FmpzLocalizedRingElem(W, f, ZZ(1))
-(W::FmpzLocalizedRing)(a::ZZRingElem, b::ZZRingElem) = FmpzLocalizedRingElem(W, a, b)
+(W::FmpzLocalizedRing)(f::ZZRingElem) = FmpzLocalizedRingElem(W, f, ZZ(1), check=false)
+(W::FmpzLocalizedRing)(a::ZZRingElem, b::ZZRingElem; check::Bool=true) = FmpzLocalizedRingElem(W, a, b, check=check)
 
 ### additional conversions
-(W::FmpzLocalizedRing)(q::QQFieldElem) = FmpzLocalizedRingElem(W, numerator(q), denominator(q))
-(W::FmpzLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = FmpzLocalizedRingElem(W, ZZ(numerator(q)), ZZ(denominator(q)))
-(W::FmpzLocalizedRing)(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b))
+(W::FmpzLocalizedRing)(q::QQFieldElem; check::Bool=true) = FmpzLocalizedRingElem(W, numerator(q), denominator(q), check=check)
+(W::FmpzLocalizedRing)(q::Rational{T}; check::Bool=true) where {T<:Oscar.IntegerUnion} = FmpzLocalizedRingElem(W, ZZ(numerator(q)), ZZ(denominator(q)), check=check)
+(W::FmpzLocalizedRing)(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion; check::Bool=true) = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b), check=check)
 
 ### implementation of Oscar's general ring interface
 one(W::FmpzLocalizedRing) = W(1)

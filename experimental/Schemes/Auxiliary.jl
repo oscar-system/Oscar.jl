@@ -126,6 +126,16 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   return EffectiveCartierDivisor(X, triv_dict, trivializing_covering=triv_cov, check=false)
 end
 
+function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
+  R = coefficient_ring(C)
+  C = CartierDivisor(domain(f), R)
+  pb = pullback(f)
+  for (c,D) in coefficient_dict(C)
+    C += c*pb(C)
+  end
+  return C
+end
+
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
   psi = restrict(f, CC)
   return domain(psi)
@@ -170,7 +180,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   OOX = OO(X)
   OOY = OO(Y)
   # We need to do the following:
-  # The covering CC has patches Vⱼ in the codomain Y of f.
+  # The covering DD has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
   # the domain's covering for phi. 
   res_dict = IdDict{AbsSpec, AbsSpecMor}()
@@ -193,7 +203,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
         ff = SpecMor(UW, W_flat, 
-                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(gens(OO(V)))), check=false),
+                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(OOY(par, V).(gens(OO(par))))), check=false),
                      check=false
                     )
         f_res = compose(ff, inverse(iso_W_flat))
@@ -205,7 +215,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   inherit_glueings!(new_domain, domain(phi))
   _register!(new_domain, X)
 
-  psi = CoveringMorphism(new_domain, DD, res_dict, check=true)
+  psi = CoveringMorphism(new_domain, DD, res_dict, check=false)
   restriction_cache(f)[DD] = psi
   return psi
 end
@@ -302,19 +312,19 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   UX = intersect(U, codomain(iso_X))
   UX isa PrincipalOpenSubset && ambient_scheme(UX) === A || error("incorrect intermediate result")
-  h_Y = pullback(f)(complement_equation(codomain(iso_Y)))
+  h_Y = pullback(f)(complement_equation(codomain(iso_Y)), check=false)
   UXY = PrincipalOpenSubset(codomain(iso_X), 
-                            OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U)))
+                            OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U), check=false))
   UXY isa PrincipalOpenSubset && ambient_scheme(UXY) === codomain(iso_X) || error("incorrect intermediate output")
   UY = PrincipalOpenSubset(U, h_Y)
   XY = PrincipalOpenSubset(X, pullback(iso_X)(complement_equation(UXY)))
 
   VY = intersect(V, codomain(iso_Y))
   VY isa PrincipalOpenSubset && ambient_scheme(VY) === B || error("incorrect intermediate result")
-  h_X = pullback(g)(complement_equation(codomain(iso_X)))
+  h_X = pullback(g)(complement_equation(codomain(iso_X)), check=false)
   VX = PrincipalOpenSubset(V, h_X)
   VYX = PrincipalOpenSubset(codomain(iso_Y), 
-                            OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V)))
+                            OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V), check=false))
   VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
   YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
@@ -323,7 +333,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   x_img = gens(OO(X))
   x_img = pullback(inverse(iso_X)).(x_img)
-  x_img = OO(UXY).(x_img)
+  x_img = [OO(UXY)(x, check=false) for x in x_img]
   x_img = pullback(gres).(x_img)
   phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
@@ -331,7 +341,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
 
   y_img = gens(OO(Y))
   y_img = pullback(inverse(iso_Y)).(y_img)
-  y_img = OO(VYX).(y_img)
+  y_img = [OO(VYX)(y, check=false) for y in y_img]
   y_img = pullback(fres).(y_img)
   psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)

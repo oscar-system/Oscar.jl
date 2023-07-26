@@ -568,7 +568,7 @@ julia> PP = proj_space(QQ, 2)
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
 
-julia> D = Oscar.ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
+julia> D = ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
 Projective plane curve defined by -x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3
 
 julia> Oscar.toweierstrass(D, Q)

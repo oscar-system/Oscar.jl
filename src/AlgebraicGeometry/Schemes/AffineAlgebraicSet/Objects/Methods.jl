@@ -2,28 +2,73 @@
 # (1) Display
 ########################################################
 
+# As a set, corresponding the fat ideal or the radical does not change anything.
+# If one already knows the reduced scheme structure on this algebraic set, we
+# print it (more convenient to see the ideal)
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
-  println(io, "Vanishing locus")  # at least one new line is needed
-  println(io, "  in $(ambient_space(X))")
-  print(io, "  of $(vanishing_ideal(X))")
-  # the last print statement must not add a new line
+  io = pretty(io)
+  println(io, "Affine algebraic set")
+  println(io, Indent(), "in ", Lowercase(), ambient_space(X))
+  if isdefined(X, :Xred)
+    I = ambient_closure_ideal(X)
+  else
+    I = fat_ideal(X)
+  end
+  print(io, Dedent(), "defined by ", I)
 end
 
+# As a set, corresponding the fat ideal or the radical does not change anything.
+# If one already knows the reduced scheme structure on this algebraic set, we
+# print it (more convenient to see the ideal)
+#
+# For compact printing, we value the notation V(bla) since it tells everything
+# we need to know, in a given contextual printing
 function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
+  io = pretty(io)
   if get(io, :supercompact, false)
-    # no nested printing
-    print(io, "Affine algebraic set")
+    print(io, "Scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine algebraic set over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
   else
-    # nested printing allowed, preferably supercompact
-    print(io, "Vanishing locus of $(vanishing_ideal(X))")
+    if isdefined(X, :Xred)
+      I = ambient_closure_ideal(X)
+    else
+      I = fat_ideal(X)
+    end
+    print(io, "V(")
+    join(io, gens(I), ", ")
+    print(io,")")
   end
 end
 
 # special case for Zariski opens
 function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
-  println(io, "Affine algebraic set")  # at least one new line is needed
-  print(io, "  with coordinate ring $(OO(X))")
-  # the last print statement must not add a new line
+  io = pretty(io)
+  println(io, "Reduced subscheme")
+  print(io, Indent(),"of ", Lowercase(), fat_scheme(X))
+  print(io, Dedent())
 end
 
+function Base.show(io::IO, X::AffineAlgebraicSet)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine algebraic set over ")
+    K = base_ring(X)
+    if K == QQ
+      print(io, "QQ")
+    else
+      print(IOContext(io, :supercompact => true), Lowercase(), K)
+    end
+  else
+    print(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))
+  end
+end
 

@@ -258,7 +258,7 @@ function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singula
   function pr(a::PBWAlgQuoElem)
     return a.data
   end
-  return q, MapFromFunc(im, pr, Q, q)
+  return q, MapFromFunc(Q, q, im, pr)
 end
 
 

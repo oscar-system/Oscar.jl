@@ -26,7 +26,7 @@ end
 
 
 @doc raw"""
-    vdim(A::MPolyQuoRing)
+    vector_space_dimension(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector
@@ -38,7 +38,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
-julia> vdim(A)
+julia> vector_space_dimension(A)
 6
 
 julia> I = modulus(A)
@@ -53,9 +53,9 @@ with respect to the ordering
 lex([x, y, z])
 ```
 """
-function vdim(A::MPolyQuoRing)
+function vector_space_dimension(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
-    error("vdim requires a coefficient ring that is a field")
+    error("vector_space_dimension requires a coefficient ring that is a field")
   end
   I = A.I
   G = groebner_assure(I)
@@ -116,7 +116,7 @@ function hilbert_series(A::MPolyQuoRing)
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
-   return hilbert_series(H,1)
+   return hilbert_series(H)
 end
 
 
@@ -156,7 +156,7 @@ function hilbert_series_reduced(A::MPolyQuoRing)
       return hilbert_series(A)
    end
    H = HilbertData(A.I)
-   return hilbert_series(H,2)
+   return hilbert_series_reduced(H)
 end
 
 @doc raw"""
@@ -371,10 +371,7 @@ GrpAb: Z^2
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
-Element of
-(General) abelian group with relation matrix
-[1 -1]
-with components [0 1]
+Element of G with components [0 1]
 
 julia> W = [g, g, g, g];
 
@@ -555,10 +552,7 @@ GrpAb: Z^2
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
-Element of
-(General) abelian group with relation matrix
-[1 -1]
-with components [0 1]
+Element of G with components [0 1]
 
 julia> W = [g, g, g, g];
 

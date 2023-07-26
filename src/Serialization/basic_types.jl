@@ -22,7 +22,7 @@ end
 # ZZRingElem
 @registerSerializationType(ZZRingElem)
 
-function save_internal(s::SerializerState, z::ZZRingElem)
+function save_internal(s::SerializerState, z::ZZRingElem; kwargs...)
     return string(z)
 end
 
@@ -41,7 +41,7 @@ end
 # QQFieldElem
 @registerSerializationType(QQFieldElem)
 
-function save_internal(s::SerializerState, q::QQFieldElem)
+function save_internal(s::SerializerState, q::QQFieldElem; kwargs...)
     return string(q)
 end
 
@@ -67,7 +67,7 @@ end
 @registerSerializationType(Int8)
 @registerSerializationType(Int16)
 @registerSerializationType(Int32)
-@registerSerializationType(Int64, "Base.Int")
+@registerSerializationType(Int64, false, "Base.Int")
 @registerSerializationType(Int128)
 
 @registerSerializationType(UInt8)

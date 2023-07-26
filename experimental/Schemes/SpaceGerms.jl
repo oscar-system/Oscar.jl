@@ -124,37 +124,10 @@ function rational_point_coordinates(I::MPolyIdeal)
   G=groebner_basis(I)
   LG = leading_ideal(I;ordering=o)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
-  vd,vbasis = _vdim_hack(LG)
+  vd = vector_space_dimension(quo(base_ring(LG),LG)[1])
   vd ==1 || error("Ideal does not describe a single K-point")
-  return [AbstractAlgebra.leading_coefficient(normal_form(v,I)) for v in gens(R)] # TODO does the ordering matter?
-end
-
-### _vdim_hack only to be used until vdim of 0-dimensional ideals is implemented properly
-### _vdim_hack assumes for simplicity that 
-###         1. dim(I)=0 has been tested, 
-###         2.I is a monomial ideal
-function _vdim_hack(I::MPolyIdeal)
-  leer=elem_type(base_ring(I))[]
-  R = base_ring(I)
-  if one(R) in I 
-    return 0,leer
-  end
-  M = ideal(R,gens(R))
-  result=[R(1)]
-  J = ideal(R,normal_form(gens(M),I))
-  while dim(J) != ngens(R)
-    Jtemp = leer
-    JN=gens(J)
-    for i in 1:length(JN)
-      if(JN[i]!=R(0))
-        push!(result,JN[i])
-        push!(Jtemp, JN[i])
-      end
-    end
-    J = ideal(R,Jtemp)
-    J = ideal(R,normal_form(gens(J*M),I))
-  end
-  return length(result),result
+  nf_vec = [normal_form(v,I) for v in gens(R)]
+  return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
 end
 
 ############################################################################################################

@@ -81,12 +81,14 @@ of ``G`` (or the `j`-th conjugacy class of ``p``-regular elements
 in the case of Brauer tables).
 
 Ordinary and ``p``-modular Brauer tables in OSCAR are distinguished by
-the field `characteristic`; its value is `0` for ordinary tables and
-``p`` otherwise.
+their [`characteristic(tbl::GAPGroupCharacterTable)`](@ref);
+its value is `0` for ordinary tables and ``p`` otherwise.
 
 ```@docs
 GAPGroupCharacterTable
 character_table
+Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
+characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 all_character_table_names
 ```
@@ -101,16 +103,19 @@ indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
-schur_index
+schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
 det(chi::GAPGroupClassFunction)
 order(chi::GAPGroupClassFunction)
+order_field_of_definition(chi::GAPGroupClassFunction)
 ```
 
 ## Attributes of character tables
 
 ```@docs
 character_parameters
+class_names(tbl::GAPGroupCharacterTable)
 class_parameters
+conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
 identifier
 induced_cyclic(tbl::GAPGroupCharacterTable)
@@ -120,6 +125,7 @@ names_of_fusion_sources
 class_lengths
 orders_centralizers
 orders_class_representatives
+ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 ```
 
@@ -128,6 +134,8 @@ trivial_character(tbl::GAPGroupCharacterTable)
 ```@docs
 natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
 ```
 

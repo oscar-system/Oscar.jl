@@ -227,3 +227,25 @@ end
   gens(a.gb)
   @test a.gb.gens.O == MPolyDecRingElem[y, z^2]
 end
+
+@testset "quotients as vector spaces" begin
+  R, (x,y) = QQ["x", "y"]
+  I = ideal(R, [x^3- 2, y^2+3*x])
+  A, pr = quo(R, I)
+  V, id = vector_space(QQ, A)
+  @test dim(V) == 6
+  @test id.(gens(V)) == A.([x^2*y, x*y, y, x^2, x, one(x)])
+  f = (x*3*y-4)^5
+  f = A(f)
+  @test id(preimage(id, f)) == f
+  v = V[3] - 4*V[5]
+  @test preimage(id, id(v)) == v
+end
+
+@testset "divides hack" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, 1-x*y)
+  o = revlex([x, y])
+  Q = MPolyQuo(R, I, o)
+  @test oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+end

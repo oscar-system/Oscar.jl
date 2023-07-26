@@ -19,10 +19,13 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
+Spec of an affine toric variety
 
 julia> underlying_scheme(affine_toric_scheme)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(0)
 ```
 """
 @attr underlying_scheme(X::ToricSpec) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
@@ -42,10 +45,20 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety
 
 julia> underlying_scheme(toric_scheme)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of an affine toric variety
+    2: spec of an affine toric variety
+    3: spec of an affine toric variety
+  in the coordinate(s)
+    1: [x1, x2]
+    2: [x1, x2]
+    3: [x1, x2]
 ```
 """
 @attr function underlying_scheme(Z::ToricCoveredScheme)
@@ -145,7 +158,7 @@ cox_ring(X::ToricCoveredScheme) = cox_ring(X.ntv)
 dim(X::ToricCoveredScheme) = dim(X.ntv)
 dim_of_torusfactor(X::ToricCoveredScheme) = dim_of_torusfactor(X.ntv)
 euler_characteristic(X::ToricCoveredScheme) = euler_characteristic(X.ntv)
-fan(X::ToricCoveredScheme) = fan(X.ntv)
+polyhedral_fan(X::ToricCoveredScheme) = polyhedral_fan(X.ntv)
 ideal_of_linear_relations(R::MPolyRing, X::ToricCoveredScheme) = ideal_of_linear_relations(R, X.ntv)
 ideal_of_linear_relations(X::ToricCoveredScheme) = ideal_of_linear_relations(X.ntv)
 irrelevant_ideal(R::MPolyRing, X::ToricCoveredScheme) = irrelevant_ideal(R, X.ntv)
@@ -186,7 +199,7 @@ cox_ring(X::ToricSpec) = cox_ring(X.antv)
 dim(X::ToricSpec) = dim(X.antv)
 dim_of_torusfactor(X::ToricSpec) = dim_of_torusfactor(X.antv)
 euler_characteristic(X::ToricSpec) = euler_characteristic(X.antv)
-fan(X::ToricSpec) = fan(X.antv)
+polyhedral_fan(X::ToricSpec) = polyhedral_fan(X.antv)
 ideal_of_linear_relations(R::MPolyRing, X::ToricSpec) = ideal_of_linear_relations(R, X.antv)
 ideal_of_linear_relations(X::ToricSpec) = ideal_of_linear_relations(X.antv)
 irrelevant_ideal(R::MPolyRing, X::ToricSpec) = irrelevant_ideal(R, X.antv)

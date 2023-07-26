@@ -91,7 +91,7 @@ Return the shape of a tableau, i.e. the partition given by the lengths of the
 rows of the tableau.
 """
 function shape(tab::Tableau{T}) where T
-  return Partition{T}([ length(tab[i]) for i=1:length(tab) ])
+  return partition(T[ length(tab[i]) for i=1:length(tab) ])
 end
 
 
@@ -278,7 +278,7 @@ end
 Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
 """
 function semistandard_tableaux(shape::Vector{T}, max_val::T=sum(shape)) where T<:Integer
-  return semistandard_tableaux(Partition(shape), max_val)
+  return semistandard_tableaux(partition(shape), max_val)
 end
 
 @doc raw"""
@@ -532,7 +532,7 @@ end
 
 
 function standard_tableaux(s::Vector{T}) where T<:Integer
-  return standard_tableaux(Partition(s))
+  return standard_tableaux(partition(s))
 end
 
 

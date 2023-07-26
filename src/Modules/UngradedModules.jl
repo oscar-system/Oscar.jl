@@ -181,8 +181,12 @@ function (==)(F::FreeMod, G::FreeMod)
 end
 
 function hash(F::FreeMod, h::UInt)
-  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
-  return hash((base_ring(F), rank(F), F.S), h)
+  b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
+  h = hash(base_ring(F), h)
+  h = hash(rank(F), h)
+  h = hash(F.S, h)
+  is_graded(F) && (h = hash(F.d, h))
+  return xor(h, b)
 end
 
 @doc raw"""
@@ -490,7 +494,11 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return xor(hash(tuple(parent(a), coordinates(a)), h), hash(typeof(a)))
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  h = hash(coordinates(a), h)
+  return xor(h, b)
 end
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
@@ -732,7 +740,11 @@ are computed, given the Oscar side.
 """
 function singular_assure(F::ModuleGens)
   if !isdefined(F, :S) || !isdefined(F, :SF)
-    SF = singular_module(F.F)
+    if isdefined(F, :ordering)
+      SF = singular_module(F.F, F.ordering)
+    else
+      SF = singular_module(F.F)
+    end
     sr = base_ring(SF)
     F.SF = SF
     if length(F) == 0
@@ -1539,7 +1551,7 @@ function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeM
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end
 
-#+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
+Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 ###############################################################################
 # SubquoModule constructors
@@ -2378,7 +2390,7 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
 end
 
 function leading_module(M::SubquoModule, ord::ModuleOrdering = default_ordering(M))
-  @assert !isdefined(M, :quo)
+  @assert (!isdefined(M, :quo) || length(relations(M)) == 0)
   return SubquoModule(leading_module(M.sub, ord))
 end
 
@@ -3515,37 +3527,48 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
 end
+
 function -(a::SubquoModuleElem, b::SubquoModuleElem) 
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
 end
+
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
+
 function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::MPolyRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::RingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
+
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
   if parent(a) !== parent(b)
     return false
   end
   return iszero(a-b)
+end
+
+function Base.hash(a::SubquoModuleElem, h::UInt)
+  error("not implemented")
 end
 
 function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
@@ -4820,6 +4843,15 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   end
   return true
 end
+
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
 ###################################################################
 
 @doc raw"""
@@ -5546,7 +5578,7 @@ function hom(F::FreeMod, G::FreeMod)
     end
     return FreeModElem(s, GH)
   end
-  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = MapFromFunc(GH, X, im, pre)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
@@ -6665,7 +6697,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 
     return s_proj(SubquoModuleElem(repres(preimage(mH_s0_t0, g)), H))
   end
-  to_hom_map = MapFromFunc(im, pre, H_simplified, Hecke.MapParent(M, N, "homomorphisms"))
+  to_hom_map = MapFromFunc(H_simplified, Hecke.MapParent(M, N, "homomorphisms"), im, pre)
   set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
   return H_simplified, to_hom_map
 end
@@ -6854,9 +6886,9 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), 
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
-             Hecke.MapFromFunc(x->(base_ring_map(g)(base_ring_map(h)(x))), 
-                                   base_ring(domain(h)), 
-                                   base_ring(codomain(g)))
+             MapFromFunc(base_ring(domain(h)), 
+                         base_ring(codomain(g)),
+                         x->(base_ring_map(g)(base_ring_map(h)(x))))
             )
 
 end
@@ -7249,7 +7281,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return F
   end
 
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
@@ -7439,7 +7471,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   end
 
-  return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
+  return s, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), s, pure)
 end
 
 #############################
@@ -8039,7 +8071,7 @@ end
 #TODO move to Hecke
 #  re-evaluate and use or not
 
-function getindex(r::Hecke.SRow, u::UnitRange)
+function getindex(r::Hecke.SRow, u::AbstractUnitRange)
   R = base_ring(r)
   s = sparse_row(R)
   shift = 1-first(u)
@@ -8052,7 +8084,7 @@ function getindex(r::Hecke.SRow, u::UnitRange)
   return s
 end
 
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
+function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
   for (p,v) = r
@@ -8551,7 +8583,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       return p(SQ(v))
     end
 
-    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
+    to_hom_map = MapFromFunc(SQ2, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
     set_attribute!(SQ2, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ2, to_hom_map
@@ -8567,7 +8599,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       return SubQuoHom(M,N,A)
     end
 
-    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ, Hecke.MapParent(M, N, "homomorphisms"))
+    to_hom_map = MapFromFunc(SQ, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
     set_attribute!(SQ, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ, to_hom_map
@@ -8578,7 +8610,7 @@ function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
   FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
   return FS, map
 end
 
@@ -8598,7 +8630,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(x->S(x), R, S))
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)))
   return MS, map
 end
 
@@ -8710,5 +8742,264 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
                                          )
                                      )
               for phi in gens(N_dual)])
+end
+
+##########################################################################
+## Functionality for modules happening to be finite dimensional vector
+## spaces
+##########################################################################
+@doc raw"""
+    vector_space_dimension(M::SubquoModule, d::Int)
+
+Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
+Then the command returns the dimension of the ``k``-vectorspace corresponding to the
+degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
+the one of each generator of the ambient free module of ``M`` as zero.
+
+    vector_space_dimension(M::SubquoModule)
+
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
+
+# Examples:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_dimension(M,1)
+2
+
+julia> vector_space_dimension(M,2)
+2
+
+julia> vector_space_dimension(M,3)
+1
+
+julia> vector_space_dimension(M)
+6
+
+```
+"""
+function vector_space_dimension(M::SubquoModule)
+  
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  has_monomials_on_all_axes(LM) || return Int64(-1)
+  
+  d = 0
+  sum_dim = 0
+  tempdim = vector_space_dimension(M,0)
+
+  while tempdim > 0
+    sum_dim = sum_dim + tempdim
+    d = d+1
+    tempdim = vector_space_dimension(M,d)
+  end
+ 
+  return sum_dim
+end
+
+function vector_space_dimension(M::SubquoModule,d::Int64)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  return count(t->!(t[1]*t[2] in LM), Iterators.product(all_monomials(R, d), gens(F)))
+end
+  
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1])
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1],d)
+end
+
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+@doc raw"""
+    vector_space_basis(M::SubquoModule, d::Int)
+
+Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
+Then the command returns a monomial basis of the kk-vectorspace corresponding to the
+degree ``d`` slice of ``M``, where the degree of each generator of ``R`` is counted as one and
+the one of each generator of the ambient free module of ``M`` as zero.
+
+    vector_space_basis(M::SubquoModule)
+
+If ``M`` happens to be finite-dimensional as a ``kk``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
+
+# Examples:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_basis(M,2)
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
+ x*y*e[2]
+ y^2*e[2]
+
+julia> vector_space_basis(M,0)
+1-element Vector{FreeModElem{QQMPolyRingElem}}:
+ e[2]
+
+julia> vector_space_basis(M)
+6-element Vector{Any}:
+ e[2]
+ x*e[2]
+ y*e[2]
+ x*y*e[2]
+ y^2*e[2]
+ x*y^2*e[2]
+
+```
+"""
+function vector_space_basis(M::SubquoModule)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  has_monomials_on_all_axes(LM) || error("not a finite dimensional vector space")
+  
+  d = 0
+  all_mons=[]
+  temp_mons = vector_space_basis(M,0)
+
+  while length(temp_mons) > 0
+    append!(all_mons,temp_mons)
+    d = d+1
+    temp_mons=vector_space_basis(M,d)
+  end
+
+  return all_mons
+end
+
+function vector_space_basis(M::SubquoModule,d::Int64)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  return [x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+@doc raw"""
+    has_monomials_on_all_axes(M::SubquoModule)
+
+Internal function to test whether M is finite-dimensional vector space. Do not use directly
+"""
+function has_monomials_on_all_axes(M::SubquoModule)
+  R = base_ring(M)
+
+  length(rels(M)) == 0 || error("not implemented for quotients")
+  
+  ambient_rank = ngens(ambient_free_module(M))
+  genlist = ambient_representatives_generators(M)
+  explist = Tuple{Vector{Int64}, Int64, Int}[]
+  for x in genlist
+    tempexp = leading_exponent(x)
+    tempdeg = sum(tempexp[1])
+    push!(explist,(tempexp[1],tempexp[2],tempdeg))
+  end
+  for i in 1:ngens(R), j in 1:ambient_rank
+    if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
+      return false
+    end
+  end
+  return true
 end
 

@@ -102,7 +102,7 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  demonstrate this:
 ```@docs
 global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-global_tate_model(ais::Vector{T}, base::AbstractNormalToricVariety; completeness_check::Bool = true) where {T<:MPolyRingElem}
+global_tate_model(base::AbstractNormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
 ### A toric scheme as base space
@@ -112,7 +112,7 @@ bases, we can use the optional argument `completeness_check = false` to switch o
 expensive completeness check. The following examples demonstrate this:
 ```@docs
 global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-global_tate_model(ais::Vector{T}, base::ToricCoveredScheme; completeness_check::Bool = true) where {T<:MPolyRingElem}
+global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
 ### A (covered) scheme as base space
@@ -146,33 +146,18 @@ such an analysis are not limited to the world of toric varieties.
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-global_tate_model(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyRingElem}
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 ```
 
 
 ### Standard constructions
 
 We provide convenient constructions of global Tate models over
-famous base spaces. Currently, we support the following:
+standard base spaces. Currently, we support the following:
 ```@docs
 global_tate_model_over_projective_space(d::Int)
 global_tate_model_over_hirzebruch_surface(r::Int)
 global_tate_model_over_del_pezzo_surface(b::Int)
-```
-
-
-## Literature constructions
-
-Certain Tate models have been studied in the physics literature over and over again.
-Thereby, these constructions became famous and some were given special names. We
-aim to provide support for such standard constructions. An example of such a model is
-the following:
-```@docs
-su5_tate_model_over_arbitrary_3d_base()
-```
-More generally, we support literature constructions.
-```@docs
-literature_tate_model(; arxiv_id::String="", equ_nr::String="", description::String="")
 ```
 
 
@@ -214,7 +199,7 @@ More background information is available
 The following attributes are currently only supported in a toric setting:
 ```@docs
 calabi_yau_hypersurface(t::GlobalTateModel)
-global_weierstrass_model(t::GlobalTateModel)
+weierstrass_model(t::GlobalTateModel)
 ```
 Note that for applications in F-theory, *singular* elliptic fibrations are key
 (cf. [Wei18](@cite) and references therein). Consequently the discriminant
@@ -224,33 +209,6 @@ importance:
 discriminant(t::GlobalTateModel)
 singular_loci(t::GlobalTateModel)
 ```
-
-### Attributes for literature models
-
-For literature models, we provide the following attributes:
-```@docs
-doi(t::GlobalTateModel)
-arxiv_id(t::GlobalTateModel)
-version(t::GlobalTateModel)
-equation_number(t::GlobalTateModel)
-description(t::GlobalTateModel)
-link(t::GlobalTateModel)
-```
-Certainly, one can add this information for a model that does
-not have it:
-```@docs
-set_description(t::GlobalTateModel, description::String)
-```
-Note however, that these changes will (currently) not be stored
-in our data base. One can also check if a model has a particular
-set of information. This is achieved with the following methods:
-* `has_doi(t::GlobalTateModel)`,
-* `has_arxiv_id(t::GlobalTateModel)`,
-* `has_version(t::GlobalTateModel)`,
-* `has_equation_number(t::GlobalTateModel)`,
-* `has_description(t::GlobalTateModel)`,
-* `has_link(t::GlobalTateModel)`.
-
 
 ## Methods
 
@@ -266,23 +224,4 @@ by working out the fiber components and their intersection pattern over a
 particular locus of the base.
 ```@docs
 analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
-```
-
-### Resolution(s) of a singular model
-
-A central task in F-theory is to resolve a singular global Tate model.
-For literature models, we have stored resolutions in our data base.
-Upon construction of a literature model, we load these known resolutions.
-The user can list all the resolutions in our database as follows:
-```@docs
-resolutions(t::GlobalTateModel)
-```
-In addition, some user might want to add a resolution. This can be achieved with
-the following method:
-```@docs
-add_resolution(t::GlobalTateModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
-```
-Provided that a resolution for a model is known, we can (attempt to) resolve the model.
-```@docs
-resolve(t::GlobalTateModel, index::Int)
 ```

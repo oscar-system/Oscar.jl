@@ -21,8 +21,8 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 ```jldoctest
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -35,12 +35,25 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
-julia> f = inclusion_morphism(X, Y);
+julia> f = inclusion_morphism(X, Y)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by the pullback function
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 
 julia> domain(f)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 ```
 """
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
@@ -55,8 +68,8 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 ```jldoctest
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -69,14 +82,24 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
-julia> f = inclusion_morphism(X, Y);
+julia> f = inclusion_morphism(X, Y)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by the pullback function
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 
 julia> codomain(f)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational field
+  over rational field
+with coordinates [x1, x2, x3]
 ```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
@@ -92,8 +115,8 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 ```jldoctest
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -106,7 +129,10 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
 julia> pullback(inclusion_morphism(X, Y))
 Map with following data
@@ -199,8 +225,8 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 ```jldoctest
 julia> Y = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(Y)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -213,29 +239,32 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> X = subscheme(Y, x1)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x1)
 
-julia> f = inclusion_morphism(X, Y);
+julia> f = inclusion_morphism(X, Y)
+Morphism
+  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  to   [x1, x2, x3]  affine 3-space over QQ
+given by the pullback function
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 
-julia> graph(f);
+julia> graph(f)
+(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> affine 3-space over QQ with coordinates [x1, x2, x3])
 ```
 """
-function graph(f::AbsSpecMor)
-  X = standard_spec(domain(f))
-  Y = standard_spec(codomain(f))
-  fres = restrict(f, X, Y)
-  G, prX, prY = graph(fres)
-  return G, compose(prX, SpecMor(X, domain(f), gens(OO(X)))), compose(prY, SpecMor(Y, codomain(f), gens(OO(Y))))
-end
-
-function graph(f::AbsSpecMor{SpecType, SpecType}) where {SpecType<:StdSpec}
+function graph(f::AbsSpecMor{<:AbsSpec{BRT}, <:AbsSpec{BRT}}) where {BRT}
   X = domain(f)
   Y = codomain(f)
   XxY, prX, prY = product(X, Y)
   pb_X = pullback(prX)
   pb_Y = pullback(prY)
   pb_f = pullback(f)
-  I = ideal(localized_ring(OO(XxY)), lift.(pb_X.(images(pb_f)) - pb_Y.(gens(OO(Y)))))
+  I = ideal(OO(XxY), pb_X.(pb_f.(gens(OO(Y)))) - pb_Y.(gens(OO(Y))))
   G = subscheme(XxY, I)
   return G, restrict(prX, G, X), restrict(prY, G, Y)
 end
@@ -250,8 +279,6 @@ end
   is_isomorphism(f) || error("the given morphism is not an isomorphism")
   return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
-
-
 
 ########################################################################
 # (7) Type getters
@@ -270,4 +297,19 @@ function morphism_type(::Type{SpecType1}, ::Type{SpecType2}) where {SpecType1<:A
 end
 
 morphism_type(X::AbsSpec, Y::AbsSpec) = morphism_type(typeof(X), typeof(Y))
+
+@doc raw"""
+    isomorphism_on_open_subsets(f::AbsSpecMor)
+
+For a birational morphism ``f : X → Y`` of `AbsSpec`s this 
+returns an isomorphism of affine schemes ``f' : U → V`` which is 
+the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
+``V ⊂ Y``.
+"""
+function isomorphism_on_open_subsets(f::AbsSpecMor)
+  if !has_attribute(f, :iso_on_open_subset)
+    is_birational(f) # Should compute and store the attribute
+  end
+  return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
+end
 

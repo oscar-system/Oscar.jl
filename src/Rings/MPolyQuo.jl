@@ -423,6 +423,12 @@ end
   return is_prime(saturated_ideal(I))
 end
 
+@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
+end
+
 # The following is to streamline the programmer's
 # interface for the use of the four standard rings
 # for the schemes `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`,
@@ -433,6 +439,11 @@ end
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J
+end
+
+# TODO: Replace by a more efficient method!
+@attr Bool function is_radical(I::MPolyQuoIdeal)
+  return is_radical(saturated_ideal(I))
 end
 
 @doc raw"""
@@ -553,7 +564,13 @@ end
 
 *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
+  if b >= 0
+    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+  else
+    return inv(a)^(-b)
+  end
+end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
@@ -874,7 +891,7 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
 function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
@@ -887,9 +904,10 @@ end
 
 lift(a::MPolyQuoRingElem) = a.f
 
+
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
-function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
+function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   if parent(a) === Q
     return a
   else
@@ -897,12 +915,18 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   end
 end
 
-function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  @req base_ring(Q) === parent(a) "Parent mismatch"
+function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
+  @req base_ring(parent(a)) === Q "parent missmatch"
+  return lift(a)
+end
+
+
+function (Q::MPolyQuoRing{S})(a::S; check::Bool=false) where {S <: MPolyRingElem}
+  @req base_ring(Q) === parent(a) "parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 
-function (Q::MPolyQuoRing)(a::MPolyRingElem)
+function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
 end
 
@@ -917,7 +941,7 @@ function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
   return S(a.f)
 end
 
-(Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
+(Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
 one(Q::MPolyQuoRing) = Q(1)
 
@@ -968,7 +992,7 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::UnitRange)
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
@@ -985,7 +1009,7 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
+function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
   S = sparse_matrix(R)
   for g = 1:Singular.ngens(M)
     (g in V) || continue
@@ -1036,18 +1060,48 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
+### 
+# The following two functions below provide a hotfix to make sure that the preferred 
+# ordering provided to the constructor of the quotient ring is actually used for the 
+# groebner basis computations.
+function ordering(A::MPolyQuoRing)
+  return A.ordering
+end
+
+function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  check_parent(a, b)
+  iszero(a) && iszero(b) && return (true, zero(parent(a)))
+  iszero(b) && error("cannot divide by zero")
+
+  A = parent(a)
+  R = base_ring(A)
+  mod = modulus(A)
+  o = ordering(A)
+  # Take a groebner basis for the preferred ordering, hoping that it will speed up things
+  gb_mod = gens(groebner_basis(mod, ordering=o))
+  I = ideal(R, push!(gb_mod, lift(b)))
+  # Make sure that the singular side of this ideal is filled with the correct ordering
+  singular_assure(I, o)
+  # Get our hands on the actual singular ideal
+  Ising = I.gens.gens.S
+  # ...and the ring
+  Rsing = I.gens.gens.Sx
+  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  u_sing, rem = Singular.lift(Ising, a_ideal)
+  !iszero(rem) && return false, a
+  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
+end
+
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal was no zero-dimensional")
+    error("ideal is not zero-dimensional")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
 
-#TODO: the reverse map...
-# problem: the "canonical" reps are not the monomials.
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   R = base_ring(Q)
   @assert K == base_ring(R)
@@ -1056,15 +1110,36 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   function im(a::Generic.FreeModuleElem)
     @assert parent(a) == V
     b = R(0)
-    for i=1:length(l)
-      c = a[i]
+    for k=1:length(l)
+      c = a[k]
       if !iszero(c)
-        b += c*l[i]
+        b += c*l[k]
       end
     end
     return Q(b)
   end
-  return V, MapFromFunc(im, V, Q)
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(a::MPolyQuoRingElem)
+    @assert parent(a) === Q
+    b = lift(a)::MPolyElem
+    o = default_ordering(R)
+    # TODO: Make sure the ordering is the same as the one used for the _kbase above
+    @assert is_global(o) "ordering must be global"
+    b = normal_form(b, modulus(Q), ordering=o)
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=o)
+      c = leading_coefficient(b, ordering=o)
+      j = findfirst(n->n==m, l)
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1435,7 +1510,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})

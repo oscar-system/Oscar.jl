@@ -1,8 +1,8 @@
-@doc raw"""
+@doc """
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
-currently, mainly at the Technische Universität Kaiserslautern.
+mainly at the University of Kaiserslautern-Landau.
 
 Written in Julia, it combines the well established systems
  * [`Singular`](@ref Singular)
@@ -20,6 +20,7 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 module Oscar
 
 using Preferences
+using LazyArtifacts
 
 include("imports.jl")
 
@@ -93,10 +94,34 @@ function __init__()
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 
-    add_verbose_scope(:GlobalTateModel)
-    add_verbose_scope(:GlobalWeierstrassModel)
+    add_verbose_scope(:EllipticSurface)
+    add_assert_scope(:EllipticSurface)
 
+    add_verbose_scope(:Glueing)
+    add_assert_scope(:Glueing)
+
+    add_verbose_scope(:Intersections)
+    add_assert_scope(:Intersections)
+
+    add_verbose_scope(:MaximalAssociatedPoints)
+    add_assert_scope(:MaximalAssociatedPoints)
+
+    add_verbose_scope(:Divisors)
+    add_assert_scope(:Divisors)
+
+    add_verbose_scope(:Blowup)
+    add_assert_scope(:Blowup)
+
+
+    add_verbose_scope(:GlobalTateModel)
+    add_verbose_scope(:WeierstrassModel)
+    add_verbose_scope(:HypersurfaceModel)
+    add_verbose_scope(:FTheoryConstructorInformation)
+    
     add_verbosity_scope(:LinearQuotients)
+
+    add_assertion_scope(:ZZLatWithIsom)
+    add_verbosity_scope(:ZZLatWithIsom)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -176,11 +201,12 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
 
+include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs.jl")
+include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
