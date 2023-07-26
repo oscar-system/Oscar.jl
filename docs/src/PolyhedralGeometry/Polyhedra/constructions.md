@@ -136,12 +136,12 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
-SIM_body
+SIM_body_polytope
 associahedron
 billera_lee_polytope
-binary_markov_graph
+binary_markov_graph_polytope
 birkhoff_polytope
-cyclic_caratheodory
+cyclic_caratheodory_polytope
 cyclic_polytope
 del_pezzo_polytope
 dwarfed_cube
@@ -149,14 +149,14 @@ dwarfed_product_polygons
 explicit_zonotope
 fano_simplex
 fractional_cut_polytope
-fractional_knapsack
+fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
 goldfarb_cube
 goldfarb_sit_cube
 hypersimplex
 hypertruncated_cube
-k_cyclic
+k_cyclic_polytope
 klee_minty_cube
 lecture_hall_simplex
 long_and_winding_polytope

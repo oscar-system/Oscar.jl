@@ -31,8 +31,6 @@ julia> vertices(b)
 """
 birkhoff_polytope(n::Integer; even::Bool = false) = polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
-
-
 @doc raw"""
     pyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1)
 
@@ -62,7 +60,6 @@ function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
     has_group = Polymake.exists(pm_in, "GROUP")
     return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), coefficient_field(P))
 end
-
 function pyramid(P::Polyhedron{T}, z::FieldElem) where T<:scalar_types
     U, f = _promote_scalar_field(coefficient_field(P), parent(z))
     pm_in = pm_object(P)
@@ -101,16 +98,13 @@ function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z) where T<:s
     has_group = Polymake.exists(pm_in, "GROUP")
     return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), coefficient_field(P))
 end
-
 function bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::FieldElem=-z) where T<:scalar_types
     U, f = _promote_scalar_field(coefficient_field(P), parent(z), parent(z_prime))
     pm_in = pm_object(P)
     has_group = Polymake.exists(pm_in, "GROUP")
     return Polyhedron{U}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), f)
 end
-
 bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::Number) where T<:scalar_types = bipyramid(P, z, parent(z)(z_prime))
-
 bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where T<:scalar_types = bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
@@ -148,7 +142,6 @@ function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
     return Cone{T}(bigobject, coefficient_field(P))
 end
-
 
 @doc raw"""
     orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
@@ -265,7 +258,7 @@ Construct the regular 600-cell, one out of three exceptional regular 4-polytopes
 """
 regular_600_cell() = polyhedron(Polymake.polytope.regular_600_cell());
 
-"""
+@doc raw"""
     newton_polytope(poly::Polynomial)
 
 Compute the Newton polytope of the multivariate polynomial `poly`.
@@ -293,9 +286,7 @@ function newton_polytope(f)
     convex_hull(exponents)
 end
 
-
 polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(coefficient_field(H), normal_vector(H), negbias(H))
-
 polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(coefficient_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
@@ -325,7 +316,6 @@ function intersect(P::Polyhedron...)
     pmo = [pm_object(p) for p in P]
     return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
 end
-
 intersect(P::AbstractVector{<:Polyhedron}) = intersect(P...)
 
 @doc raw"""
@@ -360,8 +350,6 @@ function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:st
         throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
     end
 end
-
-
 
 @doc raw"""
     product(P::Polyhedron, Q::Polyhedron)
@@ -435,7 +423,6 @@ function convex_hull(P::Polyhedron...)
 end
 convex_hull(P::AbstractVector{<:Polyhedron}) = convex_hull(P...)
 
-#TODO: documentation
 @doc raw"""
     +(P::Polyhedron, Q::Polyhedron)
 
@@ -509,7 +496,6 @@ julia> volume(SC)//volume(C)
 """
 *(P::Polyhedron{T}, k::Union{Number, FieldElem}) where T<:scalar_types = k*P
 
-
 @doc raw"""
     +(P::Polyhedron, v::AbstractVector)
 
@@ -540,7 +526,6 @@ function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
     @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
     return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)), coefficient_field(P))
 end
-
 
 @doc raw"""
     +(v::AbstractVector, P::Polyhedron)
@@ -620,7 +605,6 @@ function simplex(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
     return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
 end
 simplex(d::Int) = simplex(QQFieldElem, d)
-
 
 @doc raw"""
     cross_polytope([::Union{Type{T}, Field} = QQFieldElem,] d::Int [,n])
@@ -825,7 +809,6 @@ julia> nfacets(T)
 """
 catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
 
-
 @doc raw"""
     upper_bound_f_vector(d::Int, n::Int)
 
@@ -898,7 +881,6 @@ julia> vertices(P)
 function polarize(P::Polyhedron{T}) where T<:scalar_types
     return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), coefficient_field(P))
 end
-
 
 @doc raw"""
     project_full(P::Polyhedron)
@@ -1012,9 +994,6 @@ julia> nvertices(cp)
 """
 cyclic_polytope(d::Int, n::Int) = polyhedron(Polymake.polytope.cyclic(d, n))
 
-
-# random constructions
-
 @doc raw"""
     rand_spherical_polytope([rng::AbstractRNG,] d::Int, n::Int;
     distribution=:uniform, precision=nothing, seed=nothing)
@@ -1121,7 +1100,7 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
 end
 
 @doc raw"""
-    SIM_body(alpha::AbstractVector)
+    SIM_body_polytope(alpha::AbstractVector)
 
 Produce an $n$-dimensional SIM-body as generalized permutahedron in 
 $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
@@ -1137,14 +1116,14 @@ Note that the polytope lives in $3$-space, so we project it down to $2$-space
 by eliminating the last coordinate. 
 
 ```jldoctest
-julia> p = SIM_body([3,1])
+julia> p = SIM_body_polytope([3,1])
 Polyhedron in ambient dimension 3
 
 julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
 Polyhedron in ambient dimension 2
 ```
 """
-function SIM_body(alpha::Vector) 
+function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     if n < 1
         throw(ArgumentError("SIM-body: dimension must be at least 1"))
@@ -1156,7 +1135,6 @@ function SIM_body(alpha::Vector)
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 end
-
 
 @doc raw"""
     associahedron(d::Int)
@@ -1197,9 +1175,8 @@ julia> facets(A)
 """
 associahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d)) 
 
-
 @doc raw""" 
-    binary_markov_graph(observation::Array{Bool})
+    binary_markov_graph_polytope(observation::Array{Bool})
 
 Defines a very simple graph for a polytope propagation related to a Hidden 
 Markov Model. The propagated polytope is always a polygon. For a detailed 
@@ -1207,7 +1184,7 @@ description see [Jos05](@cite).
 
 # Examples
 ```jldoctest
-julia> P = binary_markov_graph([1,1,1,1])
+julia> P = binary_markov_graph_polytope([1,1,1,1])
 Polyhedron in ambient dimension 2
 
 julia> vertices(P)
@@ -1218,7 +1195,7 @@ julia> vertices(P)
  [0, 7]
 ```
 """
-binary_markov_graph(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
+binary_markov_graph_polytope(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
 
 @doc raw"""
     dwarfed_cube(d::Int)
@@ -1355,7 +1332,7 @@ julia> vertices(Z)
 explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = Polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
 
 @doc raw"""
-    cyclic_caratheodory(d::Int, n::Int)
+    cyclic_caratheodory_polytope(d::Int, n::Int)
 
 Produce a $d$-dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
 Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the 
@@ -1367,7 +1344,7 @@ trigonometric moment curve.
 
 # Examples
 ```jldoctest
-julia> C= cyclic_caratheodory(4,5)
+julia> C= cyclic_caratheodory_polytope(4,5)
 Polyhedron in ambient dimension 4
 
 julia> vertices(C)
@@ -1379,7 +1356,7 @@ julia> vertices(C)
  [1391688820718163//4503599627370496, -33462326346837//35184372088832, -3643488634403413//4503599627370496, -5294298886396507//9007199254740992]
 ```
 """
-function cyclic_caratheodory(d::Int, n::Int)
+function cyclic_caratheodory_polytope(d::Int, n::Int)
     if n < d 
         throw(ArgumentError("Dimension d has to be smaller than number of points n."))
     end
@@ -1393,7 +1370,7 @@ function cyclic_caratheodory(d::Int, n::Int)
 end
 
 @doc raw"""
-    fractional_knapsack(b::Vector)
+    fractional_knapsack_polytope(b::Vector)
 
 Produce a knapsack polytope defined by one linear inequality (and non-negativity constraints).
 
@@ -1402,7 +1379,7 @@ Produce a knapsack polytope defined by one linear inequality (and non-negativity
 
 # Example 
 ```jldoctest
-julia> p= fractional_knapsack([1;2;3;4])
+julia> p= fractional_knapsack_polytope([1;2;3;4])
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(p)
@@ -1411,8 +1388,8 @@ julia> print_constraints(p)
 -x₃ ≦ 0
 ```
 """
-fractional_knapsack(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
-fractional_knapsack(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
+fractional_knapsack_polytope(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
+fractional_knapsack_polytope(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
 
 @doc raw"""
     hypersimplex(k::Int, d::Int)
@@ -1527,13 +1504,13 @@ julia> vertices(c)
 function goldfarb_cube(d::Int, e::Real, g::Real)
     m = 8*sizeof(Int)-2
     if d<1 || d>m
-        throw(ArgumentError("goldfarb: dimension ot of range (1,..," * string(m) * ")"))
+        throw(ArgumentError("goldfarb_cube: dimension ot of range (1,..," * string(m) * ")"))
     end
     if e>=1//2
-        throw(ArgumentError("goldfarb: e < 1/2"))
+        throw(ArgumentError("goldfarb_cube: e < 1/2"))
     end
     if g>e/4
-        throw(ArgumentError("goldfarb: g <= e/4"))
+        throw(ArgumentError("goldfarb_cube: g <= e/4"))
     end
     return Polyhedron(Polymake.polytope.goldfarb(d,e,g))
 end
@@ -1573,13 +1550,13 @@ julia> vertices(c)
 function goldfarb_sit_cube(d::Int, eps::Real, delta::Real) 
     m = 8*sizeof(Int)-2
     if d<1 || d>m
-        throw(ArgumentError("goldfarb_sit: dimension ot of range (1,..," * string(m) * ")"))
+        throw(ArgumentError("goldfarb_sit_cube: dimension ot of range (1,..," * string(m) * ")"))
     end
     if eps>=1//2
-        throw(ArgumentError("goldfarb_sit: eps < 1/2"))
+        throw(ArgumentError("goldfarb_sit_cube: eps < 1/2"))
     end
     if delta>1//2
-        throw(ArgumentError("goldfarb_sit: delta <= 1/2"))
+        throw(ArgumentError("goldfarb_sit_cube: delta <= 1/2"))
     end
     return Polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
 end
@@ -1619,7 +1596,7 @@ function hypertruncated_cube(d::Int, k::Number, lambda::Number)
 end
 
 @doc raw"""
-   k_cylic(n::Int, s::Vector) 
+   k_cylic_polytope(n::Int, s::Vector) 
 
 Produce a (rounded) $2*k$-dimensional $k$-cyclic polytope with $n$ points, where $k$ is the length of the input vector $s$. Special cases are the bicyclic ($k=2$) and tricyclic ($k=3$) polytopes. Only possible in even dimensions. The parameters $s_i$ can be specified as integer, floating-point, or rational numbers. The coordinates of the $i$-th point are taken as follows:
 $(\cos(s_1 * 2\pi i/n), \sin(s_1 * 2\pi i/n), ... , \cos(s_k * 2\pi i/n), sin(s_k * 2\pi i/n))$.
@@ -1633,11 +1610,11 @@ Warning: Some of the $k-$cyclic polytopes are not simplicial. Since the componen
 # Example
 To produce a (not exactly) regular pentagon, type this:
 ```jldoctest
-julia> k_cyclic(5,[1])
+julia> k_cyclic_polytope(5,[1])
 Polyhedron in ambient dimension 2
 ```
 """
-k_cyclic(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
+k_cyclic_polytope(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
 
 @doc raw"""
     klee_minty_cube(d::Int, e::Number)
@@ -1648,67 +1625,7 @@ For an example see `goldfarb` method.
 klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
 
 @doc raw"""
-    long_and_winding_polytope()
-
-Produce polytope in dimension $2r$ with $3r+2$ facets such that the total curvature of the central path is at least $\Omega(2^r)$; 
-see [ABGJ18](@cite). See also `perturbed_long_and_winding`. 
-
-# Keywords
-
-- `r::Int`: defining parameter 
-- `eval_ratio::Real`: optional parameter for evaluating the puiseux rational functions 
-- `eval_float::AbstractFloat`: optional parameter  to evaluate at `eval_ratio^eval_exp`, default: $1$. 
-- `eval_exp::Int`: optional parameter for evaluating the puiseux rational functions  
-
-# Examples
-```jldoctest
-julia> p = long_and_winding_polytope(2)
-Polyhedron in ambient dimension 4
-
-julia> p.pm_polytope.FACETS
-PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
-(5) (0 (x^2)) (1 (- 1))
-(5) (0 (x)) (2 (- 1))
-(5) (1 (x)) (3 (- 1))
-(5) (2 (x)) (3 (- 1))
-(0) (x^1/2) (x^1/2) (0) (- 1)
-(5) (3 (1))
-(5) (4 (1))
-
-
-julia> long_and_winding_polytope(2; eval_ratio=2)
-Polyhedron in ambient dimension 4
-
-julia> p.pm_polytope.FACETS
-PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
-(5) (0 (x^2)) (1 (- 1))
-(5) (0 (x)) (2 (- 1))
-(5) (1 (x)) (3 (- 1))
-(5) (2 (x)) (3 (- 1))
-(0) (x^1/2) (x^1/2) (0) (- 1)
-(5) (3 (1))
-(5) (4 (1))
-```
-"""
-function long_and_winding_polytope(r::Int; eval_ratio=nothing, eval_float=nothing, eval_exp=nothing)
-    if r<1
-        throw(ArgumentError("long_and_winding: parameter r >= 1 required"))
-    end
-    opts = Dict{Symbol,Any}()
-    if eval_ratio!=nothing
-        opts[:eval_ratio] = convert(Real, eval_ratio)
-    end
-    if eval_float!=nothing
-        opts[:eval_float] = convert(AbstractFloat, eval_float)
-    end
-    if eval_exp!=nothing
-        opts[:eval_exp] = convert(Int, eval_exp)
-    end
-    return Polyhedron{QQFieldElem}(Polymake.polytope.long_and_winding(r;opts...))
-end
-
-@doc raw"""
-    max_GC_rank(d::Int)
+    max_GC_rank_polytope(d::Int)
 
 Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log\(d\))$, integrally infeasible. With symmetric linear objective function $(0,1,1..,1)$. Construction due to Pokutta and Schulz.
 
@@ -1718,7 +1635,7 @@ Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log
 # Examples
 
 """
-function max_gc_rank(d::Int) 
+function max_gc_rank_polytope(d::Int) 
     if d < 2
         throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
     end

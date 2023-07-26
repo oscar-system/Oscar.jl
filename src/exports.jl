@@ -148,7 +148,7 @@ export ProjectiveAlgebraicSet
 export QQ
 export RationalEquivalenceClass
 export RayVector
-export SIM_body
+export SIM_body_polytope
 export SL
 export SLPoly
 export SLPolyRing
@@ -273,7 +273,7 @@ export betti_number
 export betti_numbers
 export betti_table
 export billera_lee_polytope
-export binary_markov_graph
+export binary_markov_graph_polytope
 export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
@@ -405,7 +405,7 @@ export cross_polytope
 export cube
 export cycle_matroid
 export cycle_structure
-export cyclic_caratheodory
+export cyclic_caratheodory_polytope
 export cyclic_flats
 export cyclic_generator
 export cyclic_group
@@ -531,7 +531,7 @@ export fraction
 export fraction_field
 export fractional_cut_polytope
 export fractional_ideal
-export fractional_knapsack
+export fractional_knapsack_polytope
 export fractional_matching_polytope
 export frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup
 export free_abelian_group
@@ -853,7 +853,7 @@ export jacobi_ideal
 export jacobi_matrix
 export jacobi_symbol
 export johnson_solid
-export k_cyclic
+export k_cyclic_polytope
 export k_skeleton
 export katsura
 export kernel
