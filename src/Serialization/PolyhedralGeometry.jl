@@ -23,11 +23,9 @@ function save_internal(s::SerializerState, lp::LinearProgram)
     lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-    return Dict(
-        :feasible_region => save_type_dispatch(s, lp.feasible_region),
-        :convention => lp.convention,
-        :lpcoeffs => JSON.parse(jsonstr)
-    )
+    save_type_dispatch(s, lp.feasible_region, :feasible_region)
+    save_type_dispatch(s, lp.convention, :convention)
+    save_type_dispatch(s, JSON.parse(jsonstr), :lpcoeffs)
 end
 
 function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dict) where T
@@ -58,12 +56,11 @@ function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
         Symbol("Core::Serializer"), :serialize, int_vars)
     coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
     int_vars_jsonstr = Polymake.call_function(:common, :encode_json, int_vars_serialized)
-    return Dict(
-        :feasible_region => save_type_dispatch(s, milp.feasible_region),
-        :convention => milp.convention,
-        :milp_coeffs => JSON.parse(coeffs_jsonstr),
-        :int_vars => JSON.parse(int_vars_jsonstr)
-    )
+
+    save_type_dispatch(s, milp.feasible_region, :feasible_region)
+    save_type_dispatch(s, milp.convention, :convention)
+    save_type_dispatch(s, JSON.parse(coeffs_jsonstr), :milp_coeffs)
+    save_type_dispatch(s, JSON.parse(int_vars_jsonstr), :int_vars)
 end
 
 function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}}, dict::Dict) where T

@@ -70,11 +70,8 @@ end
 
 function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     base = base_ring(R)
-
-    return Dict(
-        :symbols => save_type_dispatch(s, symbols(R)),
-        :base_ring => save_as_ref(s, base),
-    )
+    save_type_dispatch(s, symbols(R), :symbols)
+    save_type_dispatch(s, base, :base_ring)
 end
 
 function load_internal(s::DeserializerState,

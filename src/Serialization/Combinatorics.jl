@@ -10,7 +10,7 @@ function save_internal(s::SerializerState, g::Graph{T}) where {T <: Union{Direct
     smallobject = pm_object(g)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, smallobject)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-    return JSON.parse(jsonstr)
+    add_object(s, JSON.parse(jsonstr), :pm_object)
 end
 
 

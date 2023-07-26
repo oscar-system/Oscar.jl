@@ -4,13 +4,15 @@
 @registerSerializationType(Vector)
 
 function save_internal(s::SerializerState, vec::Vector{T}) where T
-    d = Dict{Symbol, Any}(
-        :vector => [save_type_dispatch(s, x) for x in vec]
-    )
-    if is_basic_serialization_type(T)
-        d[:entry_type] = encodeType(T)
+    open_array(s)
+    for x in vec 
+        add_object(s, x)
     end
-    return d
+    close(s)
+
+    if is_basic_serialization_type(T)
+        save_type_dispatch(s, encode_type(T), :entry_type)
+    end
 end
 
 function save_internal(s::SerializerState, vec::Vector{T};

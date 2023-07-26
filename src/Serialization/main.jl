@@ -244,16 +244,24 @@ function save_as_ref(s::SerializerState, obj::T) where T
     if ref !== nothing
         return string(ref)
     end
-
+    
     ref = s.objmap[obj] = uuid4()
-    result = Dict{Symbol, Any}(:type => encode_type(T))
+    
 
     if Base.issingletontype(T)
         return result
     end
 
     # invoke the actual serializer
-    result[:data] = save_internal(s, obj)
+    s.depth += 1
+    open_dict(s)
+    open_dict(s)
+    save_internal(s, obj)
+    close(s)
+    s.depth -= 1
+    add_object(s, encode_type(T), :type)
+    result = pop!(s.serializer.open_objects)
+    println(result)
     s.refs[Symbol(ref)] = result
 
     return string(ref)
@@ -458,6 +466,7 @@ julia> load("/tmp/fourtitwo.json")
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
     open_dict(state)
+    # :obj should not be seen in the file
     save_type_dispatch(state, obj, :obj)
     jsoncompatible = pop!(state.serializer.open_objects)
     if !isnothing(metadata)
