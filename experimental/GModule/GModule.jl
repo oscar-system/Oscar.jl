@@ -164,10 +164,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function Hecke.number_field(::QQField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
-  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
-end
-
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -362,16 +358,16 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   QQAb = abelian_closure(QQ)[1]
   K = cyclotomic_field(QQAb, Int(c))[1]
   fl, em = is_subfield(k, K)
-  return Oscar.group_class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
+  return Oscar.class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{QQFieldElem}})
   QQAb = abelian_closure(QQ)[1]
-  return Oscar.group_class_function(group(C), [QQAb(x[2]) for x = _character(C)])
+  return Oscar.class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.FieldElem}})
-  return Oscar.group_class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
+  return Oscar.class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
 end
 
 
@@ -1159,10 +1155,6 @@ function Oscar.abelian_group(M::Generic.FreeModule{fqPolyRepFieldElem})
     return M(m)
   end
   return A, MapFromFunc(A, M, to_M, to_A)
-end
-
-function Oscar.group(chi::Oscar.GAPGroupClassFunction)
-  return chi.table.GAPGroup
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)

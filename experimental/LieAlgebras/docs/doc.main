@@ -2,6 +2,7 @@
    "Lie Algebras" => [
       "introduction.md",
       "lie_algebras.md",
+      "ideals_and_subalgebras.md",
       "modules.md",
    ],
 ]

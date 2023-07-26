@@ -2,7 +2,7 @@ import Oscar: GAPWrap
 
 function test_iso_gap_oscar(LG, oscarT; num_random_tests::Int=10)
   iso = Oscar.iso_gap_oscar(LG)
-  @test domain(iso) == LG
+  @test domain(iso) === LG
   LO = codomain(iso)
   @test LO isa oscarT
 

@@ -47,10 +47,30 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
 
 end
 
+base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
+
 @doc raw"""
     elliptic_surface(generic_fiber::EllCrv, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
+
+# Examples
+```jldoctest
+julia> Qt, t = polynomial_ring(QQ, :t);
+
+julia> Qtf = fraction_field(Qt);
+
+julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
+
+julia> X3 = elliptic_surface(E, 2)
+Elliptic surface
+  over rational field
+with generic fiber
+  -x^3 + y^2 - t^7 + 2*t^6 - t^5
+
+julia> Base.show(stdout, X3)
+Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
+```
 """
 function elliptic_surface(generic_fiber::EllCrv{BaseField}, euler_characteristic::Int,
                           mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) where {
@@ -208,23 +228,6 @@ Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
   return tors
 end
 
-@doc raw"""
-
-#Examples
-```jldoctest
-julia> Qt, t = polynomial_ring(QQ, :t);
-
-julia> Qtf = fraction_field(Qt);
-
-julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
-
-julia> X3 = elliptic_surface(E, 2);
-
-julia> Base.show(stdout, X3)
-Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
-
-```
-"""
 function Base.show(io::IO, S::EllipticSurface)
   io = pretty(io)
   if get(io, :supercompact, false)
@@ -235,25 +238,6 @@ function Base.show(io::IO, S::EllipticSurface)
   end
 end
 
-@doc raw"""
-#Examples
-```jldoctest
-julia> Qt, t = polynomial_ring(QQ, :t);
-
-julia> Qtf = fraction_field(Qt);
-
-julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
-
-julia> X3 = elliptic_surface(E, 2)
-Elliptic surface
-  over rational field
-with generic fiber
-  -x^3 + y^2 - t^7 + 2*t^6 - t^5
-and relatively minimal model
-  scheme over QQ covered with 45 patches
-
-```
-"""
 function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
   io = pretty(io)
   println(io, "Elliptic surface")
@@ -263,7 +247,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
   if isdefined(S, :Y)
     println(io)
     println(io, "and relatively minimal model")
-    print(io, Indent(), Lowercase(), relatively_minimal_model(S)[1], Dedent())
+    print(io, Indent(), Lowercase(), S.Y, Dedent())
   end
   print(io, Dedent())
 end

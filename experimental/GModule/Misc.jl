@@ -172,5 +172,4 @@ end
 Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
 Base.getindex(::QQField, a::Vector{QQAbElem}) = number_field(QQ, a)
 Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x =a])
-Base.getindex(::QQField, chi::Oscar.GAPGroupClassFunction) = number_field(QQ, chi)
 
