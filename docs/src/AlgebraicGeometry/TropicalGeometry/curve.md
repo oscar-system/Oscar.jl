@@ -7,7 +7,7 @@ CurrentModule = Oscar
 
 ## Introduction
 
-An *abstract tropical curve* is a finite, loopless, mulitgraph.
+An *abstract tropical curve* is a finite, loopless, multigraph.
 It is defined by an incidence matrix with vertices as columns and edges as rows.
 
 A *divisor* on an abstract tropical curve is a formal linear combination of the vertices with integer coefficients. The degree of a divisor is the sum of its coefficients. A divisor is effective if all its coefficients are nonnegative.
