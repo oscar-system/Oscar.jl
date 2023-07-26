@@ -1012,20 +1012,7 @@ julia> nvertices(cp)
 """
 cyclic_polytope(d::Int, n::Int) = polyhedron(Polymake.polytope.cyclic(d, n))
 
-@doc raw"""
-    perles_nonrational_8_polytope()
 
-Construct an 8-dimensional polytope with 12 vertices which is not combinatorially equivalent to any rational polytope.
-- [Gru03](@cite), p.94f
-
-# Examples
-```jldoctest
-julia> perles_nonrational_8_polytope()
-Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
-```
-"""
-perles_nonrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
-                                           
 # random constructions
 
 @doc raw"""
@@ -1806,11 +1793,16 @@ function neighborly_cubical(d::Int, n::Int)
 end
 
 @doc raw"""
-    perles_irrational_8_polytope()
+    perles_nonrational_8_polytope()
 
-Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru00](@cite).
+Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
+
+# Examples
+```jldoctest
+julia> perles_nonrational_8_polytope()
+Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
 """
-perles_irrational_8_polytope() = Polyhedron{QQFieldElem}(Polymake.polytope.perles_irrational_8_polytope())
+perles_nonrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
 
 @doc raw"""
     permutahedron(d::Int)
