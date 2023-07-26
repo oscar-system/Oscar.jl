@@ -50,6 +50,22 @@
   for i = 1:ngens(R)
     @test Oscar.ab_g_degree(GtoA, RtoS(gen(R, i)), Oscar.fixed_root_of_unity(L)) == degree(gen(R, i))
   end
+
+  # An example containing reflections
+  K, a = cyclotomic_field(6, "a")
+  g1 = matrix(K, 3, 3, [ -1 0 0; 0 1 0; 0 0 1 ])
+  g2 = matrix(K, 3, 3, [ 0 0 1; 1 0 0; 0 1 0 ])
+  G = matrix_group(g1, g2)
+  L = linear_quotient(G)
+  R, RtoS = cox_ring(L)
+  @test ngens(R) == 3
+  @test grading_group(R).snf == ZZRingElem[ 3 ]
+  A, GtoA = class_group(L)
+  @test A === grading_group(R)
+  for i = 1:ngens(R)
+    @test Oscar.ab_g_degree(GtoA, RtoS(gen(R, i)), Oscar.fixed_root_of_unity(L)) == degree(gen(R, i))
+  end
+  @test is_zero(modulus(R))
 end
 
 @testset "Cox rings of QQ-factorial terminalizations" begin

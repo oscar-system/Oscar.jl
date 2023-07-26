@@ -37,9 +37,19 @@ function fixed_root_of_unity(L::LinearQuotient)
     K isa AnticNumberField || throw(Hecke.NotImplemented())
     fl, l = Hecke.is_cyclotomic_type(K)
     fl || throw(Hecke.NotImplemented())
-    fl, q = divides(l, e)
+    if is_odd(l)
+      ll = 2l
+    else
+      ll = l
+    end
+    fl, q = divides(ll, e)
     fl || error("$(base_ring(L)) does not contain a $(e)-th root of unity")
-    L.root_of_unity = (gen(K)^q, e)
+    if is_odd(l)
+      zeta = (-gen(K))^q
+    else
+      zeta = gen(K)^q
+    end
+    L.root_of_unity = (zeta, e)
   end
   return L.root_of_unity
 end
@@ -65,7 +75,7 @@ function class_group(L::LinearQuotient)
   end
 
   G = group(L)
-  H = subgroup_of_reflections(G)
+  H, _ = subgroup_of_reflections(G)
   if !is_trivial(H)
     K, GtoK = quo(G, H)
   else
