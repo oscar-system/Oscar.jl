@@ -2257,6 +2257,7 @@ function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGro
       if length(d) == length(T)
         break
       end
+      r = [rand(k) for i=1:degree(G)]
       mu[j] += 1
       if mu[j] > characteristic(k)
         error("dnw")
