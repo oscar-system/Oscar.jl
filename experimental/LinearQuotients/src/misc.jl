@@ -1,12 +1,3 @@
-# Try to 'update' the base_ring of G
-function map_entries(K::Field, G::MatrixGroup)
-  g = dense_matrix_type(K)[]
-  for h in gens(G)
-    push!(g, map_entries(K, h.elm))
-  end
-  return matrix_group(g)
-end
-
 @doc raw"""
     is_reflection(g::MatrixGroupElem)
 
@@ -170,9 +161,4 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
     push!(res, f)
   end
   return SptoS(ideal(Sp, res))
-end
-
-function ideal(S::MPolyDecRing, I::MPolyIdeal)
-  @assert base_ring(I) === forget_grading(S)
-  return ideal(S, [ S(f) for f in gens(I) ])
 end
