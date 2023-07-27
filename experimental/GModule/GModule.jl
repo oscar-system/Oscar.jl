@@ -164,10 +164,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function Hecke.number_field(::QQField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
-  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
-end
-
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
   h = Oscar.iso_oscar_gap(k)
   hi = inv(h)
@@ -390,10 +386,27 @@ function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
   return Oscar.class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
 
-function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
-  return Oscar.class_function(group(C), [base_ring(C)(x[2]) for x = _character(C)])
+function Oscar.natural_character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  G = C.G
+  tbl = character_table(G)
+  k = base_ring(C.M)
+  p = characteristic(k)
+  modtbl = mod(tbl, p)
+  ccl = conjugacy_classes(modtbl)  # p-regular classes
+  h = Oscar.iso_oscar_gap(k)
+
+  vals = [GAP.Globals.BrauerCharacterValue(GAP.Obj(map(h, mat(action(C, representative(x)))))) for x in ccl]
+
+  return Oscar.class_function(modtbl, GAPWrap.ClassFunction(Oscar.GAPTable(modtbl), Oscar.GapObj(vals)))
 end
 
+function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{T}) where {T <: FinFieldElem}
+
+  h=Oscar.iso_oscar_gap(base_ring(C))
+  s = GAP.Globals.ShallowCopy(GAP.Obj(map(h, m)))
+  g = Gap(C)
+  x = GAP.Globals.MTX.SubGModule(g, s)
+end
 
 function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   F = free_module(k, dim(C)*degree(base_ring(C)))
@@ -892,7 +905,7 @@ function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T
   return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(mat(y))))))
 end
 
-function hom_base(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}
+function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Oscar.GAPGroup, T <: FinFieldElem}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
