@@ -135,7 +135,7 @@ function doit(
 
   # Load the bibliography
   bib = CitationBibliography(
-    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); sorting=:nyt
+    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=:alpha
   )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
