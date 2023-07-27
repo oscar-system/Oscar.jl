@@ -248,11 +248,11 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs
-homogenization(f::MPolyRingElem, var::VarName, pos::Int=1)
+homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs

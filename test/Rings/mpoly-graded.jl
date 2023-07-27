@@ -331,7 +331,7 @@ end
 
   f = x^3+x^2*y+x*y^2+y^3
   W = [1 2; 3 4]
-  F = homogenization(f, W, "z", 3)
+  F = homogenization(f, W, "z"; pos=3)
   @test symbols(R) == [ :x, :y ]
 end
 
