@@ -1,16 +1,54 @@
+# Make sure that the tests start without cached character tables.
+# (Running the tests will store information that changes some test outputs,
+# thus running the tests twice needs these calls.)
+GAP.Globals.UnloadCharacterTableData()
+empty!(Oscar.character_tables_by_id)
+
 @testset "show and print character tables" begin
   io = IOBuffer();
 
   t_a4 = character_table(alternating_group(4))
   t_a5 = character_table("A5")
+  t_a4_2 = mod(t_a4, 2)
+  t_a5_2 = mod(t_a5, 2)
 
   # `print` shows an abbrev. form
   print(io, t_a4)
-  @test String(take!(io)) == "character_table(Alt( [ 1 .. 4 ] ))"
+  @test String(take!(io)) == "character table of group Alt( [ 1 .. 4 ] )"
+  print(io, t_a5)
+  @test String(take!(io)) == "character table of A5"
+  print(io, t_a4_2)
+  @test String(take!(io)) == "2-modular Brauer table of group Alt( [ 1 .. 4 ] )"
+  print(io, t_a5_2)
+  @test String(take!(io)) == "2-modular Brauer table of A5"
+
+  # `show` uses the abbrev. form for nested objects
+  show(io, [t_a4])
+  @test String(take!(io)) ==
+    "Oscar.GAPGroupCharacterTable[character table of group Alt( [ 1 .. 4 ] )]"
+  show(io, [t_a5])
+  @test String(take!(io)) ==
+    "Oscar.GAPGroupCharacterTable[character table of A5]"
+  show(io, [t_a4_2])
+  @test String(take!(io)) ==
+    "Oscar.GAPGroupCharacterTable[2-modular Brauer table of group Alt( [ 1 .. 4 ] )]"
+  show(io, [t_a5_2])
+  @test String(take!(io)) ==
+    "Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]"
+
+  # supercompact printing
+  print(IOContext(io, :supercompact => true), t_a4)
+  @test String(take!(io)) == "character table of a group"
+  print(IOContext(io, :supercompact => true), t_a5)
+  @test String(take!(io)) == "character table of a group"
+  print(IOContext(io, :supercompact => true), t_a4_2)
+  @test String(take!(io)) == "2-modular Brauer table of a group"
+  print(IOContext(io, :supercompact => true), t_a5_2)
+  @test String(take!(io)) == "2-modular Brauer table of a group"
 
   # default `show`
   Oscar.with_unicode() do
-    show(io, t_a4)
+    show(io, MIME("text/plain"), t_a4)
   end
   @test String(take!(io)) ==
   """
@@ -29,7 +67,7 @@
   χ₄  3 -1       .       .
   """
 
-  show(io, t_a4)
+  show(io, MIME("text/plain"), t_a4)
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -71,7 +109,7 @@
   # show a legend of irrationalities instead of self-explanatory values,
   # in the screen format ...
   Oscar.with_unicode() do
-    show(IOContext(io, :with_legend => true), t_a4)
+    show(IOContext(io, :with_legend => true), MIME("text/plain"), t_a4)
   end
   @test String(take!(io)) ==
   """
@@ -93,7 +131,7 @@
   A̅ = ζ₃
   """
 
-  show(IOContext(io, :with_legend => true), t_a4)
+  show(IOContext(io, :with_legend => true), MIME("text/plain"), t_a4)
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -134,13 +172,16 @@
   \\chi_{4} & 3 & -1 & . & . \\\\
   \\end{array}
 
-  A = -\\zeta_{3} - 1
-  \\overline{A} = \\zeta_{3}
+  \\begin{array}{l}
+  A = -\\zeta_{3} - 1 \\\\
+  \\overline{A} = \\zeta_{3} \\\\
+  \\end{array}
   \$"""
 
   # show the screen format for a table with real and non-real irrationalities
   Oscar.with_unicode() do
-    show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+    show(IOContext(io, :with_legend => true),
+         MIME("text/plain"), character_table("L2(11)"))
   end
   @test String(take!(io)) ==
   """
@@ -172,7 +213,8 @@
   B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
   """
 
-  show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  show(IOContext(io, :with_legend => true),
+       MIME("text/plain"), character_table("L2(11)"))
   @test String(take!(io)) ==
   """
   L2(11)
@@ -206,7 +248,8 @@
   # show some separating lines, in the screen format ...
   Oscar.with_unicode() do
     show(IOContext(io, :separators_col => [0,5],
-                       :separators_row => [0,5]), t_a5)
+                       :separators_row => [0,5]),
+         MIME("text/plain"), t_a5)
   end
   @test String(take!(io)) ==
   """
@@ -231,7 +274,8 @@
   """
 
   show(IOContext(io, :separators_col => [0,5],
-                     :separators_row => [0,5]), t_a5)
+                     :separators_row => [0,5]),
+       MIME("text/plain"), t_a5)
   @test String(take!(io)) ==
   """
   A5
@@ -257,7 +301,7 @@
   # ... and in LaTeX format
   show(IOContext(io, :separators_col => [0,5],
                      :separators_row => [0,5]),
-                     MIME("text/latex"), t_a5)
+       MIME("text/latex"), t_a5)
   @test String(take!(io)) ==
   """
   \$A5
@@ -286,7 +330,8 @@
   Oscar.with_unicode() do
     show(IOContext(io, :separators_col => [0],
                        :separators_row => [0],
-                       :portions_col => [2,3]), t_a5)
+                       :portions_col => [2,3]),
+         MIME("text/plain"), t_a5)
   end
   @test String(take!(io)) ==
   """
@@ -327,7 +372,8 @@
 
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_col => [2,3]), t_a5)
+                     :portions_col => [2,3]),
+       MIME("text/plain"), t_a5)
   @test String(take!(io)) ==
   """
   A5
@@ -368,7 +414,8 @@
   # ... and in LaTeX format
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_col => [2,3]), MIME("text/latex"), t_a5)
+                     :portions_col => [2,3]),
+       MIME("text/latex"), t_a5)
   @test String(take!(io)) ==
   """
   \$A5
@@ -415,7 +462,8 @@
   Oscar.with_unicode() do
     show(IOContext(io, :separators_col => [0],
                        :separators_row => [0],
-                       :portions_row => [2,3]), t_a5)
+                       :portions_row => [2,3]),
+         MIME("text/plain"), t_a5)
   end
   @test String(take!(io)) ==
   """
@@ -451,7 +499,8 @@
 
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_row => [2,3]), t_a5)
+                     :portions_row => [2,3]),
+       MIME("text/plain"), t_a5)
   @test String(take!(io)) ==
   """
   A5
@@ -487,7 +536,8 @@
   # ... and in LaTeX format (may be interesting)
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_row => [2,3]), MIME("text/latex"), t_a5)
+                     :portions_row => [2,3]),
+       MIME("text/latex"), t_a5)
   @test String(take!(io)) ==
   """\$A5
 
@@ -525,7 +575,7 @@
 
   # show indicators in the screen format ...
   Oscar.with_unicode() do
-    show(IOContext(io, :indicator => [2]), t_a4)
+    show(IOContext(io, :indicator => [2]), MIME("text/plain"), t_a4)
   end
   @test String(take!(io)) ==
   """
@@ -567,7 +617,7 @@
   # ordinary table:
   # show character field degrees in the screen format ...
   Oscar.with_unicode() do
-    show(IOContext(io, :character_field => true), t_a4)
+    show(IOContext(io, :character_field => true), MIME("text/plain"), t_a4)
   end
   @test String(take!(io)) ==
   """
@@ -609,7 +659,7 @@
   # Brauer table:
   # show character field degrees in the screen format ...
   Oscar.with_unicode() do
-    show(IOContext(io, :character_field => true), mod(t_a4, 2))
+    show(IOContext(io, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
   end
   @test String(take!(io)) ==
   """
@@ -679,6 +729,39 @@ end
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
+end
+
+@testset "attributes of character tables" begin
+  ordtbl = character_table("A5")
+  modtbl = mod(ordtbl, 2)
+
+  @test characteristic(ordtbl) == 0
+  @test characteristic(modtbl) == 2
+  @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
+  @test character_parameters(modtbl) == nothing
+  @test class_lengths(ordtbl) == [1, 15, 20, 12, 12]
+  @test class_lengths(modtbl) == [1, 20, 12, 12]
+  @test class_names(ordtbl) == ["1a", "2a", "3a", "5a", "5b"]
+  @test class_names(modtbl) == ["1a", "3a", "5a", "5b"]
+  @test class_parameters(ordtbl) == [[1, 1, 1, 1, 1], [2, 2, 1], [3, 1, 1], [[5], '+'], [[5], '-']]
+  @test class_parameters(modtbl) == [[1, 1, 1, 1, 1], [3, 1, 1], [[5], '+'], [[5], '-']]
+  @test decomposition_matrix(modtbl) == matrix(ZZ, [1 0 0 0; 1 0 1 0; 1 1 0 0; 0 0 0 1; 1 1 1 0])
+  @test identifier(ordtbl) == "A5"
+  @test identifier(modtbl) == "A5mod2"
+  @test !is_duplicate_table(ordtbl)
+  @test maxes(ordtbl) == ["a4", "D10", "S3"]
+  @test maxes(modtbl) == nothing
+  @test "D10" in names_of_fusion_sources(ordtbl)
+  @test order(ordtbl) == 60
+  @test order(modtbl) == 60
+  @test ordinary_table(modtbl) === ordtbl
+  @test_throws ArgumentError ordinary_table(ordtbl)
+  @test orders_centralizers(ordtbl) == [60, 4, 3, 5, 5]
+  @test orders_centralizers(modtbl) == [60, 3, 5, 5]
+  @test orders_class_representatives(ordtbl) == [1, 2, 3, 5, 5]
+  @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
+  @test trivial_character(ordtbl)[1] == 1
+  @test trivial_character(modtbl)[1] == 1
 end
 
 @testset "characters" begin
@@ -846,21 +929,53 @@ end
     G = matrix_group(mats)
     chi = Oscar.natural_character(G)
     @test degree(chi) == degree(G)
+    @test chi == natural_character(hom(G, G, gens(G)))
   end
+
+  G = symmetric_group(3)
+  @test values(natural_character(hom(G, G, gens(G)))) == [3, 1, 0]
+
+  K, a = cyclotomic_field(8, "a")
+  o = one(K)
+  z = zero(K)
+  G = general_linear_group(2, 3)
+  @test values(natural_character(hom(G, G, gens(G)))) ==
+        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+
+  G = small_group(4, 1)  # pc group
+  @test_throws MethodError natural_character(G)
+  @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
 end
 
-@testset "character fields" begin
+@testset "character fields of ordinary characters" begin
+  tbl = character_table("A5")
+  @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
+  @test characteristic(character_field(tbl[1])[1]) == 0
+
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
-      F, phi = character_field(chi)
+      F1, phi = character_field(chi)
+      F2, _ = number_field(QQ, chi)
+      F3, _ = QQ[chi]
+      @test degree(F1) == degree(F2)
+      @test degree(F1) == degree(F3)
       for i in 1:length(chi)
         x = chi[i]
         xF = preimage(phi, x)
-        @test parent(xF) == F
+        @test parent(xF) == F1
         @test phi(xF) == x
       end
     end
   end
+end
+
+@testset "character fields of Brauer characters" begin
+  ordtbl = character_table("A5")
+  modtbl = mod(ordtbl, 2)
+  @test [order_field_of_definition(chi) for chi in modtbl] == [2, 4, 4, 2]
+  @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
+  @test order_field_of_definition(Int, modtbl[1]) isa Int
+  @test_throws ArgumentError order_field_of_definition(ordtbl[1])
 end
 
 @testset "Schur index" begin
@@ -899,6 +1014,10 @@ end
       @test msg == "cannot determine the Schur index with the currently used criteria"
     end
   end
+
+  # The function is defined only for ordinary characters.
+  t = mod(t, 2)
+  @test_throws ArgumentError schur_index(t[1])
 end
 
 @testset "specialized generic tables" begin
@@ -1016,7 +1135,7 @@ end
     end
 
     # a corresponding Brauer table
-    tmod2 = mod(tbl1, 2);
+    tmod2 = mod(tbl1, 2)
     @test tmod2 isa Oscar.GAPGroupCharacterTable
     n = ncols(tmod2)
     chi = tmod2[1]

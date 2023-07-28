@@ -45,6 +45,7 @@ export has_journal_volume
 export has_journal_year
 export has_literature_identifier
 export has_model_description
+export has_model_parameters
 export has_paper_authors
 export has_paper_buzzwords
 export has_paper_description
@@ -77,10 +78,12 @@ export journal_volume
 export journal_year
 export literature_identifier
 export model_description
+export model_parameters
 export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
+export related_literature_models
 export resolutions
 export resolution_generating_sections
 export resolution_zero_sections

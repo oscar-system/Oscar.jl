@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Closed subvarieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     antv = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]])

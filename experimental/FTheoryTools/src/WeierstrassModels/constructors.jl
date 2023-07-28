@@ -52,7 +52,14 @@ function weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g
     @req is_complete(base) "Base space must be complete"
   end
   
-  ambient_space = _weierstrass_ambient_space_from_base(base)
+  # construct the ambient space
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = 2 * anticanonical_divisor_class(base)
+  D2 = 3 * anticanonical_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  
+  # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
   model = WeierstrassModel(f, g, pw, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
   set_attribute!(model, :base_fully_specified, true)
@@ -183,8 +190,8 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
-  # inform about the assume Kbar grading
-  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
+  # Inform about the assume Kbar grading
+  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # convert Weierstrass sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
@@ -225,6 +232,9 @@ function Base.show(io::IO, w::WeierstrassModel)
   end
   if has_model_description(w)
     push!(properties_string, "-- " * string(get_attribute(w, :model_description)))
+    if has_model_parameters(t)
+      push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
+    end
   end
   if has_arxiv_id(w)
     push!(properties_string, "based on arXiv paper " * string(get_attribute(w, :arxiv_id)))

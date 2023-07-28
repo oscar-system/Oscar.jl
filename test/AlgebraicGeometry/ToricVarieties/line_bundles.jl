@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Line bundles (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)

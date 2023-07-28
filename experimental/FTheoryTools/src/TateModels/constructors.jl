@@ -212,7 +212,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   end
   
   # inform about the assume Kbar grading
-  print("Assuming that the first row of the given grading is the grading under Kbar\n\n")
+  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # convert Tate sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
@@ -252,6 +252,9 @@ function Base.show(io::IO, t::GlobalTateModel)
   end
   if has_model_description(t)
     push!(properties_string, "-- " * string(get_attribute(t, :model_description)))
+    if has_model_parameters(t)
+      push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
+    end
   end
   if has_arxiv_id(t)
     push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))

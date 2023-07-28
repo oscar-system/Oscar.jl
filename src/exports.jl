@@ -314,6 +314,7 @@ export circuits
 export class_group
 export class_lengths
 export class_multiplication_coefficient
+export class_names
 export class_parameters
 export class_positions_of_center
 export class_positions_of_kernel
@@ -488,6 +489,7 @@ export exponents
 export ext
 export extension_field
 export exterior_power
+export expand
 export f_vector
 export face_fan
 export faces
@@ -565,6 +567,7 @@ export graded_polynomial_ring
 export grading
 export grading_group
 export graph
+export graph_from_adjacency_matrix
 export grassmann_pluecker_ideal
 export grid_morphism
 export groebner_basis
@@ -682,7 +685,7 @@ export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
 export is_almostsimple, has_is_almostsimple, set_is_almostsimple
-export is_alternating_form
+export is_alternating
 export is_ample
 export is_basepoint_free
 export is_basic_serialization_type
@@ -737,8 +740,6 @@ export is_global
 export is_gorenstein
 export is_graded
 export is_groebner_basis
-export is_hermitian_form
-export is_hermitian_matrix
 export is_homogeneous
 export is_identity_map
 export is_injective
@@ -751,6 +752,7 @@ export is_irreducible
 export is_isomorphic
 export is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group
 export is_isomorphic_with_map
+export is_isomorphic_with_permutation
 export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
@@ -789,7 +791,6 @@ export is_projective_space
 export is_pure
 export is_q_cartier
 export is_q_gorenstein
-export is_quadratic_form
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
@@ -802,7 +803,6 @@ export is_semisimple
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
-export is_skewsymmetric_matrix
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
@@ -813,7 +813,6 @@ export is_strongly_connected
 export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
-export is_symmetric_form
 export is_ternary
 export is_total
 export is_transitive
@@ -1048,7 +1047,9 @@ export orbits
 export order, has_order, set_order
 export orders_centralizers
 export orders_class_representatives
+export order_field_of_definition
 export orders_perfect_groups
+export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
@@ -1063,6 +1064,7 @@ export pc_group
 export pcore
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
+export perles_nonrational_8_polytope
 export perm
 export permutation
 export permutation_group

@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Hirzebruch surfaces (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
     F0 = hirzebruch_surface(NormalToricVariety, 0; set_attributes)

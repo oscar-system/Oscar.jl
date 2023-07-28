@@ -53,6 +53,27 @@ mutable struct CoveringMorphism{DomainType<:Covering,
         !found && error("patch $U of the domain not covered")
       end
     end
+    @check begin
+      for U in patches(dom)
+        for V in patches(dom)
+          U === V && continue
+          phi_U = mor[U]
+          phi_V = mor[V]
+          !haskey(glueings(dom), (U, V)) && continue
+          glue = dom[U, V]
+          f, g = glueing_morphisms(glue)
+          !haskey(glueings(cod), (codomain(phi_U), codomain(phi_V))) && error("glueing not found in the codomain")
+          U_cod = codomain(phi_U)
+          V_cod = codomain(phi_V)
+          glue_cod = cod[U_cod, V_cod]
+          f_cod, g_cod = glueing_morphisms(glue_cod)
+          phi_U_res = restrict(phi_U, domain(f), domain(f_cod))
+          phi_V_res = restrict(phi_V, domain(g), domain(g_cod))
+          compose(f, phi_V_res) == compose(phi_U_res, f_cod) || error("restrictions do not commute")
+          compose(g, phi_U_res) == compose(phi_V_res, g_cod) || error("restrictions do not commute")
+        end
+      end
+    end
     return new{DomainType, CodomainType, MorphismType, Nothing}(dom, cod, mor)
   end
 end

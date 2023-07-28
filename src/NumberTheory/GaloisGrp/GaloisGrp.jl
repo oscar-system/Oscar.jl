@@ -259,7 +259,7 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int; cached::Bool = false)
   return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n], cached = cached)
 end
 
-function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...; cached::Bool = false)
+function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, <:AbstractVector{Int}}...; cached::Bool = false)
   return SLPolynomialRing(R, p..., cached = cached)
 end
 
@@ -1782,7 +1782,7 @@ end
 
 
 @doc raw"""
-  primitive_by_shape(ct::Set{CycleType}, n::Int)
+    primitive_by_shape(ct::Set{CycleType}, n::Int)
 
 Return `true` if a transitive group $G \leq Sym(n)$ containing permutations
 matching the cycle types in `ct` must be primitive, otherwise return `false`.

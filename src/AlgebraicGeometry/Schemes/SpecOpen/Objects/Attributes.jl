@@ -39,7 +39,7 @@ function intersections(U::SpecOpen)
   if !isdefined(U, :intersections)
     X = ambient_scheme(U)
     V = affine_patches(U)
-    for i in 2:length(V)
+    for i in 1:length(V)
       for j in 1:i-1
         U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
       end

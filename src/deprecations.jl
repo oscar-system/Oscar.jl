@@ -365,6 +365,12 @@ end
 # see https://github.com/oscar-system/Oscar.jl/pull/2368
 @deprecate FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec FreeModElem_dec(coords, parent)
 
+# see https://github.com/oscar-system/Oscar.jl/pull/2519
+@deprecate group_class_function(tbl::GAPGroupCharacterTable, values::GapObj) class_function(tbl, values)
+@deprecate group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem}) class_function(tbl, values)
+@deprecate group_class_function(G::GAPGroup, values::GapObj) class_function(G, values)
+@deprecate group_class_function(G::GAPGroup, values::Vector{<:QQAbElem}) class_function(G, values)
+
 # Deprecated after 0.13.0
 @deprecate fan(v::AbstractNormalToricVariety) polyhedral_fan(v)
 
@@ -394,3 +400,15 @@ function SubdivisionOfPoints{T}(obj::Polymake.BigObject) where T<:scalar_types
   return SubdivisionOfPoints{T}(obj, _detect_default_field(T, obj))
 end
 
+@deprecate is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem is_hermitian(B)
+@alias ishermitian_matrix is_hermitian_matrix
+
+@deprecate is_alternating_form(f::SesquilinearForm) is_alternating(f)
+@deprecate is_hermitian_form(f::SesquilinearForm) is_hermitian(f)
+@deprecate is_quadratic_form(f::SesquilinearForm) is_quadratic(f)
+@deprecate is_symmetric_form(f::SesquilinearForm) is_symmetric(f)
+
+@alias isalternating_form is_alternating_form
+@alias ishermitian_form is_hermitian_form
+@alias isquadratic_form is_quadratic_form
+@alias issymmetric_form is_symmetric_form

@@ -276,6 +276,16 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   K, _ = Singular.saturation(I.gens.S, J.gens.S)
   return MPolyIdeal(base_ring(I), K)
 end
+
+# the following is corresponding to saturation2 from Singular
+# TODO: think about how to use use this properly/automatically
+function _saturation2(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+  singular_assure(I)
+  singular_assure(J)
+  K, _ = Singular.saturation2(I.gens.S, J.gens.S)
+  return MPolyIdeal(base_ring(I), K)
+end
+
 #######################################################
 @doc raw"""
     saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
@@ -784,6 +794,7 @@ julia> L = equidimensional_decomposition_weak(I)
 """
 @attr function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
+  iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
@@ -1249,6 +1260,40 @@ julia> codim(I)
 ```
 """
 codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
+
+#######################################################
+#######################################################
+@doc raw"""
+    degree(I::MPolyIdeal)
+
+If `base_ring(I)` is standard-graded, in which case `I` is necessarily
+homogeneous with respect to this grading, return the degree of `I` (that
+is, the degree of the quotient of `base_ring(I)` modulo `I`). Otherwise,
+return the degree of the homogenization of `I` with respect to the
+standard-grading.
+
+!!! note
+    Geometrically, the degree of a homogeneous ideal as above is the number
+    of intersection points of its projective variety with a generic linear
+    subspace of complementary dimension (counted with multiplicities).
+    See also [MS21](@cite).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia> degree(I)
+6
+```
+"""
+@attr Int function degree(I::MPolyIdeal)
+  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  return Int(degree(HilbertData(I)))
+end
 
 ################################################################################
 #

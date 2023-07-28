@@ -21,6 +21,35 @@ end
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
 return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
 of ``X`` and ``Y``, respectively.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> f = identity_map(Y)
+Morphism
+  from projective scheme in IP^2 over QQ
+  to   projective scheme in IP^2 over QQ
+
+julia> fcov = covered_scheme_morphism(f);
+
+julia> codomain(fcov)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of quotient of multivariate polynomial ring
+    2: spec of quotient of multivariate polynomial ring
+    3: spec of quotient of multivariate polynomial ring
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+```
 """
 @attr function covered_scheme_morphism(f::ProjectiveSchemeMor)
   PX = domain(f)
@@ -54,10 +83,61 @@ of ``X`` and ``Y``, respectively.
   # Eventually, they should be made lazy.
   CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
   inherit_glueings!(CC, default_covering(X))
-  phi = CoveringMorphism(CC, default_covering(Y), mor_dict)
+  phi = CoveringMorphism(CC, default_covering(Y), mor_dict, check=false)
   push!(coverings(X), CC)
 
   ff = CoveredSchemeMorphism(X, Y, phi)
   return ff
+end
+
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, f::ProjectiveSchemeMor)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    io = pretty(io)
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
+  io = pretty(io)
+  X = domain(f)
+  Y = codomain(f)
+  println(io, "Morphism")
+  print(io, Indent(), "from ")
+  if typeof(X) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # X is not a V(bla)
+    print(io, Lowercase())
+  end
+  println(io, X)
+  print(io, "to   ")
+  if typeof(Y) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # same as above
+    print(io, Lowercase())
+  end
+  print(io, Y)
+  print(io, Dedent())
+  if has_attribute(f, :covered_scheme_morphism)
+    println(io)
+    println(io, "defined by the map")
+    print(io, Indent(), Lowercase())
+    show(io, MIME"text/plain"(), covered_scheme_morphism(f))
+    print(io, Dedent())
+  end
+end
+
+function _show_semi_compact(io::IO, f::ProjectiveSchemeMor)
+  io = pretty(io)
+  print(io, "Morphism of projective schemes")
+  if has_attribute(f, :covered_scheme_morphism)
+    println(io, " defined by the map")
+    print(io, Indent(), Lowercase())
+    show(io, MIME"text/plain"(), covered_scheme_morphism(f))
+    print(io, Dedent())
+  end
 end
 

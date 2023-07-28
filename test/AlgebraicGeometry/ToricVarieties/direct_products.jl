@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Direct products" begin
     
     F5 = normal_toric_variety([[1, 0], [0, 1], [-1, 5], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]])

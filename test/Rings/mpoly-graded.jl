@@ -331,6 +331,15 @@ end
 
   f = x^3+x^2*y+x*y^2+y^3
   W = [1 2; 3 4]
-  F = homogenization(f, W, "z", 3)
+  F = homogenization(f, W, "z"; pos=3)
   @test symbols(R) == [ :x, :y ]
+end
+
+# expanding rational function
+
+let
+  Qx, x = PolynomialRing(QQ, "x", cached = false)
+  e = expand(1//(1 - x), 10)
+  t = gen(parent(e))
+  @test e == sum(t^i for i in 1:10; init = t^0)
 end

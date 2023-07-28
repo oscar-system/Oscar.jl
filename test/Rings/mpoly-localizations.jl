@@ -406,3 +406,22 @@ end
   @test L(x)/L(y) == L(x//y)
   @test_throws ErrorException L(y)/L(x-1)
 end
+
+@testset "minimal generating sets" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, [x-1, y-2])^2
+  J = ideal(R, [x, y])^2
+  L1, phi1 = localization(R, complement_of_point_ideal(R, [1, 2]))
+  L2, phi2 = localization(R, powers_of_element(x))
+
+  @test length(minimal_generating_set(phi1(I))) == 3
+  @test length(small_generating_set(phi1(I))) == 3
+  @test length(small_generating_set(phi2(I))) == 3
+
+  @test length(minimal_generating_set(phi1(J))) == 1
+  @test isone(first(minimal_generating_set(phi1(J))))
+
+  small_gens = small_generating_set(phi2(J))
+  @test length(small_gens) == 1
+  @test isone(first(small_gens))
+end

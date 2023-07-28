@@ -419,8 +419,22 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     end
 
     # footer (vector of strings)
-    for line in footer
-      write(io, line, "\n")
+    if length(footer) > 0
+      if TeX
+        write(io, "\n\\begin{array}{l}\n")
+        # Omit a separating empty line.
+        if footer[1] != ""
+          write(io, footer[1], " \\\\\n")
+        end
+        for line in footer[2:end]
+          write(io, line, " \\\\\n")
+        end
+        write(io, "\\end{array}\n")
+      else
+        for line in footer
+          write(io, line, "\n")
+        end
+      end
     end
 end
 
