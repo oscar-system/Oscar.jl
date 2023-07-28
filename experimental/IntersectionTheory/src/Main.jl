@@ -332,8 +332,8 @@ total_chern_class(X::AbstractVariety) = total_chern_class(X.T)
 @doc raw"""
     chern_class(X::AbstractVariety, k::Int)
     chern_class(X::TnVariety, k::Int)
-C
-ompute the $k$-th Chern class of the tangent bundle of $X$.
+
+Compute the $k$-th Chern class of the tangent bundle of $X$.
 """
 chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
 
