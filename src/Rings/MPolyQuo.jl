@@ -892,12 +892,12 @@ function quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_o
   return q, MapFromFunc(R, q, im, pr)
 end
 
-function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
-  return quo(R, ideal(I))
+function quo(R::MPolyRing, I::Vector{<:MPolyRingElem}; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(I), ordering=ordering)
 end
 
-function quo(R::MPolyRing, f::MPolyRingElem...)
-  return quo(R, ideal(collect(f)))
+function quo(R::MPolyRing, f::MPolyRingElem...; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(collect(f)), ordering=ordering)
 end
 
 lift(a::MPolyQuoRingElem) = a.f
