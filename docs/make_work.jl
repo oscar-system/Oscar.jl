@@ -6,6 +6,8 @@ module BuildDoc
 
 using Documenter, DocumenterCitations
 
+include("citation_style.jl")
+
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
 #   Hecke.Order - Method
@@ -133,7 +135,7 @@ function doit(
 
   # Load the bibliography
   bib = CitationBibliography(
-    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=:alpha
+    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
