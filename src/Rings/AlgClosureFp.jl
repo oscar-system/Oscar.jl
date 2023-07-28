@@ -1,14 +1,26 @@
+###############################################################################
+# 
+#  Algebraic closure of finite fields
+#
+###############################################################################
+
+# This is an implementation of the algebraic closure of finite fields,
+# which is modelled as the union of finite fields.
+
 module AlgClosureFp
 
-using Oscar
+using ..Oscar
 
-import Base: +, -, *, //, hash, show, ==
-import Oscar: divexact, add!, mul, mul!, addeq!, sub, data
+import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
+  parent, show, zero
+
+import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
+  elem_type, map_entries, minpoly, parent_type, roots
 
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
   k::T
-  fld::Dict{Int, FinField}
+  fld::Dict{Int, FinField} # Cache for the finite fields
   function AlgClosure(k::T) where T <: FinField
     return new{T}(k, Dict{Int, FinField}(degree(k) => k))
   end
@@ -18,9 +30,9 @@ function show(io::IO, A::AlgClosure)
   print(io, "Algebraic Closure of $(A.k)")
 end
 
-Oscar.base_field(A::AlgClosure) = A.k
-Oscar.base_ring(A::AlgClosure) = A.k
-Oscar.characteristic(k::AlgClosure) = characteristic(base_field(k))
+base_field(A::AlgClosure) = A.k
+base_ring(A::AlgClosure) = A.k
+characteristic(k::AlgClosure) = characteristic(base_field(k))
 
 struct AlgClosureElem{T} <: FieldElem
   # T <: FinFieldElem
@@ -28,15 +40,16 @@ struct AlgClosureElem{T} <: FieldElem
   parent::AlgClosure{T}
 end
 
-Oscar.elem_type(::AlgClosure{T}) where T = AlgClosureElem{T}
-Oscar.parent_type(::AlgClosureElem{T}) where T = AlgClosure{T}
-Oscar.parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
+elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
+elem_type(::AlgClosure{T}) where T = AlgClosureElem{T}
+parent_type(::AlgClosureElem{T}) where T = AlgClosure{T}
+parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
 
 function show(io::IO, a::AlgClosureElem)
   print(io, data(a))
 end
 
-function Base.deepcopy_internal(a::AlgClosureElem, d::IdDict)
+function deepcopy_internal(a::AlgClosureElem, d::IdDict)
   return AlgClosureElem(data(a), parent(a))
 end
 
@@ -52,11 +65,11 @@ function (A::AlgClosure)(a::FinFieldElem)
 end
 
 
-Oscar.zero(A::AlgClosure) = AlgClosureElem(zero(base_field(A)), A)
-Oscar.one(A::AlgClosure) = AlgClosureElem(one(base_field(A)), A)
+zero(A::AlgClosure) = AlgClosureElem(zero(base_field(A)), A)
+one(A::AlgClosure) = AlgClosureElem(one(base_field(A)), A)
 
-Oscar.parent(a::AlgClosureElem) = a.parent
-Oscar.data(a::AlgClosureElem) = a.data
+parent(a::AlgClosureElem) = a.parent
+data(a::AlgClosureElem) = a.data
 
 function check_parent(a::AlgClosureElem, b::AlgClosureElem)
   parent(a) == parent(b) || error("incompatible elements")
@@ -91,6 +104,7 @@ function op(f::Function, a::AlgClosureElem, b::AlgClosureElem)
   return f(k(ad), k(bd))
 end
 
+#T the following belongs to Nemo and should be moved there
 function Oscar.embed(k::Nemo.fpField, K::fqPolyRepField)
   @assert characteristic(K) == characteristic(k)
 end
@@ -101,11 +115,11 @@ end
 //(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(//, a, b), parent(a))
 divexact(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(divexact, a, b), parent(a))
 ==(a::AlgClosureElem, b::AlgClosureElem) = op(==, a, b)
-Oscar.iszero(a::AlgClosureElem) = iszero(data(a))
-Oscar.isone(a::AlgClosureElem) = isone(data(a))
+iszero(a::AlgClosureElem) = iszero(data(a))
+isone(a::AlgClosureElem) = isone(data(a))
 -(a::AlgClosureElem) = AlgClosureElem(-data(a), parent(a))
 
-function Oscar.roots(a::AlgClosureElem, b::Int)
+function roots(a::AlgClosureElem, b::Int)
   ad = data(a)
   kx, x = polynomial_ring(parent(ad), cached = false)
   f = x^b-ad
@@ -117,7 +131,7 @@ function Oscar.roots(a::AlgClosureElem, b::Int)
   return [AlgClosureElem(x, parent(a)) for x = r]
 end
 
-function Oscar.roots(a::Generic.Poly{AlgClosureElem{T}}) where T
+function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
   kx, x = polynomial_ring(parent(b[1]), cached = false)
@@ -131,16 +145,16 @@ function Oscar.roots(a::Generic.Poly{AlgClosureElem{T}}) where T
 end
 
 
-function Oscar.minpoly(a::AlgClosureElem)
+function minpoly(a::AlgClosureElem)
   return minpoly(data(a))
 end
 
-function Oscar.minpoly(a::fpFieldElem)
+function minpoly(a::fpFieldElem)
   kx, x = polynomial_ring(parent(a), cached = false)
   return x-a
 end
 
-function Oscar.degree(a::AlgClosureElem)
+function degree(a::AlgClosureElem)
   #TODO: via Frobenius? as a fixed s.th.?
   return degree(minpoly(data(a)))
 end
@@ -185,23 +199,12 @@ function (F::FinField)(a::AlgClosureElem)
   return F(b)
 end
 
-function Base.hash(a::AlgClosureElem, u::UInt)
+function hash(a::AlgClosureElem, u::UInt)
   b = minimize(a)
   return hash(data(b), u)
 end
 
-function Oscar.gmodule(::Type{FinField}, C::GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}})
-
-  d = dim(C)
-  l = 1
-  for g = C.ac
-    l = lcm(l, lcm(collect(map_entries(x->Hecke.degree(parent(x.data)), mat(g)))))
-  end
-  K = ext_of_degree(base_ring(C), l)
-  return gmodule(K, C)
-end
-
-function Oscar.map_entries(K::FinField, M::MatElem{<:AlgClosureElem})
+function map_entries(K::FinField, M::MatElem{<:AlgClosureElem})
   N = zero_matrix(K, nrows(M), ncols(M))
   for i=1:nrows(M)
     for j=1:ncols(M)
@@ -212,49 +215,11 @@ function Oscar.map_entries(K::FinField, M::MatElem{<:AlgClosureElem})
   return N
 end
 
-function Oscar.gmodule(K::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}})
-
-  d = dim(C)
-  F = free_module(K, d)
-  if d == 0 
-    h = hom(F, F, elem_type(F)[])
-    return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(K, mat(x))) for x = C.ac])
-  end
-  return gmodule(F, group(C), [hom(F, F, map_entries(K, mat(x))) for x = C.ac])
-end
-
-function Oscar.gmodule(K::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
-
-  d = dim(C)
-  F = free_module(K, d)
-  if d == 0 
-    h = hom(F, F, elem_type(F)[])
-    return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(K, mat(x))) for x = C.ac])
-  end
-  return gmodule(F, group(C), [hom(F, F, map_entries(K, mat(x))) for x = C.ac])
-end
-
-
-function Oscar.GModuleFromGap.hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}}
-
-  C1 = gmodule(FinField, C)
-  D1 = gmodule(FinField, D)
-  Cf = degree(base_ring(C1))
-  Df = degree(base_ring(D1))
-  l = lcm(Cf, Df)
-  K = ext_of_degree(base_ring(C), l)
-  if l != Cf
-    C1 = gmodule(K, C1)
-  end
-  if l != Df
-    D1 = gmodule(K, D1)
-  end
-  h = Oscar.GModuleFromGap.hom_base(C1, D1)
-  if length(h) == 0
-    return h
-  end
-  return map(x->map_entries(base_ring(C), x), h)
-end
-
-
 end # AlgClosureFp
+
+import .AlgClosureFp:
+       AlgClosure,
+       AlgClosureElem
+
+export AlgClosure,
+       AlgClosureElem
