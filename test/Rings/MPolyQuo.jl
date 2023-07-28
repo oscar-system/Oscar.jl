@@ -21,6 +21,14 @@
 
   @test xx^2 == xx * xx
   @test xx^0 == one(Q)
+
+  J = ideal(R, [x-y^2, x^2-y^3+1])
+  A, p = quo(R, J)
+  f = A(y^2-y^4)
+  @test simplify(f) == A(-x*y + x + 1)
+  A, p = quo(R, J, ordering=lex(R))
+  f = A(y^2-y^4)
+  @test simplify(f) == A(-y^3 + y^2 + 1)
 end
 
 @testset "MpolyQuo.manipulation" begin
