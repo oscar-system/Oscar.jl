@@ -853,8 +853,8 @@ function cellular_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem}, RQQAb::M
   #compute product of all non cellular variables and the product of all cell variables
   R = base_ring(I)
   Variables = gens(RQQAb)
-  varDeltaC = elem_type(RQQAb)[Variables[i]  for i = 1:nvars(R) if !(i in cell[2])]
-  varDelta = elem_type(RQQAb)[Variables[i]  for i in cell[2]]
+  varDeltaC = elem_type(RQQAb)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  varDelta = elem_type(RQQAb)[Variables[i] for i in cell[2]]
 
   T = MPolyIdeal{Generic.MPoly{QQAbElem{nf_elem}}}
   res = Vector{Tuple{T, T}}()
