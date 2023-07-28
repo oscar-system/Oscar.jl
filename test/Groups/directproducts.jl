@@ -62,13 +62,13 @@
    x = is_conjugate_with_data(G,P,PP)[2]
    @test P^x==PP
 
-   @test_throws ArgumentError as_perm_group(G)
-   @test_throws ArgumentError as_polycyclic_group(G)
    G = direct_product(S,S)
    @test G isa DirectProductGroup
-   @test as_perm_group(G) isa PermGroup
+   @test PermGroup(G) isa PermGroup
    G = direct_product(C,C)
-   @test as_polycyclic_group(G) isa PcGroup
+   @test PcGroup(G) isa PcGroup
+   G = direct_product(free_group(1), free_group(1))
+   @test FPGroup(G) isa FPGroup
 
    @testset "Inner direct products" begin
       C2 = cyclic_group(2)

@@ -154,43 +154,6 @@ function factor_of_direct_product(G::DirectProductGroup, j::Int)
 end
 
 """
-    as_perm_group(G::DirectProductGroup)
-
-If `G` is direct product of permutations groups, return `G` as permutation group.
-
-# Examples
-```jldoctest
-julia> H = symmetric_group(3)
-Sym( [ 1 .. 3 ] )
-
-julia> K = symmetric_group(2)
-Sym( [ 1 .. 2 ] )
-
-julia> G = direct_product(H,K)
-DirectProduct of
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
-
-julia> as_perm_group(G)
-Group([ (1,2,3), (1,2), (4,5) ])
-```
-"""
-function as_perm_group(G::DirectProductGroup)
-  @req all(H -> H isa PermGroup, G.L) "The group is not a permutation group"
-  return PermGroup(G.X, GAP.Globals.Maximum(GAP.Globals.MovedPoints(G.X)))
-end
-
-"""
-    as_polycyclic_group(G::DirectProductGroup)
-
-If `G` is direct product of polycyclic groups, return `G` as polycyclic group.
-"""
-function as_polycyclic_group(G::DirectProductGroup)
-  @req all(H -> H isa PcGroup, G.L) "The group is not a polycyclic group"
-  return PcGroup(G.X)
-end
-
-"""
     embedding(G::DirectProductGroup, j::Int)
 
 Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
