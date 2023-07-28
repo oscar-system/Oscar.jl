@@ -315,6 +315,39 @@ end
 
 gmodule(k::Nemo.fpField, C::GModule{<:Any, Generic.FreeModule{fpFieldElem}}) = C
 
+function gmodule(::Type{FinField}, C::GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}})
+
+  d = dim(C)
+  l = 1
+  for g = C.ac
+    l = lcm(l, lcm(collect(map_entries(x->Hecke.degree(parent(x.data)), mat(g)))))
+  end
+  K = ext_of_degree(base_ring(C), l)
+  return gmodule(K, C)
+end
+
+function gmodule(K::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}})
+
+  d = dim(C)
+  F = free_module(K, d)
+  if d == 0
+    h = hom(F, F, elem_type(F)[])
+    return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(K, mat(x))) for x = C.ac])
+  end
+  return gmodule(F, group(C), [hom(F, F, map_entries(K, mat(x))) for x = C.ac])
+end
+
+function gmodule(K::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+
+  d = dim(C)
+  F = free_module(K, d)
+  if d == 0
+    h = hom(F, F, elem_type(F)[])
+    return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(K, mat(x))) for x = C.ac])
+  end
+  return gmodule(F, group(C), [hom(F, F, map_entries(K, mat(x))) for x = C.ac])
+end
+
 function _character(C::GModule{<:Any, <:Generic.FreeModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
@@ -878,6 +911,27 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:F
   return b
 end
 
+function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}}
+
+  C1 = gmodule(FinField, C)
+  D1 = gmodule(FinField, D)
+  Cf = degree(base_ring(C1))
+  Df = degree(base_ring(D1))
+  l = lcm(Cf, Df)
+  K = ext_of_degree(base_ring(C), l)
+  if l != Cf
+    C1 = gmodule(K, C1)
+  end
+  if l != Df
+    D1 = gmodule(K, D1)
+  end
+  h = Oscar.GModuleFromGap.hom_base(C1, D1)
+  if length(h) == 0
+    return h
+  end
+  return map(x->map_entries(base_ring(C), x), h)
+end
+
 """
   C*T[i] = T[i]*D
 on return.
@@ -959,6 +1013,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
   end
 end
 
+#T this belongs to Nemo and should be moved there
 Oscar.nbits(a::QQFieldElem) = nbits(numerator(a)) + nbits(denominator(a))
 
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{QQFieldElem}}
