@@ -239,8 +239,8 @@ function load_internal(s::DeserializerState, ::Type{<: Union{
 end
 
 function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
-    PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict,
-                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing})
+    PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict,
+                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     parents = get_parents(parent_ring)
     return load_terms(s, parents, dict[:terms], parents[end])
 end
@@ -268,9 +268,9 @@ function load_internal(s::DeserializerState, ::Type{<: Union{
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: MPolyIdeal},
+                                   ::Type{<: Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}},
                                    dict::Dict,
-                                   parent_ring::MPolyRing)
+                                   parent_ring::Union{MPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     gens = load_type_dispatch(s, Vector{elem_type(parent_ring)},
                               dict[:gens], parent=parent_ring)
     return ideal(parent_ring, gens)
