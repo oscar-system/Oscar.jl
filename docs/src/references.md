@@ -14,4 +14,5 @@ margin-bottom: 0.75em;
 </style>
 ```
 ```@bibliography
+*
 ```
