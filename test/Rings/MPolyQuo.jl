@@ -29,6 +29,12 @@
   A, p = quo(R, J, ordering=lex(R))
   f = A(y^2-y^4)
   @test simplify(f) == A(-y^3 + y^2 + 1)
+
+  A,p = quo(R, [x^3+y,y^2], ordering=lex(R))
+  @test A.I == ideal(R, [x^3+y, y^2])
+
+  B,q = quo(R, x^3+y,y^2, ordering=lex(R))
+  @test A.I == B.I
 end
 
 @testset "MpolyQuo.manipulation" begin
