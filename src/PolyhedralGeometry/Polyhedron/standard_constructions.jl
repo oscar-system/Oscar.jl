@@ -952,6 +952,18 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polym
     demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 
 Construct  the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
+
+# Examples
+```jldoctest
+julia> lambda = Partition([3,1,1])
+[3, 1, 1]
+
+julia> w0 = @perm (1,3,2)
+(1,3,2)
+
+julia> dc = demazure_character(lambda,w0)
+x1^3*x2*x3 + x1^2*x2^2*x3 + x1*x2^3*x3
+```
 """
 function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
        genGT = gelfand_tsetlin_polytope(lambda,sigma)
