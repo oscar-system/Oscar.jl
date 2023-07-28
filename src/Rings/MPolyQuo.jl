@@ -10,9 +10,6 @@
   SQR::Singular.PolyRing # Singular quotient ring
   SQRGB::Singular.sideal # Singular Groebner basis defining quotient ring
 
-  #= ordering, gb assure =#
-  #= the current design decision is to fix the ordering to be default_ordering(R) =#
-  #= that is, the user is not allowed to change this with the outer constructor quo =#
   function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
     @assert base_ring(I) === R
     r = new{elem_type(R)}()
@@ -835,10 +832,11 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 end
 
 @doc raw"""
-    quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
-ring as well as the projection map `R` $\to$ `R/I`.
+ring as well as the projection map `R` $\to$ `R/I`. Computations inside `R/I` are
+done w.r.t. `ordering`.
 
     quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
 
@@ -882,8 +880,8 @@ julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 ```
 """
-function quo(R::MPolyRing, I::MPolyIdeal)
-  q = MPolyQuoRing(R, I)
+function quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R))
+  q = MPolyQuoRing(R, I, ordering)
   function im(a::MPolyRingElem)
     parent(a) !== R && error("Element not in the domain of the map")
     return MPolyQuoRingElem(a, q)
