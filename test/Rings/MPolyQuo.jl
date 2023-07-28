@@ -1,10 +1,13 @@
 @testset "MPolyQuoRing" begin
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-
   f = y^2+y+x^2
   C = ideal(R, [f])
-  Q, = quo(R, C)
 
+  P, = quo(R, C, ordering=lex(R))
+  @test P.ordering == lex(R)
+
+  Q, = quo(R, C)
+  @test Q.ordering == degrevlex(R)
   @test one(Q) == 1
   @test zero(Q) == 0
 
