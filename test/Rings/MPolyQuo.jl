@@ -26,7 +26,7 @@
   A, p = quo(R, J)
   f = A(y^2-y^4)
   @test simplify(f) == A(-x*y + x + 1)
-  A, p = quo(R, J, ordering=lex(R))
+  A, p = quo(R, J; ordering=lex(R))
   f = A(y^2-y^4)
   @test simplify(f) == A(-y^3 + y^2 + 1)
 
