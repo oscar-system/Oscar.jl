@@ -897,7 +897,7 @@ function quo(R::MPolyRing, I::Vector{<:MPolyRingElem}; ordering::MonomialOrderin
 end
 
 function quo(R::MPolyRing, f::MPolyRingElem...; ordering::MonomialOrdering = default_ordering(R))
-  return quo(R, ideal(collect(f)), ordering=ordering)
+  return quo(R, ideal(collect(f)); ordering)
 end
 
 lift(a::MPolyQuoRingElem) = a.f
