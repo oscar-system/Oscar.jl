@@ -3,7 +3,7 @@
   f = y^2+y+x^2
   C = ideal(R, [f])
 
-  P, = quo(R, C, ordering=lex(R))
+  P, = quo(R, C; ordering=lex(R))
   @test P.ordering == lex(R)
 
   Q, = quo(R, C)
