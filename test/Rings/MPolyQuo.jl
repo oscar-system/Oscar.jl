@@ -33,7 +33,7 @@
   A,p = quo(R, [x^3+y,y^2]; ordering=lex(R))
   @test A.I == ideal(R, [x^3+y, y^2])
 
-  B,q = quo(R, x^3+y,y^2, ordering=lex(R))
+  B,q = quo(R, x^3+y,y^2; ordering=lex(R))
   @test A.I == B.I
 end
 
