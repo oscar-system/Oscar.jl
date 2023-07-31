@@ -568,7 +568,7 @@ julia> is_conjugate_with_data(Omega, 1, 5)
 
 ```
 """
-function is_conjugate_with_data(G(Omega::GSet, omega1, omega2)
+function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     # We do not call GAP's 'RepresentativeAction' with points, generators,
     # and actors.
     # The method in question would create a new 'ExternalSet' object
