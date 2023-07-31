@@ -139,7 +139,7 @@ end
      @test order(G) == GAP.Globals.Order(H)
    end
 
-   G = matrix_group(2, QQ, dense_matrix_type(QQ)[])
+   G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
@@ -219,14 +219,14 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
-   G = matrix_group(nrows(x), F)
+   G = matrix_group(F, nrows(x))
    @test one(G) == one(x)
 
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
 
-   G = MatrixGroup(4,F)
+   G = matrix_group(F, 4)
    @test_throws ErrorException G.X
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
@@ -322,7 +322,7 @@ end
    x2 = G([2,0,0,0,3,0,0,0,1])
    @test x1==G([4,0,1,4,0,0,0,4,0])
    @test x1==G([4 0 1; 4 0 0; 0 4 0])
-   @test matrix_group(x1,x2) == matrix_group(3,base_ring(x1),[x1,x2])
+   @test matrix_group(x1,x2) == matrix_group(base_ring(x1), 3, [x1,x2])
    @test matrix_group(x1,x2) == matrix_group([x1,x2])
    H = matrix_group([x1,x2])
    @test isdefined(H,:gens)

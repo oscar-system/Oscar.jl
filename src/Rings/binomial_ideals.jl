@@ -90,10 +90,13 @@ function _iscellular(I::MPolyIdeal)
     end
   end
 
-  #compute product of ring variables in Delta
-  prodRingVar = reduce(*, variables[i] for i in Delta; init = one(Rxy))
-  prodRingVarIdeal = ideal(Rxy, prodRingVar)
-  J = saturation(I, prodRingVarIdeal)
+  # saturate by all ring variables in Delta
+  # # Compute saturation by product as a "cascade" of saturations by each var:
+  J = I;
+  for i in Delta
+    var_i = ideal(Rxy, variables[i])
+    J = saturation(J, var_i)
+  end
 
   if issubset(J, I)
     #then I==J
@@ -316,9 +319,10 @@ function _cellular_decomposition_macaulay(I::MPolyIdeal)
         #if a division was needed we add the monomial i^k to the ideal
         #under consideration
         J2 = L[3] + ideal(R, [i^k])
-        #compute product of all variables in L[1]
-        r = reduce(*, L[1], init = one(R))
-        J2 = saturation(J2, ideal(R, r))
+        ##  (2023-07-27) sat by all vars in L[1] using a  cascade
+        for v in L[1]
+          J2 = saturation(J2, ideal(R,v))
+        end
         if !isone(J2)
           #we have to decompose J2 further
           push!(todo, (copy(L[1]), L2, J2))
@@ -400,8 +404,11 @@ function ideal_from_character(P::QQAbModule.PartialCharacter, R::MPolyRing)
   #now consider the last case where we have to saturate
   I = _make_binomials(P, R)
   #now we have to saturate the ideal by the product of the ring variables
-  varProduct = prod(Variables)
-  return saturation(I, ideal(R, varProduct))
+  ## (2023-07-27)  saturate by cascade    
+  for v in Variables
+    I = saturation(I, ideal(R,v))
+  end
+  return I;
 end
 
 function _make_binomials(P::QQAbModule.PartialCharacter, R::MPolyRing)
@@ -521,11 +528,11 @@ function cellular_standard_monomials(I::MPolyIdeal)
 
   #eliminate the variables in Delta
   Variables = gens(R)
-  prodDelta = elem_type(R)[Variables[i] for i in cell[2]]
-  if isempty(prodDelta)
+  varDelta = elem_type(R)[Variables[i] for i in cell[2]]
+  if isempty(varDelta)
     J = I
   else
-    J = eliminate(I, prodDelta)
+    J = eliminate(I, varDelta)  # !!!this actually works even when varDelta is empty!!!
   end
 
   bas = Vector{elem_type(R)}[]
@@ -846,20 +853,22 @@ function cellular_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem}, RQQAb::M
   #compute product of all non cellular variables and the product of all cell variables
   R = base_ring(I)
   Variables = gens(RQQAb)
-  prodDeltaC = elem_type(RQQAb)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
-  prodDelta = elem_type(RQQAb)[Variables[i] for i in cell[2]]
+  varDeltaC = elem_type(RQQAb)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  varDelta = elem_type(RQQAb)[Variables[i] for i in cell[2]]
 
-  J = ideal(RQQAb, prodDelta)
   T = MPolyIdeal{Generic.MPoly{QQAbElem{nf_elem}}}
   res = Vector{Tuple{T, T}}()
   for P in cell_ass
-    if isempty(prodDeltaC)
+    if isempty(varDeltaC)
       helpIdeal = IQQAb + P
     else
-      helpIdeal = IQQAb + eliminate(P, prodDeltaC)
+      helpIdeal = IQQAb + eliminate(P, varDeltaC)  # !!! actually works even when varDeltaC is empty !!!!
     end
-    #now saturate the ideal with respect to the cellular variables
-    helpIdeal = saturation(helpIdeal, J)
+    #now saturate helpIdeal with respect to the product of the cellular variables (in varDelta)
+    ## (2023-07-27)  saturate by cascade instead of by product (see also changes above)
+    for v in varDelta
+      helpIdeal = saturation(helpIdeal, ideal(RQQAb,v))
+    end
     push!(res, (__cellular_hull(helpIdeal), P))
   end
   return res
