@@ -11,7 +11,8 @@
   SQRGB::Singular.sideal # Singular Groebner basis defining quotient ring
 
   function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
-    @assert base_ring(I) === R
+    @req base_ring(I) === R "Base ring must be the same."
+    @req is_global(ordering) "Ordering must be global."
     r = new{elem_type(R)}()
     r.I = I
     r.ordering = ordering
