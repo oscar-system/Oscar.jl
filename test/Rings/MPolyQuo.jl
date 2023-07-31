@@ -3,6 +3,7 @@
   f = y^2+y+x^2
   C = ideal(R, [f])
 
+  @test_throws ArgumentError P, = quo(R, C; ordering=neglex(R))
   P, = quo(R, C; ordering=lex(R))
   @test P.ordering == lex(R)
 
