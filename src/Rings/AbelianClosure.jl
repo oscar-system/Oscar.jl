@@ -153,12 +153,10 @@ parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 function _variable(K::QQAbField)
   if isdefined(K, :s)
     return K.s
+  elseif Oscar.is_unicode_allowed()
+    return "ζ"
   else
-    if Oscar.is_unicode_allowed()
-      return "ζ"
-    else
-      return "zeta"
-    end
+    return "zeta"
   end
 end
 
@@ -487,6 +485,40 @@ conductor(a::QQAbElem) = conductor(data(a))
 is_unit(a::QQAbElem) = !iszero(a)
 
 canonical_unit(a::QQAbElem) = a
+
+################################################################################
+#
+#  Minimal polynomial
+#
+################################################################################
+
+Hecke.minpoly(a::QQAbElem) = minpoly(data(a))
+
+################################################################################
+#
+#  Syntactic sugar
+#
+################################################################################
+
+function Hecke.number_field(::QQField, a::QQAbElem; cached::Bool = false)
+  f = minpoly(a)
+  k, b = number_field(f, check = false, cached = cached)
+  return k, b
+end
+
+function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
+  if length(a) == 0
+    return Hecke.rationals_as_number_field()[1]
+  end
+  f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = a])
+  K = cyclotomic_field(f)[1]
+  k, mkK = Hecke.subfield(K, [K(data(x)) for x = a])
+  return k, gen(k)
+end
+
+Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQAbElem{T}}) where T = number_field(QQ, a)
+Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x in a])
 
 ################################################################################
 #
