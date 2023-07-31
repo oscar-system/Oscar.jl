@@ -118,14 +118,12 @@ function Base.show(io::IO, x::MatrixGroup)
    if isdefined(x, :descr)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+      elseif x.ring isa Field && is_finite(x.ring)
+         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
       else
-         if x.ring isa Field
-            print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
-         else
-            print(io, string(x.descr), "(",x.deg,",")
-            print(IOContext(io, :supercompact => true), x.ring)
-            print(io ,")")
-         end
+         print(io, string(x.descr), "(",x.deg,",")
+         print(IOContext(io, :supercompact => true), x.ring)
+         print(io ,")")
       end
    else
       print(io, "Matrix group of degree ", x.deg, " over ")
@@ -529,8 +527,9 @@ end
 ########################################################################
 
 function _field_from_q(q::Int)
-   (n,p) = is_power(q)
-   @req is_prime(p) "The field size must be a prime power"
+   flag, n, p = is_prime_power_with_data(q)
+   @req flag "The field size must be a prime power"
+
    return GF(p, n)
 end
 

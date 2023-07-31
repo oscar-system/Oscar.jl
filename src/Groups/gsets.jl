@@ -546,7 +546,7 @@ is_conjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
 
 
 """
-    representative_action(Omega::GSet, omega1, omega2)
+    is_conjugate_with_data(Omega::GSet, omega1, omega2)
 
 Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
 If yes, return `true, g` where `g` is an element in the group `G` of
@@ -560,15 +560,15 @@ Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
 
 julia> Omega = gset(G);
 
-julia> representative_action(Omega, 1, 2)
+julia> is_conjugate_with_data(Omega, 1, 2)
 (true, (1,2))
 
-julia> representative_action(Omega, 1, 5)
+julia> is_conjugate_with_data(Omega, 1, 5)
 (false, ())
 
 ```
 """
-function representative_action(Omega::GSet, omega1, omega2)
+function is_conjugate_with_data(G(Omega::GSet, omega1, omega2)
     # We do not call GAP's 'RepresentativeAction' with points, generators,
     # and actors.
     # The method in question would create a new 'ExternalSet' object
@@ -589,7 +589,6 @@ function representative_action(Omega::GSet, omega1, omega2)
     @assert(pre[1])
     return true, pre[2]
 end
-
 
 ############################################################################
 
