@@ -6,7 +6,7 @@ mutable struct JSONSerializer
 end
 
 function JSONSerializer()
-    return JSONSerializer(Any[])
+    return JSONSerializer(Any[Dict{Symbol, Any}()]) # initiate with root dict
 end
 
 # struct which tracks state for (de)serialization
@@ -27,6 +27,10 @@ end
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
+# returns type of current open object so we know how to write to it
+function get_active_object_type(s::SerializerState)
+    return typeof(s.serializer.open_objects[end])
+end
 # create node and descent
 function open_dict(s::SerializerState)
     push!(s.serializer.open_objects, Dict{Symbol, Any}())
@@ -42,7 +46,7 @@ function add_object(s::SerializerState, obj::Any, key::Symbol)
 end
 
 function add_object(s::SerializerState, obj::Any)
-    push!(s.serializer.open_objects, obj)
+    push!(s.serializer.open_objects[end], obj)
 end
 
 # ascend and append to parent
@@ -53,7 +57,6 @@ end
 
 function close(s::SerializerState)
     obj = pop!(s.serializer.open_objects)
-
     if s.serializer.open_objects[end] isa Array
         add_object(s, obj)
     else
@@ -246,7 +249,6 @@ function save_as_ref(s::SerializerState, obj::T) where T
     end
     
     ref = s.objmap[obj] = uuid4()
-    
 
     if Base.issingletontype(T)
         return result
@@ -261,27 +263,36 @@ function save_as_ref(s::SerializerState, obj::T) where T
     s.depth -= 1
     add_object(s, encode_type(T), :type)
     result = pop!(s.serializer.open_objects)
-    println(result)
     s.refs[Symbol(ref)] = result
 
     return string(ref)
+end
+
+function save_basic_encoded_type(s::SerializerState, obj::Any, key::Symbol = :data)
+    @assert has_basic_encoding(obj)
+    active_type = get_active_object_type(s)
+    if active_type <: Dict{Symbol, Any}
+        add_object(s, string(obj), key)
+    else
+        add_object(s, string(obj))
+    end
 end
 
 function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
     # this is used when serializing basic types like "3//4"
     # when s.depth == 0 file should know it belongs to QQ
     if s.depth != 0 && has_basic_encoding(obj)
-        add_object(s, save_internal(s, obj), key)
+        save_basic_encoded_type(s, obj, key)
     elseif s.depth == 0 && has_basic_encoding(obj)
         if is_type_serializing_parent(T)
             open_dict(s)
             s.depth += 1
-            add_object(s, save_internal(s, obj), :data)
+            save_basic_encoded_type(s, obj)
             save_type_dispatch(s, parent(obj), :parent)
             close(s)
             s.depth -= 1
         else
-            add_object(s, save_internal(s, obj), :data)
+            save_basic_encoded_type(s, obj)
         end
         add_object(s, encode_type(T), :type)
     elseif serialize_with_id(T)
@@ -296,10 +307,20 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
         close(s)
         add_object(s, encode_type(T), :type)
         s.depth -= 1
-        close(s, key)
+
+        if s.depth != 0
+            close(s, key)
+        end
     else
         # added to catch singleton types
-        add_object(s, encode_type(T), :type)
+        if s.depth == 0
+            # catch edge case
+            add_object(s, encode_type(T), :type)
+        else
+            open_dict(s)
+            add_object(s, encode_type(T), :type)
+            close(s, key)
+        end
     end
 
     if s.depth == 0
@@ -465,9 +486,8 @@ julia> load("/tmp/fourtitwo.json")
 """
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = SerializerState()
-    open_dict(state)
-    # :obj should not be seen in the file
-    save_type_dispatch(state, obj, :obj)
+    # :root should not be seen in the file
+    save_type_dispatch(state, obj, :root)
     jsoncompatible = pop!(state.serializer.open_objects)
     if !isnothing(metadata)
         meta_dict = Dict()

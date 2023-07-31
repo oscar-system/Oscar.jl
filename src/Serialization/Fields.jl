@@ -656,7 +656,12 @@ end
 @registerSerializationType(padic)
 is_type_serializing_parent(::Type{padic}) = true
 
-function save_internal(s::SerializerState, n::padic)
+# This should probably be moved into Hecke?
+# but also might lead to a bit of a discussion.
+# Since padics might are printed as p + p^2 + O(p^3)
+# Maybe it's better to implement a serialize method
+# uses string in most cases except special cases as such?
+function string(n::padic)
     return string(lift(QQ, n))
 end
 

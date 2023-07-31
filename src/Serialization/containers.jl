@@ -6,9 +6,9 @@
 function save_internal(s::SerializerState, vec::Vector{T}) where T
     open_array(s)
     for x in vec 
-        add_object(s, x)
+        add_object(s, string(x))
     end
-    close(s)
+    close(s, :vector)
 
     if is_basic_serialization_type(T)
         save_type_dispatch(s, encode_type(T), :entry_type)
@@ -92,7 +92,7 @@ function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
         parents = load_parents(s, dict[:parents])
         return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
     elseif haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
+        T = decode_type(dict[:entry_type])
         return [load_type_dispatch(s, T, x) for x in dict[:vector]]
     end
     
@@ -110,7 +110,7 @@ function load_internal_with_parent(s::DeserializerState,
         parents = get_parents(parent)
         return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
     elseif haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
+        T = decode_type(dict[:entry_type])
         
         return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
     end
@@ -131,7 +131,7 @@ function save_internal(s::SerializerState, tup::T) where T <: Tuple
 end
 
 function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
-    field_types = map(decodeType, dict[:field_types])
+    field_types = map(decode_type, dict[:field_types])
     n = length(field_types)
     content = dict[:content]
     @assert length(content) == n  "Wrong length of tuple, data may be corrupted."

@@ -1,10 +1,9 @@
+# Saving for basic types relies on a string method and is handled by
+# save_basic_encoded_type which handles all types with a basic encoding
+
 ################################################################################
 # Bool
 @registerSerializationType(Bool)
-
-function save_internal(s::SerializerState, b::Bool)
-    return string(b)
-end
 
 function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
   if str == "true"
@@ -22,10 +21,6 @@ end
 # ZZRingElem
 @registerSerializationType(ZZRingElem)
 
-function save_internal(s::SerializerState, z::ZZRingElem; kwargs...)
-    return string(z)
-end
-
 function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
     return ZZRingElem(str)
 end
@@ -40,10 +35,6 @@ end
 ################################################################################
 # QQFieldElem
 @registerSerializationType(QQFieldElem)
-
-function save_internal(s::SerializerState, q::QQFieldElem; kwargs...)
-    return string(q)
-end
 
 function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
     # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
@@ -60,7 +51,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent::QQField)
     return parent(load_internal(s, QQFieldElem, str))
 end
-
 
 ################################################################################
 # Number
@@ -82,35 +72,21 @@ end
 @registerSerializationType(Float32)
 @registerSerializationType(Float64)
 
-function save_internal(s::SerializerState, z::Number)
-    return string(z)
-end
-
 function load_internal(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
     return parse(T, str)
 end
-
 
 ################################################################################
 # Strings
 @registerSerializationType(String)
 
-function save_internal(s::SerializerState, str::String)
-    return str
-end
-
 function load_internal(s::DeserializerState, ::Type{String}, str::String)
     return str
 end
 
-
 ################################################################################
 # Symbol
 @registerSerializationType(Symbol)
-
-function save_internal(s::SerializerState, sym::Symbol)
-   return string(sym)
-end
 
 function load_internal(s::DeserializerState, ::Type{Symbol}, str::String)
    return Symbol(str)

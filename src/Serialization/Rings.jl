@@ -42,10 +42,6 @@ end
 @registerSerializationType(zzModRingElem)
 is_type_serializing_parent(T::Type{zzModRingElem}) = true
 
-function save_internal(s::SerializerState, r::zzModRingElem)
-    return string(r)
-end
-
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
     parent_ring = load_unknown_type(s, dict[:parent])
     class_rep = load_type_dispatch(s, ZZRingElem, dict[:data])

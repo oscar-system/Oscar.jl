@@ -5,31 +5,20 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
-
-function save_internal(s::SerializerState, t::TropicalSemiringElem;
-                       include_parents::Bool=true)
-    encoded_t = string(data(t))
-    if include_parents
-        return Dict(
-            :parent => save_as_ref(s, parent(t)),
-            :str => encoded_t
-        )
-    end
-    return encoded_t
-end
+is_type_serializing_parent(T::Type{<: TropicalSemiringElem}) = true
 
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem{S}},
                               dict::Dict) where S
     parent = load_unknown_type(s, dict[:parent])
-    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{TropicalSemiringElem},
-                              dict::Dict) 
+                       dict::Dict)
     parent = load_unknown_type(s, dict[:parent])
-    return parent(load_type_dispatch(s, QQFieldElem, dict[:str]))
+    return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
 end
 
 function load_internal_with_parent(s::DeserializerState,
