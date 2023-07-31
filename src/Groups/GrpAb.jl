@@ -171,7 +171,7 @@ function is_conjugate(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
           is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
 end
 
-function is_conjugate_with_data(G(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
+function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
    if is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
      return true, zero(G)
    else
