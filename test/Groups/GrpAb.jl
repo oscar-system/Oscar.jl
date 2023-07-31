@@ -73,7 +73,7 @@ end
     @test acting_group(cc[1]) == G1
     for x in gens(G1), y in gens(G1)
       @test is_conjugate(G1, x, y) == (x == y)
-      @test is_conjugate_with_data_in_gl_or_sl(G1, x, y)[1] == (x == y)
+      @test is_conjugate_with_data(G1, x, y)[1] == (x == y)
     end
     C = cc[1]
     for H in C
@@ -95,7 +95,7 @@ end
       H = representative(C1)
       K = representative(C2)
       @test is_conjugate(G1, H, K) == (H == K)
-      @test is_conjugate_with_data_in_gl_or_sl(G1, H, K)[1] == (H == K)
+      @test is_conjugate_with_data(G1, H, K)[1] == (H == K)
       @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
     end
     C = CC[1]
