@@ -18,7 +18,7 @@ function subgroup_of_reflections(G::MatrixGroup)
       append!(g, collect(c))
     end
   end
-  return matrix_group(degree(G), base_ring(G), g)
+  return matrix_group(base_ring(G), degree(G), g)
 end
 
 # Check if G contains reflections
