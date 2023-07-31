@@ -1131,7 +1131,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     # If not, we try the next potential pair.
     fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
     @hassert :ZZLatWithIsom 1 fSAinOSB in OSBrB  # Same as before, since phi is admissible, then the image of fSA should preserve rho_{l+1}(B)
-    bool, g0 = representative_action(OSBrB, OSBrB(fSAinOSB), fSB)
+    bool, g0 = is_conjugate_with_data(OSBrB, OSBrB(fSAinOSB), fSB)
     bool || continue
 
     # The new phi is "sending" the restriction of fA to this of fB
