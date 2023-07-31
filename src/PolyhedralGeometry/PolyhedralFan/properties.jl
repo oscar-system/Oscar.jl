@@ -164,8 +164,11 @@ function cones(PF::_FanLikeType, cone_dim::Int)
     return SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
-function _cone_of_dim(U::Type{Cone{T}}, PF::_FanLikeType{T}, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
-    return cone(coefficient_field(PF), pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)),:], pm_object(PF).LINEALITY_SPACE)::U
+function _cone_of_dim(::Type{Cone{T}}, PF::_FanLikeType{T}, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
+  R = pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)), :]
+  L = pm_object(PF).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T, eltype(R))
+  return Cone{T}(Polymake.polytope.Cone{PT}(RAYS = R, LINEALITY_SPACE = L), coefficient_field(PF))
 end
 
 _ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int = 0) = Polymake.fan.cones_of_dim(pm_object(PF), c_dim)

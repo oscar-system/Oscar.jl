@@ -392,6 +392,10 @@ _scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
 _scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
 _scalar_type_to_polymake(::Type{Float64}) = Float64
 
+_scalar_type_to_polymake(::Type{EmbeddedElem{nf_elem}}, ::Type{Polymake.OscarNumber}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{EmbeddedElem{nf_elem}}, ::Type{<:Polymake.QuadraticExtension}) = Polymake.QuadraticExtension{Polymake.Rational}
+_scalar_type_to_polymake(::Type{T}, ::Type{U}) where {T<:scalar_types, U} = _scalar_type_to_polymake(T)
+
 ####################################################################
 # Parent Fields
 ####################################################################

@@ -439,7 +439,7 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{LinearHalfspace{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
+facets(as::Type{<:Union{LinearHalfspace{T}, Cone{T}}}, C::Cone{T}) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
 
 _facet_cone(U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer) where T<:scalar_types = linear_halfspace(coefficient_field(C), -pm_object(C).FACETS[[i], :])::U
 

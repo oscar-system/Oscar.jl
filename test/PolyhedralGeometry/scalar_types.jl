@@ -186,4 +186,42 @@
         end
     end
 
+  @testset "QuadraticExtension-templated sub-objects" begin
+
+    j = johnson_solid(2)
+
+    let f = facets(Polyhedron, j)
+      for i in 1:nfacets(j)
+        @test facets(f[i])[] in facets(j)
+      end
+      @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedElem{nf_elem}}, Vector{EmbeddedElem{nf_elem}}}}
+      g = halfspace_matrix_pair(f)
+      affine_halfspace(coefficient_field(j), g.A[1, :], g.b[1]) in facets(j)
+    end
+    for n in (1, 2) # faces which are facets have a different access function
+      let f = faces(j, n)
+        for i in 1:Int(f_vector(j)[n + 1])
+          @test issubset(vertices(f[i]), vertices(j))
+        end
+      end
+    end
+
+    k = face_fan(j)
+    let f = cones(k, 3)
+      for i in 1:Int(f_vector(k)[3])
+        @test issubset(rays(f[i]), rays(k))
+      end
+      l = f[1]
+    end
+
+    l = cone(Polymake.polytope.Cone{Polymake.QuadraticExtension{Polymake.Rational}}(RAYS = Oscar.pm_object(j).VERTICES))
+
+    let f = facets(Polyhedron, l)
+      for i in 1:nfacets(l)
+        @test facets(f[i])[] in facets(l)
+      end
+    end
+    
+  end
+
 end

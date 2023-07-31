@@ -464,8 +464,11 @@ function _ith_polyhedron(
   f_ind::Vector{Int64} = Vector{Int64}()
   ) where {T<:scalar_types}
   pface = Polymake.row(Polymake.fan.cones_of_dim(pm_object(PC), f_dim), f_ind[i])
+  V = pm_object(PC).VERTICES[collect(pface), :]
+  L = pm_object(PC).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T, eltype(V))
   return Polyhedron{T}(
-    Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(PC).VERTICES[collect(pface), :], LINEALITY_SPACE = pm_object(PC).LINEALITY_SPACE),
+    Polymake.polytope.Polytope{PT}(VERTICES = V, LINEALITY_SPACE = L),
     coefficient_field(PC)
   )
 end
