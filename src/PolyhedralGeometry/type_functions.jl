@@ -28,13 +28,13 @@ end
 
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
-    try
-        f = coefficient_field(iter.Obj)
-        h = affine_matrix_for_polymake(iter)
-        return (A = matrix(f, h[:, 2:end]), b = Vector{T}(f.(-h[:, 1])))
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
+  try
+    f = coefficient_field(iter.Obj)
+    h = affine_matrix_for_polymake(iter)
+    return (A = matrix(f, h[:, 2:end]), b = [f(x) for x in -h[:, 1]])
+  catch e
+    throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+  end
 end
 
 for fun in (

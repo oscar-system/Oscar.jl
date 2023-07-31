@@ -37,7 +37,10 @@ end
 
 function _face_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
   pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim))[f_ind[i]]
-  return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface), :], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), coefficient_field(P))
+  V = pm_object(P).VERTICES[collect(pface), :]
+  L = pm_object(P).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T, eltype(V))
+  return Polyhedron{T}(Polymake.polytope.Polytope{PT}(VERTICES = V, LINEALITY_SPACE = L), coefficient_field(P))
 end
 
 function _vertex_indices(::Val{_face_polyhedron}, P::Polyhedron; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
@@ -56,7 +59,10 @@ _incidencematrix(::Val{_face_polyhedron}) = _vertex_and_ray_indices
 
 function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base.Integer) where T<:scalar_types
   pface = pm_object(P).VERTICES_IN_FACETS[_facet_index(pm_object(P), i), :]
-  return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface), :], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), coefficient_field(P))
+  V = pm_object(P).VERTICES[collect(pface), :]
+  L = pm_object(P).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T, eltype(V))
+  return Polyhedron{T}(Polymake.polytope.Polytope{PT}(VERTICES = V, LINEALITY_SPACE = L), coefficient_field(P))
 end
 
 _vertex_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))])
