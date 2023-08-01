@@ -112,7 +112,7 @@ function hilbert_series(A::MPolyQuoRing)
    if iszero(A.I)
       R = base_ring(A.I)
       Zt, t = ZZ["t"]
-      den = prod([1-t^Int(w) for w in R.d])
+      den = prod([1-t^Int(w[1]) for w in R.d])
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
@@ -244,13 +244,13 @@ julia> hilbert_polynomial(A)
 """
 function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    if iszero(A.I)
-       n = QQ(ngens(A))
+       n = ngens(A)
        Qt, t = QQ["t"]
        b = one(parent(t))
-       for i=1:(n-1)
+       for i in QQ(1):QQ(n-1)
            b = b * (t+i)
         end
-       b = b//factorial(n-1)
+       b = b/QQ(factorial(n-1))
        return b	   
      end
    H = HilbertData(A.I)
