@@ -18,9 +18,17 @@
   @testset "constructors and basic properties" begin
     L = lie_algebra(QQ, :A, 2)
     @test dim(L) == 8
+<<<<<<< HEAD
     @test coefficient_ring(L) == QQ
     @test root_system(L) == RootSystem(:A, 2)
     @test root_type(L) == (:A, 2)
+=======
+    @test base_ring(L) == QQ
+    @test base_ring(a) == QQ
+    @test root_system(L) == RootSystem("A2")
+    @test root_type(L) == ("A", 2)
+    @test Generic._matrix(a) == zero_matrix(QQ, 1, 8)
+>>>>>>> addressed comments in pull-request, some major changes to simple_lie_algebra.jl and root_system.jl
     @test characteristic(L) == 0
     @test chevalley_basis(L) == [
       [L([1, 0, 0, 0, 0, 0, 0, 0]), L([0, 1, 0, 0, 0, 0, 0, 0]), L([0, 0, 1, 0, 0, 0, 0, 0])],

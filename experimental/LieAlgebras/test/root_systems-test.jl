@@ -1,6 +1,7 @@
 @testset "LieAlgebras.RootSystem" begin
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     R = RootSystem(:F,4)
   @test cartan_matrix(R) ==
     matrix(QQ, 4, 4, [2, -1, 0, 0, -1, 2, -2, 0, 0, -1, 2, -1, 0, 0, -1, 2])
@@ -25,6 +26,11 @@ end
   @test cartan_matrix(R) ==
     matrix(QQ, 4, 4, [2, -1, 0, 0, -1, 2, -2, 0, 0, -1, 2, -1, 0, 0, -1, 2])
 >>>>>>> changed to rebase to master
+=======
+    R = RootSystem(:F,4)
+  @test cartan_matrix(R) ==
+    matrix(QQ, 4, 4, [2, -1, 0, 0, -1, 2, -2, 0, 0, -1, 2, -1, 0, 0, -1, 2])
+>>>>>>> addressed comments in pull-request, some major changes to simple_lie_algebra.jl and root_system.jl
     @test number_of_roots(R) == 48
     @test number_of_roots("F4") == number_of_roots(R)
 >>>>>>> Update root_systems-test.jl
