@@ -221,7 +221,7 @@ function adjoint_matrix(x::SimpleLieAlgebraElem{T}) where {T<:RingElement}
 end
 
 @doc raw"""
-    adjoint_matrix(x::SimpleLieAlgebraElem{T}) -> MatSpaceElem{T}
+    adjoint_matrix(x::SimpleLieAlgebraElem{T}, B::Vector{SimpleLieAlgebraElem{T}) -> MatSpaceElem{T}
 
 Give the adjoint matrix of the Lie algebra element `x` with respect 
 to the basis `B`. Note that we expect the elements in `B` to be given with coefficients w.r.t 
