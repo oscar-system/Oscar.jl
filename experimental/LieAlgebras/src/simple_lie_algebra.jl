@@ -10,7 +10,7 @@
   function SimpleLieAlgebra{C}(
     R::Ring, S::Symbol, n::Int64; cached::Bool=true
   ) where {C<:RingElement}
-    RS = RootSystem(S,n)
+    RS = root_system(S,n)
     dimL = number_of_roots(RS) + length(RS.simple_roots)
     s = [Symbol("e_$i") for i in 1:dimL]
     st = root_system_type(RS)
