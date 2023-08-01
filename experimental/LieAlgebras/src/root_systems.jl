@@ -38,7 +38,7 @@ number_of_roots(S::Symbol, n::Int64) = number_of_roots(RootSystem(S, n))
 
 @doc raw"""
   getindex(R::RootSystem, r::Int)
-  
+
 Return the `r`-th root of the root system `R`.
 """
 getindex(R::RootSystem, r::Int) = getindex(R.roots, r)

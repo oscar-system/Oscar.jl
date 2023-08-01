@@ -104,7 +104,6 @@ function Base.show(io::IO, L::SimpleLieAlgebra)
   end
 end
 
-
 # function Base.show(io::IO, V::SimpleLieAlgebra)
 #   print(io, "Simple Lie Algebra over ")
 #   print(IOContext(io, :compact => true), base_ring(V))
