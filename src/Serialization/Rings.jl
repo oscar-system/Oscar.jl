@@ -74,8 +74,9 @@ end
 @registerSerializationType(PolyRing, true)
 @registerSerializationType(MPolyRing, true)
 @registerSerializationType(UniversalPolyRing, true)
+@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrapRing, true)
 
-function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing})
+function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     base = base_ring(R)
 
     return Dict(
@@ -85,7 +86,7 @@ function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing
 end
 
 function load_internal(s::DeserializerState,
-                       T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing}},
+                       T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
@@ -96,6 +97,8 @@ function load_internal(s::DeserializerState,
         poly_ring = UniversalPolynomialRing(base_ring, cached=false)
         gens(poly_ring, symbols)
         return poly_ring
+    elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
+        return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
     end
 
     return polynomial_ring(base_ring, symbols, cached=false)[1]
@@ -126,6 +129,29 @@ function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPoly
     return encoded_terms
 end
 
+@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
+function save_internal(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap;
+                       include_parents::Bool=true)
+    parent_ring = parent(p)
+    base = base_ring(parent_ring)
+    encoded_terms = []
+
+    exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
+    index = 0
+    for c in coefficients(p)
+        exponent_vector, index = iterate(exponent_vectors_gen, index)
+        encoded_coeff = save_internal(s, c; include_parents=false)
+        push!(encoded_terms,  (exponent_vector, encoded_coeff))
+    end
+
+    if include_parents
+        return Dict(
+            :terms => encoded_terms,
+            :parents => get_parent_refs(s, parent_ring),
+        )
+    end
+    return encoded_terms
+end
 
 ################################################################################
 # Univariate Polynomials
@@ -188,7 +214,7 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::Union{MPolyRing, UniversalPolyRing})
+                    parent_ring::Union{MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     for (e, coeff) in terms
@@ -207,14 +233,14 @@ end
 
 
 function load_internal(s::DeserializerState, ::Type{<: Union{
-    PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict)
+    PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict)
     loaded_parents = load_parents(s, dict[:parents])
     return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
 end
 
 function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
-    PolyRingElem, UniversalPolyRingElem, MPolyRingElem}}, dict::Dict,
-                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing})
+    PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict,
+                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     parents = get_parents(parent_ring)
     return load_terms(s, parents, dict[:terms], parents[end])
 end
@@ -223,8 +249,10 @@ end
 # Polynomial Ideals
 
 @registerSerializationType(MPolyIdeal)
+@registerSerializationType(Laurent.LaurentMPolyIdeal)
 
-function save_internal(s::SerializerState, I::MPolyIdeal)
+function save_internal(s::SerializerState,
+                       I::Union{MPolyIdeal, Laurent.LaurentMPolyIdeal})
     generators = gens(I)
 
     return Dict(
@@ -232,16 +260,17 @@ function save_internal(s::SerializerState, I::MPolyIdeal)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: Union{
+    MPolyIdeal, Laurent.LaurentMPolyIdeal}}, dict::Dict)
     gens = load_type_dispatch(s, Vector, dict[:gens])
 
     return ideal(parent(gens[1]), gens)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: MPolyIdeal},
+                                   ::Type{<: Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}},
                                    dict::Dict,
-                                   parent_ring::MPolyRing)
+                                   parent_ring::Union{MPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     gens = load_type_dispatch(s, Vector{elem_type(parent_ring)},
                               dict[:gens], parent=parent_ring)
     return ideal(parent_ring, gens)
