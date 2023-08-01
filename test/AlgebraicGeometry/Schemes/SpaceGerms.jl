@@ -77,7 +77,7 @@ end
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = Spec(R, I*J, units_of(R))
-  @test_throws AssertionError("base_ring(I) === R") Spec(R,ideal(S,[u,v,w]))
+  @test_throws ArgumentError("Base rings must be the same.") Spec(R,ideal(S,[u,v,w]))
   @test_throws ErrorException("rings are not compatible") SpaceGerm(X,ideal(S,[u,v,w]))
   @test_throws ErrorException("the number of variables in the ring does not coincide with the number of coordinates") SpaceGerm(X,[1,1,1,1])
   X0,phi0 = germ_at_point(X,ideal(R,[x,y,z]))
