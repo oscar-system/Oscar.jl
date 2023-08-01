@@ -58,6 +58,13 @@ function basis(L::LieAlgebra, i::Int)
 end
 
 @doc raw"""
+    characteristic(L::SimpleLieAlgebra{T}) -> Int64
+
+Return the characteristic of the base ring of the Lie algebra `L`.
+"""
+characteristic(L::LieAlgebra{C}) where {C<:RingElement} = characteristic(base_ring(L))
+
+@doc raw"""
     zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
 
 Return the zero element of the Lie algebra `L`.
@@ -114,6 +121,7 @@ end
 function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   parent(x1) !== parent(x2) && error("Incompatible Lie algebras.")
 end
+
 
 ###############################################################################
 #
