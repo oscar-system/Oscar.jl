@@ -1,78 +1,53 @@
 using JSON
 using UUIDs
 
-mutable struct JSONSerializer
-    open_objects::Array{Any}
-end
+################################################################################
+# Include serializers
+include("serializers.jl")
 
-function JSONSerializer()
-    return JSONSerializer(Any[Dict{Symbol, Any}()]) # initiate with root dict
-end
-
-# struct which tracks state for (de)serialization
-mutable struct SerializerState
-    # dict to track already serialized objects
-    objmap::IdDict{Any, UUID}
-    depth::Int
-    refs::Dict{Symbol, Any}
-    serializer::JSONSerializer
-    # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
-    # io::IO
-end
-
-function SerializerState()
-    return SerializerState(IdDict{Any, UUID}(), 0, Dict(), JSONSerializer())
-end
-
-## operations for an in-order tree traversals
-## all nodes (dicts or arrays) contain all child nodes
 
 # returns type of current open object so we know how to write to it
-function get_active_object_type(s::SerializerState)
-    return typeof(s.serializer.open_objects[end])
-end
-# create node and descent
-function open_dict(s::SerializerState)
-    push!(s.serializer.open_objects, Dict{Symbol, Any}())
-end
-
-function open_array(s::SerializerState)
-    push!(s.serializer.open_objects, Any[])
-end
-
-# add to child to current node
-function add_object(s::SerializerState, obj::Any, key::Symbol)
-    s.serializer.open_objects[end][key] = obj
-end
-
-function add_object(s::SerializerState, obj::Any)
-    push!(s.serializer.open_objects[end], obj)
-end
-
-# ascend and append to parent
-function close(s::SerializerState, key::Symbol)
-    obj = pop!(s.serializer.open_objects)
-    add_object(s, obj, key)
-end
-
-function close(s::SerializerState)
-    obj = pop!(s.serializer.open_objects)
-    if s.serializer.open_objects[end] isa Array
-        add_object(s, obj)
-    else
-        add_object(s, obj, :data)
-    end
-end
-
-
-struct DeserializerState
-    objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-    refs::Dict{Symbol, Any}
-end
-
-function DeserializerState()
-    return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
-end
+# function get_active_object_type(s::SerializerState)
+#     return typeof(s.serializer.open_objects[end])
+# end
+# 
+# function set_key(s::SerializerState, key::Symbol)
+#     s.key = key
+# end
+# 
+# # create node and descent
+# function open_dict(s::SerializerState)
+#     push!(s.serializer.open_objects, Dict{Symbol, Any}())
+# end
+# 
+# function open_array(s::SerializerState)
+#     push!(s.serializer.open_objects, Any[])
+# end
+# 
+# # add to child to current node
+# function add_object(s::SerializerState, obj::Any, key::Symbol)
+#     s.serializer.open_objects[end][key] = obj
+# end
+# 
+# function add_object(s::SerializerState, obj::Any)
+#     push!(s.serializer.open_objects[end], obj)
+# end
+# 
+# # ascend and append to parent
+# function close(s::SerializerState, key::Symbol)
+#     obj = pop!(s.serializer.open_objects)
+#     add_object(s, obj, key)
+# end
+# 
+# function close(s::SerializerState)
+#     obj = pop!(s.serializer.open_objects)
+#     if s.key === nothing
+#         add_object(s, obj)
+#     else
+#         add_object(s, obj, s.key)
+#         s.key = nothing
+#     end
+# end
 
 const backref_sym = Symbol("#backref")
 
@@ -95,7 +70,6 @@ function get_version_info()
     return result
 end
 const oscarSerializationVersion = get_version_info()
-
 
 ################################################################################
 # (De|En)coding types
@@ -225,7 +199,7 @@ end
 has_elem_basic_encoding(obj::T) where T = false
 
 # used for types that require parents when serialized
-is_type_serializing_parent(::Type) where Type = false
+type_needs_parents(::Type) where Type = false
 
 ################################################################################
 # High level
@@ -298,6 +272,13 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) whe
     elseif serialize_with_id(T)
         ref = save_as_ref(s, obj)
         add_object(s, ref, key)
+    elseif T <: Vector
+        open_dict(s)
+        s.depth += 1
+        save_internal(s, obj)
+        s.depth -= 1
+        add_object(s, encode_type(T), :type)
+        close(s)
     elseif !Base.issingletontype(T)
         s.depth += 1
         open_dict(s)
@@ -338,6 +319,76 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) whe
     
     #store_serialized(s, result, key)
 end
+
+function save_object(s::SerializerState, x::PolyRing)
+    data_dict(s) do
+        save_typed_object(s, base_ring(s), :base_ring)
+        save_object(s, symbols(s), :symbols)
+    end
+end
+
+function save_object(s::SerializerState, p::PolyRingElem)
+    coeffs = coefficients(p)
+    exponent = 0
+    terms = Tuple{String, typeof(coeffs[1])}[]
+    for coeff in coeffs
+        # collect only non trivial terms
+        if is_zero(coeff)
+            exponent += 1
+            continue
+        end
+
+        push!(terms, (string(exponent), coeff))
+        exponent += 1
+    end
+
+    save_object(s, terms)
+end
+
+function save_object(s::SerializerState, x::Vector)
+    data_array(s) do
+        for elem in x
+            save_object(s, elem)
+        end
+    end
+end
+
+# this function is necessary so we can have arrays with entries of different types
+function save_object(s::SerializerState, x::T) where T <: Tuple
+    data_array(s) do
+        for elem in x
+            save_object(s, elem)
+        end
+    end
+end
+
+# this union will need to be dealt with differently
+BasicTypeUnion = Union{String, Int, QQFieldElem}
+function save_object(s::SerializerState, x::BasicTypeUnion) 
+    data_basic(s, x)
+end
+
+function save_object(s::SerializerState, x::Any, key::Symbol)
+    s.key = key
+    save_object(s, x)
+end
+
+function save_typed_object(s::SerializerState, x::T) where T
+    if type_needs_parents(x)
+        save_ref_type(s, parent(x), :type)
+        save_object(s, x, :data)
+    elseif Base.issingletontype(T)
+        save_object(s, encode_type(T), :type)
+    elseif x isa AbstractVector
+        save_object(s, "Vector", :type)
+        save_object(s, innermost_elem_type(x), :elem_type)
+        save_array(s, x, :data)
+    else
+        save_object(s, encode_type(T), :type)
+        save_object(s, x, :data)
+    end
+end
+
 
 # ATTENTION
 # The load mechanism needs to look at the serialized data first, in order to detect objects with a basic encoding.
@@ -490,22 +541,13 @@ julia> load("/tmp/fourtitwo.json")
 ```
 """
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
-    state = SerializerState()
-    # :root should not be seen in the file
-    save_type_dispatch(state, obj, :root)
-    jsoncompatible = pop!(state.serializer.open_objects)
-    if !isnothing(metadata)
-        meta_dict = Dict()
-        for key in fieldnames(MetaData)
-            if !isnothing(getfield(metadata, key))
-                meta_dict[key] = getfield(metadata, key)
-            end
-        end
-        jsoncompatible[:meta] = meta_dict
+    state = serializer_open(io)
+    data_dict(state) do
+        println("open root dict")
+        #add_header(s, metadata)
+        save_typed_object(state, obj)
     end
-    jsonstr = json(jsoncompatible)
-    write(io, jsonstr)
-    return nothing
+    serializer_close(state)
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)

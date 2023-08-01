@@ -70,7 +70,8 @@ end
 
 function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     base = base_ring(R)
-    save_type_dispatch(s, symbols(R), :symbols)
+    set_key(s, :symbols)
+    save_internal(s, symbols(R))
     save_type_dispatch(s, base, :base_ring)
 end
 
@@ -97,6 +98,7 @@ end
 # Multivariate and Universal Polynomials
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
+is_type_serializing_parent(::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}})  = true 
 
 function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     parent_ring = parent(p)
@@ -105,8 +107,8 @@ function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPoly
     
     for i in 1:length(p)
         open_array(s)
-        save_type_dispatch(s, exponent_vector(p, i))
-        save_type_dispatch(s, coeff(p, i))
+        save_internal(s, exponent_vector(p, i))
+        save_internal(s, coeff(p, i))
         close(s)
     end
 end

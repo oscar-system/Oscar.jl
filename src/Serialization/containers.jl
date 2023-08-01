@@ -1,30 +1,34 @@
 ################################################################################
+# Helper functions
+
+
+function get_nested_data(v::Vector)
+    nested_depth = 0
+    vector_entry = v[1]
+
+    while typeof(vector_entry) <: Vector
+        nested_depth += 1
+        vector_entry = vector_entry[1]
+    end
+
+    return (nested_depth, typeof(vector_entry))
+end
+
+################################################################################
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
 
-function save_internal(s::SerializerState, vec::Vector{T}) where T
+function save_internal(s::SerializerState, vec::Vector)
     open_array(s)
     for x in vec
-        save_type_dispatch(s, x)
+        if typeof(x) <: Vector
+            save_internal(s, x)
+        else
+            save_type_dispatch(s, x)
+        end
     end
-    close(s, :vector)
-
-    if is_basic_serialization_type(T)
-        save_type_dispatch(s, encode_type(T), :entry_type)
-    end
-end
-
-function save_internal(s::SerializerState, vec::Vector{T}) where T <: Vector
-    open_array(s)
-    for x in vec
-        save_type_dispatch(s, x)
-    end
-    close(s, :vector)
-
-    if is_basic_serialization_type(T)
-        save_type_dispatch(s, encode_type(T), :entry_type)
-    end
+    close(s)
 end
 
 #function save_internal(s::SerializerState, vec::Vector{T}) where T <: RingElem
