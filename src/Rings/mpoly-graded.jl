@@ -2308,7 +2308,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
     M_complete = vcat(M, RevLexMat)
     JohnsOrdering = matrix_ordering(Ph, M_complete)
     Ih = ideal(G)
-    G = groebner_basis(Ih; ordering=JohnsOrdering, complete_reduction=true)  #?complete_reduction not needed?
+    G = groebner_basis(Ih; ordering=JohnsOrdering)  # option complete_reduction seemed to make no measurable difference
     G = elements(G)
     h_j = gen(Ph, ngens(Ph)+1-j)
     G = [_sat_poly_by_var(g, h_j)  for g in G]
