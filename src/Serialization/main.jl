@@ -278,7 +278,7 @@ function save_basic_encoded_type(s::SerializerState, obj::Any, key::Symbol = :da
     end
 end
 
-function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
+function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) where T
     # this is used when serializing basic types like "3//4"
     # when s.depth == 0 file should know it belongs to QQ
     if s.depth != 0 && has_basic_encoding(obj)
@@ -303,12 +303,17 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol) where T
         open_dict(s)
         # invoke the actual serializer
         open_dict(s)
+
+        if is_type_serializing_parent(T)
+            save_parent_refs(s, parent(obj))
+        end
         save_internal(s, obj)
         close(s)
         add_object(s, encode_type(T), :type)
         s.depth -= 1
 
         if s.depth != 0
+            println(s.serializer.open_objects[end])
             close(s, key)
         end
     else

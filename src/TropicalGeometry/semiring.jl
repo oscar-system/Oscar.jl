@@ -1,3 +1,4 @@
+import Base.string
 # module Tropical
 
 # import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring

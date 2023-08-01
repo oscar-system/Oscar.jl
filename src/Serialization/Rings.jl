@@ -13,9 +13,13 @@ function get_parents(parent_ring::Ring)
     return parents
 end
 
-function get_parent_refs(s, parent_ring::Ring)
+function save_parent_refs(s, parent_ring::Ring)
     parents = get_parents(parent_ring)
-    return [save_as_ref(s, parent) for parent in parents]
+    open_array(s)
+    for parent in parents
+        add_object(s, save_as_ref(s, parent))
+    end
+    close(s, :parents)
 end
 
 
@@ -94,24 +98,17 @@ end
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
 
-function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem};
-                       include_parents::Bool=true)
+function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     parent_ring = parent(p)
     base = base_ring(parent_ring)
     encoded_terms = []
-
+    
     for i in 1:length(p)
-        encoded_coeff = save_internal(s, coeff(p, i); include_parents=false)
-        push!(encoded_terms,  (exponent_vector(p, i), encoded_coeff))
+        open_array(s)
+        save_type_dispatch(s, exponent_vector(p, i))
+        save_type_dispatch(s, coeff(p, i))
+        close(s)
     end
-
-    if include_parents
-        return Dict(
-            :terms => encoded_terms,
-            :parents => get_parent_refs(s, parent_ring),
-        )
-    end
-    return encoded_terms
 end
 
 @registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
@@ -142,13 +139,12 @@ end
 # Univariate Polynomials
 
 @registerSerializationType(PolyRingElem)
+is_type_serializing_parent(::Type{<: PolyRingElem})  = true 
 
-function save_internal(s::SerializerState, p::PolyRingElem; include_parents::Bool=true)
+function save_internal(s::SerializerState, p::PolyRingElem)
     # store a polynomial over a ring provided we can store elements in that ring
-    parent_ring = parent(p)
-    base = base_ring(parent_ring)
     coeffs = coefficients(p)
-    encoded_terms = []
+    open_array(s)
     exponent = 0
     for coeff in coeffs
         # collect only non trivial terms
@@ -156,19 +152,13 @@ function save_internal(s::SerializerState, p::PolyRingElem; include_parents::Boo
             exponent += 1
             continue
         end
-        
-        encoded_coeff = save_internal(s, coeff; include_parents=false)
-        push!(encoded_terms,  (exponent, encoded_coeff))
+        open_array(s)
+        save_type_dispatch(s, exponent)
+        save_type_dispatch(s, coeff)
+        close(s)
         exponent += 1
     end
-
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent_ring),
-            :terms => encoded_terms
-        )
-    end
-    return encoded_terms
+    close(s)
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
@@ -176,7 +166,8 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
     if isempty(terms)
         return parent_ring(0)
     end
-    
+    # load exponent
+    terms = map(x->(parse(Int, x[1]), x[2]), terms)
     # shift so constant starts at 1
     degree = max(map(x->x[1] + 1, terms)...)
     base = base_ring(parent_ring)
@@ -216,18 +207,17 @@ function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
     return finish(polynomial)
 end
 
-
 function load_internal(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict)
     loaded_parents = load_parents(s, dict[:parents])
-    return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
+    return load_terms(s, loaded_parents, dict[:data], loaded_parents[end])
 end
 
 function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict,
                                    parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     parents = get_parents(parent_ring)
-    return load_terms(s, parents, dict[:terms], parents[end])
+    return load_terms(s, parents, dict[:data], parents[end])
 end
 
 ################################################################################

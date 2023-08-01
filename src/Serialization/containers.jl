@@ -5,8 +5,8 @@
 
 function save_internal(s::SerializerState, vec::Vector{T}) where T
     open_array(s)
-    for x in vec 
-        add_object(s, string(x))
+    for x in vec
+        save_type_dispatch(s, x)
     end
     close(s, :vector)
 
@@ -15,26 +15,37 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
     end
 end
 
-function save_internal(s::SerializerState, vec::Vector{T};
-                       include_parents::Bool=true) where T <: RingElem
-    encoded_vec = [save_internal(s, x; include_parents=false) for x in vec]
-
-    if include_parents
-        entries_parent = parent(vec[1])
-
-        if has_elem_basic_encoding(entries_parent)
-            return Dict(
-                :parent => save_as_ref(s, entries_parent),
-                :vector => encoded_vec
-            )
-        end
-        return Dict(
-            :parents => get_parent_refs(s, entries_parent),
-            :vector => [save_internal(s, x; include_parents=false) for x in vec]
-        )
+function save_internal(s::SerializerState, vec::Vector{T}) where T <: Vector
+    open_array(s)
+    for x in vec
+        save_type_dispatch(s, x)
     end
-    return encoded_vec
+    close(s, :vector)
+
+    if is_basic_serialization_type(T)
+        save_type_dispatch(s, encode_type(T), :entry_type)
+    end
 end
+
+#function save_internal(s::SerializerState, vec::Vector{T}) where T <: RingElem
+#    encoded_vec = [save_internal(s, x; include_parents=false) for x in vec]
+#
+#    if include_parents
+#        entries_parent = parent(vec[1])
+#
+#        if has_elem_basic_encoding(entries_parent)
+#            return Dict(
+#                :parent => save_as_ref(s, entries_parent),
+#                :vector => encoded_vec
+#            )
+#        end
+#        return Dict(
+#            :parents => get_parent_refs(s, entries_parent),
+#            :vector => [save_internal(s, x; include_parents=false) for x in vec]
+#        )
+#    end
+#    return encoded_vec
+#end
 
 # deserialize with specific content type
 function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
