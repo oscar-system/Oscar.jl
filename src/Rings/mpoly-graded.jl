@@ -1156,6 +1156,37 @@ function show_homo_comp(io::IO, M)
   end
 end
 
+function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
+  #TODO: lazy: ie. no enumeration of points
+  #      apparently it is possible to get the number of points faster than the points
+  #TODO: in the presence of torsion, this is wrong. The component
+  #      would be a module over the deg-0-sub ring.
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  D = W.D
+  is_free(D) || error("Grading group must be free")
+  h = hom(free_abelian_group(ngens(W)), W.d)
+  fl, p = haspreimage(h, d)
+  R = base_ring(W)
+  B = elem_type(W)[]
+  if fl
+     k, im = kernel(h)
+     #need the positive elements in there...
+     #Ax = b, Cx >= 0
+     C = identity_matrix(FlintZZ, ngens(W))
+     A = vcat([x.coeff for x = W.d])
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
+     for ee = 1:nrows(k)
+       e = k[ee, :]
+       a = MPolyBuildCtx(forget_decoration(W))
+       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
+       push!(B, W(finish(a)))
+     end
+  end
+  return B
+end
+
+
+
 @doc raw"""
     homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
 
@@ -1242,27 +1273,8 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  D = W.D
-  is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
-  fl, p = haspreimage(h, d)
   R = base_ring(W)
-  B = elem_type(W)[]
-  if fl
-     k, im = kernel(h)
-     #need the positive elements in there...
-     #Ax = b, Cx >= 0
-     C = identity_matrix(FlintZZ, ngens(W))
-     A = vcat([x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
-     for ee = 1:nrows(k)
-       e = k[ee, :]
-       a = MPolyBuildCtx(forget_decoration(W))
-       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-       push!(B, W(finish(a)))
-     end
-  end
+  B = monomials_of_degree(W, d)
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
@@ -1333,7 +1345,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     return v
   end
-  h = MapFromFunc(F, R, x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g)
+  h = MapFromFunc(F, R, x -> sum([x[i] * b[i] for i in 1:length(b) if !is_zero_entry(x.v, 1, i)]; init = zero(R)), g)
 
   return F, h
 end
