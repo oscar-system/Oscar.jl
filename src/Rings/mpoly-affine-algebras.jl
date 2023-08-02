@@ -111,6 +111,10 @@ julia> hilbert_series(A)
 function hilbert_series(A::MPolyQuoRing)
    if iszero(A.I)
       R = base_ring(A.I)
+      @req is_z_graded(R) "The base ring must be ZZ-graded"
+      W = R.d
+      W = [Int(W[i][1]) for i = 1:ngens(R)]
+      @req minimum(W) > 0 "The weights must be positive"
       Zt, t = ZZ["t"]
       den = prod([1-t^Int(w[1]) for w in R.d])
       return (one(parent(t)), den)
@@ -184,6 +188,16 @@ julia> hilbert_series_expanded(A, 5)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
+   if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_z_graded(R) "The base ring must be ZZ-graded"
+       W = R.d
+       W = [Int(W[i][1]) for i = 1:ngens(R)]
+       @req minimum(W) > 0 "The weights must be positive"
+       H = hilbert_series(A)
+       T, t = power_series_ring(QQ, d+1, "t")
+       return _rational_function_to_power_series(T, H[1], H[2])
+     end
    H = HilbertData(A.I)  
    return hilbert_series_expanded(H, d)
 end
@@ -218,6 +232,11 @@ julia> hilbert_function(A, 5)
 """
 function hilbert_function(A::MPolyQuoRing, d::Int)
    if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_z_graded(R) "The base ring must be ZZ-graded"
+       W = R.d
+       W = [Int(W[i][1]) for i = 1:ngens(R)]
+       @req minimum(W) > 0 "The weights must be positive"  
        n = QQ(ngens(A))
        return binomial(n-1+d, n-1)
      end
@@ -244,6 +263,8 @@ julia> hilbert_polynomial(A)
 """
 function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        n = ngens(A)
        Qt, t = QQ["t"]
        b = one(parent(t))
@@ -276,6 +297,8 @@ julia> degree(A)
 """
 function degree(A::MPolyQuoRing)
    if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        return ZZ(1)
      end
    H = HilbertData(A.I)
