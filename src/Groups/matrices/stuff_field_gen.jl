@@ -19,9 +19,11 @@ end
 # then return a polynomial g such that g(z) is a generator for the unit group of F(z)
 # return a generator for the unit group of F = K[X] / (f), where K = base_ring(f)
 function _centralizer(f::PolyRingElem{T}) where T <: FinFieldElem
-  if !(f isa Union{fqPolyRepPolyRingElem, FqPolyRepPolyRingElem})
-     f = _change_type(f)
+  if !(f isa Union{fqPolyRepPolyRingElem, FqPolyRepPolyRingElem, FqPolyRingElem})
+     _f = _change_type(f)
+     return _centralizer(_f)
   end
+
   L, mL = field_extension(f)
   U, mU = unit_group(L)
   g = mU(U[1])
