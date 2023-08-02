@@ -548,12 +548,14 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
         save_typed_object(state, obj)
     end
     serializer_close(state)
+    return nothing
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     open(filename, "w") do file
         save(file, obj; metadata=metadata)
     end
+    return nothing
 end
 
 """

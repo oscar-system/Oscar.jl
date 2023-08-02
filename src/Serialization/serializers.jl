@@ -2,10 +2,12 @@
 
 mutable struct JSONSerializer
     open_objects::Array{Any}
+    io::IO
 end
 
-function JSONSerializer()
-    return JSONSerializer(Any[])
+function JSONSerializer(io::IO)
+  # we need one initial array to store our root dict
+  return JSONSerializer(Any[[]], io)
 end
 
 function serialize_dict(f::Function, s::JSONSerializer, key::Union{Symbol,Nothing} = nothing)
@@ -43,7 +45,8 @@ end
 
 function finish_writing(s::JSONSerializer)
     @req length(s.open_objects) == 1 "too many open objects in serializer"
-    str = json(s.open_objects[1])
+    @req length(s.open_objects[1]) == 1 "root node invalid"
+    str = json(s.open_objects[1][1])
     write(s.io, str)
 end
 
@@ -78,8 +81,8 @@ mutable struct SerializerState
     # io::IO
 end
 
-function SerializerState()
-    return SerializerState(IdDict{Any, UUID}(), 0, Dict(), JSONSerializer(), nothing)
+function SerializerState(io::IO)
+    return SerializerState(IdDict{Any, UUID}(), 0, Dict(), JSONSerializer(io), nothing)
 end
 
 struct DeserializerState
@@ -121,7 +124,7 @@ end
 
 function serializer_open(io::IO)
     # some level of handling should be done here at a later date
-    return SerializerState()
+    return SerializerState(io)
 end
 
 function serializer_close(s::SerializerState)
