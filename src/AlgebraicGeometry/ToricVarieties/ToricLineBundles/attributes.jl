@@ -200,8 +200,6 @@ julia> basis_of_global_sections(l)
             return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
         end
     end
-    hc = homogeneous_component(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
-    generators = gens(hc[1])
-    return MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[hc[2](x) for x in generators]
+    return monomials_of_degree(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
 end
 basis_of_global_sections(l::ToricLineBundle) = basis_of_global_sections_via_homogeneous_component(l)
