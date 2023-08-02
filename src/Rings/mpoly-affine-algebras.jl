@@ -232,13 +232,9 @@ julia> hilbert_function(A, 5)
 """
 function hilbert_function(A::MPolyQuoRing, d::Int)
    if iszero(A.I)
-       R = base_ring(A.I)
-       @req is_z_graded(R) "The base ring must be ZZ-graded"
-       W = R.d
-       W = [Int(W[i][1]) for i = 1:ngens(R)]
-       @req minimum(W) > 0 "The weights must be positive"  
-       n = QQ(ngens(A))
-       return binomial(n-1+d, n-1)
+       d < 0 && QQ(0)
+       HS = hilbert_series_expanded(A, d)
+       return coeff(HS, d)
      end
    H = HilbertData(A.I)
    return hilbert_function(H, d)
