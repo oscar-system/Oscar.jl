@@ -17,8 +17,13 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
         # println isn't ideal as it prints the matrix as one big line
         display(RS.representation_matrix)
         println(io, "in the ", RS.ambient_ring)
-        println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
-        println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
+        I = RS.defining_ideal
+        if (typeof(I) <: NumFieldOrdIdl && I.gen != ZZ(0)) || (typeof(I) <: Ideal && !iszero(I))
+            println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
+        end
+        if length(RS.inequations) > 0
+            println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
+        end
     end
 end
 
@@ -470,7 +475,12 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra
     # we start by computing the number of variables:
     numVars = sum([length(intersect(c,B))-1 for c in circs])-(rk-1)+(length(connected_components(M))-1)
     
-    R, x = polynomial_ring(F, numVars)
+    if numVars > 0
+        R, x = polynomial_ring(F, numVars)
+    else
+        R = F
+        x = Vector{MPolyRingElem}()
+    end
 
     unUsedRowsForOnes = collect(2:rk)
     
@@ -564,6 +574,11 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     
     eqs = Vector{RingElem}()
     ineqs = Vector{RingElem}()
+
+    #need to catch corner-case if there are no variables at all
+    if length(x) == 0
+        return MatroidRealizationSpace(ideal(polyR,0), ineqs, polyR, mat, true, F, char, q)
+    end
     
     for col in subsets(Vector(1:n),rk)
         
@@ -959,6 +974,11 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
                                fullyReduced::Bool = false) 
     
     
+    #If there are no variables left, we don't reduce anything
+    if !(typeof(MRS.ambient_ring) <: MPolyRing)
+        return MRS
+    end
+
     output = reduce_ideal_one_step(MRS, elim, fullyReduced)
     output isa String && return "Not Realizable 0 in Semigroup"
     (MRS, elim, fullyReduced) = output    
