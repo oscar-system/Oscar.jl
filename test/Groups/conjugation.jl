@@ -144,6 +144,10 @@ end
    x = G[2]
    TestConjCentr(G,x)
 
+   G = GL(3, Nemo._GF(3, 1))
+   x = G[2]
+   TestConjCentr(G,x)
+
    G = special_unitary_group(2,3)
    x = G[1]
    TestConjCentr(G,x)
