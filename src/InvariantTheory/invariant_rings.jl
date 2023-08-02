@@ -567,6 +567,10 @@ julia> parent(MS)
 Fraction field
   of univariate polynomial ring in t over QQ
 
+julia> expand(MS, 10)
+1 + 2*t^3 + 4*t^6 + 7*t^9 + O(t^11)
+```
+```jldoctest
 julia> S2 = symmetric_group(2);
 
 julia> IR = invariant_ring(QQ, S2);
