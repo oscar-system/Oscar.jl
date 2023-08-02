@@ -1391,7 +1391,7 @@ mutable struct HilbertData
     @req minimum(W) > 0 "The weights must be positive"
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
-    println(1)
+    
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
     return new(h, W, I)
