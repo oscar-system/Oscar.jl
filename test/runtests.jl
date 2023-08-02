@@ -4,6 +4,10 @@ using Distributed
 
 import Random
 
+# maybe this gets some of the CI jobs to succeed again with nightly or 1.10
+# see #2441
+include("../src/utils/limit_mem.jl")
+
 numprocs_str = get(ENV, "NUMPROCS", "1")
 
 if !isempty(ARGS)

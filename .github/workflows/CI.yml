@@ -120,6 +120,7 @@ jobs:
           julia --project=docs --depwarn=error --color=yes -e'
             using Documenter
             using Oscar
+            include("src/utils/limit_mem.jl")
             DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
             doctest(Oscar)'
       - name: "Process code coverage"
