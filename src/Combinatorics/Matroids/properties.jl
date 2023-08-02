@@ -167,6 +167,9 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         end
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
+    gs = matroid_groundset(M)
+    elt = eltype(gs)
+    matroid_flats = Vector{Vector{elt}}(matroid_flats)
     return matroid_flats
 end
 
