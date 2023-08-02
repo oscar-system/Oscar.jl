@@ -7,7 +7,7 @@ import Base: parent
 import Oscar: direct_sum
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
-export local_index
+export local_index, units_mod_ideal
 
 
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
@@ -60,6 +60,25 @@ function Oscar.absolute_automorphism_group(::Type{PermGroup}, k)
   G, mG = absolute_automorphism_group(k)
   mH = isomorphism(PermGroup, G)
   return codomain(mH), inv(mH)*mG
+end
+
+"""
+    units_mod_ideal(I::NfOrdIdl; n_quo::Int = 0) -> GrpAbFinGen, Map{Grp, NfOrd}
+
+Computes the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
+modulo `n_quo` is computed.
+"""
+function units_mod_ideal(I::NfOrdIdl; n_quo::Int = 0)
+  #TODO: add places for sign condition (RatResidueRing in Magma)
+  #      use the n_quo already in the creation.
+  R, mR = quo(order(I), I)
+  U, mU = unit_group(R)
+  if n_quo != 0
+    u, mu = quo(U, n_quo)
+    U = u
+    mU = pseudo_inv(mu)*mU
+  end
+  return U, mU*pseudo_inv(mR)
 end
 
 """
@@ -123,7 +142,7 @@ function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumber
   return _gmodule(base_ring(codomain(mu)), H, mu, mG)
 end
 
-function Oscar.gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_group(PermGroup, nf(codomain(mu)))[2])
+function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, NfOrd}, mG = automorphism_group(PermGroup, nf(codomain(mu)))[2])
   #TODO: preimage for sunits can fail (inf. loop) if
   # (experimentally) the ideals in S are not coprime or include 1
   # or if the s-unit is not in the image (eg. action and not closed set S)
@@ -1013,7 +1032,7 @@ julia> [describe(x[1]) for x = b]
 
 ```
 """    
-function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
+function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelParent,Nothing} = nothing) 
 
   m0, m_inf = defining_modulus(A)
   @assert length(m_inf) == 0
@@ -1024,13 +1043,14 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = 
   mQ = A.quotientmap
   zk = order(m0)
   @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
-  if !Hecke.is_normal(A)
-    A = normal_closure(A)
-    mR = A.rayclassgroupmap
-    mQ = A.quotientmap
-    m0, m_inf = defining_modulus(A)
-    @assert length(m_inf) == 0
+  if gcd(degree(A), degree(base_field(A))) == 1
+    s, ms = split_extension(gmodule(A))
+    return permutation_group(s)[1], ms
   end
+  if idel_parent === nothing
+    idel_parent = idel_class_gmodule(base_field(A))
+  end
+
   qI = cohomology_group(idel_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
@@ -1894,5 +1914,5 @@ end
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
-export is_coboundary, idel_class_gmodule, relative_brauer_group
+export is_coboundary, idel_class_gmodule, relative_brauer_group, units_mod_ideal
 
