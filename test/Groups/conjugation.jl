@@ -25,12 +25,12 @@
   y = rand(cc)
   @test order(y) == order(x)
   @test is_conjugate(G,x,x^y)
-  @test representative_action(G,x,x^y)[1]
-  z = representative_action(G,x,x^y)[2]
+  @test is_conjugate_with_data(G,x,x^y)[1]
+  z = is_conjugate_with_data(G,x,x^y)[2]
   @test x^z == x^y
   z = cperm(G,[1,2])
   @test !is_conjugate(G,x,z)
-  @test !representative_action(G,x,z)[1]
+  @test !is_conjugate_with_data(G,x,z)[1]
 
 
   @inferred ZZRingElem number_conjugacy_classes(symmetric_group(4))
@@ -62,12 +62,12 @@
      x = rand(c)
      y = rand(c)
      @test is_conjugate(G,x,y)
-     @test representative_action(G,x,y)[1]
-     z = representative_action(G,x,y)[2]
+     @test is_conjugate_with_data(G,x,y)[1]
+     z = is_conjugate_with_data(G,x,y)[2]
      @test x^z == y
      y = rand(C[(i%5)+1])
      @test !is_conjugate(G,x,y)
-     @test !representative_action(G,x,y)[1]
+     @test !is_conjugate_with_data(G,x,y)[1]
   end
 
   CC = @inferred conjugacy_classes_subgroups(G)
@@ -86,12 +86,12 @@
      x = rand(c)
      y = rand(c)
      @test is_conjugate(G,x,y)
-     @test representative_action(G,x,y)[1]
-     z = representative_action(G,x,y)[2]
+     @test is_conjugate_with_data(G,x,y)[1]
+     z = is_conjugate_with_data(G,x,y)[2]
      @test x^z == y
      y = rand(CC[(i % length(CC))+1])
      @test !is_conjugate(G,x,y)
-     @test !representative_action(G,x,y)[1]
+     @test !is_conjugate_with_data(G,x,y)[1]
   end
 
   CC = @inferred conjugacy_classes_maximal_subgroups(G)
@@ -144,6 +144,10 @@ end
    x = G[2]
    TestConjCentr(G,x)
 
+   G = GL(3, Nemo._GF(3, 1))
+   x = G[2]
+   TestConjCentr(G,x)
+
    G = special_unitary_group(2,3)
    x = G[1]
    TestConjCentr(G,x)
@@ -155,10 +159,10 @@ end
    @test order(M) == 4
    @test is_conjugate(G, M, inv(M))
    @test ! is_conjugate(G, M, M^2)
-   flag, N = representative_action(G, M, inv(M))
+   flag, N = is_conjugate_with_data(G, M, inv(M))
    @test flag
    @test M^N == inv(M)
-   flag, _ = representative_action(G, M, M^2)
+   flag, _ = is_conjugate_with_data(G, M, M^2)
    @test ! flag
 end
 
@@ -172,14 +176,14 @@ end
    y = generalized_jordan_block(t-1,8)
    x[7,8]=l
    x=S(x); y=S(y);
-   vero, z = representative_action(G, x, y)
+   vero, z = is_conjugate_with_data(G, x, y)
    @test vero
    @test z in G
    @test x^z==y
-   vero, z = representative_action(S, x, y)
+   vero, z = is_conjugate_with_data(S, x, y)
    @test !vero
    x.elm[7,8]=l^8
-   vero, z = representative_action(S, x, y)
+   vero, z = is_conjugate_with_data(S, x, y)
    @test z in S
    @test x^z==y
 

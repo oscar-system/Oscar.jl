@@ -122,7 +122,7 @@ julia> tbl = character_table("A5");
 julia> characteristic(tbl)
 0
 
-julia> characteristic(mod(tbl, 2))
+julia> characteristic(tbl % 2)
 2
 ```
 """
@@ -188,7 +188,7 @@ provided that `tbl` is a Brauer character table.
 ```jldoctest
 julia> tbl = character_table("A5");
 
-julia> ordinary_table(mod(tbl, 2)) === tbl
+julia> ordinary_table(tbl % 2) === tbl
 true
 ```
 """
@@ -1091,15 +1091,18 @@ Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? noth
 
 """
     mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
+    rem(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
 
 Return the `p`-modular character table of `tbl`,
 or `nothing` if this table cannot be computed.
+
+The syntax `tbl % p` is also supported.
 
 An exception is thrown if `tbl` is not an ordinary character table.
 
 # Examples
 ```jldoctest
-julia> show(mod(character_table("A5"), 2))
+julia> show(character_table("A5") % 2)
 2-modular Brauer table of A5
 ```
 """
@@ -1124,6 +1127,8 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
 
     return modtbls[p]
 end
+
+rem(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion = mod(tbl, p)
 
 """
     decomposition_matrix(modtbl::GAPGroupCharacterTable)

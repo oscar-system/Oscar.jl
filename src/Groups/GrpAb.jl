@@ -111,10 +111,9 @@ conjugacy_classes(G::GrpAbFinGen) = [GrpAbFinGenConjClass(G, x) for x in G]
 
 is_conjugate(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem) = (x == y)
 
-function representative_action(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem)
+function is_conjugate_with_data(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem)
    x == y ? (true, zero(G)) : (false, nothing)
 end
-
 
 ################################################################################
 #
@@ -172,7 +171,7 @@ function is_conjugate(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
           is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
 end
 
-function representative_action(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
+function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
    if is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
      return true, zero(G)
    else

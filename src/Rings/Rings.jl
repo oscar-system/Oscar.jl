@@ -28,6 +28,7 @@ include("FinField.jl")
 include("NumberField.jl")
 include("FunctionField.jl")
 include("AbelianClosure.jl")
+include("AlgClosureFp.jl")
 
 include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")
