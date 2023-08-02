@@ -402,10 +402,17 @@ end
 
 function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{T}) where {T <: FinFieldElem}
 
-  h=Oscar.iso_oscar_gap(base_ring(C))
+  k = base_ring(C)
+  h = Oscar.iso_oscar_gap(k)
   s = GAP.Globals.ShallowCopy(GAP.Obj(map(h, m)))
   g = Gap(C)
   x = GAP.Globals.MTX.SubGModule(g, s)
+  b = matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])
+
+  y = GAP.Globals.MTX.InducedActionSubmoduleNB(g, x)
+  F = free_module(k, nrows(b))
+  return gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators]), hom(F, C.M, b)
+  return b
 end
 
 function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
@@ -895,8 +902,10 @@ function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPMod
   b = hom_base(C, D)
   H, mH = hom(C.M, D.M)
   s, ms = sub(H, [H(vec(collect(x))) for x = b])
-  return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(mat(C.ac[i]))*g*mat(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms, mH
+  return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(mat(C.ac[i]))*g*mat(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms * mH
 end
+
+Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{fpFieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
 
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
   k = base_ring(F)
@@ -942,7 +951,7 @@ on return.
 
 Currently assumes no bad primes.
 """
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}
+function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
   @assert base_ring(C) == base_ring(D)
 
   p = Hecke.p_start
