@@ -927,7 +927,7 @@ export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export matroid_realization_space
 export matroid_stratum_matrix_coordinates
-export max_GC_rank
+export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
 export maximal_blocks
@@ -976,7 +976,7 @@ export mult_set_type
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
-export multiplex
+export multiplex_polytope
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1002,7 +1002,7 @@ export negrevlex
 export negwdeglex
 export negwdegrevlex
 export neighbor_patches
-export neighborly_cubical
+export neighborly_cubical_polytope
 export neighbors
 export newton_polytope
 export nfacets
@@ -1094,8 +1094,8 @@ export permutation_of_terms
 export permuted
 export picard_class
 export picard_group
-export pile
-export pitman_stanley
+export pile_polytope
+export pitman_stanley_polytope
 export platonic_solid
 export point_coordinates
 export point_matrix

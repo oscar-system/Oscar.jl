@@ -1176,11 +1176,16 @@ julia> facets(A)
 associahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d)) 
 
 @doc raw""" 
+    binary_markov_graph_polytope(observation::Array{Int})
     binary_markov_graph_polytope(observation::Array{Bool})
 
 Defines a very simple graph for a polytope propagation related to a Hidden 
 Markov Model. The propagated polytope is always a polygon. For a detailed 
 description see [Jos05](@cite).
+
+#Keywords
+- `observation::Array`: Its length is the number of possible observations. 
+                        Elements of type `Bool` or `Int`.
 
 # Examples
 ```jldoctest
@@ -1195,6 +1200,7 @@ julia> vertices(P)
  [0, 7]
 ```
 """
+binary_markov_graph_polytope(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
 binary_markov_graph_polytope(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
 
 @doc raw"""
@@ -1329,7 +1335,7 @@ julia> vertices(Z)
  [-2, 0]
 ```
 """
-explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = Polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
+explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
 
 @doc raw"""
     cyclic_caratheodory_polytope(d::Int, n::Int)
@@ -1366,7 +1372,7 @@ function cyclic_caratheodory_polytope(d::Int, n::Int)
     if mod(d,2) != 0
         throw(ArgumentError("Dimension has to be even."))
     end
-    return Polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
+    return polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
 end
 
 @doc raw"""
@@ -1389,7 +1395,7 @@ julia> print_constraints(p)
 ```
 """
 fractional_knapsack_polytope(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
-fractional_knapsack_polytope(b::Vector{Int}) = fractional_knapsack(convert(Vector{Rational}, b))
+fractional_knapsack_polytope(b::Vector{Int}) = fractional_knapsack_polytope(convert(Vector{Rational}, b))
 
 @doc raw"""
     hypersimplex(k::Int, d::Int)
@@ -1467,7 +1473,7 @@ julia> vertices(Z)
  [2, 1]
 ```
 """
-zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
+zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
 
 @doc raw"""
     goldfarb_cube(d::Int, e::Real, g::Real)
@@ -1512,7 +1518,7 @@ function goldfarb_cube(d::Int, e::Real, g::Real)
     if g>e/4
         throw(ArgumentError("goldfarb_cube: g <= e/4"))
     end
-    return Polyhedron(Polymake.polytope.goldfarb(d,e,g))
+    return polyhedron(Polymake.polytope.goldfarb(d,e,g))
 end
 
 @doc raw"""
@@ -1558,7 +1564,7 @@ function goldfarb_sit_cube(d::Int, eps::Real, delta::Real)
     if delta>1//2
         throw(ArgumentError("goldfarb_sit_cube: delta <= 1/2"))
     end
-    return Polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
+    return polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
 end
 
 @doc raw"""
@@ -1633,9 +1639,21 @@ Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log
 - `d::Int`: the dimension
 
 # Examples
+```jldoctest
+julia> c = max_GC_rank_polytope(3)
+Polyhedron in ambient dimension 3
 
+julia> vertices(c)
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 1//2, 1//2]
+ [1//2, 0, 1//2]
+ [1//2, 1//2, 0]
+ [1//2, 1, 1//2]
+ [1//2, 1//2, 1]
+ [1, 1//2, 1//2]
+```
 """
-function max_gc_rank_polytope(d::Int) 
+function max_GC_rank_polytope(d::Int) 
     if d < 2
         throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
     end
@@ -1646,17 +1664,17 @@ function max_gc_rank_polytope(d::Int)
 end
 
 @doc raw"""
-    multiplex(d::Int, n::Int)
+    multiplex_polytope(d::Int, n::Int)
 
 Produce a combinatorial description of a multiplex with parameters `d` and `n`. 
-This yields a self-dual $d$-dimensional polytope with $n+1$ vertices. They are introduced by [BIS96](@cite). 
+This yields a self-dual $d$-dimensional polytope with $n+1$ vertices. They are introduced by [Bis96](@cite). 
 See also [BBS02](@cite).
 
 # Keywords
 - `d::Int`: the dimension, has to be greater than 2
 - `n::Int`: number of vertices - 1, has to be greater than `d``
 """
-function multiplex(d::Int, n::Int)
+function multiplex_polytope(d::Int, n::Int)
     if d < 2 || d > n
         throw(ArgumentError("multiplex: 2 <= d <= n required"))
     end
@@ -1691,7 +1709,7 @@ function n_gon(n::Int; r::Real=1, alpha_0::Real=0)
 end
 
 @doc raw"""
-    neighborly_cubical(d::Int, n::Int) 
+    neighborly_cubical_polytope(d::Int, n::Int) 
 
 Produce the combinatorial description of a neighborly cubical polytope. 
 The facets are labelled in oriented matroid notation as in the cubical Gale evenness criterion. 
@@ -1701,7 +1719,7 @@ See [JZ00](@cite)
 - `d::Int`: dimension of the polytope
 - `n::Int`: dimension of the equivalent cube
 """
-function neighborly_cubical(d::Int, n::Int)
+function neighborly_cubical_polytope(d::Int, n::Int)
     m = 8*sizeof(Int)-2
     if (d < 2 || d > n || n > m)
       throw(ArgumentError(string("neighborly_cubical: 2 <= d <= n <= ", m)))
@@ -1732,7 +1750,7 @@ Produce a $d$-dimensional permutahedron. The vertices correspond to the elements
 permutahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
 
 @doc raw"""
-    pile(d::Int)
+    pile_polytope(d::Int)
 
 Produce a $(d+1)$-dimensional polytope from a pile of cubes. Start with a $d$-dimensional pile of cubes. 
 Take a generic convex function to lift this polytopal complex to the boundary of a $(d+1)$-polytope.
@@ -1740,10 +1758,10 @@ Take a generic convex function to lift this polytopal complex to the boundary of
 # Keywords
 - `sizes::Vector{Int}`: a vector $(s_1,…,s_d)$ where $s_i$ specifies the number of boxes in the $i$-th dimension.
 """
-pile(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
+pile_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
 
 @doc raw"""
-    pitman_stanley(y::AbstractVector)
+    pitman_stanley_polytope(y::AbstractVector)
 
 Produce a Pitman-Stanley polytope of dimension $n-1$. See 
 
@@ -1753,9 +1771,8 @@ Produce a Pitman-Stanley polytope of dimension $n-1$. See
 # Examples:
 Pitman-Stanley polytopes are combinatorial cubes:
 ```jldoctest
->julia p = pitman_stanley([1,1,2,3])
+>julia p = pitman_stanley_polytope([1,1,2,3])
 
 >julia f_vector(p)
-
 ```
 """
