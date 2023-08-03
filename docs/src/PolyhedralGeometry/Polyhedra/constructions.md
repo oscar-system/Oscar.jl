@@ -159,7 +159,6 @@ hypertruncated_cube
 k_cyclic_polytope
 klee_minty_cube
 lecture_hall_simplex
-long_and_winding_polytope
 max_GC_rank_polytope
 multiplex_polytope
 n_gon

@@ -1126,11 +1126,11 @@ Polyhedron in ambient dimension 2
 function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     if n < 1
-        throw(ArgumentError("SIM-body: dimension must be at least 1"))
+        throw(ArgumentError("SIM_body_polytope: dimension must be at least 1"))
     end
     for i in 1:n-1
         if alpha[i]<alpha[i+1]
-            throw(ArgumentError("SIM-body: input is not descending"))
+            throw(ArgumentError("SIM_body_polytope: input is not descending"))
         end
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
@@ -1625,8 +1625,8 @@ k_cyclic_polytope(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope
 @doc raw"""
     klee_minty_cube(d::Int, e::Number)
 
-Produces a $d-$dimensional Klee-Minty-cube if $e < 1/2$. Uses the `goldfarb` method with the argument $g = 0$.
-For an example see `goldfarb` method.
+Produces a $d-$dimensional Klee-Minty-cube if $e < 1/2$. Uses the `goldfarb_cube` method with the argument $g = 0$.
+For an example see `goldfarb-cube` method.
 """
 klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
 
@@ -1655,10 +1655,10 @@ julia> vertices(c)
 """
 function max_GC_rank_polytope(d::Int) 
     if d < 2
-        throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
+        throw(ArgumentError("max_GC_rank_polytope: dimension d >= 2 required"))
     end
     if sizeof(d) >= sizeof(Int)*8-1
-        throw(ArgumentError("max_GC_rank: dimension too high, number of inequalities would not fit into Int"))
+        throw(ArgumentError("max_GC_rank_polytope: dimension too high, number of inequalities would not fit into Int"))
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
 end
@@ -1676,7 +1676,7 @@ See also [BBS02](@cite).
 """
 function multiplex_polytope(d::Int, n::Int)
     if d < 2 || d > n
-        throw(ArgumentError("multiplex: 2 <= d <= n required"))
+        throw(ArgumentError("multiplex_polytope: 2 <= d <= n required"))
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.multiplex(d,n))
 end
@@ -1722,7 +1722,7 @@ See [JZ00](@cite)
 function neighborly_cubical_polytope(d::Int, n::Int)
     m = 8*sizeof(Int)-2
     if (d < 2 || d > n || n > m)
-      throw(ArgumentError(string("neighborly_cubical: 2 <= d <= n <= ", m)))
+      throw(ArgumentError(string("neighborly_cubical_polytope: 2 <= d <= n <= ", m)))
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.neighborly_cubical(d,n))
 end
