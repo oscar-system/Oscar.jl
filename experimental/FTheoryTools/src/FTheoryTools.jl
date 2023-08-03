@@ -2,6 +2,9 @@ include("types.jl")
 
 include("auxiliary.jl")
 
+include("FamilyOfSpaces/constructors.jl")
+include("FamilyOfSpaces/attributes.jl")
+
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
 include("WeierstrassModels/properties.jl")

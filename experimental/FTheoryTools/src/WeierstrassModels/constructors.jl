@@ -1,6 +1,6 @@
-################################################
+#####################################################################
 # 1: Constructors with toric variety as base
-################################################
+#####################################################################
 
 @doc raw"""
     weierstrass_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
@@ -67,9 +67,9 @@ function weierstrass_model(base::AbstractNormalToricVariety, f::MPolyRingElem, g
 end
 
 
-################################################
+#####################################################################
 # 2: Constructors with toric scheme as base
-################################################
+#####################################################################
 
 
 @doc raw"""
@@ -110,21 +110,21 @@ Weierstrass model over a concrete base
 weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true) = weierstrass_model(underlying_toric_variety(base), f, g, completeness_check = completeness_check)
 
 
-################################################
+#####################################################################
 # 3: Constructors with scheme as base
-################################################
+#####################################################################
 
 # Yet to come...
 # This requires that the ai are stored as sections of the anticanonical bundle, and not "just" polynomials.
 # -> Types to be generalized then.
 
 
-################################################
-# 4: Constructors without specified base
-################################################
+#####################################################################
+# 4: Constructor with toric base attempting to represent moduli space
+#####################################################################
 
 @doc raw"""
-    weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
+    weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem; toric_sample = true)
 
 This method constructs a Weierstrass model over a base space that is not
 fully specified.
@@ -150,10 +150,15 @@ julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, 
 Assuming that the first row of the given grading is the grading under Kbar
 
 Weierstrass model over a not fully specified base
+
+julia> w2 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g; toric_sample = false)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Weierstrass model over a not fully specified base
 ```
 """
-function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
-  
+function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem; toric_sample = true)
+
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
   for i in 1:ncols(auxiliary_base_grading)
@@ -178,7 +183,8 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
     push!(gens_base_names, "Kbar")
   end
-  
+
+  # Execute consistency checks
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if d == 1
@@ -193,15 +199,23 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   # Inform about the assume Kbar grading
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # convert Weierstrass sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
-  
+  # Construct the model
+  if toric_sample
+    return _construct_toric_sample(auxiliary_base_grading, gens_base_names, d, weierstrass_f, weierstrass_g)
+  end
+  return _construct_generic_sample(auxiliary_base_grading, gens_base_names, d, weierstrass_f, weierstrass_g)
+end
+
+
+function _construct_toric_sample(base_grading::Matrix{Int64}, gens_base_names::Vector{String}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
+  # Convert Weierstrass sections into polynomials of the auxiliary base
+  auxiliary_base_space = _auxiliary_base_space(gens_base_names, base_grading, d)
   S = cox_ring(auxiliary_base_space)
-  ring_map = hom(auxiliary_base_ring, S, gens(S)[1:ngens(auxiliary_base_ring)])
+  ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
   f = ring_map(weierstrass_f)
   g = ring_map(weierstrass_g)
   
-  # construct ambient space
+  # Construct ambient space
   fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
@@ -212,7 +226,7 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   D2 = toric_divisor_class(auxiliary_base_space, D2)
   auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1, D2)
   
-  # construct the model
+  # Construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
   model = WeierstrassModel(f, g, pw, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
   set_attribute!(model, :base_fully_specified, false)
@@ -220,9 +234,41 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 end
 
 
-#######################################
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
+  # Convert Weierstrass sections into polynomials of the auxiliary base
+  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
+  S = coordinate_ring(base_space)
+  ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
+  f = ring_map(weierstrass_f)
+  g = ring_map(weierstrass_g)
+  
+  # Construct ambient space
+  ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
+  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
+  ambient_space_grading = zero_matrix(Int, nrows(base_grading)+1,ncols(base_grading)+3)
+  for i in 1:nrows(base_grading)
+    for j in 1:ncols(base_grading)
+      ambient_space_grading[i,j] = base_grading[i,j]
+    end
+  end
+  ambient_space_grading[1,ncols(base_grading)+1] = 2
+  ambient_space_grading[1,ncols(base_grading)+2] = 3
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 1] = 2
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 2] = 3
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 3] = 1
+  ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+2)
+  
+  # Construct the model
+  pw = _weierstrass_polynomial(f, g, coordinate_ring(ambient_space))
+  model = WeierstrassModel(f, g, pw, base_space, ambient_space)
+  set_attribute!(model, :base_fully_specified, false)
+  return model
+end
+
+
+#####################################################################
 # 5: Display
-#######################################
+#####################################################################
 
 function Base.show(io::IO, w::WeierstrassModel)
   properties_string = ["Weierstrass model over a"]
