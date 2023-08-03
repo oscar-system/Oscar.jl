@@ -56,6 +56,11 @@ function Oscar.automorphism_group(::Type{PermGroup}, K, k)
   return codomain(mH), mmH
 end
 
+function Oscar.absolute_automorphism_group(::Type{PermGroup}, k)
+  G, mG = absolute_automorphism_group(k)
+  mH = isomorphism(PermGroup, G)
+  return codomain(mH), inv(mH)*mG
+end
 
 """
 The natural `ZZ[H]` module where `H`, a subgroup of the

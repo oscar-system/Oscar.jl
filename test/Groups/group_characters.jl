@@ -735,6 +735,9 @@ end
   ordtbl = character_table("A5")
   modtbl = mod(ordtbl, 2)
 
+  @test modtbl === rem(ordtbl, 2)
+  @test modtbl === ordtbl % 2
+
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]

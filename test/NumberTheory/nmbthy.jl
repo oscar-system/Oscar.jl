@@ -30,3 +30,14 @@ end
   F2 = GF(3,5);
   @test_throws AssertionError disc_log(gen(F), gen(F2))
 end
+
+begin
+  Qx, x = QQ["x"]
+  k, a = number_field(x^2 - 18, "a")
+  kt, t = k["t"];
+  K, b = number_field(t^4 + (a + 6)*t^2 + 2a + 9, "b")
+  G, m = automorphism_group(PermGroup, K)
+  h = m(one(G))
+  @test h(b) == b && h(K(a)) == K(a)
+  @test order(G) == 4 && is_cyclic(G)
+end

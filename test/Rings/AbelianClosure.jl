@@ -61,7 +61,8 @@ end
     K, z = abelian_closure(QQ)
     @test sprint(show, "text/plain", K) == "Abelian closure of Q"
 
-    @test get_variable(K) == "zeta"
+    orig = get_variable(K)
+    @test orig == "zeta"
     s = sprint(show, "text/plain", z)
 
     a = z(1)
@@ -69,6 +70,8 @@ end
     a = z(4)
     sprint(show, "text/plain", a) == "z(4)"
     Oscar.with_unicode() do
+      # The following holds only if `set_variable!`
+      # has not been called before for `K`.
       @test get_variable(K) == "ζ"
       s = sprint(show, "text/plain", z)
 
@@ -91,7 +94,7 @@ end
     @test isone(a^4) && !isone(a) && !isone(a^2)
 
     # reset variable for any subsequent (doc-)tests
-    @test set_variable!(K, "z") == "ω"
+    @test set_variable!(K, orig) == "ω"
   end
 
   @testset "Coercion" begin
@@ -104,6 +107,7 @@ end
     fb = minpoly(Oscar.AbelianClosure.data(b))
     fc = minpoly(Oscar.AbelianClosure.data(c))
     fd = minpoly(Oscar.AbelianClosure.data(d))
+    @test fa == minpoly(a)
     @test iszero(fa(c)) && iszero(fc(a))
     @test iszero(fb(d)) && iszero(fd(b))
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
@@ -324,4 +328,17 @@ end
   K, z = abelian_closure(QQ)
   S = [z(3)]
   @test degree(number_field(QQ, S)[1]) == 2
+
+  @testset "Syntax to create number fields from QabElem" begin
+    K, z = abelian_closure(QQ)
+    F, a = QQ[z(5)]
+    @test F isa AnticNumberField
+    @test dim(F) == 4
+    F, a = QQ[[z(5), z(3)]]
+    @test F isa AnticNumberField
+    @test dim(F) == 8
+    F, a = QQ[z(5), z(3)]
+    @test F isa AnticNumberField
+    @test dim(F) == 8
+  end
 end

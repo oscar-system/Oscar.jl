@@ -707,6 +707,7 @@ export is_complete
 export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
+export is_conjugate_with_data
 export is_connected
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
@@ -939,6 +940,7 @@ export moebius_mu
 export molien_series
 export monomial_ordering
 export monomials
+export monomials_of_degree
 export mori_cone
 export morphism_from_cox_variety
 export morphism_of_projective_schemes
@@ -1170,7 +1172,6 @@ export rem_vertex!
 export renest
 export repres
 export representative
-export representative_action
 export represents_element
 export restrict
 export restrict_automorphism

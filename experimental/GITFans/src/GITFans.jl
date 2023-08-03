@@ -212,7 +212,7 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     end
 
     # Create the matrix group.
-    matgroup = matrix_group(n, QQ, matgens)
+    matgroup = matrix_group(QQ, n, matgens)
 
     # Create the group homomorphism.
     return hom(G, matgroup, permgens, gens(matgroup))
