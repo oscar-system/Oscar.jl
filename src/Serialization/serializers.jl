@@ -46,7 +46,7 @@ end
 function finish_writing(s::JSONSerializer)
     @req length(s.open_objects) == 1 "too many open objects in serializer"
     @req length(s.open_objects[1]) == 1 "root node invalid"
-    str = json(s.open_objects[1][1])
+    str = json(s.open_objects[1][1], 2)
     write(s.io, str)
 end
 
@@ -116,6 +116,7 @@ function data_array(f::Function, s::SerializerState)
         s.depth -= 1
     end
 end
+
 function data_basic(s::SerializerState, x::Any)
     key = s.key
     s.key = nothing

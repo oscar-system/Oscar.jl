@@ -13,13 +13,13 @@ function get_parents(parent_ring::Ring)
     return parents
 end
 
-function save_parent_refs(s, parent_ring::Ring)
+function save_parents(s::SerializerState, parent_ring::Ring)
     parents = get_parents(parent_ring)
-    open_array(s)
-    for parent in parents
-        add_object(s, save_as_ref(s, parent))
+    refs = []
+    for p in parents
+        push!(refs, save_as_ref(s, p))
     end
-    close(s, :parents)
+    return refs
 end
 
 
