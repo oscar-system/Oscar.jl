@@ -152,6 +152,7 @@ fractional_cut_polytope
 fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+generalized_permutahedron
 goldfarb_cube
 goldfarb_sit_cube
 hypersimplex

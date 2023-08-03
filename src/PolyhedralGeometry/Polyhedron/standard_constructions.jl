@@ -1078,7 +1078,7 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
 end
 
 @doc raw"""
-    SIM_body(alpha::AbstractVector)
+    SIM_body_polytope(alpha::AbstractVector)
 
 Produce an $n$-dimensional SIM-body as generalized permutahedron in 
 $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
@@ -1094,14 +1094,14 @@ Note that the polytope lives in $3$-space, so we project it down to $2$-space
 by eliminating the last coordinate. 
 
 ```jldoctest
-julia> p = SIM_body([3,1])
+julia> p = SIM_body_polytope([3,1])
 Polyhedron in ambient dimension 3
 
 julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
 Polyhedron in ambient dimension 2
 ```
 """
-function SIM_body(alpha::Vector) 
+function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     if n < 1
         throw(ArgumentError("SIM_body_polytope: dimension must be at least 1"))
@@ -1318,7 +1318,7 @@ julia> vertices(Z)
 explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
 
 @doc raw"""
-    cyclic_caratheodory(d::Int, n::Int)
+    cyclic_caratheodory_polytope(d::Int, n::Int)
 
 Produce a $d$-dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
 Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the 
@@ -1330,7 +1330,7 @@ trigonometric moment curve.
 
 # Examples
 ```jldoctest
-julia> C= cyclic_caratheodory(4,5)
+julia> C= cyclic_caratheodory_polytope(4,5)
 Polyhedron in ambient dimension 4
 
 julia> vertices(C)
@@ -1342,15 +1342,15 @@ julia> vertices(C)
  [1391688820718163//4503599627370496, -33462326346837//35184372088832, -3643488634403413//4503599627370496, -5294298886396507//9007199254740992]
 ```
 """
-function cyclic_caratheodory(d::Int, n::Int)
+function cyclic_caratheodory_polytope(d::Int, n::Int)
     if n < d 
-        throw(ArgumentError("Dimension d has to be smaller than number of points n."))
+        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension d has to be smaller than number of points n."))
     end
     if d < 2
-        throw(ArgumentError("Dimension has to be greater or equal to 2."))
+        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension has to be greater or equal to 2."))
     end
     if mod(d,2) != 0
-        throw(ArgumentError("Dimension has to be even."))
+        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension has to be even."))
     end
     return polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
 end
@@ -1582,7 +1582,7 @@ function hypertruncated_cube(d::Int, k::Number, lambda::Number)
 end
 
 @doc raw"""
-   k_cylic(n::Int, s::Vector) 
+   k_cyclic_polytope(n::Int, s::Vector) 
 
 Produce a (rounded) $2*k$-dimensional $k$-cyclic polytope with $n$ points, where $k$ is the length of the input vector $s$. Special cases are the bicyclic ($k=2$) and tricyclic ($k=3$) polytopes. Only possible in even dimensions. The parameters $s_i$ can be specified as integer, floating-point, or rational numbers. The coordinates of the $i$-th point are taken as follows:
 $(\cos(s_1 * 2\pi i/n), \sin(s_1 * 2\pi i/n), ... , \cos(s_k * 2\pi i/n), sin(s_k * 2\pi i/n))$.
@@ -1596,11 +1596,11 @@ Warning: Some of the $k-$cyclic polytopes are not simplicial. Since the componen
 # Example
 To produce a (not exactly) regular pentagon, type this:
 ```jldoctest
-julia> k_cyclic(5,[1])
+julia> k_cyclic_polytope(5,[1])
 Polyhedron in ambient dimension 2
 ```
 """
-k_cyclic(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
+k_cyclic_polytope(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
 
 @doc raw"""
     klee_minty_cube(d::Int, e::Number)
@@ -1611,7 +1611,7 @@ For an example see `goldfarb-cube` method.
 klee_minty_cube(d::Int, e::Number) = _cube(d, e, 0)
 
 @doc raw"""
-    max_GC_rank(d::Int)
+    max_GC_rank_polytope(d::Int)
 
 Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log\(d\))$, integrally infeasible. With symmetric linear objective function $(0,1,1..,1)$. Construction due to Pokutta and Schulz.
 
@@ -1633,15 +1633,16 @@ julia> vertices(c)
  [1, 1//2, 1//2]
 ```
 """
-function max_gc_rank(d::Int) 
+function max_GC_rank_polytope(d::Int) 
     if d < 2
-        throw(ArgumentError("max_GC_rank_polytope: dimension d >= 2 required"))
+        throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
     end
     if sizeof(d) >= sizeof(Int)*8-1
-        throw(ArgumentError("max_GC_rank_polytope: dimension too high, number of inequalities would not fit into Int"))
+        throw(ArgumentError("max_GC_rank: dimension too high, number of inequalities would not fit into Int"))
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
 end
+
 
 @doc raw"""
     multiplex_polytope(d::Int, n::Int)
@@ -1733,7 +1734,7 @@ Take a generic convex function to lift this polytopal complex to the boundary of
 # Keywords
 - `sizes::Vector{Int}`: a vector $(s_1,…,s_d)$ where $s_i$ specifies the number of boxes in the $i$-th dimension.
 """
-pile_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
+pile_polytope_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
 
 @doc raw"""
     pitman_stanley_polytope(y::AbstractVector)
@@ -1752,6 +1753,7 @@ Pitman-Stanley polytopes are combinatorial cubes:
 >julia p = pitman_stanley_polytope([1/1,2/1,3/1])
 Polyhedron in ambient dimension 3 with Float64 type coefficients
 
+>julia f_vector(p)
 2-element Vector{ZZRingElem}:
  4
  4
@@ -1908,3 +1910,11 @@ function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
+
+@doc raw"""
+    generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational})
+
+
+"""
+generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.generalized_permutahedron(d,z))
+  

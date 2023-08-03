@@ -554,6 +554,7 @@ export gen
 export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
+export generalized_permutahedron
 export generator_matrix
 export generic_fraction
 export generic_fractions
