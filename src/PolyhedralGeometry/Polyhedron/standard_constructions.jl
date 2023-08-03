@@ -1794,6 +1794,11 @@ pseudo_del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.ps
 
 Produce a d-dimensional $0/1$-polytope with `n` random vertices. Uniform distribution.
 
+# Keywords
+-`d::Int`: dimension of polytope
+-`n::Int`: number of vertices
+-`seed::Int`: Seed for random number generation
+
 # Examples
 ```jldoctest
 julia> r = rand01_polytope(2,4)
@@ -1841,6 +1846,7 @@ points in the cube $[0,b]^d$.
 -`d::Int`: dimension of the box
 -`n::Int`: number of sampled points on the box
 -`b::Int`: length of each edge of the box
+-`seed::Int`: Seed for random number generation.
 
 # Examples 
 ```jldoctest
@@ -1882,6 +1888,7 @@ generating a Gale diagram whose cocircuits have alternating signs.
 # Keyword
 -`d::Int`: dimension of polytope
 -`n::Int`: number of vertices
+-`seed::Int`: Seed for random number generation
 
 # Examples
 ```jldoctes
@@ -1908,3 +1915,94 @@ function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
+
+@doc raw"""
+    rand_metric(n::Int; seed=nothing)
+
+Produce a rational n-point metric with random distances. 
+The values are uniformily distributed in [1,2].
+
+# Examples
+julia> R = rand_metric(3)
+3×3 Matrix{Rational}:
+              0//1                …  228214848324395//140737488355328
+462199293655307//281474976710656      87831714224839//70368744177664
+228214848324395//140737488355328                   0//1
+
+julia> S = rand_metric(3, seed=132)
+3×3 Matrix{Rational}:
+              0//1                …  371474612593257//281474976710656
+260222460282405//140737488355328     388326899436839//281474976710656
+371474612593257//281474976710656                   0//1
+"""
+function rand_metric(n::Int; seed=nothing)
+    if seed != nothing
+        seed = convert(Int64, seed)
+        opts = Dict{Symbol, Int}(:seed => seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
+    else
+        pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
+    end
+    return Matrix{Rational}(pm_obj)
+end
+
+@doc raw"""
+    rand_metric(n::Int, digits::Int; seed=nothing)
+
+Produce a n-point metric with random integral distances. 
+The values are uniformily distributed in [1,2]. The distances are integers and lie in 
+$[10^digits, 10^(digits+1)[$  
+"""
+function rand_metric_int(n::Int, digits::Int; seed=nothing)
+    if seed != nothing
+        seed = convert(Int64, seed)
+        opts = Dict{Symbol, Int}(:seed => seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits; opts...)
+    else
+        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
+    end
+    return Matrix{Int}(pm_obj)
+end
+
+@doc raw"""
+
+Produce a rational d-dimensional polytope from n random points approximately 
+normally distributed in the unit ball.
+
+# Keywords
+-`d::Int`: dimension of ball
+-`n::Int`: number of points sampled on the ball
+-`seed::Int`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
+-`precision::Int`: number of bits for MPFR sphere approximation
+
+# Examples
+julia> rnp = rand_normal_polytope(2,4; precision=4)
+Polyhedron in ambient dimension 2
+
+julia> is_simplicial(rnp)
+true
+
+julia> map(x->dot(x,x), vertices(rnp))
+4-element Vector{QQFieldElem}:
+ 365//256
+ 5//2
+ 325//1024
+ 125//64
+"""
+function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
+    if (d < 2 || n <= d)
+        throw(ArgumentError("rand_normal_polytope: 2 <= dim < #vertices"))
+    end
+    opts = Dict{Symbol, Any}()
+    if seed != nothing
+        seed = convert(Int64, seed)
+        opts[:seed] = seed
+    end
+    if precision != nothing
+        precision = convert(Int64, precision)
+        opts[:precision] = precision
+    end
+    pm_obj = Polymake.call_function(:polytope, :rand_normal, d, n; opts...)::Polymake.BigObject
+    return Polyhedron{QQFieldElem}(pm_obj)
+end
+    

@@ -173,6 +173,9 @@ pseudo_del_pezzo_polytope
 rand01_polytope
 rand_box
 rand_cyclic_polytope
+rand_metric
+rand_metrix_int
+rand_normal_polytope
 rand_spherical_polytope
 rand_subpolytope
 zonotope

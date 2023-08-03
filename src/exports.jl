@@ -1158,6 +1158,9 @@ export rand
 export rand01_polytope
 export rand_box
 export rand_cyclic_polytope
+export rand_metric
+export rand_metric_int
+export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
