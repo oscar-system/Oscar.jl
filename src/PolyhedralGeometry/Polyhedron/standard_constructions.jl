@@ -926,7 +926,7 @@ project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.po
 @doc raw"""
     gelfand_tsetlin_polytope(lambda::AbstractVector)
 
-Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
+Construct the Gelfand-Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
 # Examples
 ```jldoctest
@@ -951,7 +951,7 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polym
 @doc raw"""
     demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 
-Construct  the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
+Construct the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
 
 # Examples
 ```jldoctest
@@ -966,13 +966,13 @@ x1^3*x2*x3 + x1^2*x2^2*x3 + x1*x2^3*x3
 ```
 """
 function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
-  genGT = gelfand_tsetlin_polytope(lambda,sigma)
+  genGT = gelfand_tsetlin_polytope(lambda, sigma)
   R = polynomial_ring(ZZ, length(lambda))
   x = R[2]
   s = R[1](0)
   for P in lattice_points(genGT)
-    w=[sum([P[binomial(n+1,2)-binomial(i+1,2)+j] for j in 1:i]) for i in 1:length(lambda)]
-    s=s+x[1]^w[1]*prod([x[i]^(w[i]-w[i-1]) for i in 2:n])
+    w = [sum([P[binomial(n+1,2)-binomial(i+1,2)+j] for j in 1:i]) for i in 1:length(lambda)]
+    s = s + x[1]^w[1] * prod([x[i]^(w[i]-w[i-1]) for i in 2:n])
   end
   return s
 end
@@ -981,8 +981,9 @@ end
 
     gelfand_tsetlin_polytope(lambda::AbstractVector, w::PermGroupElem)
 
-Construct the generalized Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`
-and a permutation w.
+Construct the generalized Gelfand-Tsetlin polytope indexed by a weakly decreasing vector `lambda`
+and a permutation w. 
+- [PS09](@cite)
 
 ```jldoctest
 julia> P = gelfand_tsetlin_polytope([5,3,2], @perm (1,3,2))
@@ -996,7 +997,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
       #defined in Postnikov/Stanley '09
    function inversions(sigma; i=1)
       n = sigma.parent.deg
-      filter(x->sigma(i)>sigma(x),i:n)
+      filter(x->sigma(i) > sigma(x), i:n)
    end
 
    #The code of a permutation as defined in Postnikov/Stanley '09
@@ -1007,26 +1008,26 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
    #The flag of a permutation as defined in Postnikov/Stanley '09
    function flag(sigma)
       n=sigma.parent.deg
-      w₀ = perm(vcat([n],collect(1:n-1)))
+      w₀ = perm(vcat([n], collect(1:n-1)))
       c = code(w₀*sigma)
       return([n-c[i] for i in 1:n])
    end
 
    n = length(lambda)
-   N = binomial(n+1,2)
+   N = binomial(n+1, 2)
    b = flag(w)
    P =  Matrix{Int64}(zeros(n,n))#this will set a bijection between p[i,j] (as in Postnikov/Stanley '09 and the i-th coordinate of GT's ambient space)
    varctr = N #starting at the last coordinate
    matctr = [1,1]
    while varctr>0
-      P[matctr...]=varctr
-      if matctr[2]==1
-         matctr[1]=matctr[1]+1
-         matctr[2]=matctr[1]
+      P[matctr...] = varctr
+      if matctr[2] == 1
+         matctr[1] = matctr[1]+1
+         matctr[2] = matctr[1]
       else
-      	 matctr[2]=matctr[2]-1
+      	 matctr[2] = matctr[2]-1
       end
-      varctr=varctr-1
+      varctr = varctr-1
    end
    Hyperplanes = []
    for i in 1:n #for each i there's a set of variables p_(i,j) which need to be equal
@@ -1035,7 +1036,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
          varIndex = P[j,i]
          H = []
          for k in 1:N
-            if k==startVarIndex
+            if k == startVarIndex
                push!(H,1)
             elseif k==varIndex
                push!(H,-1)
@@ -1043,20 +1044,18 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
                push!(H,0)
             end
          end
-         push!(Hyperplanes,H)
+         push!(Hyperplanes, H)
       end
    end
-   if length(Hyperplanes)==0
+   if length(Hyperplanes) == 0
       return(gelfand_tsetlin_polytope(lambda))
    end
    z = [0 for i in 1:length(Hyperplanes)]
    A = permutedims(reduce(hcat,Hyperplanes))
    #now L is the intersection of the linear spaces Ax = 0 = z
-   L = polyhedron(nothing,(A,z))
+   L = polyhedron(nothing, (A, z))
    return(L ∩ gelfand_tsetlin_polytope(lambda))
 end
-
-
 
 
 @doc raw"""
