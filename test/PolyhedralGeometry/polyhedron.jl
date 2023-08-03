@@ -234,11 +234,11 @@ for f in (QQ, ENF)
                 @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
                 @test nvertices(b1) == nvertices(b2) * 2
 
-                P = gelfand_tsetlin_polytope([3,2,1])
-                p = project_full(P)
-                @test p isa Polyhedron{T}
-                @test volume(P) == 0
-                @test volume(p) == 1
+                GT = gelfand_tsetlin_polytope([3,2,1])
+                @test ambient_dim(GT) == 6
+                pGT = project_full(GT)
+                @test pGT isa Polyhedron{T}
+                @test volume(pGT) == 1
 
                 rsph = rand_spherical_polytope(3, 15)
                 @test rsph isa Polyhedron{T}
