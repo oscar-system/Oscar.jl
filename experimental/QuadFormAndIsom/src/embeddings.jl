@@ -374,7 +374,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # wanted)
   act_GV_Vp = FpMatrix[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
   act_GV_Qp = FpMatrix[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV_Vp]
-  MGp = matrix_group(dim(Qp), base_ring(Qp), act_GV_Qp)
+  MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV_Qp)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV_Qp); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
 

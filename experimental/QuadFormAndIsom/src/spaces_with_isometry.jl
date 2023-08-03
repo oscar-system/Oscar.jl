@@ -460,7 +460,7 @@ end
     direct_sum(x::Vector{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
     direct_sum(x::Vararg{QuadSpaceWithIsom}) -> QuadSpaceWithIsom, Vector{AbstractSpaceMor}
 
-Given a collection of quadratic spaces with isometries $(V_1, f_1) \ldots, (V_n, f_n)$,
+Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
 return the quadratic space with isometry $(V, f)$ together with the injections
 $V_i \to V$, where `V` is the direct sum $V := V_1 \oplus \ldots \oplus V_n$ and
 `f` is the isometry of `V` induced by the diagonal actions of the $f_i$'s.
