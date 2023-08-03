@@ -169,6 +169,8 @@ permutahedron
 pile_polytope
 pitman_stanley_polytope
 perles_nonrational_8_polytope
+pseudo_del_pezzo_polytope
+rand01_polytope
 rand_spherical_polytope
 rand_subpolytope
 zonotope
