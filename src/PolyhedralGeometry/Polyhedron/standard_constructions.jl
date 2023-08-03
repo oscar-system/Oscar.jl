@@ -961,7 +961,7 @@ julia> lambda = Partition([3,1,1])
 julia> w0 = @perm (1,3,2)
 (1,3,2)
 
-julia> dc = demazure_character(lambda,w0)
+julia> dc = demazure_character(lambda, w0)
 x1^3*x2*x3 + x1^2*x2^2*x3 + x1*x2^3*x3
 ```
 """
@@ -985,31 +985,30 @@ Construct the generalized Gelfand Tsetlin polytope indexed by a weakly decreasin
 and a permutation w.
 
 ```jldoctest
-julia> P = gelfand_tsetlin_polytope([5,3,2],@perm (1,3,2))
+julia> P = gelfand_tsetlin_polytope([5,3,2], @perm (1,3,2))
 Polyhedron in ambient dimension 6
 ```
 """
 function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
    GT = gelfand_tsetlin_polytope(lambda)
 
-
    #The i-th inversion set (when i=1 this is just inversions) as
       #defined in Postnikov/Stanley '09
-   function inversions(σ; i=1)
-      n = σ.parent.deg
-      filter(x->σ(i)>σ(x),i:n)
+   function inversions(sigma; i=1)
+      n = sigma.parent.deg
+      filter(x->sigma(i)>sigma(x),i:n)
    end
 
    #The code of a permutation as defined in Postnikov/Stanley '09
-   function code(σ)
-      [length(inversions(σ;i=i)) for i in 1:σ.parent.deg]
+   function code(sigma)
+      [length(inversions(sigma;i=i)) for i in 1:sigma.parent.deg]
    end
 
    #The flag of a permutation as defined in Postnikov/Stanley '09
-   function flag(σ)
-      n=σ.parent.deg
+   function flag(sigma)
+      n=sigma.parent.deg
       w₀ = perm(vcat([n],collect(1:n-1)))
-      c = code(w₀*σ)
+      c = code(w₀*sigma)
       return([n-c[i] for i in 1:n])
    end
 
