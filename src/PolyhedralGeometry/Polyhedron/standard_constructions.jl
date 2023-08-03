@@ -977,7 +977,7 @@ function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
        return s
 end
 
-@doc Markdown.doc"""
+@doc raw"""
 
     gelfand_tsetlin_polytope(lambda::AbstractVector, w::PermGroupElem)
 
