@@ -952,6 +952,7 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polym
     demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 
 Construct the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
+- [PS09](@cite)
 
 # Examples
 ```jldoctest
