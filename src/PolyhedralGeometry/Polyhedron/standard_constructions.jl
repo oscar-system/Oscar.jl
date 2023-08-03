@@ -1923,8 +1923,8 @@ generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational}) 
 
 Produce a polytope of constrained expansions in dimension `n` according to 
 [RSS03](@cite)
-
 Note that `n` is the ambient dimension, not the dimension of the polytope. 
+
 # Keywords:
 -`n::Int`: The ambient dimension
 
@@ -1970,3 +1970,45 @@ function rss_associahedron(n::Int)
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.rss_associahedron(n))
 end
+
+@doc raw"""
+    signed_permutahedron(d::Int)
+
+Produce a `d`-dimensional signed permutahedron. I.e. for all possible permutations of
+the vector $(1,\dots,d)$, all possible sign patterns define vertices of this polytope. 
+Contrary to the classical permutahedron, the signed permutahedron is full-dimensional. 
+
+# Keywords:
+-`d::Int`: 
+
+# Examples:
+To produce a $2$-dimensional signed permutahedron, do: 
+```jldoctest
+julia> P = signed_permutahedron(2)
+Polyhedron in ambient dimension 2
+
+julia> vertices(P)
+8-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 2]
+ [-1, 2]
+ [1, -2]
+ [-1, -2]
+ [2, 1]
+ [-2, 1]
+ [2, -1]
+ [-2, -1]
+
+```
+"""
+function signed_permutahedron(d::Int)
+    if d < 1 
+        throw(ArgumentError("signed_permutahedron: dimension >= 2 required"))
+    end
+    m = 8*sizeof(Int)-1
+    n = sizeof(typeof(d))
+    if n > m 
+        throw(ArgumentError("signed_permutahedron: dimension too high"))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.signed_permutahedron(d))
+end
+

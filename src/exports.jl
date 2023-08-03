@@ -1263,6 +1263,7 @@ export show_morphism
 export show_morphism_as_map
 export show_subquo
 export signed_incidence_matrix
+export signed_permutahedron
 export simplex
 export simplified_fp_group
 export simplify
