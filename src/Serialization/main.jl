@@ -553,14 +553,12 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
         #add_header(s, metadata)
         save_typed_object(state, obj)
 
-        println(json(state.serializer.open_objects, 2))
         # this should be handled by serializers in a later commit / PR
         for (id, ref_obj) in state.refs
             state.key = :refs
             data_dict(state) do 
                 save_typed_object(state, ref_obj, id)
             end
-            println(json(state.serializer.open_objects, 2))
         end
     end
     serializer_close(state)
