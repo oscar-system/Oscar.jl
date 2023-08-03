@@ -554,6 +554,7 @@ export gen
 export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
+export generalized_permutahedron
 export generator_matrix
 export generic_fraction
 export generic_fractions
@@ -1229,6 +1230,7 @@ export ring_type
 export rising_factorial
 export root
 export row
+export rss_associahedron
 export saturated_ideal
 export saturation
 export saturation_with_index
@@ -1264,6 +1266,7 @@ export show_morphism
 export show_morphism_as_map
 export show_subquo
 export signed_incidence_matrix
+export signed_permutahedron
 export simplex
 export simplified_fp_group
 export simplify

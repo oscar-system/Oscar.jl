@@ -152,6 +152,7 @@ fractional_cut_polytope
 fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+generalized_permutahedron
 goldfarb_cube
 goldfarb_sit_cube
 hypersimplex
@@ -178,6 +179,8 @@ rand_metrix_int
 rand_normal_polytope
 rand_spherical_polytope
 rand_subpolytope
+rss_associahedron
+signed_permutahedron
 zonotope
 ```
 
