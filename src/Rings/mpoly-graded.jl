@@ -1480,6 +1480,19 @@ function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
   return _rational_function_to_power_series(P, numerator(f), denominator(f))
 end
 
+@doc raw"""
+    expand(f::Frac{QQPolyRingElem}, d::Int) -> RelPowerSeries
+
+Given a rational function $f$ over the rationals, expand $f$ as a power series
+up to terms of degree $d$.
+
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> expand(1//(1 - x^2), 5)
+1 + t^2 + t^4 + O(t^6)
+```
+"""
 function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
   T, t = power_series_ring(QQ, d+1, "t")   
   return _rational_function_to_power_series(T, f)
