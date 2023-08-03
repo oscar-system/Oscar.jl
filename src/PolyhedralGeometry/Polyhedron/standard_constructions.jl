@@ -1053,7 +1053,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
    z = [0 for i in 1:length(Hyperplanes)]
    A = transpose(hcat(Hyperplanes...))
    #now L is the intersection of the linear spaces Ax = 0 = z
-   L = Polyhedron(([0 for i in 1:N],[0]),(A,z))
+   L = polyhedron(nothing,(A,z))
    return(L ∩ gelfand_tsetlin_polytope(lambda))
 end
 
