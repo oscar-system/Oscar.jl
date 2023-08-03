@@ -756,7 +756,7 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   if !keep_ordering
     return singular_poly_ring(forget_decoration(R), default_ordering(R))
   end
-  return singular_poly_ring(forget_decoration(R), keep_ordering = keep_ordering)
+  return singular_poly_ring(forget_decoration(R); keep_ordering = keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
@@ -1275,7 +1275,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      would be a module over the deg-0-sub ring.
   R = base_ring(W)
   B = monomials_of_degree(W, d)
-  M, h = vector_space(R, B, target = W)
+  M, h = vector_space(R, B; target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
@@ -1333,7 +1333,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     push!(b, s)
   end
 
-  F = FreeModule(K, length(b), cached = false)
+  F = FreeModule(K, length(b); cached = false)
   function g(x::T)
     @assert parent(x) == R
     v = zero(F)
@@ -1467,8 +1467,8 @@ end
 
 function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
   Qt, t = QQ["t"]
-  nn = map_coefficients(QQ, n, parent = Qt)
-  dd = map_coefficients(QQ, d, parent = Qt)
+  nn = map_coefficients(QQ, n; parent = Qt)
+  dd = map_coefficients(QQ, d; parent = Qt)
   gg, ee, _ = gcdx(dd, t^max_precision(P))
   @assert isone(gg)
   nn = Hecke.mullow(nn, ee, max_precision(P))
@@ -1907,7 +1907,7 @@ function _hilbert_numerator_bayer_stillman(
   ret !== nothing && return ret
 
   # make sure we have lexicographically ordered monomials
-  sort!(a, alg=QuickSort)
+  sort!(a; alg=QuickSort)
 
   # initialize the result 
   h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
@@ -1990,7 +1990,7 @@ function _homogenization(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int)
        push!(degs, sum((e.*gens_gg)))
    end
    # get top degrees
-   tdeg  = vcat(maximum(hcat(degs...), dims=2)...)
+   tdeg  = vcat(maximum(hcat(degs...); dims=2)...)
        #= finally generate homogeneous version of f in S, called F =#
    F  = MPolyBuildCtx(S)
 
@@ -2160,8 +2160,8 @@ function _gens_for_homog_via_sat(I::MPolyIdeal{T}, extra_gens_flag::Bool) where 
   G = gens(I)
   if extra_gens_flag
     # compute DegRevLex GB (?and maybe DegLex GB?)
-    assume_gb_is_cached = groebner_basis(I, ordering=degrevlex(OrigR))
-    #??Good idea??        assume_gb_is_cached = groebner_basis(I, ordering=deglex(OrigR))
+    assume_gb_is_cached = groebner_basis(I; ordering=degrevlex(OrigR))
+    #??Good idea??        assume_gb_is_cached = groebner_basis(I; ordering=deglex(OrigR))
   end
   for GB in values(I.gb)
     extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
@@ -2279,12 +2279,9 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   else
     @req  pos in 1:1+ngens(P)  "Homog var index out of range."
   end
-  # Handle zero ideal and one ideal as special cases:
+  # Handle zero ideal as special case: (quick and easy)
   if  is_zero(I)
     return ideal(homogenization(zero(P), W, h; pos=pos))  # zero ideal in correct ring
-  end
-  if  is_one(I)
-    return ideal(homogenization(one(P), W, h; pos=pos))  # one ideal in correct ring
   end
   # # The fast method below is valid only for positive gradings; otherwise delegate to _homogenization_via_saturation
   if !is_positive_grading_matrix(W)
@@ -2301,6 +2298,10 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
     end
     GB = groebner_basis(I; ordering=W_ordering)
     return ideal(homogenization(elements(GB), W, h; pos=pos))
+  end
+  # Handle one ideal as special case (NB is_one might be costly!)
+  if  is_one(I)
+    return ideal(homogenization(one(P), W, h; pos=pos))  # one ideal in correct ring
   end
   # Case: grading is over ZZ^k with k > 1 and is positive
   # >>> JUSTIFICATION <<<  from book Kreuzer+Robbiano "Computational Commutative Algebra"
@@ -2472,11 +2473,11 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
     @req  pos in 1:ngens(R)+1  "Homog index out of range."
   end
   # TODO: Adjust as soon as new GB concept is implemented   [[@wdecker: delete this comment?]]
-  return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var; pos=pos))
+  return ideal(homogenization(gens(groebner_basis(I; ordering=ordering)), var; pos=pos))
 end
 # function homogenization(I::MPolyIdeal{T}, var::VarName,; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
 #   # TODO: Adjust as soon as new GB concept is implemented
-#   return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var, 1+ngens(base_ring(I))))
+#   return ideal(homogenization(gens(groebner_basis(I; ordering=ordering)), var, 1+ngens(base_ring(I))))
 # end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
