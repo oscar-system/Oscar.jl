@@ -35,7 +35,10 @@ GermAtGeometricPoint = Spec{<:Field,
     SpaceGerm{BaseRingType, RingType, SpecType}
 A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
-@attributes mutable struct SpaceGerm{BaseRingType<:Ring, RingType<:Ring, SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
+@attributes mutable struct SpaceGerm{
+                BaseRingType<:Ring,
+                RingType<:Ring,
+                SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
   X::SpecType
 
   function SpaceGerm(X::GermAtClosedPoint)
@@ -48,13 +51,84 @@ A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` 
   end
 end
 
-### Getter functions
+@doc raw"""
+    HypersurfaceGerm{BaseRingType, RingType, SpecType}
+A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+"""
+@attributes mutable struct HypersurfaceGerm{
+                 BaseRingType<:Ring,
+                 RingType<:Ring,
+                 SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
+  X::SpecType
+  f::RingElem
 
-function underlying_scheme(X::SpaceGerm)
+  function HypersurfaceGerm(X::GermAtClosedPoint,f::MPolyLocRingElem; check::Bool=true)
+    base_ring(OO(X)) == parent(f) || error("baserings do not match")
+    if check
+      (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
+    end
+    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,f)
+  end
+
+## the following is currently unused....
+## as no backend for groebner computations is currently available in this case
+  function HypersurfaceGerm(X::GermAtGeometricPoint, f::MPolyLocRingElem; check::Bool=true)
+    base_ring(OO(X)) == parent(f) || error("baserings do not match")
+    if check
+      (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
+    end
+    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,f)
+  end
+end
+
+@doc raw"""
+    CompleteIntersectionGerm{BaseRingType, RingType, SpecType}
+A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+"""
+@attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
+  X::SpecType
+  v::Vector{RingElem}
+
+  function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{MPolyLocRingElem}; check::Bool=true)
+    R = base_ring(OO(X))
+    all(x->parent(x) == R, v) || error("base_rings do not coincide")
+    if check
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
+      modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
+    end
+    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
+  end
+
+## the following one is currently unused...
+## as no backend for groebner computations is currently available in this case
+  function CompleteIntersectionGerm(X::GermAtGeometricPoint, v::Vector{MPolyLocRingElem}; check::Bool=true)
+    R = base_ring(OO(X))
+    all(x->parent(x) == R, v) || error("base_rings do not coincide")
+    if check
+      length(v) == dim(R) - dim(X) || error("not a complete intersection")
+      modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
+    end
+    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
+  end
+end
+
+AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
+AnySpaceGermClosedPoint = Union{SpaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
+                                HypersurfaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
+                                CompleteIntersectionGerm{<:Any,<:Any,<:GermAtClosedPoint}}
+AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Any,<:Any,<:GermAtGeometricPoint},
+                                HypersurfaceGerm{<:Any,<:Any,<:GermAtGeometricPoint},
+                                CompleteIntersectionGerm{<:Any,<:Any,<:GermAtGeometricPoint}}
+
+##############################################################################
+### Getter functions
+##############################################################################
+
+function underlying_scheme(X::AnySpaceGerm)
   return X.X
 end
 
-@attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocRing})
+@attr Spec function representative(X::AnySpaceGerm)
       return Spec(underlying_quotient(OO(X)))
 end
 
@@ -63,37 +137,40 @@ end
     return Spec(R)
 end
 
-function point(X::SpaceGerm{<:Any, <:Any, <:GermAtClosedPoint})
+function point(X::AnySpaceGermClosedPoint)
   return point_coordinates(inverted_set(OO(X)))
 end
 
 ## currently unused case
-function point(X::SpaceGerm{<:Any, <:Any, <:GermAtGeometricPoint})
+function point(X::AnySpaceGermGeometricPoint)
   return prime_ideal(inverted_set(OO(X)))
 end
 
 Oscar.ring(X::AbsSpaceGerm) = OO(X)
 
-function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocRing})
+function Oscar.ideal(X::AnySpaceGerm)
     return modulus(OO(X))
 end
 
-function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyLocRing})
+function Oscar.ideal(X::SpaceGerm{<:Ring,<:MPolyLocRing})
     return ideal(OO(X),[zero(OO(X))])
 end
 
-@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocRing})
+@attr SpaceGerm function ambient_germ(X::AnySpaceGerm)
     Y,_ = germ_at_point(localized_ring(OO(X)))
     return Y
 end
 
-@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocRing})
+@attr SpaceGerm function ambient_germ(X::SpaceGerm{<:Ring,<:MPolyLocRing})
     return X
 end
 
-############################################################################################################
+defining_equation(X::HypersurfaceGerm) = X.f
+defining_equations(X::CompleteIntersectionGerm) = X.v
+
+################################################################################
 # allow user to specify point also as ideal
-############################################################################################################
+################################################################################
 
 @doc raw"""
     rational_point_coordinates(I::MPolyIdeal)
@@ -130,9 +207,9 @@ function rational_point_coordinates(I::MPolyIdeal)
   return [ iszero(a) ? zero(coefficient_ring(a)) : leading_coefficient(a) for a in nf_vec] # TODO does the ordering matter?
 end
 
-############################################################################################################
+#######################################################################################
 ### constructors
-############################################################################################################
+#######################################################################################
 function SpaceGerm(X::AbsSpec, a::Vector)
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
@@ -144,6 +221,34 @@ function SpaceGerm(X::AbsSpec, a::Vector)
   return SpaceGerm(Y)
 end
 
+function HypersurfaceGerm(X::AbsSpec, a::Vector)
+  R = ambient_coordinate_ring(X)
+  kk = coefficient_ring(R)
+  b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
+  U = MPolyComplementOfKPointIdeal(R,b)
+  L = Localization(OO(X), U)
+  mingens = minimal_generating_set(modulus(L))
+  length(mingens) == 1 || error("not a hypersurface")
+  f = mingens[1]
+  Y = HypersurfaceGerm(Spec(L[1]),f)
+  set_attribute!(Y,:representative,X)
+  return Y
+end
+
+function CompleteIntersectionGerm(X::AbsSpec, a::Vector)
+  R = ambient_coordinate_ring(X)
+  kk = coefficient_ring(R)
+  b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
+  U = MPolyComplementOfKPointIdeal(R,b)
+  L = Localization(OO(X), U)
+  mingens = minimal_generating_set(modulus(L))
+  length(mingens) == dim(R) - dim(X) || error("not a complete intersection")
+  w = mingens
+  Y = CompleteIntersectionGerm(Spec(L[1]),v)
+  set_attribute!(Y,:representative,X)
+  return Y
+end
+
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
@@ -152,58 +257,72 @@ function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-to_poly_ideal(I::MPolyQuoIdeal) = ideal(base_ring(base_ring(I)),lift.(gens(I))) + modulus(base_ring(I))
-to_poly_ideal(I::MPolyLocalizedIdeal) = ideal(base_ring(base_ring(I)), gens(saturated_ideal(I)))
-to_poly_ideal(I::MPolyQuoLocalizedIdeal) = ideal(base_ring(base_ring(I)),gens(saturated_ideal(I))) + modulus(underlying_quotient(base_ring(I)))
+function HypersurfaceGerm(X::AbsSpec, I::MPolyIdeal)
+  R = base_ring(I)
+  R === ambient_coordinate_ring(X) || error("rings are not compatible")
+  a = rational_point_coordinates(I)
+  Y = HypersurfaceGerm(X,a)
+  return Y
+end
+
+function CompleteIntersectionGerm(X::AbsSpec, I::MPolyIdeal)
+  R = base_ring(I)
+  R === ambient_coordinate_ring(X) || error("rings are not compatible")
+  a = rational_point_coordinates(I)
+  Y = CompleteIntersectionGerm(X,a)
+  return Y
+end
 
 function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
-  J = to_poly_ideal(I)
+  J = saturated_ideal(I)
   a = rational_point_coordinates(J)
-  Y = SpaceGerm(X,a)
-  return Y
+  return SpaceGerm(X,a)
 end
 
-function germ_at_point(X::AbsSpec, I::Ideal)
+function HypersurfaceGerm(X::AbsSpec, I::Ideal)
+  A = base_ring(I)
+  A === OO(X) || error("rings are incompatible")
+  J = saturated_ideal(I)
+  a = rational_point_coordinates(J)
+  return HypersurfaceGerm(X,a)
+end
+
+function ComleteIntersectionGerm(X::AbsSpec, I::Ideal)
+  A = base_ring(I)
+  A === OO(X) || error("rings are incompatible")
+  J = saturated_ideal(I)
+  a = rational_point_coordinates(J)
+  return CompleteIntersectionGerm(X,a)
+end
+
+function germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
   Y = SpaceGerm(X, I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(X::AbsSpec, a::Vector)
-  Y = SpaceGerm(X, a)
+germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
+              I::Union{Ideal,Vector}) = germ_at_point(Spec(A),I)
+
+function hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
+  Y = HypersurfaceGerm(X,I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyRing, I::Ideal)
-  X = Spec(A)
-  Y = SpaceGerm(X, I)
+hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
+                  I::Union{Ideal,Vector}) = hypersurface_germ(Spec(A),I)
+
+function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
+  Y = CompleteIntersectionGerm(X,I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyRing, a::Vector)
-  X = Spec(A)
-  Y = SpaceGerm(X, a)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
-  return Y, restr_map
-end
-
-function germ_at_point(A::MPolyQuoRing, I::Ideal)
-  X = Spec(A)
-  Y = SpaceGerm(X, I)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
-  return Y, restr_map
-end
-
-function germ_at_point(A::MPolyQuoRing, a::Vector)
-  X = Spec(A)
-  Y = SpaceGerm(X, a)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
-  return Y, restr_map
-end
+complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
+                  I::Union{Ideal,Vector}) = complete_intersection_germ(Spec(A),I)
 
 #########################################################################################
 ## for convenience of users thinking in terms of local rings
@@ -224,9 +343,36 @@ function SpaceGerm(A::LocalRing)
   return SpaceGerm(Spec(A))
 end
 
+function HypersurfaceGerm(A::LocalRing)
+  I = modulus(A)
+  v  = minimal_generating_set(I)
+  length(v) == 1 || error("not a hypersurface germ")
+  return HypersurfaceGerm(Spec(A),v[1])
+end
+
+function CompleteIntersectionGerm(A::LocalRing)
+  I = modulus(A)
+  !iszero(I) || error("zero ideal not allowed for complete intersection germ")
+  v = minimal_generating_set(I)
+  length(v) == dim(base_ring(I)) - dim(A) || error("not a complete intersection germ")
+  return CompleteIntersectionGerm(Spec(A),v)
+end
+
 ## and with identity map to keep usage consistent
 function germ_at_point(A::LocalRing)
   X = SpaceGerm(A)
+  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+  return X, restr_map
+end
+
+function hypersurface_germ(A::LocalRing)
+  X = HypersurfaceGerm(A)
+  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+  return X, restr_map
+end
+
+function complete_intersection_germ(A::LocalRing)
+  X = CompleteIntersectionGerm(A)
   restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
   return X, restr_map
 end
@@ -265,6 +411,9 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:A
   return point(X) == point(Y)
 end
 
+## note: intersection of hypersurfaces is never a hypersurface
+##       intersection of complete intersections need not be complete intersection
+##       hence return type always SpaceGerm
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   Z = intersect(underlying_scheme(X),underlying_scheme(Y))
@@ -282,11 +431,23 @@ function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   return Z
 end
 
+## note: union of hypersurface germs is again a hypersurface germ
+##       union of complete intersection germs need not even be equidimensional
+function Base.union(X::HypersurfaceGerm, Y::HypersurfaceGerm)
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("not subgerms of a common space germ")
+  point(X) == point(Y) || error("not the same point of the germ")
+  # comparison of points implicitly also checks that localization was performed at points
+  # otherwise 'point' is not implemented
+  f_new = lcm(numerator(X.f),numerator(Y.f))
+  return HypersurfaceGerm(quo(R,ideal(R,f_new))[1],f_new)
+end
+
 ##############################################################################
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
 ##############################################################################
 
-# We want the singular locus of a `SpaceGerm` to be a `SpaceGerm` again and 
+# We want the singular locus of an `AbsSpaceGerm` to be a `SpaceGerm` again and
 # not a plain `Spec`.
 function singular_locus(X::AbsSpaceGerm)
   S, inc = singular_locus(underlying_scheme(X))
@@ -294,9 +455,152 @@ function singular_locus(X::AbsSpaceGerm)
   return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
 
-function subscheme(X::SpaceGerm, I::Ideal)
+## note: subschemes of hypersurfaces and complete intersections are simply space germs
+function subscheme(X::AbsSpaceGerm, I::Ideal)
   base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
   Y = subscheme(underlying_scheme(X), I)
   return SpaceGerm(Y)
 end
 
+@attr Bool function is_isolated(X::AbsSpaceGerm)
+  dim(singular_locus(X)) < 1 || return false
+  return true
+end
+
+##############################################################################
+# milnor_number, milnor_algebra for IHS
+# milnor_number for ICIS
+# -- beyond this we do no longer have a bouquet of spheres of same dimension
+##############################################################################
+
+function milnor_algebra(X::HypersurfaceGerm)
+  R = base_ring(OO(X))
+  ## milnor number independent of choice of representative
+  ## hence choose a polynomial representative for easier computation
+  f_poly = numerator(X.f)
+  I = ideal(R, R.([derivative(f_poly, i) for i=1:n]))
+  return quo(R,I)[1]
+end
+
+function milnor_number(X::HypersurfaceGerm)
+  return vector_space_dimension(milnor_algebra(X))
+end
+
+function milnor_number(X::CompleteIntersectionGerm)
+  R = base_ring(OO(X))
+  ## milnor number independent of choice of representative
+  ## hence choose polynomial representatives for easier computation
+  v = [numerator(a) for a in X.v]
+  w = typeof(v[1])[]   ## already used entries of v
+  dims = 0             ## for building up the alternating sum
+  sign = 1             ##     and the sign
+
+  ## alternating sum of the Le-Greuel formula, one summand per while-loop pass
+  while !is_empty(v)
+    found = false      ## keep track of 'colength condition satisfied?'
+
+    ## run through the potential choices, until colength condition satisfied 
+    for f in v
+      ## note: although we have already moved to polynomial data, we need to
+      ##       hand localized ring to helper to ensure shift to origin
+      ##       before computations
+      dtemp = _icis_milnor_helper(R,w,f)   ## colength; -1 if condition violated
+      if dtemp > -1
+        dims = dims + sign * dtemp         ## contribute to alternating sum
+        sign = -sign
+        push(w,f)                          ## put f in 'used' list
+        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        found = true
+        break
+      end
+    end
+    found == true || error("retry/general linear combinations not implemented yet")
+  end
+  return dims
+end
+
+function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
+  R = parent(f)
+  R == base_ring(L) || error("base_rings do not match")
+  all(a -> parent(a)==R,v) || error("base_rings do not match")
+
+  ## establish the shift to origin to allow computations w.r.t. local ordering
+  shift,back_shift = base_ring_shifts(L)
+  w = [shift(a) for a in v]
+  g = shift(f)
+
+  ## compute the appropriate summand in the Le-Greuel formula
+  ## for the (lenght(w))-th contribution with specified choice
+  I = ideal(R,w)
+  push!(w,g)
+  n = nvars(R)
+  JM = matrix(R,n, length(w),
+              [derivative(h,i) for i=1:n for h in w])
+  mo = minors(LM,length(w))
+  J = I + ideal(R,mo)
+  o = negdegrevlex(gens(R))
+  LJ = leading_ideal(J,o)
+
+  ## we might have a violated colength condition (i.e. dim(LJ)>0)
+##  dim(quo(R,LJ)[1]) == 0 || return (-1)
+  return vector_space_dimension(LJ)
+end
+
+function milnor_algeba(X::Spec{<:Field,<:MPolyQuoRing})
+  R = base_ring(OO(X))
+  v = minimal_generating_set(modulus(OO(X)))
+  length(v) == 1 || error("not a hypersurface")
+  I = ideal(R,R,[derivative(v[1],i) for i in 1:nvars(R)])
+  return quo(R,I)[1]
+end
+
+function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
+  R = base_ring(OO(X))
+  v = minimal_generating_set(modulus(OO(X)))
+  if length(v) == 1
+    return vector_space_dimension(milnor_algebra(X))
+  end
+  length(v) == dim(R) - dim(X) || error("not a complete intersection")
+  w = typeof(v[1])[]   ## already used entries of v
+  dims = 0             ## for building up the alternating sum
+  sign = 1
+  while !is_empty(v)
+    found = false      ## colength condition satisfied?
+    for f in v
+    ## note: in the global case, we do not need to shift
+    ##       hence helper with completely different signature
+      dtemp = _icis_milnor_helper(w,f)   ## colength; -1 if condition violated
+      if dtemp > -1
+        dims = dims + sign * dtemp         ## alternating sum
+        sign = -sign
+        push(w,f)                          ## put f in 'used' list
+        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        found = true
+        break
+      end
+    end
+    found == true || error("retry/general linear combinations not implemented yet")
+  end
+  return dims
+end
+
+function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
+  R = parent(f)
+  all(a-> parent(a) == R,v) || error("base rings do not match")
+
+  ## compute the appropriate step in the Le-Greuel formula
+  ## for the (lenght(w))-th contribution
+  I = ideal(R,v)
+  push!(v,f)
+  n = nvars(R)
+  JM = matrix(R,n, length(v),
+              [derivative(h,i) for i in 1:n for h in v])
+  mo = minors(LM,length(v))
+  J = I + ideal(R,mo)
+  o = degrevlex(gens(R))
+  LJ = leading_ideal(J,o)
+
+  ## we might have a violated colength condition (i.e. dim(LJ)>0)
+  dim(LJ) == 0 || return -1
+  return vector_space_dimension(LJ)
+end
