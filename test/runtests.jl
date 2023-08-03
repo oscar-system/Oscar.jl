@@ -128,7 +128,6 @@ const testlist = [
 
   "../experimental/runtests.jl",
 
-  "Experimental/gmodule.jl",
   "Experimental/ModStdQt.jl",
   "Experimental/ModStdNF.jl",
   "Experimental/MatrixGroups.jl",
@@ -142,7 +141,6 @@ const testlist = [
 
   "AlgebraicGeometry/Schemes/runtests.jl",
   "AlgebraicGeometry/ToricVarieties/runtests.jl",
-  "AlgebraicGeometry/Surfaces/K3Auto.jl",
 
   "TropicalGeometry/runtests.jl",
 
@@ -150,6 +148,14 @@ const testlist = [
 
   "StraightLinePrograms/runtests.jl"
 ]
+
+# tests disabled by default for >= 1.10 on github actions, see #2441
+# (very memory demanding)
+if VERSION < v"1.10.0-DEV" || !haskey(ENV, "GITHUB_ACTIONS")
+  push!(testlist, "Experimental/gmodule.jl")
+  push!(testlist, "AlgebraicGeometry/Schemes/elliptic_surface.jl")
+  push!(testlist, "AlgebraicGeometry/Surfaces/K3Auto.jl")
+end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop

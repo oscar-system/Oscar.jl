@@ -7,7 +7,11 @@ include("CartierDivisor.jl")
 include("CoveredProjectiveSchemes.jl")
 include("CoveredScheme.jl")
 include("CoherentSheaves.jl")
-include("elliptic_surface.jl")
+
+# disabled on 1.10 and nightly due to #2441
+# moved to main runtests.jl for conditional testing
+#include("elliptic_surface.jl")
+
 include("FunctionFields.jl")
 include("Glueing.jl")
 include("IdealSheaves.jl")
