@@ -1611,66 +1611,6 @@ For an example see `goldfarb-cube` method.
 klee_minty_cube(d::Int, e::Number) = _cube(d, e, 0)
 
 @doc raw"""
-    long_and_winding_polytope()
-
-Produce polytope in dimension $2r$ with $3r+2$ facets such that the total curvature of the central path is at least $\Omega(2^r)$; 
-see [ABGJ18](@cite). See also `perturbed_long_and_winding`. 
-
-# Keywords
-
-- `r::Int`: defining parameter 
-- `eval_ratio::Real`: optional parameter for evaluating the puiseux rational functions 
-- `eval_float::AbstractFloat`: optional parameter  to evaluate at `eval_ratio^eval_exp`, default: $1$. 
-- `eval_exp::Int`: optional parameter for evaluating the puiseux rational functions  
-
-# Examples
-```jldoctest
-julia> p = long_and_winding_polytope(2)
-Polyhedron in ambient dimension 4
-
-julia> p.pm_polytope.FACETS
-PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
-(5) (0 (x^2)) (1 (- 1))
-(5) (0 (x)) (2 (- 1))
-(5) (1 (x)) (3 (- 1))
-(5) (2 (x)) (3 (- 1))
-(0) (x^1/2) (x^1/2) (0) (- 1)
-(5) (3 (1))
-(5) (4 (1))
-
-
-julia> long_and_winding_polytope(2; eval_ratio=2)
-Polyhedron in ambient dimension 4
-
-julia> p.pm_polytope.FACETS
-PropertyValue wrapping pm::SparseMatrix<pm::PuiseuxFraction<pm::Max,pm::Rational,pm::Rational>,pm::NonSymmetric>
-(5) (0 (x^2)) (1 (- 1))
-(5) (0 (x)) (2 (- 1))
-(5) (1 (x)) (3 (- 1))
-(5) (2 (x)) (3 (- 1))
-(0) (x^1/2) (x^1/2) (0) (- 1)
-(5) (3 (1))
-(5) (4 (1))
-```
-"""
-function long_and_winding_polytope(r::Int; eval_ratio=nothing, eval_float=nothing, eval_exp=nothing)
-    if r<1
-        throw(ArgumentError("long_and_winding: parameter r >= 1 required"))
-    end
-    opts = Dict{Symbol,Any}()
-    if eval_ratio!=nothing
-        opts[:eval_ratio] = convert(Real, eval_ratio)
-    end
-    if eval_float!=nothing
-        opts[:eval_float] = convert(AbstractFloat, eval_float)
-    end
-    if eval_exp!=nothing
-        opts[:eval_exp] = convert(Int, eval_exp)
-    end
-    return Polyhedron{QQFieldElem}(Polymake.polytope.long_and_winding(r;opts...))
-end
-
-@doc raw"""
     max_GC_rank(d::Int)
 
 Produce a $d$-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log\(d\))$, integrally infeasible. With symmetric linear objective function $(0,1,1..,1)$. Construction due to Pokutta and Schulz.
@@ -1852,17 +1792,42 @@ pseudo_del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.ps
 @doc raw"""
     function rand01_polytope(d::Int, n::Int; seed=nothing)
 
+Produce a d-dimensional $0/1$-polytope with `n` random vertices. Uniform distribution.
 
+# Examples
+```jldoctest
+julia> r = rand01_polytope(2,4)
+Polyhedron in ambient dimension 2
+
+julia> s = rand01_polytope(2,4,seed=3)
+Polyhedron in ambient dimension 2
+
+julia> vertices(s)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1]
+ [1, 0]
+ [0, 0]
+ [0, 1]
+
+julia> vertices(r)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 1]
+ [1, 1]
+ [0, 0]
+ [1, 0]
+````
 """
 function rand01_polytope(d::Int, n::Int; seed=nothing)
-    if (d < 2 || n <= d || ((n-1>>d)>=1))
+    if (d < 2 || n <= d || n > 2^d)
         throw(ArgumentError("rand01_polytope : 2 <= dim < #vertices <= 2^dim required"))
-    end
-    opts = Dict{Symbol,Any}( :template_parameters => [type] ) # creating the Optionset, the :template_parameters are for templating functions in C++
+    end # creating the Optionset, the :template_parameters are for templating functions in C++
     if seed != nothing
-        opts[:seed] = convert(Int64, seed)
+        seed = convert(Int64, seed)
+        opts = Dict{Symbol,Any}(:seed => seed)
+        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
+    else
+        pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
     end
-    pm_obj = Polymake.call_function(:polytope, :rand01, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
     return Polyhedron{QQFieldElem}(pm_obj)
 end
-  
+
