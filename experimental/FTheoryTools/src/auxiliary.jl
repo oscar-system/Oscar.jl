@@ -33,6 +33,7 @@ function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, au
   return auxiliary_base_space
 end
 
+
 ################################################################
 # 2: Construct ambient space from given base
 ################################################################
