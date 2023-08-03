@@ -1227,6 +1227,7 @@ export ring_type
 export rising_factorial
 export root
 export row
+export rss_associahedron
 export saturated_ideal
 export saturation
 export saturation_with_index

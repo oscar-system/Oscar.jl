@@ -1917,4 +1917,56 @@ end
 
 """
 generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.generalized_permutahedron(d,z))
-  
+
+@doc raw"""
+   rss_associahedron(n::Int)
+
+Produce a polytope of constrained expansions in dimension `n` according to 
+[RSS03](@cite)
+
+Note that `n` is the ambient dimension, not the dimension of the polytope. 
+# Keywords:
+-`n::Int`: The ambient dimension
+
+# Examples:
+Top produce a $3$-dimensional associahedron in $5$-space, do: 
+```jldoctest
+julia> a= rss_associahedron(5)
+Polyhedron in ambient dimension 5
+
+julia> vertices(a)
+14-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 1, 12, 13, 16]
+ [0, 7, 8, 11, 16]
+ [0, 1, 4, 9, 16]
+ [0, 3, 4, 9, 16]
+ [0, 5, 6, 9, 16]
+ [0, 5, 8, 9, 16]
+ [0, 1, 8, 9, 16]
+ [0, 7, 10, 11, 16]
+ [0, 7, 12, 13, 16]
+ [0, 7, 12, 15, 16]
+ [0, 1, 12, 15, 16]
+ [0, 7, 8, 15, 16]
+ [0, 1, 4, 15, 16]
+ [0, 3, 4, 15, 16]
+
+julia> facets(a) 
+9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^5 described by:
+x₁ - x₂ ≦ -1
+x₁ - x₃ ≦ -4
+x₁ - x₄ ≦ -9
+x₂ - x₃ ≦ -1
+x₂ - x₄ ≦ -4
+x₂ - x₅ ≦ -9
+x₃ - x₄ ≦ -1
+x₃ - x₅ ≦ -4
+x₄ - x₅ ≦ -1
+```
+"""
+function rss_associahedron(n::Int)
+    if n < 2
+        throw(ArgumentError("rss_associahedron: n must be at least 2."))
+    end
+    return Polyhedron{QQFieldElem}(Polymake.polytope.rss_associahedron(n))
+end
