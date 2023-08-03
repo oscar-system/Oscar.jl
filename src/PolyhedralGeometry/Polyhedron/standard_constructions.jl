@@ -1831,3 +1831,80 @@ function rand01_polytope(d::Int, n::Int; seed=nothing)
     return Polyhedron{QQFieldElem}(pm_obj)
 end
 
+@doc raw"""
+    rand_box(d::Int, n::Int, b::Int, seed=nothing)
+
+Computes the convex hull of `n` points sampled uniformly at random from the integer 
+points in the cube $[0,b]^d$.
+
+# Keywords
+-`d::Int`: dimension of the box
+-`n::Int`: number of sampled points on the box
+-`b::Int`: length of each edge of the box
+
+# Examples 
+```jldoctest
+julia> r = rand_box(3, 10, 3)
+Polyhedron in ambient dimension 3
+
+julia> vertices(r)
+8-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 2, 2]
+ [1, 0, 0]
+ [2, 0, 3]
+ [3, 3, 2]
+ [0, 0, 1]
+ [1, 3, 3]
+ [2, 2, 3]
+ [1, 3, 1]
+```
+"""
+function rand_box(d::Int, n::Int, b::Int; seed=nothing)
+    if (d<1 || n<1 || b<1)
+        throw(ArgumentError("rand_box: 1 <= dim, #POINTS, b"))
+    end 
+    if seed != nothing
+        seed = convert(Int64, seed)
+        opts = Dict{Symbol, Any}(:seed => seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b; opts...)::Polymake.BigObject
+    else
+        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
+    end
+    return Polyhedron{QQFieldElem}(pm_obj)
+end
+
+@doc raw"""
+    rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
+
+Computes a random instance of a cyclic polytope of dimension $d$ on $n$ vertices by randomly 
+generating a Gale diagram whose cocircuits have alternating signs.
+
+# Keyword
+-`d::Int`: dimension of polytope
+-`n::Int`: number of vertices
+
+# Examples
+```jldoctes
+julia> r = rand_cyclic_polytope(3, 5)
+Polyhedron in ambient dimension 3
+
+julia> f_vector(r)
+3-element Vector{ZZRingElem}:
+ 5
+ 9
+ 6
+```
+"""
+function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
+    if (d<2 || n<d+2) 
+        throw(ArgumentError("rand_cyclic_polytope: need d >= 2 and n >= d+2"))
+    end
+    if seed != nothing
+        seed = convert(Int64, seed)
+        opts = Dict{Symbol, Int}(:seed => seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n; opts...)::Polymake.BigObject
+    else
+        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
+    end
+    return Polyhedron{QQFieldElem}(pm_obj)
+end
