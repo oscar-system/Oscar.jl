@@ -1060,7 +1060,7 @@ end
 
 
 
-@doc Markdown.doc"""
+@doc raw"""
     fano_simplex(d::Int)
 
 Construct a lattice simplex such that the origin is the unique interior lattice point.
