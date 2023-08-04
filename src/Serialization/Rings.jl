@@ -34,24 +34,54 @@ end
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
-    data_dict(s) do
-        save_object(s, modulus(R), :modulus)
-    end
+    save_object(s, modulus(R))
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
+function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
     modulus = parse(UInt64, str)
     return Nemo.zzModRing(modulus)
 end
 
 #elements
-@registerSerializationType(zzModRingElem)
-type_needs_parents(T::Type{zzModRingElem}) = true
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{zzModRingElem},
-                                   str::String,
-                                   parent_ring::Nemo.zzModRing)
+# {
+#   "refs": {},
+#   "_ns": {
+#     "Oscar": [
+#       "https://github.com/oscar-system/Oscar.jl",
+#       "0.13.0-DEV"
+#     ]
+#   },
+#   "type": {
+#     params is either an object to load or a dict with keys and object values
+#     depending on the type
+#     "params": {
+#       "type": "Nemo.zzModRing",
+#       "data": "6"
+#     },
+#     "name": "zzModRingElem"
+#   },
+#   "data": "1"
+# }
+#
+
+@registerSerializationType(zzModRingElem)
+type_needs_params(T::Type{zzModRingElem}) = true
+
+function save_type_params(s::SerializerState, x::zzModRingElem, key::Symbol)
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(zzModRingElem), :name)
+        save_typed_object(s, parent(x), :params)
+    end
+end
+
+function load_type_params(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict{Symbol, Any})
+    return load_typed_object(s, dict)
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{zzModRingElem},
+                                 str::String, parent_ring::Nemo.zzModRing)
     return parent_ring(ZZRingElem(str))
 end
 

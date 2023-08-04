@@ -306,7 +306,7 @@ end
 # calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
     if type_needs_params(T)
-        save_type_with_parent(s, x, :type)
+        save_type_params(s, x, :type)
         save_object(s, x, :data)
     elseif Base.issingletontype(T)
         save_object(s, encode_type(T), :type)
@@ -315,7 +315,7 @@ function save_typed_object(s::SerializerState, x::T) where T
         nested_entry = get_nested_entry(x)
         nested_type = typeof(nested_entry)
         if type_needs_params(nested_type)
-            save_type_with_parent(s, nested_entry, :nested_type)
+            save_type_params(s, nested_entry, :nested_type)
         else
             save_object(s, encode_type(nested_type), :nested_type)
         end
@@ -333,20 +333,19 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
     end
 end
 
-function save_type_with_parent(s::SerializerState, x::T, key::Symbol) where T
-    s.key = key
-    parent_x = parent(x)
-    data_dict(s) do
-        if serialize_with_id(parent_x)
-            parent_refs = save_parents(s, parent_x)
-            save_object(s, parent_refs, :parents)
-            save_object(s, encode_type(T), :name)
-        else
-            save_typed_object(s, parent_x, :parent)
-            save_object(s, encode_type(T), :name)
-        end
-    end
-end
+#function save_type_params(s::SerializerState, x::T, key::Symbol) where T
+#    s.key = key
+#    data_dict(s) do
+#        if serialize_with_id(parent_x)
+#            parent_refs = save_parents(s, parent_x)
+#            save_object(s, parent_refs, :parents)
+#            save_object(s, encode_type(T), :name)
+#        else
+#            save_typed_object(s, parent_x, :parent)
+#            save_object(s, encode_type(T), :name)
+#        end
+#    end
+#end
 
 # ATTENTION
 # The load mechanism needs to look at the serialized data first,
@@ -410,11 +409,11 @@ function load_unknown_type(s::DeserializerState, str::String)
     return load_ref(s, str)
 end
 
-function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any}; parent::Any)
+function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any}; parent::Any = nothing)
     T = decode_type(dict[:type])
     if type_needs_params(T)
-        p_type = load_type_params(s, dict[:type])
-        return load_object(s, p_type, dict[:data])
+        params = load_type_params(s, T, dict[:type][:params])
+        return load_object_with_params(s, T, dict[:data], params)
     elseif Base.issingletontype(T)
         return decode_type(dict[:type])
     elseif T isa AbstractVector
@@ -430,7 +429,6 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any}; parent
         return load_object(s, T, dict[:data])
     end
 end
-
 
 ################################################################################
 # Default generic save_internal, load_internal
