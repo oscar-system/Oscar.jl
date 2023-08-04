@@ -2194,13 +2194,16 @@ function _homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Ma
   else
     @req  pos in 1:1+ngens(P)  "Homog var index out of range."
   end
-  if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
-    tmp = homogenization(one(P), W, var; pos=pos)
+  if is_zero(I)  # special handling for ideal(0) incl. when there are no gens (?is there a cleaner way?)
+    tmp = homogenization(zero(P), W, var; pos=pos)
     R = parent(tmp)
     return ideal(R) # no gens, so it is the zero ideal
   end # of special handling for zero ideal
   Hgens = homogenization(_gens_for_homog_via_sat(I, extra_gens_flag), W, var; pos=pos)
   R = parent(Hgens[1])
+  if length(Hgens) == 1  # short-cut for principal ideal
+    return ideal(R, Hgens)
+  end
   DoSatByProduct = false  # true means saturate by product of homogenizing vars;
   #false means saturate successively by each homogenizing var (probably faster, in most cases?)
   if DoSatByProduct
@@ -2294,7 +2297,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   end
   # Handle zero ideal as special case: (quick and easy)
   if  is_zero(I)
-    return ideal(homogenization(zero(P), W, h; pos=pos))  # zero ideal in correct ring
+    return ideal([homogenization(zero(P), W, h; pos=pos)])  # ideal(0) in correct ring
   end
   # # The fast method below is valid only for positive gradings; otherwise delegate to _homogenization_via_saturation
   if !is_positive_grading_matrix(W)
@@ -2314,7 +2317,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   end
   # Handle one ideal as special case (NB is_one might be costly!)
   if  is_one(I)
-    return ideal(homogenization(one(P), W, h; pos=pos))  # one ideal in correct ring
+    return ideal([homogenization(one(P), W, h; pos=pos)])  # ideal(1) in correct ring
   end
   # Case: grading is over ZZ^k with k > 1 and is positive
   # >>> JUSTIFICATION <<<  from book Kreuzer+Robbiano "Computational Commutative Algebra"
@@ -2322,6 +2325,9 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   # Tutorial 37(g) [compute saturation by product via "cascade"]
   G = homogenization(gens(I), W, h; pos=1+ngens(P))  # h vars come last -- deliberately ignore pos here!
   Ph = parent(G[1])  # Ph is graded ring, "homog-extn" of P.
+  if length(G) == 1  # short-cut for principal ideal
+    return ideal(Ph, G);
+  end
   N = ngens(Ph)
   num_x = ngens(P)
   num_h = ngens(Ph) - num_x
@@ -2484,6 +2490,10 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
     pos = 1+ngens(R)
   else
     @req  pos in 1:ngens(R)+1  "Homog index out of range."
+  end
+  # Handle zero ideal as special case: (quick and easy)
+  if  is_zero(I)
+    return ideal([homogenization(zero(R), var; pos=pos)])  # zero ideal in correct ring
   end
   # TODO: Adjust as soon as new GB concept is implemented   [[@wdecker: delete this comment?]]
   return ideal(homogenization(gens(groebner_basis(I; ordering=ordering)), var; pos=pos))
