@@ -20,6 +20,7 @@ const orderedpkgs = [
   "FTheoryTools",
   "JuLie",
   "IntersectionTheory",
+  "OrthogonalDiscriminants",  # needs code from JuLie
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
