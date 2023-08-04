@@ -296,8 +296,7 @@ end
    h = set_ordering(g, degrevlex(gens(R)))
    @test h != g
    @test ordering(h) == degrevlex(gens(R))
-   Oscar.set_ordering!(h, lex(R))
-   @test ordering(h) == lex(gens(R))
-   l = set_ordering(g, lex(gens(R)))
-   @test h == l
+   h1 = Oscar.IdealGens(base_ring(g), gens(g))
+   Oscar.set_ordering!(h1, lex(R))
+   @test ordering(h1) == lex(gens(R))
 end
