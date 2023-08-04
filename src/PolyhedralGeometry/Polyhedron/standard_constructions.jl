@@ -655,7 +655,7 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-Polyhedron in ambient dimension 3 with nf_elem type coefficients
+Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
 julia> nfacets(T)
 20
@@ -1169,7 +1169,7 @@ description see [Jos05](@cite).
 
 # Examples
 ```jldoctest
-julia> P = binary_markov_graph([1,1,1,1])
+julia> P = binary_markov_graph_polytope([1,1,1,1])
 Polyhedron in ambient dimension 2
 
 julia> vertices(P)
@@ -1356,7 +1356,7 @@ function cyclic_caratheodory_polytope(d::Int, n::Int)
 end
 
 @doc raw"""
-    fractional_knapsack(b::Vector)
+    fractional_knapsack_polytope(b::Vector)
 
 Produce a knapsack polytope defined by one linear inequality (and non-negativity constraints).
 
@@ -1365,7 +1365,7 @@ Produce a knapsack polytope defined by one linear inequality (and non-negativity
 
 # Example 
 ```jldoctest
-julia> p= fractional_knapsack([1;2;3;4])
+julia> p= fractional_knapsack_polytope([1;2;3;4])
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(p)
@@ -1852,19 +1852,19 @@ points in the cube $[0,b]^d$.
 
 # Examples 
 ```jldoctest
-julia> r = rand_box(3, 10, 3)
+julia> r = rand_box(3,10,3, seed=1)
 Polyhedron in ambient dimension 3
 
-julia> vertices(r)
+julia> vertices(r) 
 8-element SubObjectIterator{PointVector{QQFieldElem}}:
- [0, 2, 2]
- [1, 0, 0]
+ [3, 2, 3]
+ [0, 3, 0]
+ [3, 3, 0]
+ [3, 0, 1]
+ [1, 1, 0]
  [2, 0, 3]
- [3, 3, 2]
- [0, 0, 1]
- [1, 3, 3]
- [2, 2, 3]
- [1, 3, 1]
+ [0, 3, 3]
+ [0, 1, 2]
 ```
 """
 function rand_box(d::Int, n::Int, b::Int; seed=nothing)
