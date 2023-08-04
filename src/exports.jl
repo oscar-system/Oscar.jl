@@ -1096,7 +1096,6 @@ export picard_class
 export picard_group
 export pile_polytope
 export pitman_stanley_polytope
-export pseudo_del_pezzo_polytope
 export platonic_solid
 export point_coordinates
 export point_matrix
