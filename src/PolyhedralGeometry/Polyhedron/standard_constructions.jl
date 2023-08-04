@@ -981,10 +981,9 @@ end
 
 @doc raw"""
 
-    gelfand_tsetlin_polytope(lambda::AbstractVector, w::PermGroupElem)
+    gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
 
-Construct the generalized Gelfand-Tsetlin polytope indexed by a weakly decreasing vector `lambda`
-and a permutation w. 
+Construct the generalized Gelfand-Tsetlin polytope indexed by a weakly decreasing vector `lambda` and a permutation  `sigma`. 
 - [PS09](@cite)
 
 ```jldoctest
@@ -992,34 +991,30 @@ julia> P = gelfand_tsetlin_polytope([5,3,2], @perm (1,3,2))
 Polyhedron in ambient dimension 6
 ```
 """
-function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
+function gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
    GT = gelfand_tsetlin_polytope(lambda)
-
-   #The i-th inversion set (when i=1 this is just inversions) as
-      #defined in Postnikov/Stanley '09
+   # The i-th inversion set (when i=1 this is just inversions) as in [PS09]
    function inversions(sigma; i=1)
       n = sigma.parent.deg
       filter(x->sigma(i) > sigma(x), i:n)
    end
-
-   #The code of a permutation as defined in Postnikov/Stanley '09
+   # The code of a permutation as in [PS09]
    function code(sigma)
       [length(inversions(sigma;i=i)) for i in 1:sigma.parent.deg]
    end
-
-   #The flag of a permutation as defined in Postnikov/Stanley '09
+   # The flag of a permutation as in [PS09]
    function flag(sigma)
       n=sigma.parent.deg
-      w₀ = perm(vcat([n], collect(1:n-1)))
-      c = code(w₀*sigma)
+      w0 = perm(vcat([n], collect(1:n-1)))
+      c = code(w0*sigma)
       return([n-c[i] for i in 1:n])
    end
 
    n = length(lambda)
    N = binomial(n+1, 2)
-   b = flag(w)
-   P =  Matrix{Int64}(zeros(n,n))#this will set a bijection between p[i,j] (as in Postnikov/Stanley '09 and the i-th coordinate of GT's ambient space)
-   varctr = N #starting at the last coordinate
+   b = flag(sigma)
+   P =  Matrix{Int64}(zeros(n,n)) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
+   varctr = N # starting at the last coordinate
    matctr = [1,1]
    while varctr>0
       P[matctr...] = varctr
@@ -1032,7 +1027,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
       varctr = varctr-1
    end
    Hyperplanes = []
-   for i in 1:n #for each i there's a set of variables p_(i,j) which need to be equal
+   for i in 1:n # for each i there's a set of variables p_(i,j) which need to be equal
       startVarIndex = P[n,i]
       for j in b[i]:n-1
          varIndex = P[j,i]
@@ -1054,7 +1049,7 @@ function gelfand_tsetlin_polytope(lambda::AbstractVector,w::PermGroupElem)
    end
    z = [0 for i in 1:length(Hyperplanes)]
    A = permutedims(reduce(hcat,Hyperplanes))
-   #now L is the intersection of the linear spaces Ax = 0 = z
+   # now L is the intersection of the linear spaces Ax = 0 = z
    L = polyhedron(nothing, (A, z))
    return(L ∩ gelfand_tsetlin_polytope(lambda))
 end
