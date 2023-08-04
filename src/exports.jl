@@ -424,6 +424,7 @@ export dehomogenization_map
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
+export demazure_character
 export denest
 export denominator
 export denominators
