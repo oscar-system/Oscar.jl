@@ -24,6 +24,8 @@ function dim(A::MPolyQuoRing)
   return dim(I)
 end
 
+# making dim agnostic
+dim(A::MPolyRing) = nvars(A)
 
 @doc raw"""
     vector_space_dimension(A::MPolyQuoRing)
