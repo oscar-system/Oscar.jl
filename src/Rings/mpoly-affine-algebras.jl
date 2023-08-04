@@ -658,14 +658,18 @@ julia> A, _ = quo(R, I);
 
 julia> multi_hilbert_function(A::MPolyQuoRing, [1, 0])
 2
+```
 
+```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> multi_hilbert_function(A, -7)
 22
+```
 
+```jldoctest
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1);
@@ -686,17 +690,17 @@ function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
-    L = homogeneous_component(R, g);
-    if rank(L[1]) == 0
+
+    L = monomials_of_degree(R, g)
+    
+    if size(L) == 0
        return 0
     end
-    FG = gens(L[1]);
-    EMB = L[2]
+
     cc = 0
-    for i in 1:length(FG)
-         if !(_monomial_ideal_membership(EMB(FG[i]), LI))
-	 ### if !(EMB(FG[i]) in LI)  TODO: Make use of this as soon as available
-	    cc = cc +1
+    for i in 1:length(L)
+        if !(L[i] in LI)
+	    cc = cc+1
          end
     end
     return cc
