@@ -1180,9 +1180,7 @@ group of `R` and proceed as above.
 
 # Examples
 ```jldoctest
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> G = grading_group(T)
 GrpAb: Z
