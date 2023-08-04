@@ -45,73 +45,74 @@ end
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_object(s::SerializerState, F::Nemo.fpField)
-    save_object(s, UInt64(characteristic(F)), :characteristic)
+    save_object(s, string(characteristic(F)))
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
-    return Nemo.fpField(parse(UInt64, dict[:characteristic]))
+function load_object(s::DeserializerState, ::Type{Nemo.fpField}, str::String)
+    return Nemo.fpField(parse(UInt64, str))
 end
 
 # elements
 @registerSerializationType(fpFieldElem)
-type_needs_parents(T::Type{fpFieldElem}) = true
+type_needs_params(T::Type{fpFieldElem}) = true
 
 function save_object(s::SerializerState, elem::fpFieldElem)
     data_basic(s, string(elem))
 end
 
-function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
-    F = load_type_dispatch(s, Nemo.fpField, dict[:parent])
-    return F(parse(UInt64, dict[:data]))
+function save_type_params(s::SerializerState, x::fpFieldElem, key::Symbol)
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(Nemo.fpFieldElem), :name)
+        save_typed_object(s, parent(x), :params)
+    end
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   z::Type{fpFieldElem},
-                                   int::Int,
-                                   parent::Nemo.fpField)
-    return parent(UInt64(int))
+function load_type_params(s::DeserializerState, ::Type{fpFieldElem}, dict::Dict{Symbol, Any})
+    return load_typed_object(s, dict)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   z::Type{fpFieldElem},
-                                   str::String,
-                                   parent::Nemo.fpField)
-    return parent(parse(UInt64,str))
+function load_object_with_params(s::DeserializerState, ::Type{fpFieldElem},
+                                 str::String, F::Nemo.fpField)
+    return F(parse(UInt64, str))
 end
-
-
 
 ################################################################################
 # ZZRingElem variant
 @registerSerializationType(Nemo.FpField)
 has_elem_basic_encoding(obj::Nemo.FpField) = true
 
-function save_internal(s::SerializerState, F::Nemo.FpField)
-    save_type_dispatch(s, characteristic(F), :characteristic)
+function save_object(s::SerializerState, F::Nemo.FpField)
+    save_object(s, string(characteristic(F)))
 end
 
-function load_internal(s::DeserializerState, F::Type{Nemo.FpField}, dict::Dict)
-    return F(load_type_dispatch(s, ZZRingElem, dict[:characteristic]))
+function load_object(s::DeserializerState, ::Type{Nemo.FpField}, str::String)
+    return Nemo.FpField(parse(ZZRingElem, str))
 end
 
 # elements
 @registerSerializationType(FpFieldElem)
-is_type_serializing_parent(T::Type{FpFieldElem}) = true
+type_needs_params(T::Type{FpFieldElem}) = true
 
-function save_internal(s::SerializerState, elem::FpFieldElem)
-    return string(Nemo.data(elem))
+function save_object(s::SerializerState, elem::FpFieldElem)
+    data_basic(s, string(elem))
 end
 
-function load_internal(s::DeserializerState, z::Type{FpFieldElem}, dict::Dict)
-    F = load_type_dispatch(s, Nemo.FpField, dict[:parent])
-    return F(ZZRingElem(dict[:data]))
+function save_type_params(s::SerializerState, x::FpFieldElem, key::Symbol)
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(Nemo.FpFieldElem), :name)
+        save_typed_object(s, parent(x), :params)
+    end
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{FpFieldElem},
-                                   str::String,
-                                   parent::Nemo.FpField)
-    return parent(load_type_dispatch(s, ZZRingElem, str))
+function load_type_params(s::DeserializerState, ::Type{FpFieldElem}, dict::Dict{Symbol, Any})
+    return load_typed_object(s, dict)
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{FpFieldElem},
+                                 str::String, F::Nemo.FpField)
+    return F(parse(ZZRingElem, str))
 end
 
 ################################################################################

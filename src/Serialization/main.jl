@@ -410,7 +410,7 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
         params = load_type_params(s, T, dict[:type][:params])
         return load_object_with_params(s, T, dict[:data], params)
     elseif Base.issingletontype(T)
-        return decode_type(dict[:type])
+        return decode_type(dict[:type])()
     elseif T isa AbstractVector
         nested_type = decode_type(s, dict[:nested_type])
         # not yet sure how recursion will work here

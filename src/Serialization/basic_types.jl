@@ -1,5 +1,6 @@
 # This type should not be exported
-BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number, zzModRingElem}
+BasicTypeUnion = Union{String, QQFieldElem, Symbol,
+                       Number, ZZRingElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
     data_basic(s, string(x))
 end

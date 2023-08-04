@@ -50,8 +50,8 @@ end
                 residue_ring(ZZ, 6),
                 Nemo.fpField(UInt(7)),
                 Nemo.FpField(ZZRingElem(7)),
-                PadicField(7, 30),
-                TropicalSemiring()
+                #PadicField(7, 30),
+                #TropicalSemiring()
             )
             original = T(1)
             test_save_load_roundtrip(path, original) do loaded

@@ -33,7 +33,7 @@ end
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
-    save_object(s, modulus(R))
+    save_object(s, string(modulus(R)))
 end
 
 function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
@@ -44,6 +44,9 @@ end
 #elements
 @registerSerializationType(zzModRingElem)
 type_needs_params(T::Type{zzModRingElem}) = true
+function save_object(s::SerializerState, x::zzModRingElem)
+    data_basic(s, string(x))
+end
 
 function save_type_params(s::SerializerState, x::zzModRingElem, key::Symbol)
     s.key = key
@@ -61,7 +64,6 @@ function load_object_with_params(s::DeserializerState, ::Type{zzModRingElem},
                                  str::String, parent_ring::Nemo.zzModRing)
     return parent_ring(ZZRingElem(str))
 end
-
 
 ################################################################################
 #  Polynomial Rings
