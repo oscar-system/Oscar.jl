@@ -6253,8 +6253,6 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, len)
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
@@ -6300,7 +6298,7 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-`algorithm` can be set to `:sres` or `:fres`.
+At the moment, `algorithm` only allows the option `:fres`.
 
 # Examples
 ```jldoctest
@@ -6348,7 +6346,7 @@ degree | 4  3  2  1  0
 julia> is_complete(fr)
 true
 
-julia> fr = free_resolution(M, algorithm=:sres)
+julia> fr = free_resolution(M, algorithm=:fres)
 
 rank   | 0  2  6  6  2
 -------|---------------
@@ -6390,9 +6388,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
-    res = Singular.fres(singular_kernel_entry, length, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, length)
+    res = Singular.fres(Singular.std(singular_kernel_entry), length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
