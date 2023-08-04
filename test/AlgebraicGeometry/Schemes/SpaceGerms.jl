@@ -8,6 +8,8 @@
   X1 = SpaceGerm(X,[1,2,1])
   Y0 = SpaceGerm(Y,[0,0,0])
   Y1 = SpaceGerm(Y,[1,2,1])
+  Z0 = HypersurfaceGerm(X,[0,0,0])
+  Z1 = CompleteIntersectionGerm(X,[1,2,1])
   U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   U1 = MPolyComplementOfKPointIdeal(R,[1,2,1])
   @test U0 == inverted_set(OO(X0))
@@ -15,6 +17,16 @@
   @test X0 == Y0
   @test X1 !=Y1
   @test isempty(Y1)
+  @test milnor_number(Z0) == 1
+  @test milnor_number(Z1) == 0
+  XG = Spec(R,I)
+  @test milnor_number(XG) == 1
+  K = ideal(R,[x^2+y^2-z^2,x*y])
+  YG = Spec(R,K)
+  @test milnor_number(YG) == 5
+  K = ideal(R,[x*y,x^2+y^2-z^2])
+  ZG = Spec(R,K)
+  @test milnor_number(YG) == 5
 end
 
 @testset "Space Germ constructors Spec-Ideal" begin

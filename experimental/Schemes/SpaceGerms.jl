@@ -1,9 +1,15 @@
+export HypersurfaceGerm
+export CompleteIntersectionGerm
 export SpaceGerm
 export ambient_germ
 export germ_at_point
+export hypersurface_germ
+export complete_intersection_germ
 export point
 export rational_point_coordinates
 export representative
+export milnor_algebra
+export milnor_number
 
 import AbstractAlgebra: Ring
 
@@ -63,7 +69,7 @@ A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme
   f::RingElem
 
   function HypersurfaceGerm(X::GermAtClosedPoint,f::MPolyLocRingElem; check::Bool=true)
-    base_ring(OO(X)) == parent(f) || error("baserings do not match")
+    base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
     if check
       (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
     end
@@ -73,7 +79,7 @@ A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme
 ## the following is currently unused....
 ## as no backend for groebner computations is currently available in this case
   function HypersurfaceGerm(X::GermAtGeometricPoint, f::MPolyLocRingElem; check::Bool=true)
-    base_ring(OO(X)) == parent(f) || error("baserings do not match")
+    base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
     if check
       (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
     end
@@ -89,8 +95,8 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   X::SpecType
   v::Vector{RingElem}
 
-  function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{MPolyLocRingElem}; check::Bool=true)
-    R = base_ring(OO(X))
+  function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
+    R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     if check
       length(v) == dim(R) - dim(X) || error("not a complete intersection")
@@ -226,25 +232,25 @@ function HypersurfaceGerm(X::AbsSpec, a::Vector)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  L = Localization(OO(X), U)
-  mingens = minimal_generating_set(modulus(L))
+  LX,_ = Localization(OO(X), U)
+  mingens = minimal_generating_set(modulus(LX))
   length(mingens) == 1 || error("not a hypersurface")
   f = mingens[1]
-  Y = HypersurfaceGerm(Spec(L[1]),f)
+  Y = HypersurfaceGerm(Spec(LX),f)
   set_attribute!(Y,:representative,X)
   return Y
 end
 
-function CompleteIntersectionGerm(X::AbsSpec, a::Vector)
+function CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  L = Localization(OO(X), U)
+  L,_ = Localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
-  length(mingens) == dim(R) - dim(X) || error("not a complete intersection")
+  length(mingens) == dim(R) - dim(L) || error("not a complete intersection")
   w = mingens
-  Y = CompleteIntersectionGerm(Spec(L[1]),v)
+  Y = CompleteIntersectionGerm(Spec(L),w)
   set_attribute!(Y,:representative,X)
   return Y
 end
@@ -474,11 +480,11 @@ end
 ##############################################################################
 
 function milnor_algebra(X::HypersurfaceGerm)
-  R = base_ring(OO(X))
+  R = localized_ring(OO(X))
   ## milnor number independent of choice of representative
   ## hence choose a polynomial representative for easier computation
   f_poly = numerator(X.f)
-  I = ideal(R, R.([derivative(f_poly, i) for i=1:n]))
+  I = ideal(R, R.([derivative(f_poly, i) for i=1:nvars(base_ring(R))]))
   return quo(R,I)[1]
 end
 
@@ -487,7 +493,7 @@ function milnor_number(X::HypersurfaceGerm)
 end
 
 function milnor_number(X::CompleteIntersectionGerm)
-  R = base_ring(OO(X))
+  R = localized_ring(OO(X))
   ## milnor number independent of choice of representative
   ## hence choose polynomial representatives for easier computation
   v = [numerator(a) for a in X.v]
@@ -508,7 +514,7 @@ function milnor_number(X::CompleteIntersectionGerm)
       if dtemp > -1
         dims = dims + sign * dtemp         ## contribute to alternating sum
         sign = -sign
-        push(w,f)                          ## put f in 'used' list
+        push!(w,f)                          ## put f in 'used' list
         deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
         found = true
         break
@@ -516,7 +522,10 @@ function milnor_number(X::CompleteIntersectionGerm)
     end
     found == true || error("retry/general linear combinations not implemented yet")
   end
-  return dims
+  if dims > 0
+    return dims
+  end
+  return -dims
 end
 
 function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
@@ -536,31 +545,32 @@ function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   n = nvars(R)
   JM = matrix(R,n, length(w),
               [derivative(h,i) for i=1:n for h in w])
-  mo = minors(LM,length(w))
+  mo = minors(JM,length(w))
   J = I + ideal(R,mo)
+  !isone(J) || return 0
   o = negdegrevlex(gens(R))
-  LJ = leading_ideal(J,o)
+  LJ = leading_ideal(J;ordering=o)
 
   ## we might have a violated colength condition (i.e. dim(LJ)>0)
-##  dim(quo(R,LJ)[1]) == 0 || return (-1)
+  dim(quo(R,LJ)[1]) == 0 || return (-1)
   return vector_space_dimension(LJ)
 end
 
-function milnor_algeba(X::Spec{<:Field,<:MPolyQuoRing})
+function milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
-  v = minimal_generating_set(modulus(OO(X)))
-  length(v) == 1 || error("not a hypersurface")
-  I = ideal(R,R,[derivative(v[1],i) for i in 1:nvars(R)])
+  ngens(modulus(OO(X))) == 1 || error("not a hypersurface (or unnecessary generators in specified generating set)")
+  v = gen(modulus(OO(X)),1)
+  I = ideal(R,R.([derivative(v,i) for i in 1:nvars(R)]))
   return quo(R,I)[1]
 end
 
 function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
-  v = minimal_generating_set(modulus(OO(X)))
+  v = gens(modulus(OO(X)))
   if length(v) == 1
     return vector_space_dimension(milnor_algebra(X))
   end
-  length(v) == dim(R) - dim(X) || error("not a complete intersection")
+  length(v) == dim(R) - dim(X) || error("not a complete intersection (or unnecessary generators in specified generating set)")
   w = typeof(v[1])[]   ## already used entries of v
   dims = 0             ## for building up the alternating sum
   sign = 1
@@ -573,7 +583,7 @@ function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
       if dtemp > -1
         dims = dims + sign * dtemp         ## alternating sum
         sign = -sign
-        push(w,f)                          ## put f in 'used' list
+        push!(w,f)                          ## put f in 'used' list
         deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
         found = true
         break
@@ -581,7 +591,10 @@ function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
     end
     found == true || error("retry/general linear combinations not implemented yet")
   end
-  return dims
+  if dims > 0
+     return dims
+  end
+  return -dims
 end
 
 function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
@@ -591,16 +604,17 @@ function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
   ## compute the appropriate step in the Le-Greuel formula
   ## for the (lenght(w))-th contribution
   I = ideal(R,v)
-  push!(v,f)
+  bla = copy(v)
+  push!(bla,f)
   n = nvars(R)
-  JM = matrix(R,n, length(v),
-              [derivative(h,i) for i in 1:n for h in v])
-  mo = minors(LM,length(v))
+  JM = matrix(R,n, length(bla),
+              [derivative(h,i) for i in 1:n for h in bla])
+  mo = minors(JM,length(bla))
   J = I + ideal(R,mo)
   o = degrevlex(gens(R))
-  LJ = leading_ideal(J,o)
+  LJ = leading_ideal(J;ordering=o)
 
   ## we might have a violated colength condition (i.e. dim(LJ)>0)
   dim(LJ) == 0 || return -1
-  return vector_space_dimension(LJ)
+  return vector_space_dimension(quo(R,LJ)[1])
 end
