@@ -1395,7 +1395,7 @@ mutable struct HilbertData
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
     R = base_ring(I)
-    @req is_graded(R) "The base ring must be graded"
+    @req is_z_graded(R) "The base ring must be ZZ-graded"
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
