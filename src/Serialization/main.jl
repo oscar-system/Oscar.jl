@@ -240,7 +240,6 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) whe
         s.depth -= 1
 
         if s.depth != 0
-            println(s.serializer.open_objects[end])
             close(s, key)
         end
     else
@@ -388,7 +387,6 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
         parent = load_parent_type(s, dict[:type])
         result = load_internal_with_parent(s, T, dict[:data], parent)
     else
-        println(json(dict, 2))
         result = load_internal(s, T, dict[:data])
     end
 
@@ -409,8 +407,11 @@ function load_unknown_type(s::DeserializerState, str::String)
     return load_ref(s, str)
 end
 
-function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any}; parent::Any = nothing)
+function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
+                           parent::Any = nothing)
     T = decode_type(dict[:type])
+    # depending on the type, :params is either an object to be loaded or a
+    # dict with keys and object values to be loaded
     if type_needs_params(T)
         params = load_type_params(s, T, dict[:type][:params])
         return load_object_with_params(s, T, dict[:data], params)

@@ -27,7 +27,6 @@ end
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
 
-
 ################################################################################
 #  non simpleton base rings
 @registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
@@ -43,28 +42,6 @@ function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
 end
 
 #elements
-
-# {
-#   "refs": {},
-#   "_ns": {
-#     "Oscar": [
-#       "https://github.com/oscar-system/Oscar.jl",
-#       "0.13.0-DEV"
-#     ]
-#   },
-#   "type": {
-#     params is either an object to load or a dict with keys and object values
-#     depending on the type
-#     "params": {
-#       "type": "Nemo.zzModRing",
-#       "data": "6"
-#     },
-#     "name": "zzModRingElem"
-#   },
-#   "data": "1"
-# }
-#
-
 @registerSerializationType(zzModRingElem)
 type_needs_params(T::Type{zzModRingElem}) = true
 
@@ -124,7 +101,32 @@ end
 # Multivariate and Universal Polynomials
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
-type_needs_parents(::Type{<:MPolyRingElem}) = true
+type_needs_params(::Type{<:MPolyRingElem}) = true
+
+PolyElemUniontype = Union{UniversalPolyRingElem, MPolyRingElem, PolyRingElem}
+# this seems to be general enough for all types that have parents and should be moved
+# once it becomes clearer how other parametrized types will be handled 
+function save_type_params(s::SerializerState, x::T, key::Symbol)  where T <: PolyElemUniontype
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        parent_x = parent(x)
+        if serialize_with_id(parent_x)
+            parent_refs = save_parents(s, parent_x)
+            save_object(s, parent_refs, :params)
+        else
+            save_typed_object(s, parent_x, :params)
+        end
+    end
+end
+
+function load_type_params(s::DeserializerState, ::Type{T}, dict::Dict{Symbol, Any}) where T <: PolyElemUniontype
+    return load_typed_object(s, dict)
+end
+
+function load_type_params(s::DeserializerState, ::Type{T}, refs::Vector{Any}) where T <: PolyElemUniontype
+    return load_parents(s, refs)
+end
 
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     coeff_type = typeof(coeff(p, 1))
@@ -132,7 +134,6 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
     for i in 1:length(p)
         push!(terms, (exponent_vector(p, i), coeff(p, i)))
     end
-
     save_object(s, terms)
 end
 
@@ -155,7 +156,7 @@ end
 # Univariate Polynomials
 
 @registerSerializationType(PolyRingElem)
-type_needs_parents(::Type{<:PolyRingElem}) = true
+type_needs_params(::Type{<:PolyRingElem}) = true
 
 function save_object(s::SerializerState, p::PolyRingElem)
     coeffs = coefficients(p)
@@ -173,8 +174,8 @@ function save_object(s::SerializerState, p::PolyRingElem)
     save_object(s, terms)
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::PolyRing)
+function load_object_with_params(s::DeserializerState, ::Type{PolyRingElem}, terms::Vector, parents::Vector)
+    parent_ring = parents[end]
     if isempty(terms)
         return parent_ring(0)
     end
