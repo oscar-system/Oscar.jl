@@ -400,9 +400,9 @@ Return an ideal generating system with an associated monomial ordering.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
+julia> R, (x0, x1, x2) = polynomial_ring(QQ, ["x0","x1","x2"]);
 
-julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
+julia> I = ideal([x0*x1, x2]);
 
 julia> g = generating_system(I);
 

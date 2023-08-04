@@ -365,7 +365,9 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
-3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+3 -> 6*x^3 - 27*x
+with associated ordering
+degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
