@@ -184,9 +184,9 @@ julia> normalized_volume(C)
 120
 ```
 """
-cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
+cube(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{_scalar_type_to_polymake(T)}(d))
 cube(d::Int) = cube(QQFieldElem, d)
-cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
+cube(::Type{T}, d::Int, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{_scalar_type_to_polymake(T)}(d, u, l))
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
 @doc raw"""
@@ -512,7 +512,7 @@ julia> vertices(S)
 """
 function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
     @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
-    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
+    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)))
 end
 
 
@@ -582,9 +582,9 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
+simplex(::Type{T}, d::Int, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{_scalar_type_to_polymake(T)}(d,n))
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
-simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
+simplex(::Type{T}, d::Int) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{_scalar_type_to_polymake(T)}(d))
 simplex(d::Int) = simplex(QQFieldElem, d)
 
 
@@ -627,9 +627,9 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross_polytope(::Type{T}, d::Int64, n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d,n))
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
+cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{_scalar_type_to_polymake(T)}(d))
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
 @doc raw"""
@@ -1711,7 +1711,7 @@ end
 @doc raw"""
     perles_irrational_8_polytope()
 
-Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru00](@cite).
+Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
 """
 perles_irrational_8_polytope() = Polyhedron{QQFieldElem}(Polymake.polytope.perles_irrational_8_polytope())
 
@@ -1734,7 +1734,7 @@ Take a generic convex function to lift this polytopal complex to the boundary of
 # Keywords
 - `sizes::Vector{Int}`: a vector $(s_1,…,s_d)$ where $s_i$ specifies the number of boxes in the $i$-th dimension.
 """
-pile_polytope_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
+pile_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pile(sizes))
 
 @doc raw"""
     pitman_stanley_polytope(y::AbstractVector)
@@ -2094,7 +2094,6 @@ julia> vertices(P)
  [-2, 1]
  [2, -1]
  [-2, -1]
-
 ```
 """
 function signed_permutahedron(d::Int)

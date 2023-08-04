@@ -169,13 +169,13 @@ orbit_polytope
 permutahedron
 pile_polytope
 pitman_stanley_polytope
-perles_nonrational_8_polytope
+perles_irrational_8_polytope
 pseudo_del_pezzo_polytope
 rand01_polytope
 rand_box
 rand_cyclic_polytope
 rand_metric
-rand_metrix_int
+rand_metric_int
 rand_normal_polytope
 rand_spherical_polytope
 rand_subpolytope
@@ -190,15 +190,15 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron{T}, ::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
-*(::Number, ::Polyhedron{T}) where T<:scalar_types
-*(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
++(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types 
+*(k::Int, P::Polyhedron{T}) where T<:scalar_types
+*(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
 bipyramid
-intersect(::Polyhedron...)
+intersect(P::Polyhedron{T}...) where T<:scalar_types
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron...)
+convex_hull(P::Polyhedron{T}...) where T<:scalar_types
 ```
