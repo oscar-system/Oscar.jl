@@ -181,6 +181,7 @@ rand_spherical_polytope
 rand_subpolytope
 rss_associahedron
 signed_permutahedron
+stable_set_polytope
 zonotope
 ```
 

@@ -1145,6 +1145,7 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
+export pseudo_del_pezzo_polytope
 export pullback
 export pullback_type
 export pyramid
@@ -1297,6 +1298,7 @@ export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
 export src
+export stable_set_polytope
 export standard_basis
 export standard_basis_with_transformation_matrix
 export standard_covering

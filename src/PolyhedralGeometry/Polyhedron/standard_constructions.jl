@@ -1385,7 +1385,7 @@ Produce a knapsack polytope defined by one linear inequality (and non-negativity
 
 # Example 
 ```jldoctest
-julia> p= fractional_knapsack_polytope([1;2;3;4])
+julia> p = fractional_knapsack_polytope([1;2;3;4])
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(p)
@@ -1729,16 +1729,16 @@ function neighborly_cubical_polytope(d::Int, n::Int)
 end
 
 @doc raw"""
-    perles_nonrational_8_polytope()
+    perles_irrational_8_polytope()
 
 Create an 8-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
 
 # Examples
 ```jldoctest
-julia> perles_nonrational_8_polytope()
+julia> perles_irrational_8_polytope()
 Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
 """
-perles_nonrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
+perles_irrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
 
 @doc raw"""
     permutahedron(d::Int)
@@ -1764,7 +1764,10 @@ pile_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pi
 @doc raw"""
     pitman_stanley_polytope(y::AbstractVector)
 
-Produce a Pitman-Stanley polytope of dimension $n-1$. See 
+Produce a Pitman-Stanley polytope of dimension $n-1$. 
+Does not check if the parameters are actually positive; negative values
+are legal but that do not yield a Pitman-Stanley polytope.
+Zeros just reduce the dimension; negative numbers may produce unbounded polyhedra. 
 
 # Keywords:
 -`y::AbstractVector`: Vector of $n$ positive parameters
@@ -1772,9 +1775,10 @@ Produce a Pitman-Stanley polytope of dimension $n-1$. See
 # Examples:
 Pitman-Stanley polytopes are combinatorial cubes:
 ```jldoctest
->julia p = pitman_stanley_polytope([1,1,2,3])
+julia> p = pitman_stanley_polytope([1,2,3])
+Polyhedron in ambient dimension 3
 
->julia f_vector(p)
+julia> f_vector(p) 
 2-element Vector{ZZRingElem}:
  4
  4
@@ -1796,9 +1800,6 @@ together with the all-ones vector. All coordinates are plus or minus one.
 
 # Examples
 ```jldoctest
-julia> pseudo_del_pezzo_polytope(4)
-Polyhedron in ambient dimension 4
-
 julia> DP = pseudo_del_pezzo_polytope(4)
 Polyhedron in ambient dimension 4
 
@@ -1946,17 +1947,13 @@ Produce a rational n-point metric with random distances.
 The values are uniformily distributed in [1,2].
 
 # Examples
-julia> R = rand_metric(3)
+```jldoctes
+julia> rand_metric(3, seed=132)
 3×3 Matrix{Rational}:
-              0//1                …  228214848324395//140737488355328
-462199293655307//281474976710656      87831714224839//70368744177664
-228214848324395//140737488355328                   0//1
-
-julia> S = rand_metric(3, seed=132)
-3×3 Matrix{Rational}:
-              0//1                …  371474612593257//281474976710656
-260222460282405//140737488355328     388326899436839//281474976710656
-371474612593257//281474976710656                   0//1
+               0//1                …  371474612593257//281474976710656
+ 260222460282405//140737488355328     388326899436839//281474976710656
+ 371474612593257//281474976710656                   0//1
+```
 """
 function rand_metric(n::Int; seed=nothing)
     if seed != nothing
@@ -2128,4 +2125,18 @@ function signed_permutahedron(d::Int)
     end
     return Polyhedron{QQFieldElem}(Polymake.polytope.signed_permutahedron(d))
 end
+
+@doc raw"""
+    stable_set_polytope(G::Graph{Undirected}) 
+
+# Keywords:
+-`G::Graph{Undirected}`: 
+
+# Examples:
+```jldoctest
+
+```
+"""
+stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(G.pm_graph))
+
 
