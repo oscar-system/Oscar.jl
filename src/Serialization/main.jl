@@ -159,7 +159,7 @@ end
 has_elem_basic_encoding(obj::T) where T = false
 
 # used for types that require parents when serialized
-type_needs_parents(::Type) where Type = false
+type_needs_params(::Type) where Type = false
 
 ################################################################################
 # High level
@@ -305,7 +305,7 @@ end
 
 # calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
-    if type_needs_parents(T)
+    if type_needs_params(T)
         save_type_with_parent(s, x, :type)
         save_object(s, x, :data)
     elseif Base.issingletontype(T)
@@ -314,7 +314,7 @@ function save_typed_object(s::SerializerState, x::T) where T
         save_object(s, "Vector", :type)
         nested_entry = get_nested_entry(x)
         nested_type = typeof(nested_entry)
-        if type_needs_parents(nested_type)
+        if type_needs_params(nested_type)
             save_type_with_parent(s, nested_entry, :nested_type)
         else
             save_object(s, encode_type(nested_type), :nested_type)
@@ -385,7 +385,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
 
     if parent !== nothing
         result = load_internal_with_parent(s, T, dict[:data], parent)
-    elseif type_needs_parents(T)
+    elseif type_needs_params(T)
         parent = load_parent_type(s, dict[:type])
         result = load_internal_with_parent(s, T, dict[:data], parent)
     else
@@ -408,6 +408,27 @@ end
 # sole purpose of this function is to catch when obj is a ref
 function load_unknown_type(s::DeserializerState, str::String)
     return load_ref(s, str)
+end
+
+function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any}; parent::Any)
+    T = decode_type(dict[:type])
+    if type_needs_params(T)
+        p_type = load_type_params(s, dict[:type])
+        return load_object(s, p_type, dict[:data])
+    elseif Base.issingletontype(T)
+        return decode_type(dict[:type])
+    elseif T isa AbstractVector
+        nested_type = decode_type(s, dict[:nested_type])
+        # not yet sure how recursion will work here
+        if type_needs_params(nested_type)
+            nested_p_type = load_type_params(s, dict[:nested_type])
+            #return load_object()
+        else
+            #return load_object()
+        end
+    else
+        return load_object(s, T, dict[:data])
+    end
 end
 
 
