@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.OrthogonalDiscriminants
 DocTestSetup = quote
   using Oscar
 end
