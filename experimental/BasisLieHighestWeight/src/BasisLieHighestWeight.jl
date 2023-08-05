@@ -9,13 +9,18 @@ using ..Oscar
 using ..Oscar: GAPWrap
 using Polymake
 
+# TODO basis_lie_highest_weight_lustzig
+# TODO basis_lie_highest_weight_string
+# TODO basis_lie_highest_weight_feigin_fflv
+# TODO basis_lie_highest_weight_nZ
+
 # TODO Change operators from GAP.Obj to Oscar objects
 # TODO BirationalSequence needs better names for weights and operators
 # TODO Fix weightnames in general
 # TODO Groundup-structure for the special functions
 # TODO (?) write methods small when using Polymake, f.e. polyhedron instead of Polyhedron 
 
-# TODO (?) Export and docstring: 
+# TODO (?) Maybe export and docstring: 
 # basis_lie_highest_weight
 # get_dim_weightspace
 # orbit_weylgroup
@@ -297,6 +302,53 @@ function basis_lie_highest_weight(
             no_minkowski,
         )
     )
+end
+
+function basis_lie_highest_weight_lustzig(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int};
+    operators::Union{String, Vector{Int}} = "regular", 
+    monomial_order::Union{String, Function} = "oplex", 
+    cache_size::Int = 0,
+    )::BasisLieHighestWeightStructure
+    # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
+    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+end
+
+function basis_lie_highest_weight_string(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int};
+    operators::Union{String, Vector{Int}} = "regular", 
+    cache_size::Int = 0,
+    )::BasisLieHighestWeightStructure
+    # monomial_order = "oplex"
+    # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
+    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+end
+
+function basis_lie_highest_weight_feigin_fflv(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int};
+    cache_size::Int = 0,
+    )::BasisLieHighestWeightStructure
+    monomial_order = "oplex"
+    # operators = some sequence of the Feigin-Fourier-Littelmann-Vinberg polytope
+    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+end
+
+function basis_lie_highest_weight_nZ(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int};
+    operators::Union{String, Vector{Int}} = "regular", 
+    cache_size::Int = 0,
+    )::BasisLieHighestWeightStructure
+    # monomial_order = "lex"
+    # operators = some sequence of the Nakashima-Zelevinsky polytope, same as for _string
+    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
 end
 
 function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::GAP.Obj
