@@ -1,8 +1,10 @@
 @doc raw"""
     AffineRationalPoint{CoeffType<:RingElem, ParentType<:AbsSpec}
 
-A $k$-rational point on an affine scheme ``X`` called its parent.
-    
+A $k$-rational point ``P`` of an affine scheme ``X``.
+
+We refer to ``X`` as the parent of ``P``.
+
 # Examples
 ```jldoctest
 julia> A2 = affine_space(GF(2), [:x, :y]);
