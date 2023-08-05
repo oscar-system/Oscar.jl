@@ -118,6 +118,9 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   end
 end
 
+##############################################################################
+## Some more shorthand notation
+##############################################################################
 AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
 AnySpaceGermClosedPoint = Union{SpaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
                                 HypersurfaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
@@ -134,6 +137,53 @@ function underlying_scheme(X::AnySpaceGerm)
   return X.X
 end
 
+@doc raw"""
+    representative(X::AnySpaceGerm)
+    representative(X::SpaceGerm{<:Ring, <:MPolyLocRing})
+
+Returns a representative `Y` of a space germ `(X,p)` at a point `p`.
+
+More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
+ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
+to `p. Then the representative `Y = Spec R/I` is returned.
+
+Example
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
+
+julia> X = Spec(R, I);
+
+julia> XS = SpaceGerm(X,[0,0,0])
+Spectrum
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at complement of maximal ideal of point (0, 0, 0)
+
+julia> representative(XS)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
+
+julia> representative(XS) == X
+true
+
+julia> L, phi = Localization(R,complement_of_point_ideal(R,[0,0,0]));
+
+julia> IL = phi(I);
+
+julia> Z = germ_at_point(quo(L,IL)[1])[1];
+
+julia> representative(Z)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
+
+```
+"""
 @attr Spec function representative(X::AnySpaceGerm)
       return Spec(underlying_quotient(OO(X)))
 end
@@ -143,6 +193,29 @@ end
     return Spec(R)
 end
 
+@doc raw"""
+    point(X::AbsSpaceGerm)
+
+Returns the point `p` of a germ `(X,p)`.
+
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
+
+julia> X = Spec(R, I);
+
+julia> XS = SpaceGerm(X,[0,0,0]);
+
+point(XS)
+3-element Vector{QQFieldElem}:
+ 0
+ 0
+ 0
+
+```
+"""
 function point(X::AnySpaceGermClosedPoint)
   return point_coordinates(inverted_set(OO(X)))
 end
@@ -162,6 +235,33 @@ function Oscar.ideal(X::SpaceGerm{<:Ring,<:MPolyLocRing})
     return ideal(OO(X),[zero(OO(X))])
 end
 
+@doc raw"""
+    ambient_germ(X::AbsSpaceGerm)
+
+Returns the ambient germ of a given germ `(X,p)`.
+
+More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
+ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
+to `p. Then the ambient germ `Spec U^{-1}R` is returned.
+
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
+
+julia> X = Spec(R, I);
+
+julia> XS = SpaceGerm(X,[0,0,0]);
+
+julia> ambient_germ(XS)
+Spectrum
+  of localization
+    of multivariate polynomial ring in 3 variables over QQ
+    at complement of maximal ideal of point (0, 0, 0)
+
+```
+"""
 @attr SpaceGerm function ambient_germ(X::AnySpaceGerm)
     Y,_ = germ_at_point(localized_ring(OO(X)))
     return Y
@@ -171,6 +271,32 @@ end
     return X
 end
 
+@doc raw"""
+    defining_ring_element(X::HypersurfaceGerm)
+    defining_ring_elements(X::CompleteIntersectionGerm)
+
+Returns the (fixed) defining element(s) of the ideal of `X` in the ring of the ambient germ of `X`. Note that the return value is not an element of a polynomial ring, but of a localization of a polynomial ring the complement of a maximal ideal. (Hence each such element has a numerator and a denominator.)
+
+Caution: This command is not exported and is only provided for convenience in programming.
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
+
+julia> X = Spec(R, I);
+
+julia> YS = HypersurfaceGerm(Y,[0,0,0])
+Spectrum
+  of localization
+    of quotient of multivariate polynomial ring by ideal with 1 generator
+    at complement of maximal ideal of point (0, 0, 0)
+
+julia> Oscar.defining_ring_element(YS)
+-x^3 + x^2 + x*y^2 - x*z^2 - y^2 + z^2
+
+```
+"""
 defining_ring_element(X::HypersurfaceGerm) = X.f
 defining_ring_elements(X::CompleteIntersectionGerm) = X.v
 
