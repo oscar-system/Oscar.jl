@@ -8,37 +8,18 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 
 @registerSerializationType(Vector)
 
-function save_internal(s::SerializerState, vec::Vector)
-    open_array(s)
-    for x in vec
-        if typeof(x) <: Vector
-            save_internal(s, x)
+function load_object_with_params(s::DeserializerState, ::Type{Vector{T}}, v::Vector{Any}, params::Any) where T
+    loaded_v = []
+    for x in v
+        if x isa Vector
+            loaded_x = load_object_with_params(s, Vector{T}, x, params)
         else
-            save_type_dispatch(s, x)
+            loaded_x = load_object_with_params(s, T, x, params) 
         end
+        push!(loaded_v, loaded_x)
     end
-    close(s)
+    return loaded_v
 end
-
-#function save_internal(s::SerializerState, vec::Vector{T}) where T <: RingElem
-#    encoded_vec = [save_internal(s, x; include_parents=false) for x in vec]
-#
-#    if include_parents
-#        entries_parent = parent(vec[1])
-#
-#        if has_elem_basic_encoding(entries_parent)
-#            return Dict(
-#                :parent => save_as_ref(s, entries_parent),
-#                :vector => encoded_vec
-#            )
-#        end
-#        return Dict(
-#            :parents => get_parent_refs(s, entries_parent),
-#            :vector => [save_internal(s, x; include_parents=false) for x in vec]
-#        )
-#    end
-#    return encoded_vec
-#end
 
 # deserialize with specific content type
 function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T

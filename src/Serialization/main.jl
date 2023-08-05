@@ -185,7 +185,7 @@ function save_as_ref(s::SerializerState, obj::T) where T
     
     ref = s.objmap[obj] = uuid4()
     s.refs[Symbol(ref)] = obj
-
+    
     return string(ref)
 end
 
@@ -412,12 +412,12 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
         return load_object_with_params(s, T, dict[:data], params)
     elseif Base.issingletontype(T)
         return decode_type(dict[:type])()
-    elseif T isa AbstractVector
-        nested_type = decode_type(s, dict[:nested_type])
+    elseif T <: AbstractVector
+        nested_type = decode_type(dict[:nested_type])
         # not yet sure how recursion will work here
         if type_needs_params(nested_type)
-            nested_p_type = load_type_params(s, dict[:nested_type])
-            #return load_object()
+            params = load_type_params(s, nested_type, dict[:nested_type][:params])
+            return load_object_with_params(s, Vector{nested_type}, dict[:data], params)
         else
             #return load_object()
         end

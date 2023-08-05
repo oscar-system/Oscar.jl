@@ -296,24 +296,33 @@ end
 
 function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
-
+    
     data_dict(s) do 
         save_typed_object(s, def_pols, :def_pols)
         save_object(s, vars(K), :vars)
     end
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: Union{NfAbsNS, NfRelNS}},
-                       dict::Dict)
-    def_pols = load_unknown_type(s, dict[:def_pols])
-    vars = load_type_dispatch(s, Vector{Symbol}, dict[:vars])
+function load_object(s::DeserializerState,
+                     ::Type{<: Union{NfAbsNS, NfRelNS}},
+                     dict::Dict{Symbol, Any})
+    def_pols = load_typed_object(s, dict[:def_pols])
+    vars = map(Symbol, dict[:vars])
     K, _ = number_field(def_pols, vars, cached=false)
     return K
 end
 
 #elements
 @registerSerializationType(Hecke.NfRelNSElem)
+type_needs_params(::Type{NfAbsNSElem}) = true
+
+function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: Union{NfAbsNSElem, Hecke.NfRelNSElem}
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(k), :params)
+    end
+end
 
 function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     polynomial = Oscar.Hecke.data(k)

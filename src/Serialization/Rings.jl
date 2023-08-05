@@ -43,6 +43,7 @@ end
 #elements
 @registerSerializationType(zzModRingElem)
 type_needs_params(T::Type{zzModRingElem}) = true
+
 function save_object(s::SerializerState, x::zzModRingElem)
     data_basic(s, string(x))
 end
