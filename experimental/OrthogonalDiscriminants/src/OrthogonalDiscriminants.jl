@@ -22,3 +22,7 @@ include("gram_det.jl")
 include("exports.jl")
 
 end # module
+
+using .OrthogonalDiscriminants
+
+include("exports.jl")
