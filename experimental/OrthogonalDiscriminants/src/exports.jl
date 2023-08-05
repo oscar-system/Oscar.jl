@@ -4,4 +4,4 @@ export dimension_specht_module
 export gram_determinant_specht_module
 export orthogonal_discriminants
 export orthogonal_discriminant
-export reduced_OD
+#export reduced_OD
