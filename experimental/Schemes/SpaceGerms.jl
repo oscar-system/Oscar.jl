@@ -171,8 +171,8 @@ end
     return X
 end
 
-defining_equation(X::HypersurfaceGerm) = X.f
-defining_equations(X::CompleteIntersectionGerm) = X.v
+defining_ring_element(X::HypersurfaceGerm) = X.f
+defining_ring_elements(X::CompleteIntersectionGerm) = X.v
 
 ################################################################################
 # allow user to specify point also as ideal
