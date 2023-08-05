@@ -100,3 +100,13 @@ A geometrically integral scheme of dimension 2 of finite type over a field
 represented in terms of a covering.
 """
 abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField} end
+
+################################################################################
+#
+# Abstract types for rational points
+#
+################################################################################
+abstract type AbsAffineRationalPoint{RingElemType, ParentType} end
+
+abstract type AbsProjectiveRationalPoint{RingElemType, ParentType} end
+
