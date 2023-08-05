@@ -26,7 +26,7 @@ end
 @doc raw"""
     grading_group(R::MPolyDecRing)
 
-If `R` is, say, `G`-graded, return `G`.
+If `R` is, say, `G`-graded, then return `G`.
 
 # Examples
 ```jldoctest
@@ -1156,6 +1156,45 @@ function show_homo_comp(io::IO, M)
   end
 end
 
+@doc raw"""
+    monomials_of_degree(R::MPolyDecRing, g::GrpAbFinGenElem)
+
+Given a polynomial ring `R` over a field which is graded by a free
+group of type `GrpAbFinGen`, and given an element `g` of that group,
+return the monomials of degree `g` in `R`.
+
+    monomials_of_degree(R::MPolyDecRing, W::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `R` and proceed as above.
+
+    monomials_of_degree(R::MPolyDecRing, d::IntegerUnion)
+
+Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
+an integer `d`, convert `d` into an element `g` of the grading
+group of `R` and proceed as above.
+
+!!! note
+    If the component of the given degree is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> G = grading_group(T)
+GrpAb: Z
+
+julia> L = monomials_of_degree(T, 2)
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ z^2
+ y*z
+ y^2
+ x*z
+ x*y
+ x^2
+```
+"""
 function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
@@ -1186,28 +1225,36 @@ function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
 end
 
 
+function monomials_of_degree(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(R)
+  return monomials_of_degree(R, grading_group(R)(g))
+end
+
+function monomials_of_degree(R::MPolyDecRing, g::IntegerUnion)
+  @assert is_z_graded(R)
+  return monomials_of_degree(R, grading_group(R)([g]))
+end
 
 @doc raw"""
     homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g`. Additionally, return
-the embedding of the component into `R`.
+return the homogeneous component of `R` of degree `g` as a standard
+vector space. Additionally, return the map which sends an element
+of that vector space to the corresponding polynomial in `R`.
 
-    homogeneous_component(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+    homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field, and given
-a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `R`, and return the homogeneous component of `R` whose degree 
-is that element. Additionally, return the embedding of the component into `R`.
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `R` and proceed as above.
 
-    homogeneous_component(R::MPolyDecRing, g::IntegerUnion)
+    homogeneous_component(R::MPolyDecRing, d::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring `R` over a field, and given
-an integer `g`, convert `g` into an element of the grading group of `R`, 
-and return the homogeneous component of `R` whose degree is that element.
-Additionally, return the embedding of the component into `R`.
+an integer `d`, convert `d` into an element `g` of the grading group of `R`
+proceed as above.
 
 !!! note
     If the component is not finite dimensional, an error message will be thrown.
@@ -1244,28 +1291,6 @@ x[2]*y[1]
 x[1]*y[3]
 x[1]*y[2]
 x[1]*y[1]
-
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
-
-julia> G = grading_group(T)
-GrpAb: Z
-
-julia> L = homogeneous_component(T, 2)
-(T_[2] of dim 6, Map from
-T_[2] of dim 6 to T defined by a julia-function with inverse)
-
-julia> FG = gens(L[1]);
-
-julia> EMB = L[2];
-
-julia> for i in 1:length(FG) println(EMB(FG[i])) end
-z^2
-y*z
-y^2
-x*z
-x*y
-x^2
 ```
 """
 function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
