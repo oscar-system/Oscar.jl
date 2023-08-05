@@ -26,4 +26,4 @@ include("VectorBundles.jl")
 include("WeilDivisor.jl")
 include("duValSing.jl")
 include("RationalMap.jl")
-
+include("AffineRationalPoint.jl")
