@@ -22,7 +22,6 @@ function save_parents(s::SerializerState, parent_ring::Ring)
     return refs
 end
 
-
 ################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
@@ -199,11 +198,10 @@ function load_object_with_params(s::DeserializerState,
         exponent += 1
         coeff_type = elem_type(base)
         if type_needs_params(coeff_type)
-            parents = parents[1:end - 1]
-            if isempty(parents)
+            if length(parents) == 1
                 params = coefficient_ring(parent_ring)
             else
-                params = parents
+                params = parents[1:end - 1]
             end
             loaded_terms[exponent] = load_object_with_params(s, coeff_type, coeff, params)
         else
