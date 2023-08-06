@@ -379,21 +379,6 @@ function load_object_with_params(s::DeserializerState, ::Type{<: FracElem},
     return  parent_ring(loaded_num, loaded_den)
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<:FracElem},
-                       dict::Dict)
-    parents = load_parents(s, dict[:parents])
-    return load_terms(s, parents, dict[:terms], parents[end])
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: FracElem},
-                                   dict::Dict,
-                                   parent:: FracField)
-    parents = get_parents(parent)
-    return load_terms(s, parents, dict[:terms], parents[end])
-end
-
 ################################################################################
 # RationalFunctionField
 
@@ -453,24 +438,6 @@ function load_object_with_params(s::DeserializerState, ::Type{<: AbstractAlgebra
     loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
     loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
     return  parent_ring(loaded_num, loaded_den)
-end
-    
-function load_internal(s::DeserializerState,
-                       ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
-                       dict::Dict)
-    parents = load_parents(dict[:parents])
-    return load_terms(s, parents, dict[:terms], parents[end])
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
-                                   dict::Dict,
-                                   parent:: AbstractAlgebra.Generic.RationalFunctionField)
-    forced_parent = base_ring(AbstractAlgebra.Generic.fraction_field(parent))
-    num = load_unknown_type(s, dict[:num]; parent=forced_parent)
-    den = load_unknown_type(s, dict[:den]; parent=forced_parent)
-
-    return parent(num, den)
 end
 
 ################################################################################
