@@ -21,17 +21,7 @@ function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, au
   auxiliary_base_space = variety
   if dim(auxiliary_base_space) != d
     integral_rays = matrix(ZZ, rays(variety))
-    integral_rays = [vec([Int(a) for a in integral_rays[k,:]]) for k in 1:nrows(integral_rays)]
-    all_cones = cones(variety)
-    fan_max_cone_matrix = matrix(ZZ, cones(variety))
-    new_max_cones = Vector{Int}[]
-    for k in 1:nrows(fan_max_cone_matrix)
-      cone = positive_hull(integral_rays[all_cones[k,:]])
-      if dim(cone) == d
-        indices = findall(x -> x == 1, vec(fan_max_cone_matrix[k,:]))
-        push!(new_max_cones, indices)
-      end
-    end
+    new_max_cones = IncidenceMatrix(cones(variety, d))
     auxiliary_base_space = normal_toric_variety(integral_rays, new_max_cones; non_redundant = true)
   end
 
