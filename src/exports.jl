@@ -547,6 +547,7 @@ export gen
 export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
+export generating_system
 export generator_matrix
 export generic_fraction
 export generic_fractions
@@ -1226,6 +1227,7 @@ export set_coordinate_names
 export set_coordinate_names_of_torus
 export set_grading
 export set_name!
+export set_ordering
 export set_power!
 export set_relative_order!
 export set_relative_orders!
