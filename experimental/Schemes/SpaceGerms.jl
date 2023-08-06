@@ -208,7 +208,7 @@ julia> X = Spec(R, I);
 
 julia> XS = SpaceGerm(X,[0,0,0]);
 
-point(XS)
+julia> point(XS)
 3-element Vector{QQFieldElem}:
  0
  0
@@ -342,7 +342,7 @@ end
 #######################################################################################
 ### constructors
 #######################################################################################
-function SpaceGerm(X::AbsSpec, a::Vector)
+function SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
@@ -353,7 +353,7 @@ function SpaceGerm(X::AbsSpec, a::Vector)
   return SpaceGerm(Y)
 end
 
-function HypersurfaceGerm(X::AbsSpec, a::Vector)
+function HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
