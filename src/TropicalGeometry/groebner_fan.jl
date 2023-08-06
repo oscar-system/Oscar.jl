@@ -407,7 +407,7 @@ If `I` is not weighted homogeneous with respect to a positive weight vector, the
 
 If `return_groebner_bases==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the Groebner bases for those cones.  Their union will be a universal Groebner basis.
 
-If `return_orderings==true`, returns a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+If `return_orderings==true`, also return a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
 
 # Examples
 ```jldoctest
