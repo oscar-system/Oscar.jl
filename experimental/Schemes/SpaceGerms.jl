@@ -286,13 +286,13 @@ julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
 julia> X = Spec(R, I);
 
-julia> YS = HypersurfaceGerm(Y,[0,0,0])
+julia> XS = HypersurfaceGerm(X,[0,0,0])
 Spectrum
   of localization
     of quotient of multivariate polynomial ring by ideal with 1 generator
     at complement of maximal ideal of point (0, 0, 0)
 
-julia> Oscar.defining_ring_element(YS)
+julia> Oscar.defining_ring_element(XS)
 -x^3 + x^2 + x*y^2 - x*z^2 - y^2 + z^2
 
 ```
