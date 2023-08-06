@@ -165,14 +165,26 @@ normal_vector(H::Union{Halfspace, Hyperplane}) = [H.a[1, i] for i in 1:length(H.
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
 
-# TODO: abstract notion of equality
-Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
+function Base.:(==)(x::Halfspace, y::Halfspace)
+  ax = normal_vector(x)
+  ay = normal_vector(y)
+  ix = findfirst(a -> !iszero(a), ax)
+  iy = findfirst(a -> !iszero(a), ay)
+  ix == iy || return false
+  r = y.a[iy]//x.a[ix]
+  r > 0 || return false
+  return (r .* ax == ay) && (r * negbias(x) == negbias(y))
+end
 
-Base.:(==)(x::LinearHalfspace, y::LinearHalfspace) = x.a == y.a
-
-Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
-
-Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
+function Base.:(==)(x::Hyperplane, y::Hyperplane)
+  ax = normal_vector(x)
+  ay = normal_vector(y)
+  ix = findfirst(a -> !iszero(a), ax)
+  iy = findfirst(a -> !iszero(a), ay)
+  ix == iy || return false
+  r = y.a[iy]//x.a[ix]
+  return (r .* ax == ay) && (r * negbias(x) == negbias(y))
+end
 
 Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
   hash((x.a, x.b), hash(T, h))

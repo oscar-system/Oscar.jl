@@ -16,12 +16,13 @@
   b = [8, 6, 4]
 
   NF, sr2 = quadratic_field(2)
+  ENF, sre2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
 
   @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
 
     @test fun(a) isa T{QQFieldElem}
 
-    for f in (ZZ, QQ, NF)
+    for f in (ZZ, QQ, ENF)
 
       U = elem_type(f)
       @testset "$T{$U}" begin
@@ -49,7 +50,7 @@
         @test_throws BoundsError A[0]
         @test_throws BoundsError A[4]
 
-        for g in (ZZ, QQ, NF)
+        for g in (ZZ, QQ, ENF)
           V = elem_type(g)
 
           B = fun(g, b)
@@ -79,7 +80,7 @@
 
   @testset "$T" for (T, f) in ((AffineHalfspace, affine_halfspace), (AffineHyperplane, affine_hyperplane))
         
-    for p in [QQ, NF]
+    for p in [QQ, ENF]
       U = elem_type(p)
       @test f(p, a, 0) isa T{U}
       @test f(p, permutedims(a), 0) isa T{U}
@@ -107,7 +108,7 @@
     
   @testset "$T" for (T, f) in ((LinearHalfspace, linear_halfspace), (LinearHyperplane, linear_hyperplane))
         
-    for p in [QQ, NF]
+    for p in [QQ, ENF]
       U = elem_type(p)
       @test f(p, a) isa T{U}
       @test f(p, permutedims(a)) isa T{U}
