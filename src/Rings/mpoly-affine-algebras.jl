@@ -76,8 +76,10 @@ end
 ##################################################################################
 
 
+# TODO: The function below now also works for rings which are not standard graded 
+# by virtue of Abbott's implementation. Clean up the docstring accordingly. 
 @doc raw"""
-    hilbert_series(A::MPolyQuoRing)
+    hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
@@ -90,6 +92,11 @@ $q = (1-t^{w_1})\cdots (1-t^{w_n}),$
 where $n$ is the number of variables of $R$, and $w_1, \dots, w_n$ are the assigned weights.
 
 See also `hilbert_series_reduced`.
+
+!!! note 
+    The advanced user can select different backends for the computation (`:Singular` and 
+    `:Abbott` for the moment), as well as different algorithms. The latter might be 
+    ignored for certain backends. 
 
 # Examples
 ```jldoctest
@@ -108,13 +115,9 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
-function hilbert_series(A::MPolyQuoRing)
+function hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA)
   R = base_ring(A.I)
-  if !is_z_graded(R)
-    return Oscar.HSNum_fudge(A)
-  end
-  if iszero(A.I)
-    @req is_z_graded(R) "The base ring must be ZZ-graded"
+  if is_z_graded(R) || iszero(A.I)
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     @req minimum(W) > 0 "The weights must be positive"
@@ -122,8 +125,12 @@ function hilbert_series(A::MPolyQuoRing)
     den = prod([1-t^Int(w[1]) for w in R.d])
     return (one(parent(t)), den)
   end
-  H = HilbertData(A.I)
-  return hilbert_series(H)
+  if backend == :Abbott
+    return Oscar.HSNum_fudge(A)
+  elseif backend == :Singular
+    H = HilbertData(A.I)
+    return hilbert_series(H)
+  end
 end
 
 
