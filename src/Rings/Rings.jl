@@ -34,4 +34,5 @@ include("AlgClosureFp.jl")
 include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")
 include("FreeAssAlgIdeal.jl")
+include("hilbert.jl")
 
