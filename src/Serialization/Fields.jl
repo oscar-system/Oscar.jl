@@ -270,7 +270,9 @@ function load_object_with_params(s::DeserializerState, ::Type{<: Union{NfAbsNSEl
     K = parents[end]
     n = ngens(K)
     # forces parent of MPolyElem
-    parents[end - 1], _ = polynomial_ring(base_field(K), n)
+    poly_ring = polynomial_ring(base_field(K), n)
+    parents[end - 1], _ = poly_ring
+    poly_elem_type = elem_type
     polynomial = load_object_with_params(s, MPolyRingElem, terms, parents[1:end - 1])
     polynomial = evaluate(polynomial, gens(K))
     return K(polynomial)
@@ -329,11 +331,6 @@ function save_object(s::SerializerState,
     data_dict(s) do
         save_typed_object(s, base_ring(RF), :base_ring)
         syms = symbols(RF)
-        if !(syms isa Vector)
-            # guarantee symbols are always an array
-            # even if there is only one
-            syms = [syms]
-        end
         save_object(s, syms, :symbols)
     end
 end
@@ -342,7 +339,12 @@ function load_object(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
                        dict::Dict)
     R = load_typed_object(s, dict[:base_ring])
-    symbols = map(Symbol, dict[:symbols])
+    # ensure proper types of univariate case on load
+    if dict[:symbols] isa Vector
+        symbols = map(Symbol, dict[:symbols])
+    else
+        symbols = Symbol(dict[:symbols])
+    end
     return RationalFunctionField(R, symbols, cached=false)[1]
 end
 

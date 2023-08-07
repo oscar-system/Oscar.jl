@@ -521,7 +521,6 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
         !isempty(state.refs) && data_dict(state) do
             for (id, ref_obj) in state.refs
                 state.key = id
-                println(id, ref_obj)
                 data_dict(state) do
                     save_typed_object(state, ref_obj)
                 end
