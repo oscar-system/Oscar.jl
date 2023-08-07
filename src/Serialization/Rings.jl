@@ -23,6 +23,31 @@ function save_parents(s::SerializerState, parent_ring::Ring)
 end
 
 ################################################################################
+# Handling RingElem Params
+
+function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: RingElem
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        parent_x = parent(x)
+        if serialize_with_id(parent_x)
+            parent_refs = save_parents(s, parent_x)
+            save_object(s, parent_refs, :params)
+        else
+            save_typed_object(s, parent_x, :params)
+        end
+    end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:RingElem}, dict::Dict{Symbol, Any})
+    return load_typed_object(s, dict)
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:RingElem}, refs::Vector{Any})
+    return load_parents(s, refs)
+end
+
+################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
 
@@ -46,18 +71,6 @@ type_needs_params(T::Type{zzModRingElem}) = true
 
 function save_object(s::SerializerState, x::zzModRingElem)
     data_basic(s, string(x))
-end
-
-function save_type_params(s::SerializerState, x::zzModRingElem, key::Symbol)
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(zzModRingElem), :name)
-        save_typed_object(s, parent(x), :params)
-    end
-end
-
-function load_type_params(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict{Symbol, Any})
-    return load_typed_object(s, dict)
 end
 
 function load_object_with_params(s::DeserializerState, ::Type{zzModRingElem},
@@ -107,30 +120,6 @@ end
 
 PolyElemUniontype = Union{UniversalPolyRingElem, MPolyRingElem, PolyRingElem}
 type_needs_params(::Type{<:PolyElemUniontype}) = true
-
-# this seems to be general enough for all types that have parents and should be moved
-# once it becomes clearer how other parametrized types will be handled 
-function save_type_params(s::SerializerState, x::T, key::Symbol)  where T <: PolyElemUniontype
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        parent_x = parent(x)
-        if serialize_with_id(parent_x)
-            parent_refs = save_parents(s, parent_x)
-            save_object(s, parent_refs, :params)
-        else
-            save_typed_object(s, parent_x, :params)
-        end
-    end
-end
-
-function load_type_params(s::DeserializerState, ::Type{T}, dict::Dict{Symbol, Any}) where T <: PolyElemUniontype
-    return load_typed_object(s, dict)
-end
-
-function load_type_params(s::DeserializerState, ::Type{T}, refs::Vector{Any}) where T <: PolyElemUniontype
-    return load_parents(s, refs)
-end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})

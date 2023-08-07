@@ -184,8 +184,8 @@ function save_as_ref(s::SerializerState, obj::T) where T
     end
     
     ref = s.objmap[obj] = uuid4()
-    s.refs[Symbol(ref)] = obj
-    
+    push!(s.refs, (Symbol(ref), obj))
+
     return string(ref)
 end
 
@@ -332,20 +332,6 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
         end
     end
 end
-
-#function save_type_params(s::SerializerState, x::T, key::Symbol) where T
-#    s.key = key
-#    data_dict(s) do
-#        if serialize_with_id(parent_x)
-#            parent_refs = save_parents(s, parent_x)
-#            save_object(s, parent_refs, :parents)
-#            save_object(s, encode_type(T), :name)
-#        else
-#            save_typed_object(s, parent_x, :parent)
-#            save_object(s, encode_type(T), :name)
-#        end
-#    end
-#end
 
 # ATTENTION
 # The load mechanism needs to look at the serialized data first,
@@ -532,9 +518,10 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
 
         # this should be handled by serializers in a later commit / PR
         state.key = :refs
-        data_dict(state) do 
+        !isempty(state.refs) && data_dict(state) do
             for (id, ref_obj) in state.refs
                 state.key = id
+                println(id, ref_obj)
                 data_dict(state) do
                     save_typed_object(state, ref_obj)
                 end

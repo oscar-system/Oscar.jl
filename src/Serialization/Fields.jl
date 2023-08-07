@@ -60,18 +60,6 @@ function save_object(s::SerializerState, elem::fpFieldElem)
     data_basic(s, string(elem))
 end
 
-function save_type_params(s::SerializerState, x::fpFieldElem, key::Symbol)
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(Nemo.fpFieldElem), :name)
-        save_typed_object(s, parent(x), :params)
-    end
-end
-
-function load_type_params(s::DeserializerState, ::Type{fpFieldElem}, dict::Dict{Symbol, Any})
-    return load_typed_object(s, dict)
-end
-
 function load_object_with_params(s::DeserializerState, ::Type{fpFieldElem},
                                  str::String, F::Nemo.fpField)
     return F(parse(UInt64, str))
@@ -96,18 +84,6 @@ type_needs_params(T::Type{FpFieldElem}) = true
 
 function save_object(s::SerializerState, elem::FpFieldElem)
     data_basic(s, string(elem))
-end
-
-function save_type_params(s::SerializerState, x::FpFieldElem, key::Symbol)
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(Nemo.FpFieldElem), :name)
-        save_typed_object(s, parent(x), :params)
-    end
-end
-
-function load_type_params(s::DeserializerState, ::Type{FpFieldElem}, dict::Dict{Symbol, Any})
-    return load_typed_object(s, dict)
 end
 
 function load_object_with_params(s::DeserializerState, ::Type{FpFieldElem},
@@ -159,15 +135,6 @@ end
 @registerSerializationType(Hecke.NfRelElem)
 NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
 type_needs_params(T::Type{<:NumFieldElemTypeUnion}) = true
-
-function save_type_params(s::SerializerState,
-                          x::T, key::Symbol) where T <: NumFieldElemTypeUnion
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(x), :params)
-    end
-end
 
 function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
     K = parent(k)
@@ -294,14 +261,6 @@ end
 @registerSerializationType(NfAbsNSElem)
 type_needs_params(::Type{<:Union{NfAbsNSElem, Hecke.NfRelNSElem}}) = true
 
-function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: Union{NfAbsNSElem, Hecke.NfRelNSElem}
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(f), :params)
-    end
-end
-
 function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     polynomial = Oscar.Hecke.data(k)
     save_object(s, polynomial)
@@ -310,24 +269,12 @@ end
 function load_object_with_params(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
     K = parents[end]
     n = ngens(K)
+    # forces parent of MPolyElem
     parents[end - 1], _ = polynomial_ring(base_field(K), n)
     polynomial = load_object_with_params(s, MPolyRingElem, terms, parents[1:end - 1])
     polynomial = evaluate(polynomial, gens(K))
     return K(polynomial)
 end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Hecke.NfRelNSElem},
-                                   dict::Dict,
-                                   parent_field::Hecke.NfRelNS)
-    n = ngens(parent_field)
-    parent_polynomial_ring, _ = polynomial_ring(base_field(parent_field), n)
-    polynomial = load_unknown_type(s, dict[:polynomial]; parent=parent_polynomial_ring)
-    polynomial = evaluate(polynomial, gens(parent_field))
-
-    return parent_field(polynomial)
-end
-
 
 ################################################################################
 # FracField
@@ -352,14 +299,6 @@ end
 @registerSerializationType(FracElem)
 # might need a better way to block QQFieldElem here so that more FracElems can be serialized
 type_needs_params(::Type{<:FracElem{T}}) where T <: Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem} = true
-
-function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: FracElem
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(f), :params)
-    end
-end
 
 function save_object(s::SerializerState, f::FracElem)
     data_array(s) do
@@ -412,13 +351,6 @@ end
                            true,
                            "RationalFunctionFieldElem")
 type_needs_params(::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem}) = true
-
-function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: AbstractAlgebra.Generic.RationalFunctionFieldElem
-    data_dict(s) do 
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(k), :params)
-    end
-end
 
 function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
     data_array(s) do

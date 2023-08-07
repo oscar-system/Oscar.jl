@@ -74,7 +74,7 @@ mutable struct SerializerState
     # dict to track already serialized objects
     objmap::IdDict{Any, UUID}
     depth::Int
-    refs::Dict{Symbol, Any}
+    refs::Vector{Tuple{Symbol, Any}}
     serializer::JSONSerializer 
     key::Union{Symbol, Nothing}
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
@@ -82,7 +82,7 @@ mutable struct SerializerState
 end
 
 function SerializerState(io::IO)
-    return SerializerState(IdDict{Any, UUID}(), 0, Dict(), JSONSerializer(io), nothing)
+    return SerializerState(IdDict{Any, UUID}(), 0, Tuple{Symbol, Any}[], JSONSerializer(io), nothing)
 end
 
 struct DeserializerState
