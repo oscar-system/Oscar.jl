@@ -1496,13 +1496,14 @@ multi-modular strategy.
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
 
-julia> I = ideal(R, [x^2, x*y + 32779384769867982578344256261*y^2]);
+julia> I = ideal(R, [x^2+1209, x*y + 3279*y^2])
+ideal(x^2 + 1209, x*y + 3279*y^2)
 
 julia> groebner_basis_modular(I)
 Gröbner basis with elements
-1 -> y^3
-2 -> x^2
-3 -> x*y - 2093538//991963*y^2
+1 -> y^3 + 403//3583947*y
+2 -> x^2 + 1209
+3 -> x*y + 3279*y^2
 with respect to the ordering
 degrevlex([x, y, z])
 ```
