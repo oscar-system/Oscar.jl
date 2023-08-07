@@ -58,8 +58,8 @@ function vector_space_dimension(A::MPolyQuoRing)
     error("vector_space_dimension requires a coefficient ring that is a field")
   end
   I = A.I
-  @req dim(I) == 0 "The ideal must be zero-dimensional"
   G = groebner_assure(I)
+  @req dim(I) == 0 "The ideal must be zero-dimensional"
   singular_assure(G)
   return Singular.vdim(G.S)
 end
@@ -557,7 +557,7 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       VAR = [_make_variable("t", i) for i = 1:m]
    end
    S, _ = LaurentPolynomialRing(ZZ, VAR)
-   q = one(S)
+   q = one(S)z
    for i = 1:n
       e = [Int(MI[i, :][j]) for j = 1:m]
       B = MPolyBuildCtx(S)
