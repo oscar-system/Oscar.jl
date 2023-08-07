@@ -510,13 +510,13 @@ function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
   R = coefficient_ring(C)
   comps = IdDict{IdealSheaf, elem_type(R)}()
   for I in components(C)
-    @show "trying cheap"
+    @vprint :RationalMap 1 "trying cheap pullback\n"
     pbI = _try_pullback_cheap(phi, I)
     if pbI === nothing
-      @show "trying randomized"
+      @vprint :RationalMap 1 "trying randomized pullback\n"
       pbI = _try_randomized_pullback(phi, I)
       if pbI === nothing
-        @show "trying hard"
+        @vprint :RationalMap 1 "trying the full pullback\n"
         pbI = _pullback(phi, I)
       end
     end
@@ -565,24 +565,18 @@ function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
   # Find a patch in Y on which this component is visible
   all_V = [V for V in affine_charts(Y) if !isone(I(V))]
 
-  @show all_V
   min_var = minimum([ngens(OO(V)) for V in all_V])
-  @show min_var
   all_V = [V for V in all_V if ngens(OO(V)) == min_var]
-  @show all_V
   deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
-  @show deg_bound
   all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
-  @show all_V
   V = first(all_V)
-  @show findfirst(x->x===V, affine_charts(Y))
 
   all_U = copy(affine_charts(X))
   function complexity(U::AbsSpec)
     a = realization_preview(phi, U, V)
     return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
   end
-  sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+  sort!(all_U, by=complexity)
 
   for U in all_U
     psi = random_realization(phi, U, V)
@@ -592,7 +586,6 @@ function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
     if !isone(J)
       JJ = IdealSheaf(X, domain(psi), gens(J))
       return JJ
-      break
     end
   end
   return nothing
@@ -605,17 +598,11 @@ function _pullback(phi::RationalMap, I::IdealSheaf)
   # Find a patch in Y on which this component is visible
   all_V = [V for V in affine_charts(Y) if !isone(I(V))]
 
-  @show all_V
-  min_var = minimum([ngens(OO(V)) for V in all_V])
-  @show min_var
+  min_var = minimum(ngens(OO(V)) for V in all_V)
   all_V = [V for V in all_V if ngens(OO(V)) == min_var]
-  @show all_V
   deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
-  @show deg_bound
   all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
-  @show all_V
   V = first(all_V)
-  @show findfirst(x->x===V, affine_charts(Y))
 
   all_U = copy(affine_charts(X))
   function complexity(U::AbsSpec)
@@ -628,12 +615,10 @@ function _pullback(phi::RationalMap, I::IdealSheaf)
     psi_loc = realize_maximally_on_open_subset(phi, U, V)
     # If we are in different components, skip
     length(psi_loc) > 0 || continue
-    found = 0
     J = ideal(OO(domain(first(psi_loc))), elem_type(OO(domain(first(psi_loc))))[])
     cod_ideal = ideal(OO(U), elem_type(OO(U))[])
     for (k, psi) in enumerate(psi_loc)
       if dim(cod_ideal) < dim(I)
-        found = 0
         break
       end
       J = pullback(psi)(I(V))
