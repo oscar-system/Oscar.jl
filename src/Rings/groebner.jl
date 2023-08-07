@@ -1483,7 +1483,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
 end
 
 # modular gröbner basis techniques
-@doc Markdown.doc"""
+@doc raw"""
     groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
                            ordering::MonomialOrdering)
 
