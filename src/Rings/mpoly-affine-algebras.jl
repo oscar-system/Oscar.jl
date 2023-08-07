@@ -557,7 +557,7 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       VAR = [_make_variable("t", i) for i = 1:m]
    end
    S, _ = LaurentPolynomialRing(ZZ, VAR)
-   q = one(S)z
+   q = one(S)
    for i = 1:n
       e = [Int(MI[i, :][j]) for j = 1:m]
       B = MPolyBuildCtx(S)
