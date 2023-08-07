@@ -1567,9 +1567,9 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
     end
     d *= fmpz(p)
   end
-  final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I))
-                        for f in std_basis_crt_previous]
-  return IdealGens(final_gb, ordering, isGB = true)
+  final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I)) for f in std_basis_crt_previous]
+  I.gb[ordering] = IdealGens(final_gb, ordering, isGB = true)
+  return I.gb[ordering]
 end
 
 function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
