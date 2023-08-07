@@ -465,11 +465,6 @@ function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
   return ideal(parent, [map_coefficients(mp, g, parent = parent) for g = gens(I)])
 end
 
-@attr T function radical(I::T) where {T <: MPolyIdeal{<:NumFieldElem}}
-  A, mA = _collaps(base_ring(I))
-  r = radical
-end
-
 @doc raw"""
     is_radical(I::MPolyIdeal)
 
