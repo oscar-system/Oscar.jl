@@ -6384,13 +6384,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
-  gbpres = Singular.std(singular_kernel_entry)
-
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
+    gbpres = Singular.std(singular_kernel_entry)
     res = Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+    gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -7929,7 +7929,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
-3 -> -y*(e[1] -> e[1])
+3 -> -x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
