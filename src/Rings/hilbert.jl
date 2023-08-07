@@ -397,7 +397,7 @@ function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T
   nvars = length(e);
   @inbounds scale = prod([T[k]^e[k]  for k in 1:nvars]);
   ans = ans - scale * HSNum_base_SimplePowers(ReducedSimplePPs, T)
-  @vprint  :hilbert 1 "HSNum_base_case1: returning $(ans)");
+  @vprint  :hilbert 1 "HSNum_base_case1: returning $(ans)";
   return ans;
 end # function
 
@@ -708,12 +708,12 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
 #  @vprint  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))";
   # Check if we have base case 0
   if  isempty(NonSimplePPs)  #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 0");
+    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 0";
     return HSNum_base_SimplePowers(SimplePPs, T);
   end #if
   # Check if we have base case 1
   if  length(NonSimplePPs) == 1  #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 1");
+    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 1";
     return HSNum_base_case1(NonSimplePPs[1], SimplePPs, T);
   end #if
   # ----------------------
@@ -731,7 +731,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   else CC = []
   end #if
   if length(CC) > 1 #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate Splitting case");
+    @vprint :hilbert  1 "HSNum_loop:  --> delegate Splitting case";
     return HSNum_splitting_case(CC, SimplePPs, NonSimplePPs, T, PivotStrategy);
   end #if  (splitting case)
   # ----------------------
@@ -878,7 +878,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
 
   HSNum_sum = HSNum_loop(RecurseSum_SimplePPs, RecurseSum_NonSimplePPs, T, PivotStrategy);
   HSNum_quot = HSNum_loop(RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs, T, PivotStrategy);
-  @vprint  :hilbert 1 "HSNum_loop:  END OF CALL");
+  @vprint  :hilbert 1 "HSNum_loop:  END OF CALL";
   return HSNum_sum + scale*HSNum_quot;
 end #function
 
