@@ -30,3 +30,4 @@ include("PBWAlgebraQuo.jl")
 include("FreeAssAlgIdeal.jl")
 
 include("binomial-ideals.jl")
+include("hilbert.jl")
