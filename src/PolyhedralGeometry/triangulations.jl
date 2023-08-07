@@ -56,6 +56,40 @@ end
 
 ################################################################################
 
+function _is_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
+  ad = ambient_dim(sop)
+  for mc in maximal_cells(sop)
+     ad == length(mc)-1 || return false
+  end
+  return true
+end
+
+
+
+function _is_full_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
+  _is_triangulation(sop) || return false
+  length(Base.union(maximal_cells(sop)...)) == npoints(sop) || return false
+  return true
+end
+
+
+
+function _find_full_star_triangulation(pts::ZZMatrix)
+  n = nrows(pts)
+  wts = rand(0:100000, n)
+  # Weight of first points is lowest
+  wts[1] = -1
+  sop = subdivision_of_points(pts, wts)
+  while !_is_full_triangulation(sop)
+     wts = rand(0:100000, n)
+     wts[1] = -1
+     sop = subdivision_of_points(pts, wts)
+  end
+  return collect(maximal_cells(sop))
+end
+
+
+
 function _is_star_triangulation(triang::Vector{Vector{Int}})
     u = Set{Int}()
     for v in triang

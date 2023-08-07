@@ -287,23 +287,25 @@ end
 
 function show(io::IO, I::IdealGens)
   if I.isGB
-    if is_global(I.ord)
-      print(io, "Gröbner basis with elements")
-    else
-      print(io, "Standard basis with elements")
-    end
-    for (i,g) in enumerate(gens(I))
-      print(io, "\n", i, " -> ", OscarPair(g, I.ord))
-    end
+      if is_global(I.ord)
+          print(io, "Gröbner basis with elements")
+      else
+          print(io, "Standard basis with elements")
+      end
+      for (i,g) in enumerate(gens(I))
+          print(io, "\n", i, " -> ", OscarPair(g, I.ord))
+      end
+      print(io, "\nwith respect to the ordering")
+      print(io, "\n", I.ord)
   else
-    print(io, "Ideal generating system with elements")
-    for (i,g) in enumerate(gens(I))
-      print(io, "\n", i, " -> ", g)
-    end
-  end
-  if I.isGB
-    print(io, "\nwith respect to the ordering")
-    print(io, "\n", I.ord)
+      print(io, "Ideal generating system with elements")
+      for (i,g) in enumerate(gens(I))
+          print(io, "\n", i, " -> ", g)
+      end
+      if isdefined(I, :ord)
+          print(io, "\nwith associated ordering")
+          print(io, "\n", I.ord)
+      end
   end
 end
 
@@ -379,9 +381,67 @@ function elements(I::IdealGens)
   return collect(I)
 end
 
-function ordering(G::Oscar.IdealGens)
-    return G.ord
+function ordering(G::IdealGens)
+  isdefined(G, :ord) ? G.ord : error("The ideal generating system does not have an associated ordering")
 end
+
+# for internal use only
+function set_ordering!(G::IdealGens, monord::MonomialOrdering)
+  @assert base_ring(G) == monord.R "Base rings of IdealGens and MonomialOrdering are inconsistent"
+  isdefined(G, :ord) && G.ord !== monord && error("Monomial ordering is already set to a different value")
+  G.ord = monord
+end
+
+
+@doc raw"""
+set_ordering(I::IdealGens, monord::MonomialOrdering) 
+
+Return an ideal generating system with an associated monomial ordering.
+
+# Examples
+```jldoctest
+julia> R, (x0, x1, x2) = polynomial_ring(QQ, ["x0","x1","x2"]);
+
+julia> I = ideal([x0*x1, x2]);
+
+julia> g = generating_system(I);
+
+julia> set_ordering(g, degrevlex(gens(R)))
+Ideal generating system with elements
+1 -> x0*x1
+2 -> x2
+with associated ordering
+degrevlex([x0, x1, x2])   
+```
+"""
+function set_ordering(G::IdealGens, monord::MonomialOrdering)
+  @assert base_ring(G) == monord.R "Base rings of IdealGens and MonomialOrdering are inconsistent"
+  H = IdealGens(base_ring(G), gens(G))
+  if isdefined(G, :ord) && G.ord != monord
+      H.isGB = false
+      H.isReduced = false
+  end
+  H.keep_ordering = H.keep_ordering
+  H.ord = monord
+  return H
+end
+
+
+function Base.:(==)(G1::IdealGens, G2::IdealGens)
+  @assert !G1.isGB || isdefined(G1, :ord)  "Gröbner basis must have an ordering"
+  @assert !G2.isGB || isdefined(G2, :ord)  "Gröbner basis must have an ordering"
+  if isdefined(G1, :ord) != isdefined(G2, :ord)
+      return false
+  end
+  if G1.isGB != G2.isGB
+      return false
+  end
+  if isdefined(G1, :ord) && G1.ord != G2.ord
+      return false
+  end
+  return G1.gens == G2.gens
+end
+
 
 ##############################################################################
 #
@@ -703,6 +763,27 @@ function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
   return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
+end
+
+@doc raw"""
+    generating_system(I::MPolyIdeal) 
+
+Return the system of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
+
+julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
+
+julia> generating_system(I)
+Ideal generating system with elements
+1 -> x^2 + x
+2 -> x^2 + x*y - y^2 - 2*y
+```
+"""
+function generating_system(I::MPolyIdeal)
+  return I.gens
 end
 
 function syzygy_module(a::Vector{MPolyRingElem})

@@ -195,6 +195,7 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   
   # convert Weierstrass sections into polynomials of the auxiliary base
   auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
+  
   S = cox_ring(auxiliary_base_space)
   ring_map = hom(auxiliary_base_ring, S, gens(S)[1:ngens(auxiliary_base_ring)])
   f = ring_map(weierstrass_f)
@@ -232,7 +233,7 @@ function Base.show(io::IO, w::WeierstrassModel)
   end
   if has_model_description(w)
     push!(properties_string, "-- " * string(get_attribute(w, :model_description)))
-    if has_model_parameters(t)
+    if has_model_parameters(w)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
