@@ -1502,7 +1502,7 @@ julia> groebner_basis_modular(I)
 Gröbner basis with elements
 1 -> y^3
 2 -> x^2
-3 -> x*y - 6811757929883*y^2
+3 -> x*y - 2093538//991963*y^2
 with respect to the ordering
 degrevlex([x, y, z])
 ```
