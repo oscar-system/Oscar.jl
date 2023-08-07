@@ -72,25 +72,15 @@ function _hilbert_numerator_from_leading_exponents(
   error("invalid algorithm")
 end
 
-# compute t ^ (weight_matrix * expvec), where t == gens(S)
-function _expvec_to_poly(S::Ring, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
-  o = one(coefficient_ring(S))  # TODO: cache this ?!
-  return S([o], [weight_matrix * expvec])
-end
 
-# special case for univariate polynomial ring
-function _expvec_to_poly(S::PolyRing, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
-  @assert length(t) == 1
-  @assert size(weight_matrix) == (1, length(expvec))
-
-  # compute the dot-product of weight_matrix[1,:] and expvec, but faster than dot
-  # TODO: what about overflows?
-  s = weight_matrix[1,1] * expvec[1]
-  for i in 2:length(expvec)
-    @inbounds s += weight_matrix[1,i] * expvec[i]
-  end
-  return t[1]^s
-end
+########################################################################
+# Implementations of the different algorithms below
+#
+# Compute the Hilbert series from the monomial leading ideal using 
+# different bisection strategies along the lines of 
+# [Kreuzer, Robbiano: Computational Commutative Algebra 2, Springer]
+# Section 5.3.
+########################################################################
 
 function _hilbert_numerator_trivial_cases(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
@@ -105,7 +95,6 @@ function _hilbert_numerator_trivial_cases(
 
   return nothing
 end
-
 
 function _hilbert_numerator_cocoa(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
@@ -328,6 +317,31 @@ function _hilbert_numerator_bayer_stillman(
   return h
 end
 
+
+########################################################################
+# Auxiliary helper functions below
+########################################################################
+
+### compute t ^ (weight_matrix * expvec), where t == gens(S)
+function _expvec_to_poly(S::Ring, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  o = one(coefficient_ring(S))  # TODO: cache this ?!
+  return S([o], [weight_matrix * expvec])
+end
+
+### special case for univariate polynomial ring
+function _expvec_to_poly(S::PolyRing, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  @assert length(t) == 1
+  @assert size(weight_matrix) == (1, length(expvec))
+
+  # compute the dot-product of weight_matrix[1,:] and expvec, but faster than dot
+  # TODO: what about overflows?
+  s = weight_matrix[1,1] * expvec[1]
+  for i in 2:length(expvec)
+    @inbounds s += weight_matrix[1,i] * expvec[i]
+  end
+  return t[1]^s
+end
+
 function _find_maximum(a::Vector{Int})
   m = a[1]
   j = 1
@@ -363,13 +377,6 @@ function _divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
   end
   return result
 end
-
-########################################################################
-# Compute the Hilbert series from the monomial leading ideal using 
-# different bisection strategies along the lines of 
-# [Kreuzer, Robbiano: Computational Commutative Algebra 2, Springer]
-# Section 5.3.
-########################################################################
 
 _divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
 
