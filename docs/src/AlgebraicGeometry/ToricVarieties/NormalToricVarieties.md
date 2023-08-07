@@ -53,6 +53,42 @@ projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true
 weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
 ```
 
+### Constructions based on triangulations
+
+It is possible to associate toric varieties to star triangulations
+of the lattice points of polyhedrons. Specifically, we can associate
+to any full star triangulation of the lattice points of the polyhedron
+in question a toric variety. For this task, we provide the following
+constructors.
+```@docs
+normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
+```
+An application of this functionality exists in the physics.
+Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
+originally sparked interest in the physics community in toric varieties.
+On a mathematical level, this establishes a construction of toric
+varieties for which a Z^n grading of the Cox ring is provided. See
+for example [FJR17](@cite), which describes this as GIT
+construction [CLS11](@cite).
+
+Explicitly, given the grading of the Cox ring, the map from
+the group of torus invariant Weil divisors to the class group
+is known. Under the assumption that the variety in question
+has no torus factor, we can then identify the map from the
+lattice to the group of torus invariant Weil divisors as the
+kernel of the map from the torus invariant Weil divisor to the
+class group. The latter is a map between free Abelian groups, i.e.
+is provided by an integer valued matrix. The rows of this matrix
+are nothing but the ray generators of the fan of the toric variety.
+It then remains to triangulate these rays, hence in general for
+a GLSM the toric variety is only unique up to fine regular
+star triangulations. We provide the following two constructors:
+```@docs
+normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+```
+
 ### Further Constructions
 
 ```@docs
@@ -60,8 +96,6 @@ blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = 
 blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
 blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
-normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
-normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 ```
 
 

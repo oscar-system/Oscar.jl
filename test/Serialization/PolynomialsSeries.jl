@@ -33,7 +33,8 @@ cases = [
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{
-    MPolyRing{NfAbsNSElem}, PolyRing{NfAbsNSElem}}
+    MPolyRing{NfAbsNSElem}, PolyRing{NfAbsNSElem},
+    AbstractAlgebra.Generic.LaurentMPolyWrapRing{NfAbsNSElem}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     return hom(D, I, gens(I))
@@ -48,6 +49,7 @@ end
 
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
+    AbstractAlgebra.Generic.LaurentMPolyWrapRing{Hecke.NfRelElem{nf_elem}},
     AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{QQPolyRingElem}},
     AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.RationalFunctionField{QQFieldElem, QQPolyRingElem}}}
     D = coefficient_ring(R1)
@@ -72,6 +74,7 @@ function get_hom(R1::T, R2::T) where T <: (
 end
 
 function get_hom(R1::T, R2::T) where T <: Union{
+    AbstractAlgebra.Generic.LaurentMPolyWrapRing{Hecke.NfRelNSElem{nf_elem}},
     MPolyRing{Hecke.NfRelNSElem{nf_elem}},
     PolyRing{Hecke.NfRelNSElem{nf_elem}}}
     D = coefficient_ring(R1)
@@ -93,7 +96,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function get_hom(R1::T, R2::T) where {
-    T <: Union{MPolyRing{S}, PolyRing{S}} where S <: Union{
+    T <: Union{MPolyRing{S}, PolyRing{S}, AbstractAlgebra.Generic.LaurentMPolyWrapRing{S}} where S <: Union{
         nf_elem, zzModRingElem, ZZRingElem, QQFieldElem, fqPolyRepFieldElem}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
@@ -109,7 +112,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyRingElem{S} where S <:Union{
+    Union{MPolyRingElem{S}, AbstractAlgebra.Generic.LaurentMPolyWrap{S}} where S <:Union{
         QQFieldElem, ZZRingElem, zzModRingElem, padic, Oscar.TropicalSemiringElem
     })
     P = parent(p)
@@ -167,7 +170,7 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
-    MPolyRingElem{S}, PolyRingElem{S}} where S <: Union{
+    MPolyRingElem{S}, PolyRingElem{S}, AbstractAlgebra.Generic.LaurentMPolyWrap{S}} where S <: Union{
         AbstractAlgebra.Generic.Frac{QQPolyRingElem},
         AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem, QQPolyRingElem},
         QQPolyRingElem}
@@ -190,7 +193,7 @@ end
 
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyRingElem{S} where S <: Union{
+    Union{MPolyRingElem{S}, AbstractAlgebra.Generic.LaurentMPolyWrap{S}} where S <: Union{
         Hecke.NfRelNSElem{nf_elem},
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,
@@ -312,6 +315,37 @@ end
                 @testset "Load with parent" begin
                     test_save_load_roundtrip(path, p; parent=R) do loaded
                         @test p == loaded
+                    end
+                end
+            end
+
+            @testset "Multivariate Laurent Polynomial over $(case[4])" begin
+                R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
+                p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
+                test_save_load_roundtrip(path, p) do loaded
+                    @test test_equality(p, loaded)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
+                end
+
+                if R isa AbstractAlgebra.Generic.LaurentMPolyWrapRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
+                    @testset "Laurent MPoly Ideals over $(case[4])" begin
+                        q = w^2 + z
+                        i = Oscar.ideal(R, [p, q])
+                        test_save_load_roundtrip(path, i) do loaded_i
+                            S = parent(gens(loaded_i)[1])
+                            h = hom(R, S, gens(S))
+                            @test [h(g) for g in gens(i)] == gens(loaded_i)
+                        end
+
+                        S = parent(gens(i)[1])
+                        test_save_load_roundtrip(path, i; parent=S) do loaded_i
+                            @test gens(i) == gens(loaded_i)
+                        end
                     end
                 end
             end

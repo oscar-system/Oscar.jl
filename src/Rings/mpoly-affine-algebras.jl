@@ -111,8 +111,12 @@ julia> hilbert_series(A)
 function hilbert_series(A::MPolyQuoRing)
    if iszero(A.I)
       R = base_ring(A.I)
+      @req is_z_graded(R) "The base ring must be ZZ-graded"
+      W = R.d
+      W = [Int(W[i][1]) for i = 1:ngens(R)]
+      @req minimum(W) > 0 "The weights must be positive"
       Zt, t = ZZ["t"]
-      den = prod([1-t^Int(w) for w in R.d])
+      den = prod([1-t^Int(w[1]) for w in R.d])
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
@@ -184,6 +188,16 @@ julia> hilbert_series_expanded(A, 5)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
+   if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_z_graded(R) "The base ring must be ZZ-graded"
+       W = R.d
+       W = [Int(W[i][1]) for i = 1:ngens(R)]
+       @req minimum(W) > 0 "The weights must be positive"
+       H = hilbert_series(A)
+       T, t = power_series_ring(QQ, d+1, "t")
+       return _rational_function_to_power_series(T, H[1], H[2])
+     end
    H = HilbertData(A.I)  
    return hilbert_series_expanded(H, d)
 end
@@ -218,8 +232,9 @@ julia> hilbert_function(A, 5)
 """
 function hilbert_function(A::MPolyQuoRing, d::Int)
    if iszero(A.I)
-       n = QQ(ngens(A))
-       return binomial(n-1+d, n-1)
+       d < 0 && QQ(0)
+       HS = hilbert_series_expanded(A, d)
+       return coeff(HS, d)
      end
    H = HilbertData(A.I)
    return hilbert_function(H, d)
@@ -244,13 +259,15 @@ julia> hilbert_polynomial(A)
 """
 function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
    if iszero(A.I)
-       n = QQ(ngens(A))
+       R = base_ring(A.I)
+       @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
+       n = ngens(A)
        Qt, t = QQ["t"]
        b = one(parent(t))
-       for i=1:(n-1)
+       for i in QQ(1):QQ(n-1)
            b = b * (t+i)
         end
-       b = b//factorial(n-1)
+       b = b/QQ(factorial(n-1))
        return b	   
      end
    H = HilbertData(A.I)
@@ -276,6 +293,8 @@ julia> degree(A)
 """
 function degree(A::MPolyQuoRing)
    if iszero(A.I)
+       R = base_ring(A.I)
+       @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        return ZZ(1)
      end
    H = HilbertData(A.I)
@@ -639,14 +658,18 @@ julia> A, _ = quo(R, I);
 
 julia> multi_hilbert_function(A::MPolyQuoRing, [1, 0])
 2
+```
 
+```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> multi_hilbert_function(A, -7)
 22
+```
 
+```jldoctest
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1);
@@ -667,17 +690,17 @@ function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
-    L = homogeneous_component(R, g);
-    if rank(L[1]) == 0
+
+    L = monomials_of_degree(R, g)
+    
+    if size(L) == 0
        return 0
     end
-    FG = gens(L[1]);
-    EMB = L[2]
+
     cc = 0
-    for i in 1:length(FG)
-         if !(_monomial_ideal_membership(EMB(FG[i]), LI))
-	 ### if !(EMB(FG[i]) in LI)  TODO: Make use of this as soon as available
-	    cc = cc +1
+    for i in 1:length(L)
+        if !(L[i] in LI)
+	    cc = cc+1
          end
     end
     return cc
