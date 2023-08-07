@@ -103,8 +103,13 @@ end
 
 println("Making test list")
 
-const testlist = [
-  "Aqua.jl",
+testlist = []
+
+if !(isdefined(Main, :buildingSysImage)) || buildingSysImage == false
+  append!(testlist, ["Aqua.jl"])
+end
+
+append!(testlist, [
 
   "printing.jl",
 
@@ -145,7 +150,7 @@ const testlist = [
   "Serialization/runtests.jl",
 
   "StraightLinePrograms/runtests.jl"
-]
+])
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop

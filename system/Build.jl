@@ -14,6 +14,7 @@ CO = joinpath(tmp, "CompileOscar.jl")
 write(CO, """
 using Oscar
 using Pkg, Test
+buildingSysImage=true
 Oscar.system("precompile.jl")
 """)
 
