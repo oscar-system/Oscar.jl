@@ -1,5 +1,5 @@
 @testset "Abbott Hilbert series" begin
-  P, x = graded_polynomial_ring(QQ, 5, "x");
+  P, x = graded_polynomial_ring(QQ, 5, "x", [1 1 1 1 1; 1 -2 3 -4 5]);
   G =
     [
       x[1]^30*x[2]^16*x[3]^7*x[4]^72*x[5]^31,
@@ -57,4 +57,5 @@
   I = ideal(P,G);
   PmodI, _ = quo(P,I);
   HS = hilbert_series(PmodI);
+  HS = Oscar.HSNum_fudge(PmodI);
 end

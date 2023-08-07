@@ -109,18 +109,21 @@ julia> hilbert_series(A)
 ```
 """
 function hilbert_series(A::MPolyQuoRing)
-   if iszero(A.I)
-      R = base_ring(A.I)
-      @req is_z_graded(R) "The base ring must be ZZ-graded"
-      W = R.d
-      W = [Int(W[i][1]) for i = 1:ngens(R)]
-      @req minimum(W) > 0 "The weights must be positive"
-      Zt, t = ZZ["t"]
-      den = prod([1-t^Int(w[1]) for w in R.d])
-      return (one(parent(t)), den)
-   end
-   H = HilbertData(A.I)
-   return hilbert_series(H)
+  R = base_ring(A.I)
+  if !is_z_graded(R)
+    return Oscar.HSNum_fudge(A)
+  end
+  if iszero(A.I)
+    @req is_z_graded(R) "The base ring must be ZZ-graded"
+    W = R.d
+    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    @req minimum(W) > 0 "The weights must be positive"
+    Zt, t = ZZ["t"]
+    den = prod([1-t^Int(w[1]) for w in R.d])
+    return (one(parent(t)), den)
+  end
+  H = HilbertData(A.I)
+  return hilbert_series(H)
 end
 
 
