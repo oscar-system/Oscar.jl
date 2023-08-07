@@ -1157,19 +1157,19 @@ function show_homo_comp(io::IO, M)
 end
 
 @doc raw"""
-    monomials_of_degree(R::MPolyDecRing, g::GrpAbFinGenElem)
+    monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
 return the monomials of degree `g` in `R`.
 
-    monomials_of_degree(R::MPolyDecRing, W::Vector{<:IntegerUnion})
+    monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
 a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
 group of `R` and proceed as above.
 
-    monomials_of_degree(R::MPolyDecRing, d::IntegerUnion)
+    monomial_basis(R::MPolyDecRing, d::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
 an integer `d`, convert `d` into an element `g` of the grading
@@ -1185,7 +1185,7 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> G = grading_group(T)
 GrpAb: Z
 
-julia> L = monomials_of_degree(T, 2)
+julia> L = monomial_basis(T, 2)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  z^2
  y*z
@@ -1195,7 +1195,7 @@ julia> L = monomials_of_degree(T, 2)
  x^2
 ```
 """
-function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
+function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
@@ -1225,14 +1225,14 @@ function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
 end
 
 
-function monomials_of_degree(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
   @assert is_zm_graded(R)
-  return monomials_of_degree(R, grading_group(R)(g))
+  return monomial_basis(R, grading_group(R)(g))
 end
 
-function monomials_of_degree(R::MPolyDecRing, g::IntegerUnion)
+function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
   @assert is_z_graded(R)
-  return monomials_of_degree(R, grading_group(R)([g]))
+  return monomial_basis(R, grading_group(R)([g]))
 end
 
 @doc raw"""
@@ -1242,7 +1242,7 @@ Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
 return the homogeneous component of `R` of degree `g` as a standard
 vector space. Additionally, return the map which sends an element
-of that vector space to the corresponding polynomial in `R`.
+of that vector space to the corresponding monomial in `R`.
 
     homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
@@ -1299,7 +1299,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
   R = base_ring(W)
-  B = monomials_of_degree(W, d)
+  B = monomial_basis(W, d)
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
