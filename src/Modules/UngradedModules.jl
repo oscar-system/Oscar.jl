@@ -6384,11 +6384,11 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
-  singular_kernel_entry.isGB = true
+  gbpres = Singular.std(singular_kernel_entry)
 
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
-    res = Singular.fres(Singular.std(singular_kernel_entry), length, "complete")
+    res = Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
@@ -6398,6 +6398,12 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   if length == 0 || Singular.length(res) < length
     cc_complete = true
   end
+
+  dom = domain(maps[1])
+  codom = codomain(maps[1])
+  SM = SubModuleOfFreeModule(codom, gbpres)
+  generator_matrix(SM)
+  maps[1] = hom(dom, codom, SM.matrix) 
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
