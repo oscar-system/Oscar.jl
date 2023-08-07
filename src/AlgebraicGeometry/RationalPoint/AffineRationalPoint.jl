@@ -1,24 +1,20 @@
 @doc raw"""
     AffineRationalPoint{CoeffType<:RingElem, ParentType<:AbsSpec}
 
-A $k$-rational point ``P`` of an affine scheme ``X``.
+A rational point represented in terms of a vector of coordinates.
 
-We refer to ``X`` as the parent of ``P``.
+Two rational points are considered equal if their parents have the same ambient
+space and their coordinates agree.
 
 # Examples
 ```jldoctest
 julia> A2 = affine_space(GF(2), [:x, :y]);
-Rational point
-  of Affine 2-space over GF(2) with coordinates [x, y]
-  with coordinates (1, 0)
-
-julia> A2([1, 0])
 
 julia> (x, y) = coordinates(A2);
 
 julia> X = algebraic_set(x*y);
 
-julia> X([1,0])
+julia> X([1, 0])
 Rational point
   of V(x*y)
   with coordinates (1, 0)
@@ -34,6 +30,8 @@ struct AffineRationalPoint{S<:RingElem, T<:AbsSpec} <: AbsAffineRationalPoint{S,
     @check begin
       n = dim(ambient_space(parent))
       k = base_ring(parent)
+
+      all(Oscar.parent(i)===k for i in coordinates) || error("coordinates do not lie in the base ring")
       n == length(coordinates) || error("$(coordinates) must have length $(n)")
       _in(r, parent)|| error("$(coordinates) does not lie in $(parent)")
     end
@@ -52,6 +50,8 @@ parent(p::AffineRationalPoint) = p.parent
     coordinates(p::AffineRationalPoint{S,T}) -> Vector{S}
 
 Return the coordinates of the rational point `p`.
+
+The coordinates are with respect to the ambient space of its parent.
 """
 coordinates(p::AffineRationalPoint) = p.coordinates
 
@@ -95,17 +95,26 @@ getindex(P::AbsAffineRationalPoint, i::Int) = coordinate(P, i)
 @doc raw"""
     ideal(P::AbsAffineRationalPoint)
 
-Return the maximal ideal associated to `P` in the coordinate ring of its parent.
+Return the maximal ideal associated to `P` in the  ambient coordinate ring
+of its parent.
 """
 function ideal(P::AbsAffineRationalPoint)
   R = ambient_coordinate_ring(parent(P))
   V = ambient_coordinates(parent(P))
-  return ideal(R, [V[i] - coordinate(P, i) for i in 1:length(V)])
+  I = ideal(R, [V[i] - coordinate(P, i) for i in 1:length(V)])
+  set_attribute!(I, :is_prime=>true)
+  set_attribute!(I, :is_maximal=>true)
+  set_attribute!(I, :is_absolutely_prime=>true)
+  return I
 end
 
 function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyRing})
   # X is affine space
   return ambient_space(parent(P)) == X
+end
+
+function evaluate(f::MPolyRingElem, P::AbsAffineRationalPoint)
+  return evaluate(f, coordinates(P))
 end
 
 function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyQuoRing})
@@ -130,12 +139,16 @@ end
 function _in(P::AbsAffineRationalPoint, X::AbsSpec)
   # slow fallback for affine opens
   # this should be improved
-  return issubset(affine_scheme(P), X)
+  return issubset(scheme(P), X)
 end
 
-function Base.in(P::AbsAffineRationalPoint, X::AbsAffineAlgebraicSet)
+function Base.in(P::AbsAffineRationalPoint, X::AbsSpec)
   parent(P) === X && return true
   return _in(P, X)
+end
+
+function Base.in(P::AbsAffineRationalPoint, X::AbsCoveredScheme)
+  return any(any(P in U for U in C) for C in coverings(X))
 end
 
 @doc raw"""
@@ -145,7 +158,7 @@ Return the rational point ``P`` viewed as a reduced, affine subscheme
 of its ambient affine space.
 """
 function scheme(P::AbsAffineRationalPoint)
-  I = saturated_ideal(ideal(P))
+  I = ideal(P)
   R = ambient_coordinate_ring(parent(P))
   return Spec(R, I)
 end
@@ -168,4 +181,84 @@ function (f::AbsSpecMor)(P::AbsAffineRationalPoint)
   p = coordinates(P)
   imgs = [evaluate(lift(g(y)),p) for y in x]
   return AffineRationalPoint(codomain(f), imgs, check=false)
+end
+
+function MPolyComplementOfKPointIdeal(P::AbsAffineRationalPoint)
+  R = ambient_coordinate_ring(parent(P))
+  return MPolyComplementOfKPointIdeal(R, coordinates(P))
+end
+
+function is_smooth_at(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+  @req P in X "not a point on X"
+  U = MPolyComplementOfKPointIdeal(P)
+  R = OO(parent(P))
+  XU = Spec(localization(R, U)[1])
+  return is_smooth(XU)
+end
+
+@doc raw"""
+    is_smooth(P::AbsAffineRationalPoint)
+
+Return whether ``P`` is a smooth point of its parent ``X``.
+"""
+is_smooth(P::AbsAffineRationalPoint) = is_smooth_at(parent(P),P)
+
+
+@doc raw"""
+    tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint) -> AlgebraicSet
+
+Return the Zariski tangent space of `X` at its rational point `P`.
+
+See also [`tangent_space(P::AbsAffineRationalPoint{<:Field})`](@ref)
+"""
+function tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+  @req P in X "the point needs to lie on the algebraic set"
+  J = jacobi_matrix(gens(ambient_closure_ideal(X)))
+  v = coordinates(P)
+  JP = map_entries(x->evaluate(x, v), J)
+  V = ambient_coordinates(X)
+  R = ambient_coordinate_ring(X)
+  T = elem_type(R)[ sum([(V[i]-v[i])*JP[i,j] for i in 1:nrows(JP)], init=zero(R)) for j in 1:ncols(JP)]
+  return algebraic_set(ideal(R,T), is_radical=true, check=false)
+end
+
+@doc raw"""
+    tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) -> AlgebraicSet
+
+Return the Zariski tangent space of the parent of `P` at its point `P`.
+
+See also [`tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)`](@ref)
+"""
+tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) = tangent_space(parent(P), P)
+
+@doc raw"""
+    is_du_val_singularity(P::AbsAffineRationalPoint{<:Field})
+
+Return if the parent of `P` has hat most a Du Val singularity at `P`.
+
+Note that this includes the case that ``P`` is a smooth point.
+"""
+is_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem}) = is_du_val_singularity(parent(P), ideal(P))
+
+@doc raw"""
+    decide_du_val_singularity(P::AbsAffineRationalPoint{<:Field})
+
+Return if the parent of `P` has a Du Val singularity at `P`.
+
+# Examples
+```jldoctest
+julia> A3 = affine_space(QQ, [:x, :y, :z]);
+
+julia> (x, y, z) = ambient_coordinates(A3);
+
+julia> X = subscheme(A3, ideal([x^2+y^2-z^2]));
+
+julia> Oscar.decide_du_val_singularity(X([0,0,0]))
+(true, (:A, 1))
+
+```
+"""
+function decide_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem,<:Any})
+  d = decide_du_val_singularity(parent(P), ideal(P))
+  return d[1][1],d[1][3]
 end

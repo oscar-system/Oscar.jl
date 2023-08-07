@@ -15,10 +15,10 @@
   @test parent(pX)===X
 
   @test is_prime(ideal(pX))
-  @test px[1] == 1
-  @test px[2] == 0
+  @test pX[1] == 1
+  @test pX[2] == 0
 
-  @test ideal(pa) == ideal(px)
+  @test ideal(pA) == ideal(pX)
 
   # parametrize a cuspidal cubic rational curve
   A2 = affine_space(QQ, [:x, :y])
@@ -29,4 +29,24 @@
   f = SpecMor(At, C, [t^2,t^3])
   @test f(At([1,])) == C([1,1])
   @test f(At([2,])) == C([4,8])
+  @test tangent_space(C,C([0,0])) == algebraic_set(0*x)
+  @test !is_smooth(C([0,0]))
+  D = algebraic_set(x^2-y)
+  @test is_smooth(D([0,0]))
+  @test tangent_space(D,D([0,0])) == algebraic_set(y)
+
+  # disjoint union of a line and a point, smooth
+  E = algebraic_set(ideal([x*(y-1),y^2-y]))
+  @test is_smooth(E([0,0]))
+  @test is_smooth(E([0,1]))
+
+  # union of two lines meeting in 0
+  F = algebraic_set(ideal([x*y]))
+  @test !is_smooth(F([0,0]))
+  @test is_smooth(F([0,1]))
+
+  P2cov = covered_scheme(projective_space(QQ,2))
+  pt = sc[1][1]([1,0])
+  @test pt in P2cov
+
 end
