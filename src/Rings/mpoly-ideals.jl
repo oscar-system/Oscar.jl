@@ -429,8 +429,8 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 @attr T function radical(I::T) where {T <: MPolyIdeal}
   singular_assure(I)
   R = base_ring(I)
-  if isa(base_ring(R)) <: NumField && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
     r = radical(map_coefficients(pseudo_inv(mA), I))
     Irad = map_coefficients(mA, r, parent = R)
     set_attribute!(Irad, :is_radical => true)
@@ -445,17 +445,6 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
   Irad = ideal(R, J)
   set_attribute!(Irad, :is_radical => true)
   return Irad
-end
-
-_collaps(K::AnticNumberField) = error("should not be clalled") #(K, MapFrumFunc(K, K, x->x, x->x))
-function _collaps(K::NumField)
-  s = get_attribute(K, :collaps)
-  if s !== nothing
-    return s[1], s[2]
-  end
-  A, mA = absolute_simple_field(K)
-  set_attribute!(K, :collaps => (A, mA))
-  return A, mA
 end
 
 function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
@@ -554,7 +543,7 @@ end
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     pd = primary_decomposition(map_coefficients(pseudo_inv(mA), I), algorithm = algorithm, cache = false)
     if isempty(pd)
       return Tuple{typeof(I), typeof(I)}[]
@@ -774,7 +763,7 @@ julia> L = minimal_primes(I)
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
     return typeof(I)[map_coefficients(mA, x) for x = mp]
   end
@@ -834,7 +823,7 @@ julia> L = equidimensional_decomposition_weak(I)
   iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_decomposition_weak(map_coefficients(pseudo_inv(mA), I))
     return typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
   end
@@ -879,7 +868,7 @@ julia> L = equidimensional_decomposition_radical(I)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_decomposition_radical(map_coefficients(pseudo_inv(mA), I))
     return typeof(I)[map_coefficients(mA, x) for x = eq]
   end
@@ -940,7 +929,7 @@ ideal(3)
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_hull(map_coefficients(pseudo_inv(mA), I))
     return map_coefficients(mA, eq)
   end
@@ -985,7 +974,7 @@ function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
-    A, mA = _collaps(base_ring(R))
+    A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_hull_radical(map_coefficients(pseudo_inv(mA), I))
     return map_coefficients(mA, eq)
   end
