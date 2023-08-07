@@ -106,6 +106,17 @@ abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField
 # Abstract types for rational points
 #
 ################################################################################
+@doc raw"""
+    AbsAffineRationalPoint{CoefficientType, ParentType}
+
+A rational point ``P`` of an affine scheme ``X``.
+We refer to ``X`` as the parent of ``P``.
+
+Let ``X \subseteq \mathbb{A}^n_k`` be an algebraic set or more generally a subscheme
+defined by the ideal ``I = (f_1, \dots f_r) \subseteq k[x_1,\dots x_n]``.
+A rational point ``p`` of ``X`` is a tuple ``p = (p_1, \dots , p_n) \in k^n`` such that
+``f_1(p) = \dots = f_n(p) = 0``.
+"""
 abstract type AbsAffineRationalPoint{RingElemType, ParentType} end
 
 abstract type AbsProjectiveRationalPoint{RingElemType, ParentType} end
