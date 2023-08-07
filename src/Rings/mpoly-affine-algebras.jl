@@ -464,21 +464,39 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       VAR = [_make_variable("t", i) for i = 1:m]
    end
    S, _ = LaurentPolynomialRing(ZZ, VAR)
-   q = one(S)
+   fac_dict = Dict{elem_type(S), Integer}()
    for i = 1:n
       e = [Int(MI[i, :][j]) for j = 1:m]
       B = MPolyBuildCtx(S)
       push_term!(B, 1, e)
-      q = q*(1-finish(B))
+      new_fac = 1-finish(B)
+      if haskey(fac_dict, new_fac)
+        fac_dict[new_fac] = fact_dict[new_fac] + 1
+      else
+        fac_dict[new_fac] = 1
+      end
    end
+   fac_denom = FacElem(S, fac_dict)
+   # Old method below without factorization; left for debugging
+  # q = one(S)
+  # for i = 1:n
+  #    e = [Int(MI[i, :][j]) for j = 1:m]
+  #    B = MPolyBuildCtx(S)
+  #    push_term!(B, 1, e)
+  #    q = q*(1-finish(B))
+  # end
+  # @assert _evaluate(fac_denom) == q
    if iszero(I)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
       p = _numerator_monomial_multi_hilbert_series(LI, S, m, algorithm=algorithm)
    end
-   return  (p, q), (H, iso)
+   return  (p, fac_denom), (H, iso)
 end
+
+# Helper function because the usual evaluation is broken for Laurent polynomials.
+_evaluate(a::FacElem) = prod(b^k for (b, k) in a; init=one(base_ring(a)))
 
 ### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
 
