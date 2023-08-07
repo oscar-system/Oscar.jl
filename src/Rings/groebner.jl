@@ -1482,10 +1482,9 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   return all(ret .< 2^32) ? ret : zeros(Int,ncols)
 end
 
-# modular gröbner basis techniques
+# modular gröbner basis techniques using Singular
 @doc raw"""
-    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
-                           ordering::MonomialOrdering)
+    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I))
 
 Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
 multi-modular strategy.
@@ -1497,19 +1496,18 @@ multi-modular strategy.
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
 
-julia> I = ideal([x^2, x*y + 32771*y^2]);
+julia> I = ideal(R, [x^2, x*y + 32779384769867982578344256261*y^2]);
 
-julia> gb = groebner_basis_modular(I, ordering=degrevlex(R))
+julia> groebner_basis_modular(I)
 Gröbner basis with elements
 1 -> y^3
 2 -> x^2
-3 -> x*y + 32771*y^2
+3 -> x*y - 6811757929883*y^2
 with respect to the ordering
 degrevlex([x, y, z])
 ```
 """
-function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly};
-                                ordering::MonomialOrdering)
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
   # small function to get a canonically sorted reduced gb
   sorted_gb = idl -> begin
