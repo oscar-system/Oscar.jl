@@ -25,6 +25,7 @@ struct AffineRationalPoint{S<:RingElem, T<:AbsSpec} <: AbsAffineRationalPoint{S,
   # not mutable since this should be efficient
   coordinates::Vector{S}
   parent::T
+
   function AffineRationalPoint(parent::T, coordinates::Vector{S}; check::Bool=true) where {S <: RingElem, T<:AbsSpec}
     r = new{S, T}(coordinates, parent)
     @check begin
@@ -234,7 +235,7 @@ tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) = tangent_space(parent(P),
 @doc raw"""
     is_du_val_singularity(P::AbsAffineRationalPoint{<:Field})
 
-Return if the parent of `P` has hat most a Du Val singularity at `P`.
+Return whether the parent of `P` has hat most a Du Val singularity at `P`.
 
 Note that this includes the case that ``P`` is a smooth point.
 """
@@ -243,7 +244,7 @@ is_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem}) = is_du_val_singul
 @doc raw"""
     decide_du_val_singularity(P::AbsAffineRationalPoint{<:Field})
 
-Return if the parent of `P` has a Du Val singularity at `P`.
+Return whether the parent of `P` has a Du Val singularity at `P`.
 
 # Examples
 ```jldoctest

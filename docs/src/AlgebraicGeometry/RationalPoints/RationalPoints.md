@@ -17,7 +17,7 @@ ideal(P::AbsAffineRationalPoint)
 scheme(P::AbsAffineRationalPoint)
 closed_embedding(P::AbsAffineRationalPoint)
 is_smooth(P::AbsAffineRationalPoint)
-tangent_space(P::AbsAffineRationalPoint{<:Field})
+tangent_space(P::AbsAffineRationalPoint{<:FieldElem})
 ```
 
 Some experimental methods are available too.

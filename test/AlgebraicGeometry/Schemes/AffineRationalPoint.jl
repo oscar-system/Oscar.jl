@@ -46,7 +46,7 @@
   @test is_smooth(F([0,1]))
 
   P2cov = covered_scheme(projective_space(QQ,2))
-  pt = sc[1][1]([1,0])
+  pt = P2cov[1][1]([1,0])
   @test pt in P2cov
 
 end
