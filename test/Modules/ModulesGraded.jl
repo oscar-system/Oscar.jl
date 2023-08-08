@@ -599,7 +599,7 @@ end
     # Free resolution via Singular gives wrong result 
     free_res1 = free_resolution(M)
     @test is_graded(free_res1)
-    @test_broken all(iszero, homology(free_res1.C))
+    @test all(iszero, homology(free_res1.C))
     free_res3 = free_resolution_via_kernels(M)
     @test is_graded(free_res3)
     B = betti(free_res3)
