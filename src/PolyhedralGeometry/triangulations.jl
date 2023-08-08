@@ -76,16 +76,17 @@ _is_star_triangulation(sop::SubdivisionOfPoints{QQFieldElem}) = all(cell -> 1 in
 
 
 
-function _find_full_star_triangulation(pts::ZZMatrix)
+function _find_full_star_triangulation(pts::ZZMatrix; seed::Int=-1)
+  seed == -1 || Random.seed!(seed)
   n = nrows(pts)
   wts = rand(0:100000, n)
   # Weight of first points is lowest
-  wts[1] = -1
+  wts[1] = -1000000
   sop = subdivision_of_points(pts, wts)
   while !(_is_full_triangulation(sop) && _is_star_triangulation(sop))
-     wts = rand(0:100000, n)
-     wts[1] = -1000000
-     sop = subdivision_of_points(pts, wts)
+    wts = rand(0:100000, n)
+    wts[1] = -1000000
+    sop = subdivision_of_points(pts, wts)
   end
   return collect(maximal_cells(sop))
 end
