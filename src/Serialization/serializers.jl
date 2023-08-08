@@ -1,71 +1,3 @@
-## JSON
-
-mutable struct JSONSerializer
-    open_objects::Array{Any}
-    io::IO
-end
-
-function JSONSerializer(io::IO)
-  # we need one initial array to store our root dict
-  return JSONSerializer(Any[[]], io)
-end
-
-function serialize_dict(f::Function, s::JSONSerializer, key::Union{Symbol,Nothing} = nothing)
-    begin_dict_node(s)
-    f()
-    end_node(s, key)
-end
-
-function serialize_array(f::Function, s::JSONSerializer, key::Union{Symbol,Nothing} = nothing)
-    begin_array_node(s)
-    f()
-    end_node(s, key)
-end
-
-function begin_dict_node(s::JSONSerializer)
-    push!(s.open_objects, Dict{Symbol, Any}())
-end
-
-function begin_array_node(s::JSONSerializer)
-    push!(s.open_objects, Any[])
-end
-
-function end_node(s::JSONSerializer, key::Union{Symbol,Nothing} = nothing)
-    obj = pop!(s.open_objects)
-    add_object(s, obj, key)
-end
-
-function add_object(s::JSONSerializer, obj::Any, key::Symbol)
-    s.open_objects[end][key] = obj
-end
-
-function add_object(s::JSONSerializer, obj::Any, key::Nothing=nothing)
-    push!(s.open_objects[end], obj)
-end
-
-function finish_writing(s::JSONSerializer)
-    @req length(s.open_objects) == 1 "too many open objects in serializer"
-    @req length(s.open_objects[1]) == 1 "root node invalid"
-    str = json(s.open_objects[1][1], 2)
-    write(s.io, str)
-end
-
-## streaming
-
-mutable struct StreamSerializer
-    
-end
-
-function serialize_dict(f::Function, s::StreamSerializer, key::Union{Symbol,Nothing} = nothing)
-    begin_dict_node(s, key)
-    f()
-    end_node(s)
-end
-
-function finish_writing(s::StreamSerializer)
-    # nothing to do here
-end
-
 ################################################################################
 # (de)Serializer States
 
@@ -73,16 +5,57 @@ end
 mutable struct SerializerState
     # dict to track already serialized objects
     objmap::IdDict{Any, UUID}
-    depth::Int
+    new_level_entry::Bool
     refs::Vector{Tuple{Symbol, Any}}
-    serializer::JSONSerializer 
+    io::IO
     key::Union{Symbol, Nothing}
-    # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
-    # io::IO
 end
 
 function SerializerState(io::IO)
-    return SerializerState(IdDict{Any, UUID}(), 0, Tuple{Symbol, Any}[], JSONSerializer(io), nothing)
+    return SerializerState(IdDict{Any, UUID}(), true, Tuple{Symbol, Any}[], io, nothing)
+end
+
+function serialize_dict(f::Function, s::SerializerState)
+    begin_dict_node(s)
+    f()
+    end_dict_node(s)
+end
+
+function serialize_array(f::Function, s::SerializerState)
+    begin_array_node(s)
+    f()
+    end_array_node(s)
+end
+
+function begin_node(s::SerializerState)
+    if !s.new_level_entry
+        write(s.io, ",")
+    else
+        s.new_level_entry = false
+    end
+    if !isnothing(s.key)
+        key = string(s.key)
+        write(s.io, "\"$key\":")
+        s.key = nothing
+    end
+end
+
+function begin_dict_node(s::SerializerState)
+    begin_node(s)
+    write(s.io, "{")
+end
+
+function end_dict_node(s::SerializerState)
+    write(s.io, "}")
+end
+
+function begin_array_node(s::SerializerState)
+    begin_node(s)
+    write(s.io, "[")
+end
+
+function end_array_node(s::SerializerState)
+    write(s.io, "]")
 end
 
 struct DeserializerState
@@ -94,33 +67,37 @@ function DeserializerState()
     return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
 end
 
+function serialize_dict(f::Function, s::StreamSerializer, key::Union{Symbol,Nothing} = nothing)
+    begin_dict_node(s, key)
+    f()
+    end_node(s)
+end
+
+function finish_writing(s::SerializerState)
+    # nothing to do here
+end
+
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
 function data_dict(f::Function, s::SerializerState)
-    key = s.key
-    s.key = nothing
-    serialize_dict(s.serializer, key) do
-        s.depth += 1
+    serialize_dict(s) do
+        s.new_level_entry = true
         f()
-        s.depth -= 1
     end
 end
 
 function data_array(f::Function, s::SerializerState)
-    key = s.key
-    s.key = nothing
-    serialize_array(s.serializer, key) do
-        s.depth += 1
+    serialize_array(s) do
+        s.new_level_entry = true
         f()
-        s.depth -= 1
     end
 end
 
 function data_basic(s::SerializerState, x::Any)
-    key = s.key
-    s.key = nothing
-    add_object(s.serializer, x, key)
+    begin_node(s)
+    str = string(x)
+    write(s.io, "\"$str\"")
 end
 
 function serializer_open(io::IO)
@@ -129,16 +106,10 @@ function serializer_open(io::IO)
 end
 
 function serializer_close(s::SerializerState)
-    finish_writing(s.serializer)
+    finish_writing(s)
 end
 
 function deserializer_open(io::IO)
     # should eventually take io
     return DeserializerState()
 end
-#{
-#  "key": [ 
-#     {...},
-#     {...}
-#  ]
-#}

@@ -189,82 +189,72 @@ function save_as_ref(s::SerializerState, obj::T) where T
     return string(ref)
 end
 
-function save_basic_encoded_type(s::SerializerState, obj::Any, key::Symbol = :data)
-    @assert has_basic_encoding(obj)
-    active_type = get_active_object_type(s)
-    if active_type <: Dict{Symbol, Any}
-        add_object(s, string(obj), key)
-    else
-        add_object(s, string(obj))
-    end
-end
-
-function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) where T
-    # this is used when serializing basic types like "3//4"
-    # when s.depth == 0 file should know it belongs to QQ
-    if s.depth != 0 && has_basic_encoding(obj)
-        save_basic_encoded_type(s, obj, key)
-    elseif s.depth == 0 && has_basic_encoding(obj)
-        if is_type_serializing_parent(T)
-            open_dict(s)
-            s.depth += 1
-            save_basic_encoded_type(s, obj)
-            save_type_dispatch(s, parent(obj), :parent)
-            close(s)
-            s.depth -= 1
-        else
-            save_basic_encoded_type(s, obj)
-        end
-        add_object(s, encode_type(T), :type)
-    elseif serialize_with_id(T)
-        ref = save_as_ref(s, obj)
-        add_object(s, ref, key)
-    elseif T <: Vector
-        open_dict(s)
-        s.depth += 1
-        save_internal(s, obj)
-        s.depth -= 1
-        add_object(s, encode_type(T), :type)
-        close(s)
-    elseif !Base.issingletontype(T)
-        s.depth += 1
-        open_dict(s)
-        # invoke the actual serializer
-        open_dict(s)
-
-        if is_type_serializing_parent(T)
-            save_parent_refs(s, parent(obj))
-        end
-        save_internal(s, obj)
-        close(s)
-        add_object(s, encode_type(T), :type)
-        s.depth -= 1
-
-        if s.depth != 0
-            close(s, key)
-        end
-    else
-        # added to catch singleton types
-        if s.depth == 0
-            # catch edge case
-            add_object(s, encode_type(T), :type)
-        else
-            open_dict(s)
-            add_object(s, encode_type(T), :type)
-            close(s, key)
-        end
-    end
-
-    if s.depth == 0
-        add_object(s, oscarSerializationVersion, :_ns)
-
-        if !isempty(s.refs)
-            add_object(s, s.refs, :refs)
-        end
-    end
-    
-    #store_serialized(s, result, key)
-end
+# function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) where T
+#     # this is used when serializing basic types like "3//4"
+#     # when s.depth == 0 file should know it belongs to QQ
+#     if s.depth != 0 && has_basic_encoding(obj)
+#         save_basic_encoded_type(s, obj, key)
+#     elseif s.depth == 0 && has_basic_encoding(obj)
+#         if is_type_serializing_parent(T)
+#             open_dict(s)
+#             s.depth += 1
+#             save_basic_encoded_type(s, obj)
+#             save_type_dispatch(s, parent(obj), :parent)
+#             close(s)
+#             s.depth -= 1
+#         else
+#             save_basic_encoded_type(s, obj)
+#         end
+#         add_object(s, encode_type(T), :type)
+#     elseif serialize_with_id(T)
+#         ref = save_as_ref(s, obj)
+#         add_object(s, ref, key)
+#     elseif T <: Vector
+#         open_dict(s)
+#         s.depth += 1
+#         save_internal(s, obj)
+#         s.depth -= 1
+#         add_object(s, encode_type(T), :type)
+#         close(s)
+#     elseif !Base.issingletontype(T)
+#         s.depth += 1
+#         open_dict(s)
+#         # invoke the actual serializer
+#         open_dict(s)
+# 
+#         if is_type_serializing_parent(T)
+#             save_parent_refs(s, parent(obj))
+#         end
+#         save_internal(s, obj)
+#         close(s)
+#         add_object(s, encode_type(T), :type)
+#         s.depth -= 1
+# 
+#         if s.depth != 0
+#             close(s, key)
+#         end
+#     else
+#         # added to catch singleton types
+#         if s.depth == 0
+#             # catch edge case
+#             add_object(s, encode_type(T), :type)
+#         else
+#             open_dict(s)
+#             add_object(s, encode_type(T), :type)
+#             close(s, key)
+#         end
+#     end
+# 
+#     if s.depth == 0
+#         add_object(s, oscarSerializationVersion, :_ns)
+# 
+#         if !isempty(s.refs)
+#             add_object(s, s.refs, :refs)
+#         end
+#     end
+#     
+#     #store_serialized(s, result, key)
+# end
 
 function save_object(s::SerializerState, x::Vector)
     data_array(s) do
