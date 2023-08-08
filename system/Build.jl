@@ -23,3 +23,11 @@ PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_exe
 
 println("(re)start julia as")
 println("\tjulia -J $(sysimage)")
+
+# Remove the packages we added, so that 
+# Aqua doesn't complain in future testing
+Pkg.rm("PackageCompiler")
+Pkg.rm("Libdl")
+Pkg.rm("Documenter")
+Pkg.rm("PrettyTables")
+Pkg.rm("Printf")
