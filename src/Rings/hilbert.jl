@@ -1,6 +1,6 @@
 ##################################################################
 # Auxiliary functions
-# Perhaps doxument them and make them publicly available?
+# Perhaps document them and make them publicly available?
 
 # random_subset:
 # A function similar to this is in StatsBase.jl but I wish to avoid
@@ -10,21 +10,21 @@
 # Result is a Int64[]; entries are NOT SORTED!!
 function random_subset(n::Int64, m::Int64)
   # assume n >= 1, m >= 0 and m <= n
-  if m == 0 #=then=#
+  if m == 0
     return Int64[];
-  end #=if=#
+  end
   L = collect(1:n);
-  if m == n #=then=#
+  if m == n
     return L;
-  end #=if=#
-  for j in 1:m #=do=#
+  end
+  for j in 1:m
     k = rand(j:n);
     L[j],L[k] = L[k],L[j]; # just a SWAP
-  end #=for=#
+  end
   L = first(L,m);
   #?? sort!(L); ??
   return L;
-end #=function=#
+end
 
 # There must be a better way...!
 # Split a "list" into 2 parts determined by a predicate.
@@ -32,15 +32,15 @@ end #=function=#
 function filter2(pred::Function, L::Vector)
   sat = [];
   unsat = [];
-  for x in L #=do=#
+  for x in L
     if pred(x)
       push!(sat,x);
     else
       push!(unsat,x);
-    end #=if=#
-  end #=for=#
+    end
+  end
   return sat,unsat;
-end #=function=#
+end
 
 
 ##################################################################
@@ -58,240 +58,256 @@ PP_exponent = Int64;  # UInt ???  Strange: Int32 was slower on my machine ?!?
 
 #= mutable =# struct PP
   expv::Vector{PP_exponent};
-end # struct
+end
 
 function Base.copy(t::PP)
   return PP(copy(t.expv));
-end #=function=#
+end
 
-# RETURN VALUE???  Perhaps index or 0? (or -1?)
-function IsSimplePowerPP(t::PP)
-  CountNZ = 0;
-  for i in 1:length(t.expv) #do
-    @inbounds if (t.expv[i] == 0)  continue;  end #if
-    if (CountNZ > 0)  return false; end #if
-    CountNZ = i;
-  end #for
-  if (CountNZ != 0)  return true; end #if    MAYBE RETURN index & exp???
-  return false; # because t == 1
-end #function
+function length(t::PP)
+  return length(t.expv)
+end
+
+function getindex(t::PP, i::Int)
+  return t.expv[i]
+end
+
+function setindex!(t::PP, i::Int, d::Int)
+  return t.expv[i] = d
+end
 
 # Should be is_one, but julia complained :-(
 function isone(t::PP)
   return all(t.expv .== 0);
-end #function
+end
 
 function degree(t::PP)
   return sum(t.expv);
-end #function
+end
 
-function IsDivisible(t::PP, s::PP)  # is t divisible by s
+
+# RETURN VALUE???  Perhaps index or 0? (or -1?)
+function is_simple_power_pp(t::PP)
+  CountNZ = 0;
+  for i in 1:length(t.expv)
+    @inbounds if (t.expv[i] == 0)  continue;  end
+    if (CountNZ > 0)  return false; end
+    CountNZ = i;
+  end
+  if (CountNZ != 0)  return true; end # MAYBE RETURN index & exp???
+  return false; # because t == 1
+end
+
+
+function is_divisible(t::PP, s::PP)  # is t divisible by s
   n = length(t.expv); # assume equal to length(s.expv);
-  for i in 1:n #do
-    @inbounds if t.expv[i] < s.expv[i] #then
+  for i in 1:n
+    @inbounds if t.expv[i] < s.expv[i]
       return false;
-    end #if
-  end #for
+    end
+  end
   return true;
-end #function
+end
 
 
 # modifies first arg
 function mult_by_var!(t::PP, j::Int64)
   @inbounds t.expv[j] += 1;
-end #function
+end
 
 function mult(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   return PP(t1.expv + t2.expv);
-end #function
+end
 
 
 function divide(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv), also that t1 is mult of t2
   return PP(t1.expv - t2.expv);
-end #function
+end
 
 function is_coprime(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   n = length(t1.expv);
-  for i in 1:n #do
-    @inbounds if t1.expv[i] != 0 && t2.expv[i] != 0  #=then=#
+  for i in 1:n
+    @inbounds if t1.expv[i] != 0 && t2.expv[i] != 0
       return false;
-    end #=if=#
-  end #for
+    end
+  end
   return true;
-end #function
+end
 
 function lcm(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   n = length(t1.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
+  for i in 1:n
     @inbounds expv[i] = max(t1.expv[i], t2.expv[i]);
-  end #for
+  end
   return PP(expv);
-end #function
+end
 
 function gcd(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   n = length(t1.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
+  for i in 1:n
     @inbounds expv[i] = min(t1.expv[i], t2.expv[i]);
-  end #for
+  end
   return PP(expv);
-end #function
+end
 
 function gcd3(t1::PP, t2::PP, t3::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv) == length(t3.expv)
   n = length(t1.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
+  for i in 1:n
     @inbounds expv[i] = min(t1.expv[i], t2.expv[i], t3.expv[i]);
-  end #for
+  end
   return PP(expv);
-end #function
+end
 
+
+# Computes t1/gcd(t1,t2)
 function colon(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   n = length(t1.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
+  for i in 1:n
     @inbounds expv[i] = max(0, t1.expv[i]-t2.expv[i]);
-  end #for
+  end
   return PP(expv);
-end #function
+end
 
+
+# Computes t1/gcd(t1,t2^infty)
 function saturatePP(t1::PP, t2::PP)
   # ASSUMES: length(t1.expv) == length(t2.expv)
   n = length(t1.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
-    @inbounds if t2.expv[i] == 0 #then
-      @inbounds expv[i] = t1.expv[i];
-    end #if
-  end #for
+  for i in 1:n
+    @inbounds if t2.expv[i] == 0
+##OLD      @inbounds expv[i] = t1.expv[i]; ##
+      @inbounds expv[i] = t1[i];
+    end
+  end
   return PP(expv);
-end #function
+end
 
+# Computes radical = product of vars which divide t
 function radical(t::PP)
   n = length(t.expv);
   expv = [0  for _ in 1:n];
-  for i in 1:n #do
-    @inbounds if t.expv[i] > 0 #then
+  for i in 1:n
+    @inbounds if t.expv[i] > 0
       expv[i] = 1;
-    end #if
-  end #for
+    end
+  end
   return PP(expv);
-end #function
+end
 
 
-# if t1 == t2 then returns false.
-function DegRevLexLess(t1::PP, t2::PP)
+# Test if t1 < t1 in DegRevLex ordering;
+# NB if t1 == t2 then returns false.
+function deg_rev_lex_less(t1::PP, t2::PP)
   d1 = sum(t1.expv);
   d2 = sum(t2.expv);
-  if d1 != d2 #=then=# return (d1 < d2); end #=if=#
+  if d1 != d2  return (d1 < d2); end
   nvars = length(t1.expv);
-  for i in nvars:-1:1 #=do=#
-    if t1.expv[i] != t2.expv[i] #=then=#
+  for i in nvars:-1:1
+    if t1.expv[i] != t2.expv[i]
       return (t1.expv[i] > t2.expv[i]);
-    end #=if=#
-  end #=for=#
+    end
+  end
   return false;
-end #=function=#
+end
 
-# Test whether PP involves at least 1 indet from the list K (of indexes)
-function involves(t::PP, K::Vector{Int64}) # K is index set
-  # ASSUMES: indexes in K are all in range
-  for i in K #do
-    if t.expv[i] != 0 #then
+
+# Test whether PP involves at least 1 indet with index in IndexList
+function involves(t::PP, IndexList::Vector{Int64})
+  # ASSUMES: indexes in IndexList are all in range
+  for i in IndexList
+    @inbounds if t.expv[i] != 0
       return true;
-    end #if
-  end #for
+    end
+  end
   return  false;
-end #function
+end
 
 
 function Base.show(io::IO, t::PP)
-  if (all(t.expv .== 0))   # (isone(PP))  # why doesn't isone work ???
+  if all(t.expv .== 0)   # isone(PP)  # why doesn't this work ???
     print(io, "1");
     return;
-  end #if
+  end
   str = "";
   n = length(t.expv);
-  for i in 1:n #do
-    if (t.expv[i] != 0) #then
-      if (str != "")  str = str * "*";  end #if
+  for i in 1:n
+    if (t.expv[i] != 0)
+      if (str != "")  str = str * "*";  end
       str = str * "x[$(i)]";
-      if (t.expv[i] > 1) #then
+      if (t.expv[i] > 1)
         str = str * "^$(t.expv[i])";
-      end #if
-    end #if
-  end #for
+      end
+    end
+  end
   print(io, str);
-end #function
+end
 
 
 #######################################################
 # Interreduction of a list of PPs
 
-# interreduce list of PPs; equiv find min set of gens for PP monoideal
-function interreduce(L::Vector{PP})  # L is list of PPs
+# interreduce list of PPs; equiv find min set of gens for monoideal gen by L
+function interreduce(L::Vector{PP})
   sort!(L, by=degree);
-  MinGens = PP[];##empty Vector{PP}();
-  for t in L #do
+  MinGens = PP[];
+  for t in L
     discard = false;
-    for s in MinGens #do
-      if IsDivisible(t,s) #then
+    for s in MinGens
+      if is_divisible(t,s)
         discard = true;
         break;
-      end #if
-    end #for
-    if !discard #then
+      end
+    end
+    if !discard
       push!(MinGens, t);
-    end #if
-  end # for
+    end
+  end
   return MinGens;
-end # function
+end
 
 
 # Is t a multiple of at least one element of L?
 # Add degree truncation???
-function NotMultOf(L::Vector{PP}, t::PP)
-  for s in L #=do=#
-    if IsDivisible(t,s)
+function not_mult_of_any(L::Vector{PP}, t::PP)
+  for s in L
+    if is_divisible(t,s)
       return false;
-    end #=if=#
-  end #=for=#
+    end
+  end
   return true;
-end #=function=#
+end
 
 
 
 # "project" PP onto sub-monoid of PPs gen by indets in indexes
-function ProjectIndets(t::PP, indexes::Vector{Int})
-  # # expv = [0  for _ in 1:length(indexes)];
-  # # for i in 1:length(indexes) #do
-  # #     expv[i] = t.expv[indexes[i]];
-  # # end #for
-  # # return PP(expv);
-  return PP([t.expv[k]  for k in indexes]);
-end #function
+function project_indets(t::PP, indexes::Vector{Int})
+  return PP([t[k]  for k in indexes]);
+end
 
 
 # NOT SURE THIS IS USEFUL: how many indets are really needed in the list L?
-function TrueNumVars(L::Vector{PP})
-  # assume L non empty?
-  if  isempty(L)  return 0;  end #if
-  ##    MaxNumVars = length(L[1].expv);
-  ##    AllVars = PP([1  for _ in 1:MaxNumVars]);
-  t = radical(L[1]);
-  for j in 2:length(L)  #do
-    t = radical(mult(t,L[j]));
-  end #for
-  return degree(t);        
-end  #function
+function true_num_vars(L::Vector{PP})
+  if  isempty(L)
+    return 0
+  end
+  t = radical(L[1])
+  for j in 2:length(L)
+    t = lcm(t, radical(L[j]))
+  end
+  return degree(t)
+end
 
 
 ###################################################################
@@ -304,51 +320,51 @@ end  #function
 
 # Input: non-empty list of PPs
 # Output: list of lists of var indexes, each sublist is a connected component
-function ConnectedComponents(L::Vector{PP})
+function connected_components(L::Vector{PP})
   ConnCompt::Vector{Vector{Int64}} = [];
   nvars = length(L[1].expv);
   IgnoreVar = [ false   for _ in 1:nvars];
   VarAppears = copy(IgnoreVar);
-  for t in L #do
-    for j in 1:nvars #do
-      @inbounds if t.expv[j] != 0 #then
+  for t in L
+    for j in 1:nvars
+      @inbounds if t.expv[j] != 0
         @inbounds VarAppears[j] = true;
-      end #if
-    end #for
-  end #for
+      end
+    end
+  end
   CountIgnore = 0;
-  for j in 1:nvars #do
-    @inbounds if !VarAppears[j] #then
+  for j in 1:nvars
+    @inbounds if !VarAppears[j]
       @inbounds IgnoreVar[j] = true;
       CountIgnore += 1;
-    end #if
-  end #for
-  while CountIgnore < nvars #do
+    end
+  end
+  while CountIgnore < nvars
     j = findfirst(!, IgnoreVar); # j is index of some var which appears in at least one PP
     k = findfirst((t -> t.expv[j] != 0), L); # pick some PP involving j-th var
     lcm = L[k];
     DoAnotherIteration = true;
-    while DoAnotherIteration #do
+    while DoAnotherIteration
       DoAnotherIteration = false;
-      for t in L #do
+      for t in L
         if is_coprime(lcm,t)  continue; end
         s = saturatePP(t,lcm);
         if isone(s)  continue;  end
         lcm = mult(lcm,s); ### lcm *= s;
         DoAnotherIteration = true;
-      end #for
+      end
     end #while
     vars = filter((k -> lcm.expv[k] > 0), 1:nvars);
     # remove conn compt just found from L???
     #seems to be slower with this line ?!?        L = filter((t -> is_coprime(t,lcm)), L);
     push!(ConnCompt, vars);
-    for k in vars #do
+    for k in vars
       IgnoreVar[k] = true;
       CountIgnore += 1;
-    end #for
+    end
   end #while
   return ConnCompt;
-end #function
+end
 
 
 #############################################################################
@@ -371,138 +387,143 @@ end #function
 # Case gens are simple powers
 function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T is list of HSNum PPs, one for each grading dim
   ans = 1; #one(T[1])    ???
-  for t in SimplePPs #do
+  for t in SimplePPs
     k = findfirst(entry -> (entry > 0), t.expv);
     ans = ans * (1 - T[k]^t.expv[k]); # ???? ans -= ans*T[k]^t;
-  end #for
+  end
   return ans;
-end #function
+end
 
 
 function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T is list of HSNum PPs, one for each grading dim
   # t is not a "simple power", all the others are
-  @vprint  :hilbert 1 "HSNum_base_case1: t = $(t)";
-  @vprint :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)";
   ans = HSNum_base_SimplePowers(SimplePPs, T);
   ReducedSimplePPs::Vector{PP} = [];
-  for j in 1:length(SimplePPs) #do
+  for j in 1:length(SimplePPs)
     @inbounds e = SimplePPs[j].expv;
     k = findfirst((entry -> (entry > 0)), e); # ispositive
-    if  t.expv[k] == 0 #=then=# push!(ReducedSimplePPs,SimplePPs[j]); continue; end #=if=#  # no need to make a copy
+    if  t.expv[k] == 0  push!(ReducedSimplePPs,SimplePPs[j]); continue; end   # no need to make a copy
     tt = copy(SimplePPs[j]);
     tt.expv[k] -= t.expv[k]; # guaranteed > 0
     push!(ReducedSimplePPs, tt);
-  end #for
+  end
   e = t.expv;
   nvars = length(e);
   @inbounds scale = prod([T[k]^e[k]  for k in 1:nvars]);
   ans = ans - scale * HSNum_base_SimplePowers(ReducedSimplePPs, T)
-  @vprint  :hilbert 1 "HSNum_base_case1: returning $(ans)";
+  @vprintln  :hilbert 1  "HSNum_base_case1: returning $(ans)";
   return ans;
 end # function
 
 
 ## CC contains at least 2 connected components (each compt repr as Vector{Int64} of the variable indexes in the compt)
 function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
-  @vprint  :hilbert 1 "Splitting case: CC = $(CC)";
+  @vprintln  :hilbert 1  "Splitting case: CC = $(CC)";
   HSNumList = []; ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1].expv);
   FoundVars = PP([0  for _ in 1:nvars]); # will be prod of all vars appearing in some conn compt
-  for IndexSet in CC #=do=#
-    for j in IndexSet #=do=#
+  for IndexSet in CC
+    for j in IndexSet
       mult_by_var!(FoundVars, j);
-    end #=for=#
-  end #=for=#
+    end
+  end
   IsolatedSimplePPs = filter((t -> is_coprime(t,FoundVars)), SimplePPs);
-  for IndexSet in CC #do
+  for IndexSet in CC
     SubsetNonSimplePPs = filter((t -> involves(t,IndexSet)), NonSimplePPs);
     SubsetSimplePPs = filter((t -> involves(t,IndexSet)), SimplePPs);
     push!(HSNumList, HSNum_loop(SubsetSimplePPs, SubsetNonSimplePPs, T, PivotStrategy));
     # Next 3 lines commented out: seemed to bring no benefit (??but why??)
-    #?            SubsetNonSimplePPs = [ProjectIndets(t, IndexSet)  for t in SubsetNonSimplePPs];
-    #?            SubsetSimplePPs = [ProjectIndets(t, IndexSet)  for t in SubsetSimplePPs];
+    #?            SubsetNonSimplePPs = [project_indets(t, IndexSet)  for t in SubsetNonSimplePPs];
+    #?            SubsetSimplePPs = [project_indets(t, IndexSet)  for t in SubsetSimplePPs];
     #?            push!(HSNumList, HSNum_loop(SubsetSimplePPs, SubsetGens, [T[k]  for k in IndexSet], PivotStrategy));
-  end #for
+  end
   HSNum_combined = prod(HSNumList);
-  if !isempty(IsolatedSimplePPs) #then
+  if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T);
     ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy);
-  end #if
+  end
   return HSNum_combined;
-end #=function=#
+end
 
 
 function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
-  @vprint  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)";
+  @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)";
   HSNumList = []; ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
   nvars = length(NonSimplePPs[1].expv);
   FoundVars = PP([0  for _ in 1:nvars]); # will be prod of all vars appearing in some conn compt
-  for i in VarIndexes #=do=#
+  for i in VarIndexes
     mult_by_var!(FoundVars, i);
-  end #=for=#
+  end
   IsolatedSimplePPs = filter((t -> is_coprime(t,FoundVars)), SimplePPs);
-  for t in NonSimplePPs #do
+  for t in NonSimplePPs
     SubsetSimplePPs = filter((s -> !is_coprime(s,t)), SimplePPs);
     push!(HSNumList, HSNum_base_case1(t, SubsetSimplePPs, T));
-  end #for
+  end
   HSNum_combined = prod(HSNumList);
-  if !isempty(IsolatedSimplePPs) #then
+  if !isempty(IsolatedSimplePPs)
     HSNum_combined *= HSNum_base_SimplePowers(IsolatedSimplePPs, T);
     ##OLD        HSNum_combined *= HSNum_loop(IsolatedSimplePPs, PP[], T, PivotStrategy);
-  end #if
+  end
   return HSNum_combined;
-end #=function=#
+end
+
 
 #------------------------------------------------------------------
-# Pivot selection strategies:
+# Pivot selection strategies: (see Bigatti 1997 paper)
 
-# term-order corr to matrix with -1 on anti-diag: [[0,0,-1],[0,-1,0],...]
-function IsRevLexSmaller(t1::PP, t2::PP)
-  n = length(t1.expv);
-  for j in n:-1:1 #=do=#
-    if t1.expv[j] != t2.expv[j]  #=then=# return (t1.expv[j] > t2.expv[j]); end #=if=#
-  end #=for=#
+# term-order corr to matrix with -1 on anti-diag: [[0,0,-1], [0,-1,0],...]
+function is_rev_lex_smaller(t1::PP, t2::PP)
+  n = length(t1);
+  for j in n:-1:1
+    if t1[j] != t2[j]   return (t1[j] > t2[j]); end
+  end
   return false; # t1 and t2 were equal (should not happen in this code)
-end #=function=#
+end
 
-function RevLexMin(L::Vector{PP})
+function rev_lex_min(L::Vector{PP})
   # assume length(L) > 0
-  if isempty(L) #=then=# return L[1];  end #=if=#
+  if isempty(L)  return L[1];  end
   IndexMin = 1;
-  for j in 2:length(L) #=do=#
-    if !IsRevLexSmaller(L[j], L[IndexMin])
+  for j in 2:length(L)
+    if !is_rev_lex_smaller(L[j], L[IndexMin])
       IndexMin = j;
-    end #=if=#
-  end #=for=#
+    end
+  end
   return L[IndexMin];
-end #=function=#
+end
 
-function RevLexMax(L::Vector{PP})
+function rev_lex_max(L::Vector{PP})
   # assume length(L) > 0
-  if length(L) == 1 #=then=# return L[1];  end #=if=#
+  if length(L) == 1  return L[1];  end
   IndexMax = 1;
-  for j in 2:length(L) #=do=#
-    if !IsRevLexSmaller(L[IndexMax], L[j])
+  for j in 2:length(L)
+    if !is_rev_lex_smaller(L[IndexMax], L[j])
       IndexMax = j;
-    end #=if=#
-  end #=for=#
+    end
+  end
   return L[IndexMax];
-end #=function=#
+end
 
-function HSNum_Bayer_Stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar})
+function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar})
   ##println("HSNum_BS: Simple:    $(SimplePPs)");
   ##println("HSNum_BS: NonSimple: $(NonSimplePPs)");
   # Maybe sort the gens???
-  if isempty(NonSimplePPs)  #=then=# return HSNum_base_SimplePowers(SimplePPs, T); end #=if=#
-  if length(NonSimplePPs) == 1 #=then=# return HSNum_base_case1(NonSimplePPs[1], SimplePPs, T); end #=if=#
+  if isempty(NonSimplePPs)
+    return HSNum_base_SimplePowers(SimplePPs, T)
+  end
+  if length(NonSimplePPs) == 1
+    return HSNum_base_case1(NonSimplePPs[1], SimplePPs, T)
+  end
   # NonSimplePPs contains at least 2 elements
   #    BSPivot = last(NonSimplePPs); # pick one somehow -- this is just simple to impl
-  #??    BSPivot = RevLexMin(NonSimplePPs); # VERY SLOW on Hilbert-test-rnd6.jl
-  BSPivot = RevLexMax(NonSimplePPs);
-  #VERY SLOW?!?    BSPivot = RevLexMax(vcat(SimplePPs,NonSimplePPs)); # VERY SLOW on Hilbert-test-rnd6.jl
-  println("BSPivot = $(BSPivot)");
+  #??    BSPivot = rev_lex_min(NonSimplePPs); # VERY SLOW on Hilbert-test-rnd6.jl
+  BSPivot = rev_lex_max(NonSimplePPs);
+  #VERY SLOW?!?    BSPivot = rev_lex_max(vcat(SimplePPs,NonSimplePPs)); # VERY SLOW on Hilbert-test-rnd6.jl
+  @vprintln :hilbert 2 "BSPivot = $(BSPivot)";
   NonSPP = filter((t -> (t != BSPivot)), NonSimplePPs);
   SPP = SimplePPs;#filter((t -> (t != BSPivot)), SimplePPs);
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman);
@@ -511,7 +532,7 @@ function HSNum_Bayer_Stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   part2 = HSNum_loop(NewSimplePPs, NewNonSimplePPs, T, :bayer_stillman);
   e = BSPivot.expv;
   return part1 - prod([T[k]^e[k]  for k in 1:length(e)])*part2;
-end #=function=#
+end
 
 #--------------------------------------------
 # Pivot selection strategies
@@ -523,20 +544,19 @@ end #=function=#
 #   (part 2) corr freq
 function HSNum_most_freq_indets(gens::Vector{PP})
   # ASSUMES: gens is non-empty
-  nvars = length(gens[1].expv);
+  nvars = length(gens[1]);
   freq = [0  for i in 1:nvars];  # Vector{Int}  or Vector{UInt}  ???
-  for t in gens #do
-    e = t.expv;
-    for i in 1:nvars #do
-      @inbounds if (e[i] != 0) #then
+  for t in gens
+    for i in 1:nvars
+      @inbounds if (t[i] != 0)
         @inbounds freq[i] += 1
-      end #if
-    end #for
-  end #for
+      end
+    end
+  end
   MaxFreq = maximum(freq);
   MostFreq = findall((x -> x==MaxFreq), freq);
   return MostFreq, MaxFreq;
-end #=function=#
+end
 
 
 # Returns index of the indet
@@ -544,232 +564,232 @@ function HSNum_most_freq_indet1(gens::Vector{PP})
   # ASSUMES: gens is non-empty
   MostFreq,_ = HSNum_most_freq_indets(gens);
   return MostFreq[1];
-end #=function=#
+end
 
 # Returns index of the indet
 function HSNum_most_freq_indet_rnd(gens::Vector{PP})
   # ASSUMES: gens is non-empty
   MostFreq,_ = HSNum_most_freq_indets(gens);
   return rand(MostFreq);
-end #=function=#
+end
 
 
 
-function HSNum_choose_pivot_indet(MostFreq::Vector{Int64}, gens::Vector{PP})
-  PivotIndet = rand(MostFreq); ##HSNum_most_freq_indet_rnd(gens); # or HSNum_most_freq_indet1
-  nvars = length(gens[1].expv);
-  PivotExpv = [0  for _ in 1:nvars];
-  PivotExpv[PivotIndet] = 1;
-  PivotPP = PP(PivotExpv);
-end #function
+# THIS PIVOT STRATEGY WAS AWFULLY SLOW!
+# function HSNum_choose_pivot_indet(MostFreq::Vector{Int64}, gens::Vector{PP})
+#   PivotIndet = rand(MostFreq); ##HSNum_most_freq_indet_rnd(gens); # or HSNum_most_freq_indet1
+#   nvars = length(gens[1].expv);
+#   PivotExpv = [0  for _ in 1:nvars];
+#   PivotExpv[PivotIndet] = 1;
+#   PivotPP = PP(PivotExpv);
+# end
 
 function HSNum_choose_pivot_simple_power_median(MostFreq::Vector{Int64}, gens::Vector{PP})
-  # simple-power-pivot from Bigatti JPAA, 1997
+  # variant of simple-power-pivot from Bigatti JPAA, 1997
   PivotIndet = rand(MostFreq);
   exps = [t.expv[PivotIndet]  for t in gens];
   exps = filter((e -> e>0), exps);
   sort!(exps);
   exp = exps[div(1+length(exps),2)];  # "median"
-  nvars = length(gens[1].expv);
+  nvars = length(gens[1]);
   PivotExpv = [0  for _ in 1:nvars];
   PivotExpv[PivotIndet] = exp;
   PivotPP = PP(PivotExpv);
-end #function
+end
 
 function HSNum_choose_pivot_simple_power_max(MostFreq::Vector{Int64}, gens::Vector{PP})
-  # simple-power-pivot from Bigatti JPAA, 1997
+  # variant of simple-power-pivot from Bigatti JPAA, 1997
   PivotIndet = rand(MostFreq);
   exps = [t.expv[PivotIndet]  for t in gens];
   exp = max(exps...);
-  nvars = length(gens[1].expv);
+  nvars = length(gens[1]);
   PivotExpv = [0  for _ in 1:nvars];
   PivotExpv[PivotIndet] = exp;
   PivotPP = PP(PivotExpv);
-end #function
+end
 
 function HSNum_choose_pivot_gcd2simple(MostFreq::Vector{Int64}, gens::Vector{PP})
+  # simple-power-pivot from Bigatti JPAA, 1997
   PivotIndet = rand(MostFreq);
   cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
+  if length(cand) == 1
     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
-  nvars = length(gens[1].expv);
+  end
+  nvars = length(gens[1]);
   expv = [0  for _ in 1:nvars];
   expv[PivotIndet] = min(cand[1].expv[PivotIndet],  cand[2].expv[PivotIndet]);
   return PP(expv);
-end #function
+end
 
 function HSNum_choose_pivot_gcd2max(MostFreq::Vector{Int64}, gens::Vector{PP})
   PivotIndet = rand(MostFreq);
   cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
+  if length(cand) == 1
     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
+  end
   pick2 = [cand[k]  for k in random_subset(length(cand),2)];
-  t = gcd(pick2[1], pick2[2]);
-  d = 0; for i in 1:length(t.expv) #=do=# d = max(d,t.expv[i]); end #=for=#
-  for i in 1:length(t.expv)  #=do=#
-    if t.expv[i] < d #=then=#
+  t = gcd(pick2...);
+  nvars = length(t);
+  d = 0; for i in 1:nvars  d = max(d,t.expv[i]); end
+  for i in 1:nvars
+    if t[i] < d
       t.expv[i]=0;
-    end #=if=#
-  end #=for=#
+    end
+  end
   return t;
-end #function
+end
 
 
-# May produce a non-simple pivot!!!
-function HSNum_choose_pivot_gcd3(MostFreq::Vector{Int64}, gens::Vector{PP})
-  PivotIndet = rand(MostFreq);
-  cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
-    error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
-  if length(cand) == 2 #=then=#
-    return gcd(cand[1], cand[2]);
-  end #=if=#
-  pick3 = [cand[k]  for k in random_subset(length(cand),3)];
-  return gcd3(pick3[1], pick3[2], pick3[3]);
-end #function
+# # May produce a non-simple pivot!!!
+# function HSNum_choose_pivot_gcd3(MostFreq::Vector{Int64}, gens::Vector{PP})
+#   PivotIndet = rand(MostFreq);
+#   cand = filter((t -> t.expv[PivotIndet]>0), gens);
+#   if length(cand) == 1
+#     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
+#   end
+#   if length(cand) == 2
+#     return gcd(cand[1], cand[2]);
+#   end
+#   pick3 = [cand[k]  for k in random_subset(length(cand),3)];
+#   return gcd3(pick3[1], pick3[2], pick3[3]);
+# end
 
 
 function HSNum_choose_pivot_gcd3simple(MostFreq::Vector{Int64}, gens::Vector{PP})
   PivotIndet = rand(MostFreq);
   cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
+  if length(cand) == 1
     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
-  if length(cand) == 2 #=then=#
+  end
+  if length(cand) == 2
     t = gcd(cand[1], cand[2]);
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)];
     t = gcd3(pick3[1], pick3[2], pick3[3]);
-  end #=if=#
+  end
   #    println("BEFORE: t= $(t)");
   j = 1;
   d = t.expv[1];
-  for i in 2:length(t.expv) #=do=#
-    if t.expv[i] <= d  #=then=#
+  for i in 2:length(t.expv)
+    if t.expv[i] <= d
       t.expv[i] = 0;
       continue;
-    end #=if=#
+    end
     t.expv[j] = 0;
     j=i;
     d = t.expv[i];
-  end #=for=#
+  end
   #    println("AFTER: t= $(t)");
   return t;
-end #function
+end
 
 function HSNum_choose_pivot_gcd3max(MostFreq::Vector{Int64}, gens::Vector{PP})
   PivotIndet = rand(MostFreq);
   cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
+  if length(cand) == 1
     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
-  if length(cand) == 2 #=then=#
+  end
+  if length(cand) == 2
     t = gcd(cand[1], cand[2]);
   else
     pick3 = [cand[k]  for k in random_subset(length(cand),3)];
     t = gcd3(pick3[1], pick3[2], pick3[3]);
-  end #=if=#
-  d = 0; for i in 1:length(t.expv) #=do=# d = max(d,t.expv[i]); end #=for=#
-  for i in 1:length(t.expv)  #=do=#
-    if t.expv[i] < d #=then=#
+  end
+  d = 0; for i in 1:length(t.expv)  d = max(d,t.expv[i]); end
+  for i in 1:length(t.expv)
+    if t.expv[i] < d
       t.expv[i]=0;
-    end #=if=#
-  end #=for=#
+    end
+  end
   return t;
-end #function
+end
 
 
-# May produce a non-simple pivot!!!
-function HSNum_choose_pivot_gcd4(MostFreq::Vector{Int64}, gens::Vector{PP})
-  PivotIndet = rand(MostFreq);
-  cand = filter((t -> t.expv[PivotIndet]>0), gens);
-  if length(cand) == 1 #=then=#
-    error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
-  end #=if=#
-  if length(cand) == 2 #=then=#
-    return gcd(cand[1], cand[2]);
-  end #=if=#
-  if length(cand) ==3 #=then=#
-    return gcd3(cand[1], cand[2], cand[3]);
-  end #=if=#
-  pick4 = [cand[k]  for k in random_subset(length(cand),4)];
-  return gcd(gcd(pick4[1], pick4[2]), gcd(pick4[3],pick4[4]));
-end #function
+# # May produce a non-simple pivot!!!
+# function HSNum_choose_pivot_gcd4(MostFreq::Vector{Int64}, gens::Vector{PP})
+#   PivotIndet = rand(MostFreq);
+#   cand = filter((t -> t.expv[PivotIndet]>0), gens);
+#   if length(cand) == 1
+#     error("Failed to detect total splitting case"); ### !!SHOULD NEVER GET HERE!!
+#   end
+#   if length(cand) == 2
+#     return gcd(cand[1], cand[2]);
+#   end
+#   if length(cand) ==3
+#     return gcd3(cand[1], cand[2], cand[3]);
+#   end
+#   pick4 = [cand[k]  for k in random_subset(length(cand),4)];
+#   return gcd(gcd(pick4[1], pick4[2]), gcd(pick4[3],pick4[4]));
+# end
 
 
 
 # Assume SimplePPs+NonSimplePPs are interreduced
 function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
-  @vprint  :hilbert 1 "HSNum_loop: SimplePPs=$(SimplePPs)";
-  @vprint  :hilbert 1 "HSNum_loop: NonSimplePPs=$(NonSimplePPs)";
-#  @vprint  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))";
+  @vprintln  :hilbert 1 "HSNum_loop: SimplePPs=$(SimplePPs)";
+  @vprintln  :hilbert 1 "HSNum_loop: NonSimplePPs=$(NonSimplePPs)";
+#  @vprintln  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))";
   # Check if we have base case 0
-  if  isempty(NonSimplePPs)  #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 0";
+  if  isempty(NonSimplePPs)
+    @vprintln :hilbert  1 "HSNum_loop:  --> delegate base case 0";
     return HSNum_base_SimplePowers(SimplePPs, T);
-  end #if
+  end
   # Check if we have base case 1
-  if  length(NonSimplePPs) == 1  #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate base case 1";
+  if  length(NonSimplePPs) == 1
+    @vprintln :hilbert  1 "HSNum_loop:  --> delegate base case 1";
     return HSNum_base_case1(NonSimplePPs[1], SimplePPs, T);
-  end #if
+  end
   # ----------------------
   MostFreq,freq = HSNum_most_freq_indets(NonSimplePPs);
-  if  freq == 1 #=then=#
+  if  freq == 1
     return HSNum_total_splitting_case(MostFreq, SimplePPs, NonSimplePPs, T, PivotStrategy);
-  end #=if=#
-  
-  if PivotStrategy == :bayer_stillman  #=then=#
-    return HSNum_Bayer_Stillman(SimplePPs, NonSimplePPs, T);
-  end #=if=#
+  end
+
+  if PivotStrategy == :bayer_stillman
+    return HSNum_bayer_stillman(SimplePPs, NonSimplePPs, T);
+  end
   # Check for "splitting case"
-  if length(NonSimplePPs) <= length(NonSimplePPs[1].expv)#=nvars=# #=then=#
-    CC = ConnectedComponents(NonSimplePPs);
+  if length(NonSimplePPs) <= length(NonSimplePPs[1].expv)#=nvars=#
+    CC = connected_components(NonSimplePPs);
   else CC = []
-  end #if
-  if length(CC) > 1 #then
-    @vprint :hilbert  1 "HSNum_loop:  --> delegate Splitting case";
+  end
+  if length(CC) > 1
+    @vprintln :hilbert  1 "HSNum_loop:  --> delegate Splitting case";
     return HSNum_splitting_case(CC, SimplePPs, NonSimplePPs, T, PivotStrategy);
-  end #if  (splitting case)
+  end
   # ----------------------
   # Pivot case: first do the ideal sum, then do ideal quotient
   # (the ideas are relatively simple, the code is long, tedious, and a bit fiddly)
-  if PivotStrategy == :indet
-    PivotPP = HSNum_choose_pivot_indet(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :simple_power_max
-    PivotPP = HSNum_choose_pivot_simple_power_max(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd2simple
-    PivotPP = HSNum_choose_pivot_gcd2simple(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd2max
-    PivotPP = HSNum_choose_pivot_gcd2max(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd3
-    PivotPP = HSNum_choose_pivot_gcd3(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd3simple
-    PivotPP = HSNum_choose_pivot_gcd3simple(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd3max
-    PivotPP = HSNum_choose_pivot_gcd3max(MostFreq, NonSimplePPs)
-  end #=if=#
-  if PivotStrategy == :gcd4
-    PivotPP = HSNum_choose_pivot_gcd4(MostFreq, NonSimplePPs)
-  end #=if=#
   if PivotStrategy == :simple_power_median  || PivotStrategy == :auto
     PivotPP = HSNum_choose_pivot_simple_power_median(MostFreq, NonSimplePPs)
-  end #=if=#
-  #     end #=if=#
-  @vprint :hilbert  1 "HSNum_loop:  pivot = $(PivotPP)";
-  PivotIsSimple = IsSimplePowerPP(PivotPP);
+  end
+  if PivotStrategy == :simple_power_max
+    PivotPP = HSNum_choose_pivot_simple_power_max(MostFreq, NonSimplePPs)
+  end
+  if PivotStrategy == :gcd2simple
+    PivotPP = HSNum_choose_pivot_gcd2simple(MostFreq, NonSimplePPs)
+  end
+  if PivotStrategy == :gcd2max
+    PivotPP = HSNum_choose_pivot_gcd2max(MostFreq, NonSimplePPs)
+  end
+  # if PivotStrategy == :gcd3
+  #   PivotPP = HSNum_choose_pivot_gcd3(MostFreq, NonSimplePPs)
+  # end
+  if PivotStrategy == :gcd3simple
+    PivotPP = HSNum_choose_pivot_gcd3simple(MostFreq, NonSimplePPs)
+  end
+  if PivotStrategy == :gcd3max
+    PivotPP = HSNum_choose_pivot_gcd3max(MostFreq, NonSimplePPs)
+  end
+  # if PivotStrategy == :gcd4
+  #   PivotPP = HSNum_choose_pivot_gcd4(MostFreq, NonSimplePPs)
+  # end
+  #     end
+  @vprintln :hilbert  1 "HSNum_loop:  pivot = $(PivotPP)";
+  PivotIsSimple = is_simple_power_pp(PivotPP);
   PivotIndex = findfirst((e -> e>0), PivotPP.expv); # used only if PivotIsSimple == true
   USE_SAFE_VERSION_SUM=false;
-  if  USE_SAFE_VERSION_SUM  #=then=#
+  if  USE_SAFE_VERSION_SUM
     # Safe but slow version: just add new gen, then interreduce
     RecurseSum = vcat(SimplePPs, NonSimplePPs);
     push!(RecurseSum, PivotPP);
@@ -779,59 +799,60 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
     RecurseSum_SimplePPs = RecurseSum_SimplePPs_OLD;
   else # use "clever" version:
     # We know that SimplePPs + NonSimplePPs are already interreduced
-    if  PivotIsSimple #=then=#
+    if  PivotIsSimple
       RecurseSum_SimplePPs_NEW = copy(SimplePPs);
       k = findfirst((t -> t.expv[PivotIndex] > 0), SimplePPs);
       if k === nothing
         push!(RecurseSum_SimplePPs_NEW, PivotPP);
       else
         RecurseSum_SimplePPs_NEW[k] = PivotPP;
-      end #if
+      end
       RecurseSum_NonSimplePPs_NEW = filter((t -> t.expv[PivotIndex] < PivotPP.expv[PivotIndex]), NonSimplePPs);
     else # PivotPP is not simple -- so this is the "general case"
       RecurseSum_SimplePPs_NEW = copy(SimplePPs); # need to copy?
-      RecurseSum_NonSimplePPs_NEW = filter((t -> !IsDivisible(t,PivotPP)), NonSimplePPs);
+      RecurseSum_NonSimplePPs_NEW = filter((t -> !is_divisible(t,PivotPP)), NonSimplePPs);
       push!(RecurseSum_NonSimplePPs_NEW, PivotPP);
-    end #=if=#
+    end
     RecurseSum_NonSimplePPs = RecurseSum_NonSimplePPs_NEW;
     RecurseSum_SimplePPs = RecurseSum_SimplePPs_NEW;
-  end #=if=# # USE_SAFE_VERSION_SUM
+  end  # USE_SAFE_VERSION_SUM
 
   # Now do the quotient...
   # Now get SimplePPs & NonSimplePPs for the quotient while limiting amount of interreduction
   USE_SAFE_VERSION_QUOT = false;
-  if USE_SAFE_VERSION_QUOT #=then=#
+  if USE_SAFE_VERSION_QUOT
     #=SAFE VERSION: simpler but probably slower=#
     RecurseQuot = [colon(t,PivotPP)  for t in vcat(SimplePPs,NonSimplePPs)];
     RecurseQuot = interreduce(RecurseQuot);
     RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs = SeparateSimplePPs(RecurseQuot);
   else  # Use "smart version"
-    if !PivotIsSimple #then  # GENERAL CASE (e.g. if not PivotIsSimple)
+    if !PivotIsSimple   # GENERAL CASE (e.g. if not PivotIsSimple)
       # Clever approach (for non-simple pivots) taken from Bigatti 1997 paper (p.247 just after Prop 1 to end of sect 5)
       # ???Maybe use filter2 (see start of this file) instead of loop below???
       BM = PP[]; NotBM = PP[];
       PivotPlus = mult(PivotPP, radical(PivotPP));
-      for t in NonSimplePPs #=do=#
-        if IsDivisible(t,PivotPlus) #=then=#
+      for t in NonSimplePPs
+        if is_divisible(t,PivotPlus)
           push!(BM,t);
         else
           push!(NotBM,t);
-        end #=if=#
-      end #=for=#
+        end
+      end
+      # BM is short for "big multiple" (see Bigatti 97, p.247 between Prop 1 and Prop 2)
       BM = [divide(t,PivotPP)  for t in BM];  # divide is same as colon here
       NotBM = vcat(NotBM, SimplePPs);
       NotBM_mixed = PP[];  NotBM_coprime = PP[];
-      for t in NotBM #=do=#
-        if is_coprime(t,PivotPP) #=then=#
+      for t in NotBM
+        if is_coprime(t,PivotPP)
           push!(NotBM_coprime,t);
         else
           push!(NotBM_mixed, colon(t,PivotPP));
-        end #=if=#
-      end #=for=#
+        end
+      end
       # At this poiint we have 3 disjoint lists of PPs: BM (big multiples), NotBM_coprime, NotBM_mixed
       # In all cases the PPs have been colon-ed by PivotPP
       NotBM_mixed = interreduce(NotBM_mixed); # cannot easily be "clever" here
-      filter!((t -> NotMultOf(NotBM_mixed,t)), NotBM_coprime);
+      filter!((t -> not_mult_of_any(NotBM_mixed,t)), NotBM_coprime);
       RecurseQuot = vcat(NotBM_coprime, NotBM_mixed); # already interreduced
       RQ_SimplePPs, RQ_NonSimplePPs = SeparateSimplePPs(RecurseQuot);
       RecurseQuot_SimplePPs = RQ_SimplePPs;
@@ -843,142 +864,164 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
       if !(k === nothing)
         RecurseQuot_SimplePPs[k] = copy(RecurseQuot_SimplePPs[k]);
         RecurseQuot_SimplePPs[k].expv[PivotIndex] -= PivotPP.expv[PivotIndex];
-      end #if
+      end
       DegPivot = degree(PivotPP);
       NonSimpleTbl = [PP[]  for _ in 0:DegPivot];  ## WARNING: indexes are offset by 1 -- thanks Julia!
       NonSimple1 = PP[]; # will contain all PPs divisible by PivotPP^(1+epsilon)
-      for t in NonSimplePPs  #=do=#
+      for t in NonSimplePPs
         degt = t.expv[PivotIndex];
-        if degt > DegPivot #=then=#
+        if degt > DegPivot
           push!(NonSimple1, divide(t, PivotPP));
         else
           push!(NonSimpleTbl[degt+1], colon(t,PivotPP));
-        end #=if=#
-      end #=for=#
+        end
+      end
       NonSimple2 = NonSimpleTbl[DegPivot+1];
-      for i in DegPivot:-1:1 #=do=#
-        NewPPs = filter((t -> NotMultOf(NonSimple2,t)), NonSimpleTbl[i]);
+      for i in DegPivot:-1:1
+        NewPPs = filter((t -> not_mult_of_any(NonSimple2,t)), NonSimpleTbl[i]);
         NonSimple2 = vcat(NonSimple2, NewPPs);
-      end #=for=#
-      NewSimplePPs = filter(IsSimplePowerPP, NonSimple2);
-      NonSimple2 = filter(!IsSimplePowerPP, NonSimple2);  ## SeparateSimplePPs???
-      if !isempty(NewSimplePPs) #=then=#
+      end
+      NewSimplePPs = filter(is_simple_power_pp, NonSimple2); ## Use instead
+      NonSimple2 = filter(!is_simple_power_pp, NonSimple2);  ## SeparateSimplePPs???
+      if !isempty(NewSimplePPs)
         RecurseQuot_SimplePPs = interreduce(vcat(RecurseQuot_SimplePPs, NewSimplePPs));
-      end #=if=#
+      end
       RecurseQuot_NonSimplePPs = vcat(NonSimple1, NonSimple2);
-    end #=if=# #PivotIsSimple
-  end #=if=# # end of USE_SAFE_VERSION_QUOT
+    end  #PivotIsSimple
+  end  # USE_SAFE_VERSION_QUOT
   # Now put the two pieces together:
   nvars = length(PivotPP.expv);
   scale = prod([T[k]^PivotPP.expv[k]  for k in 1:nvars]);
-    @vprint  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)";
-    @vprint  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)";
-    @vprint  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)";
-    @vprint  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  simple    $(RecurseSum_SimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   SUM recursion:  nonsimple $(RecurseSum_NonSimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: simple    $(RecurseQuot_SimplePPs)";
+  @vprintln  :hilbert 2  "HSNum_loop:   QUOT recursion: nonsimple $(RecurseQuot_NonSimplePPs)";
 
   HSNum_sum = HSNum_loop(RecurseSum_SimplePPs, RecurseSum_NonSimplePPs, T, PivotStrategy);
   HSNum_quot = HSNum_loop(RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs, T, PivotStrategy);
-  @vprint  :hilbert 1 "HSNum_loop:  END OF CALL";
+  @vprintln  :hilbert 1 "HSNum_loop:  END OF CALL";
   return HSNum_sum + scale*HSNum_quot;
-end #function
+end
 
 
-function SeparateSimplePPs(gens::Vector{PP})
+function separate_simple_pps(gens::Vector{PP})
   SimplePPs::Vector{PP} = [];
   NonSimplePPs::Vector{PP} = [];
-  for g in gens  #do
-    if IsSimplePowerPP(g)  #then
+  for g in gens
+    if is_simple_power_pp(g)
       push!(SimplePPs, g)
     else
       push!(NonSimplePPs, g)
-    end #if
-  end #for
+    end
+  end
   return SimplePPs, NonSimplePPs;
-end #function
+end
 
 
 # Check args: either throws or returns nothing.
-function HSNum_CheckArgs(gens::Vector{PP}, W::Vector{Vector{Int}})
-  if isempty(gens) #=then=#
+function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
+  if isempty(gens)
     throw("HSNum: need at least 1 generator");
-  end #=if=#
-  if isempty(W) #=then=#
+  end
+  if isempty(W)
     throw("HSNum: weight matrix must have at least 1 row");
-  end #=if=#
+  end
   nvars = length(gens[1].expv);
   if !all((t -> length(t.expv)==nvars), gens)
     throw("HSNum: generators must all have same size exponent vectors");
-  end #if
+  end
   if !all((row -> length(row)==nvars), W)
     throw("HSNum: weight matrix must have 1 column for each variable")
-  end #if
+  end
   # Zero weights are allowed???
   # Args are OK, so simply return (without throwing)
-end # function
+end
 
 
-function HSNum(gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol)
-  ###    println("HSNum: gens = $(gens)");
-  ###    println("HSNum: W = $(W)");
-  HSNum_CheckArgs(gens, W);
+function HSNum(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol)
+  # ASSUME W is "rectangular"
+  @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)";
+  @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)";
+  HSNum_check_args(PP_gens, W); #throws or does nothing
   # Grading is over ZZ^m
-  m = size(W)[1];  # NumRows
-  ncols = size(W[1])[1];  # how brain-damaged is Julia???
-  nvars = length(gens[1].expv);
-  if  ncols != nvars #then
+  m = length(W);  # NumRows
+  ncols = length(W[1]);
+  nvars = length(PP_gens[1]);
+  if  ncols != nvars
     throw(ArgumentError("weights matrix has wrong number of columns ($(ncols)); should be same as number of variables ($(nvars))"));
-  end #if
+  end
   HPRing, t = LaurentPolynomialRing(QQ, ["t$k"  for k in 1:m]);
   T = [one(HPRing)  for k in 1:nvars];
-  for k in 1:nvars #do
+  for k in 1:nvars
     s = one(HPRing);
-    for j in 1:m #do
+    for j in 1:m
       s *= t[j]^W[j][k];
-    end #for
+    end
     T[k] = s;
-  end #for
+  end
   # Now have T[1] = t1^W[1,1] * t2^W[2,1] * ...,  etc
-  ###                  println("HSNum: T vector is $(T)");
-  SimplePPs,NonSimplePPs = SeparateSimplePPs(interreduce(gens));
-  sort!(NonSimplePPs, lt=DegRevLexLess); # recommended by Bayer+Stillman (for their criterion)
+  SimplePPs,NonSimplePPs = separate_simple_pps(interreduce(PP_gens));
+  sort!(NonSimplePPs, lt=deg_rev_lex_less); # recommended by Bayer+Stillman (for their criterion)
   return HSNum_loop(SimplePPs, NonSimplePPs, T, PivotStrategy);
-end #function
+end
 
 #-----------------------------------------------------------------------------
 # This fn copied from GradedModule.jl (in dir OSCAR/HILBERT/)
 function gen_repr(d)
   grading_dim = length(gens(parent(d)));
-  return [getindex(d,k)  for k in 1:grading_dim];
-end #function
+  return [d[k]  for k in 1:grading_dim];
+end
 
-function HSNum_fudge(PmodI::MPolyQuoRing, PivotStrategy::Symbol = :auto)
-  if PivotStrategy == :indet   return nothing; end
-  I = PmodI.I;
-  P = base_ring(I);##parent(gens(I)[1]); # there MUST be a better way!!
+@doc raw"""
+    HSNum_fudge(A::MPolyQuoRing; pivot_strategy::Symbol = :auto)
+
+Compute numerator of Hilbert series of the quotient `A`.
+Result is a pair: `N, D` being the numerator `N` (as a laurent polynomial) and the denominator `D` as
+a factor list of laurent polynomials.
+
+!!! note
+    Applied to an ideal `I`, the function first homogenizes the generators of `I` in the extended ring.
+    It then creates the ideal generated by these homogenizations, and saturates this ideal
+    with respect to the ideal which is generated by the homogenizing variables.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y","z"])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> I = ideal(R, [x^3+y^2*z,  y^3+x*z^2,  z^3+x^2*y]);
+
+julia> RmodI,_ = quo(R,I);
+
+julia> HSNum_fudge(RmodI)
+-t1^9 + 3*t1^6 - 3*t1^3 + 1
+
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y","z"], [1 2 3; 3 2 1])
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+
+julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
+
+julia> RmodI,_ = quo(R,I);
+
+julia> HSNum_fudge(RmodI)
+-t1^28*t2^28 + t1^24*t2^24 + t1^22*t2^10 - t1^18*t2^6 + t1^10*t2^22 - t1^6*t2^18 - t1^4*t2^4 + 1
+
+```
+"""
+function HSNum_fudge(PmodI::MPolyQuoRing; pivot_strategy::Symbol = :auto)
+  I = modulus(PmodI);
+  P = base_ring(I);
   nvars = length(gens(P));
   grading_dim = length(gens(parent(degree(gen(P,1))))); # better way???
   weights = [degree(var)  for var in gens(P)];
   W = [[0  for _ in 1:nvars]  for _ in 1:grading_dim];
-  for i in 1:nvars #do
+  for i in 1:nvars
     expv = [Int64(exp)  for exp in gen_repr(degree(gen(P,i)))];
-    for j in 1:grading_dim #do
+    for j in 1:grading_dim
       W[j][i] = expv[j];
-    end #for
-  end #for
-  # ##    W = [[Int64(exp)  for exp in gen_repr(d)]  for d in weights];
-  # W=[]
-  # for d in weights #do
-  #     expv = [Int64(exp)  for exp in gen_repr(d)];
-  #     if isempty(W) #then
-  #         W = expv;
-  #     else
-  #         W = hcat(W, expv);
-  #     end #if
-  # end #for
-  # W = [W[:,i] for i in 1:size(W,2)]
-  # # ?transpose?  hcat
-  ##    println("W is $(W)");
+    end
+  end
   LTs = gens(leading_ideal(I));
   PPs = [PP(degrees(t))  for t in LTs];
-  return HSNum(PPs, W, PivotStrategy);
-end #function
+  return HSNum(PPs, W, pivot_strategy);
+end
