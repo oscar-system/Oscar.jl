@@ -492,6 +492,49 @@ end
 
 
 @doc raw"""
+    normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+
+Returns a toric variety that was obtained from a fine regular
+star triangulation of the lattice points of the polyhedron P.
+This is particularly useful when the lattice points of the
+polyhedron in question admit many triangulations.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+Polyhedron in ambient dimension 3
+
+julia> v = normal_toric_variety_from_star_triangulation(P)
+Normal toric variety
+```
+"""
+function normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+  # Find position of origin in the lattices points of the polyhedron P
+  pts = matrix(ZZ, lattice_points(P))
+  zero = [0 for i in 1:ambient_dim(P)]
+  indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+  @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
+
+  # Change order of lattice points s.t. zero is the first point
+  tmp = pts[1,:]
+  pts[1,:] = pts[indices[1],:]
+  pts[indices[1],:] = tmp
+
+  # Find one triangulation and turn it into the maximal cones of the toric variety in question. Note that:
+  # (a) needs to be converted to incidence matrix
+  # (b) one has to remove origin from list of indices (as removed above)
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
+
+  # Rays are all but the zero vector at the first position of pts
+  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+
+  # construct the variety
+  return normal_toric_variety(integral_rays, max_cones; non_redundant = true)
+end
+
+
+
+@doc raw"""
     normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
 
 Returns the list of toric varieties obtained from fine regular
@@ -546,27 +589,67 @@ end
 
 
 @doc raw"""
+  normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+
+This function returns one toric variety with the desired
+GLSM charges. This can be particularly useful provided that
+there are many such toric varieties.
+
+# Examples
+```jldoctest
+julia> charges = [[1, 1, 1]]
+1-element Vector{Vector{Int64}}:
+ [1, 1, 1]
+
+julia> normal_toric_variety_from_glsm(charges)
+Normal toric variety
+```
+
+For convenience, we also support:
+- normal_toric_variety_from_glsm(charges::Vector{Vector{Int}})
+- normal_toric_variety_from_glsm(charges::Vector{Vector{ZZRingElem}})
+"""
+function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+
+  # find the ray generators
+  G1 = free_abelian_group(ncols(charges))
+  G2 = free_abelian_group(nrows(charges))
+  map = hom(G1, G2, transpose(charges))
+  ker = kernel(map)
+  embedding = snf(ker[1])[2] * ker[2]
+  rays = transpose(embedding.map)
+
+  # identify the points to be triangulated
+  pts = zeros(ZZ, nrows(rays), ncols(charges)-nrows(charges))
+  for i in 1:nrows(rays)
+    pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
+  end
+  zero = [0 for i in 1:ncols(charges)-nrows(charges)]
+  pts = vcat(matrix(ZZ, transpose(zero)), matrix(ZZ, pts))
+
+  # construct varieties
+  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
+  variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
+
+  # set the attributes and return the variety
+  if set_attributes
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
+    set_attribute!(variety, :class_group, G2)
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
+  end
+  return variety
+end
+normal_toric_variety_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_variety_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
+
+
+
+@doc raw"""
     normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 
-Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
-originally sparked interest in the physics community in toric varieties.
-On a mathematical level, this establishes a construction of toric
-varieties for  which a Z^n grading of the Cox ring is provided. See
-for example [FJR17](@cite), which describes this as GIT
-construction [CLS11](@cite).
-
-Explicitly, given the grading of the Cox ring, the map from
-the group of torus invariant Weil divisors to the class group
-is known. Under the assumption that the variety in question
-has no torus factor, we can then identify the map from the
-lattice to the group of torus invariant Weil divisors as the
-kernel of the map from the torus invariant Weil divisor to the
-class group. The latter is a map between free Abelian groups, i.e.
-is provided by an integer valued matrix. The rows of this matrix
-are nothing but the ray generators of the fan of the toric variety.
-It then remains to triangulate these rays, hence in general for
-a GLSM the toric variety is only unique up to fine regular
-star triangulations.
+This function returns all toric variety with the desired
+GLSM charges. This computation may take a long time if
+there are many such toric varieties.
 
 # Examples
 ```jldoctest
@@ -597,11 +680,11 @@ For convenience, we also support:
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
 function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
-    
+
     # find the ray generators
-    source = free_abelian_group(ncols(charges))
-    range = free_abelian_group(nrows(charges))
-    map = hom(source, range, transpose(charges))
+    G1 = free_abelian_group(ncols(charges))
+    G2 = free_abelian_group(nrows(charges))
+    map = hom(G1, G2, transpose(charges))
     ker = kernel(map)
     embedding = snf(ker[1])[2] * ker[2]
     rays = transpose(embedding.map)
@@ -620,12 +703,9 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
     
     # set the map from Div_T -> Cl to the desired matrix
-    for v in varieties
-      G1 = free_abelian_group(ncols(charges))
-      G2 = free_abelian_group(nrows(charges))
-      grading_of_cox_ring = hom(G1, G2, transpose(charges))
-      if set_attributes
-        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+    if set_attributes
+      for v in varieties
+        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
         set_attribute!(v, :class_group, G2)
         set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
       end
@@ -635,6 +715,3 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     return varieties
 end
 normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
-
-
-

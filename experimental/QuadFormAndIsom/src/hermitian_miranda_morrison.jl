@@ -319,7 +319,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
     OqL2 = orthogonal_group(qL2)
     ok, phi12 = is_isometric_with_isometry(qL, qL2)
     @hassert :ZZLatWithIsom 1 ok
-    ok, g0 = representative_action(OqL, fqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12)))))
+    ok, g0 = is_conjugate_with_data(OqL, fqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12)))))
     @hassert :ZZLatWithIsom 1 ok
     phi12 = compose(hom(OqL(g0)), phi12)
     @hassert :ZZLatWithIsom 1 is_isometry(phi12)

@@ -994,7 +994,7 @@ end
     direct_sum(x::Vararg{ZZLatWithIsom}) -> ZZLatWithIsom,
                                                        Vector{AbstractSpaceMor}
 
-Given a collection of lattices with isometries $(L_1, f_1) \ldots, (L_n, f_n)$,
+Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the injections $L_i \to L$,
 where `L` is the direct sum $L := L_1 \oplus \ldots \oplus L_n$ and `f` is the
 isometry of `L` induced by the diagonal actions of the $f_i$'s.

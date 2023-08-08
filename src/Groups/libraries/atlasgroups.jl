@@ -75,7 +75,7 @@ function atlas_group(info::Dict)
     deg = GAP.Globals.DimensionOfMatrixGroup(G)
     iso = info[:base_ring_iso]
     ring = domain(iso)
-    matgrp = MatrixGroup(deg, ring)
+    matgrp = matrix_group(ring, deg)
     matgrp.ring_iso = iso
     matgrp.X = G
     return matgrp

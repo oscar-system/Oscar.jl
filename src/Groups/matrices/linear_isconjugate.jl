@@ -134,7 +134,7 @@ function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
 end
 
 
-function representative_action_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
+function is_conjugate_with_data_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
    (isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)) ||
    throw(ArgumentError("Group must be general or special linear group"))
 
