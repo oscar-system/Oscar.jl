@@ -221,6 +221,14 @@
         @test facets(f[i])[] in facets(l)
       end
     end
+
+    for n in (2, 3) # faces which are facets have a different access function
+      let f = faces(l, n)
+        for i in 1:Int(f_vector(l)[n])
+          @test issubset(rays(f[i]), rays(l))
+        end
+      end
+    end
     
   end
 
