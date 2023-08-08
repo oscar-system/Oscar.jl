@@ -1,4 +1,5 @@
 include("ModuleTypes.jl")
+include("hilbert.jl")
 include("UngradedModules.jl")
 include("homological-algebra.jl")
 include("FreeModElem-orderings.jl")
