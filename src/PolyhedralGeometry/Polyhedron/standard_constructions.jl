@@ -1116,7 +1116,7 @@ Note that the polytope lives in $3$-space, so we project it down to $2$-space
 by eliminating the last coordinate. 
 
 ```jldoctest
-julia> p = SIM_body_polytope([3,1])
+julia> p = SIM_body_polytope([3, 1])
 Polyhedron in ambient dimension 3
 
 julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
@@ -1200,7 +1200,7 @@ julia> vertices(P)
  [0, 7]
 ```
 """
-binary_markov_graph_polytope(observation::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
+binary_markov_graph_polytope(observation::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector(convert(Polymake.Vector{Int},observation)))) #Base.Integer und convert verwenden. 
 binary_markov_graph_polytope(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
 
 @doc raw"""
@@ -1233,9 +1233,7 @@ julia> vertices(c)
 ```
 """
 function dwarfed_cube(d::Int)
-    if d<2
-        throw(ArgumentError("dwarfed_cube: d >= 2 required"))
-    end
+    d<2 && throw(ArgumentError("dwarfed_cube: d >= 2 required"))
     return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
 end
 
@@ -1335,7 +1333,7 @@ julia> vertices(Z)
  [-2, 0]
 ```
 """
-explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = polyhedron(Polymake.polytope.explicit_zonotope(Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
+explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.explicit_zonotope(Polymake.Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
 
 @doc raw"""
     cyclic_caratheodory_polytope(d::Int, n::Int)
@@ -1397,17 +1395,16 @@ julia> print_constraints(p)
 fractional_knapsack_polytope(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
 fractional_knapsack_polytope(b::Vector{Int}) = fractional_knapsack_polytope(convert(Vector{Rational}, b))
 
+#defaults in den header und unten anpassen
 @doc raw"""
-    hypersimplex(k::Int, d::Int)
+    hypersimplex(k::Int, d::Int) 
 
 Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$-vector in $\mathbb{R}^d$ with exactly $k$ ones. Note that the output is never full-dimensional.
 
 # Keywords
-- `k::Int`: number of ones
-- `d::Int`: ambient dimension
-- `no_vertices::Bool`: This is an optional parameter, if set equal to `true`, vertices are not computed.
+- `no_vertices::Bool`: If set equal to `true`, vertices are not computed.
 - `no_facets::Bool`: This is an optional parameter, if set equal to `true`, facets are not computed.
-- `no_vif::Bool`: This is an optional parameter, if set equal to `true``, vertices and facets are not computed.
+- `no_vif::Bool`: This is an optional parameter, if set equal to `true``, vertices in facets are not computed.
 
 # Example
 ```jldoctest
@@ -1507,7 +1504,7 @@ julia> vertices(c)
  [0, 0, 1]
 ```
 """
-function goldfarb_cube(d::Int, e::Real, g::Real)
+function goldfarb_cube(d::Int, e::Number, g::Number)
     m = 8*sizeof(Int)-2
     if d<1 || d>m
         throw(ArgumentError("goldfarb_cube: dimension ot of range (1,..," * string(m) * ")"))
@@ -1553,7 +1550,7 @@ julia> vertices(c)
  [0, 0, 1]
 ```
 """
-function goldfarb_sit_cube(d::Int, eps::Real, delta::Real) 
+function goldfarb_sit_cube(d::Int, eps::Number, delta::Number) 
     m = 8*sizeof(Int)-2
     if d<1 || d>m
         throw(ArgumentError("goldfarb_sit_cube: dimension ot of range (1,..," * string(m) * ")"))
@@ -1622,6 +1619,7 @@ Polyhedron in ambient dimension 2
 """
 k_cyclic_polytope(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
 
+# example einfuegen von goldfarb 
 @doc raw"""
     klee_minty_cube(d::Int, e::Number)
 
@@ -1682,6 +1680,7 @@ function multiplex_polytope(d::Int, n::Int)
     return Polyhedron{QQFieldElem}(Polymake.polytope.multiplex(d,n))
 end
 
+#Rational oder Real? -> Number
 @doc raw"""
     n_gon(n::Int; r::Rational=1, alpha_0::Rational=0)
 
@@ -1814,7 +1813,7 @@ julia> f_vector(DP)
 pseudo_del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.pseudo_delpezzo(d))
 
 @doc raw"""
-    function rand01_polytope(d::Int, n::Int; seed=nothing)
+    rand01_polytope(d::Int, n::Int; seed=nothing)
 
 Produce a d-dimensional $0/1$-polytope with `n` random vertices. Uniform distribution.
 
@@ -1846,16 +1845,16 @@ julia> vertices(r)
  [1, 0]
 ````
 """
-function rand01_polytope(d::Int, n::Int; seed=nothing)
+function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
     if (d < 2 || n <= d || n > 2^d)
         throw(ArgumentError("rand01_polytope : 2 <= dim < #vertices <= 2^dim required"))
     end # creating the Optionset, the :template_parameters are for templating functions in C++
-    if seed != nothing
-        seed = convert(Int64, seed)
-        opts = Dict{Symbol,Any}(:seed => seed)
-        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
-    else
+    if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
+    else
+        seed = convert(Int64, seed)
+        #opts = Dict{Symbol,Any}(:seed => seed) #opts macht also nur sinn für meherer eintraege
+        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; :seed => seed)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
@@ -1956,14 +1955,14 @@ julia> rand_metric(3, seed=132)
 ```
 """
 function rand_metric(n::Int; seed=nothing)
-    if seed != nothing
+    if seed != nothing #siehe oben 
         seed = convert(Int64, seed)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
     else
         pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
     end
-    return Matrix{Rational}(pm_obj)
+    return matrix(QQ, pm_obj) #statt Matrix{QQFieldElem}(pm_obj) (einheitliches Format in Oskar)
 end
 
 @doc raw"""
@@ -1986,12 +1985,12 @@ end
 
 @doc raw"""
 
+    rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
+
 Produce a rational d-dimensional polytope from n random points approximately 
 normally distributed in the unit ball.
 
 # Keywords
--`d::Int`: dimension of ball
--`n::Int`: number of points sampled on the ball
 -`seed::Int`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
 -`precision::Int`: number of bits for MPFR sphere approximation
 
@@ -2089,7 +2088,7 @@ end
 @doc raw"""
     signed_permutahedron(d::Int)
 
-Produce a `d`-dimensional signed permutahedron. I.e. for all possible permutations of
+Produce the `d`-dimensional signed permutahedron. I.e. for all possible permutations of
 the vector $(1,\dots,d)$, all possible sign patterns define vertices of this polytope. 
 Contrary to the classical permutahedron, the signed permutahedron is full-dimensional. 
 
@@ -2097,7 +2096,7 @@ Contrary to the classical permutahedron, the signed permutahedron is full-dimens
 -`d::Int`: 
 
 # Examples:
-To produce a $2$-dimensional signed permutahedron, do: 
+To produce the $2$-dimensional signed permutahedron, do: 
 ```jldoctest
 julia> P = signed_permutahedron(2)
 Polyhedron in ambient dimension 2
@@ -2119,7 +2118,7 @@ function signed_permutahedron(d::Int)
         throw(ArgumentError("signed_permutahedron: dimension >= 2 required"))
     end
     m = 8*sizeof(Int)-1
-    n = sizeof(typeof(d))
+    n = sizeof(typeof(d)) #nochmal angucken! was soll hier abgefragt werden
     if n > m 
         throw(ArgumentError("signed_permutahedron: dimension too high"))
     end
@@ -2133,10 +2132,7 @@ end
 -`G::Graph{Undirected}`: 
 
 # Examples:
-```jldoctest
-
-```
 """
-stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(G.pm_graph))
+stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(pm_object(G)))
 
 
