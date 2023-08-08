@@ -115,18 +115,19 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
-function hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA)
+function hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
   R = base_ring(A.I)
-  if is_z_graded(R) || iszero(A.I)
+  if is_z_graded(R) && iszero(A.I)
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     @req minimum(W) > 0 "The weights must be positive"
-    Zt, t = ZZ["t"]
+    Zt,t = (parent === nothing) ? ZZ["t"] : (parent, first(gens(parent)));
+#    Zt, t = ZZ["t"]
     den = prod([1-t^Int(w[1]) for w in R.d])
     return (one(parent(t)), den)
   end
   if backend == :Abbott
-    return Oscar.HSNum_fudge(A)
+    return Oscar.HSNum_fudge(A; parent=parent)
   elseif backend == :Singular
     H = HilbertData(A.I)
     return hilbert_series(H)
