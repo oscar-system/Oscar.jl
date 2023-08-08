@@ -616,19 +616,15 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool 
   map = hom(G1, G2, transpose(charges))
   ker = kernel(map)
   embedding = snf(ker[1])[2] * ker[2]
-  rays = transpose(embedding.map)
+  integral_rays = transpose(embedding.map)
 
   # identify the points to be triangulated
-  pts = zeros(ZZ, nrows(rays), ncols(charges)-nrows(charges))
-  for i in 1:nrows(rays)
-    pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
-  end
-  zero = [0 for i in 1:ncols(charges)-nrows(charges)]
-  pts = vcat(matrix(ZZ, transpose(zero)), matrix(ZZ, pts))
+  pts = matrix(ZZ, zeros(nrows(integral_rays)+1, ncols(integral_rays)))
+  pts[2:end, :] = integral_rays
 
   # construct varieties
-  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
-  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
+  triang = _find_full_star_triangulation(pts)
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in triang])
   variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
 
   # set the attributes and return the variety
