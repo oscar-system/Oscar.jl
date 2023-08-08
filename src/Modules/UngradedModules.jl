@@ -6399,15 +6399,26 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
-  dom = domain(maps[1])
   codom = codomain(maps[1])
-  SM = SubModuleOfFreeModule(codom, gbpres)
-  generator_matrix(SM)
-  maps[1] = hom(dom, codom, SM.matrix) 
+
+  if is_graded(codom)
+    rk    = Singular.ngens(gbpres)
+    SM    = SubModuleOfFreeModule(codom, gbpres)
+    generator_matrix(SM)
+    ff = graded_map(codom, SM.matrix)
+    dom = domain(ff)
+    set_attribute!(dom, :name => "br^$rk")
+  else
+    dom   = free_module(br, Singular.ngens(gbpres))
+    SM    = SubModuleOfFreeModule(codom, gbpres)
+    generator_matrix(SM)
+    ff = hom(dom, codom, SM.matrix)
+  end
+
+  maps[1] = ff
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  dom = domain(pm.maps[1])
   j   = 2
   while j <= Singular.length(res)
     if is_graded(dom)

@@ -587,7 +587,7 @@ end
     M = quo(F, V1)[1]
     free_res0 = free_resolution(M)
     @test is_graded(free_res0)
-    @test_broken all(iszero, homology(free_res0.C))
+    @test all(iszero, homology(free_res0.C))
     free_res0a = free_resolution_via_kernels(M)
     @test is_graded(free_res0a)
     @test all(iszero, homology(free_res0a.C))
