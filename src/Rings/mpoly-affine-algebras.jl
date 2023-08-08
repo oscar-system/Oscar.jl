@@ -29,8 +29,8 @@ end
     vector_space_dimension(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector
-space if `I` is zero-dimensional. Return `-1`, otherwise.
+`K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A` 
+as a `K`-vector space.
 
 # Examples
 ```jldoctest
@@ -59,8 +59,111 @@ function vector_space_dimension(A::MPolyQuoRing)
   end
   I = A.I
   G = groebner_assure(I)
+  @req dim(I) == 0 "The ideal must be zero-dimensional"
   singular_assure(G)
   return Singular.vdim(G.S)
+end
+
+@doc raw"""
+    monomial_basis(A::MPolyQuoRing)
+
+If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
+`K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R` 
+such that the residue classes of these monomials form a basis of `A` as a `K`-vector
+space.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x^2, y^3])
+ideal(x^2, y^3)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> L = monomial_basis(A)
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x*y^2
+ y^2
+ x*y
+ y
+ x
+ 1
+```
+"""
+function monomial_basis(A::MPolyQuoRing)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  I = A.I
+  G = Oscar.groebner_assure(I)
+  @req dim(I) == 0 "The ideal must be zero-dimensional"
+  singular_assure(G)
+  si = Singular.kbase(G.S)
+  return gens(MPolyIdeal(base_ring(I), si))
+end
+
+
+@doc raw"""
+    monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+
+Given an affine algebra `A` over a field which is graded by a free
+group of type `GrpAbFinGen`, and given an element `g` of that group,
+return a vector of monomials of `R` such that the residue classes of 
+these monomials form a `K`-basis of the graded part of `A` of degree `g`.
+
+    monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded affine algebra `A` over a field and
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `A` and proceed as above.
+
+    monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
+
+Given a $\mathbb  Z$-graded  affine algebra `A` over a field and
+an integer `d`, convert `d` into an element `g` of the grading
+group of `A` and proceed as above.
+
+!!! note
+    If the component of the given degree is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x^2])
+ideal(x^2)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+R to A defined by a julia-function with inverse)
+
+julia> L = monomial_basis(A, 3)
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ y^3
+ x*y^2
+```
+"""
+function monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  R = base_ring(A)
+  @req is_graded(R) "The ring must be graded"
+  L = monomial_basis(R, g)
+  LI = leading_ideal(A.I)
+  ### TODO: Decide whether we should check whether a GB with respect
+    ### to whatever <ordering is already available
+  L = [x for x=L if !(x in LI)]
+    return L
+end
+
+function monomial_basis(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(A)
+  return monomial_basis(A, grading_group(A)(g))
+end
+
+function monomial_basis(A::MPolyQuoRing, g::IntegerUnion)
+  @assert is_z_graded(A)
+  return monomial_basis(A, grading_group(A)([g]))
 end
 
 ##############################################################################
@@ -687,16 +790,17 @@ julia> multi_hilbert_function(A, 7*g)
 function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
     R = base_ring(A)
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-    LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
-    ### TODO: Decide whether we should check whether a GB with respect
-    ### to another degree-compatible ordering is already available
-
-    L = monomials_of_degree(R, g)
+    
+    L = monomial_basis(R, g)
     
     if size(L) == 0
        return 0
     end
 
+LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
+    ### TODO: Decide whether we should check whether a GB with respect
+    ### to another degree-compatible ordering is already available
+    
     cc = 0
     for i in 1:length(L)
         if !(L[i] in LI)
