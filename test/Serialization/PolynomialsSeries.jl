@@ -351,10 +351,7 @@ end
                 end
             end
 
-            # Tropical Semirings currently can't have formal power series
-            filter!(case-> case[4] != "Tropical Semiring", cases)
-
-            @test_skip @testset "Series" begin
+            @testset "Series" begin
                 # Tropical Semirings currently can't have formal power series
                 filter!(case-> case[4] != "Tropical Semiring", cases)
 

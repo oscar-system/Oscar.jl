@@ -308,40 +308,40 @@ end
 # Power Series
 @registerSerializationType(SeriesRing, true)
 
-function save_internal(s::SerializerState, R::Union{
+function save_object(s::SerializerState, R::Union{
     Generic.RelPowerSeriesRing,
     QQRelPowerSeriesRing,
     ZZRelPowerSeriesRing,
     fqPolyRepRelPowerSeriesRing,
     zzModRelPowerSeriesRing})
-    return Dict(
-        :base_ring => save_as_ref(s, base_ring(R)),
-        :var => save_type_dispatch(s, var(R)),
-        :max_precision => save_type_dispatch(s, max_precision(R)),
-        :model => save_type_dispatch(s, :capped_relative)
-    )
+    data_dict(s) do
+        save_typed_object(s, base_ring(R), :base_ring)
+        save_object(s, var(R), :var)
+        save_object(s, max_precision(R), :max_precision)
+        save_object(s, :capped_relative, :model)
+    end
 end
 
-function save_internal(s::SerializerState, R::Union{
+function save_object(s::SerializerState, R::Union{
     Generic.AbsPowerSeriesRing,
     QQAbsPowerSeriesRing,
     ZZAbsPowerSeriesRing,
     fqPolyRepAbsPowerSeriesRing,
     zzModAbsPowerSeriesRing})
 
-    return Dict(
-        :base_ring => save_as_ref(s, base_ring(R)),
-        :var => save_type_dispatch(s, var(R)),
-        :max_precision => save_type_dispatch(s, max_precision(R)),
-        :model => save_type_dispatch(s, :capped_absolute)
-    )
+    data_dict(s) do
+        save_typed_object(s, base_ring(R), :base_ring)
+        save_object(s, var(R), :var)
+        save_object(s, max_precision(R), :max_precision)
+        save_object(s, :capped_absolute, :model)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
-    base_ring = load_unknown_type(s, dict[:base_ring])
-    var = load_type_dispatch(s, Symbol, dict[:var])
-    max_precision = load_type_dispatch(s, Int, dict[:max_precision])
-    model = load_type_dispatch(s, Symbol, dict[:model])
+function load_object(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
+    base_ring = load_typed_object(s, dict[:base_ring])
+    var = load_object(s, Symbol, dict[:var])
+    max_precision = load_object(s, Int, dict[:max_precision])
+    model = load_object(s, Symbol, dict[:model])
     
     return power_series_ring(base_ring, max_precision, var; cached=false, model=model)[1]
 end
@@ -349,145 +349,111 @@ end
 # elements
 @registerSerializationType(RelPowerSeriesRingElem)
 @registerSerializationType(AbsPowerSeriesRingElem)
+type_needs_params(::Type{<: Union{RelPowerSeriesRingElem, AbsPowerSeriesRingElem}}) = true
 
-function save_internal(s::SerializerState, r::RelPowerSeriesRingElem;
-                       include_parents::Bool=true)
+function save_object(s::SerializerState, r::RelPowerSeriesRingElem)
     v = valuation(r)
     pl = pol_length(r)
     encoded_terms = []
     parent_ring = parent(r)
-    base = base_ring(parent_ring)
-    for exponent in v: v + pl
-        coefficient = coeff(r, exponent)
-        #collect only non trivial values
-        if is_zero(coefficient)
-            continue
+    data_dict(s) do
+        s.key = :terms
+        data_array(s) do
+            for exponent in v: v + pl
+                coefficient = coeff(r, exponent)
+                #collect only non trivial values
+                if is_zero(coefficient)
+                    continue
+                end
+
+                data_array(s) do
+                    save_object(s, exponent)
+                    save_object(s, coefficient)
+                end
+            end
         end
-
-        encoded_coeff = save_internal(s, coefficient; include_parents=false)
-        push!(encoded_terms,  (exponent, encoded_coeff))
+        save_object(s, pl, :pol_length)
+        save_object(s, precision(r), :precision)
+        save_object(s, v, :valuation)
     end
-
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent_ring),
-            :terms => encoded_terms,
-            :valuation => save_type_dispatch(s, v),
-            :pol_length => save_type_dispatch(s, pl),
-            :precision => save_type_dispatch(s, precision(r))
-        )
-    end
-    return encoded_terms
 end
 
-function save_internal(s::SerializerState, r::AbsPowerSeriesRingElem;
-                       include_parents::Bool=true)
+function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
     pl = pol_length(r)
     encoded_terms = []
     parents = []
     parent_ring = parent(r)
-    base = base_ring(parent_ring)
-    for exponent in 0:pl
-        coefficient = coeff(r, exponent)
-        #collect only non trivial values
-        if is_zero(coefficient)
-            continue
+    data_dict(s) do
+        s.key = :terms
+        data_array(s) do
+            for exponent in 0:pl
+                coefficient = coeff(r, exponent)
+                #collect only non trivial values
+                if is_zero(coefficient)
+                    continue
+                end
+                data_array(s) do
+                    save_object(s, exponent)
+                    save_object(s, coefficient)
+                end
+            end
         end
-
-        encoded_coeff = save_internal(s, coefficient; include_parents=false)
-        push!(encoded_terms,  (exponent, encoded_coeff))
+        save_object(s, pl, :pol_length)
+        save_object(s, precision(r),:precision)
     end
-
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent_ring),
-            :terms => encoded_terms,
-            :pol_length => save_type_dispatch(s, pl),
-            :precision => save_type_dispatch(s, precision(r))
-        )
-    end
-    return encoded_terms
 end
 
-function load_internal(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem}, dict::Dict)
-    parents = load_parents(s, dict[:parents])
+function load_object_with_params(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
+                                 dict::Dict, parents::Vector)
     parent_ring = parents[end]
-    valuation = load_type_dispatch(s, Int, dict[:valuation])
-    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
-    precision = load_type_dispatch(s, Int, dict[:precision])
+    valuation = parse(Int, dict[:valuation])
+    pol_length = parse(Int, dict[:pol_length])
+    precision = parse(Int, dict[:precision])
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, pol_length)
-
-    for term in dict[:terms]
-        exponent, coeff = term
-        
-        if length(parents) == 1
-            @assert has_elem_basic_encoding(base)
-            coeff_type = elem_type(base)
-            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
-                                                            parent=base)
+    coeff_type = elem_type(base)
+    for (exponent, coeff) in dict[:terms]
+        if type_needs_params(coeff_type)
+            if length(parents) == 1
+                params = coefficient_ring(parent_ring)
+            else
+                params = parents[1:end - 1]
+            end
+            c = load_object_with_params(s, coeff_type, coeff, params)
         else
-            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+            c = load_object(s, coeff_type, coeff)
         end
+        e = parse(Int, exponent)
+        loaded_terms[e] = c
     end
     
     return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: RelPowerSeriesRingElem},
-                                   dict::Dict,
-                                   parent_ring::SeriesRing)
-    parents = get_parents(parent_ring)
-    terms = load_terms(s, parents, dict[:terms], parents[end])
-    valuation = load_type_dispatch(s, Int, dict[:valuation])
-    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
-    precision = load_type_dispatch(s, Int, dict[:precision])
-
-    return parent_ring(terms[valuation + 1: end], pol_length, precision, valuation)
-end
-
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector, parent_ring::SeriesRing)
-    highest_degree = max(map(x->x[1] + 1, terms)...)
-    base = base_ring(parent_ring)
-    # account for index shift
-    loaded_terms = zeros(base, highest_degree + 1)
-    for term in terms
-        exponent, coeff = term
-        exponent += 1
-        if length(parents) == 1
-            @assert has_elem_basic_encoding(base)
-            coeff_type = elem_type(base)
-            loaded_terms[exponent] = load_type_dispatch(s, coeff_type, coeff,
-                                                            parent=base)
-        else
-            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
-        end
-    end
-    
-    return loaded_terms
-end
-
-function load_internal(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem}, dict::Dict)
-    parents = load_parents(s, dict[:parents])
+function load_object_with_params(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
+                                 dict::Dict, parents::Vector)
     parent_ring = parents[end]
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
-    terms = load_terms(s, parents, dict[:terms], parents[end])
-
+        base = base_ring(parent_ring)
+    loaded_terms = zeros(base, pol_length)
+    coeff_type = elem_type(base)
+    for (exponent, coeff) in dict[:terms]
+        if type_needs_params(coeff_type)
+            if length(parents) == 1
+                params = coefficient_ring(parent_ring)
+            else
+                params = parents[1:end - 1]
+            end
+            c = load_object_with_params(s, coeff_type, coeff, params)
+        else
+            c = load_object(s, coeff_type, coeff)
+        end
+        e = parse(Int, exponent)
+        loaded_terms[e] = c
+    end
+    
     parent_ring(terms, pol_length, precision)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: AbsPowerSeriesRingElem},
-                                   dict::Dict,
-                                   parent_ring::SeriesRing)
-    parents = get_parents(parent_ring)
-    terms = load_terms(s, parents, dict[:terms], parents[end])
-    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
-    precision = load_type_dispatch(s, Int, dict[:precision])
-
-    return parent_ring(terms, pol_length, precision)
 end
 
 ################################################################################
