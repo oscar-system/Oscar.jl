@@ -1,18 +1,7 @@
 ################################################################################
 # Helper functions
-
-
-function get_nested_data(v::Vector)
-    nested_depth = 0
-    vector_entry = v[1]
-
-    while typeof(vector_entry) <: Vector
-        nested_depth += 1
-        vector_entry = vector_entry[1]
-    end
-
-    return (nested_depth, typeof(vector_entry))
-end
+get_nested_entry(x::Any) = x
+get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 
 ################################################################################
 # Saving and loading vectors

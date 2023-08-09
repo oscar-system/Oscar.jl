@@ -3,6 +3,7 @@ using UUIDs
 
 include("serializers.jl")
 
+const backref_sym = Symbol("#backref")
 ################################################################################
 # Meta Data
 
@@ -92,10 +93,9 @@ function decode_type(input::String)
 end
 
 function decode_type(input::Dict{Symbol, Any})
-    T = decode_type(input[:name])
-    
-    return T, input[:parent]
+    return decode_type(input[:name])
 end
+
 ################################################################################
 # Encoding helper functions
 
@@ -312,8 +312,14 @@ function save_typed_object(s::SerializerState, x::T) where T
         save_object(s, encode_type(T), :type)
     elseif x isa AbstractVector
         save_object(s, "Vector", :type)
-        save_object(s, innermost_elem_type(x), :elem_type)
-        save_array(s, x, :data)
+        nested_entry = get_nested_entry(x)
+        nested_type = typeof(nested_entry)
+        if type_needs_parents(nested_type)
+            save_type_with_parent(s, nested_entry, :nested_type)
+        else
+            save_object(s, encode_type(nested_type), :nested_type)
+        end
+        save_object(s, x, :data)
     else
         save_object(s, encode_type(T), :type)
         save_object(s, x, :data)
@@ -372,14 +378,18 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # However, we actually do not currently check for the types being concrete,
     # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
     # these checks later on, depending on what we actually need...
-    U, parent_dict = decode_type(dict[:type])
+    U = decode_type(dict[:type])
     U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
 
     if parent !== nothing
         result = load_internal_with_parent(s, T, dict[:data], parent)
+    elseif type_needs_parents(T)
+        parent = load_parent_type(s, dict[:type])
+        result = load_internal_with_parent(s, T, dict[:data], parent)
     else
+        println(json(dict, 2))
         result = load_internal(s, T, dict[:data])
     end
 
@@ -389,9 +399,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     return result
 end
 
-function load_unknown_type(s::DeserializerState,
-                           dict::Dict;
-                           parent=nothing)
+function load_unknown_type(s::DeserializerState, dict::Dict; parent=nothing)
     T = decode_type(dict[:type])
     Base.issingletontype(T) && return T()
     return load_type_dispatch(s, T, dict; parent=parent)
@@ -427,6 +435,14 @@ end
 
 ################################################################################
 # Utility functions for parent tree
+function load_parent_type(s::DeserializerState, dict::Dict)
+    if haskey(dict, :parent)
+        return load_unknown_type(s, dict[:parent])
+    elseif haskey(dict, :parents)
+        return load_parents(s, dict[:parents])[end]
+    end
+    error("Can't load parent type for $dict[:name]")
+end
 
 # loads parent tree
 function load_parents(s::DeserializerState, parent_ids::Vector)
@@ -573,11 +589,12 @@ true
 ```
 """
 function load(io::IO; parent::Any = nothing, type::Any = nothing)
-    state = DeserializerState()
+    state = deserializer_open(io)
 
-    # Check for type of file somewhere here?
+    # this should be moved to the serializer at some point
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
+    # handle different namespaces
     @req haskey(jsondict, :_ns) "Namespace is missing"
     _ns = jsondict[:_ns]
     if haskey(_ns, :polymake)
@@ -586,20 +603,23 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     end
     @req haskey(_ns, :Oscar) "Not an Oscar object"
 
+    # deal with upgrades
     file_version = get_file_version(jsondict)
 
     if file_version < VERSION_NUMBER
         jsondict = upgrade(jsondict, file_version)
     end
 
+    # add refs to state for referencing during recursion
     if haskey(jsondict, :refs)
         merge!(state.refs, jsondict[:refs])
     end
 
-    if type !== nothing
-        return load_type_dispatch(state, type, jsondict; parent=parent)
-    end
-    return load_unknown_type(state, jsondict; parent=parent)
+    # this is a nice to have for later
+    # if type !== nothing
+    #     return load_type_dispatch(state, type, jsondict; parent=parent)
+    # end
+    return load_typed_object(state, jsondict; parent=parent)
 end
 
 function load(filename::String; parent::Any = nothing, type::Any = nothing)

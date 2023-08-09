@@ -34,23 +34,19 @@ end
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
-    save_object(s, modulus(R), :modulus)
+    data_dict(s) do
+        save_object(s, modulus(R), :modulus)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, dict::Dict)
-    modulus = load_type_dispatch(s, UInt64, dict[:modulus])
+function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
+    modulus = parse(UInt64, str)
     return Nemo.zzModRing(modulus)
 end
 
 #elements
 @registerSerializationType(zzModRingElem)
 type_needs_parents(T::Type{zzModRingElem}) = true
-
-function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
-    parent_ring = load_unknown_type(s, dict[:parent])
-    class_rep = load_type_dispatch(s, ZZRingElem, dict[:data])
-    return parent_ring(class_rep)
-end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{zzModRingElem},
@@ -79,7 +75,7 @@ function load_internal(s::DeserializerState,
                        T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
+    symbols = map(Symbol, dict[:symbols])
     
     if T <: PolyRing
         return polynomial_ring(base_ring, symbols..., cached=false)[1]
@@ -203,7 +199,7 @@ function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
     PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict,
                                    parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     parents = get_parents(parent_ring)
-    return load_terms(s, parents, dict[:data], parents[end])
+    return load_terms(s, parents, terms, parents[end])
 end
 
 ################################################################################

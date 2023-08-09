@@ -293,12 +293,13 @@ end
 @registerSerializationType(NfAbsNS, true)
 @registerSerializationType(NfAbsNSElem)
 
-function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
+function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
-    return Dict(
-        :def_pols => save_type_dispatch(s, def_pols),
-        :vars => save_type_dispatch(s, vars(K))
-    )
+
+    data_dict(s) do 
+        save_typed_object(s, def_pols, :def_pols)
+        save_object(s, vars(K), :vars)
+    end
 end
 
 function load_internal(s::DeserializerState,
@@ -313,20 +314,9 @@ end
 #elements
 @registerSerializationType(Hecke.NfRelNSElem)
 
-function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem};
-                       include_parents::Bool=true)
-    K = parent(k)
+function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     polynomial = Oscar.Hecke.data(k)
-    polynomial_parent = parent(polynomial)
-    terms = save_internal(s, polynomial; include_parents=false)
-
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, K),
-            :terms => terms
-        )
-    end
-    return terms
+    save_object(s, polynomial)
 end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,

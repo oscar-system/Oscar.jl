@@ -132,6 +132,10 @@ function serializer_close(s::SerializerState)
     finish_writing(s.serializer)
 end
 
+function deserializer_open(io::IO)
+    # should eventually take io
+    return DeserializerState()
+end
 #{
 #  "key": [ 
 #     {...},
