@@ -49,6 +49,10 @@ function HSNum_module(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothi
   F = ambient_free_module(C.quo);
   r = rank(F);
   P = base_ring(C.quo);
+  # short-cut for module R^0 (otherwise defn if HSeriesRing below gives index error)
+  if iszero(r)
+    return HSNum_fudge(quo(P,ideal(P,[1]))[1]; parent=parent)
+  end
   GensLM = gens(LM);
   L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
   # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
@@ -61,16 +65,21 @@ function HSNum_module(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothi
     end
   end
   IdealList = [ideal(P,G)  for G in L];
-  # If paerent === nothing, should we compute a HSNum for some ideal first then use its ring for all later calls?
+  # If parent === nothing, should we compute a HSNum for some ideal first then use its ring for all later calls?
   HSeriesList = [HSNum_fudge(quo(P,I)[1]; parent=parent)  for I in IdealList];
   shifts = [degree(phi(g))  for g in gens(F)];
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
   @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
-  HSeriesRing = parent(HSeriesList[1]);
+  HSeriesRing = Oscar.parent(HSeriesList[1]);
   @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
   t = gens(HSeriesRing);
   ScaleFactor = [_power_product(t,e)  for e in shift_expv];
   result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
   return result;
+end
+
+function HSNum_module(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing)  where T <: MPolyRingElem
+  # ASSUME F is graded free module
+  return HSNum_module(sub(F,gens(F))[1]; parent=parent)
 end
