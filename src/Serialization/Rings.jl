@@ -93,7 +93,7 @@ end
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     data_dict(s) do
         save_typed_object(s, base_ring(R), :base_ring)
-        save_object(s, symbols(x), :symbols)
+        save_object(s, symbols(R), :symbols)
     end
 end
 
@@ -120,8 +120,8 @@ end
 #  Polynomial Ring Types
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
-
-PolyElemUniontype = Union{UniversalPolyRingElem, MPolyRingElem, PolyRingElem}
+@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
+PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
 type_needs_params(::Type{<:PolyElemUniontype}) = true
 
 # elements
@@ -134,18 +134,17 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
     save_object(s, terms)
 end
 
-@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-    parent_ring = parent(p)
-    base = base_ring(parent_ring)
-    encoded_terms = []
-
     exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
     index = 0
-    for c in coefficients(p)
-        exponent_vector, index = iterate(exponent_vectors_gen, index)
-        encoded_coeff = save_internal(s, c; include_parents=false)
-        push!(encoded_terms,  (exponent_vector, encoded_coeff))
+    data_array(s) do
+        for c in coefficients(p)
+            exponent_vector, index = iterate(exponent_vectors_gen, index)
+            data_array(s) do
+                save_object(s, map(string, exponent_vector))
+                save_object(s, c)
+            end
+        end
     end
 end
 
@@ -209,7 +208,7 @@ end
 
 
 function load_object_with_params(s::DeserializerState,
-                                 ::Type{<:Union{MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
+                                 ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                                  terms::Vector, parents::Vector)
     parent_ring = parents[end]
     base = base_ring(parent_ring)
@@ -253,7 +252,7 @@ function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}, param
     return load_type_params(s, RingElem, params)
 end
 
-function save_object(s::SerializerState, I::MPolyIdeal)
+function save_object(s::SerializerState, I::T) where T <: IdealUnionType
     data_dict(s) do
         save_object(s, gens(I), :gens)
     end

@@ -320,6 +320,9 @@ end
                 end
             end
 
+            # Tropical Semirings currently can't have formal power series
+            filter!(case-> case[4] != "Tropical Semiring", cases)
+
             @testset "Multivariate Laurent Polynomial over $(case[4])" begin
                 R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
                 p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
@@ -352,9 +355,6 @@ end
             end
 
             @testset "Series" begin
-                # Tropical Semirings currently can't have formal power series
-                filter!(case-> case[4] != "Tropical Semiring", cases)
-
                 @testset "Power Series over $(case[4])" begin
                     rel_R, rel_z = power_series_ring(case[1], 10, "z")
                     rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3
