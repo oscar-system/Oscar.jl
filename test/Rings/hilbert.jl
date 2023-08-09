@@ -94,9 +94,7 @@ end
   S, t = LaurentPolynomialRing(ZZ, "t")
   (num2, denom2), _ = multi_hilbert_series(A, parent=S)
   Smult, (T,) = polynomial_ring(ZZ, ["t"])
-  (num3, denom3), _ = multi_hilbert_series(A, parent=Smult)
-  @test num == evaluate(num2, T)
-  @test num3 == evaluate(num2, t)
+  @test_throws  DomainError  multi_hilbert_series(A, parent=Smult)
 
   G = free_abelian_group(2)
   G, _ = quo(G, [G[1]-3*G[2]])
