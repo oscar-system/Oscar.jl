@@ -304,7 +304,7 @@ end
                 end
             end
 
-            @test_skip @testset "Universal Polynomial over $(case[4])" begin
+            @testset "Universal Polynomial over $(case[4])" begin
                 R = UniversalPolynomialRing(case[1])
                 z, w = gens(R, ["z", "w"])
                 p = z^2 + case[2] * z * w + case[3] * w^3
@@ -312,7 +312,7 @@ end
                   @test test_equality(p.p, loaded.p)
                 end
 
-                @testset "Load with parent" begin
+                @test_skip @testset "Load with parent" begin
                     test_save_load_roundtrip(path, p; parent=R) do loaded
                         @test p == loaded
                     end
