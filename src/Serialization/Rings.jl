@@ -33,8 +33,8 @@ end
 @registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
-function save_internal(s::SerializerState, R::Nemo.zzModRing)
-    save_type_dispatch(s, modulus(R), :modulus)
+function save_object(s::SerializerState, R::Nemo.zzModRing)
+    save_object(s, modulus(R), :modulus)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.zzModRing}, dict::Dict)
@@ -44,7 +44,7 @@ end
 
 #elements
 @registerSerializationType(zzModRingElem)
-is_type_serializing_parent(T::Type{zzModRingElem}) = true
+type_needs_parents(T::Type{zzModRingElem}) = true
 
 function load_internal(s::DeserializerState, ::Type{zzModRingElem}, dict::Dict)
     parent_ring = load_unknown_type(s, dict[:parent])
@@ -100,7 +100,7 @@ end
 @registerSerializationType(UniversalPolyRingElem)
 type_needs_parents(::Type{<:MPolyRingElem}) = true
 
-function save_object(s::SerializerState, p::MPolyRingElem)
+function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     coeff_type = typeof(coeff(p, 1))
     terms = Tuple{Vector{UInt}, coeff_type}[]
     for i in 1:length(p)
@@ -110,22 +110,8 @@ function save_object(s::SerializerState, p::MPolyRingElem)
     save_object(s, terms)
 end
 
-function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-    parent_ring = parent(p)
-    base = base_ring(parent_ring)
-    encoded_terms = []
-    
-    for i in 1:length(p)
-        open_array(s)
-        save_internal(s, exponent_vector(p, i))
-        save_internal(s, coeff(p, i))
-        close(s)
-    end
-end
-
 @registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
-function save_internal(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap;
-                       include_parents::Bool=true)
+function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap;
     parent_ring = parent(p)
     base = base_ring(parent_ring)
     encoded_terms = []
@@ -137,14 +123,6 @@ function save_internal(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPo
         encoded_coeff = save_internal(s, c; include_parents=false)
         push!(encoded_terms,  (exponent_vector, encoded_coeff))
     end
-
-    if include_parents
-        return Dict(
-            :terms => encoded_terms,
-            :parents => get_parent_refs(s, parent_ring),
-        )
-    end
-    return encoded_terms
 end
 
 ################################################################################
@@ -163,36 +141,11 @@ function save_object(s::SerializerState, p::PolyRingElem)
             exponent += 1
             continue
         end
-
         push!(terms, (string(exponent), coeff))
         exponent += 1
     end
-
     save_object(s, terms)
 end
-
-
-# is_type_serializing_parent(::Type{<: PolyRingElem})  = true 
-# 
-# function save_internal(s::SerializerState, p::PolyRingElem)
-#     # store a polynomial over a ring provided we can store elements in that ring
-#     coeffs = coefficients(p)
-#     open_array(s)
-#     exponent = 0
-#     for coeff in coeffs
-#         # collect only non trivial terms
-#         if is_zero(coeff)
-#             exponent += 1
-#             continue
-#         end
-#         open_array(s)
-#         save_type_dispatch(s, exponent)
-#         save_type_dispatch(s, coeff)
-#         close(s)
-#         exponent += 1
-#     end
-#     close(s)
-# end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::PolyRing)

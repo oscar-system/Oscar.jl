@@ -1,55 +1,10 @@
 using JSON
 using UUIDs
 
-################################################################################
-# Include serializers
 include("serializers.jl")
 
-
-# returns type of current open object so we know how to write to it
-# function get_active_object_type(s::SerializerState)
-#     return typeof(s.serializer.open_objects[end])
-# end
-# 
-# function set_key(s::SerializerState, key::Symbol)
-#     s.key = key
-# end
-# 
-# # create node and descent
-# function open_dict(s::SerializerState)
-#     push!(s.serializer.open_objects, Dict{Symbol, Any}())
-# end
-# 
-# function open_array(s::SerializerState)
-#     push!(s.serializer.open_objects, Any[])
-# end
-# 
-# # add to child to current node
-# function add_object(s::SerializerState, obj::Any, key::Symbol)
-#     s.serializer.open_objects[end][key] = obj
-# end
-# 
-# function add_object(s::SerializerState, obj::Any)
-#     push!(s.serializer.open_objects[end], obj)
-# end
-# 
-# # ascend and append to parent
-# function close(s::SerializerState, key::Symbol)
-#     obj = pop!(s.serializer.open_objects)
-#     add_object(s, obj, key)
-# end
-# 
-# function close(s::SerializerState)
-#     obj = pop!(s.serializer.open_objects)
-#     if s.key === nothing
-#         add_object(s, obj)
-#     else
-#         add_object(s, obj, s.key)
-#         s.key = nothing
-#     end
-# end
-
-const backref_sym = Symbol("#backref")
+################################################################################
+# Meta Data
 
 @Base.kwdef struct MetaData
     author_orcid::Union{String, Nothing} = nothing
@@ -93,7 +48,7 @@ function registerSerializationType(ex::Any,
                                    uses_id::Bool,
                                    str::Union{String,Nothing} = nothing)
     if str === nothing
-      str = string(ex)
+        str = string(ex)
     end
     return esc(
         quote
@@ -136,6 +91,11 @@ function decode_type(input::String)
     end
 end
 
+function decode_type(input::Dict{Symbol, Any})
+    T = decode_type(input[:name])
+    
+    return T, input[:parent]
+end
 ################################################################################
 # Encoding helper functions
 
@@ -306,8 +266,6 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) whe
     #store_serialized(s, result, key)
 end
 
-
-
 function save_object(s::SerializerState, x::Vector)
     data_array(s) do
         for elem in x
@@ -326,14 +284,23 @@ function save_object(s::SerializerState, x::T) where T <: Tuple
 end
 
 # this union will need to be dealt with differently
-BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number}
-function save_object(s::SerializerState, x::T) where T <: BasicTypeUnion
+BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number, zzModRingElem}
+function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
     data_basic(s, string(x))
 end
 
 function save_object(s::SerializerState, x::Any, key::Symbol)
     s.key = key
     save_object(s, x)
+end
+
+function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
+    s.key = key
+    data_dict(s) do
+        for (k, v) in h
+            save_object(s, v, k)
+        end
+    end
 end
 
 # calling this function directly should only happen for the root
@@ -369,8 +336,8 @@ function save_type_with_parent(s::SerializerState, x::T, key::Symbol) where T
             save_object(s, parent_refs, :parents)
             save_object(s, encode_type(T), :name)
         else
-            save_object(s, parent_x, :parent)
-            save_object(s, encode_type(T), :type)
+            save_typed_object(s, parent_x, :parent)
+            save_object(s, encode_type(T), :name)
         end
     end
 end
@@ -405,11 +372,10 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # However, we actually do not currently check for the types being concrete,
     # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
     # these checks later on, depending on what we actually need...
-    U = decode_type(dict[:type])
+    U, parent_dict = decode_type(dict[:type])
     U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
     Base.issingletontype(T) && return T()
-    Base.issingletontype(U) && return U()
 
     if parent !== nothing
         result = load_internal_with_parent(s, T, dict[:data], parent)
@@ -498,8 +464,8 @@ function get_file_version(dict::Dict{Symbol, Any})
     return get_version_number(version_dict)
 end
 
-function get_version_number(dict::Dict{Symbol, Any})
-    return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+function get_version_number(v_number::String)
+    return VersionNumber(v_number)
 end
 
 ################################################################################
@@ -529,8 +495,6 @@ julia> load("/tmp/fourtitwo.json")
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     state = serializer_open(io)
     data_dict(state) do
-        println("open root dict")
-        #add_header(s, metadata)
         save_typed_object(state, obj)
 
         # this should be handled by serializers in a later commit / PR
@@ -543,6 +507,7 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
                 end
             end
         end
+        save_header(state, oscarSerializationVersion, :_ns)
     end
     serializer_close(state)
     return nothing
