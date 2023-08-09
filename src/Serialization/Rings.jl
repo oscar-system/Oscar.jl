@@ -70,7 +70,7 @@ end
 
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     data_dict(s) do
-        save_type_object(s, base_ring(R), )
+        save_type_object(s, base_ring(R), :base_ring)
         save_object(s, symbols(x), :symbols)
     end
 end

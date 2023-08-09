@@ -339,7 +339,7 @@ end
 # calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
     if type_needs_parents(T)
-        save_parent_type(s, parent(x), :type)
+        save_type_with_parent(s, x, :type)
         save_object(s, x, :data)
     elseif Base.issingletontype(T)
         save_object(s, encode_type(T), :type)
@@ -360,13 +360,14 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
     end
 end
 
-function save_parent_type(s::SerializerState, parent_x::T, key::Symbol) where T
+function save_type_with_parent(s::SerializerState, x::T, key::Symbol) where T
     s.key = key
+    parent_x = parent(x)
     data_dict(s) do
         if serialize_with_id(parent_x)
             parent_refs = save_parents(s, parent_x)
             save_object(s, parent_refs, :parents)
-            save_object(s, encode_type(T), :type)
+            save_object(s, encode_type(T), :name)
         else
             save_object(s, parent_x, :parent)
             save_object(s, encode_type(T), :type)
@@ -375,7 +376,8 @@ function save_parent_type(s::SerializerState, parent_x::T, key::Symbol) where T
 end
 
 # ATTENTION
-# The load mechanism needs to look at the serialized data first, in order to detect objects with a basic encoding.
+# The load mechanism needs to look at the serialized data first,
+# in order to detect objects with a basic encoding.
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
     if parent !== nothing && has_elem_basic_encoding(parent)
