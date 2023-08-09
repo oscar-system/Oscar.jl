@@ -384,7 +384,7 @@ end
 
 # Case gens are simple powers
 function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
-  ans = 1 #one(T[1])    ???
+  ans = one(T[1])
   for t in SimplePPs
     k = findfirst(entry -> (entry > 0), t.expv)
     ans = ans * (1 - T[k]^t[k]) # ???? ans -= ans*T[k]^t[k]
@@ -929,20 +929,16 @@ end
 
 # Check args: either throws or returns nothing.
 function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
-  if isempty(gens)
-    throw("HSNum: need at least 1 generator");
-  end
   if isempty(W)
     throw("HSNum: weight matrix must have at least 1 row")
   end
-  nvars = length(gens[1])
-  if !all((t -> length(t)==nvars), gens)
-    throw("HSNum: generators must all have same size exponent vectors")
-  end
+  nvars = length(W[1])
   if !all((row -> length(row)==nvars), W)
     throw("HSNum: weight matrix must have 1 column for each variable")
   end
-  # Zero weights are allowed???
+  if !all((t -> length(t)==nvars), gens)  # OK also if isempty(gens)
+    throw("HSNum: generators must all have same size exponent vectors")
+  end
   # Args are OK, so simply return (without throwing)
 end
 
@@ -956,10 +952,10 @@ function HSNum(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbo
   # Grading is over ZZ^m
   m = length(W)  # NumRows
   ncols = length(W[1])
-  nvars = length(PP_gens[1])
-  if  ncols != nvars
-    throw(ArgumentError("weights matrix has wrong number of columns ($(ncols)); should be same as number of variables ($(nvars))"))
-  end
+  nvars = ncols
+  # if  ncols != nvars
+  #   throw(ArgumentError("weights matrix has wrong number of columns ($(ncols)); should be same as number of variables ($(nvars))"))
+  # end
   HPRingVarNames = (m==1) ? [:t] : [ _make_variable("t", k)  for k in 1:m] #used only if parent == nothing
   HPRing, t = (parent === nothing) ? LaurentPolynomialRing(QQ, HPRingVarNames) : (parent,gens(parent))
   @assert  length(t) >= m  "supplied Hilbert series ring contains too few variables"
@@ -1040,3 +1036,23 @@ end
 
 
 
+# ???Is the grading by rows or by cols???
+function hilbert_series_denominator(HSRing::Ring, W::Matrix{Int}) # S is PolynomialRing or LaurentPolynomialRing
+  n = nrows(W)
+  m = ncols(W)
+  @req  length(gens(HSRing)) >= n  "Hilbert series ring has too few variables"
+   fac_dict = Dict{elem_type(HSRing), Integer}()
+   for i = 1:n
+      e = [Int(W[i, :][j]) for j = 1:m]
+      B = MPolyBuildCtx(HSRing)
+      push_term!(B, 1, e)
+      new_fac = 1-finish(B)
+      if haskey(fac_dict, new_fac)
+        fac_dict[new_fac] = fac_dict[new_fac] + 1
+      else
+        fac_dict[new_fac] = 1
+      end
+   end
+   fac_denom = FacElem(HSRing, fac_dict)
+  return fac_denom
+end
