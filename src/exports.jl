@@ -942,7 +942,7 @@ export moebius_mu
 export molien_series
 export monomial_ordering
 export monomials
-export monomials_of_degree
+export monomial_basis
 export mori_cone
 export morphism_from_cox_variety
 export morphism_of_projective_schemes

@@ -311,7 +311,7 @@ julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
 julia> I = ideal([x2,x3])
 ideal(x2, x3)
 
-julia> bP3 = blow_up(P3, I)
+julia> bP3 = domain(blow_up(P3, I))
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -339,7 +339,8 @@ end
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
-lattice Z^d, with d the dimension of the fan.
+lattice Z^d, with d the dimension of the fan. This function returns the
+corresponding blowdown morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional divisor. As third optional argument one can supply
@@ -350,7 +351,10 @@ a custom variable name.
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> bP3 = blow_up(P3, [0, 1, 1])
+julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+A toric morphism
+
+julia> bP3 = domain(blow_down_morphism)
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -363,21 +367,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(v, new_ray)
-    new_variety = normal_toric_variety(new_fan)
-    new_rays = rays(new_fan)
-    old_rays = rays(v)
-    old_vars = string.(symbols(cox_ring(v)))
-    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, length(new_rays))
-    for i in 1:length(new_rays)
-        j = findfirst(==(new_rays[i]), old_rays)
-        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-    end
-    if set_attributes
-      set_attribute!(new_variety, :coordinate_names, new_vars)
-    end
-    return new_variety
+  return _blow_up(v, star_subdivision(v, new_ray); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
@@ -387,6 +377,7 @@ end
 
 Blow up the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
+This function returns the corresponding blowdown morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional divisor. As third optional argument one can supply
@@ -397,7 +388,10 @@ a custom variable name.
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> bP3 = blow_up(P3, 5)
+julia> blow_down_morphism = blow_up(P3, 5)
+A toric morphism
+
+julia> bP3 = domain(blow_down_morphism)
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -410,23 +404,28 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(polyhedral_fan(v), n)
-    new_variety = normal_toric_variety(new_fan)
-    new_rays = rays(new_fan)
-    old_rays = rays(v)
-    old_vars = string.(symbols(cox_ring(v)))
-    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, length(new_rays))
-    for i in 1:length(new_rays)
-        j = findfirst(==(new_rays[i]), old_rays)
-        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-    end
-    if set_attributes
-      set_attribute!(new_variety, :coordinate_names, new_vars)
-    end
-    return new_variety
+  return _blow_up(v, star_subdivision(v, n); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
+
+
+function _blow_up(v::AbstractNormalToricVariety, new_fan::PolyhedralFan{QQFieldElem}; coordinate_name::String = "e", set_attributes::Bool = true)
+  new_variety = normal_toric_variety(new_fan)
+  new_rays = rays(new_fan)
+  old_rays = rays(v)
+  old_vars = string.(symbols(cox_ring(v)))
+  @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
+  new_vars = Vector{String}(undef, length(new_rays))
+  for i in 1:length(new_rays)
+      j = findfirst(==(new_rays[i]), old_rays)
+      new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+  end
+  if set_attributes
+    set_attribute!(new_variety, :coordinate_names, new_vars)
+  end
+  dim = ambient_dim(polyhedral_fan(v))
+  return toric_morphism(new_variety, identity_matrix(ZZ, dim), v)
+end
 
 
 
@@ -617,19 +616,15 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool 
   map = hom(G1, G2, transpose(charges))
   ker = kernel(map)
   embedding = snf(ker[1])[2] * ker[2]
-  rays = transpose(embedding.map)
+  integral_rays = transpose(embedding.map)
 
   # identify the points to be triangulated
-  pts = zeros(ZZ, nrows(rays), ncols(charges)-nrows(charges))
-  for i in 1:nrows(rays)
-    pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
-  end
-  zero = [0 for i in 1:ncols(charges)-nrows(charges)]
-  pts = vcat(matrix(ZZ, transpose(zero)), matrix(ZZ, pts))
+  pts = matrix(ZZ, zeros(nrows(integral_rays)+1, ncols(integral_rays)))
+  pts[2:end, :] = integral_rays
 
   # construct varieties
-  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
-  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
+  triang = _find_full_star_triangulation(pts)
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in triang])
   variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
 
   # set the attributes and return the variety
