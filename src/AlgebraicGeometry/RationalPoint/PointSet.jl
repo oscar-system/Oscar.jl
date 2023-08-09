@@ -1,4 +1,10 @@
-@attr RationalPointSet{typeof(base_scheme(X)), S} function rational_point_set(X::S) where {S}
+
+@doc """raw
+  rational_point_set(X::Scheme) -> RationalPointSet
+
+For a scheme over ``k`` return its set of ``k``-rational points.
+"""
+@attr RationalPointSet{typeof(base_scheme(X)), S} function rational_point_set(X::S) where {S<:Scheme}
   return RationalPointSet(base_scheme(X), X)
 end
 

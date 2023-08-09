@@ -11,7 +11,6 @@ using Oscar
 ```@docs
 AbsProjectiveRationalPoint
 ProjectiveRationalPoint
-parent(P::ProjectiveRationalPoint)
 coordinates(P::ProjectiveRationalPoint)
 ideal(P::ProjectiveRationalPoint)
 scheme(P::ProjectiveRationalPoint)

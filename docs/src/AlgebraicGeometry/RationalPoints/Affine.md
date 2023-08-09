@@ -11,7 +11,6 @@ using Oscar
 ```@docs
 AbsAffineRationalPoint
 AffineRationalPoint
-parent(p::AffineRationalPoint)
 coordinates(p::AffineRationalPoint)
 ideal(P::AbsAffineRationalPoint)
 scheme(P::AbsAffineRationalPoint)
