@@ -15,8 +15,8 @@ import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
 import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
-  elem_type, embedding, IntegerUnion, is_unit, map_entries, minpoly,
-  parent_type, promote_rule, roots
+  elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
+  minpoly, parent_type, promote_rule, roots
 
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
@@ -177,7 +177,7 @@ function roots(a::AlgClosureElem, b::Int)
   return [AlgClosureElem(x, parent(a)) for x = r]
 end
 
-function roots(a::Generic.Poly{AlgClosureElem})
+function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
   kx, x = polynomial_ring(parent(b[1]), cached = false)
@@ -309,9 +309,15 @@ end
 
 function embedding(k::T, K::AlgClosure{T}) where T <: FinField
   @req characteristic(k) == characteristic(K) "incompatible characteristics"
-  f = x::FqFieldElem -> K(x)
+  f = x::FinFieldElem -> K(x)
   finv = x::AlgClosureElem{T} -> k(x)
   return MapFromFunc(k, K, f, finv)
+end
+
+function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField
+  F = domain(mp)
+  mod(degree(F), degree(elm)) != 0 && return false, zero(F)
+  return true, preimage(mp, elm)
 end
 
 end # AlgClosureFp
