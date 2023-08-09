@@ -392,6 +392,10 @@ function set_ordering!(G::IdealGens, monord::MonomialOrdering)
   G.ord = monord
 end
 
+function singular_generators(g::IdealGens, ordering::MonomialOrdering=default_ordering(base_ring(g)))
+  singular_assure(g, ordering)
+  return g.gens.S
+end
 
 @doc raw"""
 set_ordering(I::IdealGens, monord::MonomialOrdering) 
