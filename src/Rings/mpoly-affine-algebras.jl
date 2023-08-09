@@ -115,7 +115,7 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
-function hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
+function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
   R = base_ring(A.I)
   if is_z_graded(R) && iszero(A.I)
     W = R.d
@@ -126,12 +126,12 @@ function hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::S
     den = prod([1-t^Int(w[1]) for w in R.d])
     return (one(parent(t)), den)
   end
-  if backend == :Abbott
+#  if backend == :Abbott
     return Oscar.HSNum_fudge(A; parent=parent)
-  elseif backend == :Singular
-    H = HilbertData(A.I)
-    return hilbert_series(H)
-  end
+#  elseif backend == :Singular
+#    H = HilbertData(A.I)
+#    return hilbert_series(H)
+#  end
 end
 
 
@@ -472,7 +472,7 @@ function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA
       push_term!(B, 1, e)
       new_fac = 1-finish(B)
       if haskey(fac_dict, new_fac)
-        fac_dict[new_fac] = fact_dict[new_fac] + 1
+        fac_dict[new_fac] = fac_dict[new_fac] + 1
       else
         fac_dict[new_fac] = 1
       end
