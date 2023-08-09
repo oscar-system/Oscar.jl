@@ -1,11 +1,14 @@
-# Saving for basic types relies on a string method and is handled by
-# save_basic_encoded_type which handles all types with a basic encoding
+# This type should not be exported
+BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number, zzModRingElem}
+function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
+    data_basic(s, string(x))
+end
 
 ################################################################################
 # Bool
 @registerSerializationType(Bool)
 
-function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
+function load_object(s::DeserializerState, ::Type{Bool}, str::String)
   if str == "true"
     return true
   end
@@ -21,7 +24,7 @@ end
 # ZZRingElem
 @registerSerializationType(ZZRingElem)
 
-function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
+function load_object(s::DeserializerState, ::Type{ZZRingElem}, str::String)
     return ZZRingElem(str)
 end
 
@@ -36,7 +39,7 @@ end
 # QQFieldElem
 @registerSerializationType(QQFieldElem)
 
-function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
+function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
     # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
     # is merged and in a Nemo release
     fraction_parts = collect(map(String, split(q, "//")))
@@ -72,7 +75,7 @@ end
 @registerSerializationType(Float32)
 @registerSerializationType(Float64)
 
-function load_internal(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
+function load_object(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
     return parse(T, str)
 end
 
@@ -80,7 +83,7 @@ end
 # Strings
 @registerSerializationType(String)
 
-function load_internal(s::DeserializerState, ::Type{String}, str::String)
+function load_object(s::DeserializerState, ::Type{String}, str::String)
     return str
 end
 
@@ -88,6 +91,6 @@ end
 # Symbol
 @registerSerializationType(Symbol)
 
-function load_internal(s::DeserializerState, ::Type{Symbol}, str::String)
+function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
    return Symbol(str)
 end

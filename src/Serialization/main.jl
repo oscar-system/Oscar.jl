@@ -282,12 +282,6 @@ function save_object(s::SerializerState, x::T) where T <: Tuple
     end
 end
 
-# this union will need to be dealt with differently
-BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number, zzModRingElem}
-function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
-    data_basic(s, string(x))
-end
-
 function save_object(s::SerializerState, x::Any, key::Symbol)
     s.key = key
     save_object(s, x)

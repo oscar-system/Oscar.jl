@@ -98,12 +98,14 @@ function load_internal(s::DeserializerState,
 end
 
 ################################################################################
-# Multivariate and Universal Polynomials
+#  Polynomial Ring Types
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
-type_needs_params(::Type{<:MPolyRingElem}) = true
+@registerSerializationType(PolyRingElem)
 
 PolyElemUniontype = Union{UniversalPolyRingElem, MPolyRingElem, PolyRingElem}
+type_needs_params(::Type{<:PolyElemUniontype}) = true
+
 # this seems to be general enough for all types that have parents and should be moved
 # once it becomes clearer how other parametrized types will be handled 
 function save_type_params(s::SerializerState, x::T, key::Symbol)  where T <: PolyElemUniontype
@@ -128,6 +130,7 @@ function load_type_params(s::DeserializerState, ::Type{T}, refs::Vector{Any}) wh
     return load_parents(s, refs)
 end
 
+# elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     coeff_type = typeof(coeff(p, 1))
     terms = Tuple{Vector{UInt}, coeff_type}[]
@@ -174,7 +177,9 @@ function save_object(s::SerializerState, p::PolyRingElem)
     save_object(s, terms)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{PolyRingElem}, terms::Vector, parents::Vector)
+function load_object_with_params(s::DeserializerState,
+                                 ::Type{PolyRingElem},
+                                 terms::Vector, parents::Vector)
     parent_ring = parents[end]
     if isempty(terms)
         return parent_ring(0)
@@ -190,20 +195,21 @@ function load_object_with_params(s::DeserializerState, ::Type{PolyRingElem}, ter
         exponent, coeff = term
         # account for shift
         exponent += 1
-
-        if length(parents) == 1
-            @assert has_elem_basic_encoding(base)
-            coeff_type = elem_type(base)
-            loaded_terms[exponent] = load_internal_with_parent(s, coeff_type, coeff, base)
+        coeff_type = elem_type(base)
+        if type_needs_params(coeff_type)
+            loaded_terms[exponent] = load_object_with_params(s, coeff_type, coeff, parents[end -1])
         else
-            loaded_terms[exponent] = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+            loaded_terms[exponent] = load_object(s, coeff_type, coeff)
         end
     end
     return parent_ring(loaded_terms)
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::Union{MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
+
+function load_object_with_params(s::DeserializerState,
+                                 ::Type{<:Union{MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
+                                 terms::Vector, parents::Vector)
+    parent_ring = parents[end]
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     for (e, coeff) in terms
