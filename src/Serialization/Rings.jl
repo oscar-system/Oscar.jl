@@ -47,6 +47,10 @@ function load_type_params(s::DeserializerState, ::Type{<:RingElem}, refs::Vector
     return load_parents(s, refs)
 end
 
+function load_type_params(s::DeserializerState, ::Type{<:RingElem}, parent_ring::Ring) 
+    return get_parents(parent_ring)
+end
+
 ################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)
@@ -155,7 +159,6 @@ type_needs_params(::Type{<:PolyRingElem}) = true
 function save_object(s::SerializerState, p::PolyRingElem)
     coeffs = coefficients(p)
     exponent = 0
-    terms = Tuple{String, Any}[]
     data_array(s) do
         for coeff in coeffs
             # collect only non trivial terms
@@ -596,3 +599,4 @@ function load_internal_with_parent(s::DeserializerState,
     return parent_ring(terms, pol_length, precision, valuation, scale)
 end
 
+    

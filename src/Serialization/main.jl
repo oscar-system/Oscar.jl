@@ -395,18 +395,20 @@ function load_unknown_type(s::DeserializerState, str::String)
 end
 
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
-                           parent::Any = nothing)
+                           override_params::Any = nothing)
     T = decode_type(dict[:type])
-    # depending on the type, :params is either an object to be loaded or a
-    # dict with keys and object values to be loaded
-    if type_needs_params(T)
-        params = load_type_params(s, T, dict[:type][:params])
+    if Base.issingletontype(T) && return T()
+    elseif type_needs_params(T)
+        if !isnothing(override_params)
+            params = load_type_params(s, T, override_params)
+        else
+            # depending on the type, :params is either an object to be loaded or a
+            # dict with keys and object values to be loaded
+            params = load_type_params(s, T, dict[:type][:params])
+        end
         return load_object_with_params(s, T, dict[:data], params)
-    elseif Base.issingletontype(T)
-        return decode_type(dict[:type])()
     elseif T <: AbstractVector
         nested_type = decode_type(dict[:nested_type])
-        # not yet sure how recursion will work here
         if type_needs_params(nested_type)
             params = load_type_params(s, nested_type, dict[:nested_type][:params])
             return load_object_with_params(s, Vector{nested_type}, dict[:data], params)
@@ -622,7 +624,7 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     # if type !== nothing
     #     return load_type_dispatch(state, type, jsondict; parent=parent)
     # end
-    return load_typed_object(state, jsondict; parent=parent)
+    return load_typed_object(state, jsondict; override_params=parent)
 end
 
 function load(filename::String; parent::Any = nothing, type::Any = nothing)

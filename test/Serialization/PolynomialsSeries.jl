@@ -266,7 +266,7 @@ end
                     @test test_equality(p, loaded)
                 end
 
-                @test_skip @testset "Load with parent" begin
+                @testset "Load with parent" begin
                     test_save_load_roundtrip(path, p; parent=R) do loaded
                         @test p == loaded
                     end
