@@ -92,7 +92,7 @@ end
 
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
     data_dict(s) do
-        save_type_object(s, base_ring(R), :base_ring)
+        save_typed_object(s, base_ring(R), :base_ring)
         save_object(s, symbols(x), :symbols)
     end
 end
@@ -120,7 +120,6 @@ end
 #  Polynomial Ring Types
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
-@registerSerializationType(PolyRingElem)
 
 PolyElemUniontype = Union{UniversalPolyRingElem, MPolyRingElem, PolyRingElem}
 type_needs_params(::Type{<:PolyElemUniontype}) = true
@@ -240,14 +239,6 @@ end
 @registerSerializationType(Laurent.LaurentMPolyIdeal)
 IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}
 type_needs_params(::Type{<: IdealUnionType}) = true
-
-function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(gens(x)[1]), :params)
-    end
-end
  
 function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
     s.key = key
