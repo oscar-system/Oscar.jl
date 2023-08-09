@@ -174,7 +174,8 @@
         "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
      ],
      "Rational Points" => [
-        "AlgebraicGeometry/RationalPoints/RationalPoints.md",
+        "AlgebraicGeometry/RationalPoints/Affine.md",
+        "AlgebraicGeometry/RationalPoints/Projective.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",

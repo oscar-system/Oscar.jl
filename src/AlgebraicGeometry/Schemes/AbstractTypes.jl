@@ -119,5 +119,18 @@ A rational point ``p`` of ``X`` is a tuple ``p = (p_1, \dots , p_n) \in k^n`` su
 """
 abstract type AbsAffineRationalPoint{RingElemType, ParentType} end
 
+@doc raw"""
+    AbsProjectiveRationalPoint
+
+A rational point ``P`` of a projective scheme ``X``.
+We refer to ``X`` as the parent of ``P``.
+
+Let ``k`` be a field. A rational point is an element of ``\mathbb{P}^n(k) = k^{n+1} \setminus \{0\} / k^*`` where
+two vectors ``v,w`` in ``k^{n+1} \setminus \{0\}`` are identified if ``v = \alpha w`` for a non-zero scalar ``\alpha \in k^*``.
+
+Let ``X \subseteq \mathbb{P}^n_k`` be an algebraic set or more generally a closed subscheme defined by the homogeneous ideal ``I = (f_1, \dots f_r)``. Then a rational point of ``X`` is ``p \in \mathbb{P}^n(k)`` such that ``f_1(p) = \dots = f_n(p) = 0``.
+
+This type includes points in weighted projective space.
+"""
 abstract type AbsProjectiveRationalPoint{RingElemType, ParentType} end
 

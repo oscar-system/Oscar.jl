@@ -235,7 +235,7 @@ tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) = tangent_space(parent(P),
 @doc raw"""
     is_du_val_singularity(P::AbsAffineRationalPoint{<:Field})
 
-Return whether the parent of `P` has hat most a Du Val singularity at `P`.
+Return whether the parent of `P` has at most a Du Val singularity at `P`.
 
 Note that this includes the case that ``P`` is a smooth point.
 """
