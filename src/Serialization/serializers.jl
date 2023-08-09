@@ -67,12 +67,6 @@ function DeserializerState()
     return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
 end
 
-function serialize_dict(f::Function, s::StreamSerializer, key::Union{Symbol,Nothing} = nothing)
-    begin_dict_node(s, key)
-    f()
-    end_node(s)
-end
-
 function finish_writing(s::SerializerState)
     # nothing to do here
 end
