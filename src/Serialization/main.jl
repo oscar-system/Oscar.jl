@@ -306,31 +306,7 @@ function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) whe
     #store_serialized(s, result, key)
 end
 
-function save_object(s::SerializerState, x::PolyRing)
-    data_dict(s) do
-        save_typed_object(s, base_ring(x), :base_ring)
-        save_object(s, symbols(x), :symbols)
-    end
-end
 
-type_needs_parents(::Type{<:PolyRingElem}) = true
-function save_object(s::SerializerState, p::PolyRingElem)
-    coeffs = coefficients(p)
-    exponent = 0
-    terms = Tuple{String, typeof(coeffs[1])}[]
-    for coeff in coeffs
-        # collect only non trivial terms
-        if is_zero(coeff)
-            exponent += 1
-            continue
-        end
-
-        push!(terms, (string(exponent), coeff))
-        exponent += 1
-    end
-
-    save_object(s, terms)
-end
 
 function save_object(s::SerializerState, x::Vector)
     data_array(s) do
@@ -350,7 +326,7 @@ function save_object(s::SerializerState, x::T) where T <: Tuple
 end
 
 # this union will need to be dealt with differently
-BasicTypeUnion = Union{String, Int, QQFieldElem, Symbol}
+BasicTypeUnion = Union{String, QQFieldElem, Symbol, Number}
 function save_object(s::SerializerState, x::T) where T <: BasicTypeUnion
     data_basic(s, string(x))
 end
@@ -360,9 +336,10 @@ function save_object(s::SerializerState, x::Any, key::Symbol)
     save_object(s, x)
 end
 
+# calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
     if type_needs_parents(T)
-        save_parent_type(s, x, :type)
+        save_parent_type(s, parent(x), :type)
         save_object(s, x, :data)
     elseif Base.issingletontype(T)
         save_object(s, encode_type(T), :type)
@@ -378,13 +355,14 @@ end
 
 function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
     s.key = key
-    save_typed_object(s, x)
+    data_dict(s) do 
+        save_typed_object(s, x)
+    end
 end
 
-function save_parent_type(s::SerializerState, x::T, key::Symbol) where T
+function save_parent_type(s::SerializerState, parent_x::T, key::Symbol) where T
     s.key = key
     data_dict(s) do
-        parent_x = parent(x)
         if serialize_with_id(parent_x)
             parent_refs = save_parents(s, parent_x)
             save_object(s, parent_refs, :parents)
@@ -554,10 +532,13 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
         save_typed_object(state, obj)
 
         # this should be handled by serializers in a later commit / PR
-        for (id, ref_obj) in state.refs
-            state.key = :refs
-            data_dict(state) do 
-                save_typed_object(state, ref_obj, id)
+        state.key = :refs
+        data_dict(state) do 
+            for (id, ref_obj) in state.refs
+                state.key = id
+                data_dict(state) do
+                    save_typed_object(state, ref_obj)
+                end
             end
         end
     end

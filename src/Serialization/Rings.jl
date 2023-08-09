@@ -68,11 +68,11 @@ end
 @registerSerializationType(UniversalPolyRing, true)
 @registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrapRing, true)
 
-function save_internal(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
-    base = base_ring(R)
-    set_key(s, :symbols)
-    save_internal(s, symbols(R))
-    save_type_dispatch(s, base, :base_ring)
+function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
+    data_dict(s) do
+        save_type_object(s, base_ring(R), )
+        save_object(s, symbols(x), :symbols)
+    end
 end
 
 function load_internal(s::DeserializerState,
@@ -98,7 +98,17 @@ end
 # Multivariate and Universal Polynomials
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
-is_type_serializing_parent(::Type{<: Union{UniversalPolyRingElem, MPolyRingElem}})  = true 
+type_needs_parents(::Type{<:MPolyRingElem}) = true
+
+function save_object(s::SerializerState, p::MPolyRingElem)
+    coeff_type = typeof(coeff(p, 1))
+    terms = Tuple{Vector{UInt}, coeff_type}[]
+    for i in 1:length(p)
+        push!(terms, (exponent_vector(p, i), coeff(p, i)))
+    end
+
+    save_object(s, terms)
+end
 
 function save_internal(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
     parent_ring = parent(p)
@@ -141,27 +151,48 @@ end
 # Univariate Polynomials
 
 @registerSerializationType(PolyRingElem)
-is_type_serializing_parent(::Type{<: PolyRingElem})  = true 
+type_needs_parents(::Type{<:PolyRingElem}) = true
 
-function save_internal(s::SerializerState, p::PolyRingElem)
-    # store a polynomial over a ring provided we can store elements in that ring
+function save_object(s::SerializerState, p::PolyRingElem)
     coeffs = coefficients(p)
-    open_array(s)
     exponent = 0
+    terms = Tuple{String, typeof(coeffs[1])}[]
     for coeff in coeffs
         # collect only non trivial terms
         if is_zero(coeff)
             exponent += 1
             continue
         end
-        open_array(s)
-        save_type_dispatch(s, exponent)
-        save_type_dispatch(s, coeff)
-        close(s)
+
+        push!(terms, (string(exponent), coeff))
         exponent += 1
     end
-    close(s)
+
+    save_object(s, terms)
 end
+
+
+# is_type_serializing_parent(::Type{<: PolyRingElem})  = true 
+# 
+# function save_internal(s::SerializerState, p::PolyRingElem)
+#     # store a polynomial over a ring provided we can store elements in that ring
+#     coeffs = coefficients(p)
+#     open_array(s)
+#     exponent = 0
+#     for coeff in coeffs
+#         # collect only non trivial terms
+#         if is_zero(coeff)
+#             exponent += 1
+#             continue
+#         end
+#         open_array(s)
+#         save_type_dispatch(s, exponent)
+#         save_type_dispatch(s, coeff)
+#         close(s)
+#         exponent += 1
+#     end
+#     close(s)
+# end
 
 function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
                     parent_ring::PolyRing)

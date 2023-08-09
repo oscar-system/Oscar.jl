@@ -44,8 +44,8 @@ end
 @registerSerializationType(Nemo.fpField)
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
-function save_internal(s::SerializerState, F::Nemo.fpField)
-    save_type_dispatch(s, UInt64(characteristic(F)), :characteristic)
+function save_object(s::SerializerState, F::Nemo.fpField)
+    save_object(s, UInt64(characteristic(F)), :characteristic)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.fpField}, dict::Dict)
@@ -54,10 +54,10 @@ end
 
 # elements
 @registerSerializationType(fpFieldElem)
-is_type_serializing_parent(T::Type{fpFieldElem}) = true
+type_needs_parents(T::Type{fpFieldElem}) = true
 
-function save_internal(s::SerializerState, elem::fpFieldElem)
-    return string(elem)
+function save_object(s::SerializerState, elem::fpFieldElem)
+    data_basic(s, string(elem))
 end
 
 function load_internal(s::DeserializerState, z::Type{fpFieldElem}, dict::Dict)
@@ -138,10 +138,8 @@ end
 # FqNmodfinitefield
 @registerSerializationType(fqPolyRepField, true)
 
-function save_internal(s::SerializerState, K::fqPolyRepField)
-    return Dict(
-        :def_pol => save_type_dispatch(s, defining_polynomial(K))
-    )
+function save_object(s::SerializerState, K::fqPolyRepField)
+    save_typed_object(s, defining_polynomial(K), :def_pol)
 end
 
 function load_internal(s::DeserializerState,
@@ -156,6 +154,13 @@ end
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
 @registerSerializationType(Hecke.NfRelElem)
+type_needs_parents(T::Type{fqPolyRepFieldElem}) = true
+
+function save_object(s::SerializerState, k::fqPolyRepFieldElem)
+    K = parent(k)
+    polynomial = parent(defining_polynomial(K))(k)
+    save_object(s, polynomial)
+end
 
 function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem};
                        include_parents::Bool=true)
