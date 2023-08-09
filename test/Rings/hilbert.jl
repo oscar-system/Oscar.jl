@@ -57,4 +57,8 @@
   I = ideal(P,G);
   PmodI, _ = quo(P,I);
   HS = multi_hilbert_series(PmodI);
+  num = HS[1][1]
+  S = parent(num)
+  HS2 = multi_hilbert_series(PmodI, parent=S, backend=:Zach)
+  @test HS2[1][1] == num
 end
