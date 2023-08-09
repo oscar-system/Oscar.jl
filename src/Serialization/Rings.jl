@@ -166,17 +166,21 @@ type_needs_params(::Type{<:PolyRingElem}) = true
 function save_object(s::SerializerState, p::PolyRingElem)
     coeffs = coefficients(p)
     exponent = 0
-    terms = Tuple{String, typeof(coeffs[1])}[]
-    for coeff in coeffs
-        # collect only non trivial terms
-        if is_zero(coeff)
+    terms = Tuple{String, Any}[]
+    data_array(s) do
+        for coeff in coeffs
+            # collect only non trivial terms
+            if is_zero(coeff)
+                exponent += 1
+                continue
+            end
+            data_array(s) do
+                save_object(s, string(exponent))
+                save_object(s, coeff)
+            end
             exponent += 1
-            continue
         end
-        push!(terms, (string(exponent), coeff))
-        exponent += 1
     end
-    save_object(s, terms)
 end
 
 function load_object_with_params(s::DeserializerState,
@@ -192,12 +196,12 @@ function load_object_with_params(s::DeserializerState,
     degree = max(map(x->x[1] + 1, terms)...)
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
+    coeff_type = elem_type(base)
 
     for term in terms
         exponent, coeff = term
         # account for shift
         exponent += 1
-        coeff_type = elem_type(base)
         if type_needs_params(coeff_type)
             if length(parents) == 1
                 params = coefficient_ring(parent_ring)
@@ -219,16 +223,20 @@ function load_object_with_params(s::DeserializerState,
     parent_ring = parents[end]
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
+    coeff_type = elem_type(base)
     for (e, coeff) in terms
-        if length(parents) == 1
-            coeff_type = elem_type(base)
-            @assert has_elem_basic_encoding(base)
-            c = load_type_dispatch(s, coeff_type, coeff, parent=base)
+        if type_needs_params(coeff_type)
+            if length(parents) == 1
+                params = coefficient_ring(parent_ring)
+            else
+                params = parents[1:end - 1]
+            end
+            c = load_object_with_params(s, coeff_type, coeff, params)
         else
-            c = load_terms(s, parents[1:end - 1], coeff, parents[end - 1])
+            c = load_object(s, coeff_type, coeff)
         end
-        
-        push_term!(polynomial, c, Vector{Int}(e))
+        e_int = [parse(Int, x) for x in e]
+        push_term!(polynomial, c, e_int)
     end
     return finish(polynomial)
 end

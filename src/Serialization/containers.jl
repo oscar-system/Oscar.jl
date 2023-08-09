@@ -9,15 +9,9 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 @registerSerializationType(Vector)
 
 function load_object_with_params(s::DeserializerState, ::Type{Vector{T}}, v::Vector{Any}, params::Any) where T
-    loaded_v = []
-    for x in v
-        if x isa Vector
-            loaded_x = load_object_with_params(s, Vector{T}, x, params)
-        else
-            loaded_x = load_object_with_params(s, T, x, params) 
-        end
-        push!(loaded_v, loaded_x)
-    end
+    loaded_v = [
+        load_object_with_params(s, T, x, params) for x in v
+    ]
     return loaded_v
 end
 

@@ -121,16 +121,16 @@ end
 @registerSerializationType(Hecke.NfRel, true)
 @registerSerializationType(AnticNumberField, true)
 
-function save_internal(s::SerializerState, K::SimpleNumField)
-    return Dict(
-        :def_pol => save_type_dispatch(s, defining_polynomial(K)),
-        :var => save_type_dispatch(s, var(K)) 
-    )
+function save_object(s::SerializerState, K::SimpleNumField)
+    data_dict(s) do 
+        save_typed_object(s, defining_polynomial(K), :def_pol)
+        save_object(s, var(K), :var)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
-    def_pol = load_unknown_type(s, dict[:def_pol])
-    var = load_type_dispatch(s, Symbol, dict[:var])
+function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
+    def_pol = load_typed_object(s, dict[:def_pol])
+    var = Symbol(dict[:var])
     K, _ = number_field(def_pol, var, cached=false)
     return K
 end
@@ -140,13 +140,15 @@ end
 @registerSerializationType(fqPolyRepField, true)
 
 function save_object(s::SerializerState, K::fqPolyRepField)
-    save_typed_object(s, defining_polynomial(K), :def_pol)
+    data_dict(s) do
+        save_typed_object(s, defining_polynomial(K), :def_pol)
+    end
 end
 
-function load_internal(s::DeserializerState,
+function load_object(s::DeserializerState,
                        ::Type{<: fqPolyRepField},
                        dict::Dict)
-    def_pol = load_unknown_type(s, dict[:def_pol])
+    def_pol = load_typed_object(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
     return K
 end
@@ -155,52 +157,30 @@ end
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
 @registerSerializationType(Hecke.NfRelElem)
-type_needs_parents(T::Type{fqPolyRepFieldElem}) = true
+NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
+type_needs_params(T::Type{<:NumFieldElemTypeUnion}) = true
 
-function save_object(s::SerializerState, k::fqPolyRepFieldElem)
+function save_type_params(s::SerializerState,
+                          x::T, key::Symbol) where T <: NumFieldElemTypeUnion
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(x), :params)
+    end
+end
+
+function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
     save_object(s, polynomial)
 end
 
-function save_internal(s::SerializerState, k::Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem};
-                       include_parents::Bool=true)
-    K = parent(k)
-    polynomial = parent(defining_polynomial(K))(k)
-
-    # currently we get parent(defining_polynomial(K)) == parent(defining_polynomial(K)) = false
-    # which leads to duplicate refs in the refs section of the file (not in the parent list)
-    terms = save_internal(s, polynomial; include_parents=false)
-    
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, K),
-            :terms => terms
-        )
-    end
-    return terms
-end
-
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::Union{fqPolyRepField, SimpleNumField})
-    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
-    return parent_ring(loaded_terms)
-end
-
-function load_internal(s::DeserializerState,
-                       ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
-                       dict::Dict)
-    parents = load_parents(s, dict[:parents])
-    return load_terms(s, parents[1:end], dict[:terms], parents[end])
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}},
-                                   dict::Dict,
-                                   parent_field::Union{fqPolyRepField, SimpleNumField})
-    parents = get_parents(parent(defining_polynomial(parent_field)))
-    terms = load_terms(s, parents, dict[:terms], parents[end])
-    return parent_field(terms)
+function load_object_with_params(s::DeserializerState, ::Type{<: NumFieldElemTypeUnion},
+                                 terms::Vector, parents::Vector)
+    K = parents[end]
+    polynomial = load_object_with_params(s, PolyRingElem, terms, parents[1:end - 1])
+    loaded_terms = evaluate(polynomial, gen(K))
+    return K(loaded_terms)
 end
 
 ################################################################################
@@ -290,13 +270,10 @@ end
 # Non Simple Extension
 
 @registerSerializationType(Hecke.NfRelNS, true)
-
 @registerSerializationType(NfAbsNS, true)
-@registerSerializationType(NfAbsNSElem)
 
 function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
-    
     data_dict(s) do 
         save_typed_object(s, def_pols, :def_pols)
         save_object(s, vars(K), :vars)
@@ -314,13 +291,14 @@ end
 
 #elements
 @registerSerializationType(Hecke.NfRelNSElem)
-type_needs_params(::Type{NfAbsNSElem}) = true
+@registerSerializationType(NfAbsNSElem)
+type_needs_params(::Type{<:Union{NfAbsNSElem, Hecke.NfRelNSElem}}) = true
 
 function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: Union{NfAbsNSElem, Hecke.NfRelNSElem}
     s.key = key
     data_dict(s) do
         save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(k), :params)
+        save_typed_object(s, parent(f), :params)
     end
 end
 
@@ -329,31 +307,13 @@ function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem
     save_object(s, polynomial)
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::Union{NfAbsNS, NfRelNS})
-    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
-    loaded_terms = evaluate(loaded_terms, gens(parent_ring))
-    return parent_ring(loaded_terms)
-end
-
-function load_internal(s::DeserializerState,
-                       ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
-                       dict::Dict)
-    K = load_parents(s, dict[:parents])[end]
-    polynomial = load_unknown_type(s, dict[:polynomial])
+function load_object_with_params(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
+    K = parents[end]
+    n = ngens(K)
+    parents[end - 1], _ = polynomial_ring(base_field(K), n)
+    polynomial = load_object_with_params(s, MPolyRingElem, terms, parents[1:end - 1])
     polynomial = evaluate(polynomial, gens(K))
-
     return K(polynomial)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: NfAbsNSElem},
-                                   dict::Dict,
-                                   parent_field::NfAbsNS)
-    polynomial = load_unknown_type(s, dict[:polynomial])
-    polynomial = evaluate(polynomial, gens(parent_field))
-
-    return parent_field(polynomial)
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -374,43 +334,49 @@ end
 
 @registerSerializationType(FracField, true)
 
-function save_internal(s::SerializerState, K::FracField)
-    return Dict(
-        :base_ring => save_as_ref(s, base_ring(K)),
-    )
+function save_object(s::SerializerState, K::FracField)
+    data_dict(s) do
+        save_typed_object(s, base_ring(K), :base_ring)
+    end
 end
 
-function load_internal(s::DeserializerState,
+function load_object(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R = load_unknown_type(s, dict[:base_ring])
+    R = load_typed_object(s, dict[:base_ring])
 
     return fraction_field(R, cached=false)
 end
 
 # elements
 @registerSerializationType(FracElem)
+# might need a better way to block QQFieldElem here so that more FracElems can be serialized
+type_needs_params(::Type{<:FracElem{T}}) where T <: Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem} = true
 
-function save_internal(s::SerializerState, f::FracElem; include_parents::Bool=true)
-    encoded_denominator = save_internal(s, denominator(f); include_parents=false)
-    encoded_numerator = save_internal(s, numerator(f); include_parents=false)
-    terms = (encoded_numerator, encoded_denominator)
-    
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent(f)),
-            :terms => terms
-        )
+function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: FracElem
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(f), :params)
     end
-    return terms
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::FracField)
+function save_object(s::SerializerState, f::FracElem)
+    data_array(s) do
+        save_object(s, numerator(f))
+        save_object(s, denominator(f))
+    end
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<: FracElem},
+                                 terms::Vector, parents::Vector)
+    parent_ring = parents[end]
     num_coeff, den_coeff = terms
-    loaded_num = load_terms(s, parents[1:end - 1], num_coeff, parents[end - 1])
-    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end-1])
-    return  parent_ring(loaded_num) // parent_ring(loaded_den)
+    coeff_type = elem_type(base_ring(parent_ring))
+    loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
+    loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
+    println(typeof(parent_ring))
+    return  parent_ring(loaded_num, loaded_den)
 end
 
 function load_internal(s::DeserializerState,
@@ -435,25 +401,25 @@ end
                            true,
                            "RationalFunctionField")
 
-function save_internal(s::SerializerState,
+function save_object(s::SerializerState,
                        RF::AbstractAlgebra.Generic.RationalFunctionField)
-    return Dict(
-        :base_ring => save_type_dispatch(s, base_ring(RF)),
-        :symbols => save_type_dispatch(s, symbols(RF))
-    )
+    data_dict(s) do
+        save_typed_object(s, base_ring(RF), :base_ring)
+        syms = symbols(RF)
+        if !(syms isa Vector)
+            # guarantee symbols are always an array
+            # even if there is only one
+            syms = [syms]
+        end
+        save_object(s, syms, :symbols)
+    end
 end
 
-function load_internal(s::DeserializerState,
+function load_object(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
                        dict::Dict)
-    R = load_unknown_type(s, dict[:base_ring])
-    
-    if dict[:symbols] isa String
-        symbol = load_type_dispatch(s, Symbol, dict[:symbols])
-        return RationalFunctionField(R, symbol, cached=false)[1]
-    end
-
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
+    R = load_typed_object(s, dict[:base_ring])
+    symbols = map(Symbol, dict[:symbols])
     return RationalFunctionField(R, symbols, cached=false)[1]
 end
 
@@ -461,28 +427,31 @@ end
 @registerSerializationType(AbstractAlgebra.Generic.RationalFunctionFieldElem,
                            true,
                            "RationalFunctionFieldElem")
+type_needs_params(::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem}) = true
 
-function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem;
-                       include_parents::Bool=true)
-    encoded_denominator = save_internal(s, denominator(f); include_parents=false)
-    encoded_numerator = save_internal(s, numerator(f); include_parents=false)
-    terms = (encoded_numerator, encoded_denominator)
-
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent(f)),
-            :terms => terms
-        )
+function save_type_params(s::SerializerState, k::T, key::Symbol) where T <: AbstractAlgebra.Generic.RationalFunctionFieldElem
+    data_dict(s) do 
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(k), :params)
     end
-    return terms
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
+function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
+    data_array(s) do
+        save_object(s, numerator(f))
+        save_object(s, denominator(f))
+    end
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
+                                 terms::Vector, parents::Vector)
+    parent_ring = parents[end]
     num_coeff, den_coeff = terms
-    pushfirst!(parents, base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring)))
-    loaded_num = load_terms(s, parents[1:end - 1], num_coeff, parents[end - 1])
-    loaded_den = load_terms(s, parents[1:end - 1], den_coeff, parents[end - 1])
+    base = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
+    pushfirst!(parents, base)
+    coeff_type = elem_type(base)
+    loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
+    loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
     return  parent_ring(loaded_num, loaded_den)
 end
     

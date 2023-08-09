@@ -322,8 +322,14 @@ end
 
 function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
     s.key = key
-    data_dict(s) do 
-        save_typed_object(s, x)
+    if serialize_with_id(x)
+        # key should already be set before function call
+        ref = save_as_ref(s, x)
+        save_object(s, ref)
+    else
+        data_dict(s) do 
+            save_typed_object(s, x)
+        end
     end
 end
 
