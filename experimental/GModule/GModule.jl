@@ -926,7 +926,7 @@ function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinField
 end
 
 """
-The group of Z[G]-homomorphisms as a k-module, not a k[G] one. (The G opetation
+The group of Z[G]-homomorphisms as a k-module, not a k[G] one. (The G operation
 is trivial)
 """
 function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
