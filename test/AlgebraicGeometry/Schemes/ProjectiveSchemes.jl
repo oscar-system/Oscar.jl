@@ -301,7 +301,7 @@ end
   @test all(U->(OO(U) isa MPolyRing), affine_charts(X))
 end
 
-@test "equality of projective schemes" begin
+@testset "equality of projective schemes" begin
   P2 = projective_space(GF(17), 2)
   (x0,x1,x2) = homogeneous_coordinates(P2)
   R = homogeneous_coordinate_ring(P2)
