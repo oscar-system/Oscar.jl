@@ -117,27 +117,24 @@ julia> hilbert_series(A)
 """
 function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
   R = base_ring(A.I)
-  if is_z_graded(R) && iszero(A.I)
+  @req is_z_graded(R) "ring must be graded by the integers"
+  parent, t = (parent === nothing) ? polynomial_ring(ZZ, "t") : (parent, first(gens(parent)));
+  if iszero(A.I)
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     @req minimum(W) > 0 "The weights must be positive"
-    Zt,t = (parent === nothing) ? ZZ["t"] : (parent, first(gens(parent)));
-#    Zt, t = ZZ["t"]
     den = prod([1-t^Int(w[1]) for w in R.d])
     return (one(parent(t)), den)
   end
-  (numer,denom),(_,_) = multi_hilbert_series(A; parent=parent)
+
+  (numer, denom), _ = multi_hilbert_series(A; parent=parent)
   return numer,denom
-#  if backend == :Abbott
-#    return Oscar.HSNum_fudge(A; parent=parent)
-#  elseif backend == :Singular
-#    H = HilbertData(A.I)
-#    return hilbert_series(H)
-#  end
 end
 
 # TODO: The method below is missing. It should be made better and put to the correct place (AA).
 ngens(S::AbstractAlgebra.Generic.LaurentMPolyWrapRing) = length(gens(S))
+ngens(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
+ngens(P::PolyRing) = 1
 
 
 @doc raw"""
@@ -501,9 +498,15 @@ function multi_hilbert_series(
   fac_dict = Dict{elem_type(parent), Integer}()
   for i = 1:n
     e = [Int(MI[i, :][j]) for j = 1:m]
-    B = MPolyBuildCtx(parent)
-    push_term!(B, 1, e)
-    new_fac = 1-finish(B)
+    new_fac = one(parent)
+    if isone(length(e))
+      # We can't use MPolyBuildCtx in the univariate case
+      new_fac = new_fac - first(gens(parent))^first(e)
+    else
+      B = MPolyBuildCtx(parent)
+      push_term!(B, 1, e)
+      new_fac = 1-finish(B)
+    end
     if haskey(fac_dict, new_fac)
       fac_dict[new_fac] = fac_dict[new_fac] + 1
     else

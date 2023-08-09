@@ -61,4 +61,15 @@
   S = parent(num)
   HS2 = multi_hilbert_series(PmodI, parent=S, backend=:Zach)
   @test HS2[1][1] == num
+  
+  P2, x = graded_polynomial_ring(QQ, 5, "x", [1 1 1 1 1])
+  G = P2.(G)
+
+  I = ideal(P2,G);
+  PmodI, _ = quo(P2,I);
+  HS = hilbert_series(PmodI);
+  num = HS[1]
+  L, q = LaurentPolynomialRing(ZZ, "q")
+  HS2 = hilbert_series(PmodI, parent=L)
+  @test HS2[1] == evaluate(num, q)
 end
