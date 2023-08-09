@@ -2515,7 +2515,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   #TODO: the subfields use, implicitly, special invariants, so
   #      we should be able to avoid the chain
   G = symmetric_group(n)
-  if C.start[1] == 1 # start with intersection of wreath products
+  if isdefined(C, :start) && C.start[1] == 1 # start with intersection of wreath products
     _, g = slpoly_ring(ZZ, n)
     for bs = C.start[2]
       W = PermGroup(wreath_product(symmetric_group(length(bs[1])), symmetric_group(length(bs))))
