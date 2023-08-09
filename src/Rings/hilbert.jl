@@ -47,9 +47,6 @@ end
 # Code for representing & manipulating PPs (power products, aka. monomials)
 # All this code is "local" to this file, & not exported!
 
-# type alias
-const HSNumVar = AbstractAlgebra.Generic.LaurentMPolyWrap{QQFieldElem, QQMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{QQFieldElem, QQMPolyRing}}
-
 
 # Each PP is represented as Vector{PP_exponent}
 
@@ -386,7 +383,7 @@ end
 #  HS "indets":     seems useful to have power-prods of them by the corr weights -- parameter T in the fn defns
 
 # Case gens are simple powers
-function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T is list of HSNum PPs, one for each grading dim
+function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
   ans = 1 #one(T[1])    ???
   for t in SimplePPs
     k = findfirst(entry -> (entry > 0), t.expv)
@@ -396,7 +393,7 @@ function HSNum_base_SimplePowers(SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T
 end
 
 
-function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{HSNumVar}) # T is list of HSNum PPs, one for each grading dim
+function HSNum_base_case1(t::PP, SimplePPs::Vector{PP}, T::Vector{RingElemType}) where {RingElemType <: RingElem} # T is list of HSNum PPs, one for each grading dim
   # t is not a "simple power", all the others are
   @vprintln  :hilbert 1  "HSNum_base_case1: t = $(t)";
   @vprintln  :hilbert 1  "HSNum_base_case1: SimplePPs = $(SimplePPs)";
@@ -422,7 +419,7 @@ end # function
 
 
 ## CC contains at least 2 connected components (each compt repr as Vector{Int64} of the variable indexes in the compt)
-function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
+function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
   @vprintln  :hilbert 1  "Splitting case: CC = $(CC)";
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
@@ -452,7 +449,7 @@ function HSNum_splitting_case(CC::Vector{Vector{Int64}}, SimplePPs::Vector{PP}, 
 end
 
 
-function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
+function HSNum_total_splitting_case(VarIndexes::Vector{Int64}, SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
   @vprintln  :hilbert 1 "Total splitting case: VarIndexes = $(VarIndexes)";
   HSNumList = [] ## list of HSNums
   # Now find any simple PPs which are indep of the conn compts found
@@ -513,7 +510,7 @@ function rev_lex_max(L::Vector{PP})
   return L[IndexMax]
 end
 
-function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar})
+function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}) where {RET <: RingElem}
   ##println("HSNum_BS: Simple:    $(SimplePPs)")
   ##println("HSNum_BS: NonSimple: $(NonSimplePPs)")
   # Maybe sort the gens???
@@ -732,7 +729,7 @@ end
 
 
 # Assume SimplePPs+NonSimplePPs are interreduced
-function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{HSNumVar}, PivotStrategy::Symbol)
+function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{RET}, PivotStrategy::Symbol) where {RET <: RingElem}
   @vprintln  :hilbert 1 "HSNum_loop: SimplePPs=$(SimplePPs)"
   @vprintln  :hilbert 1 "HSNum_loop: NonSimplePPs=$(NonSimplePPs)"
 #  @vprintln  :hilbert 1 "LOOP: first <=5 NonSimplePPs=$(first(NonSimplePPs,5))"
