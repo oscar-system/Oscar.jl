@@ -122,10 +122,10 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   W = R.d
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
-  if iszero(A.I)
-    den = prod([1-t^Int(w[1]) for w in R.d])
-    return (one(parent(t)), den)
-  end
+  # if iszero(A.I)
+  #   den = prod([1-t^Int(w[1]) for w in R.d])
+  #   return (one(parent(t)), den)
+  # end
 
   (numer, denom), _ = multi_hilbert_series(A; parent=parent)
   return numer,denom
