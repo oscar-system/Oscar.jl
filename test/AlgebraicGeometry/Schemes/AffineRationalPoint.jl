@@ -12,7 +12,8 @@
 
   @test pX in X
   @test pA in X
-  @test parent(pX)===X
+  @test codomain(pX)===X
+  @test ambient_scheme(pX)===X
 
   @test is_prime(ideal(pX))
   @test pX[1] == 1
@@ -49,4 +50,22 @@
   pt = P2cov[1][1]([1,0])
   @test pt in P2cov
 
+  k = GF(2)
+  L = GF(2,2)
+  A2 = affine_space(k ,2)
+  A2k = Oscar.RationalPointSet(Spec(k), A2)
+  A2L = Oscar.RationalPointSet(Spec(L), A2)
+  pk = A2k([1,1])
+  pL = A2L(pk) # conversion
+  @test !(pk == pL) # no automatic coercion -> consistent with hom interpretation since the domains differ
+
+  # reduction mod p
+  k = ZZ
+  L = GF(2,2)
+  A2 = affine_space(k ,2)
+  A2k = Oscar.RationalPointSet(Spec(k), A2)
+  A2L = Oscar.RationalPointSet(Spec(L), A2)
+  pk = A2k([1,1])
+  pL = A2L(pk) # conversion
+  @test !(pk == pL) # no automatic coercion -> consistent with hom interpretation since the domains differ
 end

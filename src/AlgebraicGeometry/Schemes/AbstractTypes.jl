@@ -106,6 +106,29 @@ abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField
 # Abstract types for rational points
 #
 ################################################################################
+
+@doc raw"""
+    AbsRationalPointSet{P<:AbsSpec,T<:Scheme}
+
+Abstract type for the set of rational points of a scheme.
+
+Let ``k`` be a ring, ``L`` a ``k`-algebra and ``X`` a scheme over ``k``. The set ``X(L)`` of ``L``-rational points of ``X`` is defined as the set of homomorphisms over ``Spec k`` from ``Spec L`` to ``X``, i.e. as ``X(L) = Hom_{Spec k}(Spec L, X)``.
+
+We refer to ``L`` as the `coefficient_ring`, to
+``Spec L`` as the `domain` and to ``X`` as the `codomain` of this
+homset. For traditional reasons we keep the name
+`ambient_scheme` for the codomain.
+"""
+abstract type AbsRationalPointSet{P<:AbsSpec,T<:Scheme} end
+
+abstract type AbsRationalPoint{RingElemType, ParentType} end
+
+domain(p::AbsRationalPoint) = domain(parent(p))
+codomain(p::AbsRationalPoint) = codomain(parent(p))
+ambient_scheme(p::AbsRationalPoint) = codomain(p)
+ambient_space(p::AbsRationalPoint) = ambient_space(ambient_scheme(p))
+coefficient_ring(P::AbsRationalPoint) = coefficient_ring(parent(P))
+
 @doc raw"""
     AbsAffineRationalPoint{CoefficientType, ParentType}
 
@@ -117,7 +140,7 @@ defined by the ideal ``I = (f_1, \dots f_r) \subseteq k[x_1,\dots x_n]``.
 A rational point ``p`` of ``X`` is a tuple ``p = (p_1, \dots , p_n) \in k^n`` such that
 ``f_1(p) = \dots = f_n(p) = 0``.
 """
-abstract type AbsAffineRationalPoint{RingElemType, ParentType} end
+abstract type AbsAffineRationalPoint{RingElemType, ParentType} <: AbsRationalPoint{RingElemType, ParentType} end
 
 @doc raw"""
     AbsProjectiveRationalPoint
@@ -132,5 +155,7 @@ Let ``X \subseteq \mathbb{P}^n_k`` be an algebraic set or more generally a close
 
 This type includes points in weighted projective space.
 """
-abstract type AbsProjectiveRationalPoint{RingElemType, ParentType} end
+abstract type AbsProjectiveRationalPoint{RingElemType, ParentType} <: AbsRationalPoint{RingElemType, ParentType} end
+
+abstract type AbsCoveredRationalPoint{RingElemType, ParentType} <: AbsRationalPoint{RingElemType, ParentType} end
 

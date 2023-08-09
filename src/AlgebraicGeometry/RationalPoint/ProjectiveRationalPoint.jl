@@ -1,47 +1,10 @@
-@doc raw"""
-    ProjectiveRationalPoint{CoeffType<:RingElem, ParentType<:AbsProjectiveScheme}
-
-Type for rational points in projective varieties.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(QQ, 2)
-
-julia> P2([4, 0 , 2//3])
-```
-"""
-struct ProjectiveRationalPoint{S<:RingElem, T<:AbsProjectiveScheme} <: AbsProjectiveRationalPoint{S, T}
-  # not mutable since this should be efficient
-  coordinates::Vector{S}
-  parent::T
-
-  function ProjectiveRationalPoint(parent::T, coordinates::Vector{S}; check::Bool=true) where {S <: RingElem, T<:AbsProjectiveScheme}
-    r = new{S, T}(coordinates, parent)
-    @check begin
-      n = relative_ambient_dimension(parent) + 1
-      k = base_ring(parent)
-      all(Oscar.parent(i)===k for i in coordinates) || error("coordinates do not lie in the base ring")
-      n == length(coordinates) || error("$(coordinates) must have length $(n)")
-      _is_projective(coordinates) || error("not a point in projective space")
-      _in(r, parent)|| error("$(coordinates) does not lie in $(parent)")
-    end
-    return r
-  end
-end
-
-@doc raw"""
-    parent(p::AbsProjectiveRationalPoint) -> AbsProjectiveScheme
-
-Return the parent ``X`` of the rational point ``p \in X``.
-"""
-parent(p::AbsProjectiveRationalPoint)
 
 @doc raw"""
     coordinates(p::AbsProjectiveRationalPoint{S,T}) -> Vector{S}
 
 Return the homogeneous coordinates of the rational point `p`.
 """
-coordinates(p::ProjectiveRationalPoint)
+coordinates(p::AbsProjectiveRationalPoint)
 
 ################################################################################
 #
@@ -50,7 +13,7 @@ coordinates(p::ProjectiveRationalPoint)
 ################################################################################
 
 parent(p::ProjectiveRationalPoint) = p.parent
-coordinates(p::AbsProjectiveRationalPoint) = p.coordinates
+coordinates(p::ProjectiveRationalPoint) = p.coordinates
 
 ################################################################################
 
@@ -59,14 +22,14 @@ homogeneous_coordinates(p::AbsProjectiveRationalPoint) = coordinates(p)
 function (X::AbsProjectiveScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
-  return ProjectiveRationalPoint(X, coordinates, check=check)
+  return ProjectiveRationalPoint(rational_point_set(X), coordinates; check=check)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveRationalPoint)
   io = pretty(io)
   println(io, "Projective rational point")
   print(io, Indent())
-  println(io, "of ", parent(P))
+  println(io, "of ", codomain(P))
   print(io, "with coordinates (")
   join(io, coordinates(P), " : ")
   print(io, ")", Dedent())
@@ -78,8 +41,8 @@ function Base.show(io::IO, P::AbsProjectiveRationalPoint)
   print(io,")")
 end
 
-base_ring(P::AbsProjectiveRationalPoint) = base_ring(parent(P))
-coefficient_ring(P::AbsProjectiveRationalPoint) = base_ring(parent(P))
+base_ring(P::AbsProjectiveRationalPoint) = base_ring(codomain(P))
+coefficient_ring(P::AbsProjectiveRationalPoint) = base_ring(codomain(P))
 coordinate(P::AbsProjectiveRationalPoint, i::Int) = coordinates(P)[i]
 Base.getindex(P::AbsProjectiveRationalPoint, i::Int) = coordinate(P, i)
 Base.setindex!(a::AbsProjectiveRationalPoint, v, i::Int) = coordinates(a)[i] = v
@@ -88,12 +51,12 @@ Base.setindex!(a::AbsProjectiveRationalPoint, v, i::Int) = coordinates(a)[i] = v
     ideal(P::AbsProjectiveRationalPoint)
 
 Return the homogeneous ideal associated to `P`
-in the homogeneous coordinate ring  of its parent.
+in the homogeneous coordinate ring of its ambient space.
 """
 function ideal(P::AbsProjectiveRationalPoint)
-  R = ambient_coordinate_ring(parent(P))
+  R = ambient_coordinate_ring(codomain(P))
   V = gens(R)
-  w = weights(parent(P))
+  w = weights(codomain(P))
   n = length(V)
   m = elem_type(R)[]
   # first non-zero coordinate
@@ -109,11 +72,11 @@ end
 
 function _in(P::AbsProjectiveRationalPoint, X::AbsProjectiveScheme{<:Any,<:MPolyDecRing{<:Any,<:MPolyRing}})
   # X is projective space
-  return ambient_space(parent(P)) == X
+  return ambient_space(P) == X
 end
 
 function _in(P::AbsProjectiveRationalPoint, X::AbsProjectiveScheme{<:Any,<:MPolyQuoRing{<:MPolyDecRingElem}})
-  ambient_space(parent(P)) == ambient_space(X) || return false
+  ambient_space(P) == ambient_space(X) || return false
   c = coordinates(P)
   for f in gens(defining_ideal(X))
     iszero(evaluate(f, c)) || return false
@@ -123,7 +86,7 @@ end
 
 # We can do this without computing the vanishing ideal of X
 function _in(P::AbsProjectiveRationalPoint, X::AbsProjectiveAlgebraicSet{<:Any,<:MPolyQuoRing{<:MPolyDecRingElem}})
-  ambient_space(parent(P)) == ambient_space(X) || return false
+  ambient_space(P) == ambient_space(X) || return false
   c = coordinates(P)
   for f in gens(fat_ideal(X))
     iszero(evaluate(f, c)) || return false
@@ -132,7 +95,7 @@ function _in(P::AbsProjectiveRationalPoint, X::AbsProjectiveAlgebraicSet{<:Any,<
 end
 
 function Base.in(P::AbsProjectiveRationalPoint, X::AbsProjectiveScheme)
-  parent(P) === X && return true
+  codomain(P) === X && return true
   return _in(P, X)
 end
 
@@ -144,12 +107,13 @@ of its ambient projective space.
 """
 function scheme(P::AbsProjectiveRationalPoint)
   I = ideal(P)
-  R = ambient_coordinate_ring(parent(P))
+  R = ambient_coordinate_ring(codomain(P))
   return ProjectiveScheme(R, I)
 end
 
-function (f::ProjectiveSchemeMor)(P::AbsProjectiveRationalPoint)
-  @req domain(f) == parent(P) "$(P) not in domain"
+function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRationalPoint)
+  @req domain(f) == codomain(P) "$(P) not in domain"
+  @req base_ring(domain(f)) == base_ring(codomain(f)) "schemes must be defined over the same base ring"
   x = homogeneous_coordinates(codomain(f))
   g = pullback(f)
   p = coordinates(P)
@@ -162,7 +126,7 @@ function is_smooth_at(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalP
   error("not implemented")
 end
 
-is_smooth(P::AbsProjectiveRationalPoint) = is_smooth_at(parent(P),P)
+is_smooth(P::AbsProjectiveRationalPoint) = is_smooth_at(codomain(P),P)
 
 function _is_projective(a::Vector{T}) where {T <: AbstractAlgebra.FieldElem}
   return !all(iszero, a)
@@ -180,10 +144,10 @@ end
 Nemo.parent_type(::AbsProjectiveRationalPoint{S,T}) where {S,T} = T
 
 function ==(a::AbsProjectiveRationalPoint{S, T}, b::AbsProjectiveRationalPoint{S, U}) where {S<:Union{FieldElem,ZZRingElem},T, U}
-  ambient_space(parent(a)) == ambient_space(parent(b)) || return false
+  ambient_space(a) == ambient_space(b) || return false
   n = length(coordinates(a))
   i = 1
-  w = weights(parent(a))
+  w = weights(codomain(a))
   while iszero(a[i])
     iszero(b[i]) || return false
     i += 1
@@ -210,8 +174,8 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
     i += 1
   end
   ca = inv(a[i])
-  a[i] = one(base_ring(parent(a)))
-  w = weights(parent(a))
+  a[i] = one(coefficient_ring(a))
+  w = weights(codomain(a))
   any(x->!isone(x), w) && error("cannot normalize with weights")
   i += 1
   while i <= l
@@ -233,10 +197,10 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
   while iszero(a[i])
     i += 1
   end
-  w = weights(parent(a))
+  w = weights(codomain(a))
   any(x->!isone(x), w) && error("cannot normalize with weights")
   ca = sign(a[i])
-  while i <= dim(parent(a))
+  while i <= dim(codomain(a))
     a[i] = ca*a[i]  #TODO: weights
     i += 1
   end
@@ -244,7 +208,7 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
 end
 
 function Base.hash(a::AbsProjectiveRationalPoint, u::UInt=UInt(123432))
-  if isweighted(parent(a))
+  if isweighted(codomain(a))
     return u
   end
   normalize!(a)
