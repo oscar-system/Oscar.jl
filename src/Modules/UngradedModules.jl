@@ -6253,8 +6253,6 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, len)
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
@@ -6300,7 +6298,7 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-`algorithm` can be set to `:sres` or `:fres`.
+At the moment, `algorithm` only allows the option `:fres`.
 
 # Examples
 ```jldoctest
@@ -6348,7 +6346,7 @@ degree | 4  3  2  1  0
 julia> is_complete(fr)
 true
 
-julia> fr = free_resolution(M, algorithm=:sres)
+julia> fr = free_resolution(M, algorithm=:fres)
 
 rank   | 0  2  6  6  2
 -------|---------------
@@ -6386,15 +6384,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
-  singular_kernel_entry.isGB = true
-
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
-    res = Singular.fres(singular_kernel_entry, length, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, length)
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+    gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -6403,9 +6399,26 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
+  codom = codomain(maps[1])
+
+  if is_graded(codom)
+    rk    = Singular.ngens(gbpres)
+    SM    = SubModuleOfFreeModule(codom, gbpres)
+    generator_matrix(SM)
+    ff = graded_map(codom, SM.matrix)
+    dom = domain(ff)
+    set_attribute!(dom, :name => "br^$rk")
+  else
+    dom   = free_module(br, Singular.ngens(gbpres))
+    SM    = SubModuleOfFreeModule(codom, gbpres)
+    generator_matrix(SM)
+    ff = hom(dom, codom, SM.matrix)
+  end
+
+  maps[1] = ff
+
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  dom = domain(pm.maps[1])
   j   = 2
   while j <= Singular.length(res)
     if is_graded(dom)
@@ -7927,7 +7940,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
-3 -> -y*(e[1] -> e[1])
+3 -> -x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
