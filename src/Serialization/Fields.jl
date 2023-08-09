@@ -375,7 +375,6 @@ function load_object_with_params(s::DeserializerState, ::Type{<: FracElem},
     coeff_type = elem_type(base_ring(parent_ring))
     loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
     loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
-    println(typeof(parent_ring))
     return  parent_ring(loaded_num, loaded_den)
 end
 

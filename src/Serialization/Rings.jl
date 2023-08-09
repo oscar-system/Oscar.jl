@@ -81,8 +81,8 @@ function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, 
 end
 
 function load_object(s::DeserializerState,
-                       T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
-                       dict::Dict)
+                     T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
+                     dict::Dict)
     base_ring = load_typed_object(s, dict[:base_ring])
     symbols = map(Symbol, dict[:symbols])
     
@@ -95,7 +95,7 @@ function load_object(s::DeserializerState,
     elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
         return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
     end
-
+    
     return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
 
@@ -143,7 +143,7 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
 end
 
 @registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap;
+function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
     parent_ring = parent(p)
     base = base_ring(parent_ring)
     encoded_terms = []
@@ -246,30 +246,26 @@ end
 
 @registerSerializationType(MPolyIdeal)
 @registerSerializationType(Laurent.LaurentMPolyIdeal)
+IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}
+type_needs_params(::Type{<: IdealUnionType) = true
 
-function save_internal(s::SerializerState,
-                       I::Union{MPolyIdeal, Laurent.LaurentMPolyIdeal})
-    generators = gens(I)
-
-    return Dict(
-        :gens => save_type_dispatch(s, generators),
-    )
+function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(gens(x)[1]), :params)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{<: Union{
-    MPolyIdeal, Laurent.LaurentMPolyIdeal}}, dict::Dict)
-    gens = load_type_dispatch(s, Vector, dict[:gens])
+function save_object(s::SerializerState, I::MPolyIdeal)
+    data_dict(s) do
+        save_typed_object(s, gens(I), :gens)
+    end
+end
 
+function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, dict::Dict)
+    gens = load_typed_object(s, dict[:gens])
     return ideal(parent(gens[1]), gens)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}},
-                                   dict::Dict,
-                                   parent_ring::Union{MPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
-    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)},
-                              dict[:gens], parent=parent_ring)
-    return ideal(parent_ring, gens)
 end
 
 ################################################################################
