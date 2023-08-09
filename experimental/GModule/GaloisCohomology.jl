@@ -1836,7 +1836,7 @@ compute the G-orbit (not the Z[G] orbit!) of o.
 """
 function Oscar.orbit(C::GModule, o)
   @assert parent(o) == C.M
-  return orbit(C.G, (x,y) -> action(C, y, x))
+  return orbit(C.G, (x,y) -> action(C, y, x), o)
 end
 
 """
@@ -1855,7 +1855,7 @@ function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
     for i=1:attempts
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        s, ms = sub(q.M, o)
+        s, ms = sub(q.M, collect(o))
         if rank(s) == length(o)
           q, _mq = quo(q, ms)
           if first

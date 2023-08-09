@@ -371,6 +371,76 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
+Oscar.direct_sum(C::GModule...; task::Symbol = :none) = Oscar.direct_product(C...; task = task)
+
+import Hecke.⊕
+⊕(C::GModule...) = Oscar.direct_sum(C...; task = :none)
+
+function Oscar.tensor_product(C::GModule{<:Any, GrpAbFinGenElem}...; task::Symbol = :map)
+  @assert all(x->x.G == C[1].G, C)
+
+  T, mT = Oscar.tensor_product([x.M for x = C]...; task = :map)
+  TT = gmodule(T, C[1].G, [hom(T, T, [action(C[i], g) for i=1:length(C)]) for g = gens(C[1].G)])
+  if task == :map
+    return TT, mT
+  else
+    return TT
+  end
+end
+
+function Oscar.tensor_product(C::GModule{S, M}...; task::Symbol = :map) where S <: Oscar.GAPGroup where M <: AbstractAlgebra.Generic.FreeModule{<:Any}
+  @assert all(x->x.G == C[1].G, C)
+  @assert all(x->base_ring(x) == base_ring(C[1]), C)
+
+  T, mT = Oscar.tensor_product([x.M for x = C]...; task = :map)
+  #this is slow. It should be done like in abelian groups using
+  #the tensor product of the maps
+  TT = gmodule(T, C[1].G, [hom(T, T, [mT(Tuple(action(C[i], g, preimage(mT, t)[i]) for i=1:length(C))) for t = gens(T)] ) for g = gens(C[1].G)])
+  if task == :map
+    return TT, mT
+  else
+    return TT
+  end
+end
+
+import Hecke.⊗
+⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
+
+function Oscar.tensor_product(F::Generic.FreeModule{T}...; task = :none) where {T}
+  @assert all(x->base_ring(x) == base_ring(F[1]), F)
+  d = prod(rank(x) for x = F)
+  G = free_module(base_ring(F[1]), d)
+  if task == :none
+    return G
+  end
+
+  g = vec(collect(Base.Iterators.ProductIterator(Tuple(gens(g) for g = reverse(F)))))
+
+  function pure(g::Generic.FreeModuleElem...)
+    @assert length(g) == length(F)
+    @assert all(i-> parent(g[i]) == F[i], 1:length(F))
+
+    return G(vec(collect(prod(x) for x = Base.Iterators.product([h.v for h = reverse(g)]...))))
+  end
+  function pure(T::Tuple)
+    return pure(T...)
+  end
+
+  function inv_pure(t::Generic.FreeModuleElem)
+    p = Base.findall(i -> !iszero(t[i]), 1:ngens(G))
+    if length(p) == 0
+      return Tuple(collect(zero(g) for g = F))
+    end
+    @assert length(p) == 1
+    @assert t[p[1]] == 1
+    return reverse(g[p[1]])
+  end
+
+  return G, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = F])), G, pure, inv_pure)
+end
+
+⊗(F::Generic.FreeModule...) = Oscar.tensor_product(F...; task = :none)
+
 function Oscar.restrict(C::GModule, U::Oscar.GAPGroup)
   fl, m = is_subgroup(U, C.G)
   @assert fl

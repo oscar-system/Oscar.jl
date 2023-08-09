@@ -358,6 +358,33 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
   return chr
 end
 
+"""
+Returns Z[G] and a function f that, when applied to a G-module M will return
+a map representing the action of Z[G] on M:
+
+f(C) yields the extension of g -> action(C, g) 
+
+The third value returned is a Map between group elements and the index of the 
+corresponding module generator.
+"""
+function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
+  M = free_module(R, Int(order(G)))
+  ge = collect(G)
+  ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
+  return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))), 
+    MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
+             y->ge[Int(y)])
+end
+
+function natural_gmodule(::Type{GrpAbFinGen}, G::Oscar.GAPGroup, ::ZZRing)
+  M = free_abelian_group(order(Int, G))
+  ge = collect(G)
+  ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
+  return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))), 
+    MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
+             y->ge[Int(y)])
+end
+
 Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}) = QQ
 
 function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
@@ -898,12 +925,43 @@ function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinField
   return CF
 end
 
+"""
+The group of Z[G]-homomorphisms - this is not a gmodule unless G is abelian.
+"""
 function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
   b = hom_base(C, D)
   H, mH = hom(C.M, D.M)
   s, ms = sub(H, [H(vec(collect(x))) for x = b])
   return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(mat(C.ac[i]))*g*mat(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms * mH
 end
+
+"""
+The G-module of all Z-module homorphisms
+"""
+function ghom(C::T, D::T) where T <: GModule{<:Any, GrpAbFinGen}
+  @assert C.G === D.G
+  H, mH = hom(C.M, D.M)
+  return gmodule(H, C.G, [hom(H, H, [preimage(mH, action(C, (g))*mH(h)*action(D, inv(g))) for h = gens(H)]) for g = gens(C.G)]), mH
+  return gmodule(H, C.G, [hom(H, H, [preimage(mH, hom(C.M, D.M, [action(D, g, mH(h)(action(C, inv(g), c))) for c = gens(C.M)])) for h = gens(H)]) for g = gens(C.G)]), mH
+end
+
+function is_G_hom(C::GModule, D::GModule, H::Map)
+  return all([H(action(C, g, h)) == action(D, g, H(h)) for g = gens(C.G) for h = gens(C.M)])
+end
+
+#=
+G = cyclic_group(PermGroup, 3)
+A = abelian_group([3, 3])
+C = gmodule(G, [hom(A, A, [A[1], A[1]+A[2]])])
+is_consistent(C)
+
+zg, ac = Oscar.GModuleFromGap.natural_gmodule(G, ZZ)
+zg = gmodule(GrpAbFinGen, zg)
+H, mH = Oscar.GModuleFromGap.ghom(zg, C)
+inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)])) for c = gens(C.M)])
+
+q, mq = quo(H, image(inj)[2])
+=#
 
 Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{fpFieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
 
@@ -1196,10 +1254,22 @@ function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModu
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, mat(x))) for x = C.ac])
 end
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
-  A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
+function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, <:AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
+  A = abelian_group([characteristic(base_ring(C)) for i=1:dim(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, mat(x))) for x = C.ac])
 end
+
+function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
+  A = free_abelian_group(rank(M))
+  return A, MapFromFunc(A, M, x->M(x.coeff), y->A(y.v))
+end
+
+function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
+  A, mA = abelian_group(C.M)
+  return Oscar.gmodule(A, Group(C), [hom(A, A, mat(x)) for x = C.ac])
+end
+
+
 
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
