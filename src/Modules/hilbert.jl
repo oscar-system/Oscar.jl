@@ -36,7 +36,9 @@ julia> A = Rg[x; y];
 
 julia> B = Rg[x^2; y^3; z^4];
 
-julia> M = SubquoModule(F, A, B)
+julia> M = SubquoModule(F, A, B);
+
+julia> Oscar.HSNum_module(M)
 -t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t
 
 ```
@@ -45,21 +47,20 @@ function HSNum_module(SubM::SubquoModule{T})  where T <: MPolyRingElem
     C,phi = present_as_cokernel(SubM, :with_morphism);  # phi is the morphism
     LM = leading_module(C.quo);
     F = ambient_free_module(C.quo);
-    rk = rank(F);
+    r = rank(F);
     P = base_ring(C.quo);
     GensLM = gens(LM);
-    L = [[] for _ in 1:rk];  # L[k] is list of monomial gens for k-th cooord
+    L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
     # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
     for g in GensLM
         SR = coordinates(ambient_representative(g)); # should have length = 1
-        for j in 1:rk
+        for j in 1:r
             if SR[j] != 0
                 push!(L[j], SR[j]);
             end
         end
     end
     IdealList = [ideal(P,G)  for G in L];
-##    HSeriesList = [hilbert_series(quo(P,I)[1])[1]  for I in IdealList];  # hilbert_series returns (numer, denom) pair; we keep just the numer (as denom is not really interesting here)
     HSeriesList = [HSNum_fudge(quo(P,I)[1])  for I in IdealList];
     shifts = [degree(phi(g))  for g in gens(F)];
     @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
@@ -69,6 +70,6 @@ function HSNum_module(SubM::SubquoModule{T})  where T <: MPolyRingElem
     @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
     t = gens(HSeriesRing);
     ScaleFactor = [_power_product(t,e)  for e in shift_expv];
-    result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:rk]);
+    result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
     return result;
 end
