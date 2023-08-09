@@ -136,6 +136,9 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
 #  end
 end
 
+# TODO: The method below is missing. It should be made better and put to the correct place (AA).
+ngens(S::AbstractAlgebra.Generic.LaurentMPolyWrapRing) = length(gens(S))
+
 
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
@@ -432,70 +435,107 @@ Codomain:
 G
 ```
 """
-function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
-   R = base_ring(A)
-   I = A.I
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_positively_graded(R) "The base ring must be positively graded"
+function multi_hilbert_series(
+    A::MPolyQuoRing; 
+    algorithm::Symbol=:BayerStillmanA, 
+    backend::Symbol=:Abbott,
+    parent::Union{Nothing, Ring}=nothing
+  )
+  R = base_ring(A)
+  I = modulus(A)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_positively_graded(R) "The base ring must be positively graded"
 
-   G = grading_group(R)
-   if !is_zm_graded(R)
-      H, iso = snf(G)
-      V = [preimage(iso, x) for x in gens(G)]
-      isoinv = hom(G, H, V)
-      W = R.d
-      W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
-      change = hom(R, S, gens(S))
-      I = change(A.I)
-      R = S
-   else
-      H, iso = G, identity_map(G)
-   end
-   m = ngens(grading_group(R))  
-   n = ngens(R)
-   W = R.d
-   MI = Matrix{Int}(undef, n, m)
-   for i=1:n
-       for j=1:m
-           MI[i, j] = Int(W[i][j])
-       end
-   end
-   if m == 1
+  G = grading_group(R)
+
+  # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
+  # free Abelian group. 
+  #
+  # We use the Smith normal form to get there, recreate the graded ring with the 
+  # free grading group, do the computation there and return the isomorphism for 
+  # the grading. 
+  if !is_zm_graded(R)
+    H, iso = snf(G)
+    V = [preimage(iso, x) for x in gens(G)]
+    isoinv = hom(G, H, V)
+    W = R.d
+    W = [isoinv(W[i]) for i = 1:length(W)]
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+    change = hom(R, S, gens(S))
+    J = change(I)
+    AA, _ = quo(S, J)
+    change_res = hom(A, AA, gens(AA), check=false)
+    change_res_inv = hom(AA, A, gens(A), check=false)
+    (num, denom), _ = multi_hilbert_series(AA; algorithm, parent)
+    return (num, denom), (H, iso)
+  end
+
+  # Now we may assume that the grading group is free Abelian.
+  m = ngens(grading_group(R))  
+  n = ngens(R)
+  if parent !== nothing
+    # The following line might complain in unforeseen ways in case 
+    # the argument for `parent` was too unreasonable. However, we would 
+    # like to keep the possibilities for that input rather broad.
+    @req ngens(parent) >= m "parent ring of the output does not contain sufficiently many variables"
+  else
+    # If the parent of the output was not specified, recreate it as a Laurent polynomial ring
+    if m == 1
       VAR = [:t]
-   else
+    else
       VAR = [_make_variable("t", i) for i = 1:m]
-   end
-   S, _ = LaurentPolynomialRing(ZZ, VAR)
-   fac_dict = Dict{elem_type(S), Integer}()
-   for i = 1:n
-      e = [Int(MI[i, :][j]) for j = 1:m]
-      B = MPolyBuildCtx(S)
-      push_term!(B, 1, e)
-      new_fac = 1-finish(B)
-      if haskey(fac_dict, new_fac)
-        fac_dict[new_fac] = fac_dict[new_fac] + 1
-      else
-        fac_dict[new_fac] = 1
-      end
-   end
-   fac_denom = FacElem(S, fac_dict)
-   # Old method below without factorization; left for debugging
-  # q = one(S)
+    end
+    parent, _ = LaurentPolynomialRing(ZZ, VAR)
+  end
+
+  # Extract a matrix from the grading group
+  W = R.d
+  MI = Matrix{Int}(undef, n, m)
+  for i=1:n
+    for j=1:m
+      MI[i, j] = Int(W[i][j])
+    end
+  end
+
+  # Prepare the denominator as a factorized element
+  fac_dict = Dict{elem_type(parent), Integer}()
+  for i = 1:n
+    e = [Int(MI[i, :][j]) for j = 1:m]
+    B = MPolyBuildCtx(parent)
+    push_term!(B, 1, e)
+    new_fac = 1-finish(B)
+    if haskey(fac_dict, new_fac)
+      fac_dict[new_fac] = fac_dict[new_fac] + 1
+    else
+      fac_dict[new_fac] = 1
+    end
+  end
+  fac_denom = FacElem(parent, fac_dict)
+  # Old method below without factorization; left for debugging
+  # q = one(parent)
   # for i = 1:n
   #    e = [Int(MI[i, :][j]) for j = 1:m]
-  #    B = MPolyBuildCtx(S)
+  #    B = MPolyBuildCtx(parent)
   #    push_term!(B, 1, e)
   #    q = q*(1-finish(B))
   # end
   # @assert _evaluate(fac_denom) == q
-   if iszero(I)
-      p = one(S)
-   else
-      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m, algorithm=algorithm)
-   end
-   return  (p, fac_denom), (H, iso)
+
+  # Shortcut for the trivial case
+  iszero(I) && return (one(parent), fac_denom), (G, identity_map(G))
+
+  # In general refer to internal methods for monomial ideals
+  # TODO: Shouldn't the ordering be adapted to the grading in some sense?
+  p = one(parent)
+  if backend == :Zach
+    LI = leading_ideal(I, ordering=degrevlex(gens(R)))
+    p = _numerator_monomial_multi_hilbert_series(LI, parent, m, algorithm=algorithm)
+  elseif backend == :Abbott
+    p = HSNum_fudge(A; parent)
+  else
+    error("backend not found")
+  end
+  return (p, fac_denom), (G, identity_map(G))
 end
 
 # Helper function because the usual evaluation is broken for Laurent polynomials.
