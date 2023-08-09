@@ -5,27 +5,29 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
 @registerSerializationType(TropicalSemiringElem)
-is_type_serializing_parent(T::Type{<: TropicalSemiringElem}) = true
+type_needs_params(T::Type{<: TropicalSemiringElem}) = true
 
-function load_internal(s::DeserializerState,
-                       ::Type{TropicalSemiringElem{S}},
-                              dict::Dict) where S
-    parent = load_unknown_type(s, dict[:parent])
-    return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, parent(x), :params)
+    end
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{TropicalSemiringElem},
-                       dict::Dict)
-    parent = load_unknown_type(s, dict[:parent])
-    return parent(load_type_dispatch(s, QQFieldElem, dict[:data]))
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
+    return load_typed_object(s, dict)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{TropicalSemiringElem{S}},
-                                   str::String,
-                                   parent::TropicalSemiring{S}) where S
-  return parent(load_type_dispatch(s, QQFieldElem, str))
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem},
+                          parent::TropicalSemiring)
+    return load_typed_object(s, dict)
+end
+
+function load_object_with_params(s::DeserializerState,
+                                 ::Type{<:TropicalSemiringElem},
+                                 str::String, params::TropicalSemiring)
+    return params(load_object(s, QQFieldElem, str))
 end
 
 # Tropical Hypersurfaces

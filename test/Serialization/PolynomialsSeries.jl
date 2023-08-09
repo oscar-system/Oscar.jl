@@ -27,10 +27,11 @@ cases = [
     (Fin, d, 1, "Finite Field"),
     (Qu, u, 1 // u, "RationalFunctionField"),
     (Frac, 1 // x, x^2, "Fraction Field"),
-    (T, T(1), T(3)^2, "Tropical Semiring"),
+    (T, T(1), T(3)^2, "Tropical Semiring")
+]
     #(P7, 7 + 3*7^2, 7^5, "Padic Field"),
     #(FF, FF(1), r, "Default Finite Field")  need an updated lift method from nemo
-]
+
 
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{NfAbsNSElem}, PolyRing{NfAbsNSElem},
@@ -273,14 +274,14 @@ end
                 end
             end
             
-             @testset "Multivariate Polynomial over $(case[4])"  begin 
+            @testset "Multivariate Polynomial over $(case[4])"  begin 
                 R, (z, w) = polynomial_ring(case[1], ["z", "w"])
                 p = z^2 + case[2] * z * w + case[3] * w^3
                 test_save_load_roundtrip(path, p) do loaded
                     @test test_equality(p, loaded)
                 end
 
-                @test_skip @testset "Load with parent" begin
+                @testset "Load with parent" begin
                     test_save_load_roundtrip(path, p; parent=R) do loaded
                         @test p == loaded
                     end
@@ -297,7 +298,7 @@ end
                         end
 
                         S = parent(i[1])
-                        @test_skip test_save_load_roundtrip(path, i; parent=S) do loaded_i
+                        test_save_load_roundtrip(path, i; parent=S) do loaded_i
                             @test i == loaded_i
                         end
                     end
@@ -312,7 +313,7 @@ end
                   @test test_equality(p.p, loaded.p)
                 end
 
-                @test_skip @testset "Load with parent" begin
+                @testset "Load with parent" begin
                     test_save_load_roundtrip(path, p; parent=R) do loaded
                         @test p == loaded
                     end
@@ -354,6 +355,9 @@ end
             filter!(case-> case[4] != "Tropical Semiring", cases)
 
             @test_skip @testset "Series" begin
+                # Tropical Semirings currently can't have formal power series
+                filter!(case-> case[4] != "Tropical Semiring", cases)
+
                 @testset "Power Series over $(case[4])" begin
                     rel_R, rel_z = power_series_ring(case[1], 10, "z")
                     rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3

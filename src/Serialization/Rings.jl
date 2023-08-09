@@ -239,7 +239,7 @@ end
 @registerSerializationType(MPolyIdeal)
 @registerSerializationType(Laurent.LaurentMPolyIdeal)
 IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}
-type_needs_params(::Type{<: IdealUnionType) = true
+type_needs_params(::Type{<: IdealUnionType}) = true
 
 function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
     s.key = key
@@ -248,16 +248,32 @@ function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: Idea
         save_typed_object(s, parent(gens(x)[1]), :params)
     end
 end
-
-function save_object(s::SerializerState, I::MPolyIdeal)
+ 
+function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
+    s.key = key
     data_dict(s) do
-        save_typed_object(s, gens(I), :gens)
+        save_object(s, encode_type(T), :name)
+        refs = save_parents(s, parent(gens(x)[1]))
+        save_object(s, refs, :params)
     end
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, dict::Dict)
-    gens = load_typed_object(s, dict[:gens])
-    return ideal(parent(gens[1]), gens)
+function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}, params::Any)
+    return load_type_params(s, RingElem, params)
+end
+
+function save_object(s::SerializerState, I::MPolyIdeal)
+    data_dict(s) do
+        save_object(s, gens(I), :gens)
+    end
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<: IdealUnionType},
+                                 dict::Dict{Symbol, Any}, params::Vector)
+    parent_ring = params[end]
+    gens = load_object_with_params(s, Vector{elem_type(parent_ring)},
+                                   dict[:gens], params)
+    return ideal(parent_ring, gens)
 end
 
 ################################################################################
