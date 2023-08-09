@@ -80,10 +80,10 @@ function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, 
     end
 end
 
-function load_internal(s::DeserializerState,
+function load_object(s::DeserializerState,
                        T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}},
                        dict::Dict)
-    base_ring = load_unknown_type(s, dict[:base_ring])
+    base_ring = load_typed_object(s, dict[:base_ring])
     symbols = map(Symbol, dict[:symbols])
     
     if T <: PolyRing
@@ -180,7 +180,7 @@ function save_object(s::SerializerState, p::PolyRingElem)
 end
 
 function load_object_with_params(s::DeserializerState,
-                                 ::Type{PolyRingElem},
+                                 ::Type{<: PolyRingElem},
                                  terms::Vector, parents::Vector)
     parent_ring = parents[end]
     if isempty(terms)
@@ -199,7 +199,13 @@ function load_object_with_params(s::DeserializerState,
         exponent += 1
         coeff_type = elem_type(base)
         if type_needs_params(coeff_type)
-            loaded_terms[exponent] = load_object_with_params(s, coeff_type, coeff, parents[end -1])
+            parents = parents[1:end - 1]
+            if isempty(parents)
+                params = coefficient_ring(parent_ring)
+            else
+                params = parents
+            end
+            loaded_terms[exponent] = load_object_with_params(s, coeff_type, coeff, params)
         else
             loaded_terms[exponent] = load_object(s, coeff_type, coeff)
         end
@@ -226,19 +232,6 @@ function load_object_with_params(s::DeserializerState,
         push_term!(polynomial, c, Vector{Int}(e))
     end
     return finish(polynomial)
-end
-
-function load_internal(s::DeserializerState, ::Type{<: Union{
-    PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict)
-    loaded_parents = load_parents(s, dict[:parents])
-    return load_terms(s, loaded_parents, dict[:data], loaded_parents[end])
-end
-
-function load_internal_with_parent(s::DeserializerState, ::Type{<: Union{
-    PolyRingElem, UniversalPolyRingElem, MPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}}, dict::Dict,
-                                   parent_ring::Union{PolyRing, MPolyRing, UniversalPolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
-    parents = get_parents(parent_ring)
-    return load_terms(s, parents, terms, parents[end])
 end
 
 ################################################################################

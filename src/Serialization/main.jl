@@ -170,7 +170,8 @@ function load_ref(s::DeserializerState, id::String)
     else
         ref_dict = s.refs[Symbol(id)]
         ref_dict[:id] = id
-        loaded_ref = load_unknown_type(s, ref_dict)
+        loaded_ref = load_typed_object(s, ref_dict)
+        s.objs[UUID(id)] = loaded_ref
     end
     return loaded_ref
 end
@@ -425,6 +426,10 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
     end
 end
 
+function load_typed_object(s::DeserializerState, id::String)
+    return load_ref(s, id)
+end
+
 ################################################################################
 # Default generic save_internal, load_internal
 function save_internal_generic(s::SerializerState, obj::T) where T
@@ -449,14 +454,6 @@ end
 
 ################################################################################
 # Utility functions for parent tree
-function load_parent_type(s::DeserializerState, dict::Dict)
-    if haskey(dict, :parent)
-        return load_unknown_type(s, dict[:parent])
-    elseif haskey(dict, :parents)
-        return load_parents(s, dict[:parents])[end]
-    end
-    error("Can't load parent type for $dict[:name]")
-end
 
 # loads parent tree
 function load_parents(s::DeserializerState, parent_ids::Vector)
