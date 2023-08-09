@@ -126,8 +126,10 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
     den = prod([1-t^Int(w[1]) for w in R.d])
     return (one(parent(t)), den)
   end
+  (numer,denom),(_,_) = multi_hilbert_series(A; parent=parent)
+  return numer,denom
 #  if backend == :Abbott
-    return Oscar.HSNum_fudge(A; parent=parent)
+#    return Oscar.HSNum_fudge(A; parent=parent)
 #  elseif backend == :Singular
 #    H = HilbertData(A.I)
 #    return hilbert_series(H)
@@ -430,7 +432,7 @@ Codomain:
 G
 ```
 """
-function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
    R = base_ring(A)
    I = A.I
    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
