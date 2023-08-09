@@ -254,8 +254,8 @@ function cheap_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
       end
       new_den = new_den * p^e
     end
-    @assert unit(fac)*aa*denominator(f) == new_den*numerator(f)
-    img_gens_frac[k] = unit(fac)*fraction(aa)//fraction(new_den)
+    @assert aa*denominator(f) == unit(fac)*new_den*numerator(f)
+    img_gens_frac[k] = inv(unit(fac))*fraction(aa)//fraction(new_den)
   end
   denoms = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
