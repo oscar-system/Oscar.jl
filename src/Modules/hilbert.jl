@@ -6,16 +6,16 @@
 # Hilbert series numerator for modules
 
 function _power_product(T, expv)
-    return prod([T[k]^expv[k]  for k in 1:length(expv)]);
+  return prod([T[k]^expv[k]  for k in 1:length(expv)]);
 end
 
 
 @doc raw"""
     HSNum_module(M::SubquoModule)
+    HSNum_module(M::SubquoModule; parent::Ring)
 
-Compute numerator of Hilbert series of the subquotient `M`.
-Result is a pair: `N, D` being the numerator `N` (as a laurent polynomial) and the denominator `D` as
-a factor list of laurent polynomials.
+Compute numerator of Hilbert series of the subquotient `M`.  If the kwarg `parent`
+is supplied the Hilbert series numerator is computed in the ring `parent`.
 
 !!! note
     Applied to a homogeneous subquotient `M`, the function first computes a Groebner basis to
@@ -43,33 +43,34 @@ julia> Oscar.HSNum_module(M)
 
 ```
 """
-function HSNum_module(SubM::SubquoModule{T})  where T <: MPolyRingElem
-    C,phi = present_as_cokernel(SubM, :with_morphism);  # phi is the morphism
-    LM = leading_module(C.quo);
-    F = ambient_free_module(C.quo);
-    r = rank(F);
-    P = base_ring(C.quo);
-    GensLM = gens(LM);
-    L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
-    # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
-    for g in GensLM
-        SR = coordinates(ambient_representative(g)); # should have length = 1
-        for j in 1:r
-            if SR[j] != 0
-                push!(L[j], SR[j]);
-            end
-        end
+function HSNum_module(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing)  where T <: MPolyRingElem
+  C,phi = present_as_cokernel(SubM, :with_morphism);  # phi is the morphism
+  LM = leading_module(C.quo);
+  F = ambient_free_module(C.quo);
+  r = rank(F);
+  P = base_ring(C.quo);
+  GensLM = gens(LM);
+  L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
+  # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
+  for g in GensLM
+    SR = coordinates(ambient_representative(g)); # should have length = 1
+    for j in 1:r
+      if SR[j] != 0
+        push!(L[j], SR[j]);
+      end
     end
-    IdealList = [ideal(P,G)  for G in L];
-    HSeriesList = [HSNum_fudge(quo(P,I)[1])  for I in IdealList];
-    shifts = [degree(phi(g))  for g in gens(F)];
-    @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
-    shift_expv = [gen_repr(d)  for d in shifts];
-    @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
-    HSeriesRing = parent(HSeriesList[1]);
-    @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
-    t = gens(HSeriesRing);
-    ScaleFactor = [_power_product(t,e)  for e in shift_expv];
-    result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
-    return result;
+  end
+  IdealList = [ideal(P,G)  for G in L];
+  # If paerent === nothing, should we compute a HSNum for some ideal first then use its ring for all later calls?
+  HSeriesList = [HSNum_fudge(quo(P,I)[1]; parent=parent)  for I in IdealList];
+  shifts = [degree(phi(g))  for g in gens(F)];
+  @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
+  shift_expv = [gen_repr(d)  for d in shifts];
+  @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
+  HSeriesRing = parent(HSeriesList[1]);
+  @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
+  t = gens(HSeriesRing);
+  ScaleFactor = [_power_product(t,e)  for e in shift_expv];
+  result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
+  return result;
 end
