@@ -2141,7 +2141,7 @@ end
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
   ordering = degrevlex(gens(A)[r+1:end])
   if r > 0 
-    ordering = lex(theta)*ordering
+    ordering = deglex(theta)*ordering
   end
   Q = MPolyQuoRing(A, I, ordering)
   function my_fun(g)
