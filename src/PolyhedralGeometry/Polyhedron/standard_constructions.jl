@@ -1223,11 +1223,19 @@ Note that the polytope lives in $3$-space, so we project it down to $2$-space
 by eliminating the last coordinate. 
 
 ```jldoctest
-julia> p = SIM_body_polytope([3, 1])
+julia> s = SIM_body_polytope([3,1])
 Polyhedron in ambient dimension 3
 
-julia> s = convex_hull(map(x->x[1:dim(p)],vertices(p)))
+julia> p = convex_hull(map(x->x[1:dim(s)],vertices(s)))
 Polyhedron in ambient dimension 2
+
+julia> vertices(p) 
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0]
+ [3, 0]
+ [3, 1]
+ [0, 3]
+ [1, 3]
 ```
 """
 function SIM_body_polytope(alpha::Vector) 
@@ -2133,13 +2141,6 @@ function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
 end
 
 @doc raw"""
-    generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational})
-
-
-"""
-generalized_permutahedron(d::Int, z::Polymake.Map{Polymake.Set{Int}, Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.generalized_permutahedron(d,z))
-
-@doc raw"""
    rss_associahedron(n::Int)
 
 Produce a polytope of constrained expansions in dimension `n` according to 
@@ -2199,9 +2200,6 @@ Produce the `d`-dimensional signed permutahedron. I.e. for all possible permutat
 the vector $(1,\dots,d)$, all possible sign patterns define vertices of this polytope. 
 Contrary to the classical permutahedron, the signed permutahedron is full-dimensional. 
 
-# Keywords:
--`d::Int`: 
-
 # Examples:
 To produce the $2$-dimensional signed permutahedron, do: 
 ```jldoctest
@@ -2235,11 +2233,100 @@ end
 @doc raw"""
     stable_set_polytope(G::Graph{Undirected}) 
 
-# Keywords:
--`G::Graph{Undirected}`: 
+Produces the stable set polytope from an undirected graph $G=(V,E)$. 
+The stable set Polytope has the following inequalities: 
+$x_i + x_j \leq 1 \forall {i,j} \in E,  x_i \geq 0 \forall i \in V x_i \leq 1 \forall i \in V \text{ with } \mathrm{deg}(i)=0 $ 
 
-# Examples:
+#Example:
+The following produces first the standard cube in $3$ dimensions, and then 
+a bipyramid over the convex hull of the unit vectors. 
+```jldoctest
+julia> G = Graph{Undirected}(3)
+Graph{Undirected}(pm::graph::Graph<pm::graph::Undirected>
+{}
+{}
+{}
+)
+
+julia> S = stable_set_polytope(G)
+Polyhedron in ambient dimension 3
+
+julia> vertices(S)
+8-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0, 0]
+ [1, 1, 0]
+ [1, 1, 1]
+ [1, 0, 1]
+ [0, 0, 1]
+ [0, 0, 0]
+ [0, 1, 0]
+ [0, 1, 1]
+
+julia> add_edge!(G, 1, 2)
+0
+
+julia> add_edge!(G, 1, 3)
+0
+
+julia> add_edge!(G, 2, 3)
+0
+
+julia> S = stable_set_polytope(G)
+Polyhedron in ambient dimension 3
+
+julia> vertices(S)
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 1]
+ [0, 1, 0]
+ [1, 0, 0]
+ [1//2, 1//2, 1//2]
+ [0, 0, 0]
+```
 """
-stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(pm_object(G)))
+stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(Polymake.graph.Graph(ADJACENCY=pm_object(G))))
 
+@doc raw"""
+    transportation_polytope(r::AbstractVector, c::AbstractVector) 
 
+Produce the transportation polytope from two vectors `r` of length $m$ and `c` of length $n$, 
+i.e. all positive $m\times n$ Matrizes with row sums equal to `r` and column sums equal to `c`. 
+
+#Example: 
+We can see that the set of $3\times 3$ magic squares with magic constant $15$ is a $4$-dimensional 
+polytope. 
+```jldoctest
+julia> r = c = [15,15,15]
+3-element Vector{Int64}:
+ 15
+ 15
+ 15
+
+julia> t = transportation_polytope(r,c) 
+Polyhedron in ambient dimension 9
+
+julia> dim(t) 
+4
+
+julia> bounded(t) 
+true
+```
+"""
+transportation_polytope(r::AbstractVector, c::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.transportation(r,c))
+
+@doc raw"""
+    zonotope_vertices_fukuda(M::Matrix{<:Number}, rows_are_points::Bool=true)
+
+Create the vertices of a zonotope from a matrix whose rows are input points or vectors. 
+`rows_are_points` is `true` in case `M` consists of points instead of vectors; the default is `true`.
+
+# Examples
+The following creates the vertices of a parallelogram with the origin as its vertex barycenter.
+```jldoctest
+julia> zonotope_vertices_fukuda_matrix([1 1 0; 1 1 1])
+[1   -1   -1//2]
+[1    0   -1//2]
+[1    0    1//2]
+[1    1    1//2]
+```
+"""
+zonotope_vertices_fukuda_matrix(M::Matrix{<:Number}, rows_are_points::Bool=true)  = matrix(QQ, Polymake.polytope.zonotope_vertices_fukuda(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points))

@@ -555,7 +555,6 @@ export gen
 export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
-export generalized_permutahedron
 export generating_system
 export generator_matrix
 export generic_fraction
@@ -1363,6 +1362,7 @@ export transitive_group
 export transitive_group_identification, has_transitive_group_identification
 export transitivity
 export transport
+export transportation_polytope
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
@@ -1424,5 +1424,6 @@ export wreath_product
 export write_as_full
 export write_as_linear_combination
 export zonotope
+export zonotope_vertices_fukuda_matrix
 
 

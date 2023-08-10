@@ -152,7 +152,6 @@ fractional_cut_polytope
 fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
-generalized_permutahedron
 goldfarb_cube
 goldfarb_sit_cube
 hypersimplex
@@ -182,7 +181,9 @@ rand_subpolytope
 rss_associahedron
 signed_permutahedron
 stable_set_polytope
+transportation_polytope
 zonotope
+zonotope_vertices_fukuda_matrix
 ```
 
 ## Operations on polyhedra
