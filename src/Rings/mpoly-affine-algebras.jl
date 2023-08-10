@@ -638,7 +638,7 @@ function multi_hilbert_series(
     p = _numerator_monomial_multi_hilbert_series(LI, parent, m, algorithm=algorithm)
   elseif backend == :Abbott
     # TODO: Pass on the `algorithm` keyword argument also here.
-    p = HSNum_fudge(A; parent)
+    p = HSNum_abbott(A; parent)
   else
     error("backend not found")
   end

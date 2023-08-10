@@ -51,7 +51,7 @@ function HSNum_module(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothi
   P = base_ring(C.quo);
   # short-cut for module R^0 (otherwise defn if HSeriesRing below gives index error)
   if iszero(r)
-    return HSNum_fudge(quo(P,ideal(P,[1]))[1]; parent=parent)
+    return HSNum_abbott(quo(P,ideal(P,[1]))[1]; parent=parent)
   end
   GensLM = gens(LM);
   L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
@@ -66,7 +66,7 @@ function HSNum_module(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothi
   end
   IdealList = [ideal(P,G)  for G in L];
   # If parent === nothing, should we compute a HSNum for some ideal first then use its ring for all later calls?
-  HSeriesList = [HSNum_fudge(quo(P,I)[1]; parent=parent)  for I in IdealList];
+  HSeriesList = [HSNum_abbott(quo(P,I)[1]; parent=parent)  for I in IdealList];
   shifts = [degree(phi(g))  for g in gens(F)];
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
