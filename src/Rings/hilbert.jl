@@ -953,11 +953,6 @@ function HSNum_abbott_PPs(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStra
   m = length(W)
   ncols = length(W[1])
   nvars = ncols
-  # if  ncols != nvars
-  #   throw(ArgumentError("weights matrix has wrong number of columns ($(ncols)); should be same as number of variables ($(nvars))"))
-  # end
-#  HPRingVarNames = (m==1) ? [:t] : [ _make_variable("t", k)  for k in 1:m] #used only if parent == nothing
-##  HPRing, t = (parent === nothing) ? LaurentPolynomialRing(QQ, HPRingVarNames) : (parent,gens(parent))
   t = gens(HSRing)
   @assert  length(t) >= m  "supplied Hilbert series ring contains too few variables"
   T = [one(HSRing)  for k in 1:nvars]
