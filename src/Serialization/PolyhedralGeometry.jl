@@ -51,7 +51,7 @@ end
 function load_object_with_params(s::DeserializerState, T::Type{<:PolyhedralObject},
                                  dict::Dict, field::Field)
     pm_obj = load_from_polymake(dict)
-    return T(pm_obj, field)
+    return T{elem_type(field)}(pm_obj, field)
 end
 ##############################################################################
 @registerSerializationType(LinearProgram{QQFieldElem})
