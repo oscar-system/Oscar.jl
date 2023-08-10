@@ -80,6 +80,7 @@ julia> x(6)
 ## Operations for permutation groups
 
 ```@docs
+cycle_structures(G::PermGroup)
 is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
@@ -90,4 +91,17 @@ blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 all_blocks(G::PermGroup)
+```
+
+## Cycle structures
+
+For a permutation, its cycle structure [`cycle_structure`](@ref)
+determines the degree, order, number of moved points, sign.
+
+```@docs
+degree(::CycleType)
+iseven(::CycleType)
+isodd(::CycleType)
+order(::Type{T}, c::CycleType) where T
+sign(::CycleType)
 ```
