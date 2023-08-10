@@ -1046,7 +1046,7 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   @req  length(gens(HSRing)) >= m  "Hilbert series ring has too few variables"
   fac_dict = Dict{elem_type(HSRing), Integer}()
   for i = 1:n
-    # adjoin factor 1 - prod(t_j^W[i,j])
+    # adjoin factor ( 1 - prod(t_j^W[i,j]) )
     B = MPolyBuildCtx(HSRing)
     push_term!(B, 1, W[i])
     new_fac = 1-finish(B)
