@@ -1944,6 +1944,46 @@ function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
   return minimal_betti_table(free_resolution(I))
 end
 
+@doc raw"""
+    minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+
+The Betti table of a minimized version of `res` without actually computing a minimalization.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> R, (w, x, y, z) = grade(R)
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+
+julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> R, (w, x, y, z) = grade(R);
+
+julia> I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
+ideal(w^2 - x*z, w*x - y*z, -w*y + x^2, x*y - z^2, -w*z + y^2)
+
+julia> betti_table(free_resolution(A))
+       0  1  2  3  
+------------------
+0    : 1  -  -  -  
+1    : -  5  5  1  
+2    : -  -  1  1  
+------------------
+total: 1  5  6  2  
+
+
+julia> minimal_betti_table(free_resolution(A))
+       0  1  2  3  
+------------------
+0    : 1  -  -  -  
+1    : -  5  5  -  
+2    : -  -  -  1  
+------------------
+total: 1  5  5  1  
+
+```
+"""
 function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
