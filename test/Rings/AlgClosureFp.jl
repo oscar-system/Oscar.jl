@@ -76,8 +76,7 @@ end
 
   @testset "Arithmetic for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
     K = algebraic_closure(F1)
-#TODO: uncomment when https://github.com/Nemocas/Nemo.jl/issues/1520 is fixed
-#   @test is_unit(K(gen(F1)))
+    @test is_unit(K(one(F1)))
     @test !is_unit(zero(K))
     a = one(K)
     @test isone(inv(a))
@@ -127,20 +126,14 @@ end
     K = algebraic_closure(F1)
     F2 = ext_of_degree(K, 2)
     F3 = ext_of_degree(K, 3)
-    F4 = ext_of_degree(K, 4)
-    a = K(gen(F1))
-    b = K(gen(F2))
-    c = K(gen(F4))
 
-    p = characteristic(F1)
 #TODO: make the setup type stable
-#   @test @inferred a == b^(p+1)
-#TODO: uncomment when https://github.com/Nemocas/Nemo.jl/issues/1520 is fixed
-#   @test a == b^(p+1)
-    @test b == c^(p^2+1)
+#   @test @inferred K(one(F1)) == K(one(F2))
+    @test K(one(F1)) == K(one(F2))
+    @test K(one(F2)) == K(one(F3))
 
-#   @test hash(a, zero(UInt)) == hash(b^(p+1), zero(UInt))
-    @test hash(b, zero(UInt)) == hash(c^(p^2+1), zero(UInt))
+    @test hash(K(one(F1)), zero(UInt)) == hash(K(one(F2)), zero(UInt))
+    @test hash(K(one(F2)), zero(UInt)) == hash(K(one(F3)), zero(UInt))
   end
 
   @testset "Embeddings for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
