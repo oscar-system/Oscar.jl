@@ -37,13 +37,14 @@ julia> B = Rg[x^2; y^3; z^4];
 
 julia> M = SubquoModule(F, A, B);
 
-julia> hilbert_series(M)
-((-t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t, Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 3)), (GrpAb: Z, Identity map with
+julia> (num,den),_ = hilbert_series(M);
 
-Domain:
-=======
-GrpAb: Z))
+julia> num
+-t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t
+
+julia> den
+Factored element with data
+Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 3)
 
 ```
 """
@@ -53,12 +54,12 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
   F = ambient_free_module(C.quo);
   r = rank(F);
   P = base_ring(C.quo);
-  # short-cut for module R^0 (otherwise defn if HSeriesRing below gives index error)
+  # short-cut for module R^0 (to avoid problems with empty sum below)
   if iszero(r)
-    return HSNum_abbott(quo(P,ideal(P,[1]))[1], HSRing)
+    return multi_hilbert_series(quo(P,ideal(P,[1]))[1]; parent=HSRing, backend=backend)
   end
   GensLM = gens(LM);
-  L = [[] for _ in 1:r];  # L[k] is list of monomial gens for k-th cooord
+  L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th cooord
   # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
   for g in GensLM
     SR = coordinates(ambient_representative(g)); # should have length = 1
@@ -69,15 +70,14 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
     end
   end
   IdealList = [ideal(P,G)  for G in L];
-#  HSeriesList = [HSNum_abbott(quo(P,I)[1], HSRing)  for I in IdealList];
   HSeriesList = [multi_hilbert_series(quo(P,I)[1]; parent=HSRing, backend=backend)[1][1]  for I in IdealList];
   shifts = [degree(phi(g))  for g in gens(F)];
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
   @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
-  HSeriesRing = parent(HSeriesList[1]);
-  @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
-  t = gens(HSeriesRing);
+###  HSeriesRing = parent(HSeriesList[1]);
+###  @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
+  t = gens(HSRing);
   ScaleFactor = [_power_product(t,e)  for e in shift_expv];
   result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
   return result;
@@ -92,7 +92,6 @@ end
 function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-##???  @req is_positively_graded(R) "The base ring must be positively graded"
 
   # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
   # free Abelian group. 
@@ -102,14 +101,14 @@ function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = not
   # the grading. 
   G = grading_group(R)
   if !is_zm_graded(R)
-#    error("non-ZZ^m-grading not yet implemented for modules")
+    error("non-ZZ^m-grading not yet implemented for modules")  ### Needs improvement to change_base_ring (see below)
     H, iso = snf(G)
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
     S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
     map_into_S = hom(R, S, gens(S))
-    SubM2,_ = change_base_ring(map_into_S,SubM)
+    SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
     return (numer, denom), (H, iso)
   end
