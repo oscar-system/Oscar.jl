@@ -558,14 +558,11 @@ function multi_hilbert_series(
     H, iso = snf(G)
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
-#    W = R.d
     W = [isoinv(R.d[i]) for i = 1:length(R.d)]
     S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
-#??    change_res = hom(A, AA, gens(AA); check=false)
-#??    change_res_inv = hom(AA, A, gens(A); check=false)
     (numer, denom), _ = multi_hilbert_series(AA; algorithm, parent)
     return (numer, denom), (H, iso)
   end
