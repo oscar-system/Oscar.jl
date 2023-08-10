@@ -546,7 +546,7 @@ function multi_hilbert_series(
   R = base_ring(A)
   I = modulus(A)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-##  @req is_positively_graded(R) "The base ring must be positively graded"
+##???  @req is_positively_graded(R) "The base ring must be positively graded"
 
   # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
   # free Abelian group. 
@@ -560,22 +560,21 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
 #    W = R.d
-    W = [isoinv(R.d[i]) for i = 1:length(W)]
+    W = [isoinv(R.d[i]) for i = 1:length(R.d)]
     S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
 #??    change_res = hom(A, AA, gens(AA); check=false)
 #??    change_res_inv = hom(AA, A, gens(A); check=false)
-    (num, denom), _ = multi_hilbert_series(AA; algorithm, parent)
-    return (num, denom), (H, iso)
+    (numer, denom), _ = multi_hilbert_series(AA; algorithm, parent)
+    return (numer, denom), (H, iso)
   end
 
   # Now we may assume that the grading group is free Abelian.
   m = ngens(G)  
   n = ngens(R)
   HSRing = _hilbert_series_ring(parent, m)
-  println("HSRING = $(HSRing)")
   # if parent !== nothing
   #   # The following line might complain in unforeseen ways in case 
   #   # the argument for `parent` was too unreasonable. However, we would 
@@ -635,17 +634,17 @@ function multi_hilbert_series(
   # @assert _evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
-  iszero(I) && return (one(parent), fac_denom), (G, identity_map(G))
+  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
 
   # In general refer to internal methods for monomial ideals
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
   numer = one(HSRing)
   if backend == :Zach
     LI = leading_ideal(I; ordering=degrevlex(gens(R)))
-    numer = _numerator_monomial_multi_hilbert_series(LI, parent, m; algorithm=algorithm)
+    numer = _numerator_monomial_multi_hilbert_series(LI, HSRing, m; algorithm=algorithm)
   elseif backend == :Abbott
     # TODO: Pass on the `algorithm` keyword argument also here.
-    numer = HSNum_abbott(A; parent)
+    numer = HSNum_abbott(A, HSRing)
   else
     error("backend not found")
   end
