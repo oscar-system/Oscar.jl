@@ -1,4 +1,3 @@
-
 using JSON
 
 function bigobject_to_jsonstr(bo::Polymake.BigObject)
@@ -50,8 +49,7 @@ end
 
 function load_object_with_params(s::DeserializerState, T::Type{<:PolyhedralObject},
                                  dict::Dict, field::Field)
-    pm_obj = load_from_polymake(dict)
-    return T{elem_type(field)}(pm_obj, field)
+    return load_from_polymake(T{elem_type(field)}, dict)
 end
 ##############################################################################
 @registerSerializationType(LinearProgram{QQFieldElem})
