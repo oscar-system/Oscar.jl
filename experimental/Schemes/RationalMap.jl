@@ -532,6 +532,10 @@ function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
   # Find a patch in Y on which this component is visible
   all_V = [V for V in affine_charts(Y) if !isone(I(V))]
+  function complexity_codomain(V::AbsSpec)
+    return sum(total_degree.(lifted_numerator.(gens(I(V)))); init=0)
+  end
+  sort!(all_V, lt=(x,y)->complexity_codomain(x)<complexity_codomain(y))
   for V in all_V
 
     # Find a patch in X in which the pullback is visible
@@ -544,10 +548,19 @@ function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
     sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
 
     # First try to get hold of the component via cheap realizations 
+    pullbacks = IdDict{AbsSpec, Ideal}()
     for U in all_U
       psi = cheap_realization(phi, U, V)
       U_sub = domain(psi)
-      J = pullback(psi)(saturated_ideal(I(V)))
+      pullbacks[U] = pullback(psi)(saturated_ideal(I(V)))
+    end
+      #J = pullback(psi)(saturated_ideal(I(V)))
+    function new_complexity(U::AbsSpec)
+      return sum(total_degree.(lifted_numerator(gens(pullbacks[U]))); init=0)
+    end
+    sort!(all_U, lt=(x,y)->new_complexity(x)<new_complexity(y))
+    for U in all_U
+      J = pullbacks[U]
       if !isone(J)
         JJ = IdealSheaf(X, domain(psi), gens(J))
         return JJ
