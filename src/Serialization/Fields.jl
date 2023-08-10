@@ -36,6 +36,16 @@ function get_parents(parent_ring::T) where T <: Union{FracField,
 end
 
 ################################################################################
+# abstract Field load
+function load_object(s::DeserializerState, ::Type{Field}, id::String)
+    return load_ref(s, id)
+end
+
+function load_object(s:: DeserializerState, ::Type{Field}, dict::Dict{Symbol, Any})
+    return load_typed_object(s, dict)
+end
+
+################################################################################
 # field of rationals (singleton type)
 @registerSerializationType(QQField)
 

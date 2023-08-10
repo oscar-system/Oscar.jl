@@ -1,4 +1,4 @@
-using Oscar: _integer_variables
+iusing Oscar: _integer_variables
 @testset "PolyhedralGeometry" begin
     
     mktempdir() do path

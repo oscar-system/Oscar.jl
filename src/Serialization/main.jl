@@ -416,23 +416,25 @@ end
 
 ################################################################################
 # Default generic save_internal, load_internal
-function save_internal_generic(s::SerializerState, obj::T) where T
-    result = Dict{Symbol, Any}()
-    for n in fieldnames(T)
-        if n != :__attrs
-            result[n] = save_type_dispatch(s, getfield(obj, n))
+function save_object_generic(s::SerializerState, obj::T) where T
+    s.key = :data
+    data_dict(s) do
+        for n in fieldnames(T)
+            if n != :__attrs
+                save_typed_object(s, getfield(obj, n), Symbol(n))
+            end
         end
     end
-    return result
 end
 
-function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
     for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs
-            push!(fields, load_type_dispatch(s, t, dict[n]))
+            push!(fields, load_object(s, t, dict[n]))
         end
     end
+    println(T)
     return T(fields...)
 end
 

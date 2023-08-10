@@ -94,6 +94,11 @@ function data_basic(s::SerializerState, x::Any)
     write(s.io, "\"$str\"")
 end
 
+function data_json(s::SerializerState, jsonstr::Any)
+    begin_node(s)
+    write(s.io, jsonstr)
+end
+
 function serializer_open(io::IO)
     # some level of handling should be done here at a later date
     return SerializerState(io)

@@ -6,15 +6,15 @@ using JSON
 @registerSerializationType(Graph{Directed}, "Graph{Directed}")
 @registerSerializationType(Graph{Undirected}, "Graph{Undirected}")
 
-function save_internal(s::SerializerState, g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
     smallobject = pm_object(g)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, smallobject)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-    add_object(s, JSON.parse(jsonstr), :pm_object)
+    data_json(s, jsonstr)
 end
 
 
-function load_internal(s::DeserializerState, g::Type{Graph{T}}, dict::Dict) where {T <: Union{Directed, Undirected}}
+function load_object(s::DeserializerState, g::Type{Graph{T}}, dict::Dict) where T <: Union{Directed, Undirected}
     smallobj = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return g(smallobj)
 end
@@ -27,11 +27,10 @@ end
 function save_internal(s::SerializerState, IM::IncidenceMatrix)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, IM)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-
-    return JSON.parse(jsonstr)
+    data_json(s, jsonstr)
 end
 
-function load_internal(s::DeserializerState, ::Type{<: IncidenceMatrix}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix}, dict::Dict)
     IM = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return IM
 end
@@ -42,12 +41,11 @@ end
 ###############################################################################
 @registerSerializationType(SimplicialComplex)
 
-function save_internal(s::SerializerState, K::SimplicialComplex)
-    bo = pm_object(K)
-    return bigobject_to_dict(bo)
+function save_object(s::SerializerState, K::SimplicialComplex)
+    save_object(s, pm_object(K))
 end
 
-function load_internal(s::DeserializerState, K::Type{SimplicialComplex}, dict::Dict)
+function load_object(s::DeserializerState, K::Type{SimplicialComplex}, dict::Dict)
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return K(bigobject)
 end

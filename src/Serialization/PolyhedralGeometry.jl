@@ -1,20 +1,31 @@
 using JSON
 
-function bigobject_to_dict(bo::Polymake.BigObject)
+function bigobject_to_jsonstr(bo::Polymake.BigObject)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, bo)
-    jsonstr = Polymake.call_function(:common, :encode_json, serialized)
+    return Polymake.call_function(:common, :encode_json, serialized)
+end
+
+function bigobject_to_dict(bo::Polymake.BigObject)
+    jsonstr = bigobject_to_jsonstr(bo)
     return JSON.parse(jsonstr)
 end
 
-function save_internal(s::SerializerState, p::Polymake.BigObject)
-    return bigobject_to_dict(p)
+function save_object(s::SerializerState, p::Polymake.BigObject)
+    data_json(s, bigobject_to_jsonstr(p))
 end
 
-function load_internal(s::DeserializerState, ::Type{Polymake.BigObject}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated}, dict::Dict)
+    return load_from_polymake(dict)
+end
+
+function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, dict::Dict)
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return bigobject
 end
 
+function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, str::String)
+    return load_ref(s, str)
+end
 
 ##############################################################################
 @registerSerializationType(LinearProgram{QQFieldElem})
@@ -90,9 +101,16 @@ function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}
 end
 
 # use generic serialization for the other types:
-@registerSerializationType(Cone{QQFieldElem})
-save_internal(s::SerializerState, obj::Cone) = save_internal_generic(s, obj)
-load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_internal_generic(s, T, dict)
+@registerSerializationType(Cone)
+#type_needs_params(::Type{<:Cone}) = true
+
+# function save_type_params(s::SerializerState, obj::Cone, key::Symbol)
+#     s.key
+#     
+# end
+ 
+save_object(s::SerializerState, obj::Cone) = save_object_generic(s, obj)
+load_object(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_object_generic(s, T, dict)
 
 @registerSerializationType(PolyhedralComplex{QQFieldElem})
 save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)
