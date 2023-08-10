@@ -1930,44 +1930,45 @@ end
 ########################################################################
 # Minimal Betti tables
 ########################################################################
-function minimal_betti_table(M::SubquoModule)
-  res_M = free_resolution(M)
-  C = complex(res_M)
-  @assert is_complete(res_M) "resolution must be complete"
+
+# TODO: Are the signatures sufficient to assure that the modules are graded?
+function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M))
+end
+
+function minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(A))
+end
+
+function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(I))
+end
+
+function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+  @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
+  @assert is_graded(res) "resolution must be graded"
+  C = complex(res)
+  @assert is_complete(res) "resolution must be complete"
   rng = range(C)
   # The following needs the resolution to be complete to be true
   res_length = first(rng)-1
   offsets = Dict{GrpAbFinGenElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
   for i in 1:res_length+1
-    @show i
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
-    @show F
-    @show G
     dom_degs = unique!([degree(g) for g in gens(F)])
     cod_degs = unique!([degree(g) for g in gens(G)])
-    @show dom_degs
-    @show cod_degs
     for d in cod_degs
       d::GrpAbFinGenElem
-      @show d
       if d in dom_degs
-        @show "first case"
         _, _, sub_mat = _constant_sub_matrix(phi, d)
         r = rank(sub_mat)
-        @show nrows(sub_mat), ncols(sub_mat), r
-        betti_hash_table[(i, d)] = ncols(sub_mat) - r - get(offsets, d, 0)
-        @show betti_hash_table[(i, d)]
+        betti_hash_table[(i-1, d)] = ncols(sub_mat) - r - get(offsets, d, 0)
         offsets[d] = r
-        @show offsets[d]
       else
-        @show "second case"
-        @show length(_indices_of_generators_of_degree(G, d)) 
-        @show get(offsets, d, 0)
         betti_hash_table[(i-1, d)] = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
-        @show betti_hash_table[(i-1, d)]
       end
     end
   end
@@ -2023,3 +2024,8 @@ end
 function complex(F::FreeResolution) 
   return F.C
 end
+
+function base_ring(res::FreeResolution{T}) where {T<:ModuleFP}
+  return base_ring(res[-1])
+end
+
