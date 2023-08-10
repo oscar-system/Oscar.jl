@@ -385,7 +385,7 @@ function ==(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
   R = homogeneous_coordinate_ring(ambient_space(X))
   irrelevant_ideal = ideal(R,gens(R))
   IXsat = saturation(IX, irrelevant_ideal)
-  IYsat = saturation(IX, irrelevant_ideal)
+  IYsat = saturation(IY, irrelevant_ideal)
   return IXsat == IYsat
 end
 
