@@ -429,7 +429,13 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 @attr T function radical(I::T) where {T <: MPolyIdeal}
   singular_assure(I)
   R = base_ring(I)
-  if elem_type(base_ring(R)) <: FieldElement
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    r = radical(map_coefficients(pseudo_inv(mA), I))
+    Irad = map_coefficients(mA, r, parent = R)
+    set_attribute!(Irad, :is_radical => true)
+    return Irad
+  elseif elem_type(base_ring(R)) <: FieldElement
     J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
   elseif base_ring(I.gens.Sx) isa Singular.Integers
     J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
@@ -439,6 +445,13 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
   Irad = ideal(R, J)
   set_attribute!(Irad, :is_radical => true)
   return Irad
+end
+
+function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
+  if parent === nothing
+    parent = Oscar.parent(map_coefficients(mp, gen(I, 1)))
+  end
+  return ideal(parent, [map_coefficients(mp, g, parent = parent) for g = gens(I)])
 end
 
 @doc raw"""
@@ -529,6 +542,14 @@ end
 
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    pd = primary_decomposition(map_coefficients(pseudo_inv(mA), I), algorithm = algorithm, cache = false)
+    if isempty(pd)
+      return Tuple{typeof(I), typeof(I)}[]
+    end
+    return Tuple{typeof(I), typeof(I)}[(map_coefficients(mA, x[1], parent = R), map_coefficients(mA, x[2], parent = R)) for x = pd]
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -741,6 +762,11 @@ julia> L = minimal_primes(I)
 """
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
+    return typeof(I)[map_coefficients(mA, x) for x = mp]
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -796,6 +822,11 @@ julia> L = equidimensional_decomposition_weak(I)
   R = base_ring(I)
   iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_weak(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
+  end
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
   V = [ideal(R, i) for i in l]
@@ -836,6 +867,11 @@ julia> L = equidimensional_decomposition_radical(I)
 @attr function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_radical(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x) for x = eq]
+  end
   singular_assure(I)
   l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
   V = [ideal(R, i) for i in l]
@@ -892,6 +928,11 @@ ideal(3)
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
@@ -932,6 +973,11 @@ ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull_radical(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
   singular_assure(I)
   i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
   return ideal(R, i)

@@ -300,3 +300,19 @@ end
    Oscar.set_ordering!(h1, lex(R))
    @test ordering(h1) == lex(gens(R))
 end
+
+@testset "NonSimpleField" begin
+  Qt, t = QQ["t"];
+  K, (a1,a2) = number_field([t^2 - 2, t^2 - 3], "a");
+  R, (x,y) = polynomial_ring(K,["x","y"]);
+  I = ideal(R, [x^2-a1])
+
+  #just to see it working...
+  radical(I)
+  primary_decomposition(I)
+  minimal_primes(I)
+  equidimensional_hull(I)
+  equidimensional_hull_radical(I)
+  equidimensional_decomposition_weak(I)
+end
+
