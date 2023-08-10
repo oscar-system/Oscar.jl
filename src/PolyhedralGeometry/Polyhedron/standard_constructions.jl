@@ -1211,13 +1211,10 @@ end
 
 Produce an $n$-dimensional SIM-body as generalized permutahedron in 
 $(n+1)$-space. SIM-bodies are defined in [GK14](@cite), but the input needs to 
-be descending instead of ascending, as used in [JKS22](@cite).
+be descending instead of ascending, as used in [JKS22](@cite), i.e. `alpha` has parameters
+$(a_1,\dots,a_n)$ such that $a_1 \geq \dots \geq a_n \geq 0$.  
 
-# Keywords
-- `alpha::AbstractVector`: Vector with the parameters 
-$(a_1,\dots,a_n)$ such that $a_1 \geq \dots \geq a_n \geq 0$. 
-
-# Examples
+# Example
 To produce a $2$-dimensional SIM-body, use for example the following code. 
 Note that the polytope lives in $3$-space, so we project it down to $2$-space 
 by eliminating the last coordinate. 
@@ -1257,15 +1254,11 @@ end
 Produce a $d$-dimensional associahedron (or Stasheff polytope). 
 We use the facet description given in section 9.2. of [Zie95](@cite).
 
-# Keywords
-- `d::Int`: the dimension 
-
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the polytope. For details, see [CSZ15](@cite).
 
-
-# Examples
-The $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices
+# Example
+Produce the $2$-dimensional associahedron is a polygon in $\mathbb{R}⁴$ having $5$ vertices
 and $5$ facets.
 ```jldoctest
 julia> A =  associahedron(2)
@@ -1290,17 +1283,14 @@ julia> facets(A)
 """
 associahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d)) 
 
-@doc raw""" 
-    binary_markov_graph_polytope(observation::Array{Int})
-    binary_markov_graph_polytope(observation::Array{Bool})
+@doc raw"""
+    binary_markov_graph_polytope(observation::AbstractVector)
 
 Defines a very simple graph for a polytope propagation related to a Hidden 
-Markov Model. The propagated polytope is always a polygon. For a detailed 
+Markov Model. The length of `observation` is the number of possible
+oberservations. Its elements are of types `Bool` or `Int`. 
+The propagated polytope is always a polygon. For a detailed 
 description see [Jos05](@cite).
-
-#Keywords
-- `observation::Array`: Its length is the number of possible observations. 
-                        Elements of type `Bool` or `Int`.
 
 # Examples
 ```jldoctest
@@ -1315,18 +1305,14 @@ julia> vertices(P)
  [0, 7]
 ```
 """
-binary_markov_graph_polytope(observation::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector(convert(Polymake.Vector{Int},observation)))) #Base.Integer und convert verwenden. 
-binary_markov_graph_polytope(observation::Vector{Bool}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector{Int}(observation)))
+binary_markov_graph_polytope(observation::AbstractVector{<:Base.Integer}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector(convert(Polymake.Vector{Int},observation))))
 
 @doc raw"""
     dwarfed_cube(d::Int)
 
-Produce a $d$-dimensional dwarfed cube as defined in [ABS97](@cite). 
+Produce the $d$-dimensional dwarfed cube as defined in [ABS97](@cite). 
 
-# Keywords
-- `d::Int`: the dimension 
-
-# Examples
+# Example
 The $3$-dimensional dwarfed cube is illustrated in [Jos03](@cite).
 
 ```jldoctest
@@ -1356,13 +1342,10 @@ end
 @doc raw"""
     dwarfed_product_polygons(d::Int, s::Int)
 
-Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [ABS97](@cite). 
+Produce a $d$-dimensional dwarfed product of polygons of size $s$ as defined in [ABS97](@cite).
+It must be $d\geq4$ and even as well as $s\geq 3$.
 
-# Keywords
-- `d::Int`: the dimension. It must be $d\geq4$ and even. 
-- `s::Int`: the size. It must be $s\geq 3$
-
-# Examples
+# Example
 ```jldoctest
 julia> p = dwarfed_product_polygons(4,3)
 Polyhedron in ambient dimension 4
@@ -1398,14 +1381,11 @@ end
 Produce the $d$-dimensional lecture hall simplex for the sequence $(s_i)=i$ for $1\geq i \geq d$
 as defined in [SS12](@cite).
 
-# Keywords
-- `d::Int`: the dimension 
-
 Note that in polymake, this function has an optional Boolean parameter `group`, to
 also construct the symmetry group of the simplex.  
 
-# Examples
-A $3$-dimensional lecture hall simplex:
+# Example
+The $3$-dimensional lecture hall simplex:
 ```jldoctest
 julia> S = lecture_hall_simplex(3) 
 Polyhedron in ambient dimension 3
@@ -1419,25 +1399,21 @@ julia> vertices(S)
 ```
 """
 function lecture_hall_simplex(d::Int) 
-    if d<=0
-        throw(ArgumentError("lecture_hall_simplex: dimension must be positive."))
-    end
+    d<=0 && throw(ArgumentError("lecture_hall_simplex: dimension must be positive."))
     return Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
 end
 
 @doc raw"""
-    explicit_zonotope(zones::Matrix)
+    explicit_zonotope(zones::Matrix; rows_are_points::Bool=true)
 
 Produce the points of a zonotope as the iterated Minkowski sum of all intervals $[-x,x]$, 
 where $x$ ranges over the rows of the input matrix `zones`. 
-
-# Keywords
-- `zones::Matrix`: the input vectors 
-- `rows_are_points::Bool`: the rows of the input matrix represent affine points(`true`, default) or linear vectors(`false`). 
+If 'rows_are_points' is 'true' (default), the rows of the input matrix represent affine points, 
+otherwise they represent linear vectors.
 
 # Examples
 ```jldoctest
-julia> Z = explicit_zonotope([1 1; 1 -1], false)
+julia> Z = explicit_zonotope([1 1; 1 -1], rows_are_points=false)
 Polyhedron in ambient dimension 2
 
 julia> vertices(Z)
@@ -1448,20 +1424,16 @@ julia> vertices(Z)
  [-2, 0]
 ```
 """
-explicit_zonotope(zones::Matrix{<:Number}, rows_are_points::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.explicit_zonotope(Polymake.Matrix{Polymake.Rational}(zones), rows_are_points=rows_are_points)) 
+explicit_zonotope(zones::Matrix{<:Number}; rows_are_points::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.explicit_zonotope(Polymake.Matrix{Polymake.Rational}(zones); rows_are_points=rows_are_points)) 
 
 @doc raw"""
     cyclic_caratheodory_polytope(d::Int, n::Int)
 
-Produce a $d$-dimensional cyclic polytope with $n$ points. Prototypical example of a neighborly polytope. 
-Combinatorics completely known due to Gale's evenness criterion. Coordinates are chosen on the 
-trigonometric moment curve.
+Produce a $d$-dimensional cyclic polytope with $n$ points. Clearly $n\geq d$ is required. 
+It is a prototypical example of a neighborly polytope whose combinatorics completely known 
+due to Gale's evenness criterion. The coordinates are chosen on the trigonometric moment curve.
 
-# Keywords
-- `d::Int`: the dimension has to be even.
-- `n::Int`: the number of points `n` has to be be $\geq d$ 
-
-# Examples
+# Example
 ```jldoctest
 julia> C= cyclic_caratheodory_polytope(4,5)
 Polyhedron in ambient dimension 4
@@ -1489,26 +1461,23 @@ function cyclic_caratheodory_polytope(d::Int, n::Int)
 end
 
 @doc raw"""
-    fractional_knapsack_polytope(b::Vector)
+    fractional_knapsack_polytope(b::AbstractVector{<:Base.Number})
 
 Produce a knapsack polytope defined by one linear inequality (and non-negativity constraints).
 
-# Keywords
-- `b::Vector`: Entries in vector have to be rational, represents a linear inequality
-
 # Example 
 ```jldoctest
-julia> p = fractional_knapsack_polytope([1;2;3;4])
+julia> f = fractional_knapsack_polytope([10,-2,-3,-5])
 Polyhedron in ambient dimension 3
 
-julia> print_constraints(p)
+julia> print_constraints(f)
+2*x₁ + 3*x₂ + 5*x₃ ≦ 10
 -x₁ ≦ 0
 -x₂ ≦ 0
 -x₃ ≦ 0
 ```
 """
-fractional_knapsack_polytope(b::Vector{Rational}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(b))
-fractional_knapsack_polytope(b::Vector{Int}) = fractional_knapsack_polytope(convert(Vector{Rational}, b))
+fractional_knapsack_polytope(b::AbstractVector{<:Base.Number}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(Vector(convert(Vector{Rational},b))))
 
 #defaults in den header und unten anpassen
 @doc raw"""
@@ -2307,7 +2276,7 @@ Polyhedron in ambient dimension 9
 julia> dim(t) 
 4
 
-julia> bounded(t) 
+julia> is_bounded(t) 
 true
 ```
 """
