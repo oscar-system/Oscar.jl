@@ -10,15 +10,15 @@
 ########################################################################
 @attributes mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
                               FlatRingType<:Ring, CoeffRingType<:Ring
-                             } <: Hecke.Map{TowerRingType, FlatRingType, 
-                                            SetMap, RingFlattening
-                                           }
+                             } <: Map{TowerRingType, FlatRingType, 
+                                      SetMap, RingFlattening
+                                      }
   orig::TowerRingType
   flat::FlatRingType
   R::CoeffRingType
   orig_to_flat::MPolyAnyMap{TowerRingType, FlatRingType}
-  flat_to_orig::Hecke.Map{FlatRingType, TowerRingType}
-  base_ring_to_flat::Hecke.Map{CoeffRingType, FlatRingType}
+  flat_to_orig::Map{FlatRingType, TowerRingType}
+  base_ring_to_flat::Map{CoeffRingType, FlatRingType}
 
   function RingFlattening(
       S::MPolyRing{RingElemType}

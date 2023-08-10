@@ -1076,7 +1076,7 @@ end
 
 function compose(
     f::MPolyQuoLocalizedRingHom, 
-    g::Hecke.Map{<:Ring, <:Ring}
+    g::Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
 
@@ -1572,14 +1572,14 @@ Ideals in localizations of affine algebras.
   W::LocRingType
 
   # fields for caching 
-  map_from_base_ring::Hecke.Map
+  map_from_base_ring::Map
 
   J::MPolyLocalizedIdealType
  
   function MPolyQuoLocalizedIdeal(
       W::MPolyQuoLocRing, 
       g::Vector{LocRingElemType};
-      map_from_base_ring::Hecke.Map = MapFromFunc(
+      map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
           x->W(x),

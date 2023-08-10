@@ -25,12 +25,12 @@ abstract type SchemeMor{
                         CodomainType, 
                         MorphismType,
                         BaseMorType
-                       } <: Hecke.Map{
-                                      DomainType, 
-                                      CodomainType, 
-                                      SetMap, 
-                                      MorphismType
-                                     }
+                       } <: Map{
+                                DomainType,
+                                CodomainType,
+                                SetMap,
+                                MorphismType
+                                }
 end
 
 
