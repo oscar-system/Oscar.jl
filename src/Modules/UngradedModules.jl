@@ -2025,7 +2025,16 @@ function relations_module(M::SubquoModule)
 end
 
 @doc raw"""
-    relations_module(M::SubquoModule)
+    generating_system(M::SubquoModule)
+
+Given a subquotient `M`, return the generating system of M.
+"""
+function generating_system(M::SubquoModule)
+  return M.sub.gens
+end
+
+@doc raw"""
+    generators_plus_relations_module(M::SubquoModule)
 
 Given a subquotient `M`, return the sum of the associated generators module
 and relations module. This is only for internal use.
