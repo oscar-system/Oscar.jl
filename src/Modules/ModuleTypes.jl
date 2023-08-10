@@ -515,8 +515,11 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
     ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
-    ###@assert is_graded(F) == is_graded(G)
-    @assert all(x->parent(x) === G, a)
+    if G isa SubModuleOfFreeModule
+      @assert all(x->parent(x) === G.F, a)
+    else
+      @assert all(x->parent(x) === G, a)
+    end
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
     function im_func(x::AbstractFreeModElem)

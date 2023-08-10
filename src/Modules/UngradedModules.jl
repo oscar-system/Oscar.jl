@@ -1275,6 +1275,14 @@ function ambient_free_module(M::SubModuleOfFreeModule)
   return M.F
 end
 
+function generator_morphism(M::SubModuleOfFreeModule)
+  n = ngens(M)
+  R = base_ring(M)
+  F = FreeMod(R,n)
+  g = collect(gens(M))
+  return FreeModuleHom(F,M,g)
+end
+
 @doc raw"""
     default_ordering(M::SubModuleOfFreeModule)
 
@@ -1982,6 +1990,34 @@ function show_subquo(SQ::SubquoModule)
   end
   print(io_compact, "with ambient free module ", SQ.F)
 end
+
+function generator_module(M::SubquoModule)
+  return M.sub
+end
+
+function relations_module(M::SubquoModule)
+  if has_relations(M)
+    return M.quo
+  end
+  return SubModuleOfFreeModule(ambient_free_module(M),relations(M))
+end
+
+function generators_plus_relations_module(M::SubquoModule)
+  return M.sum
+end
+
+function has_relations(M::SubquoModule)
+  return isdefined(M, :quo)
+end
+
+function generator_morphism(M::SubquoModule)
+  n = ngens(M)
+  R = base_ring(M)
+  F = FreeMod(R,n)
+  g = collect(gens(M))
+  return FreeModuleHom(F,M,g)
+end
+
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
   io_compact = IOContext(stdout, :compact => true)
@@ -5649,7 +5685,9 @@ Homogeneous module homomorphism)
 
 ```
 """
-function kernel(h::FreeModuleHom)  #ONLY for free modules...
+function kernel(
+  h::FreeModuleHom{DomainType,CodomainType}
+) where {DomainType<:FreeMod{<:MPolyElem},CodomainType<:FreeMod{<:MPolyElem}}
   G = domain(h)
   R = base_ring(G)
   if ngens(G) == 0
@@ -5657,26 +5695,38 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
     return s, hom(s, G, gens(G))
   end
   g = map(h, basis(G))
-  if isa(codomain(h), SubquoModule)
-    g = [x.repres for x = g]
-    if isdefined(codomain(h), :quo)
-      append!(g, collect(codomain(h).quo.gens))
-    end
-  end
-  #TODO allow sub-quo here as well
   ambient_free_module_codomain = ambient_free_module(codomain(h))
-  b = ModuleGens(g, ambient_free_module_codomain, default_ordering(ambient_free_module_codomain))
+  b = ModuleGens(
+    g, ambient_free_module_codomain, default_ordering(ambient_free_module_codomain)
+  )
   k = syzygy_module(b)
-  if isa(codomain(h), SubquoModule)
-    s = collect(k.sub.gens)
-    k = sub(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s], :module)
-  else
-    #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)], :module)
-  end
+  #the syzygy_module creates a new free module to work in
+  k = sub(G, [FreeModElem(x.coords, G) for x in collect(k.sub.gens)], :module)
   @assert k.F === G
   c = collect(k.sub.gens)
   return k, hom(k, parent(c[1]), c)
+end
+
+function kernel(
+  h::FreeModuleHom{DomainType,CodomainType}
+) where {DomainType<:FreeMod,CodomainType<:SubquoModule}
+  G1 = domain(h)
+  if ngens(G1) == 0
+    s = sub(G1, gens(G1), :module)
+    return s, hom(s, G1, gens(G1))
+  end
+  g = map(h, basis(G1))
+  g = [x.repres for x in g]
+  T = parent(g[1])
+  cdhq = relations_module(codomain(h))
+  G2 = domain(generator_morphism(cdhq))
+  append!(g, collect(cdhq.gens))
+  G1G2, pr = direct_product(G1, G2)
+  tau = FreeModuleHom(G1G2, T, g)
+  _ , inclktau = kernel(tau)
+  pr1inclktau = inclktau * pr[1]
+  kerh, inclkerh = image(pr1inclktau)
+  return kerh, inclkerh
 end
 
 @doc raw"""
