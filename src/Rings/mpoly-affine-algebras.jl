@@ -466,9 +466,9 @@ end
 
 
 @doc raw"""
-    multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+    multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
 
-Return the Hilbert series of the positively graded affine algebra `A`.
+Return the Hilbert series of the graded affine algebra `A`.
 
 !!! note 
     The advanced user can select an `algorithm` for the computation; 
@@ -515,19 +515,19 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
-julia> H = multi_hilbert_series(A);
+julia> (num, den), (H, iso) = multi_hilbert_series(A);
 
-julia> H[1][1]
+julia> num
 2*t^3 - 3*t^2 + 1
 
-julia> H[1][2]
+julia> den
 Factored element with data
 Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 4)
 
-julia> H[2][1]
+julia> H
 GrpAb: Z
 
-julia> H[2][2]
+julia> iso
 Map with following data
 Domain:
 =======
@@ -546,7 +546,6 @@ function multi_hilbert_series(
   R = base_ring(A)
   I = modulus(A)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-##???  @req is_positively_graded(R) "The base ring must be positively graded"
 
   # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
   # free Abelian group. 
@@ -575,53 +574,10 @@ function multi_hilbert_series(
   m = ngens(G)  
   n = ngens(R)
   HSRing = _hilbert_series_ring(parent, m)
-  # if parent !== nothing
-  #   # The following line might complain in unforeseen ways in case 
-  #   # the argument for `parent` was too unreasonable. However, we would 
-  #   # like to keep the possibilities for that input rather broad.
-  #   @req ngens(parent) >= m "parent ring of the output does not contain sufficiently many variables"
-  # else
-  #   # If the parent of the output was not specified, recreate it as a Laurent polynomial ring
-  #   if m == 1
-  #     VAR = [:t]
-  #   else
-  #     VAR = [_make_variable("t", i) for i = 1:m]
-  #   end
-  #   parent, _ = LaurentPolynomialRing(ZZ, VAR)
-  # end
 
   # Get the weights as Int values: W[k] contain the weight(s) of x[k]
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
-  # Extract a matrix from the grading group
-  # W = R.d
-  # MI = Matrix{Int}(undef, n, m)
-  # for i=1:n
-  #   for j=1:m
-  #     MI[i, j] = Int(W[i][j])
-  #   end
-  # end
-
   fac_denom = _hilbert_series_denominator(HSRing, W)
-  # # Prepare the denominator as a factorized element
-  # fac_dict = Dict{elem_type(parent), Integer}()
-  # for i = 1:n
-  #   e = [Int(MI[i, :][j]) for j = 1:m]
-  #   new_fac = one(parent)
-  #   if isone(length(e))
-  #     # We can't use MPolyBuildCtx in the univariate case
-  #     new_fac = new_fac - first(gens(parent))^first(e)
-  #   else
-  #     B = MPolyBuildCtx(parent)
-  #     push_term!(B, 1, e)
-  #     new_fac = 1-finish(B)
-  #   end
-  #   if haskey(fac_dict, new_fac)
-  #     fac_dict[new_fac] = fac_dict[new_fac] + 1
-  #   else
-  #     fac_dict[new_fac] = 1
-  #   end
-  # end
-  # fac_denom = FacElem(parent, fac_dict)
 
   # Old method below without factorization; left for debugging
   # q = one(parent)
@@ -631,7 +587,7 @@ function multi_hilbert_series(
   #    push_term!(B, 1, e)
   #    q = q*(1-finish(B))
   # end
-  # @assert _evaluate(fac_denom) == q
+  # @assert evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
   iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
@@ -640,19 +596,17 @@ function multi_hilbert_series(
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
   numer = one(HSRing)
   if backend == :Zach
-    LI = leading_ideal(I; ordering=degrevlex(gens(R)))
+    LI = leading_ideal(I; ordering=degrevlex(gens(R)))  # ??? better not to specify the grading ???
     numer = _numerator_monomial_multi_hilbert_series(LI, HSRing, m; algorithm=algorithm)
   elseif backend == :Abbott
     # TODO: Pass on the `algorithm` keyword argument also here.
     numer = HSNum_abbott(A, HSRing)
   else
-    error("backend not found")
+    error("backend ($(backend)) not found")
   end
   return (numer, fac_denom), (G, identity_map(G))
 end
 
-# Helper function because the usual evaluation is broken for Laurent polynomials.
-_evaluate(a::FacElem) = prod(b^k for (b, k) in a; init=one(base_ring(a)))
 
 ### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
 
