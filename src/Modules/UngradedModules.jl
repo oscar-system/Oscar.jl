@@ -4269,7 +4269,7 @@ julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
 julia> F = graded_free_module(Rg, [1,2,2]);
 
 julia> p = presentation(F)
-p_1 ----> p_0 ----> p_-1 ----> p_-2
+p_-2 <---- p_-1 <---- p_0 <---- p_1
 
 julia> p[-2]
 Graded free module Rg^0 of rank 0 over Rg
@@ -4310,7 +4310,7 @@ julia> B = Rg[x^2; y^3; z^4];
 julia> M = SubquoModule(F, A, B);
 
 julia> P = presentation(M)
-P_1 ----> P_0 ----> P_-1 ----> P_-2
+P_-2 <---- P_-1 <---- P_0 <---- P_1
 
 julia> P[-2]
 Graded free module Rg^0 of rank 0 over Rg
