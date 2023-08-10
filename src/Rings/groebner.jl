@@ -1484,7 +1484,8 @@ end
 
 # modular gröbner basis techniques using Singular
 @doc raw"""
-    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I))
+groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                           certify::Bool = false)
 
 Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
 multi-modular strategy.
@@ -1508,7 +1509,7 @@ with respect to the ordering
 degrevlex([x, y, z])
 ```
 """
-function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I));
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
                                 certify::Bool = false)
 
   # small function to get a canonically sorted reduced gb
@@ -1537,10 +1538,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrd
   n_stable_primes = 0
   d = fmpz(p)
   unlucky_primes_in_a_row = 0
-  done = true
-  if (certify)
-    done = false
-  end
+  done = false
   while !done
     while n_stable_primes < 2
       p = iterate(primes, p)[1]
@@ -1576,7 +1574,9 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrd
 
     I.gb[ordering] = IdealGens(final_gb, ordering)
     if certify
-      done = _certify_modular_standard_basis(I, ordering)
+      done = _certify_modular_groebner_basis(I, ordering)
+    else
+      done = true
     end
   end
   I.gb[ordering].isGB = true
@@ -1592,9 +1592,10 @@ function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
   return finish(g)
 end
 
-function _certify_modular_standard_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
   @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
   ctr = 0
+  singular_generators(I.gb[ordering])
   SR = I.gb[ordering].gens.Sx
   SG = I.gb[ordering].gens.S
 
