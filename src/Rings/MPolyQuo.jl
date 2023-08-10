@@ -65,7 +65,7 @@ oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.or
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
 singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing, keep_ordering::Bool = false) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
@@ -1058,7 +1058,7 @@ function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   # Get our hands on the actual singular ideal
   Ising = singular_generators(I.gens, o)
   # ...and the ring
-  Rsing = I.gens.gens.Sx
+  Rsing = base_ring(Ising)
   a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
   u_sing, rem = Singular.lift(Ising, a_ideal)
   !iszero(rem) && return false, a
