@@ -944,24 +944,25 @@ end
 
 
 
-function HSNum(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol; parent::Union{Nothing,Ring} = nothing)
+function HSNum_abbott_PPs(PP_gens::Vector{PP}, W::Vector{Vector{Int}}, PivotStrategy::Symbol, HSRing::Ring)
   # ASSUME W is "rectangular"
   @vprintln :hilbert 1 "HSNum: PP_gens = $(PP_gens)";
   @vprintln :hilbert 1 "HSNum: weight matrix W = $(W)";
   HSNum_check_args(PP_gens, W) #throws or does nothing
   # Grading is over ZZ^m
-  m = length(W)  # NumRows
+  m = length(W)
   ncols = length(W[1])
   nvars = ncols
   # if  ncols != nvars
   #   throw(ArgumentError("weights matrix has wrong number of columns ($(ncols)); should be same as number of variables ($(nvars))"))
   # end
-  HPRingVarNames = (m==1) ? [:t] : [ _make_variable("t", k)  for k in 1:m] #used only if parent == nothing
-  HPRing, t = (parent === nothing) ? LaurentPolynomialRing(QQ, HPRingVarNames) : (parent,gens(parent))
+#  HPRingVarNames = (m==1) ? [:t] : [ _make_variable("t", k)  for k in 1:m] #used only if parent == nothing
+##  HPRing, t = (parent === nothing) ? LaurentPolynomialRing(QQ, HPRingVarNames) : (parent,gens(parent))
+  t = gens(HSRing)
   @assert  length(t) >= m  "supplied Hilbert series ring contains too few variables"
-  T = [one(HPRing)  for k in 1:nvars]
+  T = [one(HSRing)  for k in 1:nvars]
   for k in 1:nvars
-    s = one(HPRing)
+    s = one(HSRing)
     for j in 1:m
       s *= t[j]^W[j][k]
     end
@@ -1016,7 +1017,7 @@ julia> Oscar.HSNum_abbott(RmodI)
 
 ```
 """
-function HSNum_abbott(PmodI::MPolyQuoRing; pivot_strategy::Symbol = :auto, parent::Union{Nothing,Ring} = nothing)
+function HSNum_abbott(PmodI::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol = :auto)
   I = modulus(PmodI)
   P = base_ring(I)
   nvars = length(gens(P))
@@ -1031,7 +1032,7 @@ function HSNum_abbott(PmodI::MPolyQuoRing; pivot_strategy::Symbol = :auto, paren
   end
   LTs = gens(leading_ideal(I))
   PPs = [PP(degrees(t))  for t in LTs]
-  return HSNum(PPs, W, pivot_strategy; parent=parent)
+  return HSNum_abbott_PPs(PPs, W, pivot_strategy, HSRing)
 end
 
 
