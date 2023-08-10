@@ -47,7 +47,7 @@ GrpAb: Z))
 
 ```
 """
-function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring)  where T <: MPolyRingElem
+function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbott)  where T <: MPolyRingElem
   C,phi = present_as_cokernel(SubM, :with_morphism);  # phi is the morphism
   LM = leading_module(C.quo);
   F = ambient_free_module(C.quo);
@@ -69,13 +69,13 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring)  where T <: MPolyRing
     end
   end
   IdealList = [ideal(P,G)  for G in L];
-###  # If parent === nothing, should we compute a HSNum for some ideal first then use its ring for all later calls?
-  HSeriesList = [HSNum_abbott(quo(P,I)[1], HSRing)  for I in IdealList];
+#  HSeriesList = [HSNum_abbott(quo(P,I)[1], HSRing)  for I in IdealList];
+  HSeriesList = [multi_hilbert_series(quo(P,I)[1]; parent=HSRing, backend=backend)[1][1]  for I in IdealList];
   shifts = [degree(phi(g))  for g in gens(F)];
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
   @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
-  HSeriesRing = Oscar.parent(HSeriesList[1]);
+  HSeriesRing = parent(HSeriesList[1]);
   @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
   t = gens(HSeriesRing);
   ScaleFactor = [_power_product(t,e)  for e in shift_expv];
@@ -83,12 +83,13 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring)  where T <: MPolyRing
   return result;
 end
 
+# No longer needed
 # function HSNum_module(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing)  where T <: MPolyRingElem
 #   # ASSUME F is graded free module
 #   return HSNum_module(sub(F,gens(F))[1]; parent=parent)
 # end
 
-function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing #=, backend::Symbol = :Abbott=#)  where T <: MPolyRingElem
+function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 ##???  @req is_positively_graded(R) "The base ring must be positively graded"
@@ -101,18 +102,15 @@ function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = not
   # the grading. 
   G = grading_group(R)
   if !is_zm_graded(R)
+#    error("non-ZZ^m-grading not yet implemented for modules")
     H, iso = snf(G)
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
-#    W = R.d
-    W = [isoinv(R.d[i]) for i = 1:length(W)]
+    W = [isoinv(R.d[i]) for i = 1:ngens(R)]
     S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
     map_into_S = hom(R, S, gens(S))
-    J = map_into_S(modulus(SubM))  ##?????
-    SubM2, _ = quo(S, J)
-#??    change_res = hom(A, AA, gens(AA); check=false)
-#??    change_res_inv = hom(AA, A, gens(A); check=false)
-    (numer, denom), _ = multi_hilbert_series(SubM2; algorithm, parent)
+    SubM2,_ = change_base_ring(map_into_S,SubM)
+    (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
     return (numer, denom), (H, iso)
   end
 
@@ -120,13 +118,13 @@ function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = not
   m = ngens(G)  
   n = ngens(R)
   HSRing = _hilbert_series_ring(parent, m)
-  # Get the weights as Int values: W[k] contain the weight(s) of x[k]
+  # Get the weights as Int values: W[k] contains the weight(s) of x[k]
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
-  fac_denom = _hilbert_series_denominator(HSRing, W)
-  numer = HSNum_module(SubM, HSRing #=; backend=backend=#)
-  return (numer, fac_denom), (G, identity_map(G))
+  denom = _hilbert_series_denominator(HSRing, W)
+  numer = HSNum_module(SubM, HSRing, backend)
+  return (numer, denom), (G, identity_map(G))
 end
 
-function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing)  where T <: MPolyRingElem
-  return hilbert_series(sub(F,gens(F))[1]; parent=parent)
+function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  return hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
 end
