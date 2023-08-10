@@ -1,3 +1,4 @@
+
 using JSON
 
 function bigobject_to_jsonstr(bo::Polymake.BigObject)
@@ -27,6 +28,31 @@ function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, str::Stri
     return load_ref(s, str)
 end
 
+##############################################################################
+# Abstract Polyhedral Object
+type_needs_params(::Type{<:PolyhedralObject}) = true
+
+function save_type_params(s::SerializerState, obj::T, key::Symbol) where T <: PolyhedralObject
+    s.key = key
+    data_dict(s) do
+        save_object(s, encode_type(T), :name)
+        save_typed_object(s, coefficient_field(obj), :params)
+    end
+end
+
+function save_object(s::SerializerState, obj::PolyhedralObject)
+    save_object(s, pm_object(obj))
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject}, dict)
+    return load_typed_object(s, dict)
+end
+
+function load_object_with_params(s::DeserializerState, T::Type{<:PolyhedralObject},
+                                 dict::Dict, params::Any)
+    pm_obj = load_from_polymake(dict)
+    return T(pm_obj, params)
+end
 ##############################################################################
 @registerSerializationType(LinearProgram{QQFieldElem})
 
@@ -102,15 +128,8 @@ end
 
 # use generic serialization for the other types:
 @registerSerializationType(Cone)
-#type_needs_params(::Type{<:Cone}) = true
 
-# function save_type_params(s::SerializerState, obj::Cone, key::Symbol)
-#     s.key
-#     
-# end
- 
-save_object(s::SerializerState, obj::Cone) = save_object_generic(s, obj)
-load_object(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_object_generic(s, T, dict)
+
 
 @registerSerializationType(PolyhedralComplex{QQFieldElem})
 save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)

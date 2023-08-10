@@ -431,10 +431,10 @@ function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where 
     fields = []
     for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs
+            println(t)
             push!(fields, load_object(s, t, dict[n]))
         end
     end
-    println(T)
     return T(fields...)
 end
 
