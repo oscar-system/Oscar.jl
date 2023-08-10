@@ -1036,23 +1036,49 @@ end
 
 
 
-# ???Is the grading by rows or by cols???
-function hilbert_series_denominator(HSRing::Ring, W::Matrix{Int}) # S is PolynomialRing or LaurentPolynomialRing
-  n = nrows(W)
-  m = ncols(W)
-  @req  length(gens(HSRing)) >= n  "Hilbert series ring has too few variables"
-   fac_dict = Dict{elem_type(HSRing), Integer}()
-   for i = 1:n
-      e = [Int(W[i, :][j]) for j = 1:m]
-      B = MPolyBuildCtx(HSRing)
-      push_term!(B, 1, e)
-      new_fac = 1-finish(B)
-      if haskey(fac_dict, new_fac)
-        fac_dict[new_fac] = fac_dict[new_fac] + 1
-      else
-        fac_dict[new_fac] = 1
-      end
-   end
-   fac_denom = FacElem(HSRing, fac_dict)
-  return fac_denom
+# W[k] is ZZ^m-grading of x[k]
+# Expect that HSRing is PolynomialRing or LaurentPolynomialRing
+function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
+  n = length(W)
+  m = length(W[1])
+  @req  all(r -> length(r)==m, W)  "Grading VecVec must be rectangular"
+  @req  length(gens(HSRing)) >= m  "Hilbert series ring has too few variables"
+  fac_dict = Dict{elem_type(HSRing), Integer}()
+  for i = 1:n
+    # adjoin factor 1 - prod(t_j^W[i,j])
+    B = MPolyBuildCtx(HSRing)
+    push_term!(B, 1, W[i])
+    new_fac = 1-finish(B)
+    if haskey(fac_dict, new_fac)
+      fac_dict[new_fac] += 1  # coalesce identical factors
+    else
+      fac_dict[new_fac] = 1
+    end
+  end
+  return FacElem(HSRing, fac_dict)
 end
+
+
+function _hilbert_series_ring(parent::Union{Nothing, Ring}, m::Int)
+  if parent !== nothing
+    # Caller supplied a Ring; check that it is reasonable.
+    # The following line might complain in unforeseen ways in case 
+    # the argument for `parent` was too unreasonable. However, we would 
+    # like to keep the possibilities for that input rather broad.
+    @req ngens(parent) >= m "parent ring of the output does not contain sufficiently many variables"
+    return parent
+  end
+  # Caller did not supply a Ring, so we create one.
+  if m == 1
+    VAR = [:t]
+  else
+    VAR = [_make_variable("t", i) for i = 1:m]
+  end
+  HSRing, _ = LaurentPolynomialRing(ZZ, VAR)
+  return HSRing
+end
+
+# !!! Note
+#   We create a Laurent poly ring even if all weights are non-negative
+#   because negative exponents may be needed when dealing with modules
+#   with shifts.
