@@ -756,7 +756,7 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   if !keep_ordering
     return singular_poly_ring(forget_decoration(R), default_ordering(R))
   end
-  return singular_poly_ring(forget_decoration(R); keep_ordering = keep_ordering)
+  return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
