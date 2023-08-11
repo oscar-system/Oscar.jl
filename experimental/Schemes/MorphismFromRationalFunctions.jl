@@ -1,5 +1,5 @@
 @doc raw"""
-    RationalMap{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
+    MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
 
 A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
 by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
@@ -44,7 +44,7 @@ Spectrum
 julia> t = first(gens(OO(U)))
 (t//s)
 
-julia> Phi = oscar.RationalMap(IP1, IP2, U, V, [1//t, 1//t^2]);
+julia> Phi = oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
 
 julia> realizations = oscar.realize_on_patch(Phi, U);
 
@@ -58,10 +58,10 @@ given by the pullback function
 
 ```
 """
-@attributes mutable struct RationalMap{DomainType<:AbsCoveredScheme, 
+@attributes mutable struct MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, 
                                        CodomainType<:AbsCoveredScheme
                                       } <: AbsCoveredSchemeMorphism{DomainType, CodomainType, 
-                                                                    RationalMap, Nothing}
+                                                                    MorphismFromRationalFunctions, Nothing}
   domain::DomainType
   codomain::CodomainType
   domain_covering::Covering
@@ -77,7 +77,7 @@ given by the pullback function
   cheap_realizations::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsSpecMor}
   full_realization::CoveredSchemeMorphism
 
-  function RationalMap(
+  function MorphismFromRationalFunctions(
       X::AbsCoveredScheme, Y::AbsCoveredScheme, 
       U::AbsSpec, V::AbsSpec,
       a::Vector{<:FieldElem};
@@ -109,21 +109,21 @@ given by the pullback function
   end
 end
 
-domain(Phi::RationalMap) = Phi.domain
-codomain(Phi::RationalMap) = Phi.codomain
-domain_covering(Phi::RationalMap) = Phi.domain_covering
-codomain_covering(Phi::RationalMap) = Phi.codomain_covering
-domain_chart(Phi::RationalMap) = Phi.domain_chart
-codomain_chart(Phi::RationalMap) = Phi.codomain_chart
-coordinate_images(Phi::RationalMap) = Phi.coord_imgs
+domain(Phi::MorphismFromRationalFunctions) = Phi.domain
+codomain(Phi::MorphismFromRationalFunctions) = Phi.codomain
+domain_covering(Phi::MorphismFromRationalFunctions) = Phi.domain_covering
+codomain_covering(Phi::MorphismFromRationalFunctions) = Phi.codomain_covering
+domain_chart(Phi::MorphismFromRationalFunctions) = Phi.domain_chart
+codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
+coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 
-patch_representatives(Phi::RationalMap) = Phi.patch_representatives
-realizations(Phi::RationalMap) = Phi.realizations
-maximal_extensions(Phi::RationalMap) = Phi.maximal_extensions
-realization_previews(Phi::RationalMap) = Phi.realization_previews
-cheap_realizations(Phi::RationalMap) = Phi.cheap_realizations
+patch_representatives(Phi::MorphismFromRationalFunctions) = Phi.patch_representatives
+realizations(Phi::MorphismFromRationalFunctions) = Phi.realizations
+maximal_extensions(Phi::MorphismFromRationalFunctions) = Phi.maximal_extensions
+realization_previews(Phi::MorphismFromRationalFunctions) = Phi.realization_previews
+cheap_realizations(Phi::MorphismFromRationalFunctions) = Phi.cheap_realizations
 
-function realize_on_patch(Phi::RationalMap, U::AbsSpec)
+function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   if haskey(realizations(Phi), U)
     return realizations(Phi)[U]
   end
@@ -177,7 +177,7 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
   return Psi_res
 end
 
-function realize_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   X = domain(Phi)
   Y = codomain(Phi)
   # Check that the input is admissible
@@ -201,7 +201,7 @@ function realize_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return _restrict_properly(prelim, V)
 end
 
-function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(realization_previews(Phi), (U, V))
     return realization_previews(Phi)[(U, V)]
   end
@@ -225,14 +225,14 @@ function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return img_gens_frac
 end
 
-function random_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+function random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
   phi = SpecMor(U_sub, ambient_space(V), img_gens, check=true) # Set to false
   return phi
 end
 
-function cheap_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(cheap_realizations(Phi), (U, V))
     return cheap_realizations(Phi)[(U, V)]
   end
@@ -265,7 +265,7 @@ function cheap_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return phi
 end
 
-function realize_maximally_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(maximal_extensions(Phi), (U, V))
     return maximal_extensions(Phi)[(U, V)]
   end
@@ -281,7 +281,7 @@ function realize_maximally_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSp
 end
 
 
-function realize(Phi::RationalMap)
+function realize(Phi::MorphismFromRationalFunctions)
   if !isdefined(Phi, :full_realization)
     realizations = AbsSpecMor[]
     mor_dict = IdDict{AbsSpec, AbsSpecMor}()
@@ -303,7 +303,7 @@ function realize(Phi::RationalMap)
   return Phi.full_realization
 end
 
-underlying_morphism(Phi::RationalMap) = realize(Phi)
+underlying_morphism(Phi::MorphismFromRationalFunctions) = realize(Phi)
 
 function _random_extension(U::AbsSpec, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
@@ -454,7 +454,7 @@ function _restrict_properly(
   return restrict(f, UU, V, check=false)
 end
 
-function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
+function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
   all(x->isprime(x), components(D)) || error("divisor must be given in terms of irreducible components")
@@ -491,7 +491,7 @@ function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
   return AlgebraicCycle(Y, coefficient_ring(D), pushed_comps)
 end
 
-function pushforward(Phi::RationalMap, D::WeilDivisor)
+function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
   return WeilDivisor(pushforward(Phi, underlying_cycle(D)))
 end
 
@@ -503,20 +503,20 @@ end
   error("no method implemented to check for being an isomorphism")
 end
 
-function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
+function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
   is_isomorphism(phi) || error("method is currently only implemented for isomorphisms")
   X = domain(phi)
   Y = codomain(phi)
   R = coefficient_ring(C)
   comps = IdDict{IdealSheaf, elem_type(R)}()
   for I in components(C)
-    @vprint :RationalMap 1 "trying cheap pullback\n"
+    @vprint :MorphismFromRationalFunctions 1 "trying cheap pullback\n"
     pbI = _try_pullback_cheap(phi, I)
     if pbI === nothing
-      @vprint :RationalMap 1 "trying randomized pullback\n"
+      @vprint :MorphismFromRationalFunctions 1 "trying randomized pullback\n"
       pbI = _try_randomized_pullback(phi, I)
       if pbI === nothing
-        @vprint :RationalMap 1 "trying the full pullback\n"
+        @vprint :MorphismFromRationalFunctions 1 "trying the full pullback\n"
         pbI = _pullback(phi, I)
       end
     end
@@ -526,7 +526,7 @@ function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
   return AlgebraicCycle(X, R, comps)
 end
 
-function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
+function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -571,7 +571,7 @@ function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
   return nothing
 end
 
-function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
+function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -604,7 +604,7 @@ function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
   return nothing
 end
 
-function _pullback(phi::RationalMap, I::IdealSheaf)
+function _pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -646,6 +646,6 @@ function _pullback(phi::RationalMap, I::IdealSheaf)
   error("ideal sheaf could not be pulled back")
 end
 
-function pullback(phi::RationalMap, D::WeilDivisor)
+function pullback(phi::MorphismFromRationalFunctions, D::WeilDivisor)
   return WeilDivisor(pullback(phi)(underlying_cycle(D)), check=false) 
 end
