@@ -34,6 +34,11 @@ function test_save_load_roundtrip(func, path, original::T; parent=nothing) where
     @test loaded isa T
   end
   func(loaded)
+
+  # test loading on a empty state
+  save(filename, original)
+  Oscar.global_serializer_state = Oscar.GlobalSerializerState()
+  loaded = load(filename; parent=parent)
 end
 
 @testset "basic_types" begin

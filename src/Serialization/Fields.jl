@@ -222,8 +222,9 @@ end
 
 function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
   def_pols = defining_polynomials(K)
-  data_dict(s) do 
-    save_typed_object(s, def_pols, :def_pols)
+  data_dict(s) do
+    save_typed_object(s, base_field(K), :base_field)
+    save_object(s, def_pols, :def_pols)
     save_object(s, vars(K), :vars)
   end
 end
@@ -231,7 +232,9 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: Union{NfAbsNS, NfRelNS}},
                      dict::Dict{Symbol, Any})
-  def_pols = load_typed_object(s, dict[:def_pols])
+  base = load_typed_object(s, dict[:base_field])
+  coeff_type = elem_type(base)
+  def_pols = load_object(s, Vector{MPolyRingElem{coeff_type}}, dict[:def_pols])
   vars = map(Symbol, dict[:vars])
   K, _ = number_field(def_pols, vars, cached=false)
   return K

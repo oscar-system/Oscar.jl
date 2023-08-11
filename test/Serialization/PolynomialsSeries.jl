@@ -39,12 +39,12 @@ cases = [
         R, z = polynomial_ring(case[1], "z")
         p = z^2 + case[2] * z + case[3]
         test_save_load_roundtrip(path, p) do loaded
-          p == loaded
+          @test loaded == p
         end
 
         @testset "Load with parent" begin
           test_save_load_roundtrip(path, p; parent=R) do loaded
-            @test p == loaded
+            @test loaded == z^2 + case[2] * z + case[3]
           end
         end
       end
@@ -53,12 +53,12 @@ cases = [
         R, (z, w) = polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
-          @test p == loaded
+          @test loaded == z^2 + case[2] * z * w + case[3] * w^3
         end
 
         @testset "Load with parent" begin
           test_save_load_roundtrip(path, p; parent=R) do loaded
-            @test p == loaded
+            @test loaded == z^2 + case[2] * z * w + case[3] * w^3
           end
         end
 
@@ -85,7 +85,8 @@ cases = [
         z, w = gens(R, ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
-          @test p.p == loaded.p
+          test_p = z^2 + case[2] * z * w + case[3] * w^3
+          @test loaded.p == test_p.p
         end
 
         @testset "Load with parent" begin
@@ -102,7 +103,7 @@ cases = [
         R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         test_save_load_roundtrip(path, p) do loaded
-          @test p == loaded
+          @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         end
 
         @testset "Load with parent" begin
