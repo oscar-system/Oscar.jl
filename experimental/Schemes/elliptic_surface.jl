@@ -1021,26 +1021,28 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   P0_div = section(X, P0)
   @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the trivial lattice
+  F1 = F - p0  # should be contained in the QQ-trivial-lattice
   F2 = F1
-  tmp = F1
-  if all(denominator(i)==1 for i in F1)
+  if all(isone(denominator(i)) for i in F1)
     # no torsion
     P = P0
     P_div = P0_div
   else
-    for (T, tor) in tors
-      if all(denominator(i)==1 for i in F1-tor)
+    found = false
+    for (i,(T, tor)) in enumerate(tors)
+      d = F2-vec(tor)
+      if all(isone(denominator(i)) for i in d)
+        found = true
+        T0 = mordell_weil_torsion(X)[i]
+        P = P0 + T0
         break
-        flag = true
-        P = P0 - T
-        F2 = F1 - tor
-        tmp = tor
       end
     end
-    @assert flag
+    @assert found
     P_div = section(X, P)
-    @assert basis_representation(X, P_div) == tmp
+    p = basis_representation(X, P_div)
+    F2 = F1 - p
+    @assert all( isone(denominator(i)) for i in F2)
   end
   D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
