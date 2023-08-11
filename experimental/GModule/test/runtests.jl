@@ -139,7 +139,6 @@ end
   @test elementary_divisors(C.M) == ZZRingElem[10, 10, 10, 0]
 
   C = C ⊕ C
-<<<<<<< HEAD
 
   D, _ = Oscar.GModuleFromGap.ghom(C, C)
   @test dim(D) == 4
