@@ -208,14 +208,16 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
-(2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+(2*t^3 - 3*t^2 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t + 1 => 4))
 
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+(-t^6 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
 ```
 """
 function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
@@ -265,7 +267,8 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+(-t^6 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
 
 julia> hilbert_series_reduced(A)
 (t^2 - t + 1, t^2 - 2*t + 1)
@@ -304,18 +307,18 @@ julia> hilbert_series_expanded(A, 5)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
-   if iszero(A.I)
-       R = base_ring(A.I)
-       @req is_z_graded(R) "The base ring must be ZZ-graded"
-       W = R.d
-       W = [Int(W[i][1]) for i = 1:ngens(R)]
-       @req minimum(W) > 0 "The weights must be positive"
-       H = hilbert_series(A)
-       T, t = power_series_ring(QQ, d+1, "t")
-       return _rational_function_to_power_series(T, H[1], H[2])
-     end
-   H = HilbertData(A.I)  
-   return hilbert_series_expanded(H, d)
+  if iszero(modulus(A))
+    R = base_ring(A)
+    @req is_z_graded(R) "The base ring must be ZZ-graded"
+    W = R.d
+    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    @req minimum(W) > 0 "The weights must be positive"
+    num, denom = hilbert_series(A)
+    T, t = power_series_ring(QQ, d+1, "t")
+    return _rational_function_to_power_series(T, num, evaluate(denom))
+  end
+  H = HilbertData(A.I)  
+  return hilbert_series_expanded(H, d)
 end
 
 @doc raw"""
@@ -531,7 +534,7 @@ julia> iso
 Map with following data
 Domain:
 =======
-Abelian group with structure: Z
+H
 Codomain:
 =========
 G
@@ -687,6 +690,7 @@ julia> A, _ = quo(R, I);
 
 julia> H = multi_hilbert_series_reduced(A);
 
+
 julia> H[1][1]
 -t[1]^5*t[2]^-1 + t[1]^3 + t[1]^3*t[2]^-3 + t[1]^2 + t[1]^2*t[2]^-1 + t[1]^2*t[2]^-2 + t[1] + t[1]*t[2]^-1 + 1
 
@@ -737,7 +741,7 @@ G
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
    (p, q), (H, iso) = multi_hilbert_series(A, algorithm=algorithm)
-   f = p//q
+   f = p//evaluate(q)
    p = numerator(f)
    q = denominator(f)
    sig = coeff(q.mpoly, -1 .* q.mindegs)
