@@ -11,7 +11,7 @@
   U = X[1][4]
   V = IP1[1][2]
   (x, y, z) = gens(ambient_coordinate_ring(U))
-  Phi = oscar.RationalMap(X, IP1, U, V, [x//y])
+  Phi = oscar.MorphismFromRationalFunctions(X, IP1, U, V, [x//y])
 
   @test domain(Phi) === X 
   @test codomain(Phi) === IP1
@@ -41,7 +41,7 @@ end
   pr_cov = covering_morphism(projection(bl))
   U_simp = first(patches(oscar.simplified_covering(X)))
   pb_y, pb_z = pullback(pr_cov[U]).(gens(OO(V)))
-  Phi = oscar.RationalMap(X, X, U, U, [inv(fraction(pb_y)), fraction(pb_z)//fraction(pb_y), fraction(pb_z)])
+  Phi = oscar.MorphismFromRationalFunctions(X, X, U, U, [inv(fraction(pb_y)), fraction(pb_z)//fraction(pb_y), fraction(pb_z)])
   oscar.realize_on_patch(Phi, U)
 
   Hx = IdealSheaf(IP2_proj, ideal(S, x))
