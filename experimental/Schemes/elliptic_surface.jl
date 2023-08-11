@@ -93,7 +93,14 @@ end
 Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
+
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
+
+function weierstrass_chart_on_minimal_model(S::EllipticSurface)
+  # make sure the minimal model is known
+  relatively_minimal_model(S)
+  return get_attribute(S, :weierstrass_chart_on_minimal_model)
+end
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -334,11 +341,16 @@ function _separate_singularities!(X::EllipticSurface)
   dec_info = []
   if isone(IsingU)
     push!(refined_charts, U)
+    # we want one smooth weierstrass chart
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => U)
   else
     # there is at most one singularity in every fiber
     # project the singular locus to an affine chart of P1
     disc = gens(eliminate(IsingU, coordinates(U)[1:2]))[1]
     redfib = [f[1] for f in factor(disc)]
+    UU = PrincipalOpenSubset(U, redfib)
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => UU)
+    push!(refined_charts, UU)
     if length(redfib)==1
       push!(refined_charts, U)
     else
@@ -348,11 +360,7 @@ function _separate_singularities!(X::EllipticSurface)
         deleteat!(r, i)
         Uref = PrincipalOpenSubset(U, r)
         push!(refined_charts, Uref)
-        if i>1
-          push!(dec_info, Uref=> RingElem[g])
-        else
-         push!(dec_info, Uref=> RingElem[])
-        end
+        push!(dec_info, Uref=> RingElem[g])
       end
     end
   end
