@@ -139,6 +139,7 @@ end
   @test elementary_divisors(C.M) == ZZRingElem[10, 10, 10, 0]
 
   C = C ⊕ C
+<<<<<<< HEAD
 
   D, _ = Oscar.GModuleFromGap.ghom(C, C)
   @test dim(D) == 4
@@ -161,4 +162,12 @@ end
   q = cohomology_group(C, 3)
   @test order(q) == 8
   @test is_cyclic(q)
+=======
+  C = gmodule(GF(5), C)
+  i = indecomposition(C)
+  @test length(i) == 8
+
+  C, _ = Oscar.GModuleFromGap.ghom(C, C)
+  @test dim(C[1]) == 4
+>>>>>>> 4d9f4d6018 (trivia and tests)
 end
