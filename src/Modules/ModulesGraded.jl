@@ -572,7 +572,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
   return phi
 end
 
-function graded_map(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T <: RingElement}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -615,7 +615,7 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule}}
+function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
