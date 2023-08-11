@@ -41,7 +41,7 @@ function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
     else
       I = fat_ideal(X)
     end
-    print(io, "V(")
+    print(io, LowercaseOff(), "V(")
     join(io, gens(I), ", ")
     print(io,")")
   end
