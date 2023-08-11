@@ -977,8 +977,9 @@ function gen_repr(d)
 end
 
 @doc raw"""
-    HSNum_abbott(A::MPolyQuoRing; pivot_strategy::Symbol = :auto)
+    HSNum_abbott(A::MPolyQuoRing, HSRing::Ring; pivot_strategy::Symbol = :auto)
 
+Don't use this internal function: use `hilbert_series` or `multi_hilbert_series` instead.
 Compute numerator of Hilbert series of the quotient `A`.
 Result is a pair: `N, D` being the numerator `N` (as a laurent polynomial) and the denominator `D` as
 a factor list of laurent polynomials.
@@ -997,7 +998,9 @@ julia> I = ideal(R, [x^3+y^2*z,  y^3+x*z^2,  z^3+x^2*y]);
 
 julia> RmodI,_ = quo(R,I);
 
-julia> Oscar.HSNum_abbott(RmodI)
+julia> HSRing1,_ = polynomial_ring(ZZ, "t");
+
+julia> Oscar.HSNum_abbott(RmodI, HSRing1)
 -t^9 + 3*t^6 - 3*t^3 + 1
 
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y","z"], [1 2 3; 3 2 1])
@@ -1007,7 +1010,9 @@ julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
 
 julia> RmodI,_ = quo(R,I);
 
-julia> Oscar.HSNum_abbott(RmodI)
+julia> HSRing2,_ = polynomial_ring(ZZ, ["t[1]", "t[2]"]);
+
+julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 -t[1]^28*t[2]^28 + t[1]^24*t[2]^24 + t[1]^22*t[2]^10 - t[1]^18*t[2]^6 + t[1]^10*t[2]^22 - t[1]^6*t[2]^18 - t[1]^4*t[2]^4 + 1
 
 ```
