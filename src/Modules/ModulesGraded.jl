@@ -368,8 +368,8 @@ Graded free module R^2([0]) of rank 2 over R
 
 julia> degrees_of_generators(F)
 2-element Vector{GrpAbFinGenElem}:
- graded by [0]
- graded by [0]
+ [0]
+ [0]
 ```
 """
 function degrees_of_generators(F::FreeMod)
@@ -496,7 +496,7 @@ julia> f = y^2*z − x^2*w
 -w*x^2 + y^2*z
 
 julia> degree(f)
-graded by [3]
+[3]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -657,7 +657,7 @@ e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
 
 julia> degree(a)
-graded by [1]
+[1]
 ```
 """
 function degree(f::FreeModuleHom)
