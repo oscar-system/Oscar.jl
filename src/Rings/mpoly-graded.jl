@@ -2521,7 +2521,7 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
     return ideal([homogenization(zero(R), var; pos=pos)])  # zero ideal in correct ring
   end
   # TODO: Adjust as soon as new GB concept is implemented   [[@wdecker: delete this comment?]]
-  return ideal(homogenization(gens(groebner_basis(I; ordering=ordering)), var; pos=pos))
+  return ideal(homogenization(gens(groebner_basis(I; ordering)), var; pos=pos))
 end
 # function homogenization(I::MPolyIdeal{T}, var::VarName,; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
 #   # TODO: Adjust as soon as new GB concept is implemented
