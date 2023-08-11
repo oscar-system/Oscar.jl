@@ -2,7 +2,7 @@
 BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
-    data_basic(s, string(x))
+  data_basic(s, string(x))
 end
 
 ################################################################################
@@ -26,14 +26,14 @@ end
 @registerSerializationType(ZZRingElem)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem}, str::String)
-    return ZZRingElem(str)
+  return ZZRingElem(str)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{ZZRingElem},
                                    str::String,
                                    parent::ZZRing)
-    return parent(ZZRingElem(str))
+  return parent(ZZRingElem(str))
 end
 
 ################################################################################
@@ -41,19 +41,19 @@ end
 @registerSerializationType(QQFieldElem)
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
-    # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
-    # is merged and in a Nemo release
-    fraction_parts = collect(map(String, split(q, "//")))
-    fraction_parts = [ZZRingElem(s) for s in fraction_parts]
+  # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
+  # is merged and in a Nemo release
+  fraction_parts = collect(map(String, split(q, "//")))
+  fraction_parts = [ZZRingElem(s) for s in fraction_parts]
 
-    return QQFieldElem(fraction_parts...)
+  return QQFieldElem(fraction_parts...)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{QQFieldElem},
                                    str::String,
                                    parent::QQField)
-    return parent(load_internal(s, QQFieldElem, str))
+  return parent(load_internal(s, QQFieldElem, str))
 end
 
 ################################################################################
@@ -77,7 +77,7 @@ end
 @registerSerializationType(Float64)
 
 function load_object(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
-    return parse(T, str)
+  return parse(T, str)
 end
 
 ################################################################################
@@ -85,7 +85,7 @@ end
 @registerSerializationType(String)
 
 function load_object(s::DeserializerState, ::Type{String}, str::String)
-    return str
+  return str
 end
 
 ################################################################################
@@ -93,5 +93,5 @@ end
 @registerSerializationType(Symbol)
 
 function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
-   return Symbol(str)
+  return Symbol(str)
 end

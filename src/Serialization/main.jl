@@ -8,22 +8,22 @@ const backref_sym = Symbol("#backref")
 # Meta Data
 
 @Base.kwdef struct MetaData
-    author_orcid::Union{String, Nothing} = nothing
-    name::Union{String, Nothing} = nothing
+  author_orcid::Union{String, Nothing} = nothing
+  name::Union{String, Nothing} = nothing
 end
 
 function metadata(;args...)
-    return MetaData(;args...)
+  return MetaData(;args...)
 end
 
 ################################################################################
 # Version info
 
 function get_version_info()
-    result = Dict{Symbol, Any}(
-        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
-    )
-    return result
+  result = Dict{Symbol, Any}(
+    :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
+  )
+  return result
 end
 const oscarSerializationVersion = get_version_info()
 
@@ -49,52 +49,52 @@ end
 function registerSerializationType(ex::Any,
                                    uses_id::Bool,
                                    str::Union{String,Nothing} = nothing)
-    if str === nothing
-        str = string(ex)
-    end
-    return esc(
-        quote
-            registerSerializationType($ex, $str)
-            encode_type(::Type{<:$ex}) = $str
-            # There exist types where equality cannot be discerned from the serialization
-            # these types require an id so that equalities can be forced upon load.
-            # The ids are only necessary for parent types, checking for element type equality
-            # can be done once the parents are known to be equal.
-            # For example two serializations of QQ[x] require ids to check for equality.
-            # Although they're isomorphic rings, they may want to be treated as seperate
-            # This is done since other software might not use symbols in their serialization of QQ[x].
-            # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
-            # whenever there is a possibility (amongst any software system) that the objects
-            # cannot be distinguish on a syntatic level we use ids.
-            # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntatic
-            # ambiguities in their encodings.
+  if str === nothing
+    str = string(ex)
+  end
+  return esc(
+    quote
+      registerSerializationType($ex, $str)
+      encode_type(::Type{<:$ex}) = $str
+      # There exist types where equality cannot be discerned from the serialization
+      # these types require an id so that equalities can be forced upon load.
+      # The ids are only necessary for parent types, checking for element type equality
+      # can be done once the parents are known to be equal.
+      # For example two serializations of QQ[x] require ids to check for equality.
+      # Although they're isomorphic rings, they may want to be treated as seperate
+      # This is done since other software might not use symbols in their serialization of QQ[x].
+      # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
+      # whenever there is a possibility (amongst any software system) that the objects
+      # cannot be distinguish on a syntatic level we use ids.
+      # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntatic
+      # ambiguities in their encodings.
 
-            serialize_with_id(obj::T) where T <: $ex = $uses_id 
-            serialize_with_id(T::Type{<:$ex}) = $uses_id 
-        end)
+      serialize_with_id(obj::T) where T <: $ex = $uses_id 
+      serialize_with_id(T::Type{<:$ex}) = $uses_id 
+    end)
 end
 
 macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
-    return registerSerializationType(ex, false, str)
+  return registerSerializationType(ex, false, str)
 end
 
 macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
-    return registerSerializationType(ex, uses_id, str)
+  return registerSerializationType(ex, uses_id, str)
 end
 
 
 function encode_type(::Type{T}) where T
-    error("unsupported type '$T' for encoding")
+  error("unsupported type '$T' for encoding")
 end
 
 function decode_type(input::String)
-    get(reverseTypeMap, input) do
-        error("unsupported type '$input' for decoding")
-    end
+  get(reverseTypeMap, input) do
+    error("unsupported type '$input' for decoding")
+  end
 end
 
 function decode_type(input::Dict{Symbol, Any})
-    return decode_type(input[:name])
+  return decode_type(input[:name])
 end
 
 ################################################################################
@@ -148,13 +148,13 @@ is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 # has_elem_basic_encoding is used for parent types (and only makes sense for parent types)
 
 function has_elem_basic_encoding(obj::T) where T <: Ring
-    return is_basic_serialization_type(elem_type(obj))
+  return is_basic_serialization_type(elem_type(obj))
 end
 
 has_basic_encoding(obj::T) where T = is_basic_serialization_type(T)
 
 function has_basic_encoding(obj::T) where T <: RingElem
-    return has_elem_basic_encoding(parent(obj))
+  return has_elem_basic_encoding(parent(obj))
 end
 
 has_elem_basic_encoding(obj::T) where T = false
@@ -166,28 +166,28 @@ type_needs_params(::Type) where Type = false
 # High level
 
 function load_ref(s::DeserializerState, id::String)
-    if haskey(s.objs, UUID(id))
-        loaded_ref = s.objs[UUID(id)]
-    else
-        ref_dict = s.refs[Symbol(id)]
-        ref_dict[:id] = id
-        loaded_ref = load_typed_object(s, ref_dict)
-        s.objs[UUID(id)] = loaded_ref
-    end
-    return loaded_ref
+  if haskey(s.objs, UUID(id))
+    loaded_ref = s.objs[UUID(id)]
+  else
+    ref_dict = s.refs[Symbol(id)]
+    ref_dict[:id] = id
+    loaded_ref = load_typed_object(s, ref_dict)
+    s.objs[UUID(id)] = loaded_ref
+  end
+  return loaded_ref
 end
 
 function save_as_ref(s::SerializerState, obj::T) where T
-    # find ref or create one
-    ref = get(s.objmap, obj, nothing)
-    if ref !== nothing
-        return string(ref)
-    end
-    
-    ref = s.objmap[obj] = uuid4()
-    push!(s.refs, (Symbol(ref), obj))
-
+  # find ref or create one
+  ref = get(s.objmap, obj, nothing)
+  if ref !== nothing
     return string(ref)
+  end
+  
+  ref = s.objmap[obj] = uuid4()
+  push!(s.refs, (Symbol(ref), obj))
+
+  return string(ref)
 end
 
 # function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) where T
@@ -258,79 +258,79 @@ end
 # end
 
 function save_object(s::SerializerState, x::Vector)
-    data_array(s) do
-        for elem in x
-            save_object(s, elem)
-        end
+  data_array(s) do
+    for elem in x
+      save_object(s, elem)
     end
+  end
 end
 
 # this function is necessary so we can have arrays with entries of different types
 function save_object(s::SerializerState, x::T) where T <: Tuple
-    data_array(s) do
-        for elem in x
-            save_object(s, elem)
-        end
+  data_array(s) do
+    for elem in x
+      save_object(s, elem)
     end
+  end
 end
 
 function save_object(s::SerializerState, x::Any, key::Symbol)
-    s.key = key
-    save_object(s, x)
+  s.key = key
+  save_object(s, x)
 end
 
 function save_json(s::SerializerState, x::Any)
-    data_json(s, x)
+  data_json(s, x)
 end
 
 function save_json(s::SerializerState, x::Any, key::Symbol)
-    s.key = key
-    save_json(s, x)
+  s.key = key
+  save_json(s, x)
 end
 
 function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
-    s.key = key
-    data_dict(s) do
-        for (k, v) in h
-            save_object(s, v, k)
-        end
+  s.key = key
+  data_dict(s) do
+    for (k, v) in h
+      save_object(s, v, k)
     end
+  end
 end
 
 # calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
-    if type_needs_params(T)
-        save_type_params(s, x, :type)
-        save_object(s, x, :data)
-    elseif Base.issingletontype(T)
-        save_object(s, encode_type(T), :type)
-    elseif x isa AbstractVector
-        save_object(s, "Vector", :type)
-        nested_entry = get_nested_entry(x)
-        nested_type = typeof(nested_entry)
-        if type_needs_params(nested_type)
-            save_type_params(s, nested_entry, :nested_type)
-        else
-            save_object(s, encode_type(nested_type), :nested_type)
-        end
-        save_object(s, x, :data)
+  if type_needs_params(T)
+    save_type_params(s, x, :type)
+    save_object(s, x, :data)
+  elseif Base.issingletontype(T)
+    save_object(s, encode_type(T), :type)
+  elseif x isa AbstractVector
+    save_object(s, "Vector", :type)
+    nested_entry = get_nested_entry(x)
+    nested_type = typeof(nested_entry)
+    if type_needs_params(nested_type)
+      save_type_params(s, nested_entry, :nested_type)
     else
-        save_object(s, encode_type(T), :type)
-        save_object(s, x, :data)
+      save_object(s, encode_type(nested_type), :nested_type)
     end
+    save_object(s, x, :data)
+  else
+    save_object(s, encode_type(T), :type)
+    save_object(s, x, :data)
+  end
 end
 
 function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
-    s.key = key
-    if serialize_with_id(x)
-        # key should already be set before function call
-        ref = save_as_ref(s, x)
-        save_object(s, ref)
-    else
-        data_dict(s) do 
-            save_typed_object(s, x)
-        end
+  s.key = key
+  if serialize_with_id(x)
+    # key should already be set before function call
+    ref = save_as_ref(s, x)
+    save_object(s, ref)
+  else
+    data_dict(s) do 
+      save_typed_object(s, x)
     end
+  end
 end
 
 # ATTENTION
@@ -338,114 +338,114 @@ end
 # in order to detect objects with a basic encoding.
 function load_type_dispatch(s::DeserializerState,
                             ::Type{T}, str::String; parent=nothing) where T
-    if parent !== nothing && has_elem_basic_encoding(parent)
-        return load_internal_with_parent(s, T, str, parent)
-    end
-    @assert is_basic_serialization_type(T)
-    return load_internal(s, T, str)
+  if parent !== nothing && has_elem_basic_encoding(parent)
+    return load_internal_with_parent(s, T, str, parent)
+  end
+  @assert is_basic_serialization_type(T)
+  return load_internal(s, T, str)
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
                             parent=nothing) where T
-    # File version to be dealt with on first breaking change
-    # A file without version number is treated as the "first" version
-    if dict[:type] == string(backref_sym)
-        backref = s.objs[UUID(dict[:id])]
-        backref isa T || error("Backref of incorrect type encountered: $backref !isa $T")
-        return backref
-    end
+  # File version to be dealt with on first breaking change
+  # A file without version number is treated as the "first" version
+  if dict[:type] == string(backref_sym)
+    backref = s.objs[UUID(dict[:id])]
+    backref isa T || error("Backref of incorrect type encountered: $backref !isa $T")
+    return backref
+  end
 
-    # Decode the stored type, and compare it to the type `T` supplied by the caller.
-    # If they are identical, just proceed. If not, then we assume that either
-    # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-    # concrete, and `U <: T` should hold.
-    #
-    # However, we actually do not currently check for the types being concrete,
-    # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
-    # these checks later on, depending on what we actually need...
-    U = decode_type(dict[:type])
-    U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
+  # Decode the stored type, and compare it to the type `T` supplied by the caller.
+  # If they are identical, just proceed. If not, then we assume that either
+  # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+  # concrete, and `U <: T` should hold.
+  #
+  # However, we actually do not currently check for the types being concrete,
+  # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
+  # these checks later on, depending on what we actually need...
+  U = decode_type(dict[:type])
+  U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
-    Base.issingletontype(T) && return T()
+  Base.issingletontype(T) && return T()
 
-    if parent !== nothing
-        result = load_internal_with_parent(s, T, dict[:data], parent)
-    elseif type_needs_params(T)
-        parent = load_parent_type(s, dict[:type])
-        result = load_internal_with_parent(s, T, dict[:data], parent)
-    else
-        result = load_internal(s, T, dict[:data])
-    end
+  if parent !== nothing
+    result = load_internal_with_parent(s, T, dict[:data], parent)
+  elseif type_needs_params(T)
+    parent = load_parent_type(s, dict[:type])
+    result = load_internal_with_parent(s, T, dict[:data], parent)
+  else
+    result = load_internal(s, T, dict[:data])
+  end
 
-    if haskey(dict, :id)
-        s.objs[UUID(dict[:id])] = result
-    end
-    return result
+  if haskey(dict, :id)
+    s.objs[UUID(dict[:id])] = result
+  end
+  return result
 end
 
 function load_unknown_type(s::DeserializerState, dict::Dict; parent=nothing)
-    T = decode_type(dict[:type])
-    Base.issingletontype(T) && return T()
-    return load_type_dispatch(s, T, dict; parent=parent)
+  T = decode_type(dict[:type])
+  Base.issingletontype(T) && return T()
+  return load_type_dispatch(s, T, dict; parent=parent)
 end
 
 # sole purpose of this function is to catch when obj is a ref
 function load_unknown_type(s::DeserializerState, str::String)
-    return load_ref(s, str)
+  return load_ref(s, str)
 end
 
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
                            override_params::Any = nothing)
-    T = decode_type(dict[:type])
-    if Base.issingletontype(T) && return T()
-    elseif type_needs_params(T)
-        if !isnothing(override_params)
-            params = load_type_params(s, T, override_params)
-        else
-            # depending on the type, :params is either an object to be loaded or a
-            # dict with keys and object values to be loaded
-            params = load_type_params(s, T, dict[:type][:params])
-        end
-        return load_object_with_params(s, T, dict[:data], params)
-    elseif T <: AbstractVector
-        nested_type = decode_type(dict[:nested_type])
-        if type_needs_params(nested_type)
-            params = load_type_params(s, nested_type, dict[:nested_type][:params])
-            return load_object_with_params(s, Vector{nested_type}, dict[:data], params)
-        else
-            #return load_object()
-        end
+  T = decode_type(dict[:type])
+  if Base.issingletontype(T) && return T()
+  elseif type_needs_params(T)
+    if !isnothing(override_params)
+      params = load_type_params(s, T, override_params)
     else
-        return load_object(s, T, dict[:data])
+      # depending on the type, :params is either an object to be loaded or a
+      # dict with keys and object values to be loaded
+      params = load_type_params(s, T, dict[:type][:params])
     end
+    return load_object_with_params(s, T, dict[:data], params)
+  elseif T <: AbstractVector
+    nested_type = decode_type(dict[:nested_type])
+    if type_needs_params(nested_type)
+      params = load_type_params(s, nested_type, dict[:nested_type][:params])
+      return load_object_with_params(s, Vector{nested_type}, dict[:data], params)
+    else
+      #return load_object()
+    end
+  else
+    return load_object(s, T, dict[:data])
+  end
 end
 
 function load_typed_object(s::DeserializerState, id::String)
-    return load_ref(s, id)
+  return load_ref(s, id)
 end
 
 ################################################################################
 # Default generic save_internal, load_internal
 function save_object_generic(s::SerializerState, obj::T) where T
-    s.key = :data
-    data_dict(s) do
-        for n in fieldnames(T)
-            if n != :__attrs
-                save_typed_object(s, getfield(obj, n), Symbol(n))
-            end
-        end
+  s.key = :data
+  data_dict(s) do
+    for n in fieldnames(T)
+      if n != :__attrs
+        save_typed_object(s, getfield(obj, n), Symbol(n))
+      end
     end
+  end
 end
 
 function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
-    fields = []
-    for (n,t) in zip(fieldnames(T), fieldtypes(T))
-        if n!= :__attrs
-            println(t)
-            push!(fields, load_object(s, t, dict[n]))
-        end
+  fields = []
+  for (n,t) in zip(fieldnames(T), fieldtypes(T))
+    if n!= :__attrs
+      println(t)
+      push!(fields, load_object(s, t, dict[n]))
     end
-    return T(fields...)
+  end
+  return T(fields...)
 end
 
 ################################################################################
@@ -453,13 +453,13 @@ end
 
 # loads parent tree
 function load_parents(s::DeserializerState, parent_ids::Vector)
-    loaded_parents = []
+  loaded_parents = []
 
-    for id in parent_ids
-        loaded_parent = load_ref(s, id)
-        push!(loaded_parents, loaded_parent)
-    end
-    return loaded_parents
+  for id in parent_ids
+    loaded_parent = load_ref(s, id)
+    push!(loaded_parents, loaded_parent)
+  end
+  return loaded_parents
 end
 
 ################################################################################
@@ -482,13 +482,13 @@ include("QuadForm.jl")
 include("upgrades/main.jl")
 
 function get_file_version(dict::Dict{Symbol, Any})
-    ns = dict[:_ns]
-    version_dict = ns[:Oscar][2]
-    return get_version_number(version_dict)
+  ns = dict[:_ns]
+  version_dict = ns[:Oscar][2]
+  return get_version_number(version_dict)
 end
 
 function get_version_number(v_number::String)
-    return VersionNumber(v_number)
+  return VersionNumber(v_number)
 end
 
 ################################################################################
@@ -516,31 +516,31 @@ julia> load("/tmp/fourtitwo.json")
 ```
 """
 function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
-    state = serializer_open(io)
-    data_dict(state) do
-        save_typed_object(state, obj)
+  state = serializer_open(io)
+  data_dict(state) do
+    save_typed_object(state, obj)
 
-        # this should be handled by serializers in a later commit / PR
-        state.key = :refs
-        !isempty(state.refs) && data_dict(state) do
-            for (id, ref_obj) in state.refs
-                state.key = id
-                data_dict(state) do
-                    save_typed_object(state, ref_obj)
-                end
-            end
+    # this should be handled by serializers in a later commit / PR
+    state.key = :refs
+    !isempty(state.refs) && data_dict(state) do
+      for (id, ref_obj) in state.refs
+        state.key = id
+        data_dict(state) do
+          save_typed_object(state, ref_obj)
         end
-        save_header(state, oscarSerializationVersion, :_ns)
+      end
     end
-    serializer_close(state)
-    return nothing
+    save_header(state, oscarSerializationVersion, :_ns)
+  end
+  serializer_close(state)
+  return nothing
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
-    open(filename, "w") do file
-        save(file, obj; metadata=metadata)
-    end
-    return nothing
+  open(filename, "w") do file
+    save(file, obj; metadata=metadata)
+  end
+  return nothing
 end
 
 """
@@ -596,41 +596,41 @@ true
 ```
 """
 function load(io::IO; parent::Any = nothing, type::Any = nothing)
-    state = deserializer_open(io)
+  state = deserializer_open(io)
 
-    # this should be moved to the serializer at some point
-    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+  # this should be moved to the serializer at some point
+  jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    # handle different namespaces
-    @req haskey(jsondict, :_ns) "Namespace is missing"
-    _ns = jsondict[:_ns]
-    if haskey(_ns, :polymake)
-        # If this is a polymake file
-        return load_from_polymake(jsondict)
-    end
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
+  # handle different namespaces
+  @req haskey(jsondict, :_ns) "Namespace is missing"
+  _ns = jsondict[:_ns]
+  if haskey(_ns, :polymake)
+    # If this is a polymake file
+    return load_from_polymake(jsondict)
+  end
+  @req haskey(_ns, :Oscar) "Not an Oscar object"
 
-    # deal with upgrades
-    file_version = get_file_version(jsondict)
+  # deal with upgrades
+  file_version = get_file_version(jsondict)
 
-    if file_version < VERSION_NUMBER
-        jsondict = upgrade(jsondict, file_version)
-    end
+  if file_version < VERSION_NUMBER
+    jsondict = upgrade(jsondict, file_version)
+  end
 
-    # add refs to state for referencing during recursion
-    if haskey(jsondict, :refs)
-        merge!(state.refs, jsondict[:refs])
-    end
+  # add refs to state for referencing during recursion
+  if haskey(jsondict, :refs)
+    merge!(state.refs, jsondict[:refs])
+  end
 
-    # this is a nice to have for later
-    # if type !== nothing
-    #     return load_type_dispatch(state, type, jsondict; parent=parent)
-    # end
-    return load_typed_object(state, jsondict; override_params=parent)
+  # this is a nice to have for later
+  # if type !== nothing
+  #     return load_type_dispatch(state, type, jsondict; parent=parent)
+  # end
+  return load_typed_object(state, jsondict; override_params=parent)
 end
 
 function load(filename::String; parent::Any = nothing, type::Any = nothing)
-    open(filename) do file
-        return load(file; parent=parent, type=type)
-    end
+  open(filename) do file
+    return load(file; parent=parent, type=type)
+  end
 end

@@ -8,35 +8,35 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 type_needs_params(T::Type{<: TropicalSemiringElem}) = true
 
 function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
-    s.key = key
-    data_dict(s) do
-        save_object(s, encode_type(T), :name)
-        save_typed_object(s, parent(x), :params)
-    end
+  s.key = key
+  data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_typed_object(s, parent(x), :params)
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
-    return load_typed_object(s, dict)
+  return load_typed_object(s, dict)
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem},
                           parent::TropicalSemiring)
-    return load_typed_object(s, dict)
+  return load_typed_object(s, dict)
 end
 
 function load_object_with_params(s::DeserializerState,
                                  ::Type{<:TropicalSemiringElem},
                                  str::String, params::TropicalSemiring)
-    return params(load_object(s, QQFieldElem, str))
+  return params(load_object(s, QQFieldElem, str))
 end
 
 # Tropical Hypersurfaces
 @registerSerializationType(TropicalHypersurface, true)
 
 function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
-    return Dict(
-        :tropical_polynomial => save_type_dispatch(s, polynomial(t_surf))
-    )
+  return Dict(
+    :tropical_polynomial => save_type_dispatch(s, polynomial(t_surf))
+  )
 end
 
 function load_internal(s::DeserializerState,
@@ -52,13 +52,13 @@ end
 function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
   if EMB
     return Dict(
-        :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_curve)),
-        :is_embedded => save_type_dispatch(s, true)
+      :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_curve)),
+      :is_embedded => save_type_dispatch(s, true)
     )
   else
     return Dict(
-        :graph => save_type_dispatch(s, graph(t_curve)),
-        :is_embedded => save_type_dispatch(s, false)
+      :graph => save_type_dispatch(s, graph(t_curve)),
+      :is_embedded => save_type_dispatch(s, false)
     )
   end
 end

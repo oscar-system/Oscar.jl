@@ -3,114 +3,114 @@
 
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
-    # dict to track already serialized objects
-    objmap::IdDict{Any, UUID}
-    new_level_entry::Bool
-    refs::Vector{Tuple{Symbol, Any}} # Any represents an object refs
-    io::IO
-    key::Union{Symbol, Nothing}
+  # dict to track already serialized objects
+  objmap::IdDict{Any, UUID}
+  new_level_entry::Bool
+  refs::Vector{Tuple{Symbol, Any}} # Any represents an object refs
+  io::IO
+  key::Union{Symbol, Nothing}
 end
 
 function SerializerState(io::IO)
-    return SerializerState(IdDict{Any, UUID}(), true, Tuple{Symbol, Any}[], io, nothing)
+  return SerializerState(IdDict{Any, UUID}(), true, Tuple{Symbol, Any}[], io, nothing)
 end
 
 function serialize_dict(f::Function, s::SerializerState)
-    begin_dict_node(s)
-    f()
-    end_dict_node(s)
+  begin_dict_node(s)
+  f()
+  end_dict_node(s)
 end
 
 function serialize_array(f::Function, s::SerializerState)
-    begin_array_node(s)
-    f()
-    end_array_node(s)
+  begin_array_node(s)
+  f()
+  end_array_node(s)
 end
 
 function begin_node(s::SerializerState)
-    if !s.new_level_entry
-        write(s.io, ",")
-    else
-        s.new_level_entry = false
-    end
-    if !isnothing(s.key)
-        key = string(s.key)
-        write(s.io, "\"$key\":")
-        s.key = nothing
-    end
+  if !s.new_level_entry
+    write(s.io, ",")
+  else
+    s.new_level_entry = false
+  end
+  if !isnothing(s.key)
+    key = string(s.key)
+    write(s.io, "\"$key\":")
+    s.key = nothing
+  end
 end
 
 function begin_dict_node(s::SerializerState)
-    begin_node(s)
-    write(s.io, "{")
+  begin_node(s)
+  write(s.io, "{")
 end
 
 function end_dict_node(s::SerializerState)
-    write(s.io, "}")
+  write(s.io, "}")
 end
 
 function begin_array_node(s::SerializerState)
-    begin_node(s)
-    write(s.io, "[")
+  begin_node(s)
+  write(s.io, "[")
 end
 
 function end_array_node(s::SerializerState)
-    write(s.io, "]")
+  write(s.io, "]")
 end
 
 struct DeserializerState
-    # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-    # Any here are object refs
-    objs::Dict{UUID, Any}  
-    refs::Dict{Symbol, Any}
+  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+  # Any here are object refs
+  objs::Dict{UUID, Any}  
+  refs::Dict{Symbol, Any}
 end
 
 function DeserializerState()
-    return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
+  return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
 end
 
 function finish_writing(s::SerializerState)
-    # nothing to do here
+  # nothing to do here
 end
 
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
 function data_dict(f::Function, s::SerializerState)
-    serialize_dict(s) do
-        s.new_level_entry = true
-        f()
-    end
+  serialize_dict(s) do
+    s.new_level_entry = true
+    f()
+  end
 end
 
 function data_array(f::Function, s::SerializerState)
-    serialize_array(s) do
-        s.new_level_entry = true
-        f()
-    end
+  serialize_array(s) do
+    s.new_level_entry = true
+    f()
+  end
 end
 
 function data_basic(s::SerializerState, x::Any)
-    begin_node(s)
-    str = string(x)
-    write(s.io, "\"$str\"")
+  begin_node(s)
+  str = string(x)
+  write(s.io, "\"$str\"")
 end
 
 function data_json(s::SerializerState, jsonstr::Any)
-    begin_node(s)
-    write(s.io, jsonstr)
+  begin_node(s)
+  write(s.io, jsonstr)
 end
 
 function serializer_open(io::IO)
-    # some level of handling should be done here at a later date
-    return SerializerState(io)
+  # some level of handling should be done here at a later date
+  return SerializerState(io)
 end
 
 function serializer_close(s::SerializerState)
-    finish_writing(s)
+  finish_writing(s)
 end
 
 function deserializer_open(io::IO)
-    # should eventually take io
-    return DeserializerState()
+  # should eventually take io
+  return DeserializerState()
 end
