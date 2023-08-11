@@ -165,7 +165,7 @@ julia> num
 
 julia> den
 Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 3)
+Dict{AbstractAlgebra.Generic.LaurentPolyWrap{ZZRingElem, ZZPolyRingElem, AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}}, ZZRingElem}(-t + 1 => 3)
 
 ```
 """
