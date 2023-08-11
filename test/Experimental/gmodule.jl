@@ -107,7 +107,7 @@ end
   @test degree(base_ring(SS)) == 2
 end
 
-@testset "Various"
+@testset "Various" begin
   @test length(all_extensions(abelian_group(2), cyclic_group(PermGroup, 2))) == 2
   k, a = cyclotomic_field(5)
   zk = maximal_order(k)
@@ -122,10 +122,12 @@ end
   @test elementary_divisors(C.M) == ZZRingElem[10, 10, 10, 0]
 
   C = C ⊕ C
+
+  D, _ = Oscar.GModuleFromGap.ghom(C, C)
+  @test dim(D) == 4
+
   C = gmodule(GF(5), C)
   i = indecomposition(C)
   @test length(i) == 8
 
-  C, _ = Oscar.GModuleFromGap.ghom(C, C)
-  @test dim(C[1]) == 4
 end
