@@ -54,7 +54,7 @@ end
 @doc raw"""
     multi_hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
 
-Compute a pair of pairs `(N,D),(H,iso)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
+Compute a pair of pairs `(N ,D), (H ,iso)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
 series of the subquotient `M`, and `H` is the SNF of the grading group together with the identifying isomorphism `iso`.
 If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
@@ -91,7 +91,7 @@ Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, Abstr
 
 ```
 """
-function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
@@ -170,10 +170,18 @@ Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, Abstr
 ```
 """
 function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
+  if parent === nothing
+    parent, _ = LaurentPolynomialRing(ZZ, :t)
+  end
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
 end
 
 function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
+  if parent === nothing
+    parent, _ = LaurentPolynomialRing(ZZ, :t)
+  end
   return hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
 end
