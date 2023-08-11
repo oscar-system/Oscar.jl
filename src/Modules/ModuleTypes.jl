@@ -661,21 +661,21 @@ Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
 function Base.show(io::IO, FR::FreeResolution)
     C   = FR.C
     rk  = Dict{Int, String}()
-    rng = Hecke.map_range(C)
+    rng = reverse(Hecke.map_range(C))
     len = 0
 
     println(io, "")
     print(io, "rank   | ")
     # get names
     for i = rng
-        if i != last(rng)
+        if i != first(rng)
             rk[i] =  "$(rank(C[i]))"
             len   += length(rk[i]) + 2
             continue
         end
     end
     for i = rng
-        if i != last(rng)
+        if i != first(rng)
             print(io, rk[i], "  ")
         end
     end
@@ -685,7 +685,7 @@ function Base.show(io::IO, FR::FreeResolution)
     println(io, "")
     print(io, "degree | ")
     for i = rng
-        if i != last(rng)
+        if i != first(rng)
             print(io, i, repeat(" ", length(rk[i]) + 1))
             continue
         end

@@ -83,16 +83,37 @@ end
   #@test length(chambers) == 1
   #@test length(rational_mod_aut) == 4
 
-  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 26, compute_OR=true)
-  @test order(matrix_group(k3aut))==6
-  @test length(chambers) == 1
-  @test length(rational_mod_aut) == 4
-
-  S,_ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=false)
   @test length(k3aut)==0
   @test length(chambers) == 6
   @test length(rational_mod_aut) == 6
+
+  #_, k3aut, chambers, rational_mod_aut = borcherds_method(S, 26, compute_OR=true)
+  #@test order(matrix_group(k3aut))==6
+  #@test length(chambers) == 1
+  #@test length(rational_mod_aut) == 4
+
+  S,_ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
+  # The preprocessing of the following involves some random choices which can sometimes be suboptimal
+  #  we test them separately
+  S = integer_lattice(gram=gram_matrix(S))
+  n = 26
+  L, S, iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
+  V = ambient_space(L)
+  U = lattice(V,basis_matrix(S)[1:2,:])
+  weyl, u0 = weyl_vector(L, U)
+
+  @test iszero(weyl*gram_matrix(V)*transpose(weyl))
+  # This is the a little expensive bit ... we leave it to the lower dimensional tests
+  # weyl1, u, hh = Oscar.weyl_vector_non_degenerate(L, S, u0, weyl, h)
+  weyl1 = QQ[80 30 -4 -14 -27 11 2 -12 -14 1 9 7 -1 -2 16 -12 4 7 11 6 -1 1 0 3 1 0]
+  weyl2 = change_base_ring(ZZ, solve_left(basis_matrix(L), weyl1))
+  _, k3aut, chambers, rational_mod_aut =borcherds_method(L, S, weyl2, compute_OR=true)
+
+  @test order(matrix_group(k3aut))==6
+  @test length(chambers) == 1
+  @test length(rational_mod_aut) == 4
+
 
 
   # one with parabolic automorphism group
