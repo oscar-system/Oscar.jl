@@ -20,7 +20,7 @@ julia> X = algebraic_set(x*y);
 julia> X([1, 0])
 Rational point
   of V(x*y)
-  with coordinates (1, 0)
+with coordinates (1, 0)
 
 ```
 """
@@ -52,9 +52,13 @@ Type for rational points in projective varieties.
 
 # Examples
 ```jldoctest
-julia> P2 = projective_space(QQ, 2)
+julia> P2 = projective_space(QQ, 2);
 
 julia> P2([4, 0 , 2//3])
+Projective rational point
+  of Projective 2-space over QQ with coordinates [s0, s1, s2]
+with coordinates (4 : 0 : 2//3)
+
 ```
 """
 struct ProjectiveRationalPoint{S<:RingElem, T<:AbsRationalPointSet} <: AbsProjectiveRationalPoint{S, T}

@@ -29,10 +29,10 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveRationalPoint)
   io = pretty(io)
   println(io, "Projective rational point")
   print(io, Indent())
-  println(io, "of ", codomain(P))
+  println(io, "of ", codomain(P), Dedent())
   print(io, "with coordinates (")
   join(io, coordinates(P), " : ")
-  print(io, ")", Dedent())
+  print(io, ")")
 end
 
 function Base.show(io::IO, P::AbsProjectiveRationalPoint)

@@ -24,10 +24,10 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsAffineRationalPoint)
   io = pretty(io)
   println(io, "Rational point")
   print(io, Indent())
-  println(io, "of ", Lowercase(), ambient_scheme(P))
+  println(io, "of ", Lowercase(), ambient_scheme(P), Dedent())
   print(io, "with coordinates (")
   join(io, coordinates(P), ", ")
-  print(io, ")", Dedent())
+  print(io, ")")
 end
 
 function Base.show(io::IO, P::AbsAffineRationalPoint)
