@@ -158,6 +158,15 @@ function homogeneous_coordinates(X::AbsProjectiveScheme)
   return gens(homogeneous_coordinate_ring(X))
 end
 
+
+function weights(X::AbsProjectiveScheme)
+  S = homogeneous_coordinate_ring(ambient_space(X))
+  A = grading_group(S)
+  elementary_divisors(A)==[0] || error("not ZZ graded")
+  return [degree(i)[1] for i in gens(S)]
+end
+
+
 ##############################################################################
 # Converter to covered scheme
 ##############################################################################
