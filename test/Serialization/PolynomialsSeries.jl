@@ -27,10 +27,11 @@ cases = [
     (Fin, d, 1, "Finite Field"),
     (Qu, u, 1 // u, "RationalFunctionField"),
     (Frac, 1 // x, x^2, "Fraction Field"),
-    (T, T(1), T(3)^2, "Tropical Semiring")
+    (T, T(1), T(3)^2, "Tropical Semiring"),
+    (FF, FF(1), r, "Default Finite Field"),
 ]
     #(P7, 7 + 3*7^2, 7^5, "Padic Field"),
-    #(FF, FF(1), r, "Default Finite Field")  need an updated lift method from nemo
+
 
 
 function get_hom(R1::T, R2::T) where T <: Union{
@@ -51,12 +52,15 @@ end
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
     AbstractAlgebra.Generic.LaurentMPolyWrapRing{Hecke.NfRelElem{nf_elem}},
+    MPolyRing{FqFieldElem}, PolyRing{FqFieldElem},
+    AbstractAlgebra.Generic.LaurentMPolyWrapRing{FqFieldElem},
     AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{QQPolyRingElem}},
     AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.RationalFunctionField{QQFieldElem, QQPolyRingElem}}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     D_base_field = base_field(D)
     I_base_field = base_field(I)
+    println(D_base_field)
     h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
     return hom(D, I, h_1, gen(I))
 end
@@ -199,6 +203,7 @@ function test_equality(p::T, l::T) where T <: (
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,
         fqPolyRepFieldElem,
+        FqFieldElem,
         nf_elem})
     P = parent(p)
     L = parent(l)
@@ -212,7 +217,8 @@ function test_equality(p::T, l::T) where T <: (
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,
         fqPolyRepFieldElem,
-        nf_elem})
+        nf_elem,
+        FqFieldElem})
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -225,6 +231,7 @@ function test_equality(p::T, l::T) where T <: (
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,
         fqPolyRepFieldElem,
+        FqFieldElem,
         nf_elem})
     L = parent(l)
     P = parent(p)

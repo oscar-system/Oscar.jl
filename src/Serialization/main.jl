@@ -30,6 +30,7 @@ const oscarSerializationVersion = get_version_info()
 ################################################################################
 # (De|En)coding types
 #
+# parameters of type should not matter here
 const reverseTypeMap = Dict{String, Type}()
 
 function registerSerializationType(@nospecialize(T::Type), str::String)

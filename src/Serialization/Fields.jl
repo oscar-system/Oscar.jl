@@ -164,84 +164,55 @@ end
 # FqField
 @registerSerializationType(FqField, true)
 @registerSerializationType(FqFieldElem)
+type_needs_params(::Type{FqFieldElem}) = true
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 
-function save_internal(s::SerializerState, K::FqField)
+function save_object(s::SerializerState, K::FqField)
     if absolute_degree(K) == 1
-        return Dict(
-            :order => save_type_dispatch(s, order(K))
-        )
+        save_object(s, order(K))
+    else
+        data_dict(s) do
+            save_typed_object(s, defining_polynomial(K))
+        end
     end
-    return Dict(
-        :def_pol => save_type_dispatch(s, defining_polynomial(K))
-    )
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: FqField},
-                       dict::Dict)
-    if haskey(dict, :order)
-        order = load_type_dispatch(s, ZZRingElem, dict[:order])
-        return Hecke.Nemo._FiniteField(order)[1]
-    end
-    def_pol = load_unknown_type(s, dict[:def_pol])
+function load_object(s::DeserializerState, ::Type{<: FqField}, str::String)
+    order = ZZRingElem(str)
+    return Hecke.Nemo._FiniteField(order)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<: FqField}, dict::Dict)
+    def_pol = load_typed_object(s, dict)
     return Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
 end
 
 # elements
-function save_internal(s::SerializerState, k::FqFieldElem; include_parents::Bool=true)
+function save_object(s::SerializerState, k::FqFieldElem)
     K = parent(k)
     
     if absolute_degree(K) == 1
-        class_rep = string(lift(ZZ, k))
-
-        if include_parents
-            return Dict(
-                :parents => get_parent_refs(s, K),
-                :class_rep => class_rep
-            )
-        end
-        return class_rep
+        save_object(s, lift(ZZ, k))
+    else
+        poly_parent = parent(defining_polynomial(K))
+        parent_base_ring = base_ring(poly_parent)
+        # currently this lift won't work for the given types
+        # but is necessary for serialization
+        polynomial = lift(poly_parent, k)
+        save_object(s, polynomial)
     end
-
-    poly_parent = parent(defining_polynomial(K))
-    parent_base_ring = base_ring(poly_parent)
-    # currently this lift won't work for the given types
-    # but is necessary for serialization
-    polynomial = lift(poly_base_ring, k)
-    terms = save_internal(s, polynomial; include_parents=false)
-    
-    if include_parents
-        return Dict(
-        :parents => load_parent_refs
-        :terms => terms
-        )
-    end
-    return terms
 end
 
-# Field should already be loaded by this point
-function load_internal(s::DeserializerState,
-                       ::Type{<: FqFieldElem},
-                       dict::Dict)
-    loaded_parents = load_parents(s, dict[:parents])
-    return load_terms(s, loaded_parents, dict[:terms], loaded_parents[end])
+function load_object_with_params(s::DeserializerState, ::Type{<: FqFieldElem},
+                                 terms::Vector, parents::Vector)
+    K = parents[end]
+    return K(load_object_with_params(s, PolyRingElem, terms, parents[1:end - 1]))
 end
 
-function load_terms(s::DeserializerState, parents::Vector, terms::Vector,
-                    parent_ring::FqField)
-    loaded_terms = load_terms(s, parents[1:end - 1], terms, parents[end - 1])
-    return parent_ring(loaded_terms)
+function load_object_with_params(s::DeserializerState, ::Type{<: FqFieldElem},
+                                 str::String, parent::FqField)
+    return parent(ZZRingElem(str))
 end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: FqFieldElem},
-                                   str::String,
-                                   parent_field::FqField)
-    @assert absolute_degree(parent_field) == 1
-    return parent_field(ZZ(str))
-end
-
 
 ################################################################################
 # Non Simple Extension
@@ -388,32 +359,24 @@ end
 @registerSerializationType(ArbField)
 @registerSerializationType(arb)
 has_elem_basic_encoding(obj::ArbField) = true
+type_needs_params(::Type{arb}) = true
 
-function save_internal(s::SerializerState, RR::Nemo.ArbField)
-    return Dict(
-        :precision => save_type_dispatch(s, precision(RR))
-    )    
+function save_object(s::SerializerState, RR::Nemo.ArbField)
+    save_object(s, precision(RR))
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.ArbField}, dict::Dict)
-    prec = load_type_dispatch(s, Int64, dict[:precision])
+function load_object(s::DeserializerState, ::Type{Nemo.ArbField}, dict::Dict)
+    prec = parse(Int64, dict[:precision])
     return Nemo.ArbField(prec)
 end
 
 # elements
-function save_internal(s::SerializerState, r::arb; include_parents::Bool=true)
+function save_object(s::SerializerState, r::arb)
     c_str = ccall((:arb_dump_str, Nemo.Arb_jll.libarb), Ptr{UInt8}, (Ref{arb},), r)
-    arb_unsafe_str = unsafe_string(c_str)
-
+    save_object(s, unsafe_string(c_str))
+    
     # free memory
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
-    if include_parents
-        return Dict(
-            :parents => get_parent_refs(s, parent(r)),
-            :arb_str => arb_unsafe_str
-        )
-    end
-    return arb_unsafe_str
 end
 
 function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)

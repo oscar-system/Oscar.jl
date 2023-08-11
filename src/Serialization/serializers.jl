@@ -6,7 +6,7 @@ mutable struct SerializerState
     # dict to track already serialized objects
     objmap::IdDict{Any, UUID}
     new_level_entry::Bool
-    refs::Vector{Tuple{Symbol, Any}}
+    refs::Vector{Tuple{Symbol, Any}} # Any represents an object refs
     io::IO
     key::Union{Symbol, Nothing}
 end
@@ -59,7 +59,9 @@ function end_array_node(s::SerializerState)
 end
 
 struct DeserializerState
-    objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+    # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+    # Any here are object refs
+    objs::Dict{UUID, Any}  
     refs::Dict{Symbol, Any}
 end
 
