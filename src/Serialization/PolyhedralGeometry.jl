@@ -11,7 +11,7 @@ function bigobject_to_dict(bo::Polymake.BigObject)
 end
 
 function save_object(s::SerializerState, p::Polymake.BigObject)
-    data_json(s, bigobject_to_jsonstr(p))
+    save_json(s, bigobject_to_jsonstr(p))
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated}, dict::Dict)
@@ -52,19 +52,23 @@ function load_object_with_params(s::DeserializerState, T::Type{<:PolyhedralObjec
     return load_from_polymake(T{elem_type(field)}, dict)
 end
 ##############################################################################
-@registerSerializationType(LinearProgram{QQFieldElem})
+@registerSerializationType(LinearProgram)
 
-function save_internal(s::SerializerState, lp::LinearProgram)
+function save_object(s::SerializerState, lp::LinearProgram)
     lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-    save_type_dispatch(s, lp.feasible_region, :feasible_region)
-    save_type_dispatch(s, lp.convention, :convention)
-    save_type_dispatch(s, JSON.parse(jsonstr), :lpcoeffs)
+    data_dict(s) do 
+        save_object(s, lp.feasible_region, :feasible_region)
+        save_object(s, lp.convention, :convention)
+        save_json(s, jsonstr, :lpcoeffs)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dict) where T
-    fr = load_type_dispatch(s, Polyhedron{T}, dict[:feasible_region])
+function load_object_with_params(s::DeserializerState, ::Type{<:LinearProgram},
+                                 dict::Dict, field::Field)
+    coeff_type = elem_type(field)
+    fr = load_object_with_params(s, Polyhedron, dict[:feasible_region], field)
     conv = dict[:convention]
     lpcoeffs = Polymake.call_function(:common, :deserialize_json_string, json(dict[:lpcoeffs]))
     all = Polymake._lookup_multi(pm_object(fr), "LP")
@@ -76,13 +80,13 @@ function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dic
         end
     end
     lp = Polymake._lookup_multi(pm_object(fr), "LP", index-1)
-    return LinearProgram{T}(fr, lp, Symbol(conv))
+    return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
 end
 
 ##############################################################################
-@registerSerializationType(MixedIntegerLinearProgram{QQFieldElem})
+@registerSerializationType(MixedIntegerLinearProgram)
 
-function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
+function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
     milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
     int_vars = milp.polymake_milp.INTEGER_VARIABLES
     coeffs_serialized = Polymake.call_function(
@@ -91,15 +95,17 @@ function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
         Symbol("Core::Serializer"), :serialize, int_vars)
     coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
     int_vars_jsonstr = Polymake.call_function(:common, :encode_json, int_vars_serialized)
-
-    save_type_dispatch(s, milp.feasible_region, :feasible_region)
-    save_type_dispatch(s, milp.convention, :convention)
-    save_type_dispatch(s, JSON.parse(coeffs_jsonstr), :milp_coeffs)
-    save_type_dispatch(s, JSON.parse(int_vars_jsonstr), :int_vars)
+    data_dict(s) do
+        save_object(s, milp.feasible_region, :feasible_region)
+        save_object(s, milp.convention, :convention)
+        save_json(s, coeffs_jsonstr, :milp_coeffs)
+        save_json(s, int_vars_jsonstr, :int_vars)
+    end
 end
 
-function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}}, dict::Dict) where T
-    fr = load_type_dispatch(s, Polyhedron{T}, dict[:feasible_region])
+function load_object_with_params(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
+                                 dict::Dict, field::Field) 
+    fr = load_object_with_params(s, Polyhedron, dict[:feasible_region], field)
     conv = dict[:convention]
     milp_coeffs = Polymake.call_function(
         :common,
@@ -121,26 +127,13 @@ function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}
         end
     end
     lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
+    T = elem_type(field)
     return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv))
 end
 
 # use generic serialization for the other types:
 @registerSerializationType(Cone)
-
-
-
-@registerSerializationType(PolyhedralComplex{QQFieldElem})
-save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)
-load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralComplex = load_internal_generic(s, T, dict)
-
-@registerSerializationType(Polyhedron{QQFieldElem})
-save_internal(s::SerializerState, obj::Polyhedron) = save_internal_generic(s, obj)
-load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Polyhedron = load_internal_generic(s, T, dict)
-
-@registerSerializationType(PolyhedralFan{QQFieldElem})
-save_internal(s::SerializerState, obj::PolyhedralFan) = save_internal_generic(s, obj)
-load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralFan = load_internal_generic(s, T, dict)
-
-@registerSerializationType(SubdivisionOfPoints{QQFieldElem})
-save_internal(s::SerializerState, obj::SubdivisionOfPoints) = save_internal_generic(s, obj)
-load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: SubdivisionOfPoints = load_internal_generic(s, T, dict)
+@registerSerializationType(PolyhedralComplex)
+@registerSerializationType(Polyhedron)
+@registerSerializationType(PolyhedralFan)
+@registerSerializationType(SubdivisionOfPoints)

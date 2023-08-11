@@ -278,6 +278,15 @@ function save_object(s::SerializerState, x::Any, key::Symbol)
     save_object(s, x)
 end
 
+function save_json(s::SerializerState, x::Any)
+    data_json(s, x)
+end
+
+function save_json(s::SerializerState, x::Any, key::Symbol)
+    s.key = key
+    save_json(s, x)
+end
+
 function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
     s.key = key
     data_dict(s) do
