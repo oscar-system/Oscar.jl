@@ -2525,7 +2525,7 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
 end
 # function homogenization(I::MPolyIdeal{T}, var::VarName,; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
 #   # TODO: Adjust as soon as new GB concept is implemented
-#   return ideal(homogenization(gens(groebner_basis(I; ordering=ordering)), var, 1+ngens(base_ring(I))))
+#   return ideal(homogenization(gens(groebner_basis(I; ordering)), var, 1+ngens(base_ring(I))))
 # end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
