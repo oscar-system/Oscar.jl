@@ -1980,6 +1980,7 @@ julia> minimal_betti_table(free_resolution(A))
 2    : -  -  -  1
 ------------------
 total: 1  5  5  1
+
 ```
 """
 function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
