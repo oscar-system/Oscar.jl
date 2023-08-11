@@ -303,6 +303,7 @@ function save_object(s::SerializerState, R::Union{
   QQRelPowerSeriesRing,
   ZZRelPowerSeriesRing,
   fqPolyRepRelPowerSeriesRing,
+  FqRelPowerSeriesRing,
   zzModRelPowerSeriesRing})
   data_dict(s) do
     save_typed_object(s, base_ring(R), :base_ring)
@@ -316,6 +317,7 @@ function save_object(s::SerializerState, R::Union{
   Generic.AbsPowerSeriesRing,
   QQAbsPowerSeriesRing,
   ZZAbsPowerSeriesRing,
+  FqAbsPowerSeriesRing,
   fqPolyRepAbsPowerSeriesRing,
   zzModAbsPowerSeriesRing})
 

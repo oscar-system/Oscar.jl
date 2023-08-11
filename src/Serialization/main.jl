@@ -166,27 +166,29 @@ type_needs_params(::Type) where Type = false
 # High level
 
 function load_ref(s::DeserializerState, id::String)
-  if haskey(s.objs, UUID(id))
-    loaded_ref = s.objs[UUID(id)]
+  if haskey(global_serializer_state.id_to_obj, UUID(id))
+    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
   else
     ref_dict = s.refs[Symbol(id)]
     ref_dict[:id] = id
     loaded_ref = load_typed_object(s, ref_dict)
-    s.objs[UUID(id)] = loaded_ref
+    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
   end
   return loaded_ref
 end
 
 function save_as_ref(s::SerializerState, obj::T) where T
   # find ref or create one
-  ref = get(s.objmap, obj, nothing)
+  ref = get(global_serializer_state.obj_to_id, obj, nothing)
   if ref !== nothing
+    if !(ref in s.refs)
+      push!(s.refs, ref)
+    end
     return string(ref)
   end
-  
-  ref = s.objmap[obj] = uuid4()
-  push!(s.refs, (Symbol(ref), obj))
-
+  ref = global_serializer_state.obj_to_id[obj] = uuid4()
+  global_serializer_state.id_to_obj[ref] = obj
+  push!(s.refs, ref)
   return string(ref)
 end
 
@@ -523,8 +525,9 @@ function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
     # this should be handled by serializers in a later commit / PR
     state.key = :refs
     !isempty(state.refs) && data_dict(state) do
-      for (id, ref_obj) in state.refs
-        state.key = id
+      for id in state.refs
+        ref_obj = global_serializer_state.id_to_obj[id]
+        state.key = Symbol(id)
         data_dict(state) do
           save_typed_object(state, ref_obj)
         end

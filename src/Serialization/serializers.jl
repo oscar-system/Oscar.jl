@@ -1,18 +1,32 @@
 ################################################################################
 # (de)Serializer States
 
+# this struct is used to keep a global state of serialized objs during a session
+# and allows sessions to store related objects across files
+mutable struct GlobalSerializerState
+  obj_to_id::IdDict{Any, UUID}
+  id_to_obj::Dict{UUID, Any}
+end
+
+function GlobalSerializerState()
+  return GlobalSerializerState(IdDict{Any, UUID}(), Dict{UUID, Any}())
+end
+
+global global_serializer_state = GlobalSerializerState()
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
   # dict to track already serialized objects
-  objmap::IdDict{Any, UUID}
   new_level_entry::Bool
-  refs::Vector{Tuple{Symbol, Any}} # Any represents an object refs
+  # UUIDs that point to the objs in the global state,
+  # ideally this would be an ordered set
+  refs::Vector{UUID} 
   io::IO
   key::Union{Symbol, Nothing}
 end
 
 function SerializerState(io::IO)
-  return SerializerState(IdDict{Any, UUID}(), true, Tuple{Symbol, Any}[], io, nothing)
+  return SerializerState(true, UUID[], io, nothing)
 end
 
 function serialize_dict(f::Function, s::SerializerState)
@@ -60,13 +74,12 @@ end
 
 struct DeserializerState
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-  # Any here are object refs
-  objs::Dict{UUID, Any}  
-  refs::Dict{Symbol, Any}
+  # the values of refs are objects to be deserialized
+  refs::Dict{Symbol, Dict}
 end
 
 function DeserializerState()
-  return DeserializerState(Dict{UUID, Any}(), Dict{Symbol,Any}())
+  return DeserializerState(Dict{Symbol,Any}())
 end
 
 function finish_writing(s::SerializerState)
