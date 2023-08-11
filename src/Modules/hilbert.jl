@@ -56,7 +56,7 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
   P = base_ring(C.quo);
   # short-cut for module R^0 (to avoid problems with empty sum below)
   if iszero(r)
-    return multi_hilbert_series(quo(P,ideal(P,[1]))[1]; parent=HSRing, backend=backend)
+    return multi_hilbert_series(quo(P,ideal(P,[1]))[1]; parent=HSRing, backend=backend)[1][1]
   end
   GensLM = gens(LM);
   L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th cooord
@@ -89,7 +89,7 @@ end
 #   return HSNum_module(sub(F,gens(F))[1]; parent=parent)
 # end
 
-function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
@@ -122,6 +122,15 @@ function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = not
   denom = _hilbert_series_denominator(HSRing, W)
   numer = HSNum_module(SubM, HSRing, backend)
   return (numer, denom), (G, identity_map(G))
+end
+
+function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  return multi_hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
+end
+
+function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
+  return HS
 end
 
 function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
