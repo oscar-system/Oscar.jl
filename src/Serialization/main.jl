@@ -267,15 +267,6 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-# this function is necessary so we can have arrays with entries of different types
-function save_object(s::SerializerState, x::T) where T <: Tuple
-  data_array(s) do
-    for elem in x
-      save_object(s, elem)
-    end
-  end
-end
-
 function save_object(s::SerializerState, x::Any, key::Symbol)
   s.key = key
   save_object(s, x)

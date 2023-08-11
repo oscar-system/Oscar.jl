@@ -127,11 +127,14 @@ type_needs_params(::Type{<:PolyElemUniontype}) = true
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
   coeff_type = typeof(coeff(p, 1))
-  terms = Tuple{Vector{UInt}, coeff_type}[]
-  for i in 1:length(p)
-    push!(terms, (exponent_vector(p, i), coeff(p, i)))
+  data_array(s) do
+    for i in 1:length(p)
+      data_array(s) do 
+        save_object(s, map(string, exponent_vector(p, i)))
+        save_object(s, coeff(p, i))
+      end
+    end
   end
-  save_object(s, terms)
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
