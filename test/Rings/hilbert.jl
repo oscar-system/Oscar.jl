@@ -56,59 +56,60 @@
 
   I = ideal(P,G);
   PmodI, _ = quo(P,I);
-  HS = multi_hilbert_series(PmodI);
-  num = HS[1][1]
-  S = parent(num)
-  HS2 = multi_hilbert_series(PmodI, parent=S, backend=:Zach)
-  @test HS2[1][1] == num
+  (num1,_), (_,_) = multi_hilbert_series(PmodI);
+  S = parent(num1)
+  (num2,_), (_,_) = multi_hilbert_series(PmodI; parent=S, backend=:Zach);
+  @test num2 == num1
 
   P2, x = graded_polynomial_ring(QQ, 5, "x", [1 1 1 1 1])
-  G = P2.(G)
+  G = P2.(G);
 
   I = ideal(P2,G);
   PmodI, _ = quo(P2,I);
-  HS = hilbert_series(PmodI);
-  num = HS[1]
-  L, q = LaurentPolynomialRing(ZZ, "q")
-  HS2 = hilbert_series(PmodI, parent=L)
-  @test HS2[1] == evaluate(num, q)
+  num1, _ = hilbert_series(PmodI);
+  L, q = LaurentPolynomialRing(ZZ, "q");
+  num2, _ = hilbert_series(PmodI; parent=L);
+  @test num2 == evaluate(num1, q)
 end
 
 @testset "second round of Hilbert series" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-  J = ideal(R, [y-x^2, z-x^3])
-  I = homogenization(J, "w")
-  A, _ = quo(base_ring(I), I)
-  num, denom = hilbert_series(A)
-  S, t = LaurentPolynomialRing(ZZ, "t")
-  num2, denom2 = hilbert_series(A, parent=S)
-  Smult, (T,) = polynomial_ring(ZZ, ["t"])
-  num3, denom3 = hilbert_series(A, parent=Smult)
-  @test num3 == evaluate(num, T)
-  @test num2 == evaluate(num, t)
+  # Standard graded
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  J = ideal(R, [y-x^2, z-x^3]);
+  I = homogenization(J, "w");
+  A, _ = quo(base_ring(I), I);
+  numer1, denom1 = hilbert_series(A);
+  S, t = LaurentPolynomialRing(ZZ, "t");
+  numer2, denom2 = hilbert_series(A; parent=S);
+  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  numer3, denom3 = hilbert_series(A; parent=Smult);
+  @test numer3 == evaluate(numer1, T)
+  @test numer2 == evaluate(numer1, t)
 
+  # Negative grading
   RR, (X, Y) = graded_polynomial_ring(QQ, ["X", "Y"], [-1, -1])
-  JJ = ideal(RR, X^2 - Y^2)
-  A, _ = quo(base_ring(JJ), JJ)
-  (num, denom), _= multi_hilbert_series(A)
-  S, t = LaurentPolynomialRing(ZZ, "t")
-  (num2, denom2), _ = multi_hilbert_series(A, parent=S)
-  Smult, (T,) = polynomial_ring(ZZ, ["t"])
-  @test_throws  DomainError  multi_hilbert_series(A, parent=Smult)
+  JJ = ideal(RR, X^2 - Y^2);
+  A, _ = quo(base_ring(JJ), JJ);
+  (numer1, denom1), _ = multi_hilbert_series(A);
+  S, t = LaurentPolynomialRing(ZZ, "t");
+  (numer2, denom2), _ = multi_hilbert_series(A; parent=S);
+  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  @test_throws  DomainError  multi_hilbert_series(A; parent=Smult)
 
-  G = free_abelian_group(2)
-  G, _ = quo(G, [G[1]-3*G[2]])
-  RR, (X, Y) = graded_polynomial_ring(QQ, ["X", "Y"], [G[1], G[2]])
-  JJ = ideal(RR, X^2 - Y^6)
-  A, _ = quo(base_ring(JJ), JJ)
-  (num, denom), (H, iso) = multi_hilbert_series(A)
+  # Graded by commutative group
+  G = free_abelian_group(2);
+  G, _ = quo(G, [G[1]-3*G[2]]);
+  RR, (X, Y) = graded_polynomial_ring(QQ, ["X", "Y"], [G[1], G[2]]);
+  JJ = ideal(RR, X^2 - Y^6);
+  A, _ = quo(base_ring(JJ), JJ);
+  (numer1, denom1), (H, iso) = multi_hilbert_series(A);
   @test is_free(H) && isone(rank(H))
-  S, t = LaurentPolynomialRing(ZZ, "t")
-  (num2, denom2), (H, iso) = multi_hilbert_series(A, parent=S)
+  S, t = LaurentPolynomialRing(ZZ, "t");
+  (numer2, denom2), (H, iso) = multi_hilbert_series(A; parent=S);
   @test is_free(H) && isone(rank(H))
-  Smult, (T,) = polynomial_ring(ZZ, ["t"])
-  (num3, denom3), (H, iso) = multi_hilbert_series(A, parent=Smult)
+  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  (numer3, denom3), (H, iso) = multi_hilbert_series(A; parent=Smult);
   @test is_free(H) && isone(rank(H))
-  @test num == evaluate(num2, T)
-  @test num3 == evaluate(num2, first(gens(parent(num3))))
+  @test numer1 == evaluate(numer2, T)
+  @test numer3 == evaluate(numer2, first(gens(parent(numer3))))
 end
