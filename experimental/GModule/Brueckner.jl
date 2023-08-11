@@ -33,7 +33,7 @@ function reps(K, G::Oscar.GAPGroup)
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])
-    return [gmodule(F, G, typeof(h)[])]
+    return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
   pcgs = GAP.Globals.Pcgs(G.X)
@@ -395,27 +395,30 @@ function lift(C::GModule, mp::Map)
   #projection of G. They are not all surjective. However, lets try:
   k, mk = kernel(s)
   allG = []
-  z = get_attribute(C, :H_two)[1]
+  z = get_attribute(C, :H_two)[1]  #tail (H2) -> cochain
 
   seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
   #TODO: the projection maps seem to be rather slow - in particular
   #      as they SHOULD be trivial...
   for x = k
     epi = pDE[1](mk(x)) #the map
-    chn = pDE[2](mk(x)) #the tail data
-    if (epi,mH2(chn)) in seen
+    chn = mH2(pDE[2](mk(x))) #the tail data
+    if (epi,chn) in seen
       continue
     else
-      push!(seen, (epi, mH2(chn)))
+      push!(seen, (epi, chn))
     end
     #TODO: not all "chn" yield distinct groups - the factoring by the 
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c) (and the weird lemma)
-    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+
+
     @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
+    @assert is_surjective(GGpro)
     if get_assert_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
       @assert is_isomorphic(GG, _GG)
@@ -438,13 +441,15 @@ function lift(C::GModule, mp::Map)
       return d
     end
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
+#    @show map(order, l), order(prod(l))
+#    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = hom(G, GG, gens(G), [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)])
+    h = hom(G, GG, gens(G), l)
     if !is_surjective(h)
-      @show :darn
+#      @show :darn
       continue
     else
-      @show :bingo
+#      @show :bingo
     end
     push!(allG, h)
   end

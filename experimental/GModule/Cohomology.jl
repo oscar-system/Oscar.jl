@@ -1091,7 +1091,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   E = D
   all_T = []
   #need zero hom this is too slow
-  Z = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
+  Z = hom(D, M, [zero(M) for i=1:ngens(D)], check = false)
 
   @vprint :GroupCohomology 2 "building relations...\n"
   for i = 1:length(R)
@@ -1154,12 +1154,12 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
 
   if length(all_T) == 0
     Q = sub(M, elem_type(M)[])[1]
-    jinj = hom(M, Q, elem_type(Q)[Q[0] for m = gens(M)])
+    jinj = hom(M, Q, elem_type(Q)[zero(Q) for m = gens(M)])
   else
     Q, jinj = direct_product([M for i in all_T]..., task = :sum)
   end
   if length(all_T) == 0
-    mm = hom(D, Q, elem_type(Q)[Q[0] for i=1:ngens(D)], check = false)
+    mm = hom(D, Q, elem_type(Q)[zero(Q) for i=1:ngens(D)], check = false)
   else
     mm = sum(all_T[i]*jinj[i] for i = 1:length(all_T))
   end
@@ -1204,7 +1204,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     end
 
     if length(r[2]) == 0
-      S = hom(B, M, [M[0] for g = gens(B)], check = false)
+      S = hom(B, M, [zero(M) for g = gens(B)], check = false)
     elseif r[2][1] < 0
       S = -B_pro[-r[2][1]]*iac[-r[2][1]]
     else
@@ -1433,6 +1433,10 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   # the group generators (g_i, 0) 
   # r -> s gives a relation r s^-1 which should evaluate, using gamma
   # to (0, t) where t is the tail for this rule
+end
+
+function Base.iszero(x::AbstractAlgebra.Generic.ModuleHomomorphism)
+  return iszero(x.matrix)
 end
 
 function istwo_cocycle(c::CoChain{2})

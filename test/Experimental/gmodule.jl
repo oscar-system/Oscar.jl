@@ -24,6 +24,12 @@
 
   G = SL(2, 3)
   @test length(Oscar.RepPc.reps(abelian_closure(QQ)[1], G)) == 7
+  @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
+  @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3
+
+  G = fp_group(gens(G))[1]
+  q, mq = maximal_abelian_quotient(PcGroup, G)
+  @test length(Oscar.RepPc.brueckner(mq)) == 24
 end
 
 
