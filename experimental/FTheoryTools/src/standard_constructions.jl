@@ -160,7 +160,7 @@ julia> a10,a21,a32,a43,a65,w,x,y,z = gens(cox_ring(v));
 
 julia> I = ideal([x,y,w]);
 
-julia> v2 = blow_up(v,I)
+julia> v2 = domain(blow_up(v,I))
 Normal toric variety
 
 julia> cox_ring(v2)

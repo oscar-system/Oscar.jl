@@ -392,6 +392,15 @@ function set_ordering!(G::IdealGens, monord::MonomialOrdering)
   G.ord = monord
 end
 
+function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
+  singular_assure(B)
+  # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
+  isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  SR = singular_poly_ring(B.Ox, monorder)
+  f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
+  return Singular.map_ideal(f, B.gens.S)
+end
 
 @doc raw"""
 set_ordering(I::IdealGens, monord::MonomialOrdering) 
@@ -696,7 +705,7 @@ end
 
 function singular_assure(I::IdealGens)
   if !isdefined(I.gens, :S)
-    I.gens.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
+    I.gens.Sx = singular_poly_ring(I.Ox; keep_ordering = I.keep_ordering)
     I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
   end
   if I.isGB
@@ -704,10 +713,12 @@ function singular_assure(I::IdealGens)
   end
 end
 
+# will be removed TODO
 function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
    singular_assure(I.gens, ordering)
 end
 
+# will be removed TODO
 function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   if !isdefined(I.gens, :S)
       I.ord = ordering

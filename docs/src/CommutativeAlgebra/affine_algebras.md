@@ -99,6 +99,10 @@ grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
 ```@docs
+monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+```
+
+```@docs
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 ```
 
@@ -110,6 +114,10 @@ dim(A::MPolyQuoRing)
 
 ```@docs
 vector_space_dimension(A::MPolyQuoRing)
+```
+
+```@docs
+monomial_basis(A::MPolyQuoRing)
 ```
 
 ## Elements of Affine Algebras

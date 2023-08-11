@@ -575,6 +575,7 @@ export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
+export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export groebner_polyhedron
@@ -942,7 +943,7 @@ export moebius_mu
 export molien_series
 export monomial_ordering
 export monomials
-export monomials_of_degree
+export monomial_basis
 export mori_cone
 export morphism_from_cox_variety
 export morphism_of_projective_schemes
