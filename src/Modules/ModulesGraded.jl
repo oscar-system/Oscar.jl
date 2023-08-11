@@ -1955,32 +1955,30 @@ julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
 julia> R, (w, x, y, z) = grade(R)
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
-julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
-
-julia> R, (w, x, y, z) = grade(R);
-
 julia> I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
 ideal(w^2 - x*z, w*x - y*z, -w*y + x^2, x*y - z^2, -w*z + y^2)
 
-julia> betti_table(free_resolution(A))
-       0  1  2  3  
-------------------
-0    : 1  -  -  -  
-1    : -  5  5  1  
-2    : -  -  1  1  
-------------------
-total: 1  5  6  2  
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 5 generators, Map from
+R to A defined by a julia-function with inverse)
 
+julia> betti_table(free_resolution(A))
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  5  5  1
+2    : -  -  1  1
+------------------
+total: 1  5  6  2
 
 julia> minimal_betti_table(free_resolution(A))
-       0  1  2  3  
+       0  1  2  3
 ------------------
-0    : 1  -  -  -  
-1    : -  5  5  -  
-2    : -  -  -  1  
+0    : 1  -  -  -
+1    : -  5  5  -
+2    : -  -  -  1
 ------------------
-total: 1  5  5  1  
-
+total: 1  5  5  1
 
 ```
 """
