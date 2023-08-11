@@ -2746,3 +2746,78 @@ forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
 # TODO: This still seems to be not resolved!!!
 Generic.ordering(S::MPolyDecRing) = :degrevlex
+
+
+#############truncation#############
+
+@doc raw"""
+    truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+
+Given a (homogeneous) ideal `I` in a $\mathbb Z$-graded multivariate polynomial ring
+with positive weights, return the truncation of `I` at degree `g`.
+
+    truncate(I::MPolyIdeal, d::Int)
+
+Given an ideal `I` as above, and given an integer `d`, convert `d`
+into an element `g` of the grading group of `base_ring(I)` and proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> I = ideal(R, [x, y^4, z^6])
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 3)
+ideal(x*z^2, x*y*z, x*y^2, x^2*z, x^2*y, x^3, y^4, z^6)
+```
+
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [3,2,1]);
+
+julia> I = ideal(R, [x, y^4, z^6])
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 3)
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 4)
+ideal(x*z, z^6, y^4)
+```
+"""
+function truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+  return truncate(I, Int(g[1]))
+end
+
+function  truncate(I::MPolyIdeal, d::Int)
+  R = base_ring(I)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_z_graded(R) "The base ring must be ZZ-graded"
+  W = R.d
+  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  @req minimum(W) > 0 "The weights must be positive"
+  if is_zero(I)
+     return I
+  end
+  dmin = minimum(degree(Int, x) for x in gens(I))
+  if  d <= dmin
+     return I
+  end
+  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  RES = elem_type(R)[]
+  s = dmin
+  B = monomial_basis(R, d-s)
+  for i = 1:length(V)
+       if degree(Int, V[i]) < d
+          if degree(Int, V[i]) > s
+             s = degree(Int, V[i])
+	     B = monomial_basis(R, d-s)
+	  end
+	     append!(RES, B .*V[i])
+       else
+           push!(RES, V[i])
+       end
+  end
+  return ideal(R, RES)
+end
+

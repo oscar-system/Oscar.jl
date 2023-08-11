@@ -4260,13 +4260,8 @@ julia> B = R[x^2; y^3; z^4];
 
 julia> M = SubquoModule(A, B);
 
-julia> P = presentation(M);
-
-julia> rank(P[1])
-5
-
-julia> rank(P[0])
-2
+julia> P = presentation(M)
+0 <---- M <---- R^2 <---- R^5
 ```
 
 ```jldoctest

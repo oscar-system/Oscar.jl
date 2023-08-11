@@ -137,6 +137,12 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
 ```
 
+### Truncation
+
+```@docs
+truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+```
+
 ## Tests on Ideals
 
 ### Basic Tests
