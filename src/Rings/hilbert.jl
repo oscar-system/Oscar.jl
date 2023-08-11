@@ -1044,8 +1044,9 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   for i = 1:n
     # adjoin factor ( 1 - prod(t_j^W[i,j]) )
     new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m]);
+    # ???BUG??? DOES NOT WORK if HSRing is Univariate poly ring over ZZ
     # B = MPolyBuildCtx(HSRing)
-    # push_term!(B, 1, W[i])  # ???BUG??? DOES NOT WORK if HSRing is Univariate poly ring over ZZ
+    # push_term!(B, 1, W[i])
     # new_fac = 1-finish(B)
     if haskey(fac_dict, new_fac)
       fac_dict[new_fac] += 1  # coalesce identical factors
