@@ -1341,6 +1341,7 @@ export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_points
 export tropical_polynomial
 export tropical_variety
+export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
