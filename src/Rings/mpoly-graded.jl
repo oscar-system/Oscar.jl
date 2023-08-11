@@ -420,7 +420,7 @@ function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
   if get(io, :compact, false)
     print(io, a.coeff)
   else
-    print(io, "graded by $(a.coeff)")
+    print(io, "$(a.coeff)")
   end
 end
 
@@ -851,7 +851,7 @@ julia> f = x[1]^4*x[2]+x[4]
 x[1]^4*x[2] + x[4]
 
 julia> degree(f)
-graded by [4 1]
+[4 1]
 
 julia> degree(Vector{Int}, f)
 2-element Vector{Int64}:
@@ -865,7 +865,7 @@ julia> f = x^6+y^3+z^2
 x^6 + y^3 + z^2
 
 julia> degree(f)
-graded by [6]
+[6]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1276,7 +1276,7 @@ GrpAb: Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree graded by [1 1]
+homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
 
 julia> FG = gens(L[1]);
 

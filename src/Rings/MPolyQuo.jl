@@ -1167,7 +1167,7 @@ julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
 julia> degree(f)
-graded by [4]
+[4]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
