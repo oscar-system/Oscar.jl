@@ -1944,10 +1944,9 @@ function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
   return minimal_betti_table(free_resolution(I))
 end
 
-@doc raw"""
-    minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
-
-The Betti table of a minimized version of `res` without actually computing a minimalization.
+#=
+ The examples below don't run because of a bug in the documenter. 
+ We can put them back in, once that works.
 
 # Examples
 ```jldoctest
@@ -1984,6 +1983,12 @@ total: 1  5  5  1
 
 
 ```
+"""
+=#
+@doc raw"""
+    minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+
+The Betti table of a minimized version of `res` without actually computing a minimalization.
 """
 function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
