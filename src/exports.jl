@@ -6,6 +6,7 @@ export @permutation_group
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
+export AbsAffineRationalPoint
 export AbsAffineCurve
 export AbsAffineVariety
 export AbsCoveredCurve
@@ -1305,6 +1306,7 @@ export symplectic_components
 export symplectic_group
 export syz
 export syzygy_generators
+export tangent_space
 export tail
 export tensor_product
 export terms
