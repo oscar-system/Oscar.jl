@@ -20,6 +20,15 @@ This section describes differences between GAP and Oscar.
     and one assigns a value to a variable with `:=`.
     In Julia, equality is checked with `==`,
     and `=` denotes assignment.
+    Similarly, inequality of objects is checked with `<>` in GAP
+    and with `!=` in Julia.
+
+  - In GAP, the operator `not` is used to negate boolean expressions,
+    whereas `!` is used in Julia.
+
+  - In GAP, object identity is checked with the function `IsIdenticalObj`,
+    whereas the infix operator `===` (with negation `!==`)
+    is used in Julia.
 
   - In GAP, `if` statements have the form
     ```

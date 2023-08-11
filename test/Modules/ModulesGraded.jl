@@ -541,7 +541,7 @@ end
     M = SubquoModule(F, A, B)
     free_res1 = free_resolution(M, length=1)
     free_res1a = free_resolution(M)
-    free_res2 = free_resolution(M, algorithm=:sres)
+    free_res2 = free_resolution(M)
     free_res3 = free_resolution_via_kernels(M)
     @test first(chain_range(free_res1)) == 1
     @test first(chain_range(free_res1a)) == 4
@@ -587,7 +587,7 @@ end
     M = quo(F, V1)[1]
     free_res0 = free_resolution(M)
     @test is_graded(free_res0)
-    @test_broken all(iszero, homology(free_res0.C))
+    @test all(iszero, homology(free_res0.C))
     free_res0a = free_resolution_via_kernels(M)
     @test is_graded(free_res0a)
     @test all(iszero, homology(free_res0a.C))
@@ -599,10 +599,7 @@ end
     # Free resolution via Singular gives wrong result 
     free_res1 = free_resolution(M)
     @test is_graded(free_res1)
-    @test_broken all(iszero, homology(free_res1.C))
-    free_res2 = free_resolution(M, algorithm=:sres)
-    @test is_graded(free_res2)
-    @test_broken all(iszero, homology(free_res2.C))
+    @test all(iszero, homology(free_res1.C))
     free_res3 = free_resolution_via_kernels(M)
     @test is_graded(free_res3)
     B = betti(free_res3)

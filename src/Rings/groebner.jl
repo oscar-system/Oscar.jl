@@ -365,7 +365,9 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
-3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+3 -> 6*x^3 - 27*x
+with associated ordering
+degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -1440,7 +1442,6 @@ function _is_homogeneous(f::MPolyRingElem)
   end
   return true
 end
-  
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
 function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
@@ -1479,4 +1480,136 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   ret = (x -> div(x, gcd(ret))).(ret) 
   # assure that the weights fit in Int32 for singular
   return all(ret .< 2^32) ? ret : zeros(Int,ncols)
+end
+
+# modular gröbner basis techniques using Singular
+@doc raw"""
+groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                           certify::Bool = false)
+
+Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
+multi-modular strategy.
+
+!!! note
+    This function is probabilistic and returns a correct result
+    only with high probability.
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
+
+julia> I = ideal(R, [x^2+1209, x*y + 3279*y^2])
+ideal(x^2 + 1209, x*y + 3279*y^2)
+
+julia> groebner_basis_modular(I)
+Gröbner basis with elements
+1 -> y^3 + 403//3583947*y
+2 -> x^2 + 1209
+3 -> x*y + 3279*y^2
+with respect to the ordering
+degrevlex([x, y, z])
+```
+"""
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                                certify::Bool = false)
+
+  # small function to get a canonically sorted reduced gb
+  sorted_gb = idl -> begin
+    R = base_ring(idl)
+    gb = gens(groebner_basis(idl, ordering = ordering,
+                             complete_reduction = true))
+    sort!(gb, by = p -> leading_monomial(p),
+          lt = (m1, m2) -> cmp(MonomialOrdering(R, ordering.o), m1, m2) > 0)
+  end
+  
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
+  end
+
+  primes = Hecke.PrimesSet(rand(2^15:2^16), -1)
+
+  p = iterate(primes)[1]
+  Qt = base_ring(I)
+  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+
+  Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+  std_basis_crt_previous = std_basis_mod_p_lifted
+
+  n_stable_primes = 0
+  d = fmpz(p)
+  unlucky_primes_in_a_row = 0
+  done = false
+  while !done
+    while n_stable_primes < 2
+      p = iterate(primes, p)[1]
+      Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+
+      # test for unlucky prime
+      if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
+             enumerate(std_basis_mod_p_lifted))
+        unlucky_primes_in_a_row += 1
+        # if we get unlucky twice in a row we assume that
+        # we started with an unlucky prime
+        if unlucky_primes_in_a_row == 2
+          std_basis_crt_previous = std_basis_mod_p_lifted
+        end
+        continue
+      end
+      unlucky_primes_in_a_row = 0
+      
+      is_stable = true
+      for (i, f) in enumerate(std_basis_mod_p_lifted)
+        if !iszero(f - std_basis_crt_previous[i])
+          std_basis_crt_previous[i], _ = induce_crt(std_basis_crt_previous[i], d, f, fmpz(p), true)
+          stable = false
+        end
+      end
+      if is_stable
+        n_stable_primes += 1
+      end
+      d *= fmpz(p)
+    end
+    final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I)) for f in std_basis_crt_previous]
+
+    I.gb[ordering] = IdealGens(final_gb, ordering)
+    if certify
+      done = _certify_modular_groebner_basis(I, ordering)
+    else
+      done = true
+    end
+  end
+  I.gb[ordering].isGB = true
+  return I.gb[ordering]
+end
+
+function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
+  g = MPolyBuildCtx(parent)
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    fl, r, s = Hecke.rational_reconstruction(c, d)
+    fl ? push_term!(g, r//s, v) : push_term!(g, c, v)
+  end
+  return finish(g)
+end
+
+function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+  @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
+  ctr = 0
+  singular_generators(I.gb[ordering])
+  SR = I.gb[ordering].gens.Sx
+  SG = I.gb[ordering].gens.S
+
+  #= test if I is included in <G> =#
+  for f in I.gens
+    if Singular.reduce(SR(f), SG) != 0
+      break
+    end
+    ctr += 1
+  end
+  if ctr != ngens(I)
+    return false
+  end
+
+  #= test if G is a standard basis of <G> w.r.t. ordering =#
+  return is_standard_basis(I.gb[ordering], ordering=ordering)
 end

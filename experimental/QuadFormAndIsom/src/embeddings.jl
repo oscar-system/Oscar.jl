@@ -374,7 +374,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # wanted)
   act_GV_Vp = FpMatrix[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
   act_GV_Qp = FpMatrix[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV_Vp]
-  MGp = matrix_group(dim(Qp), base_ring(Qp), act_GV_Qp)
+  MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV_Qp)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV_Qp); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
 
@@ -1131,7 +1131,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     # If not, we try the next potential pair.
     fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
     @hassert :ZZLatWithIsom 1 fSAinOSB in OSBrB  # Same as before, since phi is admissible, then the image of fSA should preserve rho_{l+1}(B)
-    bool, g0 = representative_action(OSBrB, OSBrB(fSAinOSB), fSB)
+    bool, g0 = is_conjugate_with_data(OSBrB, OSBrB(fSAinOSB), fSB)
     bool || continue
 
     # The new phi is "sending" the restriction of fA to this of fB

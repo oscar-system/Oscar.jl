@@ -177,7 +177,7 @@ end
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
     @test is_complete(free_res) == true
-	free_res = free_resolution(M, algorithm=:sres)
+	free_res = free_resolution(M)
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))

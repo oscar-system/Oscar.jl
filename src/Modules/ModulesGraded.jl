@@ -1361,6 +1361,9 @@ function Base.show(io::IO, b::BettiTable)
         print(io, j, " "^(spaces - ndigits(j) + 1))
       end
       print(io, "\n")
+      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
+      print(io, "-" ^ divider_width)    
+      print(io, "\n")
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
@@ -1374,7 +1377,6 @@ function Base.show(io::IO, b::BettiTable)
         end
         print(io,"\n")
       end
-      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
       print(io, "-" ^ divider_width)
       print(io, "\n", "total: ")
       for i_total in min:step:max

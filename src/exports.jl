@@ -424,6 +424,7 @@ export dehomogenization_map
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
+export demazure_character
 export denest
 export denominator
 export denominators
@@ -546,6 +547,7 @@ export gen
 export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
+export generating_system
 export generator_matrix
 export generic_fraction
 export generic_fractions
@@ -573,6 +575,7 @@ export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
+export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export groebner_polyhedron
@@ -707,6 +710,7 @@ export is_complete
 export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
+export is_conjugate_with_data
 export is_connected
 export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
@@ -939,6 +943,7 @@ export moebius_mu
 export molien_series
 export monomial_ordering
 export monomials
+export monomial_basis
 export mori_cone
 export morphism_from_cox_variety
 export morphism_of_projective_schemes
@@ -1003,6 +1008,8 @@ export normal_subgroups, has_normal_subgroups, set_normal_subgroups
 export normal_toric_varieties_from_glsm
 export normal_toric_varieties_from_star_triangulations
 export normal_toric_variety
+export normal_toric_variety_from_glsm
+export normal_toric_variety_from_star_triangulation
 export normal_vector
 export normalization
 export normalization_with_delta
@@ -1170,7 +1177,6 @@ export rem_vertex!
 export renest
 export repres
 export representative
-export representative_action
 export represents_element
 export restrict
 export restrict_automorphism
@@ -1224,6 +1230,7 @@ export set_coordinate_names
 export set_coordinate_names_of_torus
 export set_grading
 export set_name!
+export set_ordering
 export set_power!
 export set_relative_order!
 export set_relative_orders!

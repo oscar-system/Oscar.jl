@@ -26,7 +26,7 @@ end
 @doc raw"""
     grading_group(R::MPolyDecRing)
 
-If `R` is, say, `G`-graded, return `G`.
+If `R` is, say, `G`-graded, then return `G`.
 
 # Examples
 ```jldoctest
@@ -1157,26 +1157,104 @@ function show_homo_comp(io::IO, M)
 end
 
 @doc raw"""
+    monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+
+Given a polynomial ring `R` over a field which is graded by a free
+group of type `GrpAbFinGen`, and given an element `g` of that group,
+return the monomials of degree `g` in `R`.
+
+    monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `R` and proceed as above.
+
+    monomial_basis(R::MPolyDecRing, d::IntegerUnion)
+
+Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
+an integer `d`, convert `d` into an element `g` of the grading
+group of `R` and proceed as above.
+
+!!! note
+    If the component of the given degree is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> G = grading_group(T)
+GrpAb: Z
+
+julia> L = monomial_basis(T, 2)
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ z^2
+ y*z
+ y^2
+ x*z
+ x*y
+ x^2
+```
+"""
+function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
+  #TODO: lazy: ie. no enumeration of points
+  #      apparently it is possible to get the number of points faster than the points
+  #TODO: in the presence of torsion, this is wrong. The component
+  #      would be a module over the deg-0-sub ring.
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  D = W.D
+  is_free(D) || error("Grading group must be free")
+  h = hom(free_abelian_group(ngens(W)), W.d)
+  fl, p = haspreimage(h, d)
+  R = base_ring(W)
+  B = elem_type(W)[]
+  if fl
+     k, im = kernel(h)
+     #need the positive elements in there...
+     #Ax = b, Cx >= 0
+     C = identity_matrix(FlintZZ, ngens(W))
+     A = vcat([x.coeff for x = W.d])
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
+     for ee = 1:nrows(k)
+       e = k[ee, :]
+       a = MPolyBuildCtx(forget_decoration(W))
+       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
+       push!(B, W(finish(a)))
+     end
+  end
+  return B
+end
+
+
+function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(R)
+  return monomial_basis(R, grading_group(R)(g))
+end
+
+function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
+  @assert is_z_graded(R)
+  return monomial_basis(R, grading_group(R)([g]))
+end
+
+@doc raw"""
     homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g`. Additionally, return
-the embedding of the component into `R`.
+return the homogeneous component of `R` of degree `g` as a standard
+vector space. Additionally, return the map which sends an element
+of that vector space to the corresponding monomial in `R`.
 
-    homogeneous_component(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+    homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field, and given
-a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `R`, and return the homogeneous component of `R` whose degree 
-is that element. Additionally, return the embedding of the component into `R`.
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `R` and proceed as above.
 
-    homogeneous_component(R::MPolyDecRing, g::IntegerUnion)
+    homogeneous_component(R::MPolyDecRing, d::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring `R` over a field, and given
-an integer `g`, convert `g` into an element of the grading group of `R`, 
-and return the homogeneous component of `R` whose degree is that element.
-Additionally, return the embedding of the component into `R`.
+an integer `d`, convert `d` into an element `g` of the grading group of `R`
+proceed as above.
 
 !!! note
     If the component is not finite dimensional, an error message will be thrown.
@@ -1213,28 +1291,6 @@ x[2]*y[1]
 x[1]*y[3]
 x[1]*y[2]
 x[1]*y[1]
-
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
-
-julia> G = grading_group(T)
-GrpAb: Z
-
-julia> L = homogeneous_component(T, 2)
-(T_[2] of dim 6, Map from
-T_[2] of dim 6 to T defined by a julia-function with inverse)
-
-julia> FG = gens(L[1]);
-
-julia> EMB = L[2];
-
-julia> for i in 1:length(FG) println(EMB(FG[i])) end
-z^2
-y*z
-y^2
-x*z
-x*y
-x^2
 ```
 """
 function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
@@ -1242,27 +1298,8 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  D = W.D
-  is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
-  fl, p = haspreimage(h, d)
   R = base_ring(W)
-  B = elem_type(W)[]
-  if fl
-     k, im = kernel(h)
-     #need the positive elements in there...
-     #Ax = b, Cx >= 0
-     C = identity_matrix(FlintZZ, ngens(W))
-     A = vcat([x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
-     for ee = 1:nrows(k)
-       e = k[ee, :]
-       a = MPolyBuildCtx(forget_decoration(W))
-       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-       push!(B, W(finish(a)))
-     end
-  end
+  B = monomial_basis(W, d)
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
@@ -1333,7 +1370,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     return v
   end
-  h = MapFromFunc(F, R, x -> sum(x[i] * b[i] for i in 1:length(b); init = zero(R)), g)
+  h = MapFromFunc(F, R, x -> sum([x[i] * b[i] for i in 1:length(b) if !is_zero_entry(x.v, 1, i)]; init = zero(R)), g)
 
   return F, h
 end
@@ -1383,7 +1420,7 @@ mutable struct HilbertData
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
     R = base_ring(I)
-    @req is_graded(R) "The base ring must be graded"
+    @req is_z_graded(R) "The base ring must be ZZ-graded"
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
@@ -1468,6 +1505,19 @@ function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
   return _rational_function_to_power_series(P, numerator(f), denominator(f))
 end
 
+@doc raw"""
+    expand(f::Frac{QQPolyRingElem}, d::Int) -> RelPowerSeries
+
+Given a rational function $f$ over the rationals, expand $f$ as a power series
+up to terms of degree $d$.
+
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> expand(1//(1 - x^2), 5)
+1 + t^2 + t^4 + O(t^6)
+```
+"""
 function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
   T, t = power_series_ring(QQ, d+1, "t")   
   return _rational_function_to_power_series(T, f)
