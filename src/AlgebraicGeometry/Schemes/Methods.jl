@@ -6,7 +6,7 @@ we compute ``X' = X ×ₖ Spec(R)`` and return a pair `(X', f)` where
 ``f : X' → X`` is the canonical morphism.
 
 !!! note
-    We do not restrict `phi` to be a `Map` so that one can also use coercion, anonymous functions, etc. 
+    We do not restrict `phi` to be of type `Map` so that one can also use coercion, anonymous functions, etc. 
 """
 function base_change(phi::Any, X::Scheme)
   error("base_change not implemented for input of type $(typeof(X))")
