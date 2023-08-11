@@ -1958,6 +1958,7 @@ julia> F = graded_free_module(R, 1)
 Graded free module R^1([0]) of rank 1 over R
 
 julia> V = [x*F[1]; y^4*F[1]; z^5*F[1]];
+
 julia> M, _ = quo(F, V);
 
 julia> M[1]
