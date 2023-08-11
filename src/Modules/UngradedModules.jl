@@ -4242,7 +4242,9 @@ function presentation(F::FreeMod)
     Z = FreeMod(F.R, 0)
   end
   set_attribute!(Z, :name => "0")
-  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  set_attribute!(M, :show => Hecke.pres_show)
+  return M
 end
 
 @doc raw"""
@@ -4260,13 +4262,8 @@ julia> B = R[x^2; y^3; z^4];
 
 julia> M = SubquoModule(A, B);
 
-julia> P = presentation(M);
-
-julia> rank(P[1])
-5
-
-julia> rank(P[0])
-2
+julia> P = presentation(M)
+0 <---- M <---- R^2 <---- R^5
 ```
 
 ```jldoctest
@@ -4279,7 +4276,7 @@ julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
 julia> F = graded_free_module(Rg, [1,2,2]);
 
 julia> p = presentation(F)
-p_-2 <---- p_-1 <---- p_0 <---- p_1
+0 <---- F <---- F <---- 0
 
 julia> p[-2]
 Graded free module Rg^0 of rank 0 over Rg
@@ -6147,6 +6144,74 @@ function map(FR::FreeResolution, i::Int)
   return map(FR.C, i)
 end
 
+function free_show(io::IO, C::ComplexOfMorphisms)
+  Cn = get_attribute(C, :name)
+  if Cn === nothing
+    Cn = "F"
+  end
+
+  name_mod = String[]
+  rank_mod = Int[]
+
+  rng = range(C)
+  rng = first(rng):-1:0
+  arr = ("<--", "--")
+
+  R = Nemo.base_ring(C[first(rng)])
+  R_name = get_attribute(R, :name)
+  if R_name === nothing
+    R_name = AbstractAlgebra.find_name(R)
+    if R_name === nothing
+      R_name = "$R"
+    end
+  end
+ 
+  for i=reverse(rng)
+    M = C[i]
+    if get_attribute(M, :name) !== nothing
+      push!(name_mod, get_attribute(M, :name))
+    elseif AbstractAlgebra.find_name(M) !== nothing
+      push!(name_mod, AbstractAlgebra.find_name(M) )
+    else
+      push!(name_mod, "$R_name^$(rank(M))")
+    end
+    push!(rank_mod, rank(M))
+  end
+
+  io = IOContext(io, :compact => true)
+  N = get_attribute(C, :free_res)
+  if N !== nothing
+    print(io, "Free resolution")
+    print(io, " of ", N)
+  end
+  print(io, "\n")
+
+  pos = 0
+  pos_mod = Int[]
+  
+  for i=1:length(name_mod)
+    print(io, name_mod[i])
+    push!(pos_mod, pos)
+    pos += length(name_mod[i])
+    if i < length(name_mod)
+      print(io, " ", arr[1], arr[2], " ")
+      pos += length(arr[1]) + length(arr[2]) + 2
+    end
+  end
+
+  print(io, "\n")
+  len = 0
+  for i=1:length(name_mod)
+    if i>1
+      print(io, " "^(pos_mod[i] - pos_mod[i-1]-len))
+    end
+    print(io, reverse(rng)[i])
+    len = length("$(reverse(rng)[i])")
+  end
+#  print(io, "\n")
+end
+
+
 @doc raw"""
     free_resolution(F::FreeMod)
 
@@ -6156,7 +6221,7 @@ Return a free resolution of `F`.
 """
 function free_resolution(F::FreeMod)
   res = presentation(F)
-  set_attribute!(res, :show => Hecke.free_show, :free_res => F)
+  set_attribute!(res, :show => free_show, :free_res => F)
   return FreeResolution(res)
 end
 
@@ -6191,19 +6256,17 @@ by Submodule with 4 generators
 4 -> z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
-
-rank   | 2  6
--------|------
-degree | 0  1
+Free resolution of M
+R^2 <---- R^6
+0         1
 
 julia> is_complete(fr)
 false
 
 julia> fr = free_resolution(M)
-
-rank   | 2  6  6  2  0
--------|---------------
-degree | 0  1  2  3  4
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 
 julia> is_complete(fr)
 true
@@ -6336,10 +6399,9 @@ by Submodule with 4 generators
 4 -> z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
-
-rank   | 2  6
--------|------
-degree | 0  1
+Free resolution of M
+R^2 <---- R^6
+0         1
 
 julia> is_complete(fr)
 false
@@ -6348,19 +6410,15 @@ julia> fr[4]
 Free module of rank 0 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> fr
-
-rank   | 2  6  6  2  0
--------|---------------
-degree | 0  1  2  3  4
+C_-2 <---- C_-1 <---- C_0 <---- C_1 <---- C_2 <---- C_3 <---- C_4
 
 julia> is_complete(fr)
 true
 
 julia> fr = free_resolution(M, algorithm=:fres)
-
-rank   | 2  6  6  2  0
--------|---------------
-degree | 0  1  2  3  4
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 ```
 
 **Note:** Over rings other than polynomial rings, the method will default to a lazy, 
@@ -6470,7 +6528,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
-  set_attribute!(cc, :show => Hecke.free_show)
+  set_attribute!(cc, :show => free_show, :free_res => M)
 
   return FreeResolution(cc)
 end
@@ -6546,7 +6604,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     insert!(mp, 1, g)
   end
   C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
-  #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
+  #set_attribute!(C, :show => free_show, :free_res => M) # doesn't work
   return FreeResolution(C)
 end
 
