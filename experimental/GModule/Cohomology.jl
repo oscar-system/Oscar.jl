@@ -269,7 +269,7 @@ The induced module is returned as a product of copies of C. it also returns
 homomorphism. I this case a Z[G] linear map to the induced module
 is returned.
 """
-function induce(C::GModule, h::Map, D = nothing, mDC = nothing)
+function induce(C::GModule{<:Oscar.GAPGroup, GrpAbFinGen}, h::Map, D = nothing, mDC = nothing)
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
@@ -376,7 +376,7 @@ Oscar.direct_sum(C::GModule...; task::Symbol = :none) = Oscar.direct_product(C..
 import Hecke.⊕
 ⊕(C::GModule...) = Oscar.direct_sum(C...; task = :none)
 
-function Oscar.tensor_product(C::GModule{<:Any, GrpAbFinGenElem}...; task::Symbol = :map)
+function Oscar.tensor_product(C::GModule{<:Any, GrpAbFinGen}...; task::Symbol = :map)
   @assert all(x->x.G == C[1].G, C)
 
   T, mT = Oscar.tensor_product([x.M for x = C]...; task = :map)

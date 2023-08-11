@@ -32,7 +32,6 @@
   @test length(Oscar.RepPc.brueckner(mq)) == 24
 end
 
-
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
@@ -106,4 +105,27 @@ end
   SS = Oscar.GModuleFromGap.gmodule_over(m2, gmodule(K, S))
 
   @test degree(base_ring(SS)) == 2
+end
+
+@testset "Various"
+  @test length(all_extensions(abelian_group(2), cyclic_group(PermGroup, 2))) == 2
+  k, a = cyclotomic_field(5)
+  zk = maximal_order(k)
+
+  U, mU = Oscar.GaloisCohomology_Mod.units_mod_ideal(5*zk)
+  A, mA = automorphism_group(PermGroup, k)
+
+  C = gmodule(A, mU)
+  U, mU = unit_group_fac_elem(zk)
+  C = gmodule(A, mU)
+  C = C ⊗ C
+  @test elementary_divisors(C.M) == ZZRingElem[10, 10, 10, 0]
+
+  C = C ⊕ C
+  C = gmodule(GF(5), C)
+  i = indecomposition(C)
+  @test length(i) == 8
+
+  C, _ = Oscar.GModuleFromGap.ghom(C, C)
+  @test dim(C[1]) == 4
 end
