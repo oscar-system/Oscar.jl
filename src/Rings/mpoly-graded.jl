@@ -420,7 +420,7 @@ function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
   if get(io, :compact, false)
     print(io, a.coeff)
   else
-    print(io, "graded by $(a.coeff)")
+    print(io, "$(a.coeff)")
   end
 end
 
