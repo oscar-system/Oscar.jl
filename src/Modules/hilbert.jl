@@ -10,44 +10,6 @@ function _power_product(T, expv)
 end
 
 
-@doc raw"""
-    hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
-
-Compute a pair `(N,D)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
-series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
-
-!!! note
-    Applied to a homogeneous subquotient `M`, the function first computes a Groebner basis to
-    obtain the leading term module; the rest of the computation uses this latter module
-    (sliced into ideals, one for each ambient free module component).
-
-# Examples
-```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
-
-julia> F = graded_free_module(Rg, 1);
-
-julia> A = Rg[x; y];
-
-julia> B = Rg[x^2; y^3; z^4];
-
-julia> M = SubquoModule(F, A, B);
-
-julia> (num,den),_ = hilbert_series(M);
-
-julia> num
--t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t
-
-julia> den
-Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 3)
-
-```
-"""
 function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbott)  where T <: MPolyRingElem
   C,phi = present_as_cokernel(SubM, :with_morphism);  # phi is the morphism
   LM = leading_module(C.quo);
@@ -89,6 +51,46 @@ end
 #   return HSNum_module(sub(F,gens(F))[1]; parent=parent)
 # end
 
+@doc raw"""
+    multi_hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+
+Compute a pair of pairs `(N,D),(H,iso)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
+series of the subquotient `M`, and `H` is the SNF of the grading group together with the identifying isomorphism `iso`.
+If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
+
+!!! note
+    CURRENT LIMITATION: the grading must be over ZZ^m (more general gradings are not yet supported)
+
+!!! note
+    Applied to a homogeneous subquotient `M`, the function first computes a Groebner basis to
+    obtain the leading term module; the rest of the computation uses this latter module
+    (sliced into ideals, one for each ambient free module component).
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Rg, (x, y, z) = grade(R, [4,3,2]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> (num,den),_ = multi_hilbert_series(M);
+
+julia> num
+-t^25 + 2*t^17 + t^16 + t^15 - t^12 - t^11 - t^9 - t^8 - t^7 + t^4 + t^3
+
+julia> den
+Factored element with data
+Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t^4 + 1 => 1, -t^3 + 1 => 1, -t^2 + 1 => 1)
+
+```
+"""
 function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -101,14 +103,14 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring}
   # the grading. 
   G = grading_group(R)
   if !is_zm_graded(R)
-    error("non-ZZ^m-grading not yet implemented for modules")  ### Needs improvement to change_base_ring (see below)
+    error("non-ZZ^m-grading not yet implemented for modules (see issue #2657)")  ### Needs improvement to change_base_ring (see below)
     H, iso = snf(G)
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
     S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
     map_into_S = hom(R, S, gens(S))
-    SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG !!!
+    SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG (issue #2657) !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
     return (numer, denom), (H, iso)
   end
@@ -128,6 +130,45 @@ function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothi
   return multi_hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
 end
 
+
+@doc raw"""
+    hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+
+Compute a pair `(N,D)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
+series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
+
+!!! note
+    Applied to a homogeneous subquotient `M`, the function first computes a Groebner basis to
+    obtain the leading term module; the rest of the computation uses this latter module
+    (sliced into ideals, one for each ambient free module component).
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> Z = abelian_group(0);
+
+julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> num,den = hilbert_series(M);
+
+julia> num
+-t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t
+
+julia> den
+Factored element with data
+Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 3)
+
+```
+"""
 function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
