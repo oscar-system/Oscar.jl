@@ -24,8 +24,19 @@ function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v.
   Rx, _collect_variables(c, w)...
 end
 
-# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
+# To make a list of variables safe for Singular to use
+# Allowable schemes should be:
+# (:x), (:x, :y), (:x, :y, :z)
+# (:x1, :x2, ...)
+# (:a) for finite fields???
+function _variables_for_singular(n)
+	n > 3 && return _make_strings("x#" => 1:n)
+	return [ :x, :y, :z ][1:n]
+end
 
+
+
+# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
 _make_variable(a, i) = _make_variable(String(a), i)
 
 function _make_variable(a::String, i)
@@ -394,7 +405,7 @@ end
 
 
 @doc raw"""
-set_ordering(I::IdealGens, monord::MonomialOrdering) 
+set_ordering(I::IdealGens, monord::MonomialOrdering)
 
 Return an ideal generating system with an associated monomial ordering.
 
@@ -411,7 +422,7 @@ Ideal generating system with elements
 1 -> x0*x1
 2 -> x2
 with associated ordering
-degrevlex([x0, x1, x2])   
+degrevlex([x0, x1, x2])
 ```
 """
 function set_ordering(G::IdealGens, monord::MonomialOrdering)
@@ -766,7 +777,7 @@ function map_entries(R, M::Singular.smatrix)
 end
 
 @doc raw"""
-    generating_system(I::MPolyIdeal) 
+    generating_system(I::MPolyIdeal)
 
 Return the system of generators of `I`.
 
