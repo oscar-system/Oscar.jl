@@ -1039,12 +1039,14 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   m = length(W[1])
   @req  all(r -> length(r)==m, W)  "Grading VecVec must be rectangular"
   @req  length(gens(HSRing)) >= m  "Hilbert series ring has too few variables"
+  t = gens(HSRing)
   fac_dict = Dict{elem_type(HSRing), Integer}()
   for i = 1:n
     # adjoin factor ( 1 - prod(t_j^W[i,j]) )
-    B = MPolyBuildCtx(HSRing)
-    push_term!(B, 1, W[i])
-    new_fac = 1-finish(B)
+    new_fac = 1 - prod([t[k]^W[i][k]  for k in 1:m]);
+    # B = MPolyBuildCtx(HSRing)
+    # push_term!(B, 1, W[i])  # ???BUG??? DOES NOT WORK if HSRing is Univariate poly ring over ZZ
+    # new_fac = 1-finish(B)
     if haskey(fac_dict, new_fac)
       fac_dict[new_fac] += 1  # coalesce identical factors
     else
