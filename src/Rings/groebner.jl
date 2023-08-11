@@ -1484,7 +1484,8 @@ end
 
 # modular gröbner basis techniques using Singular
 @doc raw"""
-    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I))
+groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                           certify::Bool = false)
 
 Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
 multi-modular strategy.
@@ -1508,7 +1509,8 @@ with respect to the ordering
 degrevlex([x, y, z])
 ```
 """
-function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                                certify::Bool = false)
 
   # small function to get a canonically sorted reduced gb
   sorted_gb = idl -> begin
@@ -1536,38 +1538,48 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrd
   n_stable_primes = 0
   d = fmpz(p)
   unlucky_primes_in_a_row = 0
-  while n_stable_primes < 2
-    p = iterate(primes, p)[1]
-    Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
-    std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+  done = false
+  while !done
+    while n_stable_primes < 2
+      p = iterate(primes, p)[1]
+      Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
 
-    # test for unlucky prime
-    if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
-           enumerate(std_basis_mod_p_lifted))
-      unlucky_primes_in_a_row += 1
-      # if we get unlucky twice in a row we assume that
-      # we started with an unlucky prime
-      if unlucky_primes_in_a_row == 2
-        std_basis_crt_previous = std_basis_mod_p_lifted
+      # test for unlucky prime
+      if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
+             enumerate(std_basis_mod_p_lifted))
+        unlucky_primes_in_a_row += 1
+        # if we get unlucky twice in a row we assume that
+        # we started with an unlucky prime
+        if unlucky_primes_in_a_row == 2
+          std_basis_crt_previous = std_basis_mod_p_lifted
+        end
+        continue
       end
-      continue
-    end
-    unlucky_primes_in_a_row = 0
-    
-    is_stable = true
-    for (i, f) in enumerate(std_basis_mod_p_lifted)
-      if !iszero(f - std_basis_crt_previous[i])
-        std_basis_crt_previous[i], _ = induce_crt(std_basis_crt_previous[i], d, f, fmpz(p), true)
-        stable = false
+      unlucky_primes_in_a_row = 0
+      
+      is_stable = true
+      for (i, f) in enumerate(std_basis_mod_p_lifted)
+        if !iszero(f - std_basis_crt_previous[i])
+          std_basis_crt_previous[i], _ = induce_crt(std_basis_crt_previous[i], d, f, fmpz(p), true)
+          stable = false
+        end
       end
+      if is_stable
+        n_stable_primes += 1
+      end
+      d *= fmpz(p)
     end
-    if is_stable
-      n_stable_primes += 1
+    final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I)) for f in std_basis_crt_previous]
+
+    I.gb[ordering] = IdealGens(final_gb, ordering)
+    if certify
+      done = _certify_modular_groebner_basis(I, ordering)
+    else
+      done = true
     end
-    d *= fmpz(p)
   end
-  final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I)) for f in std_basis_crt_previous]
-  I.gb[ordering] = IdealGens(final_gb, ordering, isGB = true)
+  I.gb[ordering].isGB = true
   return I.gb[ordering]
 end
 
@@ -1580,3 +1592,24 @@ function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
   return finish(g)
 end
 
+function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+  @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
+  ctr = 0
+  singular_generators(I.gb[ordering])
+  SR = I.gb[ordering].gens.Sx
+  SG = I.gb[ordering].gens.S
+
+  #= test if I is included in <G> =#
+  for f in I.gens
+    if Singular.reduce(SR(f), SG) != 0
+      break
+    end
+    ctr += 1
+  end
+  if ctr != ngens(I)
+    return false
+  end
+
+  #= test if G is a standard basis of <G> w.r.t. ordering =#
+  return is_standard_basis(I.gb[ordering], ordering=ordering)
+end
