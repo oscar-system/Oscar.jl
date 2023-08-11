@@ -4242,7 +4242,9 @@ function presentation(F::FreeMod)
     Z = FreeMod(F.R, 0)
   end
   set_attribute!(Z, :name => "0")
-  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  set_attribute!(M, :show => Hecke.pres_show)
+  return M
 end
 
 @doc raw"""
@@ -4274,7 +4276,7 @@ julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
 julia> F = graded_free_module(Rg, [1,2,2]);
 
 julia> p = presentation(F)
-p_-2 <---- p_-1 <---- p_0 <---- p_1
+0 <---- F <---- F <---- 0
 
 julia> p[-2]
 Graded free module Rg^0 of rank 0 over Rg
