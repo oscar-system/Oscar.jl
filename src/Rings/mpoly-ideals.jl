@@ -1647,3 +1647,32 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     end
     return ideal(ring, converted_generators)
 end
+
+
+##################regularity#######################
+
+@doc raw"""
+    regularity(I::MPolyIdeal)
+
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring,
+return the Castelnuovo-Mumford regularity of I.
+ 
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3]);
+
+julia> regularity(I)
+6
+
+julia> minimal_betti_table(I);
+```
+"""
+function regularity(I::MPolyIdeal)
+   @assert is_standard_graded( base_ring(I))
+   B = minimal_betti_table(I)
+   S = as_dictionary(B)
+   V = [x[2][1] - x[1] for x in keys(S)] 
+  return maximum(V)
+end

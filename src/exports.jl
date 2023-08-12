@@ -1164,6 +1164,7 @@ export reduced_characteristic_polynomial
 export reduced_groebner_basis
 export reduced_scheme
 export register_morphism!
+export regularity
 export regular_24_cell
 export regular_120_cell
 export regular_600_cell

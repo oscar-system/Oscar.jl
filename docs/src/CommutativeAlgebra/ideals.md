@@ -74,6 +74,12 @@ codim(I::MPolyIdeal)
 degree(I::MPolyIdeal)
 ```
 
+### Regularity
+
+```@docs
+regularity(I::MPolyIdeal)
+```
+
 ### Minimal Sets of Generators
 
 In the graded case, we have:
