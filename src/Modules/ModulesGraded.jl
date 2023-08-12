@@ -1308,18 +1308,18 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   rng = Hecke.map_range(C)
   n = first(rng)
   for i in 0:n
-      module_degrees = F[i].d
-      module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
-      for degree in module_degrees
-          idx = (i, degree)
-          generator_count[idx] = get(generator_count, idx, 0) + 1
-      end
+    module_degrees = F[i].d
+    module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
+    for degree in module_degrees
+      idx = (i, degree)
+      generator_count[idx] = get(generator_count, idx, 0) + 1
+    end
   end
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
 function betti(b::FreeResolution; reverse_direction::Bool = false)
-	return betti_table(b, project = nothing, reverse_direction = reverse_direction)
+  return betti_table(b, project = nothing, reverse_direction = reverse_direction)
 end
 
 function as_dictionary(b::BettiTable)
@@ -1335,8 +1335,8 @@ function induce_shift(B::Dict{Tuple{Int, Any}, Int})
   A = parent(first(keys(B))[2])
   new_B = Dict{Tuple{Int, Any}, Int}()
   for ((i, key), value) in B
-      new_key = (i, key-i*A[1])
-      new_B[new_key] = value
+    new_key = (i, key-i*A[1])
+    new_B[new_key] = value
   end
   return new_B
 end
@@ -1927,6 +1927,153 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
   return GH, to_hom_map
 end
 
+                                                                                                      
+########################################################################
+# Minimal Betti tables
+########################################################################
+
+# TODO: Are the signatures sufficient to assure that the modules are graded?
+function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M))
+end
+
+function minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(A))
+end
+
+function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(I))
+end
+
+#=
+ The examples below don't run because of a bug in the documenter. 
+ We can put them back in, once that works.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> R, (w, x, y, z) = grade(R)
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+
+julia> I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
+ideal(w^2 - x*z, w*x - y*z, -w*y + x^2, x*y - z^2, -w*z + y^2)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 5 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> betti_table(free_resolution(A))
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  5  5  1
+2    : -  -  1  1
+------------------
+total: 1  5  6  2
+
+julia> minimal_betti_table(free_resolution(A))
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  5  5  -
+2    : -  -  -  1
+------------------
+total: 1  5  5  1
+
+```
+"""
+=#
+@doc raw"""
+    minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+
+The Betti table of a minimized version of `res` without actually computing a minimalization.
+"""
+function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+  @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
+  @assert is_graded(res) "resolution must be graded"
+  C = complex(res)
+  @assert is_complete(res) "resolution must be complete"
+  rng = range(C)
+  # The following needs the resolution to be complete to be true
+  res_length = first(rng)-1
+  offsets = Dict{GrpAbFinGenElem, Int}()
+  betti_hash_table = Dict{Tuple{Int, Any}, Int}()
+  for i in 1:res_length+1
+    phi = map(C, i)
+    F = domain(phi)
+    G = codomain(phi)
+    dom_degs = unique!([degree(g) for g in gens(F)])
+    cod_degs = unique!([degree(g) for g in gens(G)])
+    for d in cod_degs
+      d::GrpAbFinGenElem
+      if d in dom_degs
+        _, _, sub_mat = _constant_sub_matrix(phi, d)
+        r = rank(sub_mat)
+        betti_hash_table[(i-1, d)] = ncols(sub_mat) - r - get(offsets, d, 0)
+        offsets[d] = r
+      else
+        betti_hash_table[(i-1, d)] = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+      end
+    end
+  end
+  return BettiTable(betti_hash_table)
+end
+
+function hash_table(B::BettiTable) 
+  return B.B
+end
+
+function generators_of_degree(
+    C::FreeResolution{T},
+    i::Int,
+    d::GrpAbFinGenElem
+  ) where {T<:ModuleFP}
+  F = C[i]
+  return [g for g in gens(F) if degree(g) == d]
+end
+
+function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+  result = Vector{Int}()
+  for (i, g) in enumerate(gens(F))
+    if degree(g) == d
+      push!(result, i)
+    end
+  end
+  return result
+end
+
+function _constant_sub_matrix(
+    phi::FreeModuleHom{T, T},
+    d::GrpAbFinGenElem
+  ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
+  S = base_ring(domain(phi))::MPolyDecRing
+  kk = coefficient_ring(S)::Field
+  F = domain(phi)
+  G = codomain(phi)
+  ind_dom = _indices_of_generators_of_degree(F, d)
+  ind_cod = _indices_of_generators_of_degree(G, d)
+  m = length(ind_dom)
+  n = length(ind_cod)
+  result = zero(MatrixSpace(kk, m, n))
+  for i in 1:m
+    for j in 1:n
+      c = phi(F[ind_dom[i]])[ind_cod[j]]
+      result[i, j] = iszero(c) ? zero(kk) : first(coefficients(c))
+    end
+  end
+  return ind_dom, ind_cod, result
+end
+
+# TODO: This will be provided soon from different sources.
+function complex(F::FreeResolution) 
+  return F.C
+end
+
+function base_ring(res::FreeResolution{T}) where {T<:ModuleFP}
+  return base_ring(res[-1])
+end
+                                                                                                                                    
 #############truncation#############
 
 @doc raw"""
