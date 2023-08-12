@@ -9124,11 +9124,12 @@ function regularity(M::ModuleFP)
 end
 
 function regularity(M::FreeMod)
+   @req is_standard_graded(base_ring(M)) "The base ring is not graded"
    return 0
 end
 
 function regularity(M::SubquoModule)
-   @assert is_standard_graded( base_ring(M))
+   @req is_standard_graded(base_ring(M)) "The base ring is not graded"
    B = minimal_betti_table(M)
    S = as_dictionary(B)
    V = [x[2][1] - x[1] for x in keys(S)] 
