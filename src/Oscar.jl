@@ -115,6 +115,8 @@ function __init__()
     add_verbose_scope(:Blowup)
     add_assert_scope(:Blowup)
 
+    add_verbose_scope(:hilbert)
+    add_assert_scope(:hilbert)
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
