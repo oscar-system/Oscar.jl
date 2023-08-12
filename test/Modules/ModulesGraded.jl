@@ -540,11 +540,9 @@ end
     B = Rg[x^2; x*y; y^2; z^4]
     M = SubquoModule(F, A, B)
     free_res1 = free_resolution(M, length=1)
-    free_res1a = free_resolution(M)
     free_res2 = free_resolution(M)
     free_res3 = free_resolution_via_kernels(M)
     @test first(chain_range(free_res1)) == 1
-    @test first(chain_range(free_res1a)) == 4
     @test first(chain_range(free_res2)) == 4
     @test first(chain_range(free_res3)) == 4
 end
@@ -993,6 +991,21 @@ end
 	end
 end
 
+
+@testset "Presentations 3" begin
+    R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+    Z = abelian_group(0);
+    Rg, (x, y, z) = grade(R, [-Z[1],Z[1],-Z[1]]);
+    F = graded_free_module(Rg, 1);
+    B = Rg[x^2; y^3; z^4];
+    M,inc = sub(F,B)
+    M = cokernel(inc)
+    fr = free_resolution(M)
+    phi = map(fr,4)
+    N = cokernel(phi)
+    f = present_as_cokernel(N)
+    @test ngens(f) == 1
+end
 
 ######################################################################
 # Tests filtrated modules

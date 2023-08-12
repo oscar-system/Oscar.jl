@@ -615,7 +615,7 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule}}
+function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
