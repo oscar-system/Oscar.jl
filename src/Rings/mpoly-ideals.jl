@@ -1670,7 +1670,7 @@ julia> minimal_betti_table(I);
 ```
 """
 function regularity(I::MPolyIdeal)
-   @req is_standard_graded(base_ring(I)) "The base ring is not graded"
+   @req is_standard_graded(base_ring(I)) "The base ring is not standard ZZ-graded"
    B = minimal_betti_table(I)
    S = as_dictionary(B)
    V = [x[2][1] - x[1] for x in keys(S)] 
