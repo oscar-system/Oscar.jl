@@ -391,6 +391,8 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
     end
     return load_object_with_params(s, T, dict[:data], params)
   elseif T <: AbstractVector
+    # this should be moved to container types
+    # and nested_type should be moved into the params section
     nested_type = decode_type(dict[:nested_type])
     if type_needs_params(nested_type)
       params = load_type_params(s, nested_type, dict[:nested_type][:params])
