@@ -37,7 +37,7 @@ end
 
 function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{Int}}
     """
-    Calculates the weight weights[i] for each operator operators[i]
+    Calculates the weight weights[i] in w_i for each operator operators[i]
     """
     """cartan = [Vector{Int}(x) for x in GAP.Globals.ExtRepOfObj.(cartan)]
     operators = [Vector{Int}(x) for x in GAP.Globals.ExtRepOfObj.(operators)]#
@@ -45,7 +45,7 @@ function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators:
         error("ops should be non-zero")
     end
     println([findfirst(v .!= 0) for v in operators])
-
+    
     return [
         [(dot(h, v))[findfirst(v .!= 0)] / (v)[findfirst(v .!= 0)] for h in cartan] for v in operators
     ]

@@ -14,14 +14,9 @@ using Polymake
 # TODO basis_lie_highest_weight_feigin_fflv
 # TODO basis_lie_highest_weight_nZ
 
-# TODO Change operators from GAP.Obj to Oscar objects
-# TODO BirationalSequence needs better names for weights and operators
-# TODO Fix weightnames in general
-# TODO Groundup-structure for the special functions
-# TODO (?) write methods small when using Polymake, f.e. polyhedron instead of Polyhedron 
+# TODO write methods small when using Polymake, f.e. polyhedron instead of Polyhedron (The lowercase names are not found)
 
 # TODO (?) Maybe export and docstring: 
-# basis_lie_highest_weight
 # get_dim_weightspace
 # orbit_weylgroup
 # get_lattice_points_of_weightspace
@@ -29,6 +24,9 @@ using Polymake
 # convert_monomials_to_lattice_points
 # tensorMatricesForOperators
 # weights_for_operators
+
+# TODO Use Oscar-Lie-Algebra type instead of LieAlgebra
+# TODO Data-Type for weights of Lie-Algebras? Three types, in alpha_i, w_i and eps_i, conversion is defined in RootConversion
 # w_to_eps
 # eps_to_w
 # alpha_to_eps
@@ -36,7 +34,7 @@ using Polymake
 # w_to_eps
 # eps_to_w
 
-# TODO (?) GAPWrap-wrappers are missing for 
+# TODO GAPWrap-wrappers are missing for 
 # ChevalleyBasis
 # DimensionOfHighestWeightModule
 # SimpleLieAlgebra
@@ -69,14 +67,14 @@ end
 struct BirationalSequence
     operators::GAP.Obj # TODO Integer 
     operators_vectors::Vector{Vector{Any}}
-    weights::Vector{Vector{Int}}
+    weights_w::Vector{Vector{Int}}
     weights_eps::Vector{Vector{Int}}
 end
 
 function Base.show(io::IO, birational_sequence::BirationalSequence)
     println(io, "BirationalSequence")
     println(io, "Operators: ", birational_sequence.operators)
-    print(io, "Weights in w_i:", birational_sequence.weights)
+    print(io, "Weights in w_i:", birational_sequence.weights_w)
 end
 
 struct MonomialBasis
@@ -272,12 +270,12 @@ function basis_lie_highest_weight(
 
     # operators that are represented by our monomials. x_i is connected to operators[i]
     operators = get_operators(lie_algebra, operators, chevalley_basis) 
-    weights = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
-    weights = (weight->Int.(weight)).(weights)
-    weights_eps = [w_to_eps(type, rank, w) for w in weights] # other root system
+    weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
+    weights_w = (weight_w->Int.(weight_w)).(weights_w)
+    weights_eps = [w_to_eps(type, rank, weight_w) for weight_w in weights_w] # other root system
     
     asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
-    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights, weights_eps)
+    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps)
     
     ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
     monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx) # less than function to sort monomials by order
@@ -323,7 +321,7 @@ function basis_lie_highest_weight_string(
     operators::Union{String, Vector{Int}} = "regular", 
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
-    # monomial_order = "oplex"
+    monomial_order = "oplex"
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
     return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
 end
@@ -346,7 +344,7 @@ function basis_lie_highest_weight_nZ(
     operators::Union{String, Vector{Int}} = "regular", 
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
-    # monomial_order = "lex"
+    monomial_order = "lex"
     # operators = some sequence of the Nakashima-Zelevinsky polytope, same as for _string
     return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
 end
@@ -443,13 +441,13 @@ function compute_monomials(
         # use Minkowski-Sum for recursion
         set_mon = Set{ZZMPolyRingElem}()
         i = 0
-        sub_weights = compute_sub_weights(highest_weight)
-        l = length(sub_weights)
+        sub_weights_w = compute_sub_weights(highest_weight)
+        l = length(sub_weights_w)
         # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all 
         # partitions
         while length(set_mon) < gap_dim && i < l
             i += 1
-            lambda_1 = sub_weights[i]
+            lambda_1 = sub_weights_w[i]
             lambda_2 = highest_weight .- lambda_1
             mon_lambda_1 = compute_monomials(lie_algebra, birational_sequence, ZZx, lambda_1,
                                                 monomial_order_lt, calc_highest_weight, cache_size, 
@@ -505,24 +503,24 @@ function compute_sub_weights(highest_weight::Vector{Int})::Vector{Vector{Int}}
     """
     returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
     """
-    sub_weights = []
+    sub_weights_w = []
     foreach(Iterators.product((0:x for x in highest_weight)...)) do i
-        push!(sub_weights, [i...])
+        push!(sub_weights_w, [i...])
     end
-    if isempty(sub_weights) || length(sub_weights) == 1 # case [] or [[0, ..., 0]]
+    if isempty(sub_weights_w) || length(sub_weights_w) == 1 # case [] or [[0, ..., 0]]
         return []
     else
-        popfirst!(sub_weights) # [0, ..., 0]
-        pop!(sub_weights) # highest_weight
-        sort!(sub_weights, by=x->sum((x).^2))
-        return sub_weights
+        popfirst!(sub_weights_w) # [0, ..., 0]
+        pop!(sub_weights_w) # highest_weight
+        sort!(sub_weights_w, by=x->sum((x).^2))
+        return sub_weights_w
     end
 end
 
 function add_known_monomials!(
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing, 
-    weight::Vector{Int},
+    weight_w::Vector{Int},
     set_mon_in_weightspace::Dict{Vector{Int64}, 
     Set{ZZMPolyRingElem}},
     matrices_of_operators::Vector{SMat{ZZRingElem}},
@@ -535,21 +533,21 @@ function add_known_monomials!(
     extend the weightspace with missing monomials, we need to calculate and add the vector of each monomial to our 
     basis.
     """
-    for mon in set_mon_in_weightspace[weight]
+    for mon in set_mon_in_weightspace[weight_w]
         # calculate the vector vec associated with mon
         if cache_size == 0
             d = sz(matrices_of_operators[1])
             vec = calc_vec(v0, mon, matrices_of_operators) 
         else
-            vec = calc_new_mon!(gens(ZZx) , mon, birational_sequence.weights, matrices_of_operators, calc_monomials, space,
+            vec = calc_new_mon!(gens(ZZx) , mon, birational_sequence.weights_w, matrices_of_operators, calc_monomials, space,
                                 cache_size)
         end
 
         # check if vec extends the basis
-        if !haskey(space, weight)
-            space[weight] = SparseVectorSpaceBasis([], [])
+        if !haskey(space, weight_w)
+            space[weight_w] = SparseVectorSpaceBasis([], [])
         end
-        add_and_reduce!(space[weight], vec)
+        add_and_reduce!(space[weight_w], vec)
     end
 end
 
@@ -560,7 +558,7 @@ function add_new_monomials!(
     matrices_of_operators::Vector{SMat{ZZRingElem}},
     monomial_order_lt::Function,
     dim_weightspace::Int,
-    weight::Vector{Int},
+    weight_w::Vector{Int},
     set_mon_in_weightspace::Dict{Vector{Int64}, Set{ZZMPolyRingElem}}, 
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
     space::Dict{Vector{Int64}, 
@@ -578,15 +576,15 @@ function add_new_monomials!(
     
     # get monomials that are in the weightspace, sorted by monomial_order_lt
     poss_mon_in_weightspace = convert_lattice_points_to_monomials(ZZx, get_lattice_points_of_weightspace(
-        birational_sequence.weights_eps, w_to_eps(lie_algebra.lie_type, lie_algebra.rank, weight), lie_algebra.lie_type))
+        birational_sequence.weights_eps, w_to_eps(lie_algebra.lie_type, lie_algebra.rank, weight_w), lie_algebra.lie_type))
     poss_mon_in_weightspace = sort(poss_mon_in_weightspace, lt=monomial_order_lt)
 
     # check which monomials should get added to the basis
     i=0
-    if weight == 0 # check if [0 0 ... 0] already in basis
+    if weight_w == 0 # check if [0 0 ... 0] already in basis
         i += 1
     end
-    number_mon_in_weightspace = length(set_mon_in_weightspace[weight])
+    number_mon_in_weightspace = length(set_mon_in_weightspace[weight_w])
     # go through possible monomials one by one and check if it extends the basis
     while number_mon_in_weightspace < dim_weightspace
         i += 1
@@ -601,15 +599,15 @@ function add_new_monomials!(
             d = sz(matrices_of_operators[1])
             vec = calc_vec(v0, mon, matrices_of_operators)
         else
-            vec = calc_new_mon!(gens(ZZx), mon, birational_sequence.weights, matrices_of_operators, calc_monomials, space, 
+            vec = calc_new_mon!(gens(ZZx), mon, birational_sequence.weights_w, matrices_of_operators, calc_monomials, space, 
                                 cache_size)
         end
 
         # check if vec extends the basis
-        if !haskey(space, weight)
-            space[weight] = SparseVectorSpaceBasis([], [])
+        if !haskey(space, weight_w)
+            space[weight_w] = SparseVectorSpaceBasis([], [])
         end
-        vec_red = add_and_reduce!(space[weight], vec)
+        vec_red = add_and_reduce!(space[weight_w], vec)
         if isempty(vec_red) # v0 == 0
             continue
         end
@@ -638,29 +636,29 @@ function add_by_hand(
     # initialization
     # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
     matrices_of_operators = tensorMatricesForOperators(lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators)    
-    space = Dict(0*birational_sequence.weights[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
+    space = Dict(0*birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     # saves the calculated vectors to decrease necessary matrix multiplicatons
-    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights[1])) 
+    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights_w[1])) 
     push!(set_mon, ZZx(1))
     # required monomials of each weightspace
     weightspaces = get_dim_weightspace(lie_algebra, highest_weight)
 
     # sort the monomials from the minkowski-sum by their weightspaces
     set_mon_in_weightspace = Dict{Vector{Int}, Set{ZZMPolyRingElem}}()
-    for (weight, _) in weightspaces
-        set_mon_in_weightspace[weight] = Set{ZZMPolyRingElem}()
+    for (weight_w, _) in weightspaces
+        set_mon_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
     end
     for mon in set_mon
-        weight = calc_weight(mon, birational_sequence.weights)
-        push!(set_mon_in_weightspace[weight], mon)
+        weight_w = calc_weight(mon, birational_sequence.weights_w)
+        push!(set_mon_in_weightspace[weight_w], mon)
     end
 
     # only inspect weightspaces with missing monomials
     weights_with_full_weightspace = Set{Vector{Int}}()
-    for (weight, dim_weightspace) in weightspaces
-        if (length(set_mon_in_weightspace[weight]) == dim_weightspace)
-            push!(weights_with_full_weightspace, weight)
+    for (weight_w, dim_weightspace) in weightspaces
+        if (length(set_mon_in_weightspace[weight_w]) == dim_weightspace)
+            push!(weights_with_full_weightspace, weight_w)
         end
     end
     delete!(weightspaces, weights_with_full_weightspace)
@@ -669,16 +667,16 @@ function add_by_hand(
     # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
     # Oscar dependencies. But I plan to reimplement this. 
     # insert known monomials into basis
-    for (weight, _) in weightspaces
-        add_known_monomials!(birational_sequence, ZZx, weight, set_mon_in_weightspace, matrices_of_operators, 
+    for (weight_w, _) in weightspaces
+        add_known_monomials!(birational_sequence, ZZx, weight_w, set_mon_in_weightspace, matrices_of_operators, 
                                 calc_monomials, space, v0, cache_size)
     end 
 
     # calculate new monomials
-    for (weight, dim_weightspace) in weightspaces
+    for (weight_w, dim_weightspace) in weightspaces
         add_new_monomials!(lie_algebra, birational_sequence, ZZx, matrices_of_operators,
                             monomial_order_lt, 
-                            dim_weightspace, weight,
+                            dim_weightspace, weight_w,
                             set_mon_in_weightspace, 
                             calc_monomials, space, v0, 
                             cache_size, set_mon)         

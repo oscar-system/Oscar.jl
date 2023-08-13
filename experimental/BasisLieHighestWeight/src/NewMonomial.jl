@@ -1,13 +1,13 @@
-function calc_weight(mon::ZZMPolyRingElem, weights::Vector{Vector{Int}})::Vector{Int}
+function calc_weight(mon::ZZMPolyRingElem, weights_w::Vector{Vector{Int}})::Vector{Int}
     """
     calculates weight associated with monomial mon
     """
     degree_mon = degrees(mon)
-    weight = [0 for i in 1:length(weights[1])]
+    weight_w = [0 for i in 1:length(weights_w[1])]
     for i in 1:length(degree_mon)
-        weight .+= degree_mon[i] * weights[i]
+        weight_w .+= degree_mon[i] * weights_w[i]
     end
-    return weight
+    return weight_w
 end
 
 function calc_vec(
@@ -54,7 +54,7 @@ end
 
 function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     mon::ZZMPolyRingElem,
-    weights::Vector{Vector{Int}}, 
+    weights_w::Vector{Vector{Int}}, 
     matrices_of_operators::Union{Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}, Vector{SMat{ZZRingElem}}},
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}, 
     space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis}, 
@@ -66,18 +66,18 @@ function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     #println("sub_mon: ", sub_mon)
     sub_mon_cur = copy(sub_mon)
     number_of_operators = length(mon)
-    (vec, weight) = calc_monomials[sub_mon]
+    (vec, weight_w) = calc_monomials[sub_mon]
     for i in number_of_operators:-1:1
         for k in degrees(sub_mon)[i]:(degrees(mon)[i]-1)
             sub_mon_cur *= x[i]
-            weight += weights[i]
-            if !haskey(space, weight)
-                space[weight] = SparseVectorSpaceBasis([], [])
+            weight_w += weights_w[i]
+            if !haskey(space, weight_w)
+                space[weight_w] = SparseVectorSpaceBasis([], [])
             end
 
             vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
             if length(calc_monomials) < cache_size
-                calc_monomials[sub_mon_cur] = (vec, weight)
+                calc_monomials[sub_mon_cur] = (vec, weight_w)
             end
 
             # check if the extended monomial can be deleted from calculated_monomials, i.e. the other possible 
