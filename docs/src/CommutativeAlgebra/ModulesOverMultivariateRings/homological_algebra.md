@@ -36,7 +36,7 @@ free_resolution(M::SubquoModule{<:MPolyRingElem};
 ## Betti Diagrams
 
 ```@docs
-regularity(M::ModuleFP)
+cm_regularity(M::ModuleFP)
 ```
 
 ## Homology

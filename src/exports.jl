@@ -322,6 +322,7 @@ export class_positions_of_kernel
 export class_positions_of_pcore
 export closed_subvariety_of_toric_variety
 export closure
+export cm_regularity
 export cobases
 export cochain_complex
 export cocircuits
@@ -1164,7 +1165,6 @@ export reduced_characteristic_polynomial
 export reduced_groebner_basis
 export reduced_scheme
 export register_morphism!
-export regularity
 export regular_24_cell
 export regular_120_cell
 export regular_600_cell

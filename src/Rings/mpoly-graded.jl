@@ -2410,3 +2410,126 @@ function  truncate(I::MPolyIdeal, d::Int)
   return ideal(R, RES)
 end
 
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc raw"""
+    minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+
+Given a (homogeneous) ideal `I` in a graded multivariate polynomial ring
+over a field, return an array containing a minimal set of generators
+of `I`. If `I` is the zero ideal, an empty list is returned.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ z^2
+ y^3
+
+julia> I = ideal(R, zero(R))
+ideal(0)
+
+julia> minimal_generating_set(I)
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
+```
+"""
+function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyDecRing are forced to be homogeneous though.
+
+  R = base_ring(I)
+
+  @assert is_graded(R)
+
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+
+  if !isempty(I.gb)
+    # make sure to not recompute a GB from scratch on the singular
+    # side if we have one
+    G = first(values(I.gb))
+    singular_assure(G, G.ord)
+    G.gens.S.isGB = true
+    _, sing_min = Singular.mstd(G.gens.S)
+    return filter(!iszero, (R).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    ring = I.gens.Ox
+    computed_gb = IdealGens(ring, sing_gb, true)
+    I.gb[computed_gb.ord] = computed_gb
+    return filter(!iszero, (R).(gens(sing_min)))
+  end
+end
+
+##################regularity#######################
+
+@doc raw"""
+    cm_regularity(I::MPolyIdeal)
+
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring,
+return the Castelnuovo-Mumford regularity of I.
+ 
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3]);
+
+julia> cm_regularity(I)
+6
+
+julia> minimal_betti_table(I);
+```
+"""
+function cm_regularity(I::MPolyIdeal)
+   @req is_standard_graded(base_ring(I)) "The base ring is not standard ZZ-graded"
+   B = minimal_betti_table(I)
+   S = as_dictionary(B)
+   V = [x[2][1] - x[1] for x in keys(S)] 
+  return maximum(V)
+end
+
+#######################################################
+#######################################################
+@doc raw"""
+    degree(I::MPolyIdeal)
+
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring, 
+return the degree of `I` (that is, the degree of the quotient of `base_ring(I)` modulo `I`). 
+Otherwise, return the degree of the homogenization of `I` with respect to the
+standard $\mathbb Z$-grading.
+
+!!! note
+    Geometrically, the degree of a homogeneous ideal as above is the number
+    of intersection points of its projective variety with a generic linear
+    subspace of complementary dimension (counted with multiplicities).
+    See also [MS21](@cite).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia> degree(I)
+6
+```
+"""
+@attr Int function degree(I::MPolyIdeal)
+  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  return Int(degree(HilbertData(I)))
+end
