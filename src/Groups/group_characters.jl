@@ -1078,7 +1078,7 @@ see [`derived_series`](@ref).
 
 # Examples
 ```jldoctest
-julia> tbl = character_table(symmetric_group(4))
+julia> tbl = character_table(symmetric_group(4));
 
 julia> println(class_positions_of_solvable_residuum(tbl))
 [1]
