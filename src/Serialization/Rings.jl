@@ -126,7 +126,8 @@ type_needs_params(::Type{<:PolyElemUniontype}) = true
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  coeff_type = typeof(coeff(p, 1))
+  # we use this line instead of typeof(coeff(p, 1)) to catch the 0 polynomial
+  coeff_type = elem_type(base_ring(parent(p)))
   data_array(s) do
     for i in 1:length(p)
       data_array(s) do 

@@ -70,6 +70,11 @@ end
 
 function end_array_node(s::SerializerState)
   write(s.io, "]")
+
+  if s.new_level_entry
+    # makes sure that entries after empty arrays add comma 
+    s.new_level_entry = false
+  end
 end
 
 struct DeserializerState
