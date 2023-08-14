@@ -297,16 +297,6 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_object(s, x, :data)
   elseif Base.issingletontype(T)
     save_object(s, encode_type(T), :type)
-  elseif x isa AbstractVector
-    save_object(s, "Vector", :type)
-    nested_entry = get_nested_entry(x)
-    nested_type = typeof(nested_entry)
-    if type_needs_params(nested_type)
-      save_type_params(s, nested_entry, :nested_type)
-    else
-      save_object(s, encode_type(nested_type), :nested_type)
-    end
-    save_object(s, x, :data)
   else
     save_object(s, encode_type(T), :type)
     save_object(s, x, :data)
@@ -400,16 +390,6 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
       params = load_type_params(s, T, dict[:type][:params])
     end
     return load_object_with_params(s, T, dict[:data], params)
-  elseif T <: AbstractVector
-    # this should be moved to container types
-    # and nested_type should be moved into the params section
-    nested_type = decode_type(dict[:nested_type])
-    if type_needs_params(nested_type)
-      params = load_type_params(s, nested_type, dict[:nested_type][:params])
-      return load_object_with_params(s, Vector{nested_type}, dict[:data], params)
-    else
-      #return load_object()
-    end
   else
     return load_object(s, T, dict[:data])
   end

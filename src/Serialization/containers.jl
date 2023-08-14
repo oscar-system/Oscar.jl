@@ -7,11 +7,36 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
+type_needs_params(::Type{<:Vector})  = true
+
+function save_type_params(s::SerializerState, obj::Vector{T}, key::Symbol) where T
+  s.key = key
+  data_dict(s) do
+    save_object(s, encode_type(Vector), :name)
+    if type_needs_params(T)
+        save_type_params(s, obj[1], :params)
+    else
+      save_object(s, encode_type(T), :params)
+    end
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:Vector}, str::String)
+  return decode_type(str)
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:Vector}, dict::Dict)
+  T = decode_type(dict[:name])
+  if type_needs_params(T)
+    params = load_type_params(s, T, dict[:params])
+    
+  else
+    
+  end
+end
 
 function load_object_with_params(s::DeserializerState, ::Type{Vector{T}}, v::Vector{Any}, params::Any) where T
-  loaded_v = [
-    load_object_with_params(s, T, x, params) for x in v
-      ]
+  loaded_v = [load_object_with_params(s, T, x, params) for x in v]
   return loaded_v
 end
 
