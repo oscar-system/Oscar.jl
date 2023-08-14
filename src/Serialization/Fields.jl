@@ -233,7 +233,7 @@ function load_object(s::DeserializerState,
                      dict::Dict{Symbol, Any})
   def_pols = load_typed_object(s, dict[:def_pols])
   vars = map(Symbol, dict[:vars])
-  K, _ = number_field(def_pols, vars, cached=false)
+  K, _ = number_field(Array(def_pols), vars, cached=false)
   return K
 end
 

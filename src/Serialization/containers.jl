@@ -27,17 +27,20 @@ end
 
 function load_type_params(s::DeserializerState, ::Type{<:Vector}, dict::Dict)
   T = decode_type(dict[:name])
-  if type_needs_params(T)
-    params = load_type_params(s, T, dict[:params])
-    
-  else
-    
-  end
+  params = load_type_params(s, T, dict[:params])
+  return (T, params)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{Vector{T}}, v::Vector{Any}, params::Any) where T
-  loaded_v = [load_object_with_params(s, T, x, params) for x in v]
+function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
+                                 v::Vector{Any}, params::Type)
+  loaded_v = params[load_object(s, params, x) for x in v]
   return loaded_v
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
+                                 v::Vector{Any}, params::Tuple)
+  T = params[1]
+  return [load_object_with_params(s, T, x, params[2]) for x in v]
 end
 
 # deserialize with specific content type

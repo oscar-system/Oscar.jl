@@ -265,8 +265,9 @@ end
 function load_object_with_params(s::DeserializerState, ::Type{<: IdealUnionType},
                                  dict::Dict{Symbol, Any}, params::Vector)
   parent_ring = params[end]
-  gens = load_object_with_params(s, Vector{elem_type(parent_ring)},
-                                 dict[:gens], params)
+  gens = [
+    load_object_with_params(s, elem_type(parent_ring), g, params) for g in dict[:gens]
+      ]
   return ideal(parent_ring, gens)
 end
 
