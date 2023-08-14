@@ -15,8 +15,7 @@ export is_of_same_type
 export is_of_type
 export is_hermitian
 export order_of_isometry
-export primitive_embeddings_of_primary_lattice
-export primitive_embeddings_in_primary_lattice
+export primitive_embeddings
 export quadratic_space_with_isometry
 export representatives_of_hermitian_type
 export splitting_of_hermitian_prime_power
