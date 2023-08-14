@@ -35,13 +35,13 @@ function load_type_params(s::DeserializerState, ::Type{<:Vector}, override_param
 end
 
 function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
-                                 v::Vector{Any}, params::Type)
+                                 v::Vector, params::Type)
   loaded_v = params[load_object(s, params, x) for x in v]
   return loaded_v
 end
 
 function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
-                                 v::Vector{Any}, params::Tuple)
+                                 v::Vector, params::Tuple)
   T = params[1]
   return [load_object_with_params(s, T, x, params[2]) for x in v]
 end
@@ -98,30 +98,37 @@ function load_object_with_params(s::DeserializerState, ::Type{<:Tuple},
   )
 end
 
-
-function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
-  field_types = map(decode_type, dict[:field_types])
-  n = length(field_types)
-  content = dict[:content]
-  @assert length(content) == n  "Wrong length of tuple, data may be corrupted."
-  return T(load_type_dispatch(s, field_types[i], content[i]) for i in 1:n)
-end
-
 ################################################################################
 # Saving and loading NamedTuple
 @registerSerializationType(NamedTuple)
+type_needs_params(::Type{<:NamedTuple}) = true
 
-function save_internal(s::SerializerState, n_tup:: NamedTuple)
-  return Dict(
-    :keys => save_type_dispatch(s, keys(n_tup)),
-    :content => save_type_dispatch(s, values(n_tup))
-  )
+function save_type_params(s::SerializerState, obj::NamedTuple)
+  data_dict(s) do
+    save_object(s, encode_type(NamedTuple), :name)
+    s.key = :params
+    data_dict(s) do 
+      save_type_params(s, values(obj), :tuple_params)
+      save_object(s, keys(obj), :names)
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{<:NamedTuple}, dict::Dict)
-  tup = load_unknown_type(s, dict[:content])
-  keys = load_type_dispatch(s, Tuple, dict[:keys])
-  return NamedTuple{keys}(tup)
+function save_object(s::SerializerState, obj::NamedTuple)
+  save_object(s, values(obj))
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Dict)
+  tuple_params = load_type_params(s, Tuple, params[:tuple_params][:params])
+  return (params[:names], tuple_params)
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<: NamedTuple},
+                                 v::Vector, params::Tuple)
+  keys, tuple_params = params
+  tuple = load_object_with_params(s, Tuple, v, tuple_params)
+  keys = map(Symbol, keys)
+  return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
 
 
