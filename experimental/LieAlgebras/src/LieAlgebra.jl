@@ -346,7 +346,7 @@ end
 
 Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 """
-function is_abelian(L::LieAlgebra)
+@attr Bool function is_abelian(L::LieAlgebra)
   return all(iszero, x * y for (x, y) in combinations(basis(L), 2))
 end
 
@@ -358,7 +358,7 @@ Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial i
 !!! warning
     This function is not implemented yet.
 """
-function is_simple(L::LieAlgebra)
+@attr Bool function is_simple(L::LieAlgebra)
   is_abelian(L) && return false
   error("Not implemented.") # TODO
 end

@@ -221,6 +221,27 @@ function lie_algebra(
 end
 
 @doc raw"""
+    abelian_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Ring, n::Int) -> AbstractLieAlgebra{elem_type(R)}
+
+Return the abelian Lie algebra of dimension `n` over the ring `R`.
+The first argument can be optionally provided to specify the type of the returned
+Lie algebra.
+"""
+function abelian_lie_algebra(R::Ring, n::Int)
+  return abelian_lie_algebra(LinearLieAlgebra, R, n)
+end
+
+function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:LinearLieAlgebra}
+  basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
+  s = ["x_$(i)" for i in 1:n]
+  L = lie_algebra(R, n, basis, s; check=false)
+  set_attribute!(L, :is_abelian => true)
+  return L
+end
+
+@doc raw"""
     general_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
 Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.

@@ -60,6 +60,7 @@ export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
 
+export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
 export base_module
@@ -118,6 +119,7 @@ export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 
+export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
 export base_module

@@ -11,6 +11,14 @@
   end
 
   @testset "conformance tests" begin
+    @testset "4-dim abelian Lie algebra /QQ" begin
+      L = abelian_lie_algebra(LinearLieAlgebra, QQ, 4)
+      lie_algebra_conformance_test(
+        L, LinearLieAlgebra{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "gl_4(QQ)" begin
       L = general_linear_lie_algebra(QQ, 4)
       lie_algebra_conformance_test(
