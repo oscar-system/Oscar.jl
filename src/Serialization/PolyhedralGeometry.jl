@@ -31,8 +31,7 @@ end
 # Abstract Polyhedral Object
 type_needs_params(::Type{<:PolyhedralObject}) = true
 
-function save_type_params(s::SerializerState, obj::T, key::Symbol) where T <: PolyhedralObject
-  s.key = key
+function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
   data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, coefficient_field(obj), :params)

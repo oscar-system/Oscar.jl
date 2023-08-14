@@ -25,8 +25,7 @@ end
 ################################################################################
 # Handling RingElem Params
 
-function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: RingElem
-  s.key = key
+function save_type_params(s::SerializerState, x::T) where T <: RingElem
   data_dict(s) do
     save_object(s, encode_type(T), :name)
     parent_x = parent(x)
@@ -243,8 +242,7 @@ end
 IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}
 type_needs_params(::Type{<: IdealUnionType}) = true
 
-function save_type_params(s::SerializerState, x::T, key::Symbol) where T <: IdealUnionType
-  s.key = key
+function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   data_dict(s) do
     save_object(s, encode_type(T), :name)
     refs = save_parents(s, parent(gens(x)[1]))

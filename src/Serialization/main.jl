@@ -316,6 +316,10 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
+function save_type_params(s::SerializerState, obj::Any, key::Symbol)
+  s.key = key
+  save_type_params(s, obj)
+end
 # ATTENTION
 # The load mechanism needs to look at the serialized data first,
 # in order to detect objects with a basic encoding.
