@@ -26,6 +26,7 @@ include("MPolyAnyMap/MPolyRing.jl")
 include("MPolyAnyMap/MPolyQuo.jl")
 include("MPolyAnyMap/AffineAlgebras.jl")
 include("MPolyAnyMap/flattenings.jl")
+include("MPolyAnyMap/DecoratedRings.jl")
 
 include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")
