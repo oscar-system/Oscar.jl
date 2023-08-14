@@ -37,6 +37,7 @@ import ..Oscar:
   is_abelian,
   is_isomorphism,
   is_simple,
+  kernel,
   matrix,
   ngens,
   normalizer,

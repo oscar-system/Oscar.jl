@@ -72,7 +72,10 @@ function image(h::LieAlgebraHom, S::LieSubalgebra)
   return sub(codomain(h), [image(h, x) for x in basis(S)])
 end
 
-# TODO: kernel
+function kernel(h::LieAlgebraHom)
+  ker_dim, ker_b = left_kernel(matrix(h))
+  return ideal(domain(h), [domain(h)(ker_b[i, :]) for i in 1:ker_dim])
+end
 
 ###############################################################################
 #
