@@ -305,22 +305,10 @@ function _construct_generic_sample(base_vars::Vector{String}, base_grading::Matr
   # Construct ambient space
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
-  w = vcat([k.coeff for k in cox_ring(fiber_ambient_space).d])
-  ambient_space_grading = zero_matrix(Int, nrows(base_grading)+nrows(w),ncols(base_grading)+ncols(w))
-  for i in 1:nrows(base_grading)
-    for j in 1:ncols(base_grading)
-      ambient_space_grading[i,j] = base_grading[i,j]
-    end
-  end
-  for i in 1:nrows(w)
-    for j in 1:ncols(w)
-      ambient_space_grading[nrows(base_grading)+i,ncols(base_grading)+j] = w[i,j]
-    end
-  end
-  for i in 1:rows(w)
-    ambient_space_grading[i,ncols(base_grading)+1] = D1[i]
-    ambient_space_grading[i,ncols(base_grading)+2] = D2[i]
-  end
+  w = Matrix{Int64}(vcat([k.coeff for k in cox_ring(fiber_ambient_space).d]))
+  z_block = zeros(Int64, ncols(w), ncols(base_grading))
+  D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
+  ambient_space_grading = [base_grading D_block; z_block w']
   ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+dim(fiber_ambient_space))
   
   # Map p to coordinate ring of ambient space
