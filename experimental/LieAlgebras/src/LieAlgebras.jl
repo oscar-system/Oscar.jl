@@ -52,6 +52,7 @@ import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
+export LieAlgebraHom
 export LieAlgebraIdeal
 export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
@@ -96,6 +97,7 @@ include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
+include("LieAlgebraHom.jl")
 include("LieAlgebraModule.jl")
 include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
@@ -108,6 +110,7 @@ using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
+export LieAlgebraHom
 export LieAlgebraIdeal
 export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
