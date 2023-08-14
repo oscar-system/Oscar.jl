@@ -510,11 +510,20 @@ julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
-function save(io::IO, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
+function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where T
   state = serializer_open(io)
   data_dict(state) do
     save_typed_object(state, obj)
 
+    if serialize_with_id(T)
+      ref = get(global_serializer_state.obj_to_id, obj, nothing)
+      if isnothing(ref)
+        ref = global_serializer_state.obj_to_id[obj] = uuid4()
+        global_serializer_state.id_to_obj[ref] = obj
+      end
+      save_object(state, string(ref), :id)
+    end
+    
     # this should be handled by serializers in a later commit / PR
     state.key = :refs
     !isempty(state.refs) && data_dict(state) do
