@@ -929,6 +929,7 @@ export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export min_weights
 export minimal_block_reps
+export minimal_betti_table
 export minimal_denominators
 export minimal_faces
 export minimal_generating_set
