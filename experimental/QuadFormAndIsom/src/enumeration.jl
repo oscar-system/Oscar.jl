@@ -465,8 +465,8 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   ok, rk = divides(rk, euler_phi(n*m))
   ok || return reps
 
-  gene = HermGenus[]
   E, b = cyclotomic_field_as_cm_extension(n*m)
+  gene = Hecke.genus_herm_type(E)[]
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
 
@@ -936,7 +936,7 @@ end
 function _test_isometry_enumeration(L::ZZLat, k::Int = 2*rank(L)^2)
   n = rank(L)
   ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:k)
-  pds = union(reduce(vcat, prime_divisors.(ord)))
+  pds = unique!(reduce(vcat, prime_divisors.(ord)))
   vals = Int[maximum([valuation(x, p) for x in ord]) for p in pds]
   D = Dict{Int, Vector{ZZLatWithIsom}}()
   D[1] = ZZLatWithIsom[integer_lattice_with_isometry(L)]

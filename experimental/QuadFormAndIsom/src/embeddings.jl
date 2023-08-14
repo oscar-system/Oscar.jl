@@ -20,10 +20,10 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
 
-  gene = data.(union(AinD.(gens(A)), BinD.(gens(B))))
+  gene = data.(union!(AinD.(gens(A)), BinD.(gens(B))))
   geneOAinOD = elem_type(OD)[]
   for f in gens(OA)
-    imgf = data.(union(AinD.(f.(gens(A))), BinD.(gens(B))))
+    imgf = data.(union!(AinD.(f.(gens(A))), BinD.(gens(B))))
     fab = hom(gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOAinOD, fD)
@@ -31,7 +31,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
 
   geneOBinOD = elem_type(OD)[]
   for f in gens(OB)
-    imgf = data.(union(AinD.(gens(A)), BinD.(f.(gens(B)))))
+    imgf = data.(union!(AinD.(gens(A)), BinD.(f.(gens(B)))))
     fab = hom(gene, imgf)
     fD = OD(hom(D, D, fab.map))
     push!(geneOBinOD, fD)
@@ -434,7 +434,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
 
     if compute_stab
       stabq = AutomorphismGroupElem{TorQuadModule}[GtoMGp\(s) for s in gens(stab)]
-      stabq, _ = sub(G, union(stabq, gens(satV)))
+      stabq, _ = sub(G, union!(stabq, gens(satV)))
       # Stabilizers should preserve the actual subspaces, by definition. so if we
       # have lifted since properly, this should hold..
       @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
@@ -641,7 +641,7 @@ integer lattice `M`, return whether `M` embeds primitively in `L`.
 
 The first input of the function is a boolean `T` stating whether or not `M`
 embeds primitively in `L`. The second output `V` consists on triples
-`(L', M', N')` where `L'` is isometric to `L`, `M'` is a primtiive sublattice
+`(L', M', N')` where `L'` is isometric to `L`, `M'` is a primitive sublattice
 of `L'` isometric to `M`, and `N'` is the orthogonal complement of `M'` in `L'`.
 
 If `T == false`, then `V` will always be the empty list. If `T == true`, then
