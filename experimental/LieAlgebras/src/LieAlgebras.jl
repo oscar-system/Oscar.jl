@@ -2,7 +2,7 @@ module LieAlgebras
 
 using ..Oscar
 
-import Oscar: GAPWrap, IntegerUnion
+import Oscar: GAPWrap, IntegerUnion, MapHeader
 
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
@@ -20,6 +20,7 @@ import ..Oscar:
   coeff,
   coefficient_ring,
   coefficients,
+  compose,
   dim,
   direct_sum,
   dual,
@@ -28,9 +29,15 @@ import ..Oscar:
   exterior_power,
   gen,
   gens,
+  hom,
+  identity_map,
   ideal,
+  image,
+  inv,
   is_abelian,
+  is_isomorphism,
   is_simple,
+  matrix,
   ngens,
   normalizer,
   parent_type,
@@ -48,6 +55,7 @@ export LieAlgebra, LieAlgebraElem
 export LieAlgebraIdeal
 export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
+export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
 
 export abstract_module
@@ -89,6 +97,7 @@ include("LinearLieAlgebra.jl")
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraModule.jl")
+include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
@@ -101,6 +110,7 @@ export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraIdeal
 export LieAlgebraModule, LieAlgebraModuleElem
+export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 
