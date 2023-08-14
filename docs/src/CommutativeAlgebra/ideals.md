@@ -68,18 +68,24 @@ dim(I::MPolyIdeal)
 codim(I::MPolyIdeal)
 ```
 
+In the graded case, we additionally have:
+
+### Minimal Sets of Generators
+
+```@docs
+minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+```
+
+### Castelnuovo-Mumford Regularity
+
+```@docs
+cm_regularity(I::MPolyIdeal)
+```
+
 ### Degree
 
 ```@docs
 degree(I::MPolyIdeal)
-```
-
-### Minimal Sets of Generators
-
-In the graded case, we have:
-
-```@docs
-minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 ```
     
 ## Operations on Ideals
