@@ -2198,8 +2198,8 @@ Note: This is only available for localizations at rational points.
 
 
   ## determine the relations
-  singular_assure(I_shift, oL)
-  syz_mod=Singular.syz(I_shift.gens.S)
+  gensSord_shift = singular_generators(I_shift, oL)
+  syz_mod = Singular.syz(gensSord_shift)
 
   ## prepare Nakayama-check for minimal generating system
   F = free_module(R, length(Jlist))
