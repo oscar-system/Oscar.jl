@@ -928,10 +928,13 @@ end
 
 
 # Returns nothing; throws if ker(W) contains a non-zero vector >= 0
-function HSNum_check_weights(W::Vector{Vector{Int}})
+function _hilbert_series_check_weights(W::Vector{Vector{Int}})
   # assumes W is rectangular (and at least 1x1)
-  nrows = length(W);
-  A = ZZMatrix(W);
+  # Transpose while converting:
+  ncols = length(W);
+  nrows = length(W[1]);
+  A = zero_matrix(FlintZZ, nrows,ncols);
+  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
   b = zero_matrix(FlintZZ, nrows,1);
   try
     solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
@@ -939,6 +942,7 @@ function HSNum_check_weights(W::Vector{Vector{Int}})
     # solve_non_negative must have thrown because there is a non-zero soln
     error("given weights permit infinite dimensional homogeneous spaces")
   end
+  return nothing # otherwise it returns the result of solve_non_negative (Doh!!)
 end
 
 
@@ -954,7 +958,7 @@ function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
   if !all((t -> length(t)==nvars), gens)  # OK also if isempty(gens)
     throw("HSNum: generators must all have same size exponent vectors")
   end
-  HSNum_check_weights(W)
+  _hilbert_series_check_weights(W)
   # Args are OK, so simply return (without throwing)
 end
 
@@ -1060,6 +1064,7 @@ function _hilbert_series_denominator(HSRing::Ring, W::Vector{Vector{Int}})
   m = length(W[1])
   @req  all(r -> length(r)==m, W)  "Grading VecVec must be rectangular"
   @req  length(gens(HSRing)) >= m  "Hilbert series ring has too few variables"
+  _hilbert_series_check_weights(W) #throws or does nothing
   t = gens(HSRing)
   fac_dict = Dict{elem_type(HSRing), Integer}()
   for i = 1:n
