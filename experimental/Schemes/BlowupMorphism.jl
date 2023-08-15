@@ -603,3 +603,15 @@ end
   error("attribute not found; this needs to be set manually in general")
 end
 
+function compose(f::BlowupMorphism, g::BlowupMorphism)
+  return compose_lazy(f, g)
+end
+
+function compose(f::BlowupMorphism, g::AbsCoveredSchemeMorphism)
+  return compose_lazy(f, g)
+end
+
+function compose(f::AbsCoveredSchemeMorphism, g::BlowupMorphism)
+  return compose_lazy(f, g)
+end
+
