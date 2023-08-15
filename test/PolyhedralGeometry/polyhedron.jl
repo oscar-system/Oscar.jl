@@ -256,6 +256,22 @@ for f in (QQ, ENF)
                 @test is_simplicial(rsph_prec)
                 @test nvertices(rsph_prec) == 20
                 @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec-1))
+                
+                @test_throws ArgumentError SIM_body_polytope([])
+
+                let goldfarb = goldfarb_cube(3,1//4,0) # fuer zuweisungen 
+                    @test goldfarb isa Polyhedron{T}
+                    @test ambient_dim(goldfarb) == 3
+                    @test size(Oscar.pm_object(g).INEQUALITIES,1) == 7 #nur falls oscar danach nicht fragen kann
+                end
+
+                let bmg = binary_markov_graph_polytope([0,1,0,0,1])
+                    @test bmg isa Polyhedron{T}
+                    @test ambient_dim(bmg) == 2
+                    adj = Oscar.pm_object(b).SUM_PRODUCT_GRAPH.ADJACENCY
+                    @test Polymake.nv(adj) == 12
+                end
+                
 
             end
 
