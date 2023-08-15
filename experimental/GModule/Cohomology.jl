@@ -1511,7 +1511,13 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   #the augmentation map on the (canonical) generators is 1
   inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
   @assert is_G_hom(C, H, inj)
-#  return q, mq = quo(H, image(inj)[2]), mH
+  q, mq = quo(H, image(inj)[2])
+#  return q, mq, inj, H
+  #possibly, to get 3-chains: 
+  # 2 chain in q
+  # preimage mq 2 chain in H
+  # differential 3 chain in H
+  # preimage inj 3 chain in C
   return H_two(q)[1]
 end
 
