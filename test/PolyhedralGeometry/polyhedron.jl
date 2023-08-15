@@ -258,18 +258,50 @@ for f in (QQ, ENF)
                 @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec-1))
                 
                 @test_throws ArgumentError SIM_body_polytope([])
+                @test_throws ArgumentError SIM_body_polytope([1,2,3])
+                let sim = SIM_body_polytope([3,2,1])
+                    @test sim isa Polyhedron{T} 
+                    @test size(Oscar.pm_object(sim).INEQUALITIES,1) == 16
+                end
 
-                let goldfarb = goldfarb_cube(3,1//4,0) # fuer zuweisungen 
-                    @test goldfarb isa Polyhedron{T}
-                    @test ambient_dim(goldfarb) == 3
-                    @test size(Oscar.pm_object(g).INEQUALITIES,1) == 7 #nur falls oscar danach nicht fragen kann
+                let a = associahedron(4)
+                    @test a isa Polyhedron{T}
+                    @test dim(a) == 4
+                    @test size(Oscar.pm_object(a).FACETS,1) == 14
                 end
 
                 let bmg = binary_markov_graph_polytope([0,1,0,0,1])
                     @test bmg isa Polyhedron{T}
                     @test ambient_dim(bmg) == 2
-                    adj = Oscar.pm_object(b).SUM_PRODUCT_GRAPH.ADJACENCY
+                    adj = Oscar.pm_object(bmg).SUM_PRODUCT_GRAPH.ADJACENCY
                     @test Polymake.nv(adj) == 12
+                end
+
+                @test_throws ArgumentError dwarfed_cube(1)
+                let dc = dwarfed_cube(3)
+                    @test dc isa Polyhedron{T}
+                    @test dim(dc) == 3
+                    @test size(Oscar.pm_object(dc).FACETS,1) == 7
+                end
+
+                @test_throws ArgumentError dwarfed_product_polygons(3,2)
+                @test_throws ArgumentError dwarfed_product_polygons(4,2)
+                let dpp = dwarfed_product_polygons(4,5) 
+                    @test dpp isa Polyhedron{T}
+                    @test is_bounded(dpp)
+                end
+
+                @test_throws ArgumentError lecture_hall_simplex(-1)
+                let lhs = lecture_hall_simplex(4)
+                    @test lhs isa Polyhedron{T}
+                    @test is_bounded(lhs)
+                    @test nvertices{lhs} == 5
+                end
+
+                let goldfarb = goldfarb_cube(3,1//4,0) # fuer zuweisungen 
+                    @test goldfarb isa Polyhedron{T}
+                    @test ambient_dim(goldfarb) == 3
+                    @test size(Oscar.pm_object(goldfarb).INEQUALITIES,1) == 7 #nur falls oscar danach nicht fragen kann
                 end
                 
 

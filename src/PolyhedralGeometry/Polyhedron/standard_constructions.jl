@@ -1408,7 +1408,7 @@ end
 
 Produce the points of a zonotope as the iterated Minkowski sum of all intervals $[-x,x]$, 
 where $x$ ranges over the rows of the input matrix `zones`. 
-If 'rows_are_points' is 'true' (default), the rows of the input matrix represent affine points, 
+If `rows_are_points` is `true` (default), the rows of the input matrix represent affine points, 
 otherwise they represent linear vectors.
 
 # Examples
@@ -1866,15 +1866,13 @@ pile_polytope(sizes::Vector{Int}) = Polyhedron{QQFieldElem}(Polymake.polytope.pi
 @doc raw"""
     pitman_stanley_polytope(y::AbstractVector)
 
-Produce a Pitman-Stanley polytope of dimension $n-1$. 
+Produce a Pitman-Stanley polytope of dimension $n-1$, where 
+`y` is a  Vector of $n$ positive parameters.
 Does not check if the parameters are actually positive; negative values
 are legal but that do not yield a Pitman-Stanley polytope.
 Zeros just reduce the dimension; negative numbers may produce unbounded polyhedra. 
 
-# Keywords:
--`y::AbstractVector`: Vector of $n$ positive parameters
-
-# Examples:
+# Example:
 Pitman-Stanley polytopes are combinatorial cubes:
 ```jldoctest
 julia> p = pitman_stanley_polytope([1,2,3])
@@ -1897,10 +1895,10 @@ pitman_stanley_polytope(y::Vector{Int}) = pitman_stanley_polytope(convert(Vector
 @doc raw"""
     pseudo_del_pezzo_polytope(d::Int)
 
-Produce a d-dimensional del-Pezzo polytope, which is the convex hull of the cross polytope 
+Produce a `d`-dimensional del-Pezzo polytope, which is the convex hull of the cross polytope 
 together with the all-ones vector. All coordinates are plus or minus one.
 
-# Examples
+# Example
 ```jldoctest
 julia> DP = pseudo_del_pezzo_polytope(4)
 Polyhedron in ambient dimension 4
@@ -1918,14 +1916,12 @@ pseudo_del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.ps
 @doc raw"""
     rand01_polytope(d::Int, n::Int; seed=nothing)
 
-Produce a d-dimensional $0/1$-polytope with `n` random vertices. Uniform distribution.
+Produce a `d`-dimensional $0/1$-polytope with `n` random vertices. Uniform distribution.
 
-# Keywords
--`d::Int`: dimension of polytope
--`n::Int`: number of vertices
+# Optional Argument
 -`seed::Int`: Seed for random number generation
 
-# Examples
+# Example
 ```jldoctest
 julia> r = rand01_polytope(2,4)
 Polyhedron in ambient dimension 2
@@ -1946,7 +1942,7 @@ julia> vertices(r)
  [1, 1]
  [0, 0]
  [1, 0]
-````
+```
 """
 function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
     if (d < 2 || n <= d || n > 2^d)
@@ -1963,18 +1959,15 @@ function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
 end
 
 @doc raw"""
-    rand_box(d::Int, n::Int, b::Int, seed=nothing)
+    rand_box(d::Int, n::Int, b::Int, seed::Int=nothing)
 
 Computes the convex hull of `n` points sampled uniformly at random from the integer 
-points in the cube $[0,b]^d$.
+points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
 
-# Keywords
--`d::Int`: dimension of the box
--`n::Int`: number of sampled points on the box
--`b::Int`: length of each edge of the box
--`seed::Int`: Seed for random number generation.
+# Optional Argument
+-`seed`: Seed for random number generation.
 
-# Examples 
+# Example
 ```jldoctest
 julia> r = rand_box(3,10,3, seed=1)
 Polyhedron in ambient dimension 3
@@ -1995,29 +1988,27 @@ function rand_box(d::Int, n::Int, b::Int; seed=nothing)
     if (d<1 || n<1 || b<1)
         throw(ArgumentError("rand_box: 1 <= dim, #POINTS, b"))
     end 
-    if seed != nothing
+    if seed isnothing(seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
+    else
         seed = convert(Int64, seed)
         opts = Dict{Symbol, Any}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b; opts...)::Polymake.BigObject
-    else
-        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
-    rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
+    rand_cyclic_polytope(d::Int, n::Int; seed::Int=nothing)
 
-Computes a random instance of a cyclic polytope of dimension $d$ on $n$ vertices by randomly 
+Computes a random instance of a cyclic polytope of dimension `d` on `n` vertices by randomly 
 generating a Gale diagram whose cocircuits have alternating signs.
 
-# Keyword
--`d::Int`: dimension of polytope
--`n::Int`: number of vertices
--`seed::Int`: Seed for random number generation
+# Optional Argument
+-`seed`: Seed for random number generation
 
 # Examples
-```jldoctes
+```jldoctest
 julia> r = rand_cyclic_polytope(3, 5)
 Polyhedron in ambient dimension 3
 
@@ -2032,12 +2023,12 @@ function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
     if (d<2 || n<d+2) 
         throw(ArgumentError("rand_cyclic_polytope: need d >= 2 and n >= d+2"))
     end
-    if seed != nothing
+    if isnothing(seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
+    else
         seed = convert(Int64, seed)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n; opts...)::Polymake.BigObject
-    else
-        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
@@ -2046,10 +2037,10 @@ end
     rand_metric(n::Int; seed=nothing)
 
 Produce a rational n-point metric with random distances. 
-The values are uniformily distributed in [1,2].
+The values are uniformily distributed in $\[1,2\]$.
 
 # Examples
-```jldoctes
+```jldoctest
 julia> rand_metric(3, seed=132)
 3×3 Matrix{Rational}:
                0//1                …  371474612593257//281474976710656
@@ -2058,12 +2049,12 @@ julia> rand_metric(3, seed=132)
 ```
 """
 function rand_metric(n::Int; seed=nothing)
-    if seed != nothing #siehe oben 
+    if isnothing(seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
+    else
         seed = convert(Int64, seed)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
-    else
-        pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
     end
     return matrix(QQ, pm_obj) #statt Matrix{QQFieldElem}(pm_obj) (einheitliches Format in Oskar)
 end
@@ -2071,17 +2062,17 @@ end
 @doc raw"""
     rand_metric(n::Int, digits::Int; seed=nothing)
 
-Produce a n-point metric with random integral distances. 
-The values are uniformily distributed in [1,2]. The distances are integers and lie in 
+Produce a `n`-point metric with random integral distances. 
+The values are uniformily distributed in $\[1,2\]$. The distances are integers and lie in 
 $[10^digits, 10^(digits+1)[$  
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)
-    if seed != nothing
+    if isnothing(seed)
+        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
+    else
         seed = convert(Int64, seed)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits; opts...)
-    else
-        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
     end
     return Matrix{Int}(pm_obj)
 end
@@ -2090,14 +2081,15 @@ end
 
     rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
 
-Produce a rational d-dimensional polytope from n random points approximately 
+Produce a rational d-dimensional polytope from `n` random points approximately 
 normally distributed in the unit ball.
 
-# Keywords
--`seed::Int`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
--`precision::Int`: number of bits for MPFR sphere approximation
+# Optional Arguments
+-`seed`: controls the outcome of the random number generator; fixing a seed number guarantees the same outcome
+-`precision`: number of bits for MPFR sphere approximation
 
-# Examples
+# Example
+```jldoctest
 julia> rnp = rand_normal_polytope(2,4; precision=4)
 Polyhedron in ambient dimension 2
 
@@ -2110,6 +2102,7 @@ julia> map(x->dot(x,x), vertices(rnp))
  5//2
  325//1024
  125//64
+```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
     if (d < 2 || n <= d)
@@ -2131,15 +2124,11 @@ end
 @doc raw"""
    rss_associahedron(n::Int)
 
-Produce a polytope of constrained expansions in dimension `n` according to 
+Produce a polytope of constrained expansions in ambient dimension `n` according to 
 [RSS03](@cite)
-Note that `n` is the ambient dimension, not the dimension of the polytope. 
-
-# Keywords:
--`n::Int`: The ambient dimension
 
 # Examples:
-Top produce a $3$-dimensional associahedron in $5$-space, do: 
+To produce a $3$-dimensional associahedron in $5$-space, do: 
 ```jldoctest
 julia> a= rss_associahedron(5)
 Polyhedron in ambient dimension 5
@@ -2211,7 +2200,7 @@ function signed_permutahedron(d::Int)
         throw(ArgumentError("signed_permutahedron: dimension >= 2 required"))
     end
     m = 8*sizeof(Int)-1
-    n = sizeof(typeof(d)) #nochmal angucken! was soll hier abgefragt werden
+    n = sizeof(d) #nochmal angucken! was soll hier abgefragt werden
     if n > m 
         throw(ArgumentError("signed_permutahedron: dimension too high"))
     end
@@ -2221,11 +2210,13 @@ end
 @doc raw"""
     stable_set_polytope(G::Graph{Undirected}) 
 
-Produces the stable set polytope from an undirected graph $G=(V,E)$. 
+Produces the stable set polytope from an undirected graph `G`$=(V,E)$. 
 The stable set Polytope has the following inequalities: 
-$x_i + x_j \leq 1 \forall {i,j} \in E,  x_i \geq 0 \forall i \in V x_i \leq 1 \forall i \in V \text{ with } \mathrm{deg}(i)=0 $ 
+$x_i + x_j \leq 1 \forall \{i,j\} \in E$,  
+$x_i \geq 0 \forall i \in V$ and
+$x_i \leq 1 \forall i \in V \text{ with } \mathrm{deg}(i)=0$ 
 
-#Example:
+# Example:
 The following produces first the standard cube in $3$ dimensions, and then 
 a bipyramid over the convex hull of the unit vectors. 
 ```jldoctest
@@ -2279,7 +2270,7 @@ stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.pol
 Produce the transportation polytope from two vectors `r` of length $m$ and `c` of length $n$, 
 i.e. all positive $m\times n$ Matrizes with row sums equal to `r` and column sums equal to `c`. 
 
-#Example: 
+# Example: 
 We can see that the set of $3\times 3$ magic squares with magic constant $15$ is a $4$-dimensional 
 polytope. 
 ```jldoctest
