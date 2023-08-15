@@ -560,6 +560,18 @@ Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.parent_type(::CoChain{N,G,M})  where {N,G,M}= AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
+function differential(C::CoChain{N, G, M}) where {N, G, M}
+  n = N+1
+  d = []
+  for g = Iterators.ProductIterator(Tuple([C.C.G for i=1:n]))
+    v = action(C.C, g[n], C(Tuple(g[i] for i=1:n-1))) +
+        sum((-1)^i* C(Tuple(vcat([g[j] for j=1:i-1], [g[i]*g[i+1]], [g[j] for j=i+2:n]))) for i=1:n-1; init = zero(C.C.M)) +
+        (-1)^n*C(Tuple(g[i] for i=2:n))
+    push!(d, g=>v)
+  end
+  return CoChain{n, G, M}(C.C, Dict(d))
+end
+
 function action(C::CoChain, g::PermGroupElem)
   C = deepcopy(C)
   for x = keys(C.d)
@@ -573,6 +585,7 @@ end
 Evaluate a 0-cochain
 """
 (C::CoChain{0})() = first(values(C.d))
+(C::CoChain{0})(::Tuple{}) = first(values(C.d))
 
 #TODO: should this rather be a map from a 1-tuple of group elements?
 """
@@ -815,6 +828,7 @@ function H_one(C::GModule)
 
   M = Module(C)
   G = group(C)
+  n = ngens(G)
 
   z = MapFromFunc(
     Q, AllCoChains{1, elem_type(G), elem_type(M)}(),
@@ -1497,7 +1511,7 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   #the augmentation map on the (canonical) generators is 1
   inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
   @assert is_G_hom(C, H, inj)
-  q, mq = quo(H, image(inj)[2])
+#  return q, mq = quo(H, image(inj)[2]), mH
   return H_two(q)[1]
 end
 
