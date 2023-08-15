@@ -24,8 +24,17 @@ function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v.
   Rx, _collect_variables(c, w)...
 end
 
-# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
+# To make a list of variables safe for Singular to use
+# Allowable schemes should be:
+# (:x), (:x, :y), (:x, :y, :z)
+# (:x1, :x2, ...)
+function _variables_for_singular(n::Int)
+	n > 3 && return _make_strings("x#" => 1:n)
+	return [ :x, :y, :z ][1:n]
+end
+_variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
+# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
 _make_variable(a, i) = _make_variable(String(a), i)
 
 function _make_variable(a::String, i)
@@ -403,7 +412,7 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
 end
 
 @doc raw"""
-set_ordering(I::IdealGens, monord::MonomialOrdering) 
+set_ordering(I::IdealGens, monord::MonomialOrdering)
 
 Return an ideal generating system with an associated monomial ordering.
 
@@ -420,7 +429,7 @@ Ideal generating system with elements
 1 -> x0*x1
 2 -> x2
 with associated ordering
-degrevlex([x0, x1, x2])   
+degrevlex([x0, x1, x2])
 ```
 """
 function set_ordering(G::IdealGens, monord::MonomialOrdering)
@@ -524,7 +533,7 @@ function singular_coeff_ring(K::AnticNumberField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
-  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, symbols(Qa))
+  SQa, (Sa,) = Singular.FunctionField(Singular.QQ, _variables_for_singular(symbols(Qa)))
   Sminpoly = SQa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SQa(coeff(minpoly, i))*Sa^i
@@ -538,7 +547,7 @@ function singular_coeff_ring(F::fqPolyRepField)
   minpoly = modulus(F)
   Fa = parent(minpoly)
   SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
-                                                    symbols(Fa))
+                                                    _variables_for_singular(symbols(Fa)))
   Sminpoly = SFa(coeff(minpoly, 0))
   for i in 1:degree(minpoly)
     Sminpoly += SFa(coeff(minpoly, i))*Sa^i
@@ -581,33 +590,33 @@ end
 function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              symbols(Rx),
+              _variables_for_singular(symbols(Rx)),
               ordering = ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              symbols(Rx),
+              _variables_for_singular(symbols(Rx)),
               cached = false)[1]
   end
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              symbols(Rx),
+              _variables_for_singular(symbols(Rx)),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              symbols(Rx),
+              _variables_for_singular(symbols(Rx)),
               ordering = ord,
               cached = false)[1]
 end
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
-              symbols(Rx),
+              _variables_for_singular(symbols(Rx)),
               ordering = singular(ord),
               cached = false)[1]
 end
@@ -777,7 +786,7 @@ function map_entries(R, M::Singular.smatrix)
 end
 
 @doc raw"""
-    generating_system(I::MPolyIdeal) 
+    generating_system(I::MPolyIdeal)
 
 Return the system of generators of `I`.
 

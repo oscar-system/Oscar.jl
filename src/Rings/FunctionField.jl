@@ -26,7 +26,7 @@ end
 # multivariate
 function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
   R = base_ring(F)
-  return Singular.FunctionField(singular_coeff_ring(base_ring(R)), string.(R.S))[1]
+  return Singular.FunctionField(singular_coeff_ring(base_ring(R)), _variables_for_singular(symbols(R)))[1]
 end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
