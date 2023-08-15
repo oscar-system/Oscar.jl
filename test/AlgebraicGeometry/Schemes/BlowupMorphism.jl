@@ -42,6 +42,7 @@ end
   S = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(S)
   II = IdealSheaf(P, [x, y])
+  JJ = IdealSheaf(P, [x^2*z-y^3])
   Y = scheme(II)
   p = blow_up(II)
   X = domain(p)
@@ -59,5 +60,17 @@ end
   a = KY(y, z)
   b = KY(a[affine_charts(Y)[2]])
   @test pullback(p)(a) == pullback(p)(b)
+
+  inc_C = oscar.CoveredClosedEmbedding(scheme(JJ), JJ)
+  C = domain(inc_C)
+  C_up, inc_C_up, p_res = strict_transform(p, inc_C)
+
+  @test is_isomorphism(oscar.isomorphism_on_open_subset(p_res))
+  
+  KC_up = function_field(C_up)
+  KC = function_field(C)
+  aa = KC(a[affine_charts(Y)[3]])
+  @test pullback(p_res)(aa)^2 + one(KC_up) == pullback(p_res)(aa^2 + one(KC))
+
 end
 

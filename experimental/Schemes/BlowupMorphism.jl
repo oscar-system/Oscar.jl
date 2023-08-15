@@ -161,10 +161,50 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   inc_Z_trans = CoveredClosedEmbedding(Y, I_trans, 
                                        covering=simplified_covering(Y), # Has been set by the previous call
                                        check=false)
-  inc_cov = covering_morphism(inc_Z_trans)
+  inc_dom_cov = covering_morphism(inc_Z_trans)
+  inc_cod_cov = covering_morphism(inc)
 
   Z_trans = domain(inc_Z_trans)
   pr_res = restrict(projection(p), inc_Z_trans, inc)
+
+  if has_attribute(p, :isomorphism_on_open_subset)
+    p_iso = isomorphism_on_open_subset(p)
+    U = domain(p_iso)::PrincipalOpenSubset
+    V = codomain(p_iso)::PrincipalOpenSubset
+    V_amb = ambient_scheme(V)
+    U_amb = ambient_scheme(U)
+
+    # find a chart of the covering morphism of inc that is 
+    # located in V_amb
+    k = findfirst(x->has_ancestor(y->y===V_amb, codomain(inc_cod_cov[x])), patches(domain(inc_cod_cov)))
+    V_sub = patches(domain(inc_cod_cov))[k]
+    iso_V_sub = _flatten_open_subscheme(V_sub, domain(inc_cod_cov[V_sub]))
+
+    k = findfirst(x->has_ancestor(y->y===U_amb, codomain(inc_dom_cov[x])), patches(domain(inc_dom_cov)))
+    U_sub = patches(domain(inc_dom_cov))[k]
+    iso_U_sub = _flatten_open_subscheme(U_sub, domain(inc_dom_cov[U_sub]))
+
+    pr_res_cov = covering_morphism(pr_res)
+    pr_sub = pr_res_cov[U_sub]
+    @assert codomain(pr_sub) === V_sub # Should be true unless constructors change. 
+                                       # We keep the assert here for the future in case 
+                                       # developers loose it from their radar
+    OOZ = OO(Z)
+    OOX = OO(X)
+    OOY = OO(Y)
+    OOZ_trans = OO(Z_trans)
+    h = complement_equation(V)
+    h = OOY(V_amb, codomain(inc_cod_cov[V_sub]))(h)
+    h = pullback(inc_cod_cov[V_sub])(h)
+    V_sub_res = PrincipalOpenSubset(V_sub, h)
+    
+    h = complement_equation(U)
+    h = OOX(U_amb, codomain(inc_dom_cov[U_sub]))(h)
+    h = pullback(inc_dom_cov[U_sub])(h)
+    U_sub_res = PrincipalOpenSubset(U_sub, h)
+
+    set_attribute!(pr_res, :isomorphism_on_open_subset, restrict(pr_res_cov[U_sub], U_sub_res, V_sub_res))
+  end
   return Z_trans, inc_Z_trans, pr_res
 end
 
