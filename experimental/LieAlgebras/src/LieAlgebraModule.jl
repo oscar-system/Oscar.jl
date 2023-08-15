@@ -154,55 +154,49 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   io = pretty(io)
   println(io, _module_type_to_string(get_attribute(V, :type, :unknown)))
   println(io, Indent(), "of dimension $(dim(V))")
-  _show_inner(io, V)
+  is_standard_module(V) || _show_inner(io, V)
   print(io, Dedent())
   print(io, "over ")
   print(io, Lowercase(), base_lie_algebra(V))
 end
 
-function _show_semi_compact(io::IO, V::LieAlgebraModule)
-  io = pretty(io)
-  println(io, Lowercase(), _module_type_to_string(get_attribute(V, :type, :unknown)))
-  print(io, Indent())
-  _show_inner(io, V)
-  print(io, Dedent())
-end
-
 function _show_inner(io::IO, V::LieAlgebraModule)
   type = get_attribute(V, :type, :unknown)
   if type == :standard_module
-    # nothing
+    println(io, "standard module")
   elseif type == :dual
-    print(io, "dual of ", Lowercase())
-    _show_semi_compact(io, base_module(V))
+    println(io, "dual of ", Lowercase())
+    print(io, Indent())
+    _show_inner(io, base_module(V))
+    print(io, Dedent())
   elseif type == :direct_sum
-    println(io, "with direct summands")
+    println(io, "direct sum with direct summands")
     print(io, Indent())
     for W in base_modules(V)
-      _show_semi_compact(io, W)
+      _show_inner(io, W)
     end
     print(io, Dedent())
   elseif type == :tensor_product
-    println(io, "with tensor factors")
+    println(io, "tensor product with tensor factors")
     print(io, Indent())
     for W in base_modules(V)
-      _show_semi_compact(io, W)
+      _show_inner(io, W)
     end
     print(io, Dedent())
   elseif type == :exterior_power
-    println(io, "$(get_attribute(V, :power))-th exterior power of ")
+    println(io, "$(get_attribute(V, :power))-th exterior power of")
     print(io, Indent())
-    _show_semi_compact(io, base_module(V))
+    _show_inner(io, base_module(V))
     print(io, Dedent())
   elseif type == :symmetric_power
-    println(io, "$(get_attribute(V, :power))-th symmetric power of ")
+    println(io, "$(get_attribute(V, :power))-th symmetric power of")
     print(io, Indent())
-    _show_semi_compact(io, base_module(V))
+    _show_inner(io, base_module(V))
     print(io, Dedent())
   elseif type == :tensor_power
-    println(io, "$(get_attribute(V, :power))-th tensor power of ")
+    println(io, "$(get_attribute(V, :power))-th tensor power of")
     print(io, Indent())
-    _show_semi_compact(io, base_module(V))
+    _show_inner(io, base_module(V))
     print(io, Dedent())
   else
     error("Unknown module type.")
@@ -721,8 +715,8 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> dual(V)
 Dual module
   of dimension 3
-  dual of exterior power module
-    2-th exterior power of 
+  dual of 
+    2-th exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -765,13 +759,11 @@ julia> V2 = symmetric_power(standard_module(L), 3); # some module
 julia> direct_sum(V1, V2)
 Direct sum module
   of dimension 13
-  with direct summands
-    exterior power module
-      2-th exterior power of 
-        standard module
-    symmetric power module
-      3-th symmetric power of 
-        standard module
+  direct sum with direct summands
+    2-th exterior power of
+      standard module
+    3-th symmetric power of
+      standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
@@ -822,13 +814,11 @@ julia> V2 = symmetric_power(standard_module(L), 3); # some module
 julia> tensor_product(V1, V2)
 Tensor product module
   of dimension 30
-  with tensor factors
-    exterior power module
-      2-th exterior power of 
-        standard module
-    symmetric power module
-      3-th symmetric power of 
-        standard module
+  tensor product with tensor factors
+    2-th exterior power of
+      standard module
+    3-th symmetric power of
+      standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
@@ -891,10 +881,9 @@ julia> V = symmetric_power(standard_module(L), 3); # some module
 julia> exterior_power(V, 2)
 Exterior power module
   of dimension 45
-  2-th exterior power of 
-    symmetric power module
-      3-th symmetric power of 
-        standard module
+  2-th exterior power of
+    3-th symmetric power of
+      standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
@@ -945,10 +934,9 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> symmetric_power(V, 3)
 Symmetric power module
   of dimension 10
-  3-th symmetric power of 
-    exterior power module
-      2-th exterior power of 
-        standard module
+  3-th symmetric power of
+    2-th exterior power of
+      standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
@@ -1019,10 +1007,9 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> tensor_power(V, 3)
 Tensor power module
   of dimension 27
-  3-th tensor power of 
-    exterior power module
-      2-th exterior power of 
-        standard module
+  3-th tensor power of
+    2-th exterior power of
+      standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
