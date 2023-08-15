@@ -568,3 +568,113 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
   return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
 end
 
+########################################################################
+# Composite morphism of covered schemes
+########################################################################
+
+@attributes mutable struct CompositeCoveredSchemeMorphism{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 BaseMorphismType,
+                                 CoveredSchemeMorphism
+                                }
+  maps::Vector{<:AbsCoveredSchemeMorphism}
+
+  # fields for caching
+  composed_map::AbsCoveredSchemeMorphism
+
+  function CompositeCoveredSchemeMorphism(maps::Vector{<:AbsCoveredSchemeMorphism})
+    n = length(maps)
+    for i in 1:n-1
+      @assert codomain(maps[i]) === domain(maps[i+1]) "maps are not compatible"
+    end
+    # TODO: Take care of non-trivial base changes!
+    return new{typeof(domain(first(maps))), typeof(codomain(maps[end])), Nothing}(maps)
+  end
+end
+
+### Essential getters
+maps(f::CompositeCoveredSchemeMorphism) = f.maps
+domain(f::CompositeCoveredSchemeMorphism) = domain(first(f.maps))
+codomain(f::CompositeCoveredSchemeMorphism) = domain(f.maps[end])
+
+### Forwarding essential functionality (to be avoided!)
+function underlying_morphism(f::CompositeCoveredSchemeMorphism)
+  if !isdefined(f, :composed_map)
+    result = first(maps(f))
+    for i in 2:length(maps(f))
+      result = compose(result, maps(f)[i])
+    end
+    f.composed_map = result
+  end
+  return f.composed_map
+end
+
+########################################################################
+# The standard constructors
+########################################################################
+function compose_lazy(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+  return CompositeCoveredSchemeMorphism([f, g])
+end
+
+function compose_lazy(f::AbsCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
+  return CompositeCoveredSchemeMorphism(pushfirst!(copy(maps(g)), f))
+end
+
+function compose_lazy(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
+  return CompositeCoveredSchemeMorphism(vcat(maps(f), maps(g)))
+end
+
+function compose_lazy(f::CompositeCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+  return CompositeCoveredSchemeMorphism(push!(copy(maps(f)), g))
+end
+
+########################################################################
+# Printing
+########################################################################
+function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Composite morphism")
+  else
+    map_string = "$(domain(f)) -> "
+    for i in 2:length(maps(f))
+      map_string = map_string * "$(domain(map(f)[i])) -> "
+    end
+    map_string = map_string * "$(codomain(map(f)[end]))"
+
+    print(io, "Composition of ", map_string)
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
+  io = pretty(io)
+  println(io, "Composite morphism of", Indent())
+  for g in maps(f)
+    println(io, g)
+  end
+end
+
+########################################################################
+# Bound functionality
+########################################################################
+function pushforward(f::CompositeCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+  result = a
+  for g in maps(f)
+    result = pushforward(g, result)
+  end
+  return result
+end
+
+function pullback(f::CompositeCoveredSchemeMorphism, a::VarietyFunctionFieldElem) 
+  result = a
+  for g in reverse(maps(f))
+    result = pullback(g, result)
+  end
+  return result
+end
+
