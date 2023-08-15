@@ -132,7 +132,8 @@ end
 end
 
 @testset "H^3" begin
-  #from Tommy...
+  # This is C = pi_2(X_P) for the standard presentation of Q_8
+  # We know that H^3(G, C) = Z/|G|Z
   genss = [@perm((1,2,6,3)(4,8,5,7)), @perm((1,4,6,5)(2,7,3,8))];
   G, = sub(symmetric_group(8), genss);
   @test small_group_identification(G) == (8, 4)
