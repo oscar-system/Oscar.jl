@@ -685,6 +685,16 @@ end
 Construct the standard module of the linear Lie algebra `L`.
 If `L` is a Lie subalgebra of $\mathfrak{gl}_n(R)$, then the standard module
 is $R^n$ with the action of $L$ given by left multiplication.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> standard_module(L)
+Standard module
+  of dimension 3
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function standard_module(L::LinearLieAlgebra)
   dim_std_V = L.n
@@ -701,6 +711,21 @@ end
     dual(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
 
 Construct the dual module of `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = exterior_power(standard_module(L), 2); # some module
+
+julia> dual(V)
+Dual module
+  of dimension 3
+  dual of exterior power module
+    2-th exterior power of 
+      standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
   L = base_lie_algebra(V)
@@ -728,6 +753,27 @@ Base.:^(V::LieAlgebraModule, ::typeof(Base.:*)) = dual(V)
     ⊕(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Construct the direct sum of the modules `V...`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V1 = exterior_power(standard_module(L), 2); # some module
+
+julia> V2 = symmetric_power(standard_module(L), 3); # some module
+
+julia> direct_sum(V1, V2)
+Direct sum module
+  of dimension 13
+  with direct summands
+    exterior power module
+      2-th exterior power of 
+        standard module
+    symmetric power module
+      3-th symmetric power of 
+        standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function direct_sum(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
@@ -764,6 +810,27 @@ end
   ⊗(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Construct the tensor product of the modules `V...`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V1 = exterior_power(standard_module(L), 2); # some module
+
+julia> V2 = symmetric_power(standard_module(L), 3); # some module
+
+julia> tensor_product(V1, V2)
+Tensor product module
+  of dimension 30
+  with tensor factors
+    exterior power module
+      2-th exterior power of 
+        standard module
+    symmetric power module
+      3-th symmetric power of 
+        standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
@@ -814,6 +881,22 @@ end
     exterior_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
 
 Construct the `k`-th exterior power $\bigwedge^k (V)$ of the module `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = symmetric_power(standard_module(L), 3); # some module
+
+julia> exterior_power(V, 2)
+Exterior power module
+  of dimension 45
+  2-th exterior power of 
+    symmetric power module
+      3-th symmetric power of 
+        standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
@@ -852,6 +935,22 @@ end
     symmetric_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
 
 Construct the `k`-th symmetric power $S^k (V)$ of the module `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = exterior_power(standard_module(L), 2); # some module
+
+julia> symmetric_power(V, 3)
+Symmetric power module
+  of dimension 10
+  3-th symmetric power of 
+    exterior power module
+      2-th exterior power of 
+        standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
@@ -910,6 +1009,22 @@ end
     tensor_power(V::LieAlgebraModule{C}, k::Int) -> LieAlgebraModule{C}
 
 Construct the `k`-th tensor power $T^k (V)$ of the module `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = exterior_power(standard_module(L), 2); # some module
+
+julia> tensor_power(V, 3)
+Tensor power module
+  of dimension 27
+  3-th tensor power of 
+    exterior power module
+      2-th exterior power of 
+        standard module
+over special linear Lie algebra of degree 3 over QQ
+```
 """
 function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   L = base_lie_algebra(V)
