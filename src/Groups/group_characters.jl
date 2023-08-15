@@ -2235,19 +2235,12 @@ function character_field(chi::GAPGroupClassFunction)
     values = chi.values  # a list of GAP cyclotomics
     gapfield = GAPWrap.Field(values)
     N = GAPWrap.Conductor(gapfield)
-    FF, = abelian_closure(QQ)
+    FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)
       # In this case, the want to return a field that knows to be cyclotomic
       # (and the embedding is easy).
       F, z = AbelianClosure.cyclotomic_field(FF, N)
-      f = x::nf_elem -> QQAbElem(x, N)
-      finv = function(x::QQAbElem)
-        g = gcd(x.c, N)
-        K, = AbelianClosure.cyclotomic_field(FF, g)
-        x = Hecke.force_coerce_cyclo(K, x.data)
-        x = Hecke.force_coerce_cyclo(F, x)
-        return x
-      end
+      nfelm = FF(z)
     else
       # In the general case, we have to work for the embedding.
       gapgens = GAPWrap.GeneratorsOfField(gapfield)
@@ -2257,35 +2250,11 @@ function character_field(chi::GAPGroupClassFunction)
       v = Vector{QQFieldElem}(gapcoeffs)
       R, = polynomial_ring(QQ, "x")
       f = R(v)
-      F, z = number_field(f, "z"; cached = true, check = false)
-      K, zz = AbelianClosure.cyclotomic_field(FF, N)
-
-      nfelm = QQAbElem(gapgens[1]).data
-
-      # Compute the expression of powers of `z` as sums of roots of unity (once).
-      powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
-      c = transpose(matrix(QQ, powers))
-
-      f = function(x::nf_elem)
-        return QQAbElem(evaluate(R(x), nfelm), N)
-      end
-
-      finv = function(x::QQAbElem)
-        # Write `x` w.r.t. the N-th cyclotomic field ...
-        g = gcd(x.c, N)
-        Kg, = AbelianClosure.cyclotomic_field(FF, g)
-        x = Hecke.force_coerce_cyclo(Kg, x.data)
-        x = Hecke.force_coerce_cyclo(K, x)
-
-        # ... and then w.r.t. `F`
-        a = coefficients(x)
-        b = transpose(solve(c, matrix(QQ,length(a),1,a)))
-        b = [b[i] for i in 1:length(b)]
-        return F(b)
-      end
+      F, _ = number_field(f, "z"; cached = true, check = false)
+      nfelm = QQAbElem(gapgens[1])
     end
 
-    return F, MapFromFunc(F, FF, f, finv)
+    return F, AbelianClosure._embedding(F, FF, nfelm)
 end
 
 @doc raw"""
