@@ -6,6 +6,7 @@ export @permutation_group
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
+export AbsAffineRationalPoint
 export AbsAffineCurve
 export AbsAffineVariety
 export AbsCoveredCurve
@@ -324,6 +325,7 @@ export class_positions_of_kernel
 export class_positions_of_pcore
 export closed_subvariety_of_toric_variety
 export closure
+export cm_regularity
 export cobases
 export cochain_complex
 export cocircuits
@@ -406,6 +408,7 @@ export cube
 export cycle_matroid
 export cycle_structure
 export cyclic_caratheodory_polytope
+export cycle_structures
 export cyclic_flats
 export cyclic_generator
 export cyclic_group
@@ -585,6 +588,7 @@ export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
+export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export groebner_polyhedron
@@ -943,6 +947,7 @@ export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export min_weights
 export minimal_block_reps
+export minimal_betti_table
 export minimal_denominators
 export minimal_faces
 export minimal_generating_set
@@ -958,7 +963,7 @@ export moebius_mu
 export molien_series
 export monomial_ordering
 export monomials
-export monomials_of_degree
+export monomial_basis
 export mori_cone
 export morphism_from_cox_variety
 export morphism_of_projective_schemes
@@ -1336,6 +1341,7 @@ export symplectic_components
 export symplectic_group
 export syz
 export syzygy_generators
+export tangent_space
 export tail
 export tensor_product
 export terms
@@ -1371,6 +1377,7 @@ export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_points
 export tropical_polynomial
 export tropical_variety
+export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial

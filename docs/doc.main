@@ -57,6 +57,7 @@
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
+     "Fields/algebraic_closure_fp.md",
   ],
 
   "Linear Algebra" => [
@@ -172,6 +173,10 @@
      "Algebraic Varieties" => [
         "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
         "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
+     ],
+     "Rational Points" => [
+        "AlgebraicGeometry/RationalPoints/Affine.md",
+        "AlgebraicGeometry/RationalPoints/Projective.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",

@@ -85,11 +85,16 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-	singular_assure(B, ordering)
-	R = B.Sx
-	I  = Singular.Ideal(R, gens(B.S)...)
-	i  = Singular.std(I, complete_reduction = complete_reduction)
-	BA = IdealGens(B.Ox, i, complete_reduction)
+	# incorrect one
+  singular_assure(B, ordering)
+  R = B.Sx
+  I  = Singular.Ideal(R, gens(B.S)...)
+  i  = Singular.std(I, complete_reduction = complete_reduction)
+  BA = IdealGens(B.Ox, i, complete_reduction)
+  # correct one (segfaults)
+  #gensSord = singular_generators(B, ordering)
+  #i = Singular.std(gensSord, complete_reduction = complete_reduction)
+  #BA = IdealGens(B.Ox, i, complete_reduction)
 	BA.isGB = true
 	BA.ord = ordering
 	if isdefined(BA, :S)
@@ -342,7 +347,7 @@ function groebner_basis_f4(
 end
 
 @doc raw"""
-    _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -371,21 +376,8 @@ degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-   if !isdefined(B, :ordering)
-      singular_assure(B, ordering)
-   elseif ordering != B.ordering
-     R = singular_poly_ring(B.Ox, ordering)
-     i = Singular.Ideal(R, [R(x) for x = B])
-     i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-     return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
-   end
-
-   if !isdefined(B, :S)
-     B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-   end
-
-   i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-   return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
+  istd, m = Singular.lift_std(singular_generators(B, ordering), complete_reduction = complete_reduction)
+  return IdealGens(B.Ox, istd), map_entries(x -> B.Ox(x), m)
 end
 
 @doc raw"""
@@ -581,9 +573,13 @@ julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
   groebner_assure(J, o)
-  G = J.gb[o]  
-  singular_assure(G, o)
-  K = ideal(base_ring(J), reduce(I, G.S))
+  G = J.gb[o]
+  R = base_ring(J)
+  SR = singular_poly_ring(R, o)
+  f = Singular.AlgebraHomomorphism(base_ring(I), SR, gens(SR))
+  IS = Singular.map_ideal(f, I)
+  GS = singular_generators(G, o)
+  K = ideal(base_ring(J), reduce(IS, GS))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
@@ -627,9 +623,9 @@ julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
 """
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
-	singular_assure(I, ordering)
-	singular_assure(J, ordering)
-	res = reduce(I.gens.S, J.gens.S)
+  Is = singular_generators(I, ordering)
+  Js = singular_generators(J, ordering)
+  res = reduce(Is, Js)
 	return [J.gens.Ox(x) for x = gens(res)]
 end
 
@@ -932,9 +928,9 @@ end
 
 function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
-	singular_assure(I, ordering)
-	singular_assure(J, ordering)
-	res = Singular.division(I.gens.S, J.gens.S)
+	sI = singular_generators(I, ordering)
+  sJ = singular_generators(J, ordering)
+  res = Singular.division(sI, sJ)
 	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
@@ -990,16 +986,18 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-    singular_assure(J, ordering)
-    I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
-    N = normal_form_internal(I, J, ordering)
-    return N[1]
+  singular_assure(J)
+  SR = J.gens.Sx
+  I = Singular.Ideal(SR, SR(f))
+  N = normal_form_internal(I, J, ordering)
+  return N[1]
 end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-    singular_assure(J, ordering)
-    I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
-    normal_form_internal(I, J, ordering)
+  singular_assure(J)
+  SR = J.gens.Sx
+  I = Singular.Ideal(SR, [SR(x) for x in A])
+  normal_form_internal(I, J, ordering)
 end
 
 @doc raw"""
@@ -1364,9 +1362,9 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     h = (Int32).([coeff(hilbert_numerator, i) for i in 0:degree(hilbert_numerator)+1])
   end
 
-  singular_assure(I.gens, ordering)
-  singular_ring = I.gens.Sx
-  J  = Singular.Ideal(singular_ring, gens(I.gens.S)...)
+  singular_I_gens = singular_generators(I.gens, ordering)
+  singular_ring = base_ring(singular_I_gens)
+  J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
   i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
   GB = IdealGens(I.gens.Ox, i, complete_reduction)
@@ -1442,7 +1440,6 @@ function _is_homogeneous(f::MPolyRingElem)
   end
   return true
 end
-  
 
 # compute weights such that F is a homogeneous system w.r.t. these weights
 function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
@@ -1481,4 +1478,136 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   ret = (x -> div(x, gcd(ret))).(ret) 
   # assure that the weights fit in Int32 for singular
   return all(ret .< 2^32) ? ret : zeros(Int,ncols)
+end
+
+# modular gröbner basis techniques using Singular
+@doc raw"""
+groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                           certify::Bool = false)
+
+Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
+multi-modular strategy.
+
+!!! note
+    This function is probabilistic and returns a correct result
+    only with high probability.
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
+
+julia> I = ideal(R, [x^2+1209, x*y + 3279*y^2])
+ideal(x^2 + 1209, x*y + 3279*y^2)
+
+julia> groebner_basis_modular(I)
+Gröbner basis with elements
+1 -> y^3 + 403//3583947*y
+2 -> x^2 + 1209
+3 -> x*y + 3279*y^2
+with respect to the ordering
+degrevlex([x, y, z])
+```
+"""
+function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                                certify::Bool = false)
+
+  # small function to get a canonically sorted reduced gb
+  sorted_gb = idl -> begin
+    R = base_ring(idl)
+    gb = gens(groebner_basis(idl, ordering = ordering,
+                             complete_reduction = true))
+    sort!(gb, by = p -> leading_monomial(p),
+          lt = (m1, m2) -> cmp(MonomialOrdering(R, ordering.o), m1, m2) > 0)
+  end
+  
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
+  end
+
+  primes = Hecke.PrimesSet(rand(2^15:2^16), -1)
+
+  p = iterate(primes)[1]
+  Qt = base_ring(I)
+  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+
+  Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+  std_basis_crt_previous = std_basis_mod_p_lifted
+
+  n_stable_primes = 0
+  d = fmpz(p)
+  unlucky_primes_in_a_row = 0
+  done = false
+  while !done
+    while n_stable_primes < 2
+      p = iterate(primes, p)[1]
+      Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+
+      # test for unlucky prime
+      if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),
+             enumerate(std_basis_mod_p_lifted))
+        unlucky_primes_in_a_row += 1
+        # if we get unlucky twice in a row we assume that
+        # we started with an unlucky prime
+        if unlucky_primes_in_a_row == 2
+          std_basis_crt_previous = std_basis_mod_p_lifted
+        end
+        continue
+      end
+      unlucky_primes_in_a_row = 0
+      
+      is_stable = true
+      for (i, f) in enumerate(std_basis_mod_p_lifted)
+        if !iszero(f - std_basis_crt_previous[i])
+          std_basis_crt_previous[i], _ = induce_crt(std_basis_crt_previous[i], d, f, fmpz(p), true)
+          stable = false
+        end
+      end
+      if is_stable
+        n_stable_primes += 1
+      end
+      d *= fmpz(p)
+    end
+    final_gb = fmpq_mpoly[induce_rational_reconstruction(f, d, parent = base_ring(I)) for f in std_basis_crt_previous]
+
+    I.gb[ordering] = IdealGens(final_gb, ordering)
+    if certify
+      done = _certify_modular_groebner_basis(I, ordering)
+    else
+      done = true
+    end
+  end
+  I.gb[ordering].isGB = true
+  return I.gb[ordering]
+end
+
+function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz; parent = 1)
+  g = MPolyBuildCtx(parent)
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    fl, r, s = Hecke.rational_reconstruction(c, d)
+    fl ? push_term!(g, r//s, v) : push_term!(g, c, v)
+  end
+  return finish(g)
+end
+
+function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+  @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
+  ctr = 0
+  singular_generators(I.gb[ordering])
+  SR = I.gb[ordering].gens.Sx
+  SG = I.gb[ordering].gens.S
+
+  #= test if I is included in <G> =#
+  for f in I.gens
+    if Singular.reduce(SR(f), SG) != 0
+      break
+    end
+    ctr += 1
+  end
+  if ctr != ngens(I)
+    return false
+  end
+
+  #= test if G is a standard basis of <G> w.r.t. ordering =#
+  return is_standard_basis(I.gb[ordering], ordering=ordering)
 end

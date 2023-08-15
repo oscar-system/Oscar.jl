@@ -328,7 +328,7 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
-monomials_of_degree(R::MPolyDecRing, g::GrpAbFinGenElem)
+monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
 ```
 
 ```@docs

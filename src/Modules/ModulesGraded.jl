@@ -368,8 +368,8 @@ Graded free module R^2([0]) of rank 2 over R
 
 julia> degrees_of_generators(F)
 2-element Vector{GrpAbFinGenElem}:
- graded by [0]
- graded by [0]
+ [0]
+ [0]
 ```
 """
 function degrees_of_generators(F::FreeMod)
@@ -496,7 +496,7 @@ julia> f = y^2*z − x^2*w
 -w*x^2 + y^2*z
 
 julia> degree(f)
-graded by [3]
+[3]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -572,7 +572,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
   return phi
 end
 
-function graded_map(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T <: RingElement}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -615,7 +615,7 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule}}
+function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
@@ -657,7 +657,7 @@ e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
 
 julia> degree(a)
-graded by [1]
+[1]
 ```
 """
 function degree(f::FreeModuleHom)
@@ -1308,18 +1308,18 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   rng = Hecke.map_range(C)
   n = first(rng)
   for i in 0:n
-      module_degrees = F[i].d
-      module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
-      for degree in module_degrees
-          idx = (i, degree)
-          generator_count[idx] = get(generator_count, idx, 0) + 1
-      end
+    module_degrees = F[i].d
+    module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
+    for degree in module_degrees
+      idx = (i, degree)
+      generator_count[idx] = get(generator_count, idx, 0) + 1
+    end
   end
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
 function betti(b::FreeResolution; reverse_direction::Bool = false)
-	return betti_table(b, project = nothing, reverse_direction = reverse_direction)
+  return betti_table(b, project = nothing, reverse_direction = reverse_direction)
 end
 
 function as_dictionary(b::BettiTable)
@@ -1335,8 +1335,8 @@ function induce_shift(B::Dict{Tuple{Int, Any}, Int})
   A = parent(first(keys(B))[2])
   new_B = Dict{Tuple{Int, Any}, Int}()
   for ((i, key), value) in B
-      new_key = (i, key-i*A[1])
-      new_B[new_key] = value
+    new_key = (i, key-i*A[1])
+    new_B[new_key] = value
   end
   return new_B
 end
@@ -1361,6 +1361,9 @@ function Base.show(io::IO, b::BettiTable)
         print(io, j, " "^(spaces - ndigits(j) + 1))
       end
       print(io, "\n")
+      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
+      print(io, "-" ^ divider_width)    
+      print(io, "\n")
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
@@ -1374,7 +1377,6 @@ function Base.show(io::IO, b::BettiTable)
         end
         print(io,"\n")
       end
-      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
       print(io, "-" ^ divider_width)
       print(io, "\n", "total: ")
       for i_total in min:step:max
@@ -1923,4 +1925,293 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
   to_hom_map = MapFromFunc(GH, X, im, pre)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
+end
+
+                                                                                                      
+########################################################################
+# Minimal Betti tables
+########################################################################
+
+# TODO: Are the signatures sufficient to assure that the modules are graded?
+function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M))
+end
+
+function minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(A))
+end
+
+function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(I))
+end
+
+#=
+ The examples below don't run because of a bug in the documenter. 
+ We can put them back in, once that works.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, [:w, :x, :y, :z]);
+
+julia> R, (w, x, y, z) = grade(R)
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+
+julia> I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
+ideal(w^2 - x*z, w*x - y*z, -w*y + x^2, x*y - z^2, -w*z + y^2)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 5 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> betti_table(free_resolution(A))
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  5  5  1
+2    : -  -  1  1
+------------------
+total: 1  5  6  2
+
+julia> minimal_betti_table(free_resolution(A))
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  5  5  -
+2    : -  -  -  1
+------------------
+total: 1  5  5  1
+
+```
+"""
+=#
+@doc raw"""
+    minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+
+The Betti table of a minimized version of `res` without actually computing a minimalization.
+"""
+function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+  @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
+  @assert is_graded(res) "resolution must be graded"
+  C = complex(res)
+  @assert is_complete(res) "resolution must be complete"
+  rng = range(C)
+  # The following needs the resolution to be complete to be true
+  res_length = first(rng)-1
+  offsets = Dict{GrpAbFinGenElem, Int}()
+  betti_hash_table = Dict{Tuple{Int, Any}, Int}()
+  for i in 1:res_length+1
+    phi = map(C, i)
+    F = domain(phi)
+    G = codomain(phi)
+    dom_degs = unique!([degree(g) for g in gens(F)])
+    cod_degs = unique!([degree(g) for g in gens(G)])
+    for d in cod_degs
+      d::GrpAbFinGenElem
+      if d in dom_degs
+        _, _, sub_mat = _constant_sub_matrix(phi, d)
+        r = rank(sub_mat)
+        betti_hash_table[(i-1, d)] = ncols(sub_mat) - r - get(offsets, d, 0)
+        offsets[d] = r
+      else
+        betti_hash_table[(i-1, d)] = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+      end
+    end
+  end
+  return BettiTable(betti_hash_table)
+end
+
+function hash_table(B::BettiTable) 
+  return B.B
+end
+
+function generators_of_degree(
+    C::FreeResolution{T},
+    i::Int,
+    d::GrpAbFinGenElem
+  ) where {T<:ModuleFP}
+  F = C[i]
+  return [g for g in gens(F) if degree(g) == d]
+end
+
+function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+  result = Vector{Int}()
+  for (i, g) in enumerate(gens(F))
+    if degree(g) == d
+      push!(result, i)
+    end
+  end
+  return result
+end
+
+function _constant_sub_matrix(
+    phi::FreeModuleHom{T, T},
+    d::GrpAbFinGenElem
+  ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
+  S = base_ring(domain(phi))::MPolyDecRing
+  kk = coefficient_ring(S)::Field
+  F = domain(phi)
+  G = codomain(phi)
+  ind_dom = _indices_of_generators_of_degree(F, d)
+  ind_cod = _indices_of_generators_of_degree(G, d)
+  m = length(ind_dom)
+  n = length(ind_cod)
+  result = zero(MatrixSpace(kk, m, n))
+  for i in 1:m
+    for j in 1:n
+      c = phi(F[ind_dom[i]])[ind_cod[j]]
+      result[i, j] = iszero(c) ? zero(kk) : first(coefficients(c))
+    end
+  end
+  return ind_dom, ind_cod, result
+end
+
+# TODO: This will be provided soon from different sources.
+function complex(F::FreeResolution) 
+  return F.C
+end
+
+function base_ring(res::FreeResolution{T}) where {T<:ModuleFP}
+  return base_ring(res[-1])
+end
+                                                                                                                                    
+#############truncation#############
+
+@doc raw"""
+    truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+
+Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivariate 
+polynomial ring with positive weights, return the truncation of `M` at degree `g`.
+
+Put more precisely, return the truncation as an object of type `SubquoModule`. 
+
+Additionally, if `N` denotes this object,
+
+- return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
+- return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
+- do none of the above if `task = :none`.
+
+If `task = :only_morphism`, return only the inclusion map.
+
+    truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
+
+Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
+of the grading group of `base_ring(I)` and proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 1)
+Graded free module R^1([0]) of rank 1 over R
+
+julia> V = [x*F[1]; y^4*F[1]; z^5*F[1]];
+
+julia> M, _ = quo(F, V);
+
+julia> M[1]
+e[1]
+
+julia> MT = truncate(M, 3);
+
+julia> MT[1]
+Graded subquotient of submodule of F generated by
+1 -> z^3*e[1]
+2 -> y*z^2*e[1]
+3 -> y^2*z*e[1]
+4 -> y^3*e[1]
+5 -> x*z^2*e[1]
+6 -> x*y*z*e[1]
+7 -> x*y^2*e[1]
+8 -> x^2*z*e[1]
+9 -> x^2*y*e[1]
+10 -> x^3*e[1]
+by submodule of F generated by
+1 -> x*e[1]
+2 -> y^4*e[1]
+3 -> z^5*e[1]
+```
+"""
+function truncate(I::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+  return truncate(I, Int(g[1]), task)
+end
+
+function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
+  @req I isa FreeMod || I isa SubquoModule "Not implemented for the given type"
+  R = base_ring(I)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_z_graded(R) "The base ring must be ZZ-graded"
+  W = R.d
+  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  @req minimum(W) > 0 "The weights must be positive"
+  if is_zero(I)
+     return I
+  end
+  dmin = minimum(degree(Int, x) for x in gens(I))
+  if  d <= dmin
+     return I
+  end
+  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  RES = elem_type(I)[]
+  s = dmin
+  B = monomial_basis(R, d-s)
+  for i = 1:length(V)
+       if degree(Int, V[i]) < d
+          if degree(Int, V[i]) > s
+             s = degree(Int, V[i])
+	     B = monomial_basis(R, d-s)
+	  end
+	     append!(RES, [x*V[i] for x in B])
+       else
+           push!(RES, V[i])
+       end
+  end
+  return sub(I, RES, task) 
+end
+
+
+##################regularity#######################
+
+@doc raw"""
+    cm_regularity(M::ModuleFP)
+
+Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
+multivariate polynomial ring, return the Castelnuovo-Mumford regularity of `M`.
+ 
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(R, 1);
+
+julia> M, _ = quo(F, [x^2*F[1], y^2*F[1], z^2*F[1]])
+(Graded subquotient of submodule of F generated by
+1 -> e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^2*e[1]
+3 -> z^2*e[1], F -> M
+e[1] -> e[1]
+Homogeneous module homomorphism)
+
+julia> cm_regularity(M)
+3
+
+julia> minimal_betti_table(M);
+```
+"""
+function cm_regularity(M::ModuleFP)
+ error("Not implemented for the given type")
+end
+
+function cm_regularity(M::FreeMod)
+   @req is_standard_graded(base_ring(M)) "The base ring is not standard ZZ-graded"
+   return 0
+end
+
+function cm_regularity(M::SubquoModule)
+   @req is_standard_graded(base_ring(M)) "The base ring is not standard ZZ-graded"
+   B = minimal_betti_table(M)
+   S = as_dictionary(B)
+   V = [x[2][1] - x[1] for x in keys(S)] 
+  return maximum(V)
 end

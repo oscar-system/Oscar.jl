@@ -29,8 +29,8 @@ end
     vector_space_dimension(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector
-space if `I` is zero-dimensional. Return `-1`, otherwise.
+`K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A` 
+as a `K`-vector space.
 
 # Examples
 ```jldoctest
@@ -59,8 +59,111 @@ function vector_space_dimension(A::MPolyQuoRing)
   end
   I = A.I
   G = groebner_assure(I)
+  @req dim(I) == 0 "The ideal must be zero-dimensional"
   singular_assure(G)
   return Singular.vdim(G.S)
+end
+
+@doc raw"""
+    monomial_basis(A::MPolyQuoRing)
+
+If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
+`K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R` 
+such that the residue classes of these monomials form a basis of `A` as a `K`-vector
+space.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x^2, y^3])
+ideal(x^2, y^3)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> L = monomial_basis(A)
+6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x*y^2
+ y^2
+ x*y
+ y
+ x
+ 1
+```
+"""
+function monomial_basis(A::MPolyQuoRing)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  I = A.I
+  G = Oscar.groebner_assure(I)
+  @req dim(I) == 0 "The ideal must be zero-dimensional"
+  singular_assure(G)
+  si = Singular.kbase(G.S)
+  return gens(MPolyIdeal(base_ring(I), si))
+end
+
+
+@doc raw"""
+    monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+
+Given an affine algebra `A` over a field which is graded by a free
+group of type `GrpAbFinGen`, and given an element `g` of that group,
+return a vector of monomials of `R` such that the residue classes of 
+these monomials form a `K`-basis of the graded part of `A` of degree `g`.
+
+    monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded affine algebra `A` over a field and
+a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
+group of `A` and proceed as above.
+
+    monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
+
+Given a $\mathbb  Z$-graded  affine algebra `A` over a field and
+an integer `d`, convert `d` into an element `g` of the grading
+group of `A` and proceed as above.
+
+!!! note
+    If the component of the given degree is not finite dimensional, an error message will be thrown.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x^2])
+ideal(x^2)
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+R to A defined by a julia-function with inverse)
+
+julia> L = monomial_basis(A, 3)
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ y^3
+ x*y^2
+```
+"""
+function monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  R = base_ring(A)
+  @req is_graded(R) "The ring must be graded"
+  L = monomial_basis(R, g)
+  LI = leading_ideal(A.I)
+  ### TODO: Decide whether we should check whether a GB with respect
+    ### to whatever <ordering is already available
+  L = [x for x=L if !(x in LI)]
+    return L
+end
+
+function monomial_basis(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(A)
+  return monomial_basis(A, grading_group(A)(g))
+end
+
+function monomial_basis(A::MPolyQuoRing, g::IntegerUnion)
+  @assert is_z_graded(A)
+  return monomial_basis(A, grading_group(A)([g]))
 end
 
 ##############################################################################
@@ -76,8 +179,10 @@ end
 ##################################################################################
 
 
+# TODO: The function below now also works for rings which are not standard graded 
+# by virtue of Abbott's implementation. Clean up the docstring accordingly. 
 @doc raw"""
-    hilbert_series(A::MPolyQuoRing)
+    hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
@@ -91,6 +196,11 @@ where $n$ is the number of variables of $R$, and $w_1, \dots, w_n$ are the assig
 
 See also `hilbert_series_reduced`.
 
+!!! note 
+    The advanced user can select different backends for the computation (`:Singular` and 
+    `:Abbott` for the moment), as well as different algorithms. The latter might be 
+    ignored for certain backends. 
+
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
@@ -98,30 +208,38 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
-(2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+(2*t^3 - 3*t^2 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t + 1 => 4))
 
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+(-t^6 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
 ```
 """
-function hilbert_series(A::MPolyQuoRing)
-   if iszero(A.I)
-      R = base_ring(A.I)
-      @req is_z_graded(R) "The base ring must be ZZ-graded"
-      W = R.d
-      W = [Int(W[i][1]) for i = 1:ngens(R)]
-      @req minimum(W) > 0 "The weights must be positive"
-      Zt, t = ZZ["t"]
-      den = prod([1-t^Int(w[1]) for w in R.d])
-      return (one(parent(t)), den)
-   end
-   H = HilbertData(A.I)
-   return hilbert_series(H)
+function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
+  R = base_ring(A.I)
+  @req is_z_graded(R) "ring must be graded by the integers"
+  parent, t = (parent === nothing) ? polynomial_ring(ZZ, "t") : (parent, first(gens(parent)));
+  W = R.d
+  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  @req minimum(W) > 0 "The weights must be positive"
+  # if iszero(A.I)
+  #   den = prod([1-t^Int(w[1]) for w in R.d])
+  #   return (one(parent(t)), den)
+  # end
+
+  (numer, denom), _ = multi_hilbert_series(A; parent=parent)
+  return numer,denom
 end
+
+# TODO: The method below is missing. It should be made better and put to the correct place (AA).
+ngens(S::AbstractAlgebra.Generic.LaurentMPolyWrapRing) = length(gens(S))
+ngens(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
+ngens(P::PolyRing) = 1
 
 
 @doc raw"""
@@ -149,7 +267,8 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+(-t^6 + 1, Factored element with data
+Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
 
 julia> hilbert_series_reduced(A)
 (t^2 - t + 1, t^2 - 2*t + 1)
@@ -188,18 +307,18 @@ julia> hilbert_series_expanded(A, 5)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
-   if iszero(A.I)
-       R = base_ring(A.I)
-       @req is_z_graded(R) "The base ring must be ZZ-graded"
-       W = R.d
-       W = [Int(W[i][1]) for i = 1:ngens(R)]
-       @req minimum(W) > 0 "The weights must be positive"
-       H = hilbert_series(A)
-       T, t = power_series_ring(QQ, d+1, "t")
-       return _rational_function_to_power_series(T, H[1], H[2])
-     end
-   H = HilbertData(A.I)  
-   return hilbert_series_expanded(H, d)
+  if iszero(modulus(A))
+    R = base_ring(A)
+    @req is_z_graded(R) "The base ring must be ZZ-graded"
+    W = R.d
+    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    @req minimum(W) > 0 "The weights must be positive"
+    num, denom = hilbert_series(A)
+    T, t = power_series_ring(QQ, d+1, "t")
+    return _rational_function_to_power_series(T, num, evaluate(denom))
+  end
+  H = HilbertData(A.I)  
+  return hilbert_series_expanded(H, d)
 end
 
 @doc raw"""
@@ -350,12 +469,12 @@ end
 
 
 @doc raw"""
-    multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+    multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA, parent::Union{Nothing,Ring}=nothing)
 
-Return the Hilbert series of the positively graded affine algebra `A`.
+Return the Hilbert series of the graded affine algebra `A`.
 
 !!! note 
-    The advanced user can select a `algorithm` for the computation; 
+    The advanced user can select an `algorithm` for the computation; 
     see the code for details.
 
 # Examples
@@ -375,7 +494,8 @@ julia> H[1][1]
 -t[1]^7*t[2]^-2 + t[1]^6*t[2]^-1 + t[1]^6*t[2]^-2 + t[1]^5*t[2]^-4 - t[1]^4 + t[1]^4*t[2]^-2 - t[1]^4*t[2]^-4 - t[1]^3*t[2]^-1 - t[1]^3*t[2]^-2 + 1
 
 julia> H[1][2]
--t[1]^3*t[2]^-1 + t[1]^2 + 2*t[1]^2*t[2]^-1 - 2*t[1] - t[1]*t[2]^-1 + 1
+Factored element with data
+Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t[1] + 1 => 2, -t[1]*t[2]^-1 + 1 => 1)
 
 julia> H[2][1]
 GrpAb: Z^2
@@ -398,77 +518,95 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
-julia> H = multi_hilbert_series(A);
+julia> (num, den), (H, iso) = multi_hilbert_series(A);
 
-julia> H[1][1]
+julia> num
 2*t^3 - 3*t^2 + 1
 
-julia> H[1][2]
-t^4 - 4*t^3 + 6*t^2 - 4*t + 1
+julia> den
+Factored element with data
+Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 4)
 
-julia> H[2][1]
+julia> H
 GrpAb: Z
 
-julia> H[2][2]
+julia> iso
 Map with following data
 Domain:
 =======
-Abelian group with structure: Z
+H
 Codomain:
 =========
 G
 ```
 """
-function multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
-   R = base_ring(A)
-   I = A.I
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_positively_graded(R) "The base ring must be positively graded"
+function multi_hilbert_series(
+    A::MPolyQuoRing; 
+    algorithm::Symbol=:BayerStillmanA, 
+    backend::Symbol=:Abbott,
+    parent::Union{Nothing, Ring}=nothing
+  )
+  R = base_ring(A)
+  I = modulus(A)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
-   G = grading_group(R)
-   if !is_zm_graded(R)
-      H, iso = snf(G)
-      V = [preimage(iso, x) for x in gens(G)]
-      isoinv = hom(G, H, V)
-      W = R.d
-      W = [isoinv(W[i]) for i = 1:length(W)]
-      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
-      change = hom(R, S, gens(S))
-      I = change(A.I)
-      R = S
-   else
-      H, iso = G, identity_map(G)
-   end
-   m = ngens(grading_group(R))  
-   n = ngens(R)
-   W = R.d
-   MI = Matrix{Int}(undef, n, m)
-   for i=1:n
-       for j=1:m
-           MI[i, j] = Int(W[i][j])
-       end
-   end
-   if m == 1
-      VAR = [:t]
-   else
-      VAR = [_make_variable("t", i) for i = 1:m]
-   end
-   S, _ = LaurentPolynomialRing(ZZ, VAR)
-   q = one(S)
-   for i = 1:n
-      e = [Int(MI[i, :][j]) for j = 1:m]
-      B = MPolyBuildCtx(S)
-      push_term!(B, 1, e)
-      q = q*(1-finish(B))
-   end
-   if iszero(I)
-      p = one(S)
-   else
-      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m, algorithm=algorithm)
-   end
-   return  (p, q), (H, iso)
+  # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
+  # free Abelian group. 
+  #
+  # We use the Smith normal form to get there, recreate the graded ring with the 
+  # free grading group, do the computation there and return the isomorphism for 
+  # the grading. 
+  G = grading_group(R)
+  if !is_zm_graded(R)
+    H, iso = snf(G)
+    V = [preimage(iso, x) for x in gens(G)]
+    isoinv = hom(G, H, V)
+    W = [isoinv(R.d[i]) for i = 1:length(R.d)]
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+    map_into_S = hom(R, S, gens(S))
+    J = map_into_S(I)
+    AA, _ = quo(S, J)
+    (numer, denom), _ = multi_hilbert_series(AA; algorithm, parent)
+    return (numer, denom), (H, iso)
+  end
+
+  # Now we may assume that the grading group is free Abelian.
+  m = ngens(G)  
+  n = ngens(R)
+  HSRing = _hilbert_series_ring(parent, m)
+
+  # Get the weights as Int values: W[k] contain the weight(s) of x[k]
+  W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
+  fac_denom = _hilbert_series_denominator(HSRing, W)
+
+  # Old method below without factorization; left for debugging
+  # q = one(parent)
+  # for i = 1:n
+  #    e = [Int(MI[i, :][j]) for j = 1:m]
+  #    B = MPolyBuildCtx(parent)
+  #    push_term!(B, 1, e)
+  #    q = q*(1-finish(B))
+  # end
+  # @assert evaluate(fac_denom) == q
+
+  # Shortcut for the trivial case
+  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
+
+  # In general refer to internal methods for monomial ideals
+  # TODO: Shouldn't the ordering be adapted to the grading in some sense?
+  numer = one(HSRing)
+  if backend == :Zach
+    LI = leading_ideal(I; ordering=degrevlex(gens(R)))  # ??? better not to specify the grading ???
+    numer = _numerator_monomial_multi_hilbert_series(LI, HSRing, m; algorithm=algorithm)
+  elseif backend == :Abbott
+    # TODO: Pass on the `algorithm` keyword argument also here.
+    numer = HSNum_abbott(A, HSRing)
+  else
+    error("backend ($(backend)) not found")
+  end
+  return (numer, fac_denom), (G, identity_map(G))
 end
+
 
 ### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
 
@@ -552,6 +690,7 @@ julia> A, _ = quo(R, I);
 
 julia> H = multi_hilbert_series_reduced(A);
 
+
 julia> H[1][1]
 -t[1]^5*t[2]^-1 + t[1]^3 + t[1]^3*t[2]^-3 + t[1]^2 + t[1]^2*t[2]^-1 + t[1]^2*t[2]^-2 + t[1] + t[1]*t[2]^-1 + 1
 
@@ -602,7 +741,7 @@ G
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
    (p, q), (H, iso) = multi_hilbert_series(A, algorithm=algorithm)
-   f = p//q
+   f = p//evaluate(q)
    p = numerator(f)
    q = denominator(f)
    sig = coeff(q.mpoly, -1 .* q.mindegs)
@@ -687,16 +826,17 @@ julia> multi_hilbert_function(A, 7*g)
 function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
     R = base_ring(A)
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-    LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
-    ### TODO: Decide whether we should check whether a GB with respect
-    ### to another degree-compatible ordering is already available
-
-    L = monomials_of_degree(R, g)
+    
+    L = monomial_basis(R, g)
     
     if size(L) == 0
        return 0
     end
 
+LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
+    ### TODO: Decide whether we should check whether a GB with respect
+    ### to another degree-compatible ordering is already available
+    
     cc = 0
     for i in 1:length(L)
         if !(L[i] in LI)
@@ -815,8 +955,8 @@ function is_cohen_macaulay(A::MPolyQuoRing)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
 
- singular_assure(I, negdegrevlex(gens(R)))
- res = Singular.LibHomolog.isCM(I.gens.gens.S)
+ sI = singular_generators(I.gens, negdegrevlex(gens(R)))
+ res = Singular.LibHomolog.isCM(sI)
  if res == 1 return true end
  return false
 end

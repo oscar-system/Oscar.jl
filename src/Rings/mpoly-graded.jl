@@ -420,7 +420,7 @@ function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
   if get(io, :compact, false)
     print(io, a.coeff)
   else
-    print(io, "graded by $(a.coeff)")
+    print(io, "$(a.coeff)")
   end
 end
 
@@ -756,7 +756,7 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   if !keep_ordering
     return singular_poly_ring(forget_decoration(R), default_ordering(R))
   end
-  return singular_poly_ring(forget_decoration(R), keep_ordering = keep_ordering)
+  return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
@@ -851,7 +851,7 @@ julia> f = x[1]^4*x[2]+x[4]
 x[1]^4*x[2] + x[4]
 
 julia> degree(f)
-graded by [4 1]
+[4 1]
 
 julia> degree(Vector{Int}, f)
 2-element Vector{Int64}:
@@ -865,7 +865,7 @@ julia> f = x^6+y^3+z^2
 x^6 + y^3 + z^2
 
 julia> degree(f)
-graded by [6]
+[6]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1157,19 +1157,19 @@ function show_homo_comp(io::IO, M)
 end
 
 @doc raw"""
-    monomials_of_degree(R::MPolyDecRing, g::GrpAbFinGenElem)
+    monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
 return the monomials of degree `g` in `R`.
 
-    monomials_of_degree(R::MPolyDecRing, W::Vector{<:IntegerUnion})
+    monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
 a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
 group of `R` and proceed as above.
 
-    monomials_of_degree(R::MPolyDecRing, d::IntegerUnion)
+    monomial_basis(R::MPolyDecRing, d::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
 an integer `d`, convert `d` into an element `g` of the grading
@@ -1185,7 +1185,7 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> G = grading_group(T)
 GrpAb: Z
 
-julia> L = monomials_of_degree(T, 2)
+julia> L = monomial_basis(T, 2)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  z^2
  y*z
@@ -1195,7 +1195,7 @@ julia> L = monomials_of_degree(T, 2)
  x^2
 ```
 """
-function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
+function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
@@ -1225,14 +1225,14 @@ function monomials_of_degree(W::MPolyDecRing, d::GrpAbFinGenElem)
 end
 
 
-function monomials_of_degree(R::MPolyDecRing, g::Vector{<:IntegerUnion})
+function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
   @assert is_zm_graded(R)
-  return monomials_of_degree(R, grading_group(R)(g))
+  return monomial_basis(R, grading_group(R)(g))
 end
 
-function monomials_of_degree(R::MPolyDecRing, g::IntegerUnion)
+function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
   @assert is_z_graded(R)
-  return monomials_of_degree(R, grading_group(R)([g]))
+  return monomial_basis(R, grading_group(R)([g]))
 end
 
 @doc raw"""
@@ -1242,7 +1242,7 @@ Given a polynomial ring `R` over a field which is graded by a free
 group of type `GrpAbFinGen`, and given an element `g` of that group,
 return the homogeneous component of `R` of degree `g` as a standard
 vector space. Additionally, return the map which sends an element
-of that vector space to the corresponding polynomial in `R`.
+of that vector space to the corresponding monomial in `R`.
 
     homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
 
@@ -1276,7 +1276,7 @@ GrpAb: Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree graded by [1 1]
+homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
 
 julia> FG = gens(L[1]);
 
@@ -1299,7 +1299,7 @@ function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
   R = base_ring(W)
-  B = monomials_of_degree(W, d)
+  B = monomial_basis(W, d)
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
@@ -1358,7 +1358,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     push!(b, s)
   end
 
-  F = FreeModule(K, length(b), cached = false)
+  F = FreeModule(K, length(b); cached = false)
   function g(x::T)
     @assert parent(x) == R
     v = zero(F)
@@ -1492,8 +1492,8 @@ end
 
 function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
   Qt, t = QQ["t"]
-  nn = map_coefficients(QQ, n, parent = Qt)
-  dd = map_coefficients(QQ, d, parent = Qt)
+  nn = map_coefficients(QQ, n; parent = Qt)
+  dd = map_coefficients(QQ, d; parent = Qt)
   gg, ee, _ = gcdx(dd, t^max_precision(P))
   @assert isone(gg)
   nn = Hecke.mullow(nn, ee, max_precision(P))
@@ -1541,435 +1541,6 @@ end
 
 function Base.show(io::IO, h::HilbertData)
   print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
-end
-
-########################################################################
-# Compute the Hilbert series from the monomial leading ideal using 
-# different bisection strategies along the lines of 
-# [Kreuzer, Robbiano: Computational Commutative Algebra 2, Springer]
-# Section 5.3.
-########################################################################
-
-_divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
-
-function _gcd(a::Vector{Int}, b::Vector{Int})
-  return [a[k] > b[k] ? b[k] : a[k] for k in 1:length(a)]
-end
-
-function _are_pairwise_coprime(a::Vector{Vector{Int}})
-  length(a) <= 1 && return true
-  n = length(a)
-  m = length(a[1])
-  for i in 1:n-1
-    for j in i+1:n
-      all(k -> a[i][k] == 0 || a[j][k] == 0, 1:m) || return false
-    end
-  end
-  return true
-end
-
-### Assume that a is minimal. We divide by `pivot` and return 
-# a minimal set of generators for the resulting monomial ideal.
-function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
-  # The good ones will contribute to a minimal generating 
-  # set of the lhs ideal.
-  #
-  # The bad monomials come from those which hop over the boundaries of 
-  # the monomial diagram by the shift. Their span has a new 
-  # generator which is collected in `bad` a priori. It is checked 
-  # whether they become superfluous and if not, they are added to 
-  # the good ones.
-  good = sizehint!(Vector{Vector{Int}}(), length(a))
-  bad = sizehint!(Vector{Vector{Int}}(), length(a))
-  for e in a
-    if _divides(e, pivot)
-      push!(good, e - pivot)
-    else
-      push!(bad, e)
-    end
-  end
-
-  # pre-allocate m so that don't need to allocate it again each loop iteration
-  m = similar(pivot)
-  for e in bad
-    # the next line computers   m = [k < 0 ? 0 : k for k in e]
-    # but without allocations
-    for i in 1:length(e)
-      m[i] = max(e[i] - pivot[i], 0)
-    end
-
-    # check whether the new monomial m is already in the span 
-    # of the good ones. If yes, discard it. If not, discard those 
-    # elements of the good ones that are in the span of m and put 
-    # m in the list of good ones instead. 
-    if all(x->!_divides(m, x), good)
-      # Remove those 'good' elements which are multiples of m
-      filter!(x -> !_divides(x, m), good)
-      push!(good, copy(m))
-    end
-  end
-
-  return good
-end
-
-### This implements the speedup from the CoCoA strategy, 
-# see Exercise 4 in Section 5.3
-function _divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
-  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b[1:j-1] - a[1:j-1]) && all(k->(k>=0), b[j+1:end] - a[j+1:end])
-  kept = [e for e in a if e[j] == 0]
-  for i in 1:k
-    next_slice = [e for e in a if e[j] == i]
-    still_kept = next_slice
-    for e in kept 
-      all(v->!divides(v, e), next_slice) && push!(still_kept, e)
-    end
-    kept = still_kept
-  end
-  still_kept = vcat(still_kept, [e for e in a if e[j] > k])
-
-  result = Vector{Vector{Int}}()
-  for e in still_kept
-    v = copy(e)
-    v[j] = (e[j] > k ? e[j] - k : 0)
-    push!(result, v)
-  end
-  return result
-end
-
-function _find_maximum(a::Vector{Int})
-  m = a[1]
-  j = 1
-  for i in 1:length(a)
-    if a[i] > m 
-      m = a[i]
-      j = i
-    end
-  end
-  return j
-end
-
-#######################################################################
-# 06.10.2022
-# The following internal routine can probably still be tuned.
-#
-# Compared to the implementation in Singular, it is still about 10 
-# times slower. We spotted the following possible deficits:
-#
-#   1) The returned polynomials are not yet built with MPolyBuildCtx.
-#      We tried that, but as for now, the code for the build context 
-#      is even slower than the direct implementation that is in place 
-#      now. Once MPolyBuildCtx is tuned, we should try that again; 
-#      the code snippets are still there. In total, building the return 
-#      values takes up more than one third of the computation time 
-#      at this moment.
-#
-#   2) Numerous allocations for integer vectors. The code below 
-#      performs lots of iterative allocations for lists of integer 
-#      vectors. If we constructed a container data structure to 
-#      maintain this list internally and do the allocations at once  
-#      (for instance in a big matrix), this could significantly 
-#      speed up the code. However, that is too much work for 
-#      the time being, as long as a high-performing Hilbert series 
-#      computation is not of technical importance.
-#
-#   3) Singular uses bitmasking for exponent vectors to decide on 
-#      divisibility more quickly. This is particularly important in 
-#      the method _divide_by. For singular, this leads to a speedup 
-#      of factor 5. Here, only less than one third of the time is 
-#      spent in `_divide_by`, so it does not seem overly important 
-#      at this point, but might become relevant in the future. 
-#      A particular modification of the singular version of bitmasking 
-#      is to compute means for the exponents occurring for each variable 
-#      and set the bits depending on whether a given exponent is greater 
-#      or less than that mean value. 
-
-function _hilbert_numerator_from_leading_exponents(
-    a::Vector{Vector{Int}},
-    weight_matrix::Matrix{Int},
-    return_ring::Ring,
-    #algorithm=:generator
-    #algorithm=:custom
-    #algorithm=:gcd
-    #algorithm=:indeterminate
-    #algorithm=:cocoa
-    algorithm::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
-    # short exponent vectors where the k-th bit indicates that the k-th 
-    # exponent is non-zero.
-  )
-  t = gens(return_ring)
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
-  ret !== nothing && return ret
-
-  if algorithm == :BayerStillmanA
-    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
-  elseif algorithm == :custom
-    return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
-  elseif algorithm == :gcd # see Remark 5.3.11
-    return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
-  elseif algorithm == :generator # just choosing on random generator, cf. Remark 5.3.8
-    return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
-  elseif algorithm == :indeterminate # see Remark 5.3.8
-    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
-  elseif algorithm == :cocoa # see Remark 5.3.14
-    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
-  end
-  error("invalid algorithm")
-end
-
-# compute t ^ (weight_matrix * expvec), where t == gens(S)
-function _expvec_to_poly(S::Ring, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
-  o = one(coefficient_ring(S))  # TODO: cache this ?!
-  return S([o], [weight_matrix * expvec])
-end
-
-# special case for univariate polynomial ring
-function _expvec_to_poly(S::PolyRing, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
-  @assert length(t) == 1
-  @assert size(weight_matrix) == (1, length(expvec))
-
-  # compute the dot-product of weight_matrix[1,:] and expvec, but faster than dot
-  # TODO: what about overflows?
-  s = weight_matrix[1,1] * expvec[1]
-  for i in 2:length(expvec)
-    @inbounds s += weight_matrix[1,i] * expvec[i]
-  end
-  return t[1]^s
-end
-
-function _hilbert_numerator_trivial_cases(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector, oneS = one(S)
-  )
-  length(a) == 0 && return oneS
-
-  # See Proposition 5.3.6
-  if _are_pairwise_coprime(a)
-    return prod(oneS - _expvec_to_poly(S, t, weight_matrix, e) for e in a)
-  end
-
-  return nothing
-end
-
-
-function _hilbert_numerator_cocoa(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
-  )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
-  ret !== nothing && return ret
-
-  n = length(a)
-  m = length(a[1])
-  counters = [0 for i in 1:m]
-  for e in a
-    counters += [iszero(k) ? 0 : 1 for k in e]
-  end
-  j = _find_maximum(counters)
-
-  p = a[rand(1:n)]
-  while p[j] == 0
-    p = a[rand(1:n)]
-  end
-
-  q = a[rand(1:n)]
-  while q[j] == 0 || p == q
-    q = a[rand(1:n)]
-  end
-
-  pivot = [0 for i in 1:m]
-  pivot[j] = minimum([p[j], q[j]])
-
-
-  ### Assembly of the quotient ideal with less generators
-  rhs = [e for e in a if !_divides(e, pivot)]
-  push!(rhs, pivot)
-
-  ### Assembly of the division ideal with less total degree
-  lhs = _divide_by_monomial_power(a, j, pivot[j])
-
-  f = one(S)
-  for i in 1:nvars(S)
-    z = t[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  return _hilbert_numerator_cocoa(rhs, weight_matrix, S, t) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S, t)
-end
-
-function _hilbert_numerator_indeterminate(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
-  )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
-  ret !== nothing && return ret
-
-  e = first(a)
-  found_at = findfirst(!iszero, e)::Int64
-  pivot = zero(e)
-  pivot[found_at] = 1
-
-  ### Assembly of the quotient ideal with less generators
-  rhs = [e for e in a if e[found_at] == 0]
-  push!(rhs, pivot)
-
-  ### Assembly of the division ideal with less total degree
-  lhs = _divide_by(a, pivot)
-
-  f = one(S)
-  for i in 1:nvars(S)
-    z = t[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S, t) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S, t)
-end
-
-function _hilbert_numerator_generator(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
-  )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
-  ret !== nothing && return ret
-
-  b = copy(a)
-  pivot = pop!(b)
-
-  f = one(S)
-  for i in 1:nvars(S)
-    z = t[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  c = _divide_by(b, pivot)
-  p1 = _hilbert_numerator_generator(b, weight_matrix, S, t)
-  p2 = _hilbert_numerator_generator(c, weight_matrix, S, t)
-
-  return p1 - f * p2
-end
-
-function _hilbert_numerator_gcd(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
-  )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
-  ret !== nothing && return ret
-
-  n = length(a)
-  counters = [0 for i in 1:length(a[1])]
-  for e in a
-    counters += [iszero(k) ? 0 : 1 for k in e]
-  end
-  j = _find_maximum(counters)
-
-  p = a[rand(1:n)]
-  while p[j] == 0
-    p = a[rand(1:n)]
-  end
-
-  q = a[rand(1:n)]
-  while q[j] == 0 || p == q
-    q = a[rand(1:n)]
-  end
-
-  pivot = _gcd(p, q)
-
-  ### Assembly of the quotient ideal with less generators
-  rhs = [e for e in a if !_divides(e, pivot)]
-  push!(rhs, pivot)
-
-  ### Assembly of the division ideal with less total degree
-  lhs = _divide_by(a, pivot)
-
-  f = one(S)
-  for i in 1:nvars(S)
-    z = t[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  return _hilbert_numerator_gcd(rhs, weight_matrix, S, t) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S, t)
-end
-
-function _hilbert_numerator_custom(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
-  )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
-  ret !== nothing && return ret
-
-  p = Vector{Int}()
-  q = Vector{Int}()
-  max_deg = 0
-  for i in 1:length(a)
-    b = a[i]
-    for j in i+1:length(a)
-      c = a[j]
-      r = _gcd(b, c)
-      if sum(r) > max_deg
-        max_deg = sum(r)
-        p = b
-        q = c
-      end
-    end
-  end
-
-  ### Assembly of the quotient ideal with less generators
-  pivot = _gcd(p, q)
-  rhs = [e for e in a if !_divides(e, pivot)]
-  push!(rhs, pivot)
-
-  ### Assembly of the division ideal with less total degree
-  lhs = _divide_by(a, pivot)
-
-  f = one(S)
-  for i in 1:nvars(S)
-    z = t[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  return _hilbert_numerator_custom(rhs, weight_matrix, S, t) + f*_hilbert_numerator_custom(lhs, weight_matrix, S, t)
-end
-
-function _hilbert_numerator_bayer_stillman(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector, oneS = one(S)
-  )
-  ###########################################################################
-  # For this strategy see
-  #
-  # Bayer, Stillman: Computation of Hilber Series
-  # J. Symbolic Computation (1992) No. 14, pp. 31--50
-  #
-  # Algorithm 2.6, page 35
-  ###########################################################################
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t, oneS)
-  ret !== nothing && return ret
-
-  # make sure we have lexicographically ordered monomials
-  sort!(a, alg=QuickSort)
-
-  # initialize the result 
-  h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
-  linear_mons = Vector{Int}()
-  for i in 2:length(a)
-    J = _divide_by(a[1:i-1], a[i])
-    empty!(linear_mons)
-    J1 = filter!(J) do m
-      k = findfirst(!iszero, m)
-      k === nothing && return false # filter out zero vector
-      if m[k] == 1 && findnext(!iszero, m, k + 1) === nothing
-        push!(linear_mons, k)
-        return false
-      end
-      return true
-    end
-    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t, oneS)
-    for k in linear_mons
-      q *= (oneS - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
-    end
-
-    h -= q * _expvec_to_poly(S, t, weight_matrix, a[i])
-  end
-  return h
 end
 
 ############################################################################
@@ -2028,7 +1599,7 @@ function _homogenization(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int)
        push!(degs, sum((e.*gens_gg)))
    end
    # get top degrees
-   tdeg  = vcat(maximum(hcat(degs...), dims=2)...)
+   tdeg  = vcat(maximum(hcat(degs...); dims=2)...)
        #= finally generate homogeneous version of f in S, called F =#
    F  = MPolyBuildCtx(S)
 
@@ -2094,9 +1665,12 @@ Homogenize the elements of `V` correspondingly,  and return the vector of homoge
 Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
 
 !!! note
-    Applied to an ideal `I`, the function first homogenizes the generators of `I` in the extended ring.
+    If `W` comprises a single row of positive weights then the method used is essentially the same as
+    for the standard-graded case: compute a wdegrevlex Groebner basis then homogenize its elements.
+    Otherwise applied to an ideal `I`, the function first homogenizes the generators of `I` in the extended ring.
     It then creates the ideal generated by these homogenizations, and saturates this ideal
-    with respect to the ideal which is generated by the homogenizing variables.
+    with respect to the ideal which is generated by the product of the homogenizing variables.
+    Source: Kreuzer+Robbiano (vol 2) Cor 4.3.8(a), Defn 4.4.1, Cor 4.4.9, Tutorial 37(g)
 
 # Examples
 ```jldoctest
@@ -2168,11 +1742,12 @@ function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}
 end
 
 
-## ---------------------------------
+## ------------------------------------------------------------------
 ## Homogenization of an ideal -- works for all gradings (incl. non-positive),
-## but is slow.  If grading is positive: use newer code below!
+## but is slow.  If grading is positive over ZZ^1: use Singular (and wdegrevlex);
+## if grading is positive over ZZ^m (with m > 1) use new "fast/clever" code.
 ## Author: John Abbott  2023-07-14
-## ---------------------------------
+## ------------------------------------------------------------------
 
 # To homogenize an ideal we look for some additional simple elements
 # (as redundant generators), and then apply the standard algorithm.
@@ -2184,24 +1759,24 @@ end
 # (obtained from 1 or more groebner bases of I).  If extra_gens_flag is true,
 # we compute one more groebner bases of I in the hope that they contain some small elements.
 function _gens_for_homog_via_sat(I::MPolyIdeal{T}, extra_gens_flag::Bool) where {T <: MPolyRingElem}
-##    @req  !is_zero(I)  "Ideal must be non-zero"
-##    @req  !is_one(I)   "Ideal must not be whole ring"
-    if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
-    OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
-    # Next few lines: we adjoin some more small, redundant gens.
-    # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
-    AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
-    G = gens(I)
-    if extra_gens_flag
-        # compute DegRevLex GB and maybe DegLex GB
-        assume_gb_is_cached = groebner_basis(I, ordering=degrevlex(OrigR))
-#??Good idea??        assume_gb_is_cached = groebner_basis(I, ordering=deglex(OrigR))
-    end
-    for GB in values(I.gb)
-        extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
-        G = vcat(G,  extra_gens)
-    end
-    return G
+  ##    @req  !is_zero(I)  "Ideal must be non-zero"
+  ##    @req  !is_one(I)   "Ideal must not be whole ring"
+  if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
+  OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
+  # Next few lines: we adjoin some more small, redundant gens.
+  # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
+  AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
+  G = gens(I)
+  if extra_gens_flag
+    # compute DegRevLex GB (?and maybe DegLex GB?)
+    assume_gb_is_cached = groebner_basis(I; ordering=degrevlex(OrigR))
+    #??Good idea??        assume_gb_is_cached = groebner_basis(I; ordering=deglex(OrigR))
+  end
+  for GB in values(I.gb)
+    extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
+    G = vcat(G,  extra_gens)
+  end
+  return G
 end
 
 # Fully general, but typically much slower than specialized method below (for positive gradings)
@@ -2209,41 +1784,44 @@ end
 #   pos where to insert the homogenizing variables (default is after all other vars)
 #   extra_gens_flag: if false, inhibits computing grobner basis speculatively in _gens_for_homog_via_sat
 function _homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing} = nothing, extra_gens_flag::Bool = false) where {T <: MPolyRingElem}
-    P = base_ring(I)
-    if pos === nothing
-        pos = 1+ngens(P)
-    else
-        @req  pos in 1:1+ngens(P)  "Homog var index out of range."
+  P = base_ring(I)
+  if pos === nothing
+    pos = 1+ngens(P)
+  else
+    @req  pos in 1:1+ngens(P)  "Homog var index out of range."
+  end
+  if is_zero(I)  # special handling for ideal(0) incl. when there are no gens (?is there a cleaner way?)
+    tmp = homogenization(zero(P), W, var; pos=pos)
+    R = parent(tmp)
+    return ideal(R) # no gens, so it is the zero ideal
+  end # of special handling for zero ideal
+  Hgens = homogenization(_gens_for_homog_via_sat(I, extra_gens_flag), W, var; pos=pos)
+  R = parent(Hgens[1])
+  if length(Hgens) == 1  # short-cut for principal ideal
+    return ideal(R, Hgens)
+  end
+  DoSatByProduct = false  # true means saturate by product of homogenizing vars;
+  #false means saturate successively by each homogenizing var (probably faster, in most cases?)
+  if DoSatByProduct
+    prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
+    Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars))
+  else # not DoSatByProduct, so do a cascade of saturations
+    Ih = ideal(R, Hgens)
+    for i in pos:(pos+size(W, 1)-1)
+      Ih = saturation(Ih, ideal(R, gen(R,i)))
     end
-    if is_empty(gens(I))  # special handling for ideal with no gens (?is there a cleaner way?)
-        tmp = homogenization(one(P), W, var; pos=pos)
-        R = parent(tmp)
-        return ideal(R) # no gens, so it is the zero ideal
-    end # of special handling for zero ideal
-    Hgens = homogenization(_gens_for_homog_via_sat(I, extra_gens_flag), W, var; pos=pos)
-    R = parent(Hgens[1])
-    DoSatByProduct = false  # true means saturate by product of homogenizing vars;
-                            #false means saturate successively by each homogenizing var (probably faster, in most cases?)
-    if DoSatByProduct
-        prod_h_vars = prod([gen(R,i)  for i in pos:(pos+size(W, 1)-1)])  # product of the homogenizing variables
-        Ih = saturation(ideal(R, Hgens), ideal(R, prod_h_vars))
-    else # not DoSatByProduct, so do a cascade of saturations
-        Ih = ideal(R, Hgens)
-        for i in pos:(pos+size(W, 1)-1)
-            Ih = saturation(Ih, ideal(R, gen(R,i)))
-        end
-    end
-    return Ih
-######  2023-07-14: (this comment is now old, but probably still valid)
-######  There is a problem/bug with Singular.satstd: so disable this version
-######  IH = ideal(R, Hgens);  Y = ideal(R, prod_h_vars);
-######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S, Y.gens.S)
+  end
+  return Ih
+  ######  2023-07-14: (this comment is now old, but probably still valid)
+  ######  There is a problem/bug with Singular.satstd: so disable this version
+  ######  IH = ideal(R, Hgens);  Y = ideal(R, prod_h_vars);
+  ######  singular_assure(IH); singular_assure(Y); return Singular.satstd(IH.gens.S, Y.gens.S)
 end
 
 
 # ============================================
 # 2023-06-30 START: New impl of homogenization
-# By John Abbott, based on K+R Book vol 2
+# By John Abbott, based on K+R Book "Computational Commutative Algebra" (see "justification" below)
 # This code delegates to _homogenization_via_saturation for non-positive gradings
 # ============================================
 
@@ -2252,26 +1830,26 @@ end
 
 # Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
 function _sat_poly_by_var(f,h)
-    # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
-    # Is there a better way to implement this?
-    Ih = ideal([h]);
-    while ideal_membership(f, Ih)
-        f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
-    end
-    return f;
-    # This loop is slower (presumably because it computes the remainder always)
-    # while true
-    #     q,r = divrem(f,h);
-    #     if !is_zero(r)
-    #         return q;
-    #     end
-    #     f = q;
-    # end
+  # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
+  # Is there a better way to implement this?
+  Ih = ideal([h]);
+  while ideal_membership(f, Ih)
+    f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
+  end
+  return f;
+  # This loop is slower (presumably because it computes the remainder always)
+  # while true
+  #     q,r = divrem(f,h);
+  #     if !is_zero(r)
+  #         return q;
+  #     end
+  #     f = q;
+  # end
 end
 
 # This function should be a file of utilities (JAA thinks)
 function kronecker_delta(i::Int, j::Int)
-    return (i == j) ? 1 : 0
+  return (i == j) ? 1 : 0
 end
 
 # Check that W defines a positive grading: namely
@@ -2279,25 +1857,25 @@ end
 #     first non-zero going down the col is positive.
 # Follows defn 4.2.4 from R+K vol 2.
 function is_positive_grading_matrix(W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
-    nrows = size(W,1)
-    ncols = size(W,2)
-    for c in 1:ncols
-        IsGoodCol = false
-        for r in 1:nrows
-            if is_zero(W[r,c])
-                continue
-            end
-            if W[r,c] < 0
-                return false
-            end
-            IsGoodCol = true
-            break
-        end
-        if !IsGoodCol
-            return false
-        end
+  nrows = size(W,1)
+  ncols = size(W,2)
+  for c in 1:ncols
+    IsGoodCol = false
+    for r in 1:nrows
+      if is_zero(W[r,c])
+        continue
+      end
+      if W[r,c] < 0
+        return false
+      end
+      IsGoodCol = true
+      break
     end
-    return true
+    if !IsGoodCol
+      return false
+    end
+  end
+  return true
 end
 
 
@@ -2306,82 +1884,89 @@ end
 # (*) extra_gens_flag (relevant only for non-positive gradings); default is false, but if true
 #     it triggers computation of a "needless" groebner basis in _gens_for_homog_via_sat which can speed up homogenization
 function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName; pos::Union{Int,Nothing} = nothing, extra_gens_flag::Bool = false) where {T <: MPolyRingElem}
-    ## ASSUME NumCols(W) = nvars(P)
-    P = base_ring(I) # initial polynomial ring
-    if pos === nothing
-        pos = 1+ngens(P)
+  ## ASSUME NumCols(W) = nvars(P)
+  P = base_ring(I) # initial polynomial ring
+  if pos === nothing
+    pos = 1+ngens(P)
+  else
+    @req  pos in 1:1+ngens(P)  "Homog var index out of range."
+  end
+  # Handle zero ideal as special case: (quick and easy)
+  if  is_zero(I)
+    return ideal([homogenization(zero(P), W, h; pos=pos)])  # ideal(0) in correct ring
+  end
+  # # The fast method below is valid only for positive gradings; otherwise delegate to _homogenization_via_saturation
+  if !is_positive_grading_matrix(W)
+    return _homogenization_via_saturation(I, W, h; pos=pos, extra_gens_flag=extra_gens_flag)
+  end
+  # Henceforth we know that W defines a positive grading
+  if size(W,1) == 1
+    # Case: grading is over ZZ^1, so delegate to faster special-case function.
+    # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
+    if all(a -> (a == 1), W)
+      W_ordering = degrevlex(P)
     else
-        @req  pos in 1:1+ngens(P)  "Homog var index out of range."
+      W_ordering = wdegrevlex(P, W[1,:])
     end
-    # Handle zero ideal and one ideal as special cases:
-    if  is_zero(I)
-        return ideal(homogenization(zero(P), W, h; pos=pos))  # zero ideal in correct ring
-    end
-    if  is_one(I)
-        return ideal(homogenization(one(P), W, h; pos=pos))  # one ideal in correct ring
-    end
-    # The fast method below is valid only for positive gradings; otherwise delegate to _homogenization_via_saturation
-    if !is_positive_grading_matrix(W)
-        return _homogenization_via_saturation(I, W, h; pos=pos, extra_gens_flag=extra_gens_flag)
-    end
-    # Henceforth we know that W defines a positive grading
-    if size(W,1) == 1
-        # Case: grading is over ZZ^1, so delegate to faster special-case function.
-        # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
-        if all(a -> (a == 1), W)
-            W_ordering = degrevlex(P)
-        else
-            W_ordering = wdegrevlex(P, W[1,:])
-        end
-        GB = groebner_basis(I; ordering=W_ordering)
-        return ideal(homogenization(elements(GB), W, h; pos=pos))
-    end
-    # Case: grading is over ZZ^k with k > 1
-    G = homogenization(gens(I), W, h; pos=1+ngens(P))  # h come last -- deliberately ignore pos here!
-    Ph = parent(G[1])  # Ph is graded ring, "homog-extn" of P.
-    N = ngens(Ph)
-    num_x = ngens(P)
-    num_h = ngens(Ph) - num_x
-    # Build ordering matrix: weights matrix followed by identity mat, underneath is a revlex matrix
-    Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h])
-    RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)])
-    M = hcat(W, Id)
+    GB = groebner_basis(I; ordering=W_ordering)
+    return ideal(homogenization(elements(GB), W, h; pos=pos))
+  end
+  # Handle one ideal as special case (NB is_one might be costly!)
+  if  is_one(I)
+    return ideal([homogenization(one(P), W, h; pos=pos)])  # ideal(1) in correct ring
+  end
+  # Case: grading is over ZZ^k with k > 1 and is positive
+  # >>> JUSTIFICATION <<<  from book Kreuzer+Robbiano "Computational Commutative Algebra"
+  # Combination of Cor 4.3.8(a) [main algorithm],  Cor 4.4.9 [saturation by indet], and
+  # Tutorial 37(g) [compute saturation by product via "cascade"]
+  G = homogenization(gens(I), W, h; pos=1+ngens(P))  # h vars come last -- deliberately ignore pos here!
+  Ph = parent(G[1])  # Ph is graded ring, "homog-extn" of P.
+  if length(G) == 1  # short-cut for principal ideal
+    return ideal(Ph, G);
+  end
+  N = ngens(Ph)
+  num_x = ngens(P)
+  num_h = ngens(Ph) - num_x
+  # Build ordering matrix: weights matrix followed by identity mat, underneath is a revlex matrix
+  Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h])
+  RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)])
+  M = hcat(W, Id)
 
-    for j in 1:num_h
-        M_complete = vcat(M, RevLexMat)
-        JohnsOrdering = matrix_ordering(Ph, M_complete)
-        Ih = ideal(G)
-        G = groebner_basis(Ih; ordering=JohnsOrdering, complete_reduction=true)  #?complete_reduction not needed?
-        G = elements(G)
-        h_j = gen(Ph, ngens(Ph)+1-j)
-        G = [_sat_poly_by_var(g, h_j)  for g in G]
-        # Loop below: rotate cols in RevLexMat which corr to the "h" variables:
-        for i in 1:num_h
-            col1 = (i+j > num_h+1) ? (N+2+num_h-i-j) : (N+2-i-j)
-            col2 = (col1 == N-num_h+1) ? N : col1-1
-            RevLexMat[i, col1] = 0
-            RevLexMat[i, col2] = -1
-        end
+  for j in 1:num_h
+    M_complete = vcat(M, RevLexMat)
+    JohnsOrdering = matrix_ordering(Ph, M_complete)
+    Ih = ideal(G)
+    G = groebner_basis(Ih; ordering=JohnsOrdering)  # option complete_reduction seemed to make no measurable difference
+    G = elements(G)
+    h_j = gen(Ph, ngens(Ph)+1-j)
+    G = [_sat_poly_by_var(g, h_j)  for g in G]
+    # Loop below: rotate cols in RevLexMat which corr to the "h" variables:
+    for i in 1:num_h
+      col1 = (i+j > num_h+1) ? (N+2+num_h-i-j) : (N+2-i-j)
+      col2 = (col1 == N-num_h+1) ? N : col1-1
+      RevLexMat[i, col1] = 0
+      RevLexMat[i, col2] = -1
     end
-    if pos != 1+num_x
-        # Caller wants the homogenizing variables in a non-standard place,
-        # so permute the variables appropriately.  Is there a cleaner way to do this?
-        junk = homogenization(gen(I,1), W, h; pos=pos)  # I just want the ring
-        Ph2 = parent(junk)  # the desired graded ring
-        images = [zero(Ph2)  for i in 1:N]
-        for i in 1:pos-1
-            images[i] = gen(Ph2,i)
-        end
-        for i in pos:num_x
-            images[i] = gen(Ph2,i+num_h)
-        end
-        for i in 1:num_h
-            images[num_x+i] = gen(Ph2, pos+i-1)
-        end
-        reorder_variables = hom(Ph, Ph2, images)
-        G = [reorder_variables(g)  for g in G]
+  end
+  if pos != 1+num_x
+    # Caller wants the homogenizing variables in a non-standard place,
+    # so permute the variables appropriately.  Is there a cleaner way to do this?
+    junk = homogenization(gen(I,1), W, h; pos=pos)  # I just want the ring
+    Ph2 = parent(junk)  # the desired graded ring
+    images = [zero(Ph2)  for i in 1:N]
+    for i in 1:pos-1
+      images[i] = gen(Ph2,i)
     end
-    return ideal(G) # now in correct ring
+    for i in pos:num_x
+      images[i] = gen(Ph2,i+num_h)
+    end
+    for i in 1:num_h
+      images[num_x+i] = gen(Ph2, pos+i-1)
+    end
+    reorder_variables = hom(Ph, Ph2, images)
+    G = [reorder_variables(g)  for g in G]
+  end
+  return ideal(G) # now in correct ring
 end
 
 # ============================================
@@ -2502,12 +2087,16 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
   else
     @req  pos in 1:ngens(R)+1  "Homog index out of range."
   end
+  # Handle zero ideal as special case: (quick and easy)
+  if  is_zero(I)
+    return ideal([homogenization(zero(R), var; pos=pos)])  # zero ideal in correct ring
+  end
   # TODO: Adjust as soon as new GB concept is implemented   [[@wdecker: delete this comment?]]
-  return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var; pos=pos))
+  return ideal(homogenization(gens(groebner_basis(I; ordering)), var; pos=pos))
 end
 # function homogenization(I::MPolyIdeal{T}, var::VarName,; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
 #   # TODO: Adjust as soon as new GB concept is implemented
-#   return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var, 1+ngens(base_ring(I))))
+#   return ideal(homogenization(gens(groebner_basis(I; ordering)), var, 1+ngens(base_ring(I))))
 # end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
@@ -2746,3 +2335,201 @@ forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
 # TODO: This still seems to be not resolved!!!
 Generic.ordering(S::MPolyDecRing) = :degrevlex
+
+
+#############truncation#############
+
+@doc raw"""
+    truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+
+Given a (homogeneous) ideal `I` in a $\mathbb Z$-graded multivariate polynomial ring
+with positive weights, return the truncation of `I` at degree `g`.
+
+    truncate(I::MPolyIdeal, d::Int)
+
+Given an ideal `I` as above, and given an integer `d`, convert `d`
+into an element `g` of the grading group of `base_ring(I)` and proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> I = ideal(R, [x, y^4, z^6])
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 3)
+ideal(x*z^2, x*y*z, x*y^2, x^2*z, x^2*y, x^3, y^4, z^6)
+```
+
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [3,2,1]);
+
+julia> I = ideal(R, [x, y^4, z^6])
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 3)
+ideal(x, y^4, z^6)
+
+julia> truncate(I, 4)
+ideal(x*z, z^6, y^4)
+```
+"""
+function truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+  return truncate(I, Int(g[1]))
+end
+
+function  truncate(I::MPolyIdeal, d::Int)
+  R = base_ring(I)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_z_graded(R) "The base ring must be ZZ-graded"
+  W = R.d
+  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  @req minimum(W) > 0 "The weights must be positive"
+  if is_zero(I)
+     return I
+  end
+  dmin = minimum(degree(Int, x) for x in gens(I))
+  if  d <= dmin
+     return I
+  end
+  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  RES = elem_type(R)[]
+  s = dmin
+  B = monomial_basis(R, d-s)
+  for i = 1:length(V)
+       if degree(Int, V[i]) < d
+          if degree(Int, V[i]) > s
+             s = degree(Int, V[i])
+	     B = monomial_basis(R, d-s)
+	  end
+	     append!(RES, B .*V[i])
+       else
+           push!(RES, V[i])
+       end
+  end
+  return ideal(R, RES)
+end
+
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc raw"""
+    minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+
+Given a (homogeneous) ideal `I` in a graded multivariate polynomial ring
+over a field, return an array containing a minimal set of generators
+of `I`. If `I` is the zero ideal, an empty list is returned.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ z^2
+ y^3
+
+julia> I = ideal(R, zero(R))
+ideal(0)
+
+julia> minimal_generating_set(I)
+MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
+```
+"""
+function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyDecRing are forced to be homogeneous though.
+
+  R = base_ring(I)
+
+  @assert is_graded(R)
+
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+
+  if !isempty(I.gb)
+    # make sure to not recompute a GB from scratch on the singular
+    # side if we have one
+    G = first(values(I.gb))
+    singular_assure(G)
+    G.gens.S.isGB = true
+    _, sing_min = Singular.mstd(G.gens.S)
+    return filter(!iszero, (R).(gens(sing_min)))
+  else
+    singular_assure(I)
+    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    ring = I.gens.Ox
+    computed_gb = IdealGens(ring, sing_gb, true)
+    I.gb[computed_gb.ord] = computed_gb
+    return filter(!iszero, (R).(gens(sing_min)))
+  end
+end
+
+##################regularity#######################
+
+@doc raw"""
+    cm_regularity(I::MPolyIdeal)
+
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring,
+return the Castelnuovo-Mumford regularity of I.
+ 
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3]);
+
+julia> cm_regularity(I)
+6
+
+julia> minimal_betti_table(I);
+```
+"""
+function cm_regularity(I::MPolyIdeal)
+   @req is_standard_graded(base_ring(I)) "The base ring is not standard ZZ-graded"
+   B = minimal_betti_table(I)
+   S = as_dictionary(B)
+   V = [x[2][1] - x[1] for x in keys(S)] 
+  return maximum(V)
+end
+
+#######################################################
+#######################################################
+@doc raw"""
+    degree(I::MPolyIdeal)
+
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring, 
+return the degree of `I` (that is, the degree of the quotient of `base_ring(I)` modulo `I`). 
+Otherwise, return the degree of the homogenization of `I` with respect to the
+standard $\mathbb Z$-grading.
+
+!!! note
+    Geometrically, the degree of a homogeneous ideal as above is the number
+    of intersection points of its projective variety with a generic linear
+    subspace of complementary dimension (counted with multiplicities).
+    See also [MS21](@cite).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> I = ideal(R, [y-x^2, x-z^3])
+ideal(-x^2 + y, x - z^3)
+
+julia> degree(I)
+6
+```
+"""
+@attr Int function degree(I::MPolyIdeal)
+  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  return Int(degree(HilbertData(I)))
+end

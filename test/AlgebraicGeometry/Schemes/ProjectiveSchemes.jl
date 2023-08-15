@@ -300,3 +300,15 @@ end
   X = covered_scheme(P)
   @test all(U->(OO(U) isa MPolyRing), affine_charts(X))
 end
+
+@testset "equality of projective schemes" begin
+  P2 = projective_space(GF(17), 2)
+  (x0,x1,x2) = homogeneous_coordinates(P2)
+  R = homogeneous_coordinate_ring(P2)
+  X1 = subscheme(P2, ideal(R, [x0*x1]))
+  X2 = subscheme(P2, ideal(R, [x0^2*x1,x0*x1^2,x0*x1*x2]))
+  X3 = subscheme(P2, ideal(R,[x0]))
+  @test X1 == X2
+  @test issubset(X1, P2)
+  @test issubset(X1, X2)
+end

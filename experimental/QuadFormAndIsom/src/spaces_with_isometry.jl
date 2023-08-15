@@ -365,7 +365,7 @@ Quadratic space of dimension 2
 function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool = false)
   f = identity_matrix(QQ, dim(V))
   f = neg ? -f : f
-  return quadratic_space_with_isometry(V, f; check=false)
+  return quadratic_space_with_isometry(V, f; check = false)
 end
 
 ###############################################################################
@@ -453,7 +453,7 @@ Quadratic space of dimension 2
 ```
 """
 function Base.:^(Vf::QuadSpaceWithIsom, n::Int)
-  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n; check=false)
+  return quadratic_space_with_isometry(space(Vf), isometry(Vf)^n; check = false)
 end
 
 @doc raw"""
@@ -546,7 +546,7 @@ with gram matrix
 function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj = direct_sum(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), inj
+  return quadratic_space_with_isometry(V, f; check = false), inj
 end
 
 direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
@@ -641,7 +641,7 @@ with gram matrix
 function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, proj = direct_product(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), proj
+  return quadratic_space_with_isometry(V, f; check = false), proj
 end
 
 direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
@@ -757,7 +757,7 @@ julia> matrix(compose(inj[1], proj[2]))
 function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
   V, inj, proj = biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check=false), inj, proj
+  return quadratic_space_with_isometry(V, f; check = false), inj, proj
 end
 
 biproduct(x::Vararg{QuadSpaceWithIsom}) = biproduct(collect(x))
