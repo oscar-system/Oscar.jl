@@ -201,66 +201,16 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   
   # Construct the model
   if toric_sample
-    return _construct_toric_sample(auxiliary_base_grading, gens_base_names, d, weierstrass_f, weierstrass_g)
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, gens_base_names, d)
+    R = cox_ring(auxiliary_ambient_space)
+  else
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
+    R = coordinate_ring(auxiliary_ambient_space)
   end
-  return _construct_generic_sample(auxiliary_base_grading, gens_base_names, d, weierstrass_f, weierstrass_g)
-end
-
-
-function _construct_toric_sample(base_grading::Matrix{Int64}, gens_base_names::Vector{String}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
-  # Convert Weierstrass sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space(gens_base_names, base_grading, d)
-  S = cox_ring(auxiliary_base_space)
   ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
-  f = ring_map(weierstrass_f)
-  g = ring_map(weierstrass_g)
-  
-  # Construct ambient space
-  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-  D1 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
-  D1[1] = 2
-  D1 = toric_divisor_class(auxiliary_base_space, D1)
-  D2 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
-  D2[1] = 3
-  D2 = toric_divisor_class(auxiliary_base_space, D2)
-  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1, D2)
-  
-  # Construct the model
-  pw = _weierstrass_polynomial(f, g, cox_ring(auxiliary_ambient_space))
-  model = WeierstrassModel(f, g, pw, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
-  set_attribute!(model, :base_fully_specified, false)
-  return model
-end
-
-
-function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
-  # Convert Weierstrass sections into polynomials of the auxiliary base
-  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
-  S = coordinate_ring(base_space)
-  ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
-  f = ring_map(weierstrass_f)
-  g = ring_map(weierstrass_g)
-  
-  # Construct ambient space
-  ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
-  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
-  ambient_space_grading = zero_matrix(Int, nrows(base_grading)+1,ncols(base_grading)+3)
-  for i in 1:nrows(base_grading)
-    for j in 1:ncols(base_grading)
-      ambient_space_grading[i,j] = base_grading[i,j]
-    end
-  end
-  ambient_space_grading[1,ncols(base_grading)+1] = 2
-  ambient_space_grading[1,ncols(base_grading)+2] = 3
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 1] = 2
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 2] = 3
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 3] = 1
-  ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+2)
-  
-  # Construct the model
-  pw = _weierstrass_polynomial(f, g, coordinate_ring(ambient_space))
-  model = WeierstrassModel(f, g, pw, base_space, ambient_space)
+  (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
+  pw = _weierstrass_polynomial(f, g, R)
+  model = WeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :base_fully_specified, false)
   return model
 end

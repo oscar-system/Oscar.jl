@@ -263,67 +263,24 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   # Inform about the assume Kbar grading
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # Construct the model
+  # Construct the spaces
   if toric_sample
-    return _construct_toric_sample(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p)
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
+  else
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
   end
-  return _construct_generic_sample(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p)
-end
-
-
-function _construct_toric_sample(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
-  # Construct auxiliary base space
-  auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
-
-  # Construct auxiliary ambient space
-  D1_class = toric_divisor_class(auxiliary_base_space, D1)
-  D2_class = toric_divisor_class(auxiliary_base_space, D2)
-  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)
-  
-  # Map p to cox ring of ambient space
-  S = cox_ring(auxiliary_ambient_space)
-  gens_S = gens(S)
-  image_list = Vector{MPolyRingElem}()
-  for g in gens(parent(p))
-    index = findfirst(u -> string(u) == string(g), gens(S))
-    push!(image_list, gens(S)[index])
-  end
-  ring_map = hom(parent(p), S, image_list)
-  hypersurface_equation = ring_map(p)
-  
-  # construct model
-  model = HypersurfaceModel(toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space), toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
-  set_attribute!(model, :base_fully_specified, false)
-  return model
-end
-
-
-function _construct_generic_sample(base_vars::Vector{String}, base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
-  # Convert Weierstrass sections into polynomials of the auxiliary base
-  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
-  
-  # Construct ambient space
-  ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
-  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
-  w = Matrix{Int64}(vcat([k.coeff for k in cox_ring(fiber_ambient_space).d]))
-  z_block = zeros(Int64, ncols(w), ncols(base_grading))
-  D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
-  ambient_space_grading = [base_grading D_block; z_block w']
-  ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+dim(fiber_ambient_space))
   
   # Map p to coordinate ring of ambient space
-  S = coordinate_ring(ambient_space)
   gens_S = gens(S)
   image_list = Vector{MPolyRingElem}()
   for g in gens(parent(p))
     index = findfirst(u -> string(u) == string(g), gens(S))
     push!(image_list, gens(S)[index])
   end
-  ring_map = hom(parent(p), S, image_list)
-  hypersurface_equation = ring_map(p)
-  
+  hypersurface_equation = hom(parent(p), S, image_list)(p)
+
   # Construct the model
-  model = HypersurfaceModel(base_space, ambient_space, toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
+  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
   set_attribute!(model, :base_fully_specified, false)
   return model
 end
