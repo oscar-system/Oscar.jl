@@ -337,6 +337,12 @@ function induce(C::GModule{<:Oscar.GAPGroup, GrpAbFinGen}, h::Map, D = nothing, 
   return iC, h    
 end
 
+function Oscar.quo(C::GModule{<:Any, <:Generic.FreeModule}, mDC::Generic.ModuleHomomorphism)
+  q, mq = Oscar.quo(C.M, image(mDC)[1])
+  S = GModule(C.G, [hom(q, q, [mq(x(preimage(mq, t))) for t = gens(q)]) for x = C.ac])
+  return S, mq
+end
+
 function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
   q, mq = Oscar.quo(C.M, image(mDC)[1])
   S = GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac])
@@ -638,7 +644,7 @@ function H_zero(C::GModule)
   k = kernel(id - ac[1])[1]
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
-    if length(k) == 2 #GrpAb: intersect yield ONLY intersection, 
+    if isa(k, Tuple) #GrpAb: intersect yield ONLY intersection, 
       k = k[1]
     end
   end
@@ -1465,12 +1471,55 @@ iszero(a) || (@show g, h, k, a ; return false)
 end
 
 """
+Computes H^3 via dimension-shifting:
+There is a short exact sequence
+  1 -> A -> Hom(Z[G], A) -> B -> 1 
+thus
+  H^3(G, A) = H^2(C, B)
+as Hom(Z[G], A) is induced hence has trivial cohomology.
+Currently only the group is returned
+"""
+function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
+  G = C.G
+  if isa(C.M, GrpAbFinGen)
+    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(GrpAbFinGen, G, ZZ)
+  elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
+    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+  else
+    error("unsupported module")
+  end
+  @assert is_consistent(zg)
+  H, mH = Oscar.GModuleFromGap.ghom(zg, C)
+  @assert is_consistent(H)
+  #from https://math.mit.edu/classes/18.786/2018/LectureNotes29.pdf
+  #around 29.8
+  #Drew's notes.
+  #the augmentation map on the (canonical) generators is 1
+  inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
+  @assert is_G_hom(C, H, inj)
+  q, mq = quo(H, image(inj)[2])
+  return H_two(q)[1]
+end
+
+function is_right_G_module(C::GModule)
+  #tests if the action is right-linear 
+  G = C.G
+  return all([action(C, g)*action(C, h) == action(C, g*h) for g = gens(G) for h = gens(G)])
+end
+
+function is_left_G_module(C::GModule)
+  #tests if the action is left-linear 
+  G = C.G
+  return all([action(C, h)*action(C, g) == action(C, g*h) for g = gens(G) for h = gens(G)])
+end
+
+"""
 For a gmodule `C` compute the `i`-th cohomology group
-  where `i` can be `0`, `1` or `2`.
+where `i` can be `0`, `1` or `2`. (or `3` ...)
 Together with the abstract module, a map is provided that will 
   produce explicit cochains.
 """
-function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int; Tate::Bool = false)
+function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
   #should also allow modules...
   if Tate
     @assert is_finite(group(C))
@@ -1485,6 +1534,8 @@ function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int; Tate::Bool 
     return H_one(C)
   elseif i==2
     return H_two(C)
+  elseif i==3
+    return H_three(C)
   end
   error("only H^0, H^1 and H^2 are supported")
 end
@@ -1546,12 +1597,18 @@ function Oscar.direct_product(M::Module...; task::Symbol = :none)
   error("illegal task")
 end
 
+Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
+Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
 Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) + mat(b))
 Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) - mat(b))
 Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -mat(a))
 
 function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
+end
+
+function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism})
+  return mat(a) == mat(b)
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)

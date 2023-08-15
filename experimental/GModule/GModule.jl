@@ -926,7 +926,8 @@ function indecomposition(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinField
 end
 
 """
-The group of Z[G]-homomorphisms - this is not a gmodule unless G is abelian.
+The group of Z[G]-homomorphisms as a k-module, not a k[G] one. (The G opetation
+is trivial)
 """
 function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:FieldElem}}
   b = hom_base(C, D)
@@ -935,14 +936,24 @@ function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:AbstractAlgebra.FPMod
   return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(mat(C.ac[i]))*g*mat(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms * mH
 end
 
+#a bad implementation of hom: as the fix module of ghom
+#but we don't have he meataxe in general.
+function Hecke.hom(C::GModule{T, GrpAbFinGen}, D::GModule{T, GrpAbFinGen}) where {T}
+
+ H, mH = Oscar.GModuleFromGap.ghom(C, D)
+ q, mq = H_zero(H)
+ mmH = hom(q, H.M, [mq(x)() for x = gens(q)])
+ return q, mmH*mH
+ return gmodule(C.G, [hom(q, q, gens(q)) for x = gens(C.G)]), mmH*mH
+end
+
 """
-The G-module of all Z-module homorphisms
+The G-module of all Z-module homomorphisms
 """
-function ghom(C::T, D::T) where T <: GModule{<:Any, GrpAbFinGen}
+function ghom(C::GModule, D::GModule) 
   @assert C.G === D.G
   H, mH = hom(C.M, D.M)
-  return gmodule(H, C.G, [hom(H, H, [preimage(mH, action(C, (g))*mH(h)*action(D, inv(g))) for h = gens(H)]) for g = gens(C.G)]), mH
-  return gmodule(H, C.G, [hom(H, H, [preimage(mH, hom(C.M, D.M, [action(D, g, mH(h)(action(C, inv(g), c))) for c = gens(C.M)])) for h = gens(H)]) for g = gens(C.G)]), mH
+  return gmodule(H, C.G, [hom(H, H, [preimage(mH, action(C, inv(g))*mH(h)*action(D, g)) for h = gens(H)]) for g = gens(C.G)]), mH
 end
 
 function is_G_hom(C::GModule, D::GModule, H::Map)
@@ -963,7 +974,7 @@ inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)
 q, mq = quo(H, image(inj)[2])
 =#
 
-Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{fpFieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
+Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
 
 function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
   k = base_ring(F)
@@ -1400,9 +1411,11 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; Error
 end
 
 export factor_set
+export ghom
 export indecomposition
 export irreducible_modules
 export is_decomposable
+export is_G_hom
 
 ## Fill in some stubs for Hecke
 
@@ -1449,7 +1462,9 @@ end #module GModuleFromGap
 using .GModuleFromGap
 
 export factor_set
+export ghom
 export indecomposition
 export irreducible_modules
 export is_decomposable
+export is_G_hom
 

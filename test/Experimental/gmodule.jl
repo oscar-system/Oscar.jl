@@ -129,5 +129,18 @@ end
   C = gmodule(GF(5), C)
   i = indecomposition(C)
   @test length(i) == 8
+end
 
+@testset "H^3" begin
+  #from Tommy...
+  genss = [@perm((1,2,6,3)(4,8,5,7)), @perm((1,4,6,5)(2,7,3,8))];
+  G, = sub(symmetric_group(8), genss);
+  @test small_group_identification(G) == (8, 4)
+  mats = [[0, -1, 0, 0, 0, 0, 1, 0, -1, 1, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, -1, 1, 0, -1, 0, 0, 0, -1, 0, 1, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]];
+  F = free_abelian_group(7);
+  M1, M2 = matrix(ZZ, 7, 7, mats[1]), matrix(ZZ, 7, 7, mats[2]);
+  C = gmodule(G, [hom(F, F, M1), hom(F, F, M2)]);
+  q = cohomology_group(C, 3)
+  @test order(q) == 8
+  @test is_cyclic(q)
 end
