@@ -452,7 +452,7 @@ function relatively_minimal_model(E::EllipticSurface)
 
   ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
-  projectionsX = BlowupMorphism{typeof(X0)}[]
+  projectionsX = BlowupMorphism[]
   projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
