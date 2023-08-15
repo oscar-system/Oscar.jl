@@ -404,6 +404,7 @@ export cross_polytope
 export cube
 export cycle_matroid
 export cycle_structure
+export cycle_structures
 export cyclic_flats
 export cyclic_generator
 export cyclic_group

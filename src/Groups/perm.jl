@@ -13,7 +13,7 @@ Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
 
-"""
+@doc raw"""
     degree(G::PermGroup) -> Int
 
 Return the degree of `G` as a permutation group, that is,
@@ -53,15 +53,16 @@ julia> show(Vector(gen(symmetric_group(5), 2)))
 """
 degree(x::PermGroup) = x.deg
 
-"""
+@doc raw"""
     degree(g::PermGroupElem) -> Int
 
-Return the degree of the parent of `g`. This value is always greater or equal number_moved_points
+Return the degree of the parent of `g`.
+This value is always greater or equal `number_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
 
-"""
+@doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
     moved_points(G::PermGroup) -> Vector{Int}
 
@@ -77,12 +78,11 @@ julia> length(moved_points(s))
 
 julia> length(moved_points(gen(s, 1)))
 3
-
 ```
 """
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
-"""
+@doc raw"""
     number_moved_points(x::PermGroupElem) -> Int
     number_moved_points(G::PermGroup) -> Int
 
@@ -98,7 +98,6 @@ julia> number_moved_points(s)
 
 julia> number_moved_points(gen(s, 1))
 3
-
 ```
 """
 @gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
@@ -124,7 +123,7 @@ Sym( [ 1 .. 6 ] )
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
+  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GAP.GapObj(L;recursive=true)))
 end
 
 
@@ -162,7 +161,7 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
+   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
    @req x !== GAP.Globals.fail "the list does not describe a permutation"
    @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
    return PermGroupElem(g, x)
@@ -171,7 +170,7 @@ end
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
+   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
    @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
@@ -286,7 +285,7 @@ function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(symmetric_group(1))
    else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in L])
+      return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in L])
 #TODO: better create the product of GAP permutations?
    end
 end
@@ -298,8 +297,8 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(g)
    else
-      x=prod(y -> GAP.Globals.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
-      @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+      x=prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
+      @req x in g.X "the element does not embed in the group"
       return PermGroupElem(g, x)
    end
 end
@@ -312,7 +311,7 @@ function cperm(g::PermGroup,L::Vector{Vector{T}}) where T <: IntegerUnion
     return cperm(g,L...)
 end
 
-"""
+@doc raw"""
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion
     Vector(x::PermGroupElem, n::Int = x.parent.deg)
 
@@ -341,7 +340,6 @@ julia> Vector{ZZRingElem}(pi, 2)
 2-element Vector{ZZRingElem}:
  2
  3
-
 ```
 """
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion = T[x(i) for i in 1:n]
@@ -355,7 +353,7 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 ^(n::Int, x::PermGroupElem) = (n^x.X)::Int
 
 
-"""
+@doc raw"""
     sign(g::PermGroupElem) -> Int
 
 Return the sign of the permutation `g`.
@@ -372,13 +370,13 @@ julia> sign(cperm(1:3))
 1
 ```
 """
-Base.sign(g::PermGroupElem) = GAP.Globals.SignPerm(g.X)::Int
+Base.sign(g::PermGroupElem) = GAPWrap.SignPerm(g.X)
 
 # TODO: document the following?
-Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
+Base.sign(G::PermGroup) = GAPWrap.SignPermGroup(G.X)
 
 
-"""
+@doc raw"""
     isodd(g::PermGroupElem)
 
 Return `true` if the permutation `g` is odd, `false` otherwise.
@@ -400,7 +398,7 @@ false
 """
 Base.isodd(g::PermGroupElem) = sign(g) == -1
 
-"""
+@doc raw"""
     iseven(g::PermGroupElem)
 
 Return `true` if the permutation `g` is even, `false` otherwise.
@@ -428,7 +426,7 @@ Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
 ##
-# cycle-types and support
+# cycle types and support
 ##
 struct CycleType <: AbstractVector{Pair{Int64, Int64}}
   # pairs 'cycle length => number of times it occurs'
@@ -447,6 +445,7 @@ struct CycleType <: AbstractVector{Pair{Int64, Int64}}
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
     return new(sort(v, by = x -> x[1]))
+#TODO: check that each cycle length is specified at most once?
   end
 end
 
@@ -486,13 +485,96 @@ function ^(c::CycleType, e::Int)
   return CycleType(t; sorted=true)
 end
 
+
+@doc raw"""
+    order(::Type{T} = ZZRingElem, c::CycleType) where T <: IntegerUnion
+
+Return the order of the permutations with cycle structure `c`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> all(x -> order(cycle_structure(x)) == order(x), gens(g))
+true
+```
+"""
 order(::Type{T}, c::CycleType) where T = mapreduce(x->T(x[1]), lcm, c.s, init = T(1))
 order(c::CycleType) = order(ZZRingElem, c)
 
+
+@doc raw"""
+    degree(c::CycleType) -> Int
+
+Return the degree of the permutations with cycle structure `c`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> all(x -> degree(cycle_structure(x)) == degree(g), gens(g))
+true
+```
+"""
 degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
 
 
+@doc raw"""
+    sign(c::CycleType) -> Int
+
+Return the sign of the permutations with cycle structure `c`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> all(x -> sign(cycle_structure(x)) == sign(x), gens(g))
+true
+```
 """
+function Base.sign(c::CycleType)
+    res = 1
+    for (a, b) in c.s
+      if iseven(a) && isodd(b)
+        res = - res
+      end
+    end
+    return res
+end
+
+@doc raw"""
+    isodd(c::CycleType) -> Bool
+
+Return whether the permutations with cycle structure `c` are odd.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> all(x -> isodd(cycle_structure(x)) == isodd(x), gens(g))
+true
+```
+"""
+Base.isodd(c::CycleType) = sign(c) == -1
+
+
+@doc raw"""
+    iseven(c::CycleType) -> Bool
+
+Return whether the permutations with cycle structure `c` are even.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> all(x -> iseven(cycle_structure(x)) == iseven(x), gens(g))
+true
+```
+"""
+Base.iseven(c::CycleType) = !isodd(c)
+
+
+@doc raw"""
     cycle_structure(g::PermGroupElem) -> CycleType
 
 Return the cycle structure of the permutation `g` as a cycle type.
@@ -510,16 +592,16 @@ julia> cycle_structure(g)
  3 => 2
  5 => 1
 
-julia> cperm()
+julia> g = cperm()
 ()
 
-julia> cycle_structure(ans)
+julia> cycle_structure(g)
 1-element Oscar.CycleType:
  1 => 1
 ```
 """
 function cycle_structure(g::PermGroupElem)
-    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))::GAP.GapObj
+    c = GAPWrap.CycleStructurePerm(g.X)
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
@@ -530,7 +612,32 @@ function cycle_structure(g::PermGroupElem)
     return CycleType(ct, sorted = true)
 end
 
+function cycle_structure(x::GroupConjClass{PermGroup, PermGroupElem})
+  return cycle_structure(representative(x))
+end
 
+
+@doc raw"""
+    cycle_structures(G::PermGroup) -> Set{CycleType}
+
+Return the set of cycle structures of elements in `G`,
+see [`cycle_structure`](@ref).
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);
+
+julia> sort!(collect(cycle_structures(g)))
+3-element Vector{Oscar.CycleType}:
+ [1 => 1, 2 => 1]
+ [1 => 3]
+ [3 => 1]
+```
+"""
+function cycle_structures(G::PermGroup)
+  r = conjugacy_classes(G)
+  return Set(cycle_structure(x) for x in r)
+end
 
 
 ################################################################################
