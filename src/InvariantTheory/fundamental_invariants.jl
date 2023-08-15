@@ -9,9 +9,9 @@
 # TODO: This should not be in this file and integrated in the general groebner_basis
 # functionality
 function _groebner_basis(I::MPolyIdeal, d::Int; ordering::MonomialOrdering = default_ordering(base_ring(I)))
-  singular_assure(I, ordering)
-  R = I.gens.Sx
-  J = Singular.Ideal(R, gens(I.gens.S)...)
+  sI = singular_generators(I.gens, ordering)
+  R = base_ring(sI)
+  J = Singular.Ideal(R, gens(sI)...)
   G = Singular.with_degBound(d) do
         return Singular.std(J)
       end
@@ -30,8 +30,8 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   ordR = degrevlex(gens(R))
 
   S = elem_type(R)[]
-  G = IdealGens(R, elem_type(R)[])
-  singular_assure(G, ordR)
+  G = IdealGens(R, elem_type(R)[], ordR)
+  singular_assure(G)
   GO = elem_type(R)[]
 
   g = order(Int, group(RG))
