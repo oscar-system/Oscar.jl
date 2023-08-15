@@ -429,21 +429,28 @@ end
 """
 The relations defining 'F' as an array of pairs.
 """
-function Oscar.relations(F::FPGroup)
-  R = relators(F)
-  z = one(free_group(F))
-  return [(x, z) for x = R]
-end
-
-function Oscar.relations(G::Oscar.GAPGroup)
-   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+function _relations_by_generators(G::Oscar.GAPGroup)
+   f = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
+Oscar.relations(G::Oscar.GAPGroup) = _relations_by_generators(G)
+
+function Oscar.relations(F::FPGroup)
+  is_full_fp_group(F) || return _relations_by_generators(F)
+  R = relators(F)
+  z = one(free_group(F))
+  return [(x, z) for x = R]
+end
+
 function Oscar.relations(G::PcGroup)
-   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.Pcgs(G.X), GAP.Obj("g"))
+   # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
+   Ggens = GAPWrap.GeneratorsOfGroup(G.X)
+   Gpcgs = GAPWrap.Pcgs(G.X)
+   Ggens == Gpcgs || return _relations_by_generators(G)
+   f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GAP.Obj("g"))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
