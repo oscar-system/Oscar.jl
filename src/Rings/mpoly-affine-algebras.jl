@@ -566,7 +566,7 @@ function multi_hilbert_series(
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
-    (numer, denom), _ = multi_hilbert_series(AA; algorithm, parent)
+    (numer, denom), _ = multi_hilbert_series(AA; algorithm, backend, parent)
     return (numer, denom), (H, iso)
   end
 
@@ -577,7 +577,7 @@ function multi_hilbert_series(
 
   # Get the weights as Int values: W[k] contain the weight(s) of x[k]
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
-  fac_denom = _hilbert_series_denominator(HSRing, W)
+  fac_denom = _hilbert_series_denominator(HSRing, W) # also calls _hilbert_series_check_weights
 
   # Old method below without factorization; left for debugging
   # q = one(parent)
