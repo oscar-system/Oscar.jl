@@ -508,13 +508,17 @@ end
   return p_res
 end
 
+### Some functionality used by function fields
+
+# If set this attribute shall return some isomorphism on some open subsets of the domain 
+# and codomain of phi. If both are irreducible, this automatically implies that both are 
+# dense, but we do not check for this.
 @attr AbsSpecMor function isomorphism_on_open_subset(f::BlowupMorphism)
-  pr = isomorphism_on_complement_of_center(f)
-  X = domain(pr)
-  Y = codomain(pr)
-  pr_cov = covering_morphism(pr)
-  U = first(patches(domain(pr_cov)))
-  pr_res = pr_cov[U]
+  X = domain(f)
+  Y = codomain(f)
+  iso_dict = get_attribute(f, :isos_on_complement_of_center)
+  pr_res = first(values(iso_dict))
+  U = domain(pr_res)
   V = codomain(pr_res)
   iso_U = _flatten_open_subscheme(U, default_covering(X))
   U_flat = codomain(iso_U)
@@ -554,3 +558,8 @@ function pushforward(f::BlowupMorphism, g::VarietyFunctionFieldElem)
   pfg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
   return FY.(pfg)
 end
+
+@attr AbsSpecMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
+  error("attribute not found; this needs to be set manually in general")
+end
+
