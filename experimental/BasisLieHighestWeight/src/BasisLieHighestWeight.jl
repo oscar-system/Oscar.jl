@@ -128,6 +128,7 @@ include("./LieAlgebras.jl")
 include("./MonomialOrder.jl")
 include("./RootConversion.jl")
 include("./WeylPolytope.jl")
+include("./DemazureOperators.jl")
 
 fromGap = Oscar.GAP.gap_to_julia
 
