@@ -86,8 +86,7 @@ julia> num
 -t^25 + 2*t^17 + t^16 + t^15 - t^12 - t^11 - t^9 - t^8 - t^7 + t^4 + t^3
 
 julia> den
-Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t^4 + 1 => 1, -t^3 + 1 => 1, -t^2 + 1 => 1)
+(-t^4 + 1)^1*(-t^3 + 1)^1*(-t^2 + 1)^1
 
 ```
 """
@@ -164,8 +163,7 @@ julia> num
 -t^9 + t^7 + 2*t^6 - t^5 - t^3 - 2*t^2 + 2*t
 
 julia> den
-Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentPolyWrap{ZZRingElem, ZZPolyRingElem, AbstractAlgebra.Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}}, ZZRingElem}(-t + 1 => 3)
+(-t + 1)^3
 
 ```
 """
