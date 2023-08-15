@@ -1490,7 +1490,7 @@ Computes H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1 
 thus
-  H^3(G, A) = H^2(G, B)
+  H^3(G, A) = H^2(C, B)
 as Hom(Z[G], A) is induced hence has trivial cohomology.
 Currently only the group is returned
 """
@@ -1513,6 +1513,7 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
   @assert is_G_hom(C, H, inj)
   q, mq = quo(H, image(inj)[2])
+
 #  return q, mq, inj, H
   #possibly, to get 3-chains: 
   # 2 chain in q
