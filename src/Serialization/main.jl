@@ -259,13 +259,6 @@ end
 #     #store_serialized(s, result, key)
 # end
 
-function save_object(s::SerializerState, x::Vector)
-  data_array(s) do
-    for elem in x
-      save_object(s, elem)
-    end
-  end
-end
 
 function save_object(s::SerializerState, x::Any, key::Symbol)
   s.key = key

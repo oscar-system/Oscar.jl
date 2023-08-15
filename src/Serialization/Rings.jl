@@ -1,8 +1,8 @@
 ################################################################################
 # Utility functions for ring parent tree
-
+RingMatSpaceUnion = Union{Ring, MatSpace}
 # builds parent tree
-function get_parents(parent_ring::Ring)
+function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   if has_elem_basic_encoding(parent_ring)
     return Any[]
   end
@@ -13,7 +13,7 @@ function get_parents(parent_ring::Ring)
   return parents
 end
 
-function save_parents(s::SerializerState, parent_ring::Ring)
+function save_parents(s::SerializerState, parent_ring::T) where T <: RingMatSpaceUnion
   parents = get_parents(parent_ring)
   refs = []
   for p in parents
@@ -24,8 +24,8 @@ end
 
 ################################################################################
 # Handling RingElem Params
-
-function save_type_params(s::SerializerState, x::T) where T <: RingElem
+RingMatElemUnion = Union{RingElem, MatElem}
+function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
     save_object(s, encode_type(T), :name)
     parent_x = parent(x)
@@ -38,15 +38,15 @@ function save_type_params(s::SerializerState, x::T) where T <: RingElem
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:RingElem}, dict::Dict{Symbol, Any})
+function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
   return load_typed_object(s, dict)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:RingElem}, refs::Vector{Any})
+function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, refs::Vector{Any})
   return load_parents(s, refs)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:RingElem}, parent_ring::Ring) 
+function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, parent_ring::T)  where T <: RingMatSpaceUnion
   return get_parents(parent_ring)
 end
 
@@ -271,30 +271,35 @@ end
 
 ################################################################################
 # Matrices
+@registerSerializationType(MatSpace, true)
 @registerSerializationType(MatElem)
+type_needs_params(::Type{<:MatElem}) = true
 
-function save_internal(s::SerializerState, m::MatrixElem)
-  return Dict(
-    :base_ring => save_as_ref(s, base_ring(parent(m))),
-    :matrix => save_type_dispatch(s, Array(m)),
-  )
+function save_object(s::SerializerState, obj::MatSpace)
+  data_dict(s) do
+    save_typed_object(s, base_ring(obj), :base_ring)
+    save_object(s, ncols(obj), :ncols)
+    save_object(s, nrows(obj), :nrows)
+  end
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: MatElem},
-                       dict::Dict)
-  entries_ring = load_unknown_type(s, dict[:base_ring])
-  mat = load_type_dispatch(s, Matrix, dict[:matrix]; parent=entries_ring)
-
-  return matrix(entries_ring, mat)
+function load_object(s::DeserializerState, ::Type{<:MatSpace}, dict::Dict)
+  base_ring = load_typed_object(s, dict[:base_ring])
+  ncols = parse(Int, dict[:ncols])
+  nrows = parse(Int, dict[:nrows])
+  return matrix_space(base_ring, nrow, ncols; cached=false)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: MatElem},
-                                   dict::Dict,
-                                   parent_ring::T) where T <: MatSpace
-  mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
-  return matrix(base_ring(parent_ring), mat)
+function save_object(s::SerializerState, obj::MatElem)
+  save_object(s, Array(obj))
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<:MatElem},
+                                 entries::Vector, params::Vector)
+  parent = params[end]
+  T = elem_type(base_ring(parent))
+  m = load_object_with_params(s, Matrix, entries, T)
+  return parent(m)
 end
 
 ################################################################################
@@ -548,4 +553,3 @@ function load_object_with_params(s::DeserializerState,
   scale = parse(Int, dict[:scale])
   return parent_ring(loaded_terms, pol_length, precision, valuation, scale)
 end
-

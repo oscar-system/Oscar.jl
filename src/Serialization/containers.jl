@@ -8,10 +8,11 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 
 @registerSerializationType(Vector)
 type_needs_params(::Type{<:Vector})  = true
+MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
-function save_type_params(s::SerializerState, obj::Vector{T}) where T
+function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
   data_dict(s) do
-    save_object(s, encode_type(Vector), :name)
+    save_object(s, encode_type(S), :name)
     if type_needs_params(T)
         save_type_params(s, obj[1], :params)
     else
@@ -20,23 +21,32 @@ function save_type_params(s::SerializerState, obj::Vector{T}) where T
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:Vector}, str::String)
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::String)
   return decode_type(str)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:Vector}, dict::Dict)
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, dict::Dict)
   T = decode_type(dict[:name])
   params = load_type_params(s, T, dict[:params])
   return (T, params)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:Vector}, override_params::Any)
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
   return (elem_type(override_params), override_params)
 end
 
+function save_object(s::SerializerState, x::Vector)
+  data_array(s) do
+    for elem in x
+      save_object(s, elem)
+    end
+  end
+end
+
+
 function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
                                  v::Vector, params::Type)
-  loaded_v = params[load_object(s, params, x) for x in v]
+  loaded_v = [load_object(s, params, x) for x in v]
   return loaded_v
 end
 
@@ -134,14 +144,24 @@ end
 
 ################################################################################
 # Saving and loading matrices
-
 @registerSerializationType(Matrix)
-
-function save_internal(s::SerializerState, mat::Matrix{T}) where T
+type_needs_params(::Type{<:Matrix}) = true
+  
+function save_object(s::SerializerState, mat::Matrix)
   m, n = size(mat)
-  return Dict(
-    :matrix => [save_type_dispatch(s, [mat[i, j] for j in 1:n]) for i in 1:m]
-  )
+  data_array(s) do
+    for i in 1:m
+      save_object(s, [mat[i, j] for j in 1:n])
+    end
+  end
+end
+
+function load_object_with_params(s::DeserializerState, ::Type{<:Matrix},
+                                 entries::Vector, params::Type)
+  m = reduce(vcat, [
+    permutedims(load_object_with_params(s, Vector, v, params)) for v in entries
+      ])
+  return Matrix{params}(m)
 end
 
 # deserialize with specific content type
