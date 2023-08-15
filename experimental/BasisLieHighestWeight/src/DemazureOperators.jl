@@ -3,7 +3,10 @@
 
 # ZZ_x, x = PolynomialRing(ZZ, 3)
 
-function monomial_from_degrees(ZZ_x::ZZMPolyRing, degs::Vector{Int})
+function monomial_from_degrees(
+    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
+    degs::Vector{Int}
+    )
     vars = gens(ZZ_x)
 
 
@@ -16,7 +19,7 @@ function monomial_from_degrees(ZZ_x::ZZMPolyRing, degs::Vector{Int})
     return monomial
 end
 
-function is_monomial(p::Oscar.ZZMPolyRingElem)
+function is_monomial(p::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing})
     return length(terms(p)) == 1
 end
 
@@ -30,8 +33,12 @@ function demazure_s(beta::Int, lambda::Vector{Int})
     return new_lambda
 end
 
-function demazure_operator_monom(ZZ_x::ZZMPolyRing, beta::Int, e_lambda::Oscar.ZZMPolyRingElem)    
-    lambda = degrees(e_lambda)
+function demazure_operator_monom(
+    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
+    beta::Int, 
+    e_lambda::AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}
+    )    
+    lambda = leading_exponent_vector(e_lambda)
     scalar_prod = demazure_scalar_prod(beta, lambda)
     if scalar_prod >= 0
         result = ZZ_x(1)
@@ -52,7 +59,11 @@ function demazure_operator_monom(ZZ_x::ZZMPolyRing, beta::Int, e_lambda::Oscar.Z
     return result
 end
 
-function demazure_operator(ZZ_x::ZZMPolyRing, beta::Int, e_lambda::ZZMPolyRingElem)
+function demazure_operator(
+    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
+    beta::Int,
+    e_lambda::AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}
+    )
     monoms = terms(e_lambda)
     result_poly = zero(e_lambda)
     
@@ -63,8 +74,38 @@ function demazure_operator(ZZ_x::ZZMPolyRing, beta::Int, e_lambda::ZZMPolyRingEl
     return result_poly
 end
 
+function demazure_operators_summary(
+    type::String,
+    rank::Int,
+    lambda::Vector{Int},
+    weyl_word::Vector{Int}
+    )
+    ZZ_x, x = LaurentPolynomialRing(ZZ, length(lambda))
+    sub_word = []   
+    p = monomial_from_degrees(ZZ_x, lambda)
+    for i in weyl_word
+        push!(sub_word, i)
+        p = demazure_operator(ZZ_x, i, p)
+        println("")
+        println("sub_word: ", sub_word)
+        println("p: ", p)
+        for term in terms(p)
+            println(leading_exponent_vector(term), ": ", leading_coefficient(term))
+        end
+    end
 
-function demazure_operator_monom_sum(ZZ_x::ZZMPolyRing, beta::Int, e_lambda::ZZMPolyRingElem, e_mu::ZZMPolyRingElem)
+    println("")
+    println("Dimension calculated through basis_lie_highest_weight for full word:")
+    lie_algebra = LieAlgebraStructure(type, rank)
+    println(get_dim_weightspace(lie_algebra, lambda))
+end
+
+function demazure_operator_monom_sum(
+    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
+    beta::Int, 
+    e_lambda::ZZMPolyRingElem, 
+    e_mu::ZZMPolyRingElem
+    )
     if !is_monomial(e_lambda) || !is_monomial(e_mu)
         throw(ArgumentError("The input must be a monomial!"))
     end
