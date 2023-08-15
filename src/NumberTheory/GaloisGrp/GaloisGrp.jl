@@ -604,11 +604,11 @@ end
 @doc raw"""
     roots(G::GaloisCtx, pr::Int)
 
-The roots of the polynomial used to define the Galois-context in the fixed order
+The roots of the polynomial used to define the Galois context in the fixed order
 used in the algorithm. The roots are returned up to a precision of `pr`
-p-adic digits, thus they are correct modulo ``p^pr``
+p-adic digits, thus they are correct modulo ``p^{pr}``
 
-For non-monic polynomials they roots are scaled by the leading coefficient.
+For non-monic polynomials the roots are scaled by the leading coefficient.
 If `raw` is set to true, the scaling is omitted.
 The bound in the `GaloisCtx` is also adjusted.
 """
@@ -1751,7 +1751,7 @@ function order_from_shape(ct::Set{CycleType}, n)
     #find cycletypes that would correpond to elt of order a multiple of p
     #the exact order is lcm(x) for x in ct
     ct_p = [x for x = ct if any(t->t[1] % p == 0, x)]
-    #so ct_t contains all cycle types belongign to elements where the
+    #so ct_t contains all cycle types belonging to elements where the
     #order is divisible by p
     length(ct_p) == 0 && continue
     #now x in ct_p is is the cycle type of an element where the order is a multiple
@@ -1866,15 +1866,6 @@ function an_sn_by_shape(ct::Set{CycleType}, n::Int)
   lo = div(n, 2)+1
   hi = n-3
   return any(x->any(y -> lo <= y[1] <= hi && isodd(y[1]) && is_prime(y[1]), x.s), ct)
-end
-
-function Oscar.cycle_structure(x::GroupConjClass{PermGroup, PermGroupElem})
-  return cycle_structure(representative(x))
-end
-
-function cycle_structures(G::PermGroup)
-  r = conjugacy_classes(G)
-  return Set(cycle_structure(x) for x = r)
 end
 
 #

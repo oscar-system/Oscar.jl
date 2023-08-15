@@ -9088,4 +9088,3 @@ function has_monomials_on_all_axes(M::SubquoModule)
   end
   return true
 end
-

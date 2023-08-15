@@ -69,7 +69,7 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
 
   RPabs, mRPabs = quo(OEabs, Pabs^i)
   URPabs, mURPabs = unit_group(RPabs)
-  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
+  f = hom(URPabs, URp, elem_type(URp)[mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
 
   K, mK = kernel(f)
 
@@ -114,7 +114,7 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   e = valuation(different(OE), P)
 
   if i < e
-    S = abelian_group(Int[])
+    S = abelian_group()
     return S, x -> one(E), x -> id(S)
   end
 
@@ -140,7 +140,7 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
   RPabs, mRPabs = quo(OEabs, Pabs^i)
   URPabs, mURPabs = unit_group(RPabs)
 
-  f = hom(URPabs, URp, [mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
+  f = hom(URPabs, URp, elem_type(URp)[mURp\(mRp(OK(norm(EabstoE(elem_in_nf(mRPabs\(mURPabs(x)))))))) for x in gens(URPabs)])
 
   K, mK = kernel(f)
 
@@ -205,12 +205,12 @@ end
 # abelian group where one do the local determinants computations
 # for the hermitian version of Miranda-Morrison theory
 
-function _get_product_quotient(E::Hecke.NfRel, Fac)
+function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}})
   OE = maximal_order(E)
   groups = GrpAbFinGen[]
-  exps = []
-  dlogs = []
-  Ps = []
+  exps = Function[]
+  dlogs = Function[]
+  Ps = Hecke.ideal_type(OE)[]
 
   if length(Fac) == 0
     A = abelian_group()
@@ -333,7 +333,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH23.
   G2, _ = centralizer(OqL2, fqL2)
-  G, _ = sub(OqL, [OqL(compose(phi12, compose(hom(g), inv(phi12)))) for g in gens(G2)])
+  G, _ = sub(OqL, elem_type(OqL)[OqL(compose(phi12, compose(hom(g), inv(phi12)))) for g in gens(G2)])
   GtoG2 = hom(G, G2, gens(G), gens(G2))
 
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
@@ -424,7 +424,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
 
   # Now according to Theorem 6.15 of BH23, it remains to quotient out
-  FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog([x for i in 1:length(S)]) for x in gene_norm_one])
+  FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog(typeof(x)[x for i in 1:length(S)]) for x in gene_norm_one])
 
   I = intersect(FOEmodFsharp, FmodFsharp)
   # Q is where the determinant of our lifts to good precision will live. So
@@ -464,7 +464,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   end
 
   GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
-  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs); check=false)
+  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs); check = false)
   f = compose(GtoG2, f2)
 
   return f
@@ -482,15 +482,15 @@ end
 # This function is an import of a function written by Markus Kirschmer in the
 # Magma package about hermitian lattices.
 
-function _is_special(L::Hecke.HermLat, p::Hecke.NfOrdIdl)
+function _is_special(L::HermLat, p::NfOrdIdl)
   OE = base_ring(L)
   E = nf(OE)
   lp = prime_decomposition(OE, p)
-  if lp[1][2] != 2 || !Oscar.iseven(rank(L))
+  if lp[1][2] != 2 || !iseven(rank(L))
     return false
   end
-  _, _R, S = jordan_decomposition(L, p)
-  R = [nrows(m) for m in _R]
+  _, R, S = jordan_decomposition(L, p)
+  R = Int[nrows(m) for m in R]
   for r in R
     if r != 2
       return false
@@ -507,7 +507,7 @@ function _is_special(L::Hecke.HermLat, p::Hecke.NfOrdIdl)
   s = involution(L)
   su = s(u)
   H = block_diagonal_matrix([matrix(E, 2, 2, [0 u^(S[i]); su^(S[i]) 0]) for i in 1:length(S)])
-  return is_locally_isometric(L, hermitian_lattice(E, gram = H), p)
+  return is_locally_isometric(L, hermitian_lattice(E; gram = H), p)
 end
 
 ###############################################################################
@@ -524,7 +524,11 @@ Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
 # integer (for the given local field at p) entries which defines an isometry of
 # D^{-1}H^# modulo H.
 
-function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismGroupElem{TorQuadModule}, Bp::T, P::Hecke.NfRelOrdIdl, BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _transfer_discriminant_isometry(res::AbstractSpaceRes,
+                                         g::AutomorphismGroupElem{TorQuadModule},
+                                         Bp::T,
+                                         P::Hecke.NfRelOrdIdl,
+                                         BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   E = base_ring(codomain(res))
   Eabs, EabstoE = absolute_simple_field(E)
   Pabs = EabstoE\P
@@ -536,13 +540,7 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
   # action of g via res.
   B2 = zero(Bp)
   for i in 1:nrows(Bp)
-    vE = vec(collect(Bp[i, :]))
-    vQ = res\vE
-    vq = q(vQ)
-    gvq = g(vq)
-    gvQ = lift(gvq)
-    gvE = res(gvQ)
-    B2[i, :] = gvE
+    B2[i, :] = res(lift(g(q(res\(vec(collect(Bp[i, :])))))))
   end
 
   # Here BHp is the inverse of a local basis matrix of H at p. Since we look for
@@ -554,34 +552,32 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes, g::AutomorphismG
   # P-valuation i of d, and we then map everything in OEabs/Pabs^i. There, there
   # should be a modular solution KQ such that KQ*BpQ == B2Q. We lift this matrix
   # in OEabs and map it back to OE.
-  newBp = Bp*BHp
-  newB2 = B2*BHp
-  Bpabs = map_entries(a -> EabstoE\a, newBp)
-  B2abs = map_entries(a -> EabstoE\a, newB2)
+  Bpabs = map_entries(a -> EabstoE\a, Bp*BHp)
+  B2abs = map_entries(a -> EabstoE\a, B2*BHp)
 
   # Here d is not necessarily well defined in O_E, but as it is implemented,
   # each of the denominator(a, O_E) return the smallest positive integer d such
   # that d*a lies in O_E, while `a` might be a non-integral element in E.
   d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
-  dBpabs = change_base_ring(OEabs, d*Bpabs)
-  dB2abs = change_base_ring(OEabs, d*B2abs)
+  Bpabs = change_base_ring(OEabs, d*Bpabs)
+  B2abs = change_base_ring(OEabs, d*B2abs)
 
   # We would need to solve the equation modulo OE, but we multiplied by d, so we
   # need to keep track of d. Note that with the precaution we took earlier, the
   # Pabs-valuation of d is necessarily positive, so this quotient cannot be
   # trivial.
   Q, p = quo(OEabs, Pabs^(valuation(d, Pabs))) 
-  BpQ = map_entries(p, dBpabs)
-  B2Q = map_entries(p, dB2abs)
+  Bpabs = map_entries(p, Bpabs)
+  B2abs = map_entries(p, B2abs)
 
   # Our local modular solution we have to lift
-  KQ = solve_left(BpQ, B2Q)
-  K = map_entries(a -> EabstoE(Eabs(p\a)), KQ)
+  K = solve_left(Bpabs, B2abs)
+  K = map_entries(a -> EabstoE(Eabs(p\a)), K)
 
   # If what we have done is correct then K*newBp == newB2 modulo O_p, so all
   # entries in the difference K*newBp-newB2 must have non-negative P-valuation.
   # Since it is the case, then K satisfies K*Bp == B2 mod H locally at p.
-  @hassert :ZZLatWithIsom 1 _scale_valuation(K*newBp-newB2, P) >= 0
+  @hassert :ZZLatWithIsom 1 _scale_valuation((K*Bp-B2)*BHp, P) >= 0
   return K
 end
 
@@ -589,14 +585,14 @@ end
 function _scale_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(M) && return inf
-  return minimum([valuation(v, P) for v in collect(M) if !iszero(v)])
+  return minimum(valuation(v, P) for v in collect(M) if !iszero(v))
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
 function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
   @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(diagonal(M)) && return inf
-  r =  minimum([valuation(v, P) for v in diagonal(M) if !iszero(v)])
+  r =  minimum(valuation(v, P) for v in diagonal(M) if !iszero(v))
   return r
 end
 
@@ -668,7 +664,7 @@ end
 #    D_L (H is the hermitian structure associated to (L, f) along res) which
 #    aims to approximately transfer to H2 along res at P
 #
-function _approximate_isometry(H::Hecke.HermLat, H2::Hecke.HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
+function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
   @hassert :ZZLatWithIsom 1 nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
@@ -707,7 +703,7 @@ end
 # the jordan decomposition of D^{-1}H^# at p. From that point, we massage a bit
 # the basis matrices of the other jordan blocks to obtain local basis matrices
 # which span sublattices of D^{-1}H^#.
-function _local_basis_modular_submodules(H::Hecke.HermLat, p::Hecke.NfOrdIdl, a::Int, res::AbstractSpaceRes)
+function _local_basis_modular_submodules(H::HermLat, p::NfOrdIdl, a::Int, res::AbstractSpaceRes)
   L = restrict_scalars(H, res)
   B, _ , exps = jordan_decomposition(H, p)
   if exps[end] == -a
@@ -764,7 +760,7 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
     nug = valuation(g, Pabs)
     if nu == nug
       d = denominator(g+1, OEabs)
-      rt = roots(t^2 - (g+1)*d^2; max_roots = 1, ispure = true, is_normal=true)
+      rt = roots(t^2 - (g+1)*d^2; max_roots = 1, ispure = true, is_normal = true)
       if !is_empty(rt)
         rho = (1+rt[1])//2
         @hassert :ZZLatWithIsom 1 valuation(rho, Pabs) == 1-e
@@ -774,4 +770,3 @@ function _find_rho(P::Hecke.NfRelOrdIdl, e)
     end
   end
 end
-

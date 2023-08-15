@@ -88,7 +88,7 @@ julia> parent(y)
 Sym( [ 1 .. 5 ] )
 ```
 
-If `G` is a permutation group and `L` is a vector of integers,
+If `G` is a permutation group and `x` is a vector of integers,
 `G(x)` returns a [`PermGroupElem`](@ref) with parent `G`;
 an exception is thrown if the element does not embed into `G`.
 
@@ -300,6 +300,27 @@ end
 # "Coerce" an Oscar group `G` to one that is compatible with
 # the given Oscar group `S`.
 compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
+
+
+################################################################################
+#
+#   Conjugacy Classes
+#
+################################################################################
+
+"""
+    GroupConjClass{T, S}
+
+It can be either the conjugacy class of an element or of a subgroup of type `S`
+in a group `G` of type `T`.
+It is displayed as
+```
+     cc = x ^ G
+```
+where `G` is a group and `x` = `representative`(`cc`) is either an element
+or a subgroup of `G`.
+"""
+abstract type GroupConjClass{T, S} end
 
 
 ################################################################################

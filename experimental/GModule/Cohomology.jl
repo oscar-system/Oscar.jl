@@ -443,7 +443,7 @@ function Oscar.relations(G::Oscar.GAPGroup)
 end
 
 function Oscar.relations(G::PcGroup)
-   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
+   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.Pcgs(G.X), GAP.Obj("g"))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)

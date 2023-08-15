@@ -955,8 +955,8 @@ function is_cohen_macaulay(A::MPolyQuoRing)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
 
- singular_assure(I, negdegrevlex(gens(R)))
- res = Singular.LibHomolog.isCM(I.gens.gens.S)
+ sI = singular_generators(I.gens, negdegrevlex(gens(R)))
+ res = Singular.LibHomolog.isCM(sI)
  if res == 1 return true end
  return false
 end

@@ -322,6 +322,7 @@ export class_positions_of_kernel
 export class_positions_of_pcore
 export closed_subvariety_of_toric_variety
 export closure
+export cm_regularity
 export cobases
 export cochain_complex
 export cocircuits
@@ -403,6 +404,7 @@ export cross_polytope
 export cube
 export cycle_matroid
 export cycle_structure
+export cycle_structures
 export cyclic_flats
 export cyclic_generator
 export cyclic_group

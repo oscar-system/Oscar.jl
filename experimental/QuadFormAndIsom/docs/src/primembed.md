@@ -31,10 +31,6 @@ and inefficient in general for large rank or determinant. But, in the case
 where the discriminant groups are (elementary) $p$-groups, the method can be
 more efficient.
 
-The ultimate goal of the project is to make all kind of computations of
-primitive embeddings available. For now, we only cover the case where one of
-the two lattices involved is *$p$-primary*, i.e. its discriminant is an abelian
-$p$-group. Note that this covers the case of unimodular lattices, of course.
 We provide 4 kinds of output:
 * A boolean, which only returns whether there exists a primitive embedding;
 * A single primitive embedding as soon as the algorithm computes one;
@@ -42,8 +38,7 @@ We provide 4 kinds of output:
 * A list of representatives of isomorphism classes of primitive sublattices.
 
 ```@docs
-primitive_embeddings_in_primary_lattice(::ZZLat, ::ZZLat)
-primitive_embeddings_of_primary_lattice(::ZZLat, ::ZZLat)
+primitive_embeddings(::ZZLat, ::ZZLat)
 ```
 
 Note that the previous two functions require the first lattice of the input to be
@@ -51,11 +46,8 @@ unique in its genus. Otherwise, one can specify a genus, or its invariants, as a
 first input:
 
 ```@docs
-primitive_embeddings_in_primary_lattice(::ZZGenus, ::ZZLat)
-primitive_embeddings_in_primary_lattice(::TorQuadModule, ::Tuple{Int, Int},
-::ZZLat)
-primitive_embeddings_of_primary_lattice(::ZZGenus, ::ZZLat)
-primitive_embeddings_of_primary_lattice(::TorQuadModule, ::Tuple{Int, Int},
+primitive_embeddings(::ZZGenus, ::ZZLat)
+primitive_embeddings(::TorQuadModule, ::Tuple{Int, Int},
 ::ZZLat)
 ```
 
