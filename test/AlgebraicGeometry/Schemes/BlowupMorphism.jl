@@ -74,3 +74,46 @@ end
 
 end
 
+@testset "pushforward of function field elements through resolutions" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  x, y, z = gens(OO(IA3))
+  pr1 = blow_up(IA3, ideal(OO(IA3), [x, y, z]))
+  Y0 = codomain(pr1)
+  Y1 = domain(pr1)
+  KY0 = function_field(Y0)
+  xx = KY0(x)
+  yy = KY0(y)
+  zz = KY0(z)
+
+  f = x^4 - y*z
+  I = ideal(OO(IA3), f)
+  II = ideal_sheaf(Y0, IA3, [f])
+  inc = oscar.CoveredClosedEmbedding(Y0, II)
+  X0 = domain(inc)
+  KX0 = function_field(X0)
+  xx0 = KX0(x)
+  yy0 = KX0(y)
+  zz0 = KX0(z)
+  # Need to call this once so that the attribute is set
+  oscar.isomorphism_on_open_subset(pr1)
+  X1, inc1, pr1_res = strict_transform(pr1, inc)
+  xx1 = pullback(pr1_res)(xx0)
+  @test xx0 == pushforward(pr1_res, xx1)
+  yy1 = pullback(pr1_res)(yy0)
+  @test yy0 == pushforward(pr1_res, yy1)
+  zz1 = pullback(pr1_res)(zz0)
+  @test zz0 == pushforward(pr1_res, zz1)
+
+  I_sing = radical(pushforward(inc1, oscar.ideal_sheaf_of_singular_locus(X1)))
+
+  pr2 = blow_up(I_sing)
+  oscar.isomorphism_on_open_subset(pr2)
+  Y2 = domain(pr2)
+  X2, inc2, pr2_res = strict_transform(pr2, inc1)
+
+  pr_res = oscar.compose_lazy(pr2_res, pr1_res)
+  pr = oscar.compose(pr2, pr1)
+  @test pushforward(pr, pullback(pr, yy)^2) == yy^2
+  @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
+end
+
