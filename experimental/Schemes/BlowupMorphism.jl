@@ -73,8 +73,15 @@ with restriction
 ```
 """
 @attributes mutable struct BlowupMorphism{
-                              CodomainType<:AbsCoveredScheme
-                             } # TODO: Derive this from AbsCoveredSchemeMorphism ? 
+     DomainType<:AbsCoveredScheme, # Not a concrete type in general because this is lazy
+     CodomainType<:AbsCoveredScheme,
+     BaseMorphismType # Nothing in case of no base change
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 BaseMorphismType,
+                                 BlowupMorphism
+                                }
   projective_bundle::CoveredProjectiveScheme 
   codomain::CodomainType   # in general a CoveredScheme
   center::IdealSheaf      # on codomain
@@ -88,9 +95,12 @@ with restriction
     )
     X = base_scheme(IP)
     X === scheme(I) || error("ideal sheaf not compatible with blown up variety")
-    return new{typeof(X)}(IP, X, I)
+    return new{AbsCoveredScheme, typeof(X), Nothing}(IP, X, I)
   end
 end
+
+### Forward the essential functionality
+underlying_morphism(phi::BlowupMorphism) = projection(phi)
 
 function domain(p::BlowupMorphism)
   if !isdefined(p, :domain)
