@@ -43,17 +43,16 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-
-function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
-                                 v::Vector, params::Type)
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Type)
   loaded_v = [load_object(s, params, x) for x in v]
   return loaded_v
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: Vector},
+function load_object(s::DeserializerState, ::Type{<: Vector},
                                  v::Vector, params::Tuple)
   T = params[1]
-  return [load_object_with_params(s, T, x, params[2]) for x in v]
+  return [load_object(s, T, x, params[2]) for x in v]
 end
 
 ################################################################################
@@ -100,11 +99,11 @@ function save_object(s::SerializerState, obj::Tuple)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<:Tuple},
+function load_object(s::DeserializerState, ::Type{<:Tuple},
                                  v::Vector{Any}, params::Vector)
   return Tuple(
     params[i] isa Type ? load_object(s, params[i], v[i]) :
-      load_object_with_params(s, params[i][1], v[i], params[i][2]) for i in 1:length(v)
+      load_object(s, params[i][1], v[i], params[i][2]) for i in 1:length(v)
   )
 end
 
@@ -133,10 +132,10 @@ function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Di
   return (params[:names], tuple_params)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: NamedTuple},
+function load_object(s::DeserializerState, ::Type{<: NamedTuple},
                                  v::Vector, params::Tuple)
   keys, tuple_params = params
-  tuple = load_object_with_params(s, Tuple, v, tuple_params)
+  tuple = load_object(s, Tuple, v, tuple_params)
   keys = map(Symbol, keys)
   return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
@@ -156,12 +155,20 @@ function save_object(s::SerializerState, mat::Matrix)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<:Matrix},
+function load_object(s::DeserializerState, ::Type{<:Matrix},
                                  entries::Vector, params::Type)
   m = reduce(vcat, [
-    permutedims(load_object_with_params(s, Vector, v, params)) for v in entries
+    permutedims(load_object(s, Vector, v, params)) for v in entries
       ])
   return Matrix{params}(m)
+end
+
+function load_object(s::DeserializerState, ::Type{<:Matrix},
+                     entries::Vector, params::Tuple)
+  m = reduce(vcat, [
+    permutedims(load_object(s, Vector, v, params)) for v in entries
+      ])
+  return Matrix{params[1]}(m)
 end
 
 # deserialize with specific content type

@@ -70,7 +70,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
   data_basic(s, string(elem))
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{fpFieldElem},
+function load_object(s::DeserializerState, ::Type{fpFieldElem},
                                  str::String, F::Nemo.fpField)
   return F(parse(UInt64, str))
 end
@@ -96,7 +96,7 @@ function save_object(s::SerializerState, elem::FpFieldElem)
   data_basic(s, string(elem))
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{FpFieldElem},
+function load_object(s::DeserializerState, ::Type{FpFieldElem},
                                  str::String, F::Nemo.FpField)
   return F(parse(ZZRingElem, str))
 end
@@ -152,10 +152,10 @@ function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
   save_object(s, polynomial)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: NumFieldElemTypeUnion},
+function load_object(s::DeserializerState, ::Type{<: NumFieldElemTypeUnion},
                                  terms::Vector, parents::Vector)
   K = parents[end]
-  polynomial = load_object_with_params(s, PolyRingElem, terms, parents[1:end - 1])
+  polynomial = load_object(s, PolyRingElem, terms, parents[1:end - 1])
   loaded_terms = evaluate(polynomial, gen(K))
   return K(loaded_terms)
 end
@@ -203,13 +203,13 @@ function save_object(s::SerializerState, k::FqFieldElem)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: FqFieldElem},
+function load_object(s::DeserializerState, ::Type{<: FqFieldElem},
                                  terms::Vector, parents::Vector)
   K = parents[end]
-  return K(load_object_with_params(s, PolyRingElem, terms, parents[1:end - 1]))
+  return K(load_object(s, PolyRingElem, terms, parents[1:end - 1]))
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: FqFieldElem},
+function load_object(s::DeserializerState, ::Type{<: FqFieldElem},
                                  str::String, parent::FqField)
   return parent(ZZRingElem(str))
 end
@@ -247,14 +247,14 @@ function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem
   save_object(s, polynomial)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
   K = parents[end]
   n = ngens(K)
   # forces parent of MPolyElem
   poly_ring = polynomial_ring(base_field(K), n)
   parents[end - 1], _ = poly_ring
   poly_elem_type = elem_type
-  polynomial = load_object_with_params(s, MPolyRingElem, terms, parents[1:end - 1])
+  polynomial = load_object(s, MPolyRingElem, terms, parents[1:end - 1])
   polynomial = evaluate(polynomial, gens(K))
   return K(polynomial)
 end
@@ -290,13 +290,13 @@ function save_object(s::SerializerState, f::FracElem)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: FracElem},
+function load_object(s::DeserializerState, ::Type{<: FracElem},
                                  terms::Vector, parents::Vector)
   parent_ring = parents[end]
   num_coeff, den_coeff = terms
   coeff_type = elem_type(base_ring(parent_ring))
-  loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
-  loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
+  loaded_num = load_object(s, coeff_type, num_coeff, parents[1:end - 1])
+  loaded_den = load_object(s, coeff_type, den_coeff, parents[1:end - 1])
   return  parent_ring(loaded_num, loaded_den)
 end
 
@@ -342,15 +342,15 @@ function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunc
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
+function load_object(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
                                  terms::Vector, parents::Vector)
   parent_ring = parents[end]
   num_coeff, den_coeff = terms
   base = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
   pushfirst!(parents, base)
   coeff_type = elem_type(base)
-  loaded_num = load_object_with_params(s, coeff_type, num_coeff, parents[1:end - 1])
-  loaded_den = load_object_with_params(s, coeff_type, den_coeff, parents[1:end - 1])
+  loaded_num = load_object(s, coeff_type, num_coeff, parents[1:end - 1])
+  loaded_den = load_object(s, coeff_type, den_coeff, parents[1:end - 1])
   return  parent_ring(loaded_num, loaded_den)
 end
 

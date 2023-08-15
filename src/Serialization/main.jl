@@ -386,7 +386,7 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
       # dict with keys and object values to be loaded
       params = load_type_params(s, T, dict[:type][:params])
     end
-    return load_object_with_params(s, T, dict[:data], params)
+    return load_object(s, T, dict[:data], params)
   else
     return load_object(s, T, dict[:data])
   end

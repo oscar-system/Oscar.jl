@@ -3,6 +3,11 @@
 RingMatSpaceUnion = Union{Ring, MatSpace}
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
+  # with new structure it seems like we may be able to remove the
+  # array of parents encoded, or at least it seems like it may
+  # make the code a bit cleaner, which will probably allow for
+  # this line, and the function it uses below to be removed.
+  # However i will leave this to a later PR.
   if has_elem_basic_encoding(parent_ring)
     return Any[]
   end
@@ -76,7 +81,7 @@ function save_object(s::SerializerState, x::zzModRingElem)
   data_basic(s, string(x))
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{zzModRingElem},
+function load_object(s::DeserializerState, ::Type{zzModRingElem},
                                  str::String, parent_ring::Nemo.zzModRing)
   return parent_ring(ZZRingElem(str))
 end
@@ -176,7 +181,7 @@ function save_object(s::SerializerState, p::PolyRingElem)
   end
 end
 
-function load_object_with_params(s::DeserializerState,
+function load_object(s::DeserializerState,
                                  ::Type{<: PolyRingElem},
                                  terms::Vector, parents::Vector)
   parent_ring = parents[end]
@@ -201,7 +206,7 @@ function load_object_with_params(s::DeserializerState,
       else
         params = parents[1:end - 1]
       end
-      loaded_terms[exponent] = load_object_with_params(s, coeff_type, coeff, params)
+      loaded_terms[exponent] = load_object(s, coeff_type, coeff, params)
     else
       loaded_terms[exponent] = load_object(s, coeff_type, coeff)
     end
@@ -210,7 +215,7 @@ function load_object_with_params(s::DeserializerState,
 end
 
 
-function load_object_with_params(s::DeserializerState,
+function load_object(s::DeserializerState,
                                  ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
                                  terms::Vector, parents::Vector)
   parent_ring = parents[end]
@@ -224,7 +229,7 @@ function load_object_with_params(s::DeserializerState,
       else
         params = parents[1:end - 1]
       end
-      c = load_object_with_params(s, coeff_type, coeff, params)
+      c = load_object(s, coeff_type, coeff, params)
     else
       c = load_object(s, coeff_type, coeff)
     end
@@ -260,11 +265,11 @@ function save_object(s::SerializerState, I::T) where T <: IdealUnionType
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: IdealUnionType},
+function load_object(s::DeserializerState, ::Type{<: IdealUnionType},
                                  dict::Dict{Symbol, Any}, params::Vector)
   parent_ring = params[end]
   gens = [
-    load_object_with_params(s, elem_type(parent_ring), g, params) for g in dict[:gens]
+    load_object(s, elem_type(parent_ring), g, params) for g in dict[:gens]
       ]
   return ideal(parent_ring, gens)
 end
@@ -275,6 +280,7 @@ end
 @registerSerializationType(MatElem)
 type_needs_params(::Type{<:MatElem}) = true
 
+# not all 
 function save_object(s::SerializerState, obj::MatSpace)
   data_dict(s) do
     save_typed_object(s, base_ring(obj), :base_ring)
@@ -287,18 +293,27 @@ function load_object(s::DeserializerState, ::Type{<:MatSpace}, dict::Dict)
   base_ring = load_typed_object(s, dict[:base_ring])
   ncols = parse(Int, dict[:ncols])
   nrows = parse(Int, dict[:nrows])
-  return matrix_space(base_ring, nrow, ncols; cached=false)
+  return matrix_space(base_ring, nrows, ncols)
 end
 
 function save_object(s::SerializerState, obj::MatElem)
   save_object(s, Array(obj))
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<:MatElem},
-                                 entries::Vector, params::Vector)
-  parent = params[end]
+function load_object(s::DeserializerState, ::Type{<:MatElem},
+                     entries::Vector, parents::Vector)
+  parent = parents[end]
   T = elem_type(base_ring(parent))
-  m = load_object_with_params(s, Matrix, entries, T)
+  if type_needs_params(T)
+    if length(parents) == 1
+      params = base_ring(parent)
+    else
+      params = parents[1:end - 1]
+    end
+    m = load_object(s, Matrix, entries, (T, params))
+  else
+    m = load_object(s, Matrix, entries, T)
+  end
   return parent(m)
 end
 
@@ -402,7 +417,7 @@ function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
+function load_object(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
                                  dict::Dict, parents::Vector)
   parent_ring = parents[end]
   valuation = parse(Int, dict[:valuation])
@@ -418,7 +433,7 @@ function load_object_with_params(s::DeserializerState, ::Type{<: RelPowerSeriesR
       else
         params = parents[1:end - 1]
       end
-      c = load_object_with_params(s, coeff_type, coeff, params)
+      c = load_object(s, coeff_type, coeff, params)
     else
       c = load_object(s, coeff_type, coeff)
     end
@@ -429,7 +444,7 @@ function load_object_with_params(s::DeserializerState, ::Type{<: RelPowerSeriesR
   return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
+function load_object(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
                                  dict::Dict, parents::Vector)
   parent_ring = parents[end]
   pol_length = parse(Int, dict[:pol_length])
@@ -444,7 +459,7 @@ function load_object_with_params(s::DeserializerState, ::Type{<: AbsPowerSeriesR
       else
         params = parents[1:end - 1]
       end
-      c = load_object_with_params(s, coeff_type, coeff, params)
+      c = load_object(s, coeff_type, coeff, params)
     else
       c = load_object(s, coeff_type, coeff)
     end
@@ -521,7 +536,7 @@ function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZ
   end
 end
 
-function load_object_with_params(s::DeserializerState,
+function load_object(s::DeserializerState,
                                  ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                                  dict::Dict, parents::Vector)
   parent_ring = parents[end]
@@ -541,7 +556,7 @@ function load_object_with_params(s::DeserializerState,
       else
         params = parents[1:end - 1]
       end
-      c = load_object_with_params(s, coeff_type, coeff, params)
+      c = load_object(s, coeff_type, coeff, params)
     else
       c = load_object(s, coeff_type, coeff)
     end

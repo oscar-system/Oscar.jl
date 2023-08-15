@@ -46,7 +46,7 @@ function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject}, dict
   return load_typed_object(s, dict)
 end
 
-function load_object_with_params(s::DeserializerState, T::Type{<:PolyhedralObject},
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
                                  dict::Dict, field::Field)
   return load_from_polymake(T{elem_type(field)}, dict)
 end
@@ -64,10 +64,10 @@ function save_object(s::SerializerState, lp::LinearProgram)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<:LinearProgram},
+function load_object(s::DeserializerState, ::Type{<:LinearProgram},
                                  dict::Dict, field::Field)
   coeff_type = elem_type(field)
-  fr = load_object_with_params(s, Polyhedron, dict[:feasible_region], field)
+  fr = load_object(s, Polyhedron, dict[:feasible_region], field)
   conv = dict[:convention]
   lpcoeffs = Polymake.call_function(:common, :deserialize_json_string, json(dict[:lpcoeffs]))
   all = Polymake._lookup_multi(pm_object(fr), "LP")
@@ -102,9 +102,9 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   end
 end
 
-function load_object_with_params(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
                                  dict::Dict, field::Field) 
-  fr = load_object_with_params(s, Polyhedron, dict[:feasible_region], field)
+  fr = load_object(s, Polyhedron, dict[:feasible_region], field)
   conv = dict[:convention]
   milp_coeffs = Polymake.call_function(
     :common,

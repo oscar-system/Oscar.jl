@@ -24,7 +24,7 @@ function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem},
   return load_typed_object(s, dict)
 end
 
-function load_object_with_params(s::DeserializerState,
+function load_object(s::DeserializerState,
                                  ::Type{<:TropicalSemiringElem},
                                  str::String, params::TropicalSemiring)
   return params(load_object(s, QQFieldElem, str))
