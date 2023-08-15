@@ -8,6 +8,9 @@
 
   bl = blow_up(IZ)
 
+  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(X), Nothing, BlowupMorphism}
+  @test underlying_morphism(bl) === projection(bl)
+
   Y = domain(bl)
   @test codomain(bl) === X
   @test Y isa AbsCoveredScheme
@@ -20,7 +23,7 @@ end
   S = ambient_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, [x, y])
-  set_name!(X, "ℙ²")
+  #set_name!(IP2, "ℙ²")
   II = IdealSheaf(IP2, I)
   p = blow_up(II)
   C = Oscar.effective_cartier_divisor(IP2, (x+y)^2)
@@ -47,3 +50,4 @@ end
   V = codomain(f)
   @test compose(h, f) == identity_map(V)
 end
+
