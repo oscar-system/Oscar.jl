@@ -21,7 +21,7 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
     return multi_hilbert_series(quo(P,ideal(P,[1]))[1]; parent=HSRing, backend=backend)[1][1]
   end
   GensLM = gens(LM);
-  L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th cooord
+  L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th coord
   # Nested loop below extracts the coordinate monomial ideals -- is there a better way?
   for g in GensLM
     SR = coordinates(ambient_representative(g)); # should have length = 1
@@ -37,19 +37,12 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
   @vprintln :hilbert 1 "HSNum_module: shift_expv are $(shift_expv)";
-###  HSeriesRing = parent(HSeriesList[1]);
-###  @vprintln :hilbert 1 "HSNum_module: HSeriesRing = $(HSeriesRing)";
   t = gens(HSRing);
   ScaleFactor = [_power_product(t,e)  for e in shift_expv];
   result = sum([ScaleFactor[k]*HSeriesList[k]  for k in 1:r]);
   return result;
 end
 
-# No longer needed
-# function HSNum_module(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing)  where T <: MPolyRingElem
-#   # ASSUME F is graded free module
-#   return HSNum_module(sub(F,gens(F))[1]; parent=parent)
-# end
 
 @doc raw"""
     multi_hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
