@@ -927,6 +927,21 @@ function separate_simple_pps(gens::Vector{PP})
 end
 
 
+# Returns nothing; throws if ker(W) contains a non-zero vector >= 0
+function HSNum_check_weights(W::Vector{Vector{Int}})
+  # assumes W is rectangular (and at least 1x1)
+  nrows = length(W);
+  A = ZZMatrix(W);
+  b = zero_matrix(FlintZZ, nrows,1);
+  try
+    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
+  catch _
+    # solve_non_negative must have thrown because there is a non-zero soln
+    error("given weights permit infinite dimensional homogeneous spaces")
+  end
+end
+
+
 # Check args: either throws or returns nothing.
 function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
   if isempty(W)
@@ -939,6 +954,7 @@ function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
   if !all((t -> length(t)==nvars), gens)  # OK also if isempty(gens)
     throw("HSNum: generators must all have same size exponent vectors")
   end
+  HSNum_check_weights(W)
   # Args are OK, so simply return (without throwing)
 end
 
