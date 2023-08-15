@@ -295,15 +295,62 @@ for f in (QQ, ENF)
                 let lhs = lecture_hall_simplex(4)
                     @test lhs isa Polyhedron{T}
                     @test is_bounded(lhs)
-                    @test nvertices{lhs} == 5
+                    @test nvertices(lhs) == 5
                 end
 
+                let ez = explicit_zonotope([1 2 3; 4 5 6])
+                    @test ez isa Polyhedron{T}
+                    @test size(Oscar.pm_object(ez).POINTS,1) == 4
+                end
+                
+                @test_throws ArgumentError cyclic_caratheodory_polytope(1,1)
+                @test_throws ArgumentError cyclic_caratheodory_polytope(2,1)
+                let ccp = cyclic_caratheodory_polytope(2,3)
+                    @test ccp isa Polyhedron{T}
+                    @test is_bounded(ccp)
+                    @test nvertices(ccp) == 3
+                end
+
+                let fkp = fractional_knapsack_polytope([-1, -1, 2])
+                    @test fkp isa Polyhedron{T} 
+                    @test is_bounded(fkp)
+                    @test size(Oscar.pm_object(fkp).INEQUALITIES,1) == 4
+                end
+
+                @test_throws ArgumentError hypersimplex(5,3)
+                let hs = hypersimplex(3,5)
+                    @test hs isa Polyhedron{T}
+                    @test is_bounded(hs)
+                    @test nvertices(hs) == 10 
+                    @test length(facets(hs)) == 10
+                end
+
+                @test zonotope([0 0 1; 2 2 2; 1 0 2]) isa Polyhedron{T}
+
+                @test_throws ArgumentError goldfarb_cube(0,0,0)
+                @test_throws ArgumentError goldfarb_cube(3,1,0)
+                @test_throws ArgumentError goldfarb_cube(3,1//4,1//8)
                 let goldfarb = goldfarb_cube(3,1//4,0) # fuer zuweisungen 
                     @test goldfarb isa Polyhedron{T}
                     @test ambient_dim(goldfarb) == 3
                     @test size(Oscar.pm_object(goldfarb).INEQUALITIES,1) == 7 #nur falls oscar danach nicht fragen kann
                 end
-                
+
+                @test_throws ArgumentError goldfarb_sit_cube(0,0,0)
+                @test_throws ArgumentError goldfarb_sit_cube(3,1,0)
+                @test_throws ArgumentError goldfarb_sit_cube(3,1//4,5//8)
+                let gsc = goldfarb_sit_cube(3,1//4,0)
+                    @test gsc isa Polyhedron{T}
+                    @test ambient_dim(gsc) == 3
+                    @test size(Oscar.pm_object(gsc).INEQUALITIES,1) == 7
+                end
+
+                @test_throws ArgumentError hypertruncated_cube(3,5,0)
+                let htc = hypertruncated_cube(3,3//2, 3//4)
+                    @test htc isa Polyhedron{T} 
+                    @test is_bounded(htc)
+                    @test size(Oscar.pm_object(htc).INEQUALITIES,1) == 13
+                end
 
             end
 

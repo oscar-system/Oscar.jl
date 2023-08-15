@@ -1448,7 +1448,7 @@ julia> vertices(C)
 ```
 """
 function cyclic_caratheodory_polytope(d::Int, n::Int)
-    if n < d 
+    if n <= d 
         throw(ArgumentError("cyclic_caratheodory_polytope: Dimension d has to be smaller than number of points n."))
     end
     if d < 2
@@ -1513,6 +1513,7 @@ x₁ ≦ 1
 ```
 """
 function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
+    (0>=k || k>=d) && throw(ArgumentError("hypersimplex: 0 < k < d required"))
     opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
     return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k,d;opts...))
 end
@@ -1552,7 +1553,7 @@ julia> vertices(Z)
  [2, 1]
 ```
 """
-zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
+zonotope(M::Matrix{<:Number}; rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
 
 @doc raw"""
     goldfarb_cube(d::Int, e::Number, g::Number)
