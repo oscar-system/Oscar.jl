@@ -21,22 +21,12 @@ morphisms are exactly the toric morphisms.
 
 ## Constructors
 
-### Generic constructors without specified codomain
-
-```@docs
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap)
-```
 
 ### Generic constructors with specified codomain
 
 ```@docs
-toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety)
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check)
+toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check)
 ```
 
 ### Special constructors
