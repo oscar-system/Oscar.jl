@@ -265,15 +265,13 @@ end
 @registerSerializationType(FracField, true)
 
 function save_object(s::SerializerState, K::FracField)
-  data_dict(s) do
-    save_typed_object(s, base_ring(K), :base_ring)
-  end
+  save_typed_object(s, base_ring(K))
 end
 
 function load_object(s::DeserializerState,
                      ::Type{<: FracField},
                      dict::Dict)
-  R = load_typed_object(s, dict[:base_ring])
+  R = load_typed_object(s, dict)
 
   return fraction_field(R, cached=false)
 end
@@ -379,25 +377,11 @@ function save_object(s::SerializerState, r::arb)
   ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 end
 
-function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
-  r = Nemo.arb()
-  ccall((:arb_load_str, Nemo.Arb_jll.libarb),
-        Int32, (Ref{arb}, Ptr{UInt8}), r, dict[:arb_str])
-
-  parent = load_parents(s, dict[:parents])[end]
-  r.parent = parent
-  return r
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{arb},
-                                   str::String,
-                                   parent::Nemo.ArbField)
+function load_object(s::DeserializerState, ::Type{arb}, str::String, parent::ArbField)
   r = Nemo.arb()
   ccall((:arb_load_str, Nemo.Arb_jll.libarb),
         Int32, (Ref{arb}, Ptr{UInt8}), r, str)
   r.parent = parent
-  
   return r
 end
 
@@ -406,36 +390,28 @@ end
 @registerSerializationType(AcbField)
 @registerSerializationType(acb)
 has_elem_basic_encoding(obj::AcbField) = true
+type_needs_params(::Type{acb}) = true
 
-function save_internal(s::SerializerState, CC::AcbField)
-  return Dict(
-    :precision => save_type_dispatch(s, precision(CC))
-  )    
+function save_object(s::SerializerState, CC::AcbField)
+  save_object(s, precision(CC))
 end
 
-function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
-  prec = load_type_dispatch(s, Int64, dict[:precision])
+function load_object(s::DeserializerState, ::Type{AcbField}, str::String)
+  prec = parse(Int, str)
   return AcbField(prec)
 end
 
 # elements
-function save_internal(s::SerializerState, c::acb; include_parents::Bool=true)
-  encoded_acb = save_internal(s, [real(c), imag(c)]; include_parents=false)
-  if include_parents
-    return Dict(
-      :parent => save_as_ref(s, parent(c)),
-      :vector => encoded_acb
-    )
+function save_object(s::SerializerState, c::acb)
+  data_array(s) do
+    save_object(s, real(c))
+    save_object(s, imag(c))
   end
-  return encoded_acb
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{acb},
-                                   vec::Vector{Any},
-                                   parent::AcbField)
-  real_part = load_type_dispatch(s, arb, vec[1], parent=ArbField(precision(parent)))
-  imag_part = load_type_dispatch(s, arb, vec[2], parent=ArbField(precision(parent)))
+function load_object(s::DeserializerState, ::Type{acb}, vec::Vector{Any}, parent::AcbField)
+  real_part = load_object(s, arb, vec[1], ArbField(precision(parent)))
+  imag_part = load_object(s, arb, vec[2], ArbField(precision(parent)))
   
   return parent(real_part, imag_part)
 end
@@ -445,39 +421,39 @@ end
 
 @registerSerializationType(Hecke.NumFieldEmbNfAbs, true)
 
-function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
+function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   K = number_field(E)
   g = gen(K)
   g_ball = E(g)
-  return Dict(
-    :num_field => save_type_dispatch(s, K),
-    :gen_ball => save_internal(s, g_ball)
-  )
+
+  data_dict(s) do
+    save_typed_object(s, K, :num_field)
+    save_typed_object(s, g_ball, :gen_ball)
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
-  K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
-  parent = load_type_dispatch(s, AcbField, dict[:gen_ball][:parent])
-  gen_ball = load_internal_with_parent(s, acb, dict[:gen_ball][:vector], parent)
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
+  K = load_typed_object(s, dict[:num_field])
+  gen_ball = load_typed_object(s, dict[:gen_ball])
 
   return complex_embedding(K, gen_ball)
 end
 
 @registerSerializationType(Hecke.NumFieldEmbNfAbsNS, true)
 
-function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
+function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
   K = number_field(E)
   gen_balls = map(E, gens(K))
-  
-  return Dict(
-    :num_field => save_type_dispatch(s, K),
-    :gen_balls => save_type_dispatch(s, gen_balls)
-  )
+
+  data_dict(s) do
+    save_typed_object(s, K, :num_field)
+    save_typed_object(s, gen_balls, :gen_balls)
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
-  K = load_type_dispatch(s, NfAbsNS, dict[:num_field])
-  gen_balls = load_type_dispatch(s, Vector{acb}, dict[:gen_balls])
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
+  K = load_typed_object(s, dict[:num_field])
+  gen_balls = load_typed_object(s, dict[:gen_balls])
 
   return complex_embedding(K, gen_balls)
 end
