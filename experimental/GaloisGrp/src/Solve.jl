@@ -235,12 +235,17 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   return SS
 end
 
-function extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
   C = base_ring(f)
   Qt, t = RationalFunctionField(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
+
+function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; cached::Bool, check::Bool)
+  return number_field(f; cached, check)
+end
+
 
 function refined_derived_series(G::PermGroup)
   s = GAP.Globals.PcSeries(GAP.Globals.Pcgs(G.X))
