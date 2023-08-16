@@ -25,13 +25,15 @@ module AbelianClosure
 
 using ..Oscar
 
-import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
+import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
+             deepcopy_internal, hash, reduce
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
-                root, divexact, mul!, roots, is_root_of_unity, promote_rule,
-                AbstractAlgebra, parent
+import ..Oscar: AbstractAlgebra, addeq!, elem_type, divexact, gen,
+                has_preimage, is_root_of_unity, is_unit, mul!, parent,
+                parent_type, promote_rule, root, root_of_unity, roots
+
 using Hecke
 import Hecke: conductor, data
 
@@ -57,6 +59,7 @@ mutable struct QQAbElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
+#T test that data really belongs to a cyclotomic field!
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
@@ -843,6 +846,86 @@ function Oscar.order(a::QQAbElem)
   return o
 end
 
+
+###############################################################################
+#
+#   Embeddings of subfields of cyclotomic fields
+#   (works for proper subfields of cycl. fields only if these fields
+#   have been constructed as such)
+#
+
+# Construct the map from `F` to an abelian closure `K` such that `gen(F)`
+# is mapped to `x`.
+# If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
+# is mapped to `QQAbElem(gen(F), N)`.
+# (Use that the powers of this element form a basis of the field.)
+function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
+                    x::QQAbElem{nf_elem})
+  R, = polynomial_ring(QQ, "x")
+  fl, n = Hecke.is_cyclotomic_type(F)
+  if fl
+    # This is cheaper.
+    f = function(x::nf_elem)
+      return QQAbElem(x, n)
+    end
+
+    finv = function(x::QQAbElem; check::Bool = false)
+      if n % conductor(x) == 0
+        return Hecke.force_coerce_cyclo(F, data(x))
+      elseif check
+        return
+      else
+        error("element has no preimage")
+      end
+    end
+  else
+    # `F` is expected to be a proper subfield of a cyclotomic field.
+    n = conductor(x)
+    x = data(x)
+    Kn, = AbelianClosure.cyclotomic_field(K, n)
+    powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
+              for i in 0:degree(F)-1]
+    c = transpose(matrix(QQ, powers))
+
+    f = function(z::nf_elem)
+      return QQAbElem(evaluate(R(z), x), n)
+    end
+
+    finv = function(x::QQAbElem; check::Bool = false)
+      n % conductor(x) == 0 || return false, zero(F)
+      # Write `x` w.r.t. the n-th cyclotomic field ...
+      g = gcd(x.c, n)
+      Kg, = AbelianClosure.cyclotomic_field(K, g)
+      x = Hecke.force_coerce_cyclo(Kg, data(x))
+      x = Hecke.force_coerce_cyclo(Kn, x)
+      # ... and then w.r.t. `F`
+      a = Hecke.coefficients(x)
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      if fl
+        b = transpose(sol)
+        b = [b[i] for i in 1:length(b)]
+        return F(b)
+      elseif check
+        return
+      else
+        error("element has no preimage")
+      end
+    end
+  end
+  return MapFromFunc(F, K, f, finv)
+end
+
+# The following works only if `mp.g` admits a second argument,
+# which is the case if `mp` has been constructed by `_embedding` above.
+function has_preimage(mp::MapFromFunc{AnticNumberField, QQAbField{AnticNumberField}}, x::QQAbElem{nf_elem})
+  pre = mp.g(x, check = true)
+  if isnothing(pre)
+    return false, zero(domain(mp))
+  else
+    return true, pre
+  end
+end
+
 ###############################################################################
 #
 #   Galois automorphisms of QQAb
@@ -1070,6 +1153,34 @@ function quadratic_irrationality_info(a::QQAbElem)
 
     return (x, y, m)
 end
+
+@doc raw"""
+    reduce(val::QQAbElem, F::FinField)
+
+Return the element of `F` that is the $p$-modular reduction of `val`,
+where $p$ is the characteristic of `F`.
+An exception is thrown if `val` cannot be reduced modulo $p$
+or if the reduction does not lie in `F`.
+
+# Examples
+```jldocstring
+julia> K, z = abelian_closure(QQ);
+
+julia> F = GF(2, 3);
+
+julia> reduce(z(7), F)
+o
+```
+"""
+function reduce(val::QQAbElem, F::FinField)
+  p = characteristic(F)
+  iso_0 = Oscar.iso_oscar_gap(parent(val))
+  iso_p = Oscar.iso_oscar_gap(F)
+  val_p = GAP.Globals.FrobeniusCharacterValue(iso_0(val), GAP.Obj(p))::GAP.Obj
+  return preimage(iso_p, val_p)
+end
+
+#TODO: add reduction to alg. closure as soon as this is available!
 
 end # module AbelianClosure
 

@@ -970,6 +970,35 @@ end
       end
     end
   end
+
+  # embeddings of abelian number fields into the abelian closure
+  # - for cyclotomic character fields
+  t = character_table("A4")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
+  end
+
+  # - for non-cyclotomic character fields
+  t = character_table("A5")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test ! Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
+  end
 end
 
 @testset "character fields of Brauer characters" begin

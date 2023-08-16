@@ -160,6 +160,31 @@ end
     end
   end
 
+  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo._GF]
+    K, z = abelian_closure(QQ)
+    F = gf_fun(2, 1)
+    @test reduce(z(2), F) == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
+    @test_throws ErrorException reduce(z(4), F)
+    F = gf_fun(2, 2)
+    red = reduce(z(3), F)
+    @test red != one(F) && red^3 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(7), F)
+    F = gf_fun(2, 3)
+    red = reduce(z(7), F)
+    @test red != one(F) && red^7 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    F = gf_fun(3, 2)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
+  end
+
   @testset "Unsafe operations" begin
     K, z = abelian_closure(QQ)
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end

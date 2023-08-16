@@ -1,4 +1,21 @@
 @testset "Experimental.gmodule" begin
+  function testrels(G::Oscar.GAPGroup)
+    ggens = gens(G)
+    rels = relations(G)
+    return all(p -> map_word(p[1], ggens) == map_word(p[2], ggens), rels)
+  end
+
+  G = dihedral_group(8)
+  @test testrels(G)             # full pc group
+  @test testrels(center(G)[1])  # subgroup of full pc group
+  F = FPGroup(G)
+  @test testrels(F)             # full f.p. group
+  @test testrels(center(F)[1])  # subgroup of full f.p. group
+  @test testrels(PermGroup(G))  # nothing of the above
+end
+
+
+@testset "Experimental.gmodule" begin
 
   G = small_group(7*3, 1)
   z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
