@@ -614,22 +614,29 @@ function underlying_morphism(f::CompositeCoveredSchemeMorphism)
   return f.composed_map
 end
 
+### Specialized functionality
+
+# Casting into the minimal concrete type for AbsCoveredSchemeMorphism
+function CoveredSchemeMorphism(f::CompositeCoveredSchemeMorphism)
+  return underlying_morphism(f)
+end
+
 ########################################################################
 # The standard constructors
 ########################################################################
-function compose_lazy(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+function composite_map(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   return CompositeCoveredSchemeMorphism([f, g])
 end
 
-function compose_lazy(f::AbsCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
+function composite_map(f::AbsCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
   return CompositeCoveredSchemeMorphism(pushfirst!(copy(maps(g)), f))
 end
 
-function compose_lazy(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
+function composite_map(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
   return CompositeCoveredSchemeMorphism(vcat(maps(f), maps(g)))
 end
 
-function compose_lazy(f::CompositeCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+function composite_map(f::CompositeCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   return CompositeCoveredSchemeMorphism(push!(copy(maps(f)), g))
 end
 
@@ -651,7 +658,7 @@ function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
+function Base.show(io::IO, ::MIME"text/plain", f::CompositeCoveredSchemeMorphism)
   io = pretty(io)
   println(io, "Composite morphism of", Indent())
   for g in maps(f)

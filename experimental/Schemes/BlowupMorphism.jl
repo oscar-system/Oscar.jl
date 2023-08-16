@@ -604,14 +604,14 @@ end
 end
 
 function compose(f::BlowupMorphism, g::BlowupMorphism)
-  return compose_lazy(f, g)
+  return composite_map(f, g)
 end
 
 function compose(f::BlowupMorphism, g::AbsCoveredSchemeMorphism)
-  return compose_lazy(f, g)
+  return composite_map(f, g)
 end
 
 function compose(f::AbsCoveredSchemeMorphism, g::BlowupMorphism)
-  return compose_lazy(f, g)
+  return composite_map(f, g)
 end
 
