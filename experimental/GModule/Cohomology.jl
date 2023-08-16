@@ -1530,7 +1530,7 @@ end
 function is_left_G_module(C::GModule)
   #tests if the action is left-linear 
   G = C.G
-  return all([action(C, h)*action(C, g) == action(C, g*h) for g = gens(G) for h = gens(G)])
+  return all(action(C, h)*action(C, g) == action(C, g*h) for g = gens(G) for h = gens(G))
 end
 
 """
