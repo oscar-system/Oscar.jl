@@ -30,13 +30,13 @@ end
 
 #= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
  =     Next step is to re-enable modular Singular.std and modular f4 again. =#
-function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
-#  if isdefined(I, :gb) && ord == :degrevlex
-#    return collect(I.gb)
-#  end
-#  if Proof
-#    return Oscar.standard__basis_with_transform(I, ord)[1]
-#  end
+function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
+  if isdefined(I, :gb) && ord == :degrevlex
+    return collect(I.gb)
+  end
+  if Proof
+    return Oscar.standard__basis_with_transform(I, ord)[1]
+  end
 
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
@@ -63,7 +63,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord = :degrevlex; u
     R = residue_ring(ZZ, Int(p)) #fpMPolyRingElem missing...
     Rt, t = polynomial_ring(R, symbols(Qt), cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
-    Gp = Oscar._compute_standard_basis(Ip, ord, true)
+    Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)
     Jp = map(x->lift(Zt, x), Gp)
     if d == 1
       d = ZZRingElem(p)
