@@ -425,7 +425,9 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
     end
     save_header(state, oscarSerializationVersion, :_ns)
     
-    #save_header(state, )
+    if !isnothing(metadata)
+      save_json(state, json(metadata), :meta)
+    end
   end
   serializer_close(state)
   return nothing
