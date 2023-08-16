@@ -600,18 +600,18 @@ end
 ### Essential getters
 maps(f::CompositeCoveredSchemeMorphism) = f.maps
 domain(f::CompositeCoveredSchemeMorphism) = domain(first(f.maps))
-codomain(f::CompositeCoveredSchemeMorphism) = domain(f.maps[end])
+codomain(f::CompositeCoveredSchemeMorphism) = codomain(f.maps[end])
 
 ### Forwarding essential functionality (to be avoided!)
 function underlying_morphism(f::CompositeCoveredSchemeMorphism)
   if !isdefined(f, :composed_map)
-    result = first(maps(f))
+    result = underlying_morphism(first(maps(f)))::CoveredSchemeMorphism
     for i in 2:length(maps(f))
-      result = compose(result, maps(f)[i])
+      result = compose(result, underlying_morphism(maps(f)[i]))::CoveredSchemeMorphism
     end
     f.composed_map = result
   end
-  return f.composed_map
+  return f.composed_map::CoveredSchemeMorphism
 end
 
 ### Specialized functionality
@@ -621,15 +621,55 @@ function CoveredSchemeMorphism(f::CompositeCoveredSchemeMorphism)
   return underlying_morphism(f)
 end
 
+function CoveredSchemeMorphism(f::CoveredSchemeMorphism)
+  return f
+end
+
 ########################################################################
 # The standard constructors
 ########################################################################
+@doc raw"""
+    composite_map(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+
+Realize the composition ``x → g(f(x))`` as a composite map, i.e. an 
+instance of `CompositeCoveredSchemeMorphism`. 
+
+# Examples
+```jldoctest
+julia> IA2 = affine_space(QQ, [:x, :y])
+Affine space of dimension 2
+  over rational field
+with coordinates [x, y]
+
+julia> (x, y) = gens(OO(IA2));
+
+julia> I = ideal(OO(IA2), [x, y]);
+
+julia> pr = blow_up(IA2, I);
+
+julia> JJ = ideal_sheaf(exceptional_divisor(pr));
+
+julia> inc_E = oscar.CoveredClosedEmbedding(domain(pr), JJ);
+
+julia> comp = oscar.composite_map(inc_E, pr)
+Composite morphism of
+  Morphism: scheme over QQ covered with 2 patches -> scheme over QQ covered with 2 patches
+  Blow-up: scheme over QQ covered with 2 patches -> scheme over QQ covered with 1 patch
+
+julia> oscar.maps(comp)[1] === inc_E
+true
+
+julia> oscar.maps(comp)[2] === pr
+true
+
+```
+"""
 function composite_map(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   return CompositeCoveredSchemeMorphism([f, g])
 end
 
 function composite_map(f::AbsCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism(pushfirst!(copy(maps(g)), f))
+  return CompositeCoveredSchemeMorphism(pushfirst!(Vector{AbsCoveredSchemeMorphism}(copy(maps(g))), f))
 end
 
 function composite_map(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSchemeMorphism)
@@ -637,7 +677,7 @@ function composite_map(f::CompositeCoveredSchemeMorphism, g::CompositeCoveredSch
 end
 
 function composite_map(f::CompositeCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
-  return CompositeCoveredSchemeMorphism(push!(copy(maps(f)), g))
+  return CompositeCoveredSchemeMorphism(push!(Vector{AbsCoveredSchemeMorphism}(copy(maps(f))), g))
 end
 
 ########################################################################
@@ -685,3 +725,5 @@ function pullback(f::CompositeCoveredSchemeMorphism, a::VarietyFunctionFieldElem
   return result
 end
 
+### Missing compatibility
+underlying_morphism(f::CoveredSchemeMorphism) = f
