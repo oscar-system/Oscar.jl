@@ -1330,14 +1330,6 @@ julia> betti_table(FA);
 
 ```
 """
-function betti_table(b::FreeResolution)
-  return betti_table(b, project = nothing, reverse_direction = false)
-end
-
-function betti(b::FreeResolution; reverse_direction::Bool = false)
-  return betti_table(b, project = nothing, reverse_direction = reverse_direction)
-end
-
 function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
@@ -1354,14 +1346,8 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-betti(b::FreeResolution) = betti_table(b)
-
-betti(b::FreeResolution; reverse_direction::Bool = false) = betti_table(b, reverse_direction = reverse_direction)
-
-betti(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false) = betti_table(F, project = project, reverse_direction = reverse_direction)
-
-function as_dictionary(b::BettiTable)
-  return b.B
+function betti(b::FreeResolution; reverse_direction::Bool = false)
+  return betti_table(b; project = nothing, reverse_direction = reverse_direction)
 end
 
 function reverse_direction!(b::BettiTable)
