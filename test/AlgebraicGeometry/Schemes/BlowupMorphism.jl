@@ -107,6 +107,8 @@ end
   I_sing = radical(pushforward(inc1, oscar.ideal_sheaf_of_singular_locus(X1)))
 
   pr2 = blow_up(I_sing)
+  @test scheme(I_sing) === domain(pr1)
+  @test codomain(pr2) === domain(pr1)
   oscar.isomorphism_on_open_subset(pr2)
   Y2 = domain(pr2)
   X2, inc2, pr2_res = strict_transform(pr2, inc1)
@@ -115,5 +117,33 @@ end
   pr = oscar.compose(pr2, pr1)
   @test pushforward(pr, pullback(pr, yy)^2) == yy^2
   @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
+
+  pr_inc = compose(compose(inc2, pr2), pr1)
+  @test underlying_morphism(pr1) isa CoveredSchemeMorphism
+  @test domain(underlying_morphism(pr1)) === domain(pr1)
+  @test codomain(underlying_morphism(pr1)) === codomain(pr1)
+  @test compose(inc2, pr2) isa oscar.CompositeCoveredSchemeMorphism
+  @test domain(compose(inc2, pr2)) === domain(inc2)
+  @test codomain(compose(inc2, pr2)) === codomain(pr2)
+
+  @test domain(pr1) === codomain(compose(inc2, pr2))
+  @test domain(underlying_morphism(pr1)) === codomain(compose(inc2, pr2))
+  pr_inc2 = compose(compose(inc2, pr2), underlying_morphism(pr1))
+  pr_inc3 = compose(underlying_morphism(compose(inc2, pr2)), underlying_morphism(pr1))
+  pr_inc4 = compose(underlying_morphism(compose(inc2, pr2)), pr1)
+
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc2)
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc3)
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc4)
+
+  pr_inc_alt = oscar.composite_map(pr2_res, compose(inc1, pr1))
+  pr_inc_alt2 = oscar.composite_map(compose(pr2_res, inc1), pr1)
+  pr_inc_alt3 = oscar.composite_map(pr2_res, compose(inc1, underlying_morphism(pr1)))
+  pr_inc_alt4 = oscar.composite_map(compose(pr2_res, inc1), underlying_morphism(pr1))
+
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt)
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt2)
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt3)
+  @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt4)
 end
 
