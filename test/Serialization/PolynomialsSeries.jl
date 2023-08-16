@@ -42,8 +42,8 @@ cases = [
           @test loaded == p
         end
 
-        @testset "Load with parent" begin
-          test_save_load_roundtrip(path, p; parent=R) do loaded
+        @testset "Load with params" begin
+          test_save_load_roundtrip(path, p; params=R) do loaded
             @test loaded == z^2 + case[2] * z + case[3]
           end
         end
@@ -56,8 +56,8 @@ cases = [
           @test loaded == z^2 + case[2] * z * w + case[3] * w^3
         end
 
-        @testset "Load with parent" begin
-          test_save_load_roundtrip(path, p; parent=R) do loaded
+        @testset "Load with params" begin
+          test_save_load_roundtrip(path, p; params=R) do loaded
             @test loaded == z^2 + case[2] * z * w + case[3] * w^3
           end
         end
@@ -73,7 +73,7 @@ cases = [
             end
 
             S = parent(i[1])
-            test_save_load_roundtrip(path, i; parent=S) do loaded_i
+            test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test i == loaded_i
             end
           end
@@ -89,8 +89,8 @@ cases = [
           @test loaded.p == test_p.p
         end
 
-        @testset "Load with parent" begin
-          test_save_load_roundtrip(path, p; parent=R) do loaded
+        @testset "Load with params" begin
+          test_save_load_roundtrip(path, p; params=R) do loaded
             @test p == loaded
           end
         end
@@ -106,8 +106,8 @@ cases = [
           @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         end
 
-        @testset "Load with parent" begin
-          test_save_load_roundtrip(path, p; parent=R) do loaded
+        @testset "Load with params" begin
+          test_save_load_roundtrip(path, p; params=R) do loaded
             @test p == loaded
           end
         end
@@ -123,7 +123,7 @@ cases = [
             end
 
             S = parent(gens(i)[1])
-            test_save_load_roundtrip(path, i; parent=S) do loaded_i
+            test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test gens(i) == gens(loaded_i)
             end
           end
@@ -138,7 +138,7 @@ cases = [
             @test rel_p == loaded
           end
 
-          test_save_load_roundtrip(path, rel_p; parent=rel_R) do loaded
+          test_save_load_roundtrip(path, rel_p; params=rel_R) do loaded
             @test rel_p == loaded
           end
 
@@ -148,7 +148,7 @@ cases = [
             @test abs_p == loaded
           end
 
-          test_save_load_roundtrip(path, abs_p; parent=abs_R) do loaded
+          test_save_load_roundtrip(path, abs_p; params=abs_R) do loaded
             @test abs_p == loaded
           end
         end
@@ -160,7 +160,7 @@ cases = [
             @test p == loaded
           end
 
-          test_save_load_roundtrip(path, p; parent=L) do loaded
+          test_save_load_roundtrip(path, p; params=L) do loaded
             @test p == loaded
           end
         end

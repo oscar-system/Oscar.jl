@@ -192,74 +192,6 @@ function save_as_ref(s::SerializerState, obj::T) where T
   return string(ref)
 end
 
-# function save_type_dispatch(s::SerializerState, obj::T, key::Symbol = :data) where T
-#     # this is used when serializing basic types like "3//4"
-#     # when s.depth == 0 file should know it belongs to QQ
-#     if s.depth != 0 && has_basic_encoding(obj)
-#         save_basic_encoded_type(s, obj, key)
-#     elseif s.depth == 0 && has_basic_encoding(obj)
-#         if is_type_serializing_parent(T)
-#             open_dict(s)
-#             s.depth += 1
-#             save_basic_encoded_type(s, obj)
-#             save_type_dispatch(s, parent(obj), :parent)
-#             close(s)
-#             s.depth -= 1
-#         else
-#             save_basic_encoded_type(s, obj)
-#         end
-#         add_object(s, encode_type(T), :type)
-#     elseif serialize_with_id(T)
-#         ref = save_as_ref(s, obj)
-#         add_object(s, ref, key)
-#     elseif T <: Vector
-#         open_dict(s)
-#         s.depth += 1
-#         save_internal(s, obj)
-#         s.depth -= 1
-#         add_object(s, encode_type(T), :type)
-#         close(s)
-#     elseif !Base.issingletontype(T)
-#         s.depth += 1
-#         open_dict(s)
-#         # invoke the actual serializer
-#         open_dict(s)
-# 
-#         if is_type_serializing_parent(T)
-#             save_parent_refs(s, parent(obj))
-#         end
-#         save_internal(s, obj)
-#         close(s)
-#         add_object(s, encode_type(T), :type)
-#         s.depth -= 1
-# 
-#         if s.depth != 0
-#             close(s, key)
-#         end
-#     else
-#         # added to catch singleton types
-#         if s.depth == 0
-#             # catch edge case
-#             add_object(s, encode_type(T), :type)
-#         else
-#             open_dict(s)
-#             add_object(s, encode_type(T), :type)
-#             close(s, key)
-#         end
-#     end
-# 
-#     if s.depth == 0
-#         add_object(s, oscarSerializationVersion, :_ns)
-# 
-#         if !isempty(s.refs)
-#             add_object(s, s.refs, :refs)
-#         end
-#     end
-#     
-#     #store_serialized(s, result, key)
-# end
-
-
 function save_object(s::SerializerState, x::Any, key::Symbol)
   s.key = key
   save_object(s, x)
@@ -283,7 +215,6 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
   end
 end
 
-# calling this function directly should only happen for the root
 function save_typed_object(s::SerializerState, x::T) where T
   if type_needs_params(T)
     save_type_params(s, x, :type)
@@ -312,17 +243,6 @@ end
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   s.key = key
   save_type_params(s, obj)
-end
-# ATTENTION
-# The load mechanism needs to look at the serialized data first,
-# in order to detect objects with a basic encoding.
-function load_type_dispatch(s::DeserializerState,
-                            ::Type{T}, str::String; parent=nothing) where T
-  if parent !== nothing && has_elem_basic_encoding(parent)
-    return load_internal_with_parent(s, T, str, parent)
-  end
-  @assert is_basic_serialization_type(T)
-  return load_internal(s, T, str)
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
@@ -363,17 +283,8 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
   return result
 end
 
-function load_unknown_type(s::DeserializerState, dict::Dict; parent=nothing)
-  T = decode_type(dict[:type])
-  Base.issingletontype(T) && return T()
-  return load_type_dispatch(s, T, dict; parent=parent)
-end
-
-# sole purpose of this function is to catch when obj is a ref
-function load_unknown_type(s::DeserializerState, str::String)
-  return load_ref(s, str)
-end
-
+# The load mechanism first checks if the type needs to load necessary
+# parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
                            override_params::Any = nothing)
   T = decode_type(dict[:type])
@@ -513,6 +424,8 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
       end
     end
     save_header(state, oscarSerializationVersion, :_ns)
+    
+    #save_header(state, )
   end
   serializer_close(state)
   return nothing
@@ -577,7 +490,7 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; parent::Any = nothing, type::Any = nothing)
+function load(io::IO; params::Any = nothing, type::Any = nothing)
   state = deserializer_open(io)
 
   # this should be moved to the serializer at some point
@@ -604,15 +517,21 @@ function load(io::IO; parent::Any = nothing, type::Any = nothing)
     merge!(state.refs, jsondict[:refs])
   end
 
-  # this is a nice to have for later
-  # if type !== nothing
-  #     return load_type_dispatch(state, type, jsondict; parent=parent)
-  # end
-  return load_typed_object(state, jsondict; override_params=parent)
+  if type !== nothing
+    if type_needs_params(type)
+      if isnothing(params) 
+        params = load_type_params(state, type, jsondict[:type][:params])
+      end
+      return load_object(state, type, jsondict[:data], params)
+    end
+    Base.issingletontype(type) && return decode_type(jsondict[:type])()
+    return load_object(state, type, jsondict[:data])
+  end
+  return load_typed_object(state, jsondict; override_params=params)
 end
 
-function load(filename::String; parent::Any = nothing, type::Any = nothing)
+function load(filename::String; params::Any = nothing, type::Any = nothing)
   open(filename) do file
-    return load(file; parent=parent, type=type)
+    return load(file; params=params, type=type)
   end
 end

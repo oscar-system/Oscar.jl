@@ -55,6 +55,24 @@ function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, pare
   return get_parents(parent_ring)
 end
 
+# this should be properly dealt with later and is only an intermediate solution
+# to getting the tests to pass when forcing a type and passing params
+# ideally all load should look like this without passing a vector of parents
+
+# fix for polynomial cases
+function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, terms::Vector{Any}, parent_ring::RingMatSpaceUnion) 
+  parents = get_parents(parent_ring)
+  return load_object(s, T, terms, parents)
+end
+
+# fix for series and ideal cases
+function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, Laurent.LaurentMPolyIdeal}},
+                     terms::Dict{Symbol, Any}, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
+  parents = get_parents(parent_ring)
+  return load_object(s, T, terms, parents)
+end
+
+
 ################################################################################
 # ring of integers (singleton type)
 @registerSerializationType(ZZRing)

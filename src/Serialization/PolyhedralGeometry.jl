@@ -47,9 +47,15 @@ function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject}, dict
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
-                                 dict::Dict, field::Field)
-  return load_from_polymake(T{elem_type(field)}, dict)
+                     dict::Dict, field::Field) 
+  return  load_from_polymake(T{elem_type(field)}, dict)
 end
+
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
+                     dict::Dict, field::Field) where S <: FieldElem
+  return load_from_polymake(T, dict)
+end
+
 ##############################################################################
 @registerSerializationType(LinearProgram)
 

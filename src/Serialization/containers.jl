@@ -55,6 +55,12 @@ function load_object(s::DeserializerState, ::Type{<: Vector},
   return [load_object(s, T, x, params[2]) for x in v]
 end
 
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Ring)
+  T = elem_type(params)
+  return [load_object(s, T, x, params) for x in v]
+end
+
 ################################################################################
 # Saving and loading Tuple
 @registerSerializationType(Tuple)

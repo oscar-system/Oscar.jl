@@ -24,7 +24,7 @@
       test_save_load_roundtrip(path, v) do loaded
         @test v == loaded
       end
-      test_save_load_roundtrip(path, v; parent=F) do loaded
+      test_save_load_roundtrip(path, v; params=F) do loaded
         @test v == loaded
       end
     end
@@ -37,7 +37,7 @@
       test_save_load_roundtrip(path, v) do loaded
         @test v == loaded
       end
-      test_save_load_roundtrip(path, v; parent=F) do loaded
+      test_save_load_roundtrip(path, v; params=F) do loaded
         @test v == loaded
       end
     end

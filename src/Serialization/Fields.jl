@@ -265,13 +265,17 @@ end
 @registerSerializationType(FracField, true)
 
 function save_object(s::SerializerState, K::FracField)
-  save_typed_object(s, base_ring(K))
+  save_typed_object(s, base_ring(K), :data)
 end
 
-function load_object(s::DeserializerState,
-                     ::Type{<: FracField},
-                     dict::Dict)
+function load_object(s::DeserializerState, ::Type{<: FracField}, dict::Dict)
   R = load_typed_object(s, dict)
+
+  return fraction_field(R, cached=false)
+end
+
+function load_object(s::DeserializerState, ::Type{<: FracField}, str::String)
+  R = load_ref(s, str)
 
   return fraction_field(R, cached=false)
 end
