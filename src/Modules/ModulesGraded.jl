@@ -1302,6 +1302,42 @@ end
 # Betti table
 ###############################################################################
 
+@doc raw"""
+    betti_table(F::FreeResolution)
+
+Given a $\mathbb Z$-graded free resolution `F`, return the graded Betti numbers 
+of `F` in form of a Betti table.
+
+Alternatively, use `betti`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [x*z, y*z, x*w^2, y*w^2])
+ideal(x*z, y*z, w^2*x, w^2*y)
+
+julia> A, _= quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 4 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> FA  = free_resolution(A)
+Free resolution of A
+R^1 <---- R^4 <---- R^4 <---- R^1 <---- 0
+0         1         2         3         4
+
+julia> betti_table(FA);
+
+```
+"""
+function betti_table(b::FreeResolution)
+  return betti_table(b, project = nothing, reverse_direction = false)
+end
+
+function betti(b::FreeResolution; reverse_direction::Bool = false)
+  return betti_table(b, project = nothing, reverse_direction = reverse_direction)
+end
+
 function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
@@ -1318,9 +1354,11 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-function betti(b::FreeResolution; reverse_direction::Bool = false)
-  return betti_table(b, project = nothing, reverse_direction = reverse_direction)
-end
+betti(b::FreeResolution) = betti_table(b)
+
+betti(b::FreeResolution; reverse_direction::Bool = false) = betti_table(b, reverse_direction = reverse_direction)
+
+betti(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false) = betti_table(F, project = project, reverse_direction = reverse_direction)
 
 function as_dictionary(b::BettiTable)
   return b.B
@@ -1933,6 +1971,14 @@ end
 ########################################################################
 
 # TODO: Are the signatures sufficient to assure that the modules are graded?
+
+@doc raw"""
+    minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
+
+# Examples
+```jldoctest
+```
+"""
 function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
   return minimal_betti_table(free_resolution(M))
 end
