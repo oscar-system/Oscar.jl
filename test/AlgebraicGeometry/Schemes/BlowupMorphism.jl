@@ -111,7 +111,7 @@ end
   Y2 = domain(pr2)
   X2, inc2, pr2_res = strict_transform(pr2, inc1)
 
-  pr_res = oscar.compose_lazy(pr2_res, pr1_res)
+  pr_res = oscar.composite_map(pr2_res, pr1_res)
   pr = oscar.compose(pr2, pr1)
   @test pushforward(pr, pullback(pr, yy)^2) == yy^2
   @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
