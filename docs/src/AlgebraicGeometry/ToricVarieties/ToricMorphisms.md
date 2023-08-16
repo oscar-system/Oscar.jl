@@ -25,8 +25,8 @@ morphisms are exactly the toric morphisms.
 ### Generic constructors with specified codomain
 
 ```@docs
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check)
+toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety; check=true)
+toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety; check=true)
 ```
 
 ### Special constructors
