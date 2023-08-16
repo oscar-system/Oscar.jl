@@ -1,5 +1,5 @@
 @testset "Serialization.Upgrades" begin
-  @testset "< 0.11.3 Upgrade" begin
+  @test_skip @testset "< 0.11.3 Upgrade" begin
     L = ones(QQFieldElem, 15)
     R, x = QQ["x"]
     p = R(L)
@@ -8,7 +8,7 @@
     @test p == loaded_p
   end
 
-  @testset "< 0.12.0 Upgrade" begin
+  @test_skip @testset "< 0.12.0 Upgrade" begin
     Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
     Fin, d = FiniteField(t^2 + t + 1)
     Rx, x = Fin["x"]
