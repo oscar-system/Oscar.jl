@@ -1489,7 +1489,7 @@ Computes H^3 via dimension-shifting:
 There is a short exact sequence
   1 -> A -> Hom(Z[G], A) -> B -> 1 
 thus
-  H^3(G, A) = H^2(C, B)
+  H^3(G, A) = H^2(G, B)
 as Hom(Z[G], A) is induced hence has trivial cohomology.
 Currently only the group is returned
 """
