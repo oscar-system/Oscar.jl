@@ -381,10 +381,10 @@ mutable struct GaloisCtx{T}
     return r
   end
 
-  function GaloisCtx(f::ZZPolyRingElem)
+  function GaloisCtx(f::ZZPolyRingElem, field::Union{Nothing, AnticNumberField})
     r = new{SymbolicRootCtx}()
     r.f = f
-    r.C = SymbolicRootCtx(f)
+    r.C = SymbolicRootCtx(f, field)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
     r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]
     return r
@@ -539,13 +539,19 @@ end
 mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
   rt::Vector{nf_elem}
-  function SymbolicRootCtx(f::ZZPolyRingElem)
+  function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
     @assert ismonic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
+  function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
+    @assert ismonic(f)
+    rt = roots(f, field)
+    return new(f, rt)
+  end
+
   function SymbolicRootCtx(f::QQPolyRingElem)
-    return SymbolicRootCtx(numerator(f))
+    return SymbolicRootCtx(numerator(f), nothing)
   end
 end
 
@@ -1322,9 +1328,16 @@ function sum_orbits(K, Qt_to_G, r)
   @assert all(isone, values(fg.fac))
 
   O = []
+  if isa(r[1], acb)
+    mm = collect(m)
+  end
   for f = keys(fg.fac)
     r = roots(map_coefficients(Qt_to_G, f))
-    push!(O, [m[x] for x = r])
+    if isa(r[1], acb)
+      push!(O, [mm[argmin(map(x->abs(x[1]-y), mm))][2] for y = r])
+    else
+      push!(O, [m[x] for x = r])
+    end
   end
   @vprint :GaloisGroup 2 "partitions: $O\n"
   return O
@@ -1465,12 +1478,19 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       #       the poset should make this trivial.
       @vprint :GaloisGroup 1 "computing group of subfield of degree $(degree(s))\n"
       local g, gc
-      if valuation(discriminant(s), GC.prime) > 0
+      if isa(parent(c[1]), FlintLocalField) && 
+         valuation(discriminant(s), GC.prime) > 0
         throw(Hecke.BadPrime(GC.prime))
       end
       g, gc = try
           Hecke.pushindent()
-          galois_group(s, prime = GC.prime)
+          if isa(c[1], NumFieldElem)
+            galois_group(s, algorithm = :Symbolic, field = parent(c[1]))
+          elseif isa(c[1], FlintLocalFieldElem)
+            galois_group(s, prime = GC.prime)
+          else
+            galois_group(s, algorithm = :Complex)
+          end
         catch e  #can "legally" be BadPrime, will be dealt with one level up
           Hecke.popindent()
           rethrow()
@@ -1481,13 +1501,24 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
       pr = 5
       r = roots(gc, pr, raw = true)
-      R = roots(GC,pr, raw = true)
+      R = roots(GC, pr, raw = true)
 
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(ms(gen(s))))
       d = map(gg, R)
-      f, mf = residue_field(parent(r[1]))
-      _F, mF = residue_field(parent(R[1]))
-      mfF = find_morphism(f, _F)
+      if isa(r[1], nf_elem)
+        @assert parent(r[1]) == parent(R[1])
+        f = _F = parent(r[1])
+        mf = mF = x->x
+        mfF = x->x
+      elseif isa(r[1], acb)
+        f = _F = parent(r[1])
+        mf = mF = x->x
+        mfF = x->x
+      else
+        f, mf = residue_field(parent(r[1]))
+        _F, mF = residue_field(parent(R[1]))
+        mfF = find_morphism(f, _F)
+      end
       #we should have
       # - d == r (in the appropriate setting)
       # - order(Set(map(mF, d))) == order(Set(map(mf, r))) == degree(s)
@@ -1529,9 +1560,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   #TODO: make generic!!!
   if isa(c[1], acb)
     d = map(conj, c)
-    si = [findfirst(y->abs(y-x) < 1e-9, c) for x = d]
+    si = [argmin(map(y->abs(y-x), c)) for x = d]
   elseif isa(c[1], nf_elem) #.. and use automorphism
-    si = collect(1:length(d))
+    si = collect(1:length(c))
   else
     d = map(frobenius, c)
     si = [findfirst(y->y==x, c) for x = d]
@@ -1626,7 +1657,15 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, is_primitive, "primitivity")
     pc = parent(c[1])
-    k, mk = residue_field(pc)
+    if isa(pc, NumField)
+      k = pc
+      mk = x->x
+    elseif isa(c[1], acb)
+      k = pc
+      mk = x->x
+    else
+      k, mk = residue_field(pc)
+    end
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
     GC.start = (2, O)
     
@@ -1907,7 +1946,7 @@ julia> roots(C, 2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algorithm::Symbol=:pAdic)
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algorithm::Symbol=:pAdic, field::Union{Nothing, AnticNumberField} = nothing)
 
   @assert algorithm in [:pAdic, :Complex, :Symbolic]
 
@@ -1936,7 +1975,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
     elseif algorithm == :Complex
       GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), AcbField(20))
     elseif algorithm == :Symbolic
-      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)))
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), field)
     else
       error("wrong algorithm used")
     end
@@ -2278,7 +2317,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
-  r = roots(GC, 5)
+  r = roots(GC, bound_to_precision(GC, GC.B))
   ts = find_transformation(r, a, T, RNG = MersenneTwister(1))
 
   B = upper_bound(GC, a, ts)
@@ -2476,7 +2515,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   #TODO: the subfields use, implicitly, special invariants, so
   #      we should be able to avoid the chain
   G = symmetric_group(n)
-  if C.start[1] == 1 # start with intersection of wreath products
+  if isdefined(C, :start) && C.start[1] == 1 # start with intersection of wreath products
     _, g = slpoly_ring(ZZ, n)
     for bs = C.start[2]
       W = PermGroup(wreath_product(symmetric_group(length(bs[1])), symmetric_group(length(bs))))
