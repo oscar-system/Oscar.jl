@@ -33,47 +33,39 @@ end
 # Tropical Hypersurfaces
 @registerSerializationType(TropicalHypersurface, true)
 
-function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
-  return Dict(
-    :tropical_polynomial => save_type_dispatch(s, polynomial(t_surf))
-  )
+function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
+  save_typed_object(s, polynomial(t_surf), :data)
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: TropicalHypersurface},
-                       dict::Dict)
-  polynomial = load_type_dispatch(s, MPolyRingElem, dict[:tropical_polynomial])
+function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
+  polynomial = load_typed_object(s, dict)
   return TropicalHypersurface(polynomial)
 end
 
 # Tropical Curves
 @registerSerializationType(TropicalCurve, true)
 
-function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
-  if EMB
-    return Dict(
-      :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_curve)),
-      :is_embedded => save_type_dispatch(s, true)
-    )
-  else
-    return Dict(
-      :graph => save_type_dispatch(s, graph(t_curve)),
-      :is_embedded => save_type_dispatch(s, false)
-    )
+function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
+  data_dict(s) do 
+    if EMB
+      save_typed_object(s, underlying_polyhedral_complex(t_curve), :polyhedral_complex)
+      save_object(s, true, :is_embedded)
+    else
+      save_typed_object(s, graph(t_curve), :graph)
+      save_object(s, false, :is_embedded)
+    end
   end
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: TropicalCurve},
-                       dict::Dict)
-  EMB = load_type_dispatch(s, Bool, dict[:is_embedded])
+function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, dict::Dict)
+  EMB = parse(Bool, dict[:is_embedded])
   if EMB
     return TropicalCurve(
-      load_type_dispatch(s, PolyhedralComplex{QQFieldElem}, dict[:polyhedral_complex])
+      load_typed_object(s, dict[:polyhedral_complex])
     )
   else
     return TropicalCurve(
-      load_type_dispatch(s, IncidenceMatrix, dict[:graph])
+      load_typed_object(s, dict[:graph])
     )
   end
 end

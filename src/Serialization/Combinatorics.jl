@@ -24,7 +24,7 @@ end
 ###############################################################################
 @registerSerializationType(Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric})
 
-function save_internal(s::SerializerState, IM::IncidenceMatrix)
+function save_object(s::SerializerState, IM::IncidenceMatrix)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, IM)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
   data_json(s, jsonstr)
