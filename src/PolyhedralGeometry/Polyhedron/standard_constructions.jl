@@ -1192,7 +1192,7 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
   @req is_bounded(P) "Polyhedron is unbounded, has to be bounded"
   nv = nvertices(P)
-  n <= nv "rand_subpolytope: number of vertices requested too high"
+  @req n <= nv "number of vertices requested too high"
   opts = Dict{Symbol,Any}()
   if seed != nothing
     opts[:seed] = convert(Int64, seed)
@@ -1234,7 +1234,7 @@ julia> vertices(p)
 function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     @req n >= 1 "dimension must be at least 1"
-    @req issorted(alpha) "input is not descending"
+    @req issorted(-alpha) "input is not descending"
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 end
 
@@ -1995,21 +1995,21 @@ function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
 end
 
 @doc raw"""
-    rand_metric(n::Int; seed=nothing)
+    rand_metric_polytope(n::Int; seed=nothing)
 
 Produce a rational n-point metric with random distances. 
 The values are uniformily distributed in $\[1,2\]$.
 
 # Examples
 ```jldoctest
-julia> rand_metric(3, seed=132)
+julia> rand_metric_polytope(3, seed=132)
 3×3 Matrix{Rational}:
                0//1                …  371474612593257//281474976710656
  260222460282405//140737488355328     388326899436839//281474976710656
  371474612593257//281474976710656                   0//1
 ```
 """
-function rand_metric(n::Int; seed=nothing)
+function rand_metric_polytope(n::Int; seed=nothing)
     if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
     else
@@ -2021,13 +2021,13 @@ function rand_metric(n::Int; seed=nothing)
 end
 
 @doc raw"""
-    rand_metric(n::Int, digits::Int; seed=nothing)
+    rand_metric_int_polytope(n::Int, digits::Int; seed=nothing)
 
 Produce a `n`-point metric with random integral distances. 
 The values are uniformily distributed in $\[1,2\]$. The distances are integers and lie in 
 $[10^digits, 10^(digits+1)[$  
 """
-function rand_metric_int(n::Int, digits::Int; seed=nothing)
+function rand_metric_int_polytope(n::Int, digits::Int; seed=nothing)
     if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
     else
