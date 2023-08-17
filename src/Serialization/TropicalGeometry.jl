@@ -7,12 +7,9 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 @registerSerializationType(TropicalSemiringElem)
 type_needs_params(T::Type{<: TropicalSemiringElem}) = true
 
-function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
-  s.key = key
-  data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, parent(x), :params)
-  end
+function save_type_params(s::SerializerState, x::TropicalSemiringElem)
+  save_object(s, encode_type(T), :name)
+  save_typed_object(s, parent(x), :params)
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
