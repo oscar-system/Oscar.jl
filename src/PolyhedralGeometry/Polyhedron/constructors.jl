@@ -57,17 +57,17 @@ julia> polyhedron(A,b)
 Polyhedron in ambient dimension 2
 ```
 """
-polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector) = polyhedron(f, (A, b))
+polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, (A, b); non_redundant = non_redundant)
 
-polyhedron(f::scalar_type_or_field, A::AbstractVector, b::Any) = polyhedron(f, ([A], [b]))
+polyhedron(f::scalar_type_or_field, A::AbstractVector, b::Any; non_redundant::Bool = false) = polyhedron(f, ([A], [b]); non_redundant = non_redundant)
 
-polyhedron(f::scalar_type_or_field, A::AbstractVector, b::AbstractVector) = polyhedron(f, ([A], b))
+polyhedron(f::scalar_type_or_field, A::AbstractVector, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, ([A], b); non_redundant = non_redundant)
 
-polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::Any) = polyhedron(f, (A, [b]))
+polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::Any; non_redundant::Bool = false) = polyhedron(f, (A, [b]); non_redundant = non_redundant)
 
-polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::AbstractVector) = polyhedron(f, (A, b))
+polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, (A, b); non_redundant = non_redundant)
 
-polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::Any) = polyhedron(f, A, [b])
+polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::Any; non_redundant::Bool = false) = polyhedron(f, A, [b]; non_redundant = non_redundant)
 
 @doc raw"""
     polyhedron(::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
@@ -106,7 +106,7 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
+function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing; non_redundant::Bool = false)
   parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
   if isnothing(I) || _isempty_halfspace(I)
     EM = affine_matrix_for_polymake(E)
@@ -116,7 +116,11 @@ function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollectio
     EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
   end
 
-  return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)), parent_field)
+  if non_redundant
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(FACETS = remove_zero_rows(IM), AFFINE_HULL = remove_zero_rows(EM)), parent_field)
+  else
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)), parent_field)
+  end
 end
 
 """
@@ -126,12 +130,35 @@ Get the underlying polymake `Polytope`.
 """
 pm_object(P::Polyhedron) = P.pm_polytope
 
-function ==(P0::Polyhedron, P1::Polyhedron)
+function ==(P0::Polyhedron{T}, P1::Polyhedron{T}) where T<:scalar_types
     # TODO: Remove the following 3 lines, see #758
     for pair in Iterators.product([P0, P1], ["RAYS", "FACETS"])
         Polymake.give(pm_object(pair[1]),pair[2])
     end
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
+end
+
+function Base.:(==)(P0::Polyhedron{EmbeddedElem{nf_elem}}, P1::Polyhedron{EmbeddedElem{nf_elem}})
+  R0 = pm_object(P0).RAYS
+  R1 = pm_object(P1).RAYS
+  T0 = eltype(R0)
+  T1 = eltype(R1)
+  if T0 != T1
+    if T0 <: Polymake.QuadraticExtension
+      Q0 = convex_hull(coefficient_field(P0), point_matrix(vertices(P0)), vector_matrix(rays(P0)), generator_matrix(lineality_space(P0)); non_redundant = true)
+      Polymake.give(pm_object(Q0), "FACETS")
+      Polymake.give(pm_object(P1), "FACETS")
+      return Polymake.polytope.equal_polyhedra(pm_object(Q0), pm_object(P1))
+    else
+      Q1 = convex_hull(coefficient_field(P1), point_matrix(vertices(P1)), vector_matrix(rays(P1)), generator_matrix(lineality_space(P1)); non_redundant = true)
+      Polymake.give(pm_object(P0), "FACETS")
+      Polymake.give(pm_object(Q1), "FACETS")
+      return Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(Q1))
+    end
+  end
+  Polymake.give(pm_object(P0), "FACETS")
+  Polymake.give(pm_object(P1), "FACETS")
+  Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
 

@@ -1014,7 +1014,7 @@ julia> [1, -2] in PO
 false
 ```
 """
-Base.in(v::AbstractVector, P::Polyhedron) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
+Base.in(v::AbstractVector, P::Polyhedron) = Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
 
 
 @doc raw"""
