@@ -435,20 +435,48 @@ for f in (QQ, ENF)
                 end
                 let rbox = rand_box(3,4,1; seed = 456)
                     @test rbox isa Polyhedron{T}
-                    @test sum(Oscar.pm_object(p).POINTS)==6
+                    @test sum(Oscar.pm_object(rbox).POINTS)==6
                 end
 
                 @test_throws ArgumentError rand_cyclic_polytope(2,3)
                 @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
                 let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
-                    @tets rcyc isa Polyhedron{T}
+                    @test rcyc isa Polyhedron{T}
                     @test size(Oscar.pm_object(rcyc).VERTICES,1) == 8
                 end
 
                 #3 more rand testset
 
                 @test_throws ArgumentError rss_associahedron(1)
-                let 
+                let rss = rss_associahedron(3)
+                    @test rss isa Polyhedron{T}
+                    @test typeof(facets(rss)[1]) == AffineHalfspace{T}
+                    @test ambient_dim(rss) == 3
+                end
+
+                @test_throws ArgumentError signed_permutahedron(0)
+                @test_throws ArgumentError signed_permutahedron(100000)
+                let sph = signed_permutahedron(3) 
+                    @test sph isa Polyhedron{T}
+                    @test size(Oscar.pm_object(sph).VERTICES,1) == 48
+                    @test is_bounded(sph)
+                end
+
+                let G = complete_graph(3)
+                    ssp = stable_set_polytope(G)
+                    @test ssp isa Polyhedron{T}
+                    @test is_bounded(ssp)
+                    @test size(Oscar.pm_object(ssp).INEQUALITIES,1) == 7
+                end
+
+                @test_throws ArgumentError transportation_polytope([2,3,1],[4,5,3])
+                let tp = transportation_polytope([2,3,1],[4,0,2])
+                    @test tp isa Polyhedron{T}
+                    @test ambient_dim(tp) == 9
+                    @test size(Oscar.pm_object(tp).EQUATIONS,1) == 6
+                end
+
+                @test sum(zonotope_vertices_fukuda_matrix([4 4 2; 2 4 1])) == 4
             end
 
         end

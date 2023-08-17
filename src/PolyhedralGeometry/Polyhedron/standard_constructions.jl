@@ -1192,7 +1192,7 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
   @req is_bounded(P) "Polyhedron is unbounded, has to be bounded"
   nv = nvertices(P)
-  n <= nv "rand_subpolytope: number of vertices requested too high"
+  @req n <= nv "Number of vertices requested too high"
   opts = Dict{Symbol,Any}()
   if seed != nothing
     opts[:seed] = convert(Int64, seed)
@@ -1234,7 +1234,7 @@ julia> vertices(p)
 function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     @req n >= 1 "dimension must be at least 1"
-    @req issorted(alpha) "input is not descending"
+    @req issorted(-alpha) "input is not descending"
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 end
 
@@ -1723,7 +1723,7 @@ julia> vertices(c)
 """
 function max_GC_rank_polytope(d::Int) 
     @req d >= 2 "dimension d >= 2 required"
-    @req sizeof(d) < sizeof(Int)*8-1 "dimension too high, number of inequalities would not fit into Int"
+    @req d < sizeof(Int)*8-1 "dimension too high, number of inequalities would not fit into Int"
     return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
 end
 
@@ -1951,7 +1951,7 @@ julia> vertices(r)
 """
 function rand_box(d::Int, n::Int, b::Int; seed=nothing)
     @req 1 <= d && 1 <= n && 1 <= b "1 <= dim, #POINTS, b"
-    if seed isnothing(seed)
+    if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
     else
         seed = convert(Int64, seed)
@@ -2241,7 +2241,10 @@ julia> is_bounded(t)
 true
 ```
 """
-transportation_polytope(r::AbstractVector, c::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.transportation(r,c))
+function transportation_polytope(r::AbstractVector, c::AbstractVector) 
+    @req sum(r) == sum(c) "sum of entries of r and c must be equal"
+    return Polyhedron{QQFieldElem}(Polymake.polytope.transportation(r,c))
+end
 
 @doc raw"""
     zonotope_vertices_fukuda(M::Matrix{<:Number}, rows_are_points::Bool=true)
