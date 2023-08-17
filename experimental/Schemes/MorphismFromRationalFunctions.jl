@@ -673,11 +673,12 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
     end
       #J = pullback(psi)(saturated_ideal(I(V)))
     function new_complexity(U::AbsSpec)
-      return sum(total_degree.(lifted_numerator(gens(pullbacks[U]))); init=0)
+      return sum(total_degree.(lifted_numerator.(gens(pullbacks[U]))); init=0)
     end
     sort!(all_U, lt=(x,y)->new_complexity(x)<new_complexity(y))
     for U in all_U
       J = pullbacks[U]
+      psi = cheap_realization(phi, U, V)
       if !isone(J)
         JJ = IdealSheaf(X, domain(psi), gens(J))
         return JJ
