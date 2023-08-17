@@ -1613,7 +1613,7 @@ end
 @doc raw"""
     hypertruncated_cube(d::Int, k::Number, lambda::Number) 
 
-Produce a $d$-dimensional hypertruncated cube with symmetric linear objective function $(0,1,1,…,1)$.
+Produce a $d$-dimensional hypertruncated cube with symmetric linear objective function $(1,1,…,1)$.
 
 # Arguments
 - `k`: cutoff parameter
@@ -1703,7 +1703,7 @@ end
     max_GC_rank_polytope(d::Int)
 
 Produce a `d`-dimensional polytope of maximal Gomory-Chvatal rank $\Omega(d/\log(d))$, 
-integrally infeasible. With symmetric linear objective function $(0,1,1..,1)$. 
+integrally infeasible. With symmetric linear objective function $(1,1..,1)$. 
 Construction due to Pokutta and Schulz, see [PS11](@cite).
 
 # Example
@@ -1736,7 +1736,14 @@ where $2<\texttt{d}<\texttt{n}$.
 This yields a self-dual `d`-dimensional polytope with `n`$+1$ vertices. 
 They were introduced by [Bis96](@cite). 
 See also [BBS02](@cite).
+#Example
+```jldoctest
+julia> m = multiplex_polytope(2,4)
+Polyhedron without ambient dimension
 
+julia> dim(m)
+2
+```
 """
 function multiplex_polytope(d::Int, n::Int)
     @req 2 <= d <= n "2 <= d <= n required"
