@@ -5,18 +5,18 @@
 # the entry data. The entries no longer being dictionaries prevents the use of backrefs.
 
 
-push!(upgrade_scripts, UpgradeScript(
+push!(upgrade_scripts_set, UpgradeScript(
   v"0.11.3", # version this script upgrades to
-  function upgrade_0_11_3(s::DeserializerState, dict::Dict)
+  function upgrade_0_11_3(refs::Dict, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
     if !haskey(dict, :type)
-      return upgrade_data(upgrade_0_11_3, s, dict)
+      return upgrade_data(upgrade_0_11_3, refs, dict)
     end
 
     if dict[:type] == string(backref_sym)
-      backrefed_object = s.objs[UUID(dict[:id])]
+      backrefed_object = refs[UUID(dict[:id])]
 
       # if the backref points to a string, just use that string
       # instead of the backref
@@ -29,7 +29,7 @@ push!(upgrade_scripts, UpgradeScript(
     if !haskey(dict, :data)
       # adds object to instance in case it is backrefed
       if haskey(dict, :id)
-        s.objs[UUID(dict[:id])] = dict
+        refs[UUID(dict[:id])] = dict
       end
 
       return dict
@@ -43,12 +43,12 @@ push!(upgrade_scripts, UpgradeScript(
       entry_type = nothing
 
       for entry in dict[:data][:vector]
-        result = upgrade_0_11_3(s, entry)
+        result = upgrade_0_11_3(refs, entry)
 
         # store values in state that are vector entries that aren't backrefs
         if entry[:type] != string(backref_sym)
           if haskey(entry, :id)
-            s.objs[UUID(entry[:id])] = result
+            refs[UUID(entry[:id])] = result
           end
           @assert entry_type === nothing || entry_type == entry[:type]
           entry_type = entry[:type]
@@ -70,7 +70,7 @@ push!(upgrade_scripts, UpgradeScript(
           )
         )
         # add to state
-        s.objs[UUID(dict[:id])] = upgraded_dict
+        refs[UUID(dict[:id])] = upgraded_dict
         return upgraded_dict
       end
 
@@ -82,7 +82,7 @@ push!(upgrade_scripts, UpgradeScript(
           :entry_type => entry_type
         )
       )
-      s.objs[UUID(dict[:id])] = upgraded_dict
+      refs[UUID(dict[:id])] = upgraded_dict
 
       return upgraded_dict
     end
@@ -98,7 +98,7 @@ push!(upgrade_scripts, UpgradeScript(
       dict_type = "PolyRing"
     end
 
-    U = decodeType(dict_type)
+    U = decode_type(dict_type)
 
     # Upgrades QQFieldElem serialization
     if is_basic_serialization_type(U)
@@ -107,21 +107,21 @@ push!(upgrade_scripts, UpgradeScript(
         den = dict[:data][:den][:data]
         updated_fmpq = "$num//$den"
         #add to state
-        s.objs[UUID(dict[:id])] = updated_fmpq
+        refs[UUID(dict[:id])] = updated_fmpq
         
         return updated_fmpq
       else
         updated_basic_value = dict[:data]
         #add to state
         if haskey(dict, :id)
-          s.objs[UUID(dict[:id])] = updated_basic_value
+          refs[UUID(dict[:id])] = updated_basic_value
         end
         
         return updated_basic_value
       end
     end
 
-    upgraded_data = upgrade_0_11_3(s, dict[:data])
+    upgraded_data = upgrade_0_11_3(refs, dict[:data])
     upgraded_dict = Dict(
       :type => dict_type,
       :data => upgraded_data,
@@ -130,7 +130,7 @@ push!(upgrade_scripts, UpgradeScript(
 
     # adds updated object in case it is referenced somewhere
     if haskey(dict, :id)
-      s.objs[UUID(dict[:id])] = upgraded_dict
+      refs[UUID(dict[:id])] = upgraded_dict
     end
 
     return upgraded_dict

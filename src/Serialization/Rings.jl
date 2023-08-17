@@ -197,9 +197,8 @@ function save_object(s::SerializerState, p::PolyRingElem)
   end
 end
 
-function load_object(s::DeserializerState,
-                                 ::Type{<: PolyRingElem},
-                                 terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
+                     terms::Vector, parents::Vector)
   parent_ring = parents[end]
   if isempty(terms)
     return parent_ring(0)

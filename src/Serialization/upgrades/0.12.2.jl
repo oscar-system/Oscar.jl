@@ -20,14 +20,14 @@
 # an upgrade for a user can be made upon request.
 
 
-push!(upgrade_scripts, UpgradeScript(
+push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.2",
-  function upgrade_0_12_2(s::DeserializerState, dict::Dict)
+  function upgrade_0_12_2(refs::Dict, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
     if !haskey(dict, :type)
-      return upgrade_data(upgrade_0_12_2, s, dict)
+      return upgrade_data(upgrade_0_12_2, refs, dict)
     end
     
     upgraded_dict = dict
@@ -57,8 +57,7 @@ push!(upgrade_scripts, UpgradeScript(
           push!(parents, parent_dict)
         end
       end
-      
-      refs = Dict()
+
       upgraded_parents = []
 
       # using the parent list we make the refs to be attached
@@ -71,7 +70,7 @@ push!(upgrade_scripts, UpgradeScript(
           continue
         end
         if haskey(parent[:data], :def_pol)
-          upgraded_def_pol = upgrade_0_12_2(s, parent[:data][:def_pol])
+          upgraded_def_pol = upgrade_0_12_2(refs, parent[:data][:def_pol])
           parent[:data][:def_pol] = upgraded_def_pol
         elseif haskey(parent[:data], :base_ring)
           base_dict = parent[:data][:base_ring]
@@ -93,7 +92,7 @@ push!(upgrade_scripts, UpgradeScript(
         if !isa(coeff, Dict)
           upgraded_coeff = coeff
         elseif haskey(coeff[:data], :polynomial)
-          upgraded_coeff = upgrade_0_12_2(s, coeff[:data][:polynomial])[:data][:terms]
+          upgraded_coeff = upgrade_0_12_2(refs, coeff[:data][:polynomial])[:data][:terms]
         else
           upgraded_coeff = coeff[:data][:data]
         end
@@ -103,11 +102,10 @@ push!(upgrade_scripts, UpgradeScript(
       end
       upgraded_dict[:data] = Dict(:terms => terms, 
                                   :parents => upgraded_parents)
-      merge!(s.refs, refs)
     end
 
-    if !isempty(s.refs)
-      upgraded_dict[:refs] = s.refs
+    if !isempty(refs)
+      upgraded_dict[:refs] = refs
     end
 
     return upgraded_dict
