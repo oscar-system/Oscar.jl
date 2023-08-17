@@ -438,6 +438,20 @@ for f in (QQ, ENF)
                     @test sum(Oscar.pm_object(rbox).POINTS)==6
                 end
 
+                let rmetric = rand_metric(3, seed = 213)
+                    @test rmetric isa QQMatrix
+                end
+
+                let rmetricint = rand_metric_int(3, 2, seed = 213)
+                    @test rmetricint isa Matrix{Int}
+                end
+
+                let rnorm = rand_normal_polytope(3, 4, seed = 213)
+                    @test rnorm isa Polyhedron{T}
+                    @test isbounded(rnorm) 
+                    @test size(Oscar.pm_object(rnorm).POINTS, 1) == 4
+                end
+
                 @test_throws ArgumentError rand_cyclic_polytope(2,3)
                 @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
                 let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
