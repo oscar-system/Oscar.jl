@@ -369,19 +369,19 @@ for f in (QQ, ENF)
                 @test_throws ArgumentError max_GC_rank_polytope(100000)
                 let gc = max_GC_rank_polytope(4) 
                     @test gc isa Polyhedron{T}
-                    @test ambient_dim(gc) == 3
+                    @test ambient_dim(gc) == 4
                     @test is_bounded(gc)
                 end
 
                 @test_throws ArgumentError multiplex_polytope(5,3)
                 let mpp = multiplex_polytope(2,3)
                     @test mpp isa Polyhedron{T}
-                    @test nfacets(mpp) == 4
-                    @test nvertices(mpp) == 4
+                    @test Oscar.pm_object(mpp).N_FACETS == 4
+                    @test Oscar.pm_object(mpp).N_VERTICES == 4
                 end
                 
                 @test_throws ArgumentError n_gon(2)
-                let gon = n_gon(4,2)
+                let gon = n_gon(4,r=2)
                     @test gon isa Polyhedron{T}
                     @test length(vertices(gon)[1]) == 2
                     @test nvertices(gon) == 4
@@ -390,8 +390,65 @@ for f in (QQ, ENF)
                 @test_throws ArgumentError neighborly_cubical_polytope(3,2)
                 let ncp = neighborly_cubical_polytope(2,3)
                     @test ncp isa Polyhedron{T}
-                    @test nvertices(ncp) == 8
+                    @test Oscar.pm_object(ncp).N_VERTICES == 8
                 end
+
+                @test_throws ArgumentError permutahedron(-1)
+                let perm = permutahedron(3) 
+                    @test perm isa Polyhedron{T}
+                    @test length(vertices(perm)[1])==4
+                    @test dim(perm) == 3
+                end
+
+                let pile = pile_polytope([2,2])
+                    @test pile isa Polyhedron{T}
+                    @test ambient_dim(pile) == 3
+                    @test Oscar.pm_object(pile).N_VERTICES == 9
+                end
+
+                @test_throws ArgumentError pitman_stanley_polytope(Vector{Rational}([]))
+                let psp = pitman_stanley_polytope([2,4,2])
+                    @test psp isa Polyhedron{T}
+                    @test ambient_dim(psp) == 3
+                    @test size(Oscar.pm_object(psp).INEQUALITIES,1) == 6
+                end
+
+                @test_throws ArgumentError pseudo_del_pezzo_polytope(0)
+                let pdp = pseudo_del_pezzo_polytope(2) 
+                    @test pdp isa Polyhedron{T}
+                    @test is_bounded(pdp)
+                    @test dim(pdp) == 2
+                end
+
+                @test_throws ArgumentError rand01_polytope(1,1) 
+                @test rand01_polytope(2,4) isa Polyhedron{T}
+                let r_01_p = rand01_polytope(2,4; seed = 47)
+                    @test r_01_p isa Polyhedron{T}
+                    @test Oscar.pm_object(r_01_p).N_VERTICES == 4
+                end
+
+                @test_throws ArgumentError rand_box(1,0,1)
+                let rbox = rand_box(3,8,1)
+                    @test rbox isa Polyhedron{T}
+                    @test ambient_dim(rbox) == 3
+                    @test size(Oscar.pm_object(rbox).POINTS,1) == 8
+                end
+                let rbox = rand_box(3,4,1; seed = 456)
+                    @test rbox isa Polyhedron{T}
+                    @test sum(Oscar.pm_object(p).POINTS)==6
+                end
+
+                @test_throws ArgumentError rand_cyclic_polytope(2,3)
+                @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
+                let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
+                    @tets rcyc isa Polyhedron{T}
+                    @test size(Oscar.pm_object(rcyc).VERTICES,1) == 8
+                end
+
+                #3 more rand testset
+
+                @test_throws ArgumentError rss_associahedron(1)
+                let 
             end
 
         end

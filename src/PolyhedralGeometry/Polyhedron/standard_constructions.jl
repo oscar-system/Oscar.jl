@@ -1814,7 +1814,10 @@ julia> vertices(p)
  [3, 2, 1]
 ```
 """
-permutahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
+function permutahedron(d::Int) 
+    @req d >= 1 "Dimension >= 2 required"
+    return Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
+end
 
 @doc raw"""
     pile_polytope(sizes::Vector{Int})
@@ -1871,7 +1874,10 @@ julia> f_vector(DP)
  23
 ```
 """
-pseudo_del_pezzo_polytope(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.pseudo_delpezzo(d))
+function pseudo_del_pezzo_polytope(d::Int)
+    @req d >= 1 "Dimension >= 1 required"
+    return Polyhedron{QQFieldElem}(Polymake.polytope.pseudo_delpezzo(d))
+end
 
 @doc raw"""
     rand01_polytope(d::Int, n::Int; seed=nothing)
@@ -2060,7 +2066,7 @@ julia> map(x->dot(x,x), vertices(rnp))
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
-    @req  2 <= d < n) "2 <= dim < #vertices"
+    @req  (2 <= d < n) "2 <= dim < #vertices"
     opts = Dict{Symbol, Any}()
     if seed != nothing
         seed = convert(Int64, seed)
