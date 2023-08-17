@@ -1190,13 +1190,9 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 ```
 """
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
-  if !is_bounded(P)
-    throw(ArgumentError("rand_subpolytope: Polyhedron unbounded"))
-  end
+  @req is_bounded(P) "Polyhedron is unbounded, has to be bounded"
   nv = nvertices(P)
-  if n>nv
-    throw(ArgumentError("rand_subpolytope: number of vertices requested too high"))
-  end
+  n <= nv "rand_subpolytope: number of vertices requested too high"
   opts = Dict{Symbol,Any}()
   if seed != nothing
     opts[:seed] = convert(Int64, seed)
@@ -1237,14 +1233,8 @@ julia> vertices(p)
 """
 function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
-    if n < 1
-        throw(ArgumentError("SIM_body_polytope: dimension must be at least 1"))
-    end
-    for i in 1:n-1
-        if alpha[i]<alpha[i+1]
-            throw(ArgumentError("SIM_body_polytope: input is not descending"))
-        end
-    end
+    @req n >= 1 "dimension must be at least 1"
+    @req issorted(alpha) "input is not descending"
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 end
 
@@ -1334,7 +1324,7 @@ julia> vertices(c)
 ```
 """
 function dwarfed_cube(d::Int)
-    d<2 && throw(ArgumentError("dwarfed_cube: d >= 2 required"))
+    @req d>=2 "dwarfed_cube: d >= 2 required"
     return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
 end
 
@@ -1366,12 +1356,8 @@ julia> vertices(p)
 ```
 """
 function dwarfed_product_polygons(d::Int, s::Int) 
-    if d <= 2 || d%2 != 0
-        throw(ArgumentError("dwarfed_product_polygons: d >= 4 and even required"))
-    end
-    if s<=2
-        throw(ArgumentError("dwarfed_product_polygons: s >= 3 required"))
-    end
+    @req d >= 4 && d%2 == 0 "dwarfed_product_polygons: d >= 4 and even required"
+    @req s>=3 "dwarfed_product_polygons: s >= 3 required"
     return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
 end
 
@@ -1399,7 +1385,7 @@ julia> vertices(S)
 ```
 """
 function lecture_hall_simplex(d::Int) 
-    d<=0 && throw(ArgumentError("lecture_hall_simplex: dimension must be positive."))
+    @req d>0 "dimension must be positive."
     return Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
 end
 
@@ -1448,15 +1434,9 @@ julia> vertices(C)
 ```
 """
 function cyclic_caratheodory_polytope(d::Int, n::Int)
-    if n <= d 
-        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension d has to be smaller than number of points n."))
-    end
-    if d < 2
-        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension has to be greater or equal to 2."))
-    end
-    if mod(d,2) != 0
-        throw(ArgumentError("cyclic_caratheodory_polytope: Dimension has to be even."))
-    end
+    @req d < n "Dimension d has to be smaller than number of points n."
+    @req d >= 2 "Dimension has to be greater or equal to 2."
+    @req mod(d,2) == 0 "Dimension has to be even."
     return polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
 end
 
@@ -1513,7 +1493,7 @@ x₁ ≦ 1
 ```
 """
 function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
-    (0>=k || k>=d) && throw(ArgumentError("hypersimplex: 0 < k < d required"))
+    @req 0 < k < d "hypersimplex: 0 < k < d required"
     opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
     return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k,d;opts...))
 end
@@ -1588,15 +1568,9 @@ julia> vertices(c)
 """
 function goldfarb_cube(d::Int, e::Number, g::Number)
     m = 8*sizeof(Int)-2
-    if d<1 || d>m
-        throw(ArgumentError("goldfarb_cube: dimension ot of range (1,..," * string(m) * ")"))
-    end
-    if e>=1//2
-        throw(ArgumentError("goldfarb_cube: e < 1/2"))
-    end
-    if g>e/4
-        throw(ArgumentError("goldfarb_cube: g <= e/4"))
-    end
+    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+    @req  e < 1//2 "e < 1/2"
+    @req g <= e/4 "g <= e/4"
     return polyhedron(Polymake.polytope.goldfarb(d,e,g))
 end
 
@@ -1630,15 +1604,9 @@ julia> vertices(c)
 """
 function goldfarb_sit_cube(d::Int, eps::Number, delta::Number) 
     m = 8*sizeof(Int)-2
-    if d<1 || d>m
-        throw(ArgumentError("goldfarb_sit_cube: dimension ot of range (1,..," * string(m) * ")"))
-    end
-    if eps>=1//2
-        throw(ArgumentError("goldfarb_sit_cube: eps < 1/2"))
-    end
-    if delta>1//2
-        throw(ArgumentError("goldfarb_sit_cube: delta <= 1/2"))
-    end
+    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+    @req  eps < 1//2 "eps < 1/2"
+    @req delta <= 1//2 "delta <= 1/2"
     return polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
 end
 
@@ -1669,9 +1637,7 @@ x₃ ≦ 1
 ```
 """
 function hypertruncated_cube(d::Int, k::Number, lambda::Number) 
-    if 1 >= k || k >= d
-        throw(ArgumentError("1 < k < d required"))
-    end
+    @req 1 < k < d "1 < k < d required"
     return polyhedron(Polymake.polytope.hypertruncated_cube(d, k, lambda))
 end
 
@@ -1728,8 +1694,8 @@ x₁ ≦ 1
 """
 function klee_minty_cube(d::Int, e::Number)
     m = 8*sizeof(Int)-2
-    (d<1 || d>m) && throw(ArgumentError("klee_minty_cube: dimension ot of range (1,..," * string(m) * ")"))
-    e >= 1/2 && throw(ArgumentError("klee_minty_cube: e < 1/2 required"))
+    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+    @req e < 1/2 "e < 1/2 required"
     return goldfarb_cube(d, e, 0)
 end
 
@@ -1756,12 +1722,8 @@ julia> vertices(c)
 ```
 """
 function max_GC_rank_polytope(d::Int) 
-    if d < 2
-        throw(ArgumentError("max_GC_rank: dimension d >= 2 required"))
-    end
-    if sizeof(d) >= sizeof(Int)*8-1
-        throw(ArgumentError("max_GC_rank: dimension too high, number of inequalities would not fit into Int"))
-    end
+    @req d >= 2 "dimension d >= 2 required"
+    @req sizeof(d) < sizeof(Int)*8-1 "dimension too high, number of inequalities would not fit into Int"
     return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
 end
 
@@ -1777,9 +1739,7 @@ See also [BBS02](@cite).
 
 """
 function multiplex_polytope(d::Int, n::Int)
-    if d < 2 || d > n
-        throw(ArgumentError("multiplex_polytope: 2 <= d <= n required"))
-    end
+    @req 2 <= d <= n "2 <= d <= n required"
     return Polyhedron{QQFieldElem}(Polymake.polytope.multiplex(d,n))
 end
 
@@ -1800,9 +1760,7 @@ Polyhedron in ambient dimension 2
 ```
 """
 function n_gon(n::Int; r::Real=1, alpha_0::Real=0)
-    if n < 3 || r <= 0
-        throw(ArgumentError("n_gon: n >= 3 and r > 0 required"))
-    end
+    @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
     return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
 end
 
@@ -1819,9 +1777,7 @@ See [JZ00](@cite)
 """
 function neighborly_cubical_polytope(d::Int, n::Int)
     m = 8*sizeof(Int)-2
-    if (d < 2 || d > n || n > m)
-      throw(ArgumentError(string("neighborly_cubical_polytope: 2 <= d <= n <= ", m)))
-    end
+    @req 2 <= d <= n <= m "2 <= d <= n <= 62 (= 8*sizeof(Int)-2)"
     return Polyhedron{QQFieldElem}(Polymake.polytope.neighborly_cubical(d,n))
 end
 
@@ -1891,9 +1847,7 @@ julia> f_vector(p)
 ```
 """
 function pitman_stanley_polytope(y::Vector{Rational})
-    if length(y) < 1 
-        throw(ArgumentError("pitman_stanley_polytope: length of input must be at least 1"))
-    end
+    @req length(y) >= 1 "length of input must be at least 1"
     return polyhedron(Polymake.polytope.pitman_stanley(y))
 end
 pitman_stanley_polytope(y::Vector{Int}) = pitman_stanley_polytope(convert(Vector{Rational}, y))
@@ -1951,9 +1905,8 @@ julia> vertices(r)
 ```
 """
 function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
-    if (d < 2 || n <= d || n > 2^d)
-        throw(ArgumentError("rand01_polytope : 2 <= dim < #vertices <= 2^dim required"))
-    end # creating the Optionset, the :template_parameters are for templating functions in C++
+    @req 2 <= d < n <= 2^d "2 <= dim < #vertices <= 2^dim required"
+    # creating the Optionset, the :template_parameters are for templating functions in C++
     if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
     else
@@ -1991,9 +1944,7 @@ julia> vertices(r)
 ```
 """
 function rand_box(d::Int, n::Int, b::Int; seed=nothing)
-    if (d<1 || n<1 || b<1)
-        throw(ArgumentError("rand_box: 1 <= dim, #POINTS, b"))
-    end 
+    @req 1 <= d && 1 <= n && 1 <= b "1 <= dim, #POINTS, b"
     if seed isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
     else
@@ -2026,9 +1977,7 @@ julia> f_vector(r)
 ```
 """
 function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
-    if (d<2 || n<d+2) 
-        throw(ArgumentError("rand_cyclic_polytope: need d >= 2 and n >= d+2"))
-    end
+    @req 2 <= d <= n-2 "need d >= 2 and n >= d+2"
     if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
     else
@@ -2111,9 +2060,7 @@ julia> map(x->dot(x,x), vertices(rnp))
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
-    if (d < 2 || n <= d)
-        throw(ArgumentError("rand_normal_polytope: 2 <= dim < #vertices"))
-    end
+    @req  2 <= d < n) "2 <= dim < #vertices"
     opts = Dict{Symbol, Any}()
     if seed != nothing
         seed = convert(Int64, seed)
@@ -2170,9 +2117,7 @@ x₄ - x₅ ≦ -1
 ```
 """
 function rss_associahedron(n::Int)
-    if n < 2
-        throw(ArgumentError("rss_associahedron: n must be at least 2."))
-    end
+    @req n >= 2 "n must be at least 2."
     return Polyhedron{QQFieldElem}(Polymake.polytope.rss_associahedron(n))
 end
 
@@ -2202,14 +2147,8 @@ julia> vertices(P)
 ```
 """
 function signed_permutahedron(d::Int)
-    if d < 1 
-        throw(ArgumentError("signed_permutahedron: dimension >= 2 required"))
-    end
-    m = 8*sizeof(Int)-1
-    n = sizeof(d) #nochmal angucken! was soll hier abgefragt werden
-    if n > m 
-        throw(ArgumentError("signed_permutahedron: dimension too high"))
-    end
+    @req d >= 1 "dimension >= 2 required"
+    @req d <= 8*sizeof(Int)-1 "dimension too high"
     return Polyhedron{QQFieldElem}(Polymake.polytope.signed_permutahedron(d))
 end
 
