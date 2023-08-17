@@ -245,44 +245,6 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
-function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
-                            parent=nothing) where T
-  # File version to be dealt with on first breaking change
-  # A file without version number is treated as the "first" version
-  if dict[:type] == string(backref_sym)
-    backref = s.objs[UUID(dict[:id])]
-    backref isa T || error("Backref of incorrect type encountered: $backref !isa $T")
-    return backref
-  end
-
-  # Decode the stored type, and compare it to the type `T` supplied by the caller.
-  # If they are identical, just proceed. If not, then we assume that either
-  # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-  # concrete, and `U <: T` should hold.
-  #
-  # However, we actually do not currently check for the types being concrete,
-  # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
-  # these checks later on, depending on what we actually need...
-  U = decode_type(dict[:type])
-  U <: T || U >: T || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
-
-  Base.issingletontype(T) && return T()
-
-  if parent !== nothing
-    result = load_internal_with_parent(s, T, dict[:data], parent)
-  elseif type_needs_params(T)
-    parent = load_parent_type(s, dict[:type])
-    result = load_internal_with_parent(s, T, dict[:data], parent)
-  else
-    result = load_internal(s, T, dict[:data])
-  end
-
-  if haskey(dict, :id)
-    s.objs[UUID(dict[:id])] = result
-  end
-  return result
-end
-
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
@@ -520,13 +482,22 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
   end
 
   if type !== nothing
+    # Decode the stored type, and compare it to the type `T` supplied by the caller.
+    # If they are identical, just proceed. If not, then we assume that either
+    # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+    # concrete, and `U <: T` should hold.
+    #
+    # This check should maybe change to a check on the whole type tree?
+    U = decode_type(jsondict[:type])
+    U <: type || U >: type || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
+
     if type_needs_params(type)
       if isnothing(params) 
         params = load_type_params(state, type, jsondict[:type][:params])
       end
       return load_object(state, type, jsondict[:data], params)
     end
-    Base.issingletontype(type) && return decode_type(jsondict[:type])()
+    Base.issingletontype(type) && return type()
     return load_object(state, type, jsondict[:data])
   end
   return load_typed_object(state, jsondict; override_params=params)
