@@ -7,7 +7,7 @@
 @doc raw"""
     AbsSpecMor{DomainType<:AbsSpec, 
                CodomainType<:AbsSpec, 
-               PullbackType<:Hecke.Map,
+               PullbackType<:Map,
                MorphismType, 
                BaseMorType
                }
@@ -25,7 +25,7 @@ Abstract type for morphisms ``f : X → Y`` of affine schemes where
 abstract type AbsSpecMor{
                          DomainType<:AbsSpec, 
                          CodomainType<:AbsSpec, 
-                         PullbackType<:Hecke.Map,
+                         PullbackType<:Map,
                          MorphismType, 
                          BaseMorType
                         }<:SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
@@ -40,7 +40,7 @@ end
 @doc raw"""
     SpecMor{DomainType<:AbsSpec, 
             CodomainType<:AbsSpec, 
-            PullbackType<:Hecke.Map
+            PullbackType<:Map
            }
 
 A morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` of type 
@@ -51,7 +51,7 @@ over the same `base_ring`, with underlying ring homomorphism
 @attributes mutable struct SpecMor{
                                    DomainType<:AbsSpec, 
                                    CodomainType<:AbsSpec, 
-                                   PullbackType<:Hecke.Map
+                                   PullbackType<:Map
                                   } <: AbsSpecMor{DomainType, 
                                                   CodomainType, 
                                                   PullbackType, 
@@ -67,7 +67,7 @@ over the same `base_ring`, with underlying ring homomorphism
       Y::CodomainType,
       pullback::PullbackType;
       check::Bool=true
-    ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Hecke.Map}
+    ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     @check begin

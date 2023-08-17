@@ -50,7 +50,7 @@ end
 
 ### additional constructors
 
-function fiber_product(f::Hecke.Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
+function fiber_product(f::Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
   R = base_ring(P) 
   R === domain(f) || error("rings not compatible")
   Rnew = codomain(f)
