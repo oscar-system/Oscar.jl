@@ -359,7 +359,9 @@ false
   is_free(G) || return false
   if ngens(G) == rank(G)
     W = vcat([x.coeff for x = R.d])
-    is_positive_grading_matrix(W) || return false
+    if is_positive_grading_matrix(W)
+       return true
+    end
   end
   try 
     homogeneous_component(R, zero(G))
