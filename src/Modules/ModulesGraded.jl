@@ -1346,8 +1346,8 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-function betti(b::FreeResolution; reverse_direction::Bool = false)
-  return betti_table(b; project = nothing, reverse_direction = reverse_direction)
+function betti(b::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool = false)
+  return betti_table(b; project, reverse_direction)
 end
 
 function as_dictionary(b::BettiTable)
