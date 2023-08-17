@@ -8,8 +8,8 @@ end
 # Homological Algebra
 
 Some OSCAR functions which are fundamental to homological algebra such as the `kernel` function
-and basic functions for handling chain and cochain complexes have already been discussed
-in previous sections. Building on these functions, we now introduce further OSCAR functionality
+for module homomorphisms and basic functions for handling chain and cochain complexes are
+discussed in the module section. Building on these functions, we here introduce further OSCAR functionality
 supporting computations in homological algebra.
 
 ## Presentations
