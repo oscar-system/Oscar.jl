@@ -515,6 +515,12 @@ function relatively_minimal_model(E::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    set_attribute!(Y0, :is_irreducible, true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(X0, :is_irreducible, true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
   end
   E.Y = Y0
   E.blowups = projectionsY
@@ -525,9 +531,6 @@ function relatively_minimal_model(E::EllipticSurface)
   E.blowup = piY
   E.inc_Y = inc_Y0
 
-  set_attribute!(Y0, :is_irreducible=>true)
-  set_attribute!(Y0, :is_reduced=>true)
-  set_attribute!(Y0, :is_integral=>true)
   return Y0, piY
 end
 
