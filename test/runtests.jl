@@ -106,13 +106,9 @@ end
 
 println("Making test list")
 
-testlist = []
-
-if !(isdefined(Main, :buildingSysImage)) || buildingSysImage == false
-  append!(testlist, ["Aqua.jl"])
-end
-
-append!(testlist, [
+testlist = [
+  
+  "Aqua.jl"
 
   "printing.jl",
 
@@ -153,7 +149,7 @@ append!(testlist, [
   "Serialization/runtests.jl",
 
   "StraightLinePrograms/runtests.jl"
-])
+]
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
