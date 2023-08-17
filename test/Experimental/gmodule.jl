@@ -41,8 +41,13 @@ end
 
   G = SL(2, 3)
   @test length(Oscar.RepPc.reps(abelian_closure(QQ)[1], G)) == 7
-end
+  @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
+  @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3
 
+  G = fp_group(gens(G))[1]
+  q, mq = maximal_abelian_quotient(PcGroup, G)
+  @test length(Oscar.RepPc.brueckner(mq)) == 24
+end
 
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
@@ -117,4 +122,43 @@ end
   SS = Oscar.GModuleFromGap.gmodule_over(m2, gmodule(K, S))
 
   @test degree(base_ring(SS)) == 2
+end
+
+@testset "Various" begin
+  @test length(all_extensions(abelian_group(2), cyclic_group(PermGroup, 2))) == 2
+  k, a = cyclotomic_field(5)
+  zk = maximal_order(k)
+
+  U, mU = Oscar.GaloisCohomology_Mod.units_mod_ideal(5*zk)
+  A, mA = automorphism_group(PermGroup, k)
+
+  C = gmodule(A, mU)
+  U, mU = unit_group_fac_elem(zk)
+  C = gmodule(A, mU)
+  C = C ⊗ C
+  @test elementary_divisors(C.M) == ZZRingElem[10, 10, 10, 0]
+
+  C = C ⊕ C
+
+  D, _ = Oscar.GModuleFromGap.ghom(C, C)
+  @test dim(D) == 4
+
+  C = gmodule(GF(5), C)
+  i = indecomposition(C)
+  @test length(i) == 8
+end
+
+@testset "H^3" begin
+  # This is C = pi_2(X_P) for the standard presentation of Q_8
+  # We know that H^3(G, C) = Z/|G|Z
+  genss = [@perm((1,2,6,3)(4,8,5,7)), @perm((1,4,6,5)(2,7,3,8))];
+  G, = sub(symmetric_group(8), genss);
+  @test small_group_identification(G) == (8, 4)
+  mats = [[0, -1, 0, 0, 0, 0, 1, 0, -1, 1, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, -1, 1, 0, -1, 0, 0, 0, -1, 0, 1, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]];
+  F = free_abelian_group(7);
+  M1, M2 = matrix(ZZ, 7, 7, mats[1]), matrix(ZZ, 7, 7, mats[2]);
+  C = gmodule(G, [hom(F, F, M1), hom(F, F, M2)]);
+  q = cohomology_group(C, 3)
+  @test order(q) == 8
+  @test is_cyclic(q)
 end
