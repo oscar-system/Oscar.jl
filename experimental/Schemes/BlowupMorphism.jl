@@ -168,42 +168,52 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
   pr_res = restrict(projection(p), inc_Z_trans, inc)
 
   if has_attribute(p, :isomorphism_on_open_subset)
+    OOX = OO(X)
+    OOY = OO(Y)
     p_iso = isomorphism_on_open_subset(p)
     U = domain(p_iso)::PrincipalOpenSubset
     V = codomain(p_iso)::PrincipalOpenSubset
     V_amb = ambient_scheme(V)
     U_amb = ambient_scheme(U)
 
-    # find a chart of the covering morphism of inc that is 
-    # located in V_amb
-    k = findfirst(x->has_ancestor(y->y===V_amb, codomain(inc_cod_cov[x])), patches(domain(inc_cod_cov)))
-    V_sub = patches(domain(inc_cod_cov))[k]
-    iso_V_sub = _flatten_open_subscheme(V_sub, domain(inc_cod_cov[V_sub]))
-
+    # Given all the refinements that potentially had to be done, we have 
+    # to do the following.
+    #  - Find a `patch` `U_sub` of the `domain` of `inc_dom_cov` for which 
+    #    inc_cod : U_sub -> W has a codomain `W` which has `U_amb` as an 
+    #    ancestor. Since `U_amb` is one of the `affine_charts` of `X`, this will work. 
+    #  - pr_res : U_amb -> V_amb has some codomain such that there exists 
+    #    an ancestor `VV` in the `domain` of `inc_dom_cov` such that 
+    #    inc_dom : VV -> W' has a codomain with `V_amb` as an ancestor. 
+    #  - outside the `complement_equation`s of `U` and `V` the projection 
+    #    was an isomorphism. Then the restriction of `pr_res` to those 
+    #    complements in `U_sub` and `V_sub` also is.
     k = findfirst(x->has_ancestor(y->y===U_amb, codomain(inc_dom_cov[x])), patches(domain(inc_dom_cov)))
     U_sub = patches(domain(inc_dom_cov))[k]
     iso_U_sub = _flatten_open_subscheme(U_sub, domain(inc_dom_cov[U_sub]))
+    U_sub_res = PrincipalOpenSubset(U_sub, 
+                   pullback(inc_dom_cov[U_sub])(
+                       OOX(U_amb, codomain(inc_dom_cov[U_sub]))(
+                           complement_equation(U)
+                         )
+                     )
+                 )
 
     pr_res_cov = covering_morphism(pr_res)
     pr_sub = pr_res_cov[U_sub]
-    @assert codomain(pr_sub) === V_sub # Should be true unless constructors change. 
-                                       # We keep the assert here for the future in case 
-                                       # developers loose it from their radar
-    OOZ = OO(Z)
-    OOX = OO(X)
-    OOY = OO(Y)
-    OOZ_trans = OO(Z_trans)
-    h = complement_equation(V)
-    h = OOY(V_amb, codomain(inc_cod_cov[V_sub]))(h)
-    h = pullback(inc_cod_cov[V_sub])(h)
-    V_sub_res = PrincipalOpenSubset(V_sub, h)
-    
-    h = complement_equation(U)
-    h = OOX(U_amb, codomain(inc_dom_cov[U_sub]))(h)
-    h = pullback(inc_dom_cov[U_sub])(h)
-    U_sub_res = PrincipalOpenSubset(U_sub, h)
 
-    set_attribute!(pr_res, :isomorphism_on_open_subset, restrict(pr_res_cov[U_sub], U_sub_res, V_sub_res))
+    V_sub = codomain(pr_sub)
+    @assert has_ancestor(x->any(y->y===x, patches(domain(inc_cod_cov))), V_sub)
+    V_sub_inc, comp_eqns = _find_chart(V_sub, domain(inc_cod_cov))
+    OOZ = OO(Z)
+    dummy_dom = codomain(V_sub_inc)
+    dummy_map = inc_cod_cov[dummy_dom]
+    dummy_cod = codomain(dummy_map)
+    V_sub_res = PrincipalOpenSubset(V_sub,
+                                    OOZ(dummy_dom, V_sub)(pullback(dummy_map)(OOY(V_amb, dummy_cod)(complement_equation(V)))))
+    result = restrict(pr_sub, U_sub_res, V_sub_res)
+    # TODO: Obtain the inverse another way?
+    @assert is_isomorphism(result)
+    set_attribute!(pr_res, :isomorphism_on_open_subset, result)
   end
   return Z_trans, inc_Z_trans, pr_res
 end
