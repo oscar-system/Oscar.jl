@@ -94,6 +94,7 @@ function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
     return toric_divisor(toric_variety(td1), new_coeffiicients)
 end
 
+Base.:-(td :: ToricDivisor) = toric_divisor(toric_variety(td), -coefficients(td))
 
 Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [ZZRingElem(c)*x for x in coefficients(td)])
 

@@ -95,6 +95,7 @@ function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 
+Base.:-(td :: ToricDivisorClass) = toric_divisor_class(toric_variety(td), -divisor_class(td))
 
 Base.:*(c::T, tdc::ToricDivisorClass) where {T <: IntegerUnion} = toric_divisor_class(toric_variety(tdc), ZZRingElem(c) * divisor_class(tdc))
 
