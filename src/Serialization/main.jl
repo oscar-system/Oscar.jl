@@ -403,15 +403,17 @@ function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=not
 end
 
 """
-    load(io::IO; parent::Any = nothing, type::Any = nothing)
-    load(filename::String; parent::Any = nothing, type::Any = nothing)
+    load(io::IO; params::Any = nothing, type::Any = nothing)
+    load(filename::String; params::Any = nothing, type::Any = nothing)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
 
-If `parent` is specified, then the root object of the loaded data
-either will have this as its parent, or it is a container such as
-`Vector` and `Tuple`, then the parent of the entries will be set to `parent`.
+If `params` is specified, then the root object of the loaded data
+either will attempt a load using these parameters. In the case of Rings this
+results in setting its parent, or in the case of a container of ring types such as
+`Vector` or `Tuple`, then the parent of the entries will be set using their
+ `params`.
 
 If a type `T` is given then attempt to load the root object of the data
 being loaded with this type; if this fails, an error is thrown.
@@ -437,7 +439,7 @@ x^2 - x + 1
 
 julia> save("/tmp/p.json", p)
 
-julia> p_loaded = load("/tmp/p.json", parent=R)
+julia> p_loaded = load("/tmp/p.json", params=R)
 x^2 - x + 1
 
 julia> parent(p_loaded) === R
@@ -445,7 +447,7 @@ true
 
 julia> save("/tmp/p_v.json", [p, p])
 
-julia> loaded_p_v = load("/tmp/p_v.json", parent=R)
+julia> loaded_p_v = load("/tmp/p_v.json", params=R)
 2-element Vector{QQPolyRingElem}:
  x^2 - x + 1
  x^2 - x + 1
