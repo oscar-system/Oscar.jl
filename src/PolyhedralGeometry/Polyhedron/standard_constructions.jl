@@ -1160,7 +1160,7 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
     throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))
   end
   opts = Dict{Symbol,Any}( :template_parameters => [type] ) # creating the Optionset, the :template_parameters are for templating functions in C++
-  if seed != nothing
+  if seed !== nothing
     opts[:seed] = convert(Int64, seed)
   end
   if precision != nothing
