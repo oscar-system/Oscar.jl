@@ -7,7 +7,7 @@ import Random
 numprocs_str = get(ENV, "NUMPROCS", "1")
 
 oldWorkingDirectory = pwd()
-cd( joinpath(pkgdir(Oscar), "test") )
+cd(joinpath(pkgdir(Oscar), "test"))
 
 if !isempty(ARGS)
   jargs = [arg for arg in ARGS if startswith(arg, "-j")]
