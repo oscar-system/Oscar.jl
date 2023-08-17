@@ -352,6 +352,46 @@ for f in (QQ, ENF)
                     @test size(Oscar.pm_object(htc).INEQUALITIES,1) == 13
                 end
 
+                let kcp = k_cyclic_polytope(8,[1,2])
+                    @test kcp isa Polyhedron{T}
+                    @test nvertices(kcp) == 8
+                end
+
+                @test_throws ArgumentError klee_minty_cube(0,0)
+                @test_throws ArgumentError klee_minty_cube(3,1)
+                let kmc = klee_minty_cube(4,1//32)
+                    @test kmc isa Polyhedron{T}
+                    @test is_bounded(kmc)
+                    @test size(Oscar.pm_object(kmc).INEQUALITIES,1) == 9
+                end
+
+                @test_throws ArgumentError max_GC_rank_polytope(1)
+                @test_throws ArgumentError max_GC_rank_polytope(100000)
+                let gc = max_GC_rank_polytope(4) 
+                    @test gc isa Polyhedron{T}
+                    @test ambient_dim(gc) == 3
+                    @test is_bounded(gc)
+                end
+
+                @test_throws ArgumentError multiplex_polytope(5,3)
+                let mpp = multiplex_polytope(2,3)
+                    @test mpp isa Polyhedron{T}
+                    @test nfacets(mpp) == 4
+                    @test nvertices(mpp) == 4
+                end
+                
+                @test_throws ArgumentError n_gon(2)
+                let gon = n_gon(4,2)
+                    @test gon isa Polyhedron{T}
+                    @test length(vertices(gon)[1]) == 2
+                    @test nvertices(gon) == 4
+                end
+
+                @test_throws ArgumentError neighborly_cubical_polytope(3,2)
+                let ncp = neighborly_cubical_polytope(2,3)
+                    @test ncp isa Polyhedron{T}
+                    @test nvertices(ncp) == 8
+                end
             end
 
         end

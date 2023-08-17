@@ -1519,7 +1519,7 @@ function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=f
 end
 
 @doc raw"""
-    zonotope(M::Matrix{<:Number}, rows_are_points::Bool=true, centered::Bool=true)
+    zonotope(M::Matrix{<:Number}; rows_are_points::Bool=true, centered::Bool=true)
 
 Create a zonotope from a matrix whose rows are input points or vectors.
 
@@ -1542,7 +1542,7 @@ julia> vertices(Z)
 ```
 The following produces a parallelogram with the origin being a vertex (not centered case): 
 ```jldoctest
-julia> Z = zonotope([1 1 0; 1 1 1], true, false)
+julia> Z = zonotope([1 1 0; 1 1 1], centered = false)
 Polyhedron in ambient dimension 2
 
 julia> vertices(Z)
@@ -1684,7 +1684,7 @@ Special cases are the bicyclic ($k=2$) and tricyclic ($k=3$) polytopes.
 Only possible in even dimensions. 
 
 The parameters $\texttt{s}_i$ can be integers, floating-points or rational numbers. 
-They should not be divisors of `n`. The $i$-th vertex then is:
+The $i$-th vertex then is:
 $(\cos(\texttt{s}_1 * 2\pi i/\texttt{n}), \sin(\texttt{s}_1 * 2\pi i/\texttt{n}), ... , \cos(\texttt{s}_k * 2\pi i/\texttt{n}), \sin(\texttt{s}_k * 2\pi i/\texttt{n}))$.
 
 Warning: Some of the $k-$cyclic polytopes are not simplicial. 
@@ -1726,7 +1726,12 @@ x₁ ≦ 1
 1//8*x₂ + x₃ ≦ 1
 ```
 """
-klee_minty_cube(d::Int, e::Number) = goldfarb_cube(d, e, 0)
+function klee_minty_cube(d::Int, e::Number)
+    m = 8*sizeof(Int)-2
+    (d<1 || d>m) && throw(ArgumentError("klee_minty_cube: dimension ot of range (1,..," * string(m) * ")"))
+    e >= 1/2 && throw(ArgumentError("klee_minty_cube: e < 1/2 required"))
+    return goldfarb_cube(d, e, 0)
+end
 
 @doc raw"""
     max_GC_rank_polytope(d::Int)
