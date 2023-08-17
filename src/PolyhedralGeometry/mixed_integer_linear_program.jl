@@ -156,7 +156,7 @@ function optimal_solution(milp::MixedIntegerLinearProgram{T}) where T<:scalar_ty
    else
       opt_vert = milp.polymake_milp.MINIMAL_SOLUTION
    end
-   if opt_vert != nothing
+   if !isnothing(opt_vert)
       return PointVector{T}(dehomogenize(opt_vert))
    else
       return nothing

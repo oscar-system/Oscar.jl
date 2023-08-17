@@ -1160,10 +1160,10 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
     throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))
   end
   opts = Dict{Symbol,Any}( :template_parameters => [type] ) # creating the Optionset, the :template_parameters are for templating functions in C++
-  if seed !== nothing
+  if !isnothing(seed)
     opts[:seed] = convert(Int64, seed)
   end
-  if precision != nothing
+  if !isnothing(precision)
     opts[:precision] = convert(Int64, precision)
   end
   pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
@@ -1194,7 +1194,7 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
   nv = nvertices(P)
   @req n <= nv "Number of vertices requested too high"
   opts = Dict{Symbol,Any}()
-  if seed != nothing
+  if !isnothing(seed)
     opts[:seed] = convert(Int64, seed)
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
@@ -2068,11 +2068,11 @@ julia> map(x->dot(x,x), vertices(rnp))
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
     @req  (2 <= d < n) "2 <= dim < #vertices"
     opts = Dict{Symbol, Any}()
-    if seed != nothing
+    if !isnothing(seed)
         seed = convert(Int64, seed)
         opts[:seed] = seed
     end
-    if precision != nothing
+    if !isnothing(precision)
         precision = convert(Int64, precision)
         opts[:precision] = precision
     end

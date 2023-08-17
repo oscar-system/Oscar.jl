@@ -569,5 +569,5 @@ true
 function is_embedded(PC::PolyhedralComplex)
     pmo = pm_object(PC)
     schedule = Polymake.call_method(pmo,:get_schedule,"VERTICES")
-    return schedule != nothing
+    return !isnothing(schedule)
 end
