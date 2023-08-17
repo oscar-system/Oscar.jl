@@ -1352,7 +1352,6 @@ end
 
 function as_dictionary(b::BettiTable)
   return b.B
-  return betti_table(b; project = nothing, reverse_direction = reverse_direction)
 end
 
 function reverse_direction!(b::BettiTable)
@@ -1965,10 +1964,6 @@ end
 
 @doc raw"""
     minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
-
-# Examples
-```jldoctest
-```
 """
 function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
   return minimal_betti_table(free_resolution(M))
