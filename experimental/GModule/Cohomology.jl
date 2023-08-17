@@ -1531,7 +1531,7 @@ end
 function is_right_G_module(C::GModule)
   #tests if the action is right-linear 
   G = C.G
-  return all(action(action(C, g), h) == action(C, g*h) for g in gens(G), h in gens(G))
+  return all(action(C, g)*action(C, h) == action(C, g*h) for g in gens(G), h in gens(G))
 end
 
 function is_left_G_module(C::GModule)
