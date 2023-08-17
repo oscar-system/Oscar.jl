@@ -196,7 +196,7 @@
       end
       @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedElem{nf_elem}}, Vector{EmbeddedElem{nf_elem}}}}
       g = halfspace_matrix_pair(f)
-      affine_halfspace(coefficient_field(j), g.A[1, :], g.b[1]) in facets(j)
+      @test affine_halfspace(coefficient_field(j), g.A[1, :], g.b[1]) in facets(j)
     end
     for n in (1, 2) # faces which are facets have a different access function
       let f = faces(j, n)
