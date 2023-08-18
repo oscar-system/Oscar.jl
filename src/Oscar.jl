@@ -189,12 +189,13 @@ include("exports.jl")
 @alias characteristic_polynomial charpoly  # FIXME
 @alias minimal_polynomial minpoly  # FIXME
 
-include("forward_declarations.jl")
+
 include("printing.jl")
 include("fallbacks.jl")
 
 
 include("Rings/Rings.jl")
+include("forward_declarations.jl")
 include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")

@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
@@ -14,11 +14,11 @@ julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
 Global Tate model over a concrete base
 ```
 """
-global_tate_model(base::NormalToricVarietyType; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true) = global_tate_model(base, _tate_sections(base); completeness_check = completeness_check)
 
 
 @doc raw"""
-    global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+    global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -42,7 +42,7 @@ julia> t = global_tate_model(base, [a1, a2, a3, a4, a6]; completeness_check = fa
 Global Tate model over a concrete base
 ```
 """
-function global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
   @req length(ais) == 5 "We require exactly 5 Tate sections"
   @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
   
@@ -64,62 +64,14 @@ function global_tate_model(base::NormalToricVarietyType, ais::Vector{T}; complet
   
   # construct the model
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
-  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
+  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, ambient_space)
   set_attribute!(model, :base_fully_specified, true)
   return model
 end
 
 
 ################################################
-# 2: Constructors with toric scheme as base
-################################################
-
-
-@doc raw"""
-    global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-
-This method constructs a global Tate model over a given toric scheme base
-3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
-
-# Examples
-```jldoctest
-julia> t = global_tate_model(sample_toric_scheme(); completeness_check = false)
-Global Tate model over a concrete base
-```
-"""
-global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true) = global_tate_model(underlying_toric_variety(base), completeness_check = completeness_check)
-
-
-@doc raw"""
-    global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
-
-This method operates analogously to `global_tate_model(base::ToricCoveredScheme)`.
-The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
-
-# Examples
-```jldoctest
-julia> base = sample_toric_scheme()
-Scheme of a toric variety
-
-julia> a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base)))]);
-
-julia> a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^2)]);
-
-julia> a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^3)]);
-
-julia> a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^4)]);
-
-julia> a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^6)]);
-
-julia> t = global_tate_model(base, [a1, a2, a3, a4, a6]; completeness_check = false)
-Global Tate model over a concrete base
-```
-"""
-global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem} = global_tate_model(underlying_toric_variety(base), ais; completeness_check = completeness_check)
-
-
-################################################
-# 3: Constructors with scheme as base
+# 2: Constructors with scheme as base
 ################################################
 
 # Yet to come...
@@ -128,7 +80,7 @@ global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::
 
 
 ################################################
-# 4: Constructors without specified base
+# 3: Constructors without specified base
 ################################################
 
 @doc raw"""
@@ -239,7 +191,7 @@ end
 
 
 ################################################
-# 5: Display
+# 4: Display
 ################################################
 
 function Base.show(io::IO, t::GlobalTateModel)

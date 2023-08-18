@@ -80,7 +80,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = resolve(m, 1)
-Scheme of a toric variety
+Normal toric variety
 
 julia> cox_ring(v)
 Multivariate polynomial ring in 13 variables over QQ graded by 
@@ -109,7 +109,7 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   nr_blowups = length(centers)
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  resolved_ambient_space = underlying_toric_variety(ambient_space(m))
+  resolved_ambient_space = ambient_space(m)
   R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
   for center in centers
     @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
@@ -120,5 +120,5 @@ function resolve(m::AbstractFTheoryModel, index::Int)
     S = cox_ring(resolved_ambient_space)
     resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k], set_attributes = true))
   end
-  return toric_covered_scheme(resolved_ambient_space)
+  return resolved_ambient_space
 end

@@ -3,7 +3,7 @@
 #####################################################################
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
 
 This method constructs a Weierstrass model over a given toric base
 3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
@@ -15,14 +15,14 @@ julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
-function weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+function weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
   (f, g) = _weierstrass_sections(base)
   return weierstrass_model(base, f, g; completeness_check = completeness_check)
 end
 
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVarietyType, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
+    weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 
 This method operates analogously to `weierstrass_model(base::NormalToricVarietyType)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -40,7 +40,7 @@ julia> w = weierstrass_model(base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
-function weierstrass_model(base::NormalToricVarietyType, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
+function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
   @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
@@ -61,57 +61,14 @@ function weierstrass_model(base::NormalToricVarietyType, f::MPolyRingElem, g::MP
   
   # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
-  model = WeierstrassModel(f, g, pw, toric_covered_scheme(base), toric_covered_scheme(ambient_space))
+  model = WeierstrassModel(f, g, pw, base, ambient_space)
   set_attribute!(model, :base_fully_specified, true)
   return model
 end
 
 
 #####################################################################
-# 2: Constructors with toric scheme as base
-#####################################################################
-
-
-@doc raw"""
-    weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-
-This method constructs a Weierstrass model over a given toric base
-3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
-coefficients.
-
-# Examples
-```jldoctest
-julia> w = weierstrass_model(sample_toric_scheme(); completeness_check = false)
-Weierstrass model over a concrete base
-```
-"""
-weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true) = weierstrass_model(underlying_toric_variety(base), completeness_check = completeness_check)
-
-
-@doc raw"""
-    weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-
-This method operates analogously to `weierstrass_model(base::ToricCoveredScheme)`.
-The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
-
-# Examples
-```jldoctest
-julia> base = sample_toric_scheme()
-Scheme of a toric variety
-
-julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^4)]);
-
-julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(underlying_toric_variety(base))^6)]);
-
-julia> w = weierstrass_model(base, f, g; completeness_check = false)
-Weierstrass model over a concrete base
-```
-"""
-weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true) = weierstrass_model(underlying_toric_variety(base), f, g, completeness_check = completeness_check)
-
-
-#####################################################################
-# 3: Constructors with scheme as base
+# 2: Constructors with scheme as base
 #####################################################################
 
 # Yet to come...
@@ -120,7 +77,7 @@ weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; 
 
 
 #####################################################################
-# 4: Constructor with toric base attempting to represent moduli space
+# 3: Constructor with toric base attempting to represent moduli space
 #####################################################################
 
 @doc raw"""
@@ -217,7 +174,7 @@ end
 
 
 #####################################################################
-# 5: Display
+# 4: Display
 #####################################################################
 
 function Base.show(io::IO, w::WeierstrassModel)

@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
 
 Construct a hypersurface model. This constructor takes $\mathbb{P}^{2,3,1}$ as fiber
 ambient space with coordinates $[x:y:z]$ and ensures that $x$ transforms as
@@ -18,7 +18,7 @@ julia> hypersurface_model(base; completeness_check = false)
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(base::NormalToricVarietyType; completeness_check::Bool = true)
+function hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
   fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
@@ -28,7 +28,7 @@ end
 
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVarietyType, fiber_ambient_space::NormalToricVarietyType, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
 
 Construct a hypersurface model, for which the user can specify a fiber ambient space
 as well as divisor classes of the toric base space, in which the first two homogeneous
@@ -54,7 +54,7 @@ julia> hypersurface_model(base, fiber_ambient_space, D1, D2; completeness_check 
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(base::NormalToricVarietyType, fiber_ambient_space::NormalToricVarietyType, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
   
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
@@ -71,77 +71,21 @@ function hypersurface_model(base::NormalToricVarietyType, fiber_ambient_space::N
   
   # Construct the model
   hypersurface_equation = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(ambient_space))])
-  model = HypersurfaceModel(toric_covered_scheme(base), toric_covered_scheme(ambient_space), toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
+  model = HypersurfaceModel(base, ambient_space, fiber_ambient_space, hypersurface_equation)
   set_attribute!(model, :base_fully_specified, true)
   return model
 end
 
 
 ################################################
-# 2: Constructors with toric scheme as base
-################################################
-
-@doc raw"""
-    hypersurface_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-
-Construct a hypersurface model. This constructor takes $\mathbb{P}^{2,3,1}$ as fiber
-ambient space with coordinates $[x:y:z]$ and ensures that $x$ transforms as
-$2 \overline{K}_{B_3}$ and $y$ as $3 \overline{K}_{B_3}$.
-
-# Examples
-```jldoctest
-julia> base = projective_space(ToricCoveredScheme, 2)
-Scheme of a toric variety
-
-julia> hypersurface_model(base; completeness_check = false)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model(base::ToricCoveredScheme; completeness_check::Bool = true) = hypersurface_model(underlying_toric_variety(base); completeness_check = completeness_check)
-
-
-@doc raw"""
-    hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
-
-Construct a hypersurface model, for which the user can specify a fiber ambient space
-as well as divisor classes of the toric base space, in which the first two homogeneous
-coordinates of the fiber ambient space transform.
-
-# Examples
-```jldoctest
-julia> base = projective_space(ToricCoveredScheme, 2)
-Scheme of a toric variety
-
-julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
-
-julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-
-julia> fiber_ambient_space = ToricCoveredScheme(fiber_ambient_space)
-Scheme of a toric variety
-
-julia> D1 = 2 * anticanonical_divisor_class(underlying_toric_variety(base))
-Divisor class on a normal toric variety
-
-julia> D2 = 3 * anticanonical_divisor_class(underlying_toric_variety(base))
-Divisor class on a normal toric variety
-
-julia> h = hypersurface_model(base, fiber_ambient_space, D1, D2; completeness_check = false)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true) = hypersurface_model(underlying_toric_variety(base), underlying_toric_variety(fiber_ambient_space), D1, D2; completeness_check = completeness_check)
-
-
-################################################
-# 3: Constructors with scheme as base
+# 2: Constructors with scheme as base
 ################################################
 
 # Yet to come...
 
 
 ################################################
-# 4: Constructors without specified base
+# 3: Constructors without specified base
 ################################################
 
 
@@ -280,14 +224,14 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   hypersurface_equation = hom(parent(p), S, image_list)(p)
 
   # Construct the model
-  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
+  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space, hypersurface_equation)
   set_attribute!(model, :base_fully_specified, false)
   return model
 end
 
 
 ################################################
-# 5: Display
+# 4: Display
 ################################################
 
 function Base.show(io::IO, h::HypersurfaceModel)

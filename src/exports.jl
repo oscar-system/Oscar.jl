@@ -1356,12 +1356,14 @@ export tetrahedron
 export tighten_simulation
 export to_elementary_symmetric
 export tor
+#export toric_covered_scheme
 export toric_divisor
 export toric_divisor_class
 export toric_ideal
 export toric_identity_morphism
 export toric_line_bundle
 export toric_morphism
+#export toric_spec
 export toric_vanishing_set
 export toric_variety
 export torus # requires a distinction from e.g. an algebraic group
