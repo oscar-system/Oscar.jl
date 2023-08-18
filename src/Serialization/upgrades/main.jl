@@ -31,7 +31,7 @@ function upgrade_data(upgrade::Function, refs::Dict, dict::Dict)
   for (key, dict_value) in dict
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
-    elseif dict_value isa Dict{Symbol, Any}
+    elseif dict_value isa Dict
       upgraded_dict[key] = upgrade(refs, dict_value)
     else  # not a string or a dictionary, so must be a vector
       new_value = []
@@ -74,8 +74,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
       upgraded_dict = upgrade_script(refs, upgraded_dict)
     end
   end
-  
   upgraded_dict[:_ns] = oscarSerializationVersion
-  
   return upgraded_dict
 end

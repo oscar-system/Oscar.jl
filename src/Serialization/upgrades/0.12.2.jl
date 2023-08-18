@@ -58,6 +58,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       end
 
+      local_refs = Dict()
       upgraded_parents = []
 
       # using the parent list we make the refs to be attached
@@ -66,7 +67,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         id = parent[:id]
         
         pushfirst!(upgraded_parents, Dict(:id => id, :type => "#backref"))
-        if haskey(refs, Symbol(id))
+        if haskey(local_refs, Symbol(id))
           continue
         end
         if haskey(parent[:data], :def_pol)
@@ -79,7 +80,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             parent[:data][:base_ring] = Dict(:id => base_dict[:id], :type => "#backref")
           end
         end
-        refs[Symbol(id)] = parent
+        local_refs[Symbol(id)] = parent
       end
       
       upgraded_dict[:data][:parents] = upgraded_parents
@@ -102,6 +103,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data] = Dict(:terms => terms, 
                                   :parents => upgraded_parents)
+      merge!(refs, local_refs)
     end
 
     if !isempty(refs)
