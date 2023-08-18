@@ -32,8 +32,10 @@ end
 type_needs_params(::Type{<:PolyhedralObject}) = true
 
 function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  save_object(s, encode_type(T), :name)
-  save_typed_object(s, coefficient_field(obj), :params)
+  data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_typed_object(s, coefficient_field(obj), :params)
+  end
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject)

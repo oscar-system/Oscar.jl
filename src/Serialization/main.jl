@@ -242,9 +242,7 @@ end
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   s.key = key
-  data_dict(s) do
-    save_type_params(s, obj)
-  end
+  save_type_params(s, obj)
 end
 
 # The load mechanism first checks if the type needs to load necessary
