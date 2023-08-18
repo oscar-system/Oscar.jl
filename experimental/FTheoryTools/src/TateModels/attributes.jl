@@ -137,7 +137,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Scheme of a toric variety
+Normal, 3-dimensional toric variety
 ```
 """
 function base_space(t::GlobalTateModel)
@@ -158,7 +158,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(t)
-Scheme of a toric variety
+Normal toric variety
 ```
 """
 function ambient_space(t::GlobalTateModel)
@@ -179,7 +179,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base
 
 julia> fiber_ambient_space(t)
-Scheme of a toric variety
+Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
 ```
 """
 fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space
@@ -216,9 +216,9 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
   base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(underlying_toric_variety(ambient_space(t)), [tate_polynomial(t)])
+  return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
 end
 
 
@@ -242,7 +242,7 @@ Weierstrass model over a not fully specified base
 ```
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: NormalToricVariety "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties/schemes as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
@@ -277,7 +277,7 @@ julia> discriminant(t);
 ```
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: NormalToricVariety "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
   return discriminant(weierstrass_model(t))
 end
 
@@ -346,6 +346,6 @@ julia> singular_loci(t)[2]
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: NormalToricVariety "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
   return singular_loci(weierstrass_model(t))
 end

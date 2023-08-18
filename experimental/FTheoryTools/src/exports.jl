@@ -26,7 +26,6 @@ export hypersurface_equation
 export hypersurface_model_over_del_pezzo_surface
 export hypersurface_model_over_hirzebruch_surface
 export hypersurface_model_over_projective_space
-export sample_toric_scheme
 export sample_toric_variety
 export has_arxiv_id
 export has_arxiv_doi

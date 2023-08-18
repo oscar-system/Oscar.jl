@@ -1,12 +1,14 @@
 
 
 ### Abstract type for arbitrary schemes ###############################
-@doc raw"""
-    Scheme{BaseRingType<:Ring} 
-
-A scheme over a ring ``𝕜`` of type `BaseRingType`.
-"""
-abstract type Scheme{BaseRingType} end
+#@doc raw"""
+#    Scheme{BaseRingType<:Ring} 
+#
+#A scheme over a ring ``𝕜`` of type `BaseRingType`.
+#"""
+#abstract type Scheme{BaseRingType} end
+#
+# Moved to src/forward_declarations.jl
 
 @attr Spec{S,S} function base_scheme(X::Scheme{S}) where {S<:Ring}
   return Spec(base_ring(X))

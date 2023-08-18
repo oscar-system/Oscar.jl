@@ -70,7 +70,7 @@ end
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
-    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))
+    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
   end
 end
 
@@ -93,7 +93,7 @@ end
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(ToricCoveredScheme, [2,3,1]))
+    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
   end
 end
 

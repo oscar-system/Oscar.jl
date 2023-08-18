@@ -4,8 +4,6 @@ export EmptyScheme
 export IdealSheaf
 export ProjectiveScheme
 export ProjectiveSchemeMor
-export ToricCoveredScheme
-export ToricSpec
 export VarietyFunctionField
 export VarietyFunctionFieldElem
 

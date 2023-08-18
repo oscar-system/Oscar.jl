@@ -86,19 +86,10 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-weierstrass_model(base::NormalToricVarietyType; completeness_check::Bool = true)
-weierstrass_model(base::NormalToricVarietyType, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
+weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true)
+weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
 ```
 
-### A toric scheme as base space
-
-For the same reasons as above, the toric base must be complete. Similar to toric varieties as
-bases, we can use the optional argument `completeness_check = false` to switch off the
-expensive completeness check. The following examples demonstrate this:
-```@docs
-weierstrass_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-weierstrass_model(base::ToricCoveredScheme, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-```
 
 ### A (covered) scheme as base space
 

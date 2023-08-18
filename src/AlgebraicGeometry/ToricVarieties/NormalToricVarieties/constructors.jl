@@ -237,3 +237,5 @@ function Base.show(io::IO, v::NormalToricVarietyType)
     
     join(io, properties_string, " ")
 end
+
+Base.show(io::IO, ::MIME"text/plain", v::NormalToricVarietyType) = Base.show(pretty(io), v)
