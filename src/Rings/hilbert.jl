@@ -927,6 +927,7 @@ function separate_simple_pps(gens::Vector{PP})
 end
 
 
+# !!!OBSOLESCENT!!!   2023-08-17 this fn will no be needed after Wolfram's PR is merged
 # Returns nothing; throws if ker(W) contains a non-zero vector >= 0
 function _hilbert_series_check_weights(W::Vector{Vector{Int}})
   # assumes W is rectangular (and at least 1x1)
