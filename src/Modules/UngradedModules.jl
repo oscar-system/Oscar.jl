@@ -4233,7 +4233,7 @@ end
 @doc raw"""
     presentation(F::FreeMod)
 
-Return a free presentation of $F$.
+Return a free presentation of `F`.
 """
 function presentation(F::FreeMod)
   if is_graded(F)
@@ -4250,7 +4250,7 @@ end
 @doc raw"""
     presentation(M::ModuleFP)
 
-Return a free presentation of $M$.
+Return a free presentation of `M`.
 
 # Examples
 ```jldoctest

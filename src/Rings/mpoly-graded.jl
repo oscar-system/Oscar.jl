@@ -352,10 +352,17 @@ julia> is_positively_graded(S)
 false
 ```
 """
-function is_positively_graded(R::MPolyDecRing)
+@attr Bool function is_positively_graded(R::MPolyDecRing)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   is_graded(R) || return false
   G = grading_group(R)
   is_free(G) || return false
+  if ngens(G) == rank(G)
+    W = vcat([x.coeff for x = R.d])
+    if is_positive_grading_matrix(W)
+       return true
+    end
+  end
   try 
     homogeneous_component(R, zero(G))
   catch e
