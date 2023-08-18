@@ -43,8 +43,8 @@ julia> matrix(QQ, rays(NF))
 [ 0    0   -1]
 ```
 """
-rays(PF::_FanLikeType{T}) where T<:scalar_types = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{T}, PF)
-_rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(PF, _ray_fan, _nrays(PF))
+rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{get_scalar_type(PF)}, PF)
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
 
 _ray_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))
 
@@ -87,7 +87,7 @@ julia> rays(NF)
 0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
-rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
+rays_modulo_lineality(PF::_FanLikeType) = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{get_scalar_type(PF)}}, SubObjectIterator{RayVector{get_scalar_type(PF)}}}}, PF)
 function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
     return (
         rays_modulo_lineality = _rays(F),
@@ -120,7 +120,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{Cone{T}}(PF, _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
 
 _ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
 
@@ -152,10 +152,10 @@ julia> cones(PF, 2)
  Polyhedral cone in ambient dimension 3
 ```
 """
-function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
+function cones(PF::_FanLikeType, cone_dim::Int)
     l = cone_dim - length(lineality_space(PF))
     l < 1 && return nothing
-    return SubObjectIterator{Cone{T}}(PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
+    return SubObjectIterator{Cone{get_scalar_type(PF)}}(PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
 function _cone_of_dim(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
@@ -383,7 +383,7 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(PF, _lineality_fan, lineality_dim(PF))
+lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{get_scalar_type(PF)}}(PF, _lineality_fan, lineality_dim(PF))
 
 _lineality_fan(::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))
 
@@ -436,7 +436,7 @@ julia> is_smooth(PF)
 false
 ```
 """
-is_smooth(PF::_FanLikeType{QQFieldElem}) = pm_object(PF).SMOOTH_FAN::Bool
+is_smooth(PF::_FanLikeTypeQQ) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc raw"""
     is_regular(PF::PolyhedralFan)

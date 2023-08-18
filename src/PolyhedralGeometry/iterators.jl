@@ -241,7 +241,7 @@ Additional data required for specifying the property can be given using
 keyword arguments.
 """
 struct SubObjectIterator{T} <: AbstractVector{T}
-    Obj::PolyhedralObject
+    Obj::Union{PolyhedralObject, _FanLikeType}
     Acc::Function
     n::Int
     options::NamedTuple
@@ -249,6 +249,7 @@ end
 
 # `options` is empty by default
 SubObjectIterator{T}(Obj::PolyhedralObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
+SubObjectIterator{T}(Obj::_FanLikeType, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
@@ -364,9 +365,7 @@ _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(pm_object(x.O
 # Lineality often causes certain collections to be empty;
 # the following definition allows to easily construct a working empty SOI
 
-_empty_access() = nothing
-
-function _empty_subobjectiterator(::Type{T}, Obj::PolyhedralObject) where T
+function _empty_subobjectiterator(::Type{T}, Obj::Union{PolyhedralObject, _FanLikeType}) where T
     return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
 end
 
@@ -412,8 +411,6 @@ for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
         end
     end
 end
-
-_matrix_for_polymake(::Val{_empty_access}) = _point_matrix
 
 ################################################################################
 ######## Unify matrices
