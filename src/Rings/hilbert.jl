@@ -939,7 +939,10 @@ function _hilbert_series_check_weights(W::Vector{Vector{Int}})
   b = zero_matrix(FlintZZ, nrows,1);
   try
     solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
-  catch _
+  catch e
+    if e != ArgumentError("Polyhedron not bounded")
+      rethrow(e)
+    end
     # solve_non_negative must have thrown because there is a non-zero soln
     error("given weights permit infinite dimensional homogeneous spaces")
   end
