@@ -1725,28 +1725,6 @@ end
 
 
 @doc raw"""
-    multiplex_polytope(d::Int, n::Int)
-
-Produce a combinatorial description of a multiplex with parameters `d` and `n`, 
-where $2<\texttt{d}<\texttt{n}$.
-This yields a self-dual `d`-dimensional polytope with `n`$+1$ vertices. 
-They were introduced by [Bis96](@cite). 
-See also [BBS02](@cite).
-#Example
-```jldoctest
-julia> m = multiplex_polytope(2,4)
-Polyhedron without ambient dimension
-
-julia> dim(m)
-2
-```
-"""
-function multiplex_polytope(d::Int, n::Int)
-    @req 2 <= d <= n "2 <= d <= n required"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.multiplex(d,n))
-end
-
-@doc raw"""
     n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
 
 Produce a regular `n`-gon. All vertices lie on a circle of radius `r` (defaults to $1$) 
@@ -1767,22 +1745,6 @@ function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
     return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
 end
 
-@doc raw"""
-    neighborly_cubical_polytope(d::Int, n::Int) 
-
-Produce the combinatorial description of a neighborly cubical polytope. 
-The facets are labelled in oriented matroid notation as in the cubical Gale evenness criterion. 
-See [JZ00](@cite)
-
-# Arguments
-- `d`: dimension of the polytope
-- `n`: dimension of the equivalent cube
-"""
-function neighborly_cubical_polytope(d::Int, n::Int)
-    m = 8*sizeof(Int)-2
-    @req 2 <= d <= n <= m "2 <= d <= n <= 62 (= 8*sizeof(Int)-2)"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.neighborly_cubical(d,n))
-end
 
 @doc raw"""
     perles_nonrational_8_polytope()

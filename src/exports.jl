@@ -986,7 +986,6 @@ export mult_set_type
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
-export multiplex_polytope
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
@@ -1012,7 +1011,6 @@ export negrevlex
 export negwdeglex
 export negwdegrevlex
 export neighbor_patches
-export neighborly_cubical_polytope
 export neighbors
 export newton_polytope
 export nfacets

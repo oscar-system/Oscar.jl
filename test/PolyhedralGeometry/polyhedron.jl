@@ -373,24 +373,11 @@ for f in (QQ, ENF)
                     @test is_bounded(gc)
                 end
 
-                @test_throws ArgumentError multiplex_polytope(5,3)
-                let mpp = multiplex_polytope(2,3)
-                    @test mpp isa Polyhedron{T}
-                    @test nfacets(mpp) == 4
-                    @test nvertices(mpp) == 4
-                end
-                
                 @test_throws ArgumentError n_gon(2)
                 let gon = n_gon(4,r=2)
                     @test gon isa Polyhedron{T}
                     @test length(vertices(gon)[1]) == 2
                     @test nvertices(gon) == 4
-                end
-
-                @test_throws ArgumentError neighborly_cubical_polytope(3,2)
-                let ncp = neighborly_cubical_polytope(2,3)
-                    @test ncp isa Polyhedron{T}
-                    @test nvertices(ncp) == 8
                 end
 
                 @test_throws ArgumentError permutahedron(-1)
@@ -427,13 +414,13 @@ for f in (QQ, ENF)
                     @test nvertices(r_01_p) == 4
                 end
 
-                @test_throws ArgumentError rand_box(1,0,1)
-                let rbox = rand_box(3,8,1)
+                @test_throws ArgumentError rand_box_polytope(1,0,1)
+                let rbox = rand_box_polytope(3,8,1)
                     @test rbox isa Polyhedron{T}
                     @test ambient_dim(rbox) == 3
                     @test size(Oscar.pm_object(rbox).POINTS,1) == 8
                 end
-                let rbox = rand_box(3,4,1; seed = 456)
+                let rbox = rand_box_polytope(3,4,1; seed = 456)
                     @test rbox isa Polyhedron{T}
                     @test sum(Oscar.pm_object(rbox).POINTS)==6
                 end

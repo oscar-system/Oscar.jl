@@ -160,9 +160,7 @@ k_cyclic_polytope
 klee_minty_cube
 lecture_hall_simplex
 max_GC_rank_polytope
-multiplex_polytope
 n_gon
-neighborly_cubical_polytope
 newton_polytope
 orbit_polytope
 permutahedron
