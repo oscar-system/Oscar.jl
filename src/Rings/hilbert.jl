@@ -940,7 +940,7 @@ function _hilbert_series_check_weights(W::Vector{Vector{Int}})
   try
     solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
   catch e
-    if e != ArgumentError("Polyhedron not bounded")
+    if !(e isa ArgumentError && e.msg == "Polyhedron not bounded")
       rethrow(e)
     end
     # solve_non_negative must have thrown because there is a non-zero soln
