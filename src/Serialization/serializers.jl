@@ -14,6 +14,10 @@ end
 
 global global_serializer_state = GlobalSerializerState()
 
+function reset_global_serializer_state()
+  global_serializer_state = GlobalSerializerState()
+end
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
   # dict to track already serialized objects
