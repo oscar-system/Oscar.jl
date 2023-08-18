@@ -251,6 +251,7 @@ A Johnson solid is a 3-polytope whose facets are regular polygons, of various go
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
 function johnson_solid(index::Int)
+  hasmethod(_johnson_solid, (Val{index},)) && return _johnson_solid(Val(index))
   pmp = Polymake.polytope.johnson_solid(index)
   # work around bug in polymake which returns an QE polytope
   # where it is not necessary, will be fixed in polymake 4.11
@@ -260,6 +261,8 @@ function johnson_solid(index::Int)
   end
   return polyhedron(pmp)
 end
+
+include("johnson.jl")
 
 @doc raw"""
     regular_24_cell()
