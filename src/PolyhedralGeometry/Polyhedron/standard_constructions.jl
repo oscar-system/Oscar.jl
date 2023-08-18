@@ -1046,9 +1046,6 @@ The normal toric variety associated with its face fan is smooth.
 # Keywords
 - `d::Int`: the dimension.
 
-Note that in polymake, this function has an optional Boolean parameter `group`, to
-also construct the symmetry group of the simplex.  
-
 # Examples
 ```jldoctest
 julia> S = fano_simplex(3)
@@ -1166,7 +1163,7 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
   if !isnothing(precision)
     opts[:precision] = convert(Int64, precision)
   end
-  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
+  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
   return Polyhedron{QQFieldElem}(pm_obj)
 end
 
@@ -1190,7 +1187,7 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 ```
 """
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
-  @req is_bounded(P) "Polyhedron is unbounded, has to be bounded"
+  @req is_bounded(P) "Polyhedron has to be bounded"
   nv = nvertices(P)
   @req n <= nv "Number of vertices requested too high"
   opts = Dict{Symbol,Any}()
@@ -1234,7 +1231,7 @@ julia> vertices(p)
 function SIM_body_polytope(alpha::Vector) 
     n = length(alpha)
     @req n >= 1 "dimension must be at least 1"
-    @req issorted(-alpha) "input is not descending"
+    @req issorted(alpha; rev=true) "input is not descending"
     return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
 end
 
@@ -1324,7 +1321,7 @@ julia> vertices(c)
 ```
 """
 function dwarfed_cube(d::Int)
-    @req d>=2 "dwarfed_cube: d >= 2 required"
+    @req d>=2 "dimension must be at least 2"
     return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
 end
 
@@ -1356,8 +1353,8 @@ julia> vertices(p)
 ```
 """
 function dwarfed_product_polygons(d::Int, s::Int) 
-    @req d >= 4 && d%2 == 0 "dwarfed_product_polygons: d >= 4 and even required"
-    @req s>=3 "dwarfed_product_polygons: s >= 3 required"
+    @req d >= 4 && iseven(d) "d must be at least 4 and even"
+    @req s>=3 "s must be at least 3"
     return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
 end
 
@@ -1436,7 +1433,7 @@ julia> vertices(C)
 function cyclic_caratheodory_polytope(d::Int, n::Int)
     @req d < n "Dimension d has to be smaller than number of points n."
     @req d >= 2 "Dimension has to be greater or equal to 2."
-    @req mod(d,2) == 0 "Dimension has to be even."
+    @req iseven(d) "Dimension has to be even."
     return polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
 end
 
@@ -1493,24 +1490,23 @@ x₁ ≦ 1
 ```
 """
 function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
-    @req 0 < k < d "hypersimplex: 0 < k < d required"
+    @req 0 < k < d "0 < k < d required"
     opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
     return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k,d;opts...))
 end
 
 @doc raw"""
-    zonotope(M::Matrix{<:Number}; rows_are_points::Bool=true, centered::Bool=true)
+    zonotope(M::Matrix{<:Number}; centered::Bool=true)
 
-Create a zonotope from a matrix whose rows are input points or vectors.
+Create a zonotope from a matrix whose rows are input points.
 
 # Optional Arguments
-- `rows_are_points::Bool`: This is `true` in case `M` consists of points instead of vectors; the default is `true`.
 - `centered::Bool`: This is `true` if the output should be centered; the default is `true`.
 
 # Examples
 The following produces a parallelogram with the origin as its vertex barycenter: 
 ```jldoctest
-julia> Z = zonotope([1 1 0; 1 1 1])
+julia> Z = zonotope([1 0; 1 1])
 Polyhedron in ambient dimension 2
 
 julia> vertices(Z)
@@ -1522,7 +1518,7 @@ julia> vertices(Z)
 ```
 The following produces a parallelogram with the origin being a vertex (not centered case): 
 ```jldoctest
-julia> Z = zonotope([1 1 0; 1 1 1], centered = false)
+julia> Z = zonotope([1 0; 1 1], centered = false)
 Polyhedron in ambient dimension 2
 
 julia> vertices(Z)
@@ -1533,7 +1529,7 @@ julia> vertices(Z)
  [2, 1]
 ```
 """
-zonotope(M::Matrix{<:Number}; rows_are_points::Bool=true, centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points, centered=centered)) 
+zonotope(M::Matrix{<:Number}; centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=false, centered=centered)) 
 
 @doc raw"""
     goldfarb_cube(d::Int, e::Number, g::Number)
@@ -1551,7 +1547,7 @@ in particular for $e=g=0$ we obtain the standard cube.
 # Example
 The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}.
 ```jldoctest
-julia> c=goldfarb_cube(3,1//3,0)
+julia> c = goldfarb_cube(3,1//3,0)
 Polyhedron in ambient dimension 3
 
 julia> vertices(c)
@@ -1587,7 +1583,7 @@ see [GS79](@cite).
     
 # Examples
 ```jldoctest
-julia> c=goldfarb_sit_cube(3,1//3,1//2)
+julia> c = goldfarb_sit_cube(3,1//3,1//2)
 Polyhedron in ambient dimension 3
 
 julia> vertices(c) 
@@ -1751,7 +1747,7 @@ function multiplex_polytope(d::Int, n::Int)
 end
 
 @doc raw"""
-    n_gon(n::Int; r::Rational=1, alpha_0::Rational=0)
+    n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
 
 Produce a regular `n`-gon. All vertices lie on a circle of radius `r` (defaults to $1$) 
 and initial angle divided by pi `alpha_0` (defaults to $0$).
@@ -1766,7 +1762,7 @@ julia> n_gon(3,r=3)
 Polyhedron in ambient dimension 2
 ```
 """
-function n_gon(n::Int; r::Real=1, alpha_0::Real=0)
+function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
     @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
     return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
 end
@@ -1856,11 +1852,11 @@ julia> f_vector(p)
  4
 ```
 """
-function pitman_stanley_polytope(y::Vector{Rational})
+function pitman_stanley_polytope(y::AbstractVector{<:RationalUnion})
     @req length(y) >= 1 "length of input must be at least 1"
     return polyhedron(Polymake.polytope.pitman_stanley(y))
 end
-pitman_stanley_polytope(y::Vector{Int}) = pitman_stanley_polytope(convert(Vector{Rational}, y))
+pitman_stanley_polytope(y::AbstractVector{<:IntegerUnion}) = pitman_stanley_polytope(QQ.(y))
 
 @doc raw"""
     pseudo_del_pezzo_polytope(d::Int)
@@ -1924,14 +1920,13 @@ function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
         pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
     else
         seed = convert(Int64, seed)
-        #opts = Dict{Symbol,Any}(:seed => seed) #opts macht also nur sinn für meherer eintraege
-        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; :seed => seed)::Polymake.BigObject # specifying the Type so it will throw an error if its not this type
+        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; :seed => seed)::Polymake.BigObject
     end
     return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
-    rand_box(d::Int, n::Int, b::Int, seed::Int=nothing)
+    rand_box_polytope(d::Int, n::Int, b::Int, seed::Int=nothing)
 
 Computes the convex hull of `n` points sampled uniformly at random from the integer 
 points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
@@ -1941,7 +1936,7 @@ points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
 
 # Example
 ```jldoctest
-julia> r = rand_box(3,10,3, seed=1)
+julia> r = rand_box_polytope(3, 10, 3, seed=1)
 Polyhedron in ambient dimension 3
 
 julia> vertices(r) 
@@ -1956,7 +1951,7 @@ julia> vertices(r)
  [0, 1, 2]
 ```
 """
-function rand_box(d::Int, n::Int, b::Int; seed=nothing)
+function rand_box_polytope(d::Int, n::Int, b::Int; seed=nothing)
     @req 1 <= d && 1 <= n && 1 <= b "1 <= dim, #POINTS, b"
     if isnothing(seed)
         pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
@@ -2010,10 +2005,10 @@ The values are uniformily distributed in $\[1,2\]$.
 # Examples
 ```jldoctest
 julia> rand_metric(3, seed=132)
-3×3 Matrix{Rational}:
-               0//1                …  371474612593257//281474976710656
- 260222460282405//140737488355328     388326899436839//281474976710656
- 371474612593257//281474976710656                   0//1
+[                               0   260222460282405//140737488355328   371474612593257//281474976710656]
+[260222460282405//140737488355328                                  0   388326899436839//281474976710656]
+[371474612593257//281474976710656   388326899436839//281474976710656                                  0]
+
 ```
 """
 function rand_metric(n::Int; seed=nothing)
@@ -2024,7 +2019,7 @@ function rand_metric(n::Int; seed=nothing)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
     end
-    return matrix(QQ, pm_obj) #statt Matrix{QQFieldElem}(pm_obj) (einheitliches Format in Oskar)
+    return matrix(QQ, pm_obj)
 end
 
 @doc raw"""
@@ -2032,7 +2027,7 @@ end
 
 Produce a `n`-point metric with random integral distances. 
 The values are uniformily distributed in $\[1,2\]$. The distances are integers and lie in 
-$[10^digits, 10^(digits+1)[$  
+$[10^digits, 10^(digits+1)[$.
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)
     if isnothing(seed)
@@ -2042,9 +2037,8 @@ function rand_metric_int(n::Int, digits::Int; seed=nothing)
         opts = Dict{Symbol, Int}(:seed => seed)
         pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits; opts...)
     end
-    return Matrix{Int}(pm_obj)
+    return matrix(ZZ, pm_obj)
 end
-
 @doc raw"""
 
     rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
@@ -2090,8 +2084,7 @@ end
 @doc raw"""
    rss_associahedron(n::Int)
 
-Produce a polytope of constrained expansions in ambient dimension `n` according to 
-[RSS03](@cite)
+Produce a polytope of constrained expansions in ambient dimension `n` according to [RSS03](@cite).
 
 # Examples:
 To produce a $3$-dimensional associahedron in $5$-space, do: 
@@ -2199,14 +2192,11 @@ julia> vertices(S)
  [0, 1, 0]
  [0, 1, 1]
 
-julia> add_edge!(G, 1, 2)
-0
+julia> add_edge!(G, 1, 2);
 
-julia> add_edge!(G, 1, 3)
-0
+julia> add_edge!(G, 1, 3);
 
-julia> add_edge!(G, 2, 3)
-0
+julia> add_edge!(G, 2, 3);
 
 julia> S = stable_set_polytope(G)
 Polyhedron in ambient dimension 3
@@ -2254,7 +2244,7 @@ function transportation_polytope(r::AbstractVector, c::AbstractVector)
 end
 
 @doc raw"""
-    zonotope_vertices_fukuda(M::Matrix{<:Number}, rows_are_points::Bool=true)
+    zonotope_vertices_fukuda(M, rows_are_points::Bool=true)
 
 Create the vertices of a zonotope from a matrix whose rows are input points or vectors. 
 `rows_are_points` is `true` in case `M` consists of points instead of vectors; the default is `true`.
@@ -2269,4 +2259,4 @@ julia> zonotope_vertices_fukuda_matrix([1 1 0; 1 1 1])
 [1    1    1//2]
 ```
 """
-zonotope_vertices_fukuda_matrix(M::Matrix{<:Number}, rows_are_points::Bool=true)  = matrix(QQ, Polymake.polytope.zonotope_vertices_fukuda(Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points))
+zonotope_vertices_fukuda_matrix(M::Union{MatElem, AbstractMatrix}, rows_are_points::Bool=true)  = matrix(QQ, Polymake.polytope.zonotope_vertices_fukuda(Polymake.Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points))

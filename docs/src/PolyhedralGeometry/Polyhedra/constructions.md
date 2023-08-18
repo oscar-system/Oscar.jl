@@ -171,7 +171,7 @@ pitman_stanley_polytope
 perles_irrational_8_polytope
 pseudo_del_pezzo_polytope
 rand01_polytope
-rand_box
+rand_box_polytope
 rand_cyclic_polytope
 rand_metric
 rand_metric_int

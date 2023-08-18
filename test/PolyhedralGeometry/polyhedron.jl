@@ -267,7 +267,7 @@ for f in (QQ, ENF)
                 let a = associahedron(4)
                     @test a isa Polyhedron{T}
                     @test dim(a) == 4
-                    @test size(Oscar.pm_object(a).FACETS,1) == 14
+                    @test nfacets(a) == 14
                 end
 
                 let bmg = binary_markov_graph_polytope([0,1,0,0,1])
@@ -281,7 +281,7 @@ for f in (QQ, ENF)
                 let dc = dwarfed_cube(3)
                     @test dc isa Polyhedron{T}
                     @test dim(dc) == 3
-                    @test size(Oscar.pm_object(dc).FACETS,1) == 7
+                    @test nfacets(dc) == 7
                 end
 
                 @test_throws ArgumentError dwarfed_product_polygons(3,2)
@@ -376,8 +376,8 @@ for f in (QQ, ENF)
                 @test_throws ArgumentError multiplex_polytope(5,3)
                 let mpp = multiplex_polytope(2,3)
                     @test mpp isa Polyhedron{T}
-                    @test Oscar.pm_object(mpp).N_FACETS == 4
-                    @test Oscar.pm_object(mpp).N_VERTICES == 4
+                    @test nfacets(mpp) == 4
+                    @test nvertices(mpp) == 4
                 end
                 
                 @test_throws ArgumentError n_gon(2)
@@ -390,7 +390,7 @@ for f in (QQ, ENF)
                 @test_throws ArgumentError neighborly_cubical_polytope(3,2)
                 let ncp = neighborly_cubical_polytope(2,3)
                     @test ncp isa Polyhedron{T}
-                    @test Oscar.pm_object(ncp).N_VERTICES == 8
+                    @test nvertices(ncp) == 8
                 end
 
                 @test_throws ArgumentError permutahedron(-1)
@@ -403,7 +403,7 @@ for f in (QQ, ENF)
                 let pile = pile_polytope([2,2])
                     @test pile isa Polyhedron{T}
                     @test ambient_dim(pile) == 3
-                    @test Oscar.pm_object(pile).N_VERTICES == 9
+                    @test nvertices(pile) == 9
                 end
 
                 @test_throws ArgumentError pitman_stanley_polytope(Vector{Rational}([]))
@@ -424,7 +424,7 @@ for f in (QQ, ENF)
                 @test rand01_polytope(2,4) isa Polyhedron{T}
                 let r_01_p = rand01_polytope(2,4; seed = 47)
                     @test r_01_p isa Polyhedron{T}
-                    @test Oscar.pm_object(r_01_p).N_VERTICES == 4
+                    @test nvertices(r_01_p) == 4
                 end
 
                 @test_throws ArgumentError rand_box(1,0,1)
@@ -443,7 +443,7 @@ for f in (QQ, ENF)
                 end
 
                 let rmetricint = rand_metric_int(3, 2, seed = 213)
-                    @test rmetricint isa Matrix{Int}
+                    @test rmetricint isa ZZMatrix
                 end
 
                 let rnorm = rand_normal_polytope(3, 4, seed = 213)
@@ -456,7 +456,7 @@ for f in (QQ, ENF)
                 @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
                 let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
                     @test rcyc isa Polyhedron{T}
-                    @test size(Oscar.pm_object(rcyc).VERTICES,1) == 8
+                    @test nvertices(rcyc) == 8
                 end
 
                 #3 more rand testset
@@ -472,7 +472,7 @@ for f in (QQ, ENF)
                 @test_throws ArgumentError signed_permutahedron(100000)
                 let sph = signed_permutahedron(3) 
                     @test sph isa Polyhedron{T}
-                    @test size(Oscar.pm_object(sph).VERTICES,1) == 48
+                    @test nvertices(sph) == 48
                     @test is_bounded(sph)
                 end
 

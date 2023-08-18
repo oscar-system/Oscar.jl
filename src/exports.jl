@@ -1167,7 +1167,7 @@ export radical
 export radical_membership
 export rand
 export rand01_polytope
-export rand_box
+export rand_box_polytope
 export rand_cyclic_polytope
 export rand_metric
 export rand_metric_int
