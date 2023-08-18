@@ -1268,7 +1268,10 @@ julia> facets(A)
 -x₃ ≦ -1
 ```
 """
-associahedron(d::Int) = Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d)) 
+function associahedron(d::Int)
+  @req d>=0 "Input dimension must be non-negative"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d))
+end
 
 @doc raw"""
     binary_markov_graph_polytope(observation::AbstractVector)
