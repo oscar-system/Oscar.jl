@@ -45,6 +45,13 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    matrix(h::LieAlgebraModuleHom) -> MatElem
+    
+Return the transformation matrix of `h` w.r.t. the bases of the domain and codomain.
+
+Note: The matrix operates on the coefficient vectors from the right.
+"""
 function matrix(
   h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
 ) where {C2<:RingElement}
@@ -82,6 +89,11 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    image(h::LieAlgebraModuleHom, v::LieAlgebraModuleElem) -> LieAlgebraModuleElem
+
+Return the image of `v` under `h`.
+"""
 function image(
   h::LieAlgebraModuleHom{T1,T2}, v::LieAlgebraModuleElem
 ) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
@@ -97,6 +109,13 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    compose(f::LieAlgebraModuleHom, g::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Return the composition of `f` and `g`, i.e. the homomorphism `h` such that
+`h(x) = g(f(x))` for all `x` in the domain of `f`.
+The codomain of `f` must be identical to the domain of `g`.
+"""
 function compose(
   f::LieAlgebraModuleHom{T1,T2}, g::LieAlgebraModuleHom{T2,T3}
 ) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule,T3<:LieAlgebraModule}
@@ -113,11 +132,24 @@ function compose(
   return h
 end
 
+@doc raw"""
+    inv(h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Return the inverse of `h`.
+Requires `h` to be an isomorphism.
+"""
 function inv(h::LieAlgebraModuleHom)
   @req is_isomorphism(h) "Homomorphism must be invertible"
   return h.inverse_isomorphism
 end
 
+@doc raw"""
+    is_isomorphism(h::LieAlgebraModuleHom) -> Bool
+
+Return `true` if `h` is an isomorphism.
+This function tries to invert the transformation matrix of `h` and caches the result.
+The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this function.
+"""
 function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
   fl, invmat = is_invertible_with_inverse(h.matrix)
@@ -133,6 +165,37 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    hom(V1::LieAlgebraModule, V2::LieAlgebraModule, imgs::Vector{<:LieAlgebraModuleElem}; check::Bool=true) -> LieAlgebraModuleHom
+
+Construct the homomorphism from `V1` to `V2` by sending the `i`-th basis element of `V1` 
+to `imgs[i]` and extending linearly.
+All elements of `imgs` must lie in `V2`.
+Currently, `V1` and `V2` must be modules over the same Lie algebra.
+
+By setting `check=false`, the linear map is not checked to be compatible with the module action.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> V1 = standard_module(L);
+
+julia> V3 = trivial_module(L, 3);
+
+julia> V2 = direct_sum(V1, V3);
+
+julia> h = hom(V1, V2, [V2([v, zero(V3)]) for v in basis(V1)])
+Lie algebra module morphism
+  from standard module of dimension 2 over sl_2
+  to   direct sum module of dimension 5 over sl_2
+
+julia> [(v, h(v)) for v in basis(V1)]
+2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+ (v_1, v_1^(1))
+ (v_2, v_2^(1))
+```
+"""
 function hom(
   V1::LieAlgebraModule{C},
   V2::LieAlgebraModule{C},
@@ -142,12 +205,64 @@ function hom(
   return LieAlgebraModuleHom(V1, V2, imgs; check)
 end
 
+@doc raw"""
+    hom(V1::LieAlgebraModule, V2::LieAlgebraModule, mat::MatElem; check::Bool=true) -> LieAlgebraModuleHom
+
+Construct the homomorphism from `V1` to `V2` by acting with the matrix `mat`
+from the right on the coefficient vector w.r.t. the basis of `V1`.
+`mat` must be a matrix of size `dim(V1) \times dim(V2)` over `coefficient_ring(V2)`.
+Currently, `V1` and `V2` must be modules over the same Lie algebra.
+
+By setting `check=false`, the linear map is not checked to be compatible with the module action.
+
+# Examples
+```jldoctest
+julia> L = general_linear_lie_algebra(QQ, 3);
+
+julia> V1 = standard_module(L);
+
+julia> V2 = trivial_module(L);
+
+julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
+Lie algebra module morphism
+  from standard module of dimension 3 over sl_3
+  to   abstract Lie algebra module of dimension 1 over sl_3
+  
+julia> [(v, h(v)) for v in basis(V1)]
+  3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+   (v_1, 0)
+   (v_2, 0)
+   (v_3, 0)
+"""
 function hom(
   V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}, mat::MatElem{C}; check::Bool=true
 ) where {C<:RingElement}
   return LieAlgebraModuleHom(V1, V2, mat; check)
 end
 
+@doc raw"""
+    identity_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Construct the identity map on `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+Special linear Lie algebra of degree 3
+  of dimension 8
+over rational field
+
+julia> V = standard_module(L)
+Standard module
+  of dimension 3
+over special linear Lie algebra of degree 3 over QQ
+
+julia> identity_map(V)
+Lie algebra module morphism
+  from standard module of dimension 3 over sl_3
+  to   standard module of dimension 3 over sl_3
+```
+"""
 function identity_map(V::LieAlgebraModule)
   return hom(V, V, basis(V); check=false)
 end
