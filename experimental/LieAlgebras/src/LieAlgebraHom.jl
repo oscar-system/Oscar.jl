@@ -53,7 +53,7 @@ function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
   println(io, LowercaseOff(), "Lie algebra morphism")
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
-  print(io, "to   ", Lowercase(), domain(h))
+  print(io, "to   ", Lowercase(), codomain(h))
   print(io, Dedent())
 end
 
@@ -63,7 +63,7 @@ function Base.show(io::IO, h::LieAlgebraHom)
     print(io, LowercaseOff(), "Lie algebra morphism")
   else
     print(io, LowercaseOff(), "Lie algebra morphism: ")
-    print(io, Lowercase(), domain(h), " -> ", Lowercase(), domain(h))
+    print(io, Lowercase(), domain(h), " -> ", Lowercase(), codomain(h))
   end
 end
 
