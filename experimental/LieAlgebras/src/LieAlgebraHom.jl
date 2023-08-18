@@ -8,6 +8,7 @@ mutable struct LieAlgebraHom{T1<:LieAlgebra,T2<:LieAlgebra} <:
   function LieAlgebraHom(
     L1::LieAlgebra, L2::LieAlgebra, imgs::Vector{<:LieAlgebraElem}; check::Bool=true
   )
+    @req coefficient_ring(L1) === coefficient_ring(L2) "Coefficient rings must be the same" # for now at least
     @req all(x -> parent(x) === L2, imgs) "Images must lie in the codomain"
     @req length(imgs) == dim(L1) "Number of images must match dimension of domain"
 
@@ -37,8 +38,8 @@ end
 #
 ###############################################################################
 
-function matrix(h::LieAlgebraHom)
-  return h.matrix
+function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:RingElement}
+  return (h.matrix)::dense_matrix_type(C2)
 end
 
 ###############################################################################
@@ -118,12 +119,12 @@ function compose(
   return h
 end
 
-function inv(h::LieAlgebraHom{T1,T2}) where {T1<:LieAlgebra,T2<:LieAlgebra}
+function inv(h::LieAlgebraHom)
   @req is_isomorphism(h) "Homomorphism must be invertible"
   return h.inverse_isomorphism
 end
 
-function is_isomorphism(h::LieAlgebraHom{T1,T2}) where {T1<:LieAlgebra,T2<:LieAlgebra}
+function is_isomorphism(h::LieAlgebraHom)
   isdefined(h, :inverse_isomorphism) && return true
   fl, invmat = is_invertible_with_inverse(h.matrix)
   fl || return false

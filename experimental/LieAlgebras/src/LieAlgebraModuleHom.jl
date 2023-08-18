@@ -43,8 +43,10 @@ end
 #
 ###############################################################################
 
-function matrix(h::LieAlgebraModuleHom)
-  return h.matrix
+function matrix(
+  h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
+) where {C2<:RingElement}
+  return h.matrix::dense_matrix_type(C2)
 end
 
 ###############################################################################
@@ -109,16 +111,12 @@ function compose(
   return h
 end
 
-function inv(
-  h::LieAlgebraModuleHom{T1,T2}
-) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+function inv(h::LieAlgebraModuleHom)
   @req is_isomorphism(h) "Homomorphism must be invertible"
   return h.inverse_isomorphism
 end
 
-function is_isomorphism(
-  h::LieAlgebraModuleHom{T1,T2}
-) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
   fl, invmat = is_invertible_with_inverse(h.matrix)
   fl || return false
