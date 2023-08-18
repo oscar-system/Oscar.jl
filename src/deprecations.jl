@@ -225,7 +225,7 @@ end
 @deprecate contains(P::Polyhedron, v::AbstractVector) Base.in(v, P)
 @deprecate contains(C::Cone, v::AbstractVector) Base.in(v, C)
 @deprecate blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
-@deprecate starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types star_subdivision(PF, n)
+@deprecate starsubdivision(PF::_FanLikeType, n::Int) star_subdivision(PF, n)
 
 # Deprecated after 0.12.1
 @deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes)

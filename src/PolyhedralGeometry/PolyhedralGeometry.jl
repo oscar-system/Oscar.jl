@@ -1,7 +1,7 @@
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
-
 include("helpers.jl")
+include("PolyhedralFan/fan_types.jl")
 include("iterators.jl")
 include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
