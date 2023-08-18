@@ -1857,10 +1857,7 @@ Produce a `d`-dimensional $0/1$-polytope with `n` random vertices. Uniform distr
 
 # Example
 ```jldoctest
-julia> r = rand01_polytope(2,4)
-Polyhedron in ambient dimension 2
-
-julia> s = rand01_polytope(2,4,seed=3)
+julia> s = rand01_polytope(2, 4; seed=3)
 Polyhedron in ambient dimension 2
 
 julia> vertices(s)
@@ -1869,13 +1866,6 @@ julia> vertices(s)
  [1, 0]
  [0, 0]
  [0, 1]
-
-julia> vertices(r)
-4-element SubObjectIterator{PointVector{QQFieldElem}}:
- [0, 1]
- [1, 1]
- [0, 0]
- [1, 0]
 ```
 """
 function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
@@ -1891,7 +1881,7 @@ function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
 end
 
 @doc raw"""
-    rand_box_polytope(d::Int, n::Int, b::Int, seed::Int=nothing)
+    rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
 Computes the convex hull of `n` points sampled uniformly at random from the integer 
 points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
@@ -2017,18 +2007,18 @@ normally distributed in the unit ball.
 
 # Example
 ```jldoctest
-julia> rnp = rand_normal_polytope(2,4; precision=4)
+julia> rnp = rand_normal_polytope(2,4; seed=42, precision=4)
 Polyhedron in ambient dimension 2
 
 julia> is_simplicial(rnp)
 true
 
-julia> map(x->dot(x,x), vertices(rnp))
+julia> sort(map(x->dot(x,x), vertices(rnp)))
 4-element Vector{QQFieldElem}:
- 365//256
- 5//2
- 325//1024
- 125//64
+ 1417//4096
+ 481//1024
+ 225//256
+ 101//32
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
