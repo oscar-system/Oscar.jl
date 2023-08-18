@@ -25,6 +25,8 @@ mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
   function LieAlgebraModuleHom(
     V1::LieAlgebraModule, V2::LieAlgebraModule, mat::MatElem; check::Bool=true
   )
+    @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
+    @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
     h = new{typeof(V1),typeof(V2)}()
     h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
     h.header = MapHeader(V1, V2)

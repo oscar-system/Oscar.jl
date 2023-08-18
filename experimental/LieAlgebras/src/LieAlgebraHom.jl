@@ -20,6 +20,8 @@ mutable struct LieAlgebraHom{T1<:LieAlgebra,T2<:LieAlgebra} <:
   end
 
   function LieAlgebraHom(L1::LieAlgebra, L2::LieAlgebra, mat::MatElem; check::Bool=true)
+    @req coefficient_ring(L1) === coefficient_ring(L2) "Coefficient rings must be the same" # for now at least
+    @req size(mat) == (dim(L1), dim(L2)) "Matrix size must match dimensions of domain and codomain"
     h = new{typeof(L1),typeof(L2)}()
     h.matrix = mat::dense_matrix_type(coefficient_ring(L2))
     h.header = MapHeader(L1, L2)

@@ -23,7 +23,7 @@ identity_map(::LieAlgebra)
 
 ## Functions
 
-The following functions are available for `LieAlgebraHomomorphism`s:
+The following functions are available for `LieAlgebraHom`s:
 
 ### Basic properties
 For a homomorphism $h: L_1 \to L_2$, `domain(h)` and `codomain(h)` return $L_1$ and $L_2$ respectively.
