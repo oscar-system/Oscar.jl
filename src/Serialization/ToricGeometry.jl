@@ -17,8 +17,10 @@ end
 type_needs_params(::Type{<:ToricDivisor}) = true
 
 function save_type_params(s::SerializerState, obj::ToricDivisor)
-  save_object(s, encode_type(ToricDivisor), :name)
-  save_typed_object(s, obj.toric_variety, :params)
+  data_dict(s) do
+    save_object(s, encode_type(ToricDivisor), :name)
+    save_typed_object(s, obj.toric_variety, :params)
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:ToricDivisor}, str::String)

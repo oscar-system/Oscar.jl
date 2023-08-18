@@ -5,8 +5,10 @@
 type_needs_params(::Type{<: Hecke.QuadSpace}) = true
 
 function save_type_params(s::SerializerState, V::Hecke.QuadSpace)
-  save_object(s, encode_type(Hecke.QuadSpace), :name)
-  save_type_params(s, gram_matrix(V), :params)
+  data_dict(s) do
+    save_object(s, encode_type(Hecke.QuadSpace), :name)
+    save_type_params(s, gram_matrix(V), :params)
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<: Hecke.QuadSpace}, str::String)

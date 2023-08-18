@@ -11,11 +11,13 @@ type_needs_params(::Type{<:Vector})  = true
 MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
-  save_object(s, encode_type(S), :name)
-  if type_needs_params(T)
-    save_type_params(s, obj[1], :params)
-  else
-    save_object(s, encode_type(T), :params)
+  data_dict(s) do
+    save_object(s, encode_type(S), :name)
+    if type_needs_params(T)
+        save_type_params(s, obj[1], :params)
+    else
+      save_object(s, encode_type(T), :params)
+    end
   end
 end
 
@@ -65,16 +67,18 @@ end
 type_needs_params(::Type{<:Tuple}) = true
 
 function save_type_params(s::SerializerState, tup::T) where T <: Tuple
-  save_object(s, encode_type(Tuple), :name)
-  n = fieldcount(T)
-  s.key = :params
-  data_array(s) do 
-    for i in 1:n
-      U = fieldtype(T, i)
-      if type_needs_params(U)
-        save_type_params(s, tup[i])
-      else
-        save_object(s, encode_type(U))
+  data_dict(s) do
+    save_object(s, encode_type(Tuple), :name)
+    n = fieldcount(T)
+    s.key = :params
+    data_array(s) do 
+      for i in 1:n
+        U = fieldtype(T, i)
+        if type_needs_params(U)
+          save_type_params(s, tup[i])
+        else
+          save_object(s, encode_type(U))
+        end
       end
     end
   end
@@ -115,11 +119,13 @@ end
 type_needs_params(::Type{<:NamedTuple}) = true
 
 function save_type_params(s::SerializerState, obj::NamedTuple)
-  save_object(s, encode_type(NamedTuple), :name)
-  s.key = :params
-  data_dict(s) do 
-    save_type_params(s, values(obj), :tuple_params)
-    save_object(s, keys(obj), :names)
+  data_dict(s) do
+    save_object(s, encode_type(NamedTuple), :name)
+    s.key = :params
+    data_dict(s) do 
+      save_type_params(s, values(obj), :tuple_params)
+      save_object(s, keys(obj), :names)
+    end
   end
 end
 
