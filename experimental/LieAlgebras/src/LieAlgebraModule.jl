@@ -154,7 +154,14 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   io = pretty(io)
   println(io, _module_type_to_string(get_attribute(V, :type, :unknown)))
   println(io, Indent(), "of dimension $(dim(V))")
-  is_standard_module(V) || _show_inner(io, V)
+  if is_dual(V) ||
+    is_direct_sum(V) ||
+    is_tensor_product(V) ||
+    is_exterior_power(V) ||
+    is_symmetric_power(V) ||
+    is_tensor_power(V)
+    _show_inner(io, V)
+  end
   print(io, Dedent())
   print(io, "over ")
   print(io, Lowercase(), base_lie_algebra(V))
@@ -199,7 +206,7 @@ function _show_inner(io::IO, V::LieAlgebraModule)
     _show_inner(io, base_module(V))
     print(io, Dedent())
   else
-    error("Unknown module type.")
+    println(io, "abstract module")
   end
 end
 
@@ -671,6 +678,35 @@ function highest_weight_module(L::LieAlgebra, weight::Vector{Int})
   V = abstract_module(L, dimV, struct_consts; check=false)
   set_attribute!(V, :highest_weight => weight)
   return V
+end
+
+@doc raw"""
+    trivial_module(L::LieAlgebra{C}, d=1) -> LieAlgebraModule{C}
+
+Construct the `d`-dimensional module of the Lie algebra `L` with trivial action.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> trivial_module(L)
+Abstract Lie algebra module
+  of dimension 1
+over special linear Lie algebra of degree 3 over QQ
+```
+"""
+function trivial_module(L::LieAlgebra, d::IntegerUnion=1)
+  @req d >= 0 "Dimension must be non-negative."
+  dim_triv_V = Int(d)
+  transformation_matrices = [
+    zero_matrix(coefficient_ring(L), dim_triv_V, dim_triv_V) for _ in 1:dim(L)
+  ]
+  s = [Symbol("v_$(i)") for i in 1:dim_triv_V]
+  triv_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
+    L, dim_triv_V, transformation_matrices, s; check=false
+  )
+  # set_attribute!(triv_V, :type => :trivial)
+  return triv_V
 end
 
 @doc raw"""

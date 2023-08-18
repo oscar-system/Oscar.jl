@@ -90,6 +90,7 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export trivial_module
 export universal_enveloping_algebra
 
 include("Combinatorics.jl")
@@ -144,4 +145,5 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export trivial_module
 export universal_enveloping_algebra
