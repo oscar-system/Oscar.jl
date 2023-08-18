@@ -1390,3 +1390,4 @@ export witt_index
 export wreath_product
 export write_as_full
 export write_as_linear_combination
+export reset_global_serializer_state
