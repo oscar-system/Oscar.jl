@@ -856,7 +856,7 @@ Abelian group with structure: Z
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::AbstractNormalToricVariety)
     # check input
-    @req has_torusfactor(v) "Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"
+    @req !has_torusfactor(v) "Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"
 
     f = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
     g = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
