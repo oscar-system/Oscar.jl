@@ -833,6 +833,36 @@ GrpAb: Z^3
     return domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v))
 end
 
+@doc raw"""
+    map_from_torusinvariant_cartier_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+
+Return the map from the Cartier divisors to the class group
+of an abstract normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> map_from_torusinvariant_cartier_divisor_group_to_class_group(p2)
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^3
+Codomain:
+=========
+Abelian group with structure: Z
+```
+"""
+@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+    # check input
+    @req has_torusfactor(v) "Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"
+
+    f = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
+    g = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+    return f * g
+end
+
 
 @doc raw"""
     map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
@@ -861,10 +891,8 @@ Abelian group with structure: Z
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"))
     end
     
-    # compute mapping
-    map1 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
-    map2 = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-    return restrict_codomain(map1*map2)
+    f = restrict_codomain(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))
+    return f * inv(snf(codomain(f))[2])
 end
 
 
@@ -884,6 +912,77 @@ GrpAb: Z
 """
 @attr GrpAbFinGen function picard_group(v::AbstractNormalToricVariety)
     return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
+end
+
+@doc raw"""
+    map_from_picard_group_to_class_group(v::AbstractNormalToricVariety)
+
+Return the embedding of the Picard group into the class group of an abstract normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> map_from_picard_group_to_class_group(p2)
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z
+Codomain:
+=========
+Abelian group with structure: Z
+```
+"""
+@attr GrpAbFinGenMap function map_from_picard_group_to_class_group(v::AbstractNormalToricVariety)
+    f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
+    g = snf(domain(f))[2] * f
+    return hom(picard_group(v), class_group(v), matrix(g))
+end
+
+
+############################
+# Gorenstein and Picard Index
+############################
+
+@doc raw"""
+    gorenstein_index(v::AbstractNormalToricVariety)
+
+Return the Gorenstein index of a $\mathbb{Q}$-Gorenstein normal toric variety `v`. 
+This is the smallest positive integer $l$ such that $-l K$ is Cartier, where $K$
+is a canonical divisor on `v`. See exercise 8.3.10 and 8.3.11 in [CLS11](@cite) for more details.
+
+# Examples
+```jldoctest
+julia> gorenstein_index(weighted_projective_space(NormalToricVariety, [2,3,5]))
+3
+```
+"""
+@attr ZZRingElem function gorenstein_index(v::AbstractNormalToricVariety)
+    @req is_q_gorenstein(v) "gorenstein index can only be computed for Q-gorenstein varieties"
+    c = divisor_class(canonical_divisor_class(v))
+    f = cokernel(map_from_picard_group_to_class_group(v))[2]
+    order(f(c))
+end
+
+
+@doc raw"""
+    picard_index(v::AbstractNormalToricVariety)
+
+Return the index of the Picard group in the class group of a simplicial normal 
+toric variety `v`. Here, the Picard group embeds as the group of Cartier divisor
+classes into the class group via `map_from_picard_group_to_class_group`. See 
+[HHS11](@cite) for more details.
+
+# Examples
+```jldoctest
+julia> picard_index(weighted_projective_space(NormalToricVariety, [2,3,5]))
+30
+```
+"""
+@attr ZZRingElem function picard_index(v::AbstractNormalToricVariety) 
+    @req is_simplicial(v) "picard index can only be computed for simplicial varieties"
+    return order(cokernel(map_from_picard_group_to_class_group(v))[1]) 
 end
 
 
