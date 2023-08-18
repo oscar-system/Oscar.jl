@@ -950,6 +950,23 @@ end
   @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
 end
 
+@testset "class fusions" begin
+  subtbl = character_table("A5")
+  tbl = character_table("A6")
+  fus1 = possible_class_fusions(subtbl, tbl)
+  fus2 = possible_class_fusions(subtbl, tbl, decompose = false)
+  @test fus1 == fus2
+end
+
+@testset "normal subgroups" begin
+  tbl = character_table("2.A5.2")
+  @test class_positions_of_center(tbl) == [1, 2]
+  @test class_positions_of_derived_subgroup(tbl) == [1, 2, 3, 4, 5, 6, 7]
+  @test class_positions_of_pcore(tbl, 2) == [1, 2]
+  @test class_positions_of_pcore(tbl, 3) == [1]
+  @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
+end
+
 @testset "character fields of ordinary characters" begin
   tbl = character_table("A5")
   @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
@@ -969,6 +986,35 @@ end
         @test phi(xF) == x
       end
     end
+  end
+
+  # embeddings of abelian number fields into the abelian closure
+  # - for cyclotomic character fields
+  t = character_table("A4")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
+  end
+
+  # - for non-cyclotomic character fields
+  t = character_table("A5")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test ! Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
   end
 end
 

@@ -35,6 +35,7 @@ GAP.@wrap ClassFunction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ClassNames(x::GapObj)::GapObj
 GAP.@wrap ClassMultiplicationCoefficient(x::GapObj, y::Int, z::Int, t::Int)::GAP.Obj
 GAP.@wrap ClassPositionsOfCentre(x::GapObj)::GapObj
+GAP.@wrap ClassPositionsOfDerivedSubgroup(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfPCore(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ClassPositionsOfSolvableResiduum(x::GapObj)::GapObj
 GAP.@wrap ClassParameters(x::GapObj)::GapObj
@@ -202,6 +203,8 @@ GAP.@wrap IsWholeFamily(x::Any)::Bool
 GAP.@wrap IsZero(x::Any)::Bool
 GAP.@wrap IsZmodnZObj(x::Any)::Bool
 GAP.@wrap IsZmodnZObjNonprimeCollection(x::Any)::Bool
+GAP.@wrap IsomorphismFpGroupByGenerators(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap IsomorphismFpGroupByPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
@@ -231,12 +234,14 @@ GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap OrthogonalDiscriminants(x::GapObj)::GapObj
+GAP.@wrap Pcgs(x::GapObj)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj
 GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
 GAP.@wrap Range(x::GapObj)::GapObj

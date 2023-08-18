@@ -1564,7 +1564,7 @@ Ideals in localizations of polynomial rings.
   W::LocRingType
 
   # fields for caching 
-  map_from_base_ring::Hecke.Map
+  map_from_base_ring::Map
 
   # The pre_saturated_ideal can be any ideal I in the `base_ring` of W
   # such that W(I) is this ideal
@@ -1586,7 +1586,7 @@ Ideals in localizations of polynomial rings.
   function MPolyLocalizedIdeal(
       W::MPolyLocRing, 
       gens::Vector{LocRingElemType};
-      map_from_base_ring::Hecke.Map = MapFromFunc(
+      map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
           x->W(x),
@@ -1944,7 +1944,7 @@ function coordinate_shift(
               )
     set_attribute!(L, :coordinate_shift, shift)
   end
-  return get_attribute(L, :coordinate_shift)::Hecke.Map
+  return get_attribute(L, :coordinate_shift)::Map
 end
 
 
@@ -2876,7 +2876,7 @@ end
 
 function compose(
     f::MPolyLocalizedRingHom, 
-    g::Hecke.Map{<:Ring, <:Ring}
+    g::Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
   R = base_ring(domain(f))
@@ -3095,14 +3095,14 @@ julia> minimal_generating_set(I)
     # use available gb for shifted ideal is available
     G = first(values(I_shift.gb))
     is_local(G.ord) || error("inconsistent data: local ring, but global ordering for I_shift")
-    singular_assure(G, G.ord)
+    singular_assure(G)
     G.gens.S.isGB = true
     _, I_shift_min = Singular.mstd(G.gens.S)
   else
 
     # no gb for shifted ideal available
-    singular_assure(I_shift,o)
-    I_shift_gb, I_shift_min = Singular.mstd(I_shift.gens.gens.S)
+    gensI_shift = singular_generators(I_shift, o)
+    I_shift_gb, I_shift_min = Singular.mstd(gensI_shift)
 
     # store gb of I_shift
     computed_gb = IdealGens(base_ring(I_shift),I_shift_gb, false)

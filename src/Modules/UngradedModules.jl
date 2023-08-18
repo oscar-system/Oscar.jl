@@ -850,11 +850,11 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+@attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+@attr Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 
@@ -4233,7 +4233,7 @@ end
 @doc raw"""
     presentation(F::FreeMod)
 
-Return a free presentation of $F$.
+Return a free presentation of `F`.
 """
 function presentation(F::FreeMod)
   if is_graded(F)
@@ -4250,7 +4250,7 @@ end
 @doc raw"""
     presentation(M::ModuleFP)
 
-Return a free presentation of $M$.
+Return a free presentation of `M`.
 
 # Examples
 ```jldoctest
@@ -6963,7 +6963,7 @@ function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) whe
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
-function *(h::ModuleFPHom{T1, T2, <:Hecke.Map}, g::ModuleFPHom{T2, T3, <:Hecke.Map}) where {T1, T2, T3}
+function *(h::ModuleFPHom{T1, T2, <:Map}, g::ModuleFPHom{T2, T3, <:Map}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
 end
@@ -8700,7 +8700,7 @@ function change_base_ring(S::Ring, F::FreeMod)
   return FS, map
 end
 
-function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {DomType<:Ring, CodType<:Ring}
+function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:Ring, CodType<:Ring}
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
@@ -8720,7 +8720,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   return MS, map
 end
 
-function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
+function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
   domain(f) == base_ring(M) || error("ring map not compatible with the module")
   S = codomain(f)
   F = ambient_free_module(M)

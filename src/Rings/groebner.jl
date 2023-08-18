@@ -559,10 +559,10 @@ julia> gens(groebner_basis(J))
  a*c - 2*a + c
 
 julia> SR = singular_poly_ring(base_ring(J))
-Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C)
+Singular Polynomial Ring (QQ),(x,y,z),(dp(3),C)
 
 julia> I = Singular.Ideal(SR,[SR(-1+c+b+a^3),SR(-1+b+c*a+2*a^3),SR(5+c*b+c^2*a)])
-Singular ideal over Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C) with generators (a^3 + b + c - 1, 2*a^3 + a*c + b - 1, a*c^2 + b*c + 5)
+Singular ideal over Singular Polynomial Ring (QQ),(x,y,z),(dp(3),C) with generators (x^3 + y + z - 1, 2*x^3 + x*z + y - 1, x*z^2 + y*z + 5)
 
 julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
 3-element Vector{QQMPolyRingElem}:

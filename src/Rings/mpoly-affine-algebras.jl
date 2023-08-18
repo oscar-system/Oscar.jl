@@ -208,16 +208,14 @@ julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
-(2*t^3 - 3*t^2 + 1, Factored element with data
-Dict{ZZPolyRingElem, ZZRingElem}(-t + 1 => 4))
+(2*t^3 - 3*t^2 + 1, (-t + 1)^4)
 
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, Factored element with data
-Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
+(-t^6 + 1, (-t^2 + 1)^1*(-t + 1)^1*(-t^3 + 1)^1)
 ```
 """
 function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
@@ -267,8 +265,7 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
 julia> hilbert_series(A)
-(-t^6 + 1, Factored element with data
-Dict{ZZPolyRingElem, ZZRingElem}(-t^2 + 1 => 1, -t + 1 => 1, -t^3 + 1 => 1))
+(-t^6 + 1, (-t^2 + 1)^1*(-t + 1)^1*(-t^3 + 1)^1)
 
 julia> hilbert_series_reduced(A)
 (t^2 - t + 1, t^2 - 2*t + 1)
@@ -494,8 +491,7 @@ julia> H[1][1]
 -t[1]^7*t[2]^-2 + t[1]^6*t[2]^-1 + t[1]^6*t[2]^-2 + t[1]^5*t[2]^-4 - t[1]^4 + t[1]^4*t[2]^-2 - t[1]^4*t[2]^-4 - t[1]^3*t[2]^-1 - t[1]^3*t[2]^-2 + 1
 
 julia> H[1][2]
-Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t[1] + 1 => 2, -t[1]*t[2]^-1 + 1 => 1)
+(-t[1] + 1)^2*(-t[1]*t[2]^-1 + 1)^1
 
 julia> H[2][1]
 GrpAb: Z^2
@@ -524,8 +520,7 @@ julia> num
 2*t^3 - 3*t^2 + 1
 
 julia> den
-Factored element with data
-Dict{AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}, ZZRingElem}(-t + 1 => 4)
+(-t + 1)^4
 
 julia> H
 GrpAb: Z
