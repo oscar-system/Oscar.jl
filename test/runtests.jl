@@ -108,7 +108,7 @@ println("Making test list")
 
 testlist = [
   
-  "Aqua.jl"
+  "Aqua.jl",
 
   "printing.jl",
 
