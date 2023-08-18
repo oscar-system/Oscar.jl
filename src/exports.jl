@@ -1096,7 +1096,7 @@ export pc_group
 export pcore
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
-export perles_irrational_8_polytope
+export perles_nonrational_8_polytope
 export perm
 export permutahedron
 export permutation

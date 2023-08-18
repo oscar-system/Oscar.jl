@@ -1785,16 +1785,16 @@ function neighborly_cubical_polytope(d::Int, n::Int)
 end
 
 @doc raw"""
-    perles_irrational_8_polytope()
+    perles_nonrational_8_polytope()
 
 Create an $8$-dimensional polytope without rational realizations due to Perles. See [Gru03](@cite).
 
 # Example
 ```jldoctest
-julia> perles_irrational_8_polytope()
+julia> perles_nonrational_8_polytope()
 Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
 """
-perles_irrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
+perles_nonrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
 
 @doc raw"""
     permutahedron(d::Int)

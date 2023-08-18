@@ -168,7 +168,7 @@ orbit_polytope
 permutahedron
 pile_polytope
 pitman_stanley_polytope
-perles_irrational_8_polytope
+perles_nonrational_8_polytope
 pseudo_del_pezzo_polytope
 rand01_polytope
 rand_box_polytope
