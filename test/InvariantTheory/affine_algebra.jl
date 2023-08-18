@@ -57,6 +57,20 @@
     A, = affine_algebra(RG, algo_rels = algo)
     @test is_zero(modulus(A))
   end
+
+  # Example of an invariant ring which is not Cohen--Macaulay, see Kemper,
+  # "Calculating invariant rings of finite groups over arbitrary fields",
+  # Example 10.
+  G = permutation_group(4, [ cperm([1, 2, 3, 4]) ])
+  RG = invariant_ring(GF(2), G)
+  A, AtoR = affine_algebra(RG, algo_rels = :groebner_basis)
+  @test [ AtoR(x) for x in gens(A) ] == fundamental_invariants(RG)
+  @test is_injective(AtoR)
+
+  RG = invariant_ring(GF(2), G)
+  A, AtoR = affine_algebra(RG, algo_rels = :linear_algebra)
+  @test [ AtoR(x) for x in gens(A) ] == fundamental_invariants(RG)
+  @test is_injective(AtoR)
 end
 
 @testset "Module syzygies" begin
