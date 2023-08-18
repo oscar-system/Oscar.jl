@@ -54,10 +54,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       return dict[:id]
     end
 
-    if dict[:type] isa Dict
-      #println(json(dict, 2))
-    end
-
     T = decode_type(dict[:type])
     # Types that now have params that haven't already been updated
     if type_needs_params(T)
@@ -77,6 +73,11 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           params = "this needs to be filled in"
         end
+      elseif T <: NamedTuple
+        println(json(dict, 2))
+        params = Dict(
+          :tuple_params => "blah"
+        )
       end
 
       upgraded_dict[:type] = Dict(
