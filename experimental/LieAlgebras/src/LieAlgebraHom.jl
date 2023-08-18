@@ -47,6 +47,25 @@ end
 #
 ###############################################################################
 
+function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
+  io = pretty(io)
+  println(io, LowercaseOff(), "Lie algebra morphism")
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(h))
+  print(io, "to   ", Lowercase(), domain(h))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, h::LieAlgebraHom)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, LowercaseOff(), "Lie algebra morphism")
+  else
+    print(io, LowercaseOff(), "Lie algebra morphism: ")
+    print(io, Lowercase(), domain(h), " -> ", Lowercase(), domain(h))
+  end
+end
+
 ###############################################################################
 #
 #   Image and kernel
