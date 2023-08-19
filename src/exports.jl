@@ -944,6 +944,7 @@ export minimal_primes
 export minimal_subalgebra_generators
 export minkowski_sum
 export minor
+export module_syzygies
 export modulus
 export moebius_mu
 export molien_series
