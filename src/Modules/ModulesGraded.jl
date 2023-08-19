@@ -2328,13 +2328,6 @@ function cm_regularity(M::SubquoModule)
   return maximum(V)
 end
 
-function cm_regularity(I::MPolyIdeal)
-   R = base_ring(I)
-   M = quotient_ring_as_module(I)
-   return cm_regularity(M)+1
-end
-
-
 #####affine algebras as modules#####
 
 @doc raw"""
