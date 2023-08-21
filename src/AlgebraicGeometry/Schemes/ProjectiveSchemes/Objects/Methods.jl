@@ -201,7 +201,7 @@ one of the homogeneous coordinates of ``P``.
 
 **Note:** Since this map returns representatives only, it 
 is not a mathematical morphism and, hence, in particular 
-not an instance of `Hecke.Map`.
+not an instance of `Map`.
 
 # Examples
 ```jldoctest

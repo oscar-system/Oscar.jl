@@ -61,7 +61,7 @@ function map_on_affine_cones(
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }},
-                             <:Hecke.Map,
+                             <:Map,
                              Nothing # This indicates the same base scheme for domain and codomain.
                             };
     check::Bool=true
@@ -122,7 +122,7 @@ end
 
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Field}, <:AbsProjectiveScheme{<:Field},
-                            <:Hecke.Map, Nothing};
+                            <:Map, Nothing};
     check::Bool=true
   )
   if !isdefined(phi, :map_on_affine_cones)

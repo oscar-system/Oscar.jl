@@ -8,7 +8,7 @@ export AlgebraHomomorphism, codomain, compose, domain, hom,
 #
 ###############################################################################
 
-struct IdAlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
+struct IdAlgHom{T} <: Map{Ring, Ring,
          AbstractAlgebra.IdentityMap, IdAlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
 
    domain::Union{MPolyRing, MPolyQuo}
@@ -79,7 +79,7 @@ end
 #
 ###############################################################################
 
-mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
+mutable struct AlgHom{T} <: Map{Ring, Ring,
          AbstractAlgebra.SetMap, AlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
    domain::Union{MPolyRing, MPolyQuo}
    codomain::Union{MPolyRing, MPolyQuo}
