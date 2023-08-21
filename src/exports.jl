@@ -638,6 +638,7 @@ export hypersurface_complement
 export icosahedron
 export id_hom
 export ideal
+export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
 export ideal_type
@@ -1143,6 +1144,7 @@ export quadratic_form
 export quaternion_group
 export quo
 export quotient
+export quotient_ring_as_module
 export radical
 export radical_membership
 export rand

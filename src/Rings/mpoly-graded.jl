@@ -2485,8 +2485,8 @@ end
 @doc raw"""
     cm_regularity(I::MPolyIdeal)
 
-Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring,
-return the Castelnuovo-Mumford regularity of I.
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring
+with coefficients in a field, return the Castelnuovo-Mumford regularity of I.
  
 # Examples
 ```jldoctest
