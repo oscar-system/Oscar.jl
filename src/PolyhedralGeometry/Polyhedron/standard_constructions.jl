@@ -29,7 +29,8 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-birkhoff_polytope(n::Integer; even::Bool = false) = polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+birkhoff_polytope(n::Integer; even::Bool=false) =
+  polyhedron(Polymake.polytope.birkhoff(n, Int(even); group=true))
 
 @doc raw"""
     pyramid(P::Polyhedron, z::Union{Number, FieldElem} = 1)
@@ -55,16 +56,18 @@ julia> vertices(pyramid(c,5))
  [0, 0, 5]
 ```
 """
-function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
-    pm_in = pm_object(P)
-    has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group), coefficient_field(P))
+function pyramid(P::Polyhedron{T}, z::Number=1) where {T<:scalar_types}
+  pm_in = pm_object(P)
+  has_group = Polymake.exists(pm_in, "GROUP")
+  return Polyhedron{T}(
+    Polymake.polytope.pyramid(pm_in, z; group=has_group), coefficient_field(P)
+  )
 end
-function pyramid(P::Polyhedron{T}, z::FieldElem) where T<:scalar_types
-    U, f = _promote_scalar_field(coefficient_field(P), parent(z))
-    pm_in = pm_object(P)
-    has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{U}(Polymake.polytope.pyramid(pm_in, z, group=has_group), f)
+function pyramid(P::Polyhedron{T}, z::FieldElem) where {T<:scalar_types}
+  U, f = _promote_scalar_field(coefficient_field(P), parent(z))
+  pm_in = pm_object(P)
+  has_group = Polymake.exists(pm_in, "GROUP")
+  return Polyhedron{U}(Polymake.polytope.pyramid(pm_in, z; group=has_group), f)
 end
 
 @doc raw"""
@@ -93,19 +96,27 @@ julia> vertices(bipyramid(c,2))
 
 ```
 """
-function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z) where T<:scalar_types
-    pm_in = pm_object(P)
-    has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), coefficient_field(P))
+function bipyramid(
+  P::Polyhedron{T}, z::Number=1, z_prime::Number=-z
+) where {T<:scalar_types}
+  pm_in = pm_object(P)
+  has_group = Polymake.exists(pm_in, "GROUP")
+  return Polyhedron{T}(
+    Polymake.polytope.bipyramid(pm_in, z, z_prime; group=has_group), coefficient_field(P)
+  )
 end
-function bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::FieldElem=-z) where T<:scalar_types
-    U, f = _promote_scalar_field(coefficient_field(P), parent(z), parent(z_prime))
-    pm_in = pm_object(P)
-    has_group = Polymake.exists(pm_in, "GROUP")
-    return Polyhedron{U}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group), f)
+function bipyramid(
+  P::Polyhedron{T}, z::FieldElem, z_prime::FieldElem=-z
+) where {T<:scalar_types}
+  U, f = _promote_scalar_field(coefficient_field(P), parent(z), parent(z_prime))
+  pm_in = pm_object(P)
+  has_group = Polymake.exists(pm_in, "GROUP")
+  return Polyhedron{U}(Polymake.polytope.bipyramid(pm_in, z, z_prime; group=has_group), f)
 end
-bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::Number) where T<:scalar_types = bipyramid(P, z, parent(z)(z_prime))
-bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where T<:scalar_types = bipyramid(P, parent(z_prime)(z), z_prime)
+bipyramid(P::Polyhedron{T}, z::FieldElem, z_prime::Number) where {T<:scalar_types} =
+  bipyramid(P, z, parent(z)(z_prime))
+bipyramid(P::Polyhedron{T}, z::Number, z_prime::FieldElem) where {T<:scalar_types} =
+  bipyramid(P, parent(z_prime)(z), z_prime)
 
 @doc raw"""
     normal_cone(P::Polyhedron, i::Int64)
@@ -137,10 +148,10 @@ julia> rays(nc)
  [0, 1]
 ```
 """
-function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
-    @req 1 <= i <= nvertices(P) "Vertex index out of range"
-    bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
-    return Cone{T}(bigobject, coefficient_field(P))
+function normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types}
+  @req 1 <= i <= nvertices(P) "Vertex index out of range"
+  bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i - 1]))
+  return Cone{T}(bigobject, coefficient_field(P))
 end
 
 @doc raw"""
@@ -170,12 +181,12 @@ julia> vertices(P)
 ```
 """
 function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
-   Vhom = stack(homogenized_matrix(V, 1), nothing)
-   @req size(Vhom, 2) == degree(G) + 1 "Dimension of points and group degree need to be the same"
-   generators = PermGroup_to_polymake_array(G)
-   pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
-   pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
-   return Polyhedron{QQFieldElem}(pmPolytope)
+  Vhom = stack(homogenized_matrix(V, 1), nothing)
+  @req size(Vhom, 2) == degree(G) + 1 "Dimension of points and group degree need to be the same"
+  generators = PermGroup_to_polymake_array(G)
+  pmGroup = Polymake.group.PermutationAction(; GENERATORS=generators)
+  pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
+  return Polyhedron{QQFieldElem}(pmPolytope)
 end
 
 @doc raw"""
@@ -195,14 +206,18 @@ julia> normalized_volume(C)
 120
 ```
 """
-function cube(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
-    return Polyhedron{scalar_type}(Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+function cube(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d), parent_field
+  )
 end
 cube(d::Int) = cube(QQFieldElem, d)
-function cube(f::Union{Type{T}, Field}, d::Int, l, u) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, l, u)
-    return Polyhedron{scalar_type}(Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field)
+function cube(f::Union{Type{T},Field}, d::Int, l, u) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f, l, u)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field
+  )
 end
 cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 
@@ -282,12 +297,14 @@ julia> vertices(NP)
 ```
 """
 function newton_polytope(f)
-    exponents = reduce(hcat, Oscar.AbstractAlgebra.exponent_vectors(f))'
-    convex_hull(exponents)
+  exponents = reduce(hcat, Oscar.AbstractAlgebra.exponent_vectors(f))'
+  convex_hull(exponents)
 end
 
-polyhedron(H::Halfspace{T}) where T<:scalar_types = polyhedron(coefficient_field(H), normal_vector(H), negbias(H))
-polyhedron(H::Hyperplane{T}) where T<:scalar_types = polyhedron(coefficient_field(H), nothing, (normal_vector(H), [negbias(H)]))
+polyhedron(H::Halfspace{T}) where {T<:scalar_types} =
+  polyhedron(coefficient_field(H), normal_vector(H), negbias(H))
+polyhedron(H::Hyperplane{T}) where {T<:scalar_types} =
+  polyhedron(coefficient_field(H), nothing, (normal_vector(H), [negbias(H)]))
 
 @doc raw"""
     intersect(P::Polyhedron...)
@@ -312,9 +329,9 @@ julia> rays(PO)
 ```
 """
 function intersect(P::Polyhedron...)
-    T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
-    pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
+  T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
+  pmo = [pm_object(p) for p in P]
+  return Polyhedron{T}(Polymake.polytope.intersection(pmo...), f)
 end
 intersect(P::AbstractVector{<:Polyhedron}) = intersect(P...)
 
@@ -338,17 +355,19 @@ julia> nvertices(M)
 8
 ```
 """
-function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:standard) where {T<:scalar_types, U<:scalar_types}
-    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
-    po = _promoted_bigobject(V, P)
-    qo = _promoted_bigobject(V, Q)
-    if algorithm == :standard
-        return Polyhedron{V}(Polymake.polytope.minkowski_sum(po, qo), f)
-    elseif algorithm == :fukuda
-        return Polyhedron{V}(Polymake.polytope.minkowski_sum_fukuda(po, qo), f)
-    else
-        throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
-    end
+function minkowski_sum(
+  P::Polyhedron{T}, Q::Polyhedron{U}; algorithm::Symbol=:standard
+) where {T<:scalar_types,U<:scalar_types}
+  V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
+  po = _promoted_bigobject(V, P)
+  qo = _promoted_bigobject(V, Q)
+  if algorithm == :standard
+    return Polyhedron{V}(Polymake.polytope.minkowski_sum(po, qo), f)
+  elseif algorithm == :fukuda
+    return Polyhedron{V}(Polymake.polytope.minkowski_sum_fukuda(po, qo), f)
+  else
+    throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
+  end
 end
 
 @doc raw"""
@@ -369,9 +388,9 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types}
-    V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
-    return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
+function product(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types}
+  V, f = _promote_scalar_field(coefficient_field(P), coefficient_field(Q))
+  return Polyhedron{V}(Polymake.polytope.product(pm_object(P), pm_object(Q)), f)
 end
 
 @doc raw"""
@@ -392,7 +411,8 @@ julia> length(vertices(T*S))
 6
 ```
 """
-*(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types} = product(P, Q)
+*(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types} =
+  product(P, Q)
 
 @doc raw"""
     convex_hull(P::Polyhedron, Q::Polyhedron)
@@ -417,9 +437,9 @@ julia> f_vector(T)
 ```
 """
 function convex_hull(P::Polyhedron...)
-    T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
-    pmo = [pm_object(p) for p in P]
-    return Polyhedron{T}(Polymake.polytope.conv(pmo...), f)
+  T, f = _promote_scalar_field((coefficient_field(p) for p in P)...)
+  pmo = [pm_object(p) for p in P]
+  return Polyhedron{T}(Polymake.polytope.conv(pmo...), f)
 end
 convex_hull(P::AbstractVector{<:Polyhedron}) = convex_hull(P...)
 
@@ -443,7 +463,8 @@ julia> nvertices(M)
 8
 ```
 """
-+(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types, U<:scalar_types} = minkowski_sum(P, Q)
++(P::Polyhedron{T}, Q::Polyhedron{U}) where {T<:scalar_types,U<:scalar_types} =
+  minkowski_sum(P, Q)
 
 @doc raw"""
     *(k::Union{Number, FieldElem}, Q::Polyhedron)
@@ -466,11 +487,12 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Number, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k), coefficient_field(P))
+*(k::Number, P::Polyhedron{T}) where {T<:scalar_types} =
+  Polyhedron{T}(Polymake.polytope.scale(pm_object(P), k), coefficient_field(P))
 
-function *(k::FieldElem, P::Polyhedron{T}) where T<:scalar_types
-    U, f = _promote_scalar_field(parent(k), coefficient_field(P))
-    return Polyhedron{U}(Polymake.polytope.scale(pm_object(P), k), f)
+function *(k::FieldElem, P::Polyhedron{T}) where {T<:scalar_types}
+  U, f = _promote_scalar_field(parent(k), coefficient_field(P))
+  return Polyhedron{U}(Polymake.polytope.scale(pm_object(P), k), f)
 end
 
 @doc raw"""
@@ -494,7 +516,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(P::Polyhedron{T}, k::Union{Number, FieldElem}) where T<:scalar_types = k*P
+*(P::Polyhedron{T}, k::Union{Number,FieldElem}) where {T<:scalar_types} = k * P
 
 @doc raw"""
     +(P::Polyhedron, v::AbstractVector)
@@ -522,9 +544,14 @@ julia> vertices(S)
  [0, 0, 1]
 ```
 """
-function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
-    @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
-    return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)), coefficient_field(P))
+function +(P::Polyhedron{T}, v::AbstractVector) where {T<:scalar_types}
+  @req ambient_dim(P) == length(v) "Translation vector not correct dimension"
+  return Polyhedron{T}(
+    Polymake.polytope.translate(
+      pm_object(P), Polymake.Vector{_scalar_type_to_polymake(T)}(v)
+    ),
+    coefficient_field(P),
+  )
 end
 
 @doc raw"""
@@ -553,7 +580,7 @@ julia> vertices(S)
  [0, 0, 1]
 ```
 """
-+(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
++(v::AbstractVector, P::Polyhedron{T}) where {T<:scalar_types} = P + v
 
 @doc raw"""
     simplex([::Union{Type{T}, Field} = QQFieldElem,] d::Int [,n])
@@ -595,14 +622,18 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-function simplex(f::Union{Type{T}, Field}, d::Int, n) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, n)
-    return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d,n), parent_field)
+function simplex(f::Union{Type{T},Field}, d::Int, n) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f, n)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
+  )
 end
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
-function simplex(f::Union{Type{T}, Field}, d::Int) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
-    return Polyhedron{scalar_type}(Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+function simplex(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field
+  )
 end
 simplex(d::Int) = simplex(QQFieldElem, d)
 
@@ -647,14 +678,18 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-function cross_polytope(f::Union{Type{T}, Field}, d::Int64, n) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, n)
-    return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field)
+function cross_polytope(f::Union{Type{T},Field}, d::Int64, n) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f, n)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
+  )
 end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-function cross_polytope(f::Union{Type{T}, Field}, d::Int64) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f)
-    return Polyhedron{scalar_type}(Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field)
+function cross_polytope(f::Union{Type{T},Field}, d::Int64) where {T<:scalar_types}
+  parent_field, scalar_type = _determine_parent_and_scalar(f)
+  return Polyhedron{scalar_type}(
+    Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field
+  )
 end
 cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 
@@ -815,7 +850,8 @@ catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
 Return the maximal f-vector of a `d`-polytope with `n` vertices;
 this is given by McMullen's Upper-Bound-Theorem.
 """
-upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).F_VECTOR)
+upper_bound_f_vector(d::Int, n::Int) =
+  Vector{Int}(Polymake.polytope.upper_bound_theorem(d, n).F_VECTOR)
 
 @doc raw"""
     upper_bound_g_vector(d::Int, n::Int)
@@ -823,7 +859,8 @@ upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_
 Return the maximal g-vector of a `d`-polytope with `n` vertices;
 this is given by McMullen's Upper-Bound-Theorem.
 """
-upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).G_VECTOR)
+upper_bound_g_vector(d::Int, n::Int) =
+  Vector{Int}(Polymake.polytope.upper_bound_theorem(d, n).G_VECTOR)
 
 @doc raw"""
     upper_bound_h_vector(d::Int, n::Int)
@@ -831,7 +868,8 @@ upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_
 Return the maximal h-vector of a `d`-polytope with `n` vertices;
 this is given by McMullen's Upper-Bound-Theorem.
 """
-upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
+upper_bound_h_vector(d::Int, n::Int) =
+  Vector{Int}(Polymake.polytope.upper_bound_theorem(d, n).H_VECTOR)
 
 @doc raw"""
     billera_lee_polytope(h::AbstractVector)
@@ -854,7 +892,9 @@ julia> f_vector(BL)
 
 ```
 """
-billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)), QQ)
+billera_lee_polytope(h::AbstractVector) = Polyhedron{QQFieldElem}(
+  Polymake.polytope.billera_lee(Polymake.Vector{Polymake.Integer}(h)), QQ
+)
 
 @doc raw"""
     polarize(P::Polyhedron)
@@ -878,8 +918,8 @@ julia> vertices(P)
  [0, -1]
 ```
 """
-function polarize(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), coefficient_field(P))
+function polarize(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)), coefficient_field(P))
 end
 
 @doc raw"""
@@ -903,7 +943,8 @@ julia> is_fulldimensional(p)
 true
 ```
 """
-project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)), coefficient_field(P))
+project_full(P::Polyhedron{T}) where {T<:scalar_types} =
+  Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)), coefficient_field(P))
 
 @doc raw"""
     gelfand_tsetlin_polytope(lambda::AbstractVector)
@@ -928,7 +969,11 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(
+  Polymake.polytope.gelfand_tsetlin(
+    Polymake.Vector{Polymake.Rational}(lambda); projected=false
+  ),
+)
 
 @doc raw"""
     demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
@@ -955,8 +1000,11 @@ function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
   x = R[2]
   s = R[1](0)
   for P in lattice_points(genGT)
-    w = [sum([P[binomial(n+1,2)-binomial(i+1,2)+j] for j in 1:i]) for i in 1:length(lambda)]
-    s = s + x[1]^w[1] * prod([x[i]^(w[i]-w[i-1]) for i in 2:n])
+    w = [
+      sum([P[binomial(n + 1, 2) - binomial(i + 1, 2) + j] for j in 1:i]) for
+      i in 1:length(lambda)
+    ]
+    s = s + x[1]^w[1] * prod([x[i]^(w[i] - w[i - 1]) for i in 2:n])
   end
   return s
 end
@@ -974,68 +1022,67 @@ Polyhedron in ambient dimension 6
 ```
 """
 function gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
-   GT = gelfand_tsetlin_polytope(lambda)
-   # The i-th inversion set (when i=1 this is just inversions) as in [PS09]
-   function inversions(sigma; i=1)
-      n = sigma.parent.deg
-      filter(x->sigma(i) > sigma(x), i:n)
-   end
-   # The code of a permutation as in [PS09]
-   function code(sigma)
-      [length(inversions(sigma;i=i)) for i in 1:sigma.parent.deg]
-   end
-   # The flag of a permutation as in [PS09]
-   function flag(sigma)
-      n=sigma.parent.deg
-      w0 = perm(vcat([n], collect(1:n-1)))
-      c = code(w0*sigma)
-      return([n-c[i] for i in 1:n])
-   end
+  GT = gelfand_tsetlin_polytope(lambda)
+  # The i-th inversion set (when i=1 this is just inversions) as in [PS09]
+  function inversions(sigma; i=1)
+    n = sigma.parent.deg
+    filter(x -> sigma(i) > sigma(x), i:n)
+  end
+  # The code of a permutation as in [PS09]
+  function code(sigma)
+    [length(inversions(sigma; i=i)) for i in 1:(sigma.parent.deg)]
+  end
+  # The flag of a permutation as in [PS09]
+  function flag(sigma)
+    n = sigma.parent.deg
+    w0 = perm(vcat([n], collect(1:(n - 1))))
+    c = code(w0 * sigma)
+    return ([n - c[i] for i in 1:n])
+  end
 
-   n = length(lambda)
-   N = binomial(n+1, 2)
-   b = flag(sigma)
-   P =  Matrix{Int64}(zeros(n,n)) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
-   varctr = N # starting at the last coordinate
-   matctr = [1,1]
-   while varctr>0
-      P[matctr...] = varctr
-      if matctr[2] == 1
-         matctr[1] = matctr[1]+1
-         matctr[2] = matctr[1]
-      else
-      	 matctr[2] = matctr[2]-1
+  n = length(lambda)
+  N = binomial(n + 1, 2)
+  b = flag(sigma)
+  P = Matrix{Int64}(zeros(n, n)) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
+  varctr = N # starting at the last coordinate
+  matctr = [1, 1]
+  while varctr > 0
+    P[matctr...] = varctr
+    if matctr[2] == 1
+      matctr[1] = matctr[1] + 1
+      matctr[2] = matctr[1]
+    else
+      matctr[2] = matctr[2] - 1
+    end
+    varctr = varctr - 1
+  end
+  Hyperplanes = []
+  for i in 1:n # for each i there's a set of variables p_(i,j) which need to be equal
+    startVarIndex = P[n, i]
+    for j in b[i]:(n - 1)
+      varIndex = P[j, i]
+      H = []
+      for k in 1:N
+        if k == startVarIndex
+          push!(H, 1)
+        elseif k == varIndex
+          push!(H, -1)
+        else
+          push!(H, 0)
+        end
       end
-      varctr = varctr-1
-   end
-   Hyperplanes = []
-   for i in 1:n # for each i there's a set of variables p_(i,j) which need to be equal
-      startVarIndex = P[n,i]
-      for j in b[i]:n-1
-         varIndex = P[j,i]
-         H = []
-         for k in 1:N
-            if k == startVarIndex
-               push!(H,1)
-            elseif k==varIndex
-               push!(H,-1)
-            else
-               push!(H,0)
-            end
-         end
-         push!(Hyperplanes, H)
-      end
-   end
-   if length(Hyperplanes) == 0
-      return(gelfand_tsetlin_polytope(lambda))
-   end
-   z = [0 for i in 1:length(Hyperplanes)]
-   A = permutedims(reduce(hcat,Hyperplanes))
-   # now L is the intersection of the linear spaces Ax = 0 = z
-   L = polyhedron(nothing, (A, z))
-   return(L ∩ gelfand_tsetlin_polytope(lambda))
+      push!(Hyperplanes, H)
+    end
+  end
+  if length(Hyperplanes) == 0
+    return (gelfand_tsetlin_polytope(lambda))
+  end
+  z = [0 for i in 1:length(Hyperplanes)]
+  A = permutedims(reduce(hcat, Hyperplanes))
+  # now L is the intersection of the linear spaces Ax = 0 = z
+  L = polyhedron(nothing, (A, z))
+  return (L ∩ gelfand_tsetlin_polytope(lambda))
 end
-
 
 @doc raw"""
     fano_simplex(d::Int)
@@ -1148,7 +1195,9 @@ julia> map(x->dot(x,x), vertices(rsph))
 
 ```
 """
-function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, seed=nothing, precision=nothing)
+function rand_spherical_polytope(
+  d::Int, n::Int; distribution::Symbol=:uniform, seed=nothing, precision=nothing
+)
   if distribution === :uniform
     type = "AccurateFloat"
   elseif distribution === :exact
@@ -1156,19 +1205,23 @@ function rand_spherical_polytope(d::Int, n::Int; distribution::Symbol=:uniform, 
   else
     throw(ArgumentError("rand_spherical_polytope: invalid distribution specified"))
   end
-  opts = Dict{Symbol,Any}( :template_parameters => [type] ) # creating the Optionset, the :template_parameters are for templating functions in C++
+  opts = Dict{Symbol,Any}(:template_parameters => [type]) # creating the Optionset, the :template_parameters are for templating functions in C++
   if !isnothing(seed)
     opts[:seed] = convert(Int64, seed)
   end
   if !isnothing(precision)
     opts[:precision] = convert(Int64, precision)
   end
-  pm_obj = Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
+  pm_obj =
+    Polymake.call_function(:polytope, :rand_sphere, d, n; opts...)::Polymake.BigObject
   return Polyhedron{QQFieldElem}(pm_obj)
 end
 
-rand_spherical_polytope(rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing) =
-  rand_spherical_polytope(d, n; distribution=distribution, seed=rand(rng,Int64), precision=precision)
+rand_spherical_polytope(
+  rng::AbstractRNG, d::Int, n::Int; distribution::Symbol=:uniform, precision=nothing
+) = rand_spherical_polytope(
+  d, n; distribution=distribution, seed=rand(rng, Int64), precision=precision
+)
 
 @doc raw"""
     rand_subpolytope(P::Polyhedron, n::Int; seed=nothing)
@@ -1186,7 +1239,7 @@ julia> nvertices(rand_subpolytope(cube(3), 5))
 
 ```
 """
-function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scalar_types
+function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where {T<:scalar_types}
   @req is_bounded(P) "Polyhedron has to be bounded"
   nv = nvertices(P)
   @req n <= nv "Number of vertices requested too high"
@@ -1195,7 +1248,9 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where T<:scala
     opts[:seed] = convert(Int64, seed)
   end
   pm_matrix = Polymake.polytope.rand_vert(P.pm_polytope.VERTICES, n; opts...)
-  pm_obj = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES=pm_matrix)::Polymake.BigObject
+  pm_obj = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(;
+    VERTICES=pm_matrix
+  )::Polymake.BigObject
   return Polyhedron{T}(pm_obj, coefficient_field(P))
 end
 
@@ -1228,11 +1283,13 @@ julia> vertices(p)
  [1, 3]
 ```
 """
-function SIM_body_polytope(alpha::Vector) 
-    n = length(alpha)
-    @req n >= 1 "dimension must be at least 1"
-    @req issorted(alpha; rev=true) "input is not descending"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha)))
+function SIM_body_polytope(alpha::Vector)
+  n = length(alpha)
+  @req n >= 1 "dimension must be at least 1"
+  @req issorted(alpha; rev=true) "input is not descending"
+  return Polyhedron{QQFieldElem}(
+    Polymake.polytope.sim_body(Polymake.Vector{Polymake.Rational}(alpha))
+  )
 end
 
 @doc raw"""
@@ -1269,7 +1326,7 @@ julia> facets(A)
 ```
 """
 function associahedron(d::Int)
-  @req d>=0 "Input dimension must be non-negative"
+  @req d >= 0 "Input dimension must be non-negative"
   return Polyhedron{QQFieldElem}(Polymake.polytope.associahedron(d))
 end
 
@@ -1295,7 +1352,12 @@ julia> vertices(P)
  [0, 7]
 ```
 """
-binary_markov_graph_polytope(observation::AbstractVector{<:Base.Integer}) = Polyhedron{QQFieldElem}(Polymake.polytope.binary_markov_graph(Vector(convert(Polymake.Vector{Int},observation))))
+binary_markov_graph_polytope(observation::AbstractVector{<:Base.Integer}) =
+  Polyhedron{QQFieldElem}(
+    Polymake.polytope.binary_markov_graph(
+      Vector(convert(Polymake.Vector{Int}, observation))
+    ),
+  )
 
 @doc raw"""
     dwarfed_cube(d::Int)
@@ -1324,10 +1386,9 @@ julia> vertices(c)
 ```
 """
 function dwarfed_cube(d::Int)
-    @req d>=2 "dimension must be at least 2"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
+  @req d >= 2 "dimension must be at least 2"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_cube(d))
 end
-
 
 @doc raw"""
     dwarfed_product_polygons(d::Int, s::Int)
@@ -1355,10 +1416,10 @@ julia> vertices(p)
  [3, 9, 0, 0]
 ```
 """
-function dwarfed_product_polygons(d::Int, s::Int) 
-    @req d >= 4 && iseven(d) "d must be at least 4 and even"
-    @req s>=3 "s must be at least 3"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d,s))
+function dwarfed_product_polygons(d::Int, s::Int)
+  @req d >= 4 && iseven(d) "d must be at least 4 and even"
+  @req s >= 3 "s must be at least 3"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.dwarfed_product_polygons(d, s))
 end
 
 @doc raw"""
@@ -1384,9 +1445,9 @@ julia> vertices(S)
  [1, 2, 3]
 ```
 """
-function lecture_hall_simplex(d::Int) 
-    @req d>0 "dimension must be positive."
-    return Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
+function lecture_hall_simplex(d::Int)
+  @req d > 0 "dimension must be positive."
+  return Polyhedron{QQFieldElem}(Polymake.polytope.lecture_hall_simplex(d))
 end
 
 @doc raw"""
@@ -1410,7 +1471,12 @@ julia> vertices(Z)
  [-2, 0]
 ```
 """
-explicit_zonotope(zones::Matrix{<:Number}; rows_are_points::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.explicit_zonotope(Polymake.Matrix{Polymake.Rational}(zones); rows_are_points=rows_are_points)) 
+explicit_zonotope(zones::Matrix{<:Number}; rows_are_points::Bool=true) =
+  Polyhedron{QQFieldElem}(
+    Polymake.polytope.explicit_zonotope(
+      Polymake.Matrix{Polymake.Rational}(zones); rows_are_points=rows_are_points
+    ),
+  )
 
 @doc raw"""
     cyclic_caratheodory_polytope(d::Int, n::Int)
@@ -1434,10 +1500,10 @@ julia> vertices(C)
 ```
 """
 function cyclic_caratheodory_polytope(d::Int, n::Int)
-    @req d < n "Dimension d has to be smaller than number of points n."
-    @req d >= 2 "Dimension has to be greater or equal to 2."
-    @req iseven(d) "Dimension has to be even."
-    return polyhedron(Polymake.polytope.cyclic_caratheodory(d,n))
+  @req d < n "Dimension d has to be smaller than number of points n."
+  @req d >= 2 "Dimension has to be greater or equal to 2."
+  @req iseven(d) "Dimension has to be even."
+  return polyhedron(Polymake.polytope.cyclic_caratheodory(d, n))
 end
 
 @doc raw"""
@@ -1457,7 +1523,9 @@ julia> print_constraints(f)
 -x₃ ≦ 0
 ```
 """
-fractional_knapsack_polytope(b::AbstractVector{<:Base.Number}) = Polyhedron{QQFieldElem}(Polymake.polytope.fractional_knapsack(Vector(convert(Vector{Rational},b))))
+fractional_knapsack_polytope(b::AbstractVector{<:Base.Number}) = Polyhedron{QQFieldElem}(
+  Polymake.polytope.fractional_knapsack(Vector(convert(Vector{Rational}, b)))
+)
 
 @doc raw"""
     hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
@@ -1492,10 +1560,14 @@ x₃ ≦ 1
 x₁ ≦ 1
 ```
 """
-function hypersimplex(k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false) 
-    @req 0 < k < d "0 < k < d required"
-    opts = Dict{Symbol, Bool}(:no_vertices=>no_vertices, :no_facets=>no_facets, :no_vif=>no_vif)
-    return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k,d;opts...))
+function hypersimplex(
+  k::Int, d::Int; no_vertices::Bool=false, no_facets::Bool=false, no_vif::Bool=false
+)
+  @req 0 < k < d "0 < k < d required"
+  opts = Dict{Symbol,Bool}(
+    :no_vertices => no_vertices, :no_facets => no_facets, :no_vif => no_vif
+  )
+  return Polyhedron{QQFieldElem}(Polymake.polytope.hypersimplex(k, d; opts...))
 end
 
 @doc raw"""
@@ -1532,7 +1604,11 @@ julia> vertices(Z)
  [2, 1]
 ```
 """
-zonotope(M::Matrix{<:Number}; centered::Bool=true)  = Polyhedron{QQFieldElem}(Polymake.polytope.zonotope(Matrix{Polymake.Rational}(M), rows_are_points=false, centered=centered)) 
+zonotope(M::Matrix{<:Number}; centered::Bool=true) = Polyhedron{QQFieldElem}(
+  Polymake.polytope.zonotope(
+    Matrix{Polymake.Rational}(M); rows_are_points=false, centered=centered
+  ),
+)
 
 @doc raw"""
     goldfarb_cube(d::Int, e::Number, g::Number)
@@ -1566,11 +1642,11 @@ julia> vertices(c)
 ```
 """
 function goldfarb_cube(d::Int, e::Number, g::Number)
-    m = 8*sizeof(Int)-2
-    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
-    @req  e < 1//2 "e < 1/2"
-    @req g <= e/4 "g <= e/4"
-    return polyhedron(Polymake.polytope.goldfarb(d,e,g))
+  m = 8 * sizeof(Int) - 2
+  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req e < 1//2 "e < 1/2"
+  @req g <= e / 4 "g <= e/4"
+  return polyhedron(Polymake.polytope.goldfarb(d, e, g))
 end
 
 @doc raw"""
@@ -1601,12 +1677,12 @@ julia> vertices(c)
  [0, 0, 1]
 ```
 """
-function goldfarb_sit_cube(d::Int, eps::Number, delta::Number) 
-    m = 8*sizeof(Int)-2
-    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
-    @req  eps < 1//2 "eps < 1/2"
-    @req delta <= 1//2 "delta <= 1/2"
-    return polyhedron(Polymake.polytope.goldfarb_sit(d,eps,delta))
+function goldfarb_sit_cube(d::Int, eps::Number, delta::Number)
+  m = 8 * sizeof(Int) - 2
+  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req eps < 1//2 "eps < 1/2"
+  @req delta <= 1//2 "delta <= 1/2"
+  return polyhedron(Polymake.polytope.goldfarb_sit(d, eps, delta))
 end
 
 @doc raw"""
@@ -1635,9 +1711,9 @@ x₃ ≦ 1
 -2*x₁ - 2*x₂ + 5*x₃ ≦ 3
 ```
 """
-function hypertruncated_cube(d::Int, k::Number, lambda::Number) 
-    @req 1 < k < d "1 < k < d required"
-    return polyhedron(Polymake.polytope.hypertruncated_cube(d, k, lambda))
+function hypertruncated_cube(d::Int, k::Number, lambda::Number)
+  @req 1 < k < d "1 < k < d required"
+  return polyhedron(Polymake.polytope.hypertruncated_cube(d, k, lambda))
 end
 
 @doc raw"""
@@ -1669,7 +1745,8 @@ julia> nv(p)
 5
 ```
 """
-k_cyclic_polytope(n::Int, s::Vector) = Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n,s))
+k_cyclic_polytope(n::Int, s::Vector) =
+  Polyhedron{QQFieldElem}(Polymake.polytope.k_cyclic(n, s))
 
 @doc raw"""
     klee_minty_cube(d::Int, e::Number)
@@ -1692,10 +1769,10 @@ x₁ ≦ 1
 ```
 """
 function klee_minty_cube(d::Int, e::Number)
-    m = 8*sizeof(Int)-2
-    @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
-    @req e < 1/2 "e < 1/2 required"
-    return goldfarb_cube(d, e, 0)
+  m = 8 * sizeof(Int) - 2
+  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req e < 1 / 2 "e < 1/2 required"
+  return goldfarb_cube(d, e, 0)
 end
 
 @doc raw"""
@@ -1720,12 +1797,11 @@ julia> vertices(c)
  [1, 1//2, 1//2]
 ```
 """
-function max_GC_rank_polytope(d::Int) 
-    @req d >= 2 "dimension d >= 2 required"
-    @req d < sizeof(Int)*8-1 "dimension too high, number of inequalities would not fit into Int"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
+function max_GC_rank_polytope(d::Int)
+  @req d >= 2 "dimension d >= 2 required"
+  @req d < sizeof(Int) * 8 - 1 "dimension too high, number of inequalities would not fit into Int"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.max_gc_rank(d))
 end
-
 
 @doc raw"""
     n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
@@ -1744,10 +1820,9 @@ Polyhedron in ambient dimension 2
 ```
 """
 function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
-    @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
-    return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
+  @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
+  return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
 end
-
 
 @doc raw"""
     perles_nonrational_8_polytope()
@@ -1759,7 +1834,8 @@ Create an $8$-dimensional polytope without rational realizations due to Perles. 
 julia> perles_nonrational_8_polytope()
 Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
 """
-perles_nonrational_8_polytope() = polyhedron(Polymake.polytope.perles_irrational_8_polytope())
+perles_nonrational_8_polytope() =
+  polyhedron(Polymake.polytope.perles_irrational_8_polytope())
 
 @doc raw"""
     permutahedron(d::Int)
@@ -1782,9 +1858,9 @@ julia> vertices(p)
  [3, 2, 1]
 ```
 """
-function permutahedron(d::Int) 
-    @req d >= 1 "Dimension >= 2 required"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
+function permutahedron(d::Int)
+  @req d >= 1 "Dimension >= 2 required"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.permutahedron(d))
 end
 
 @doc raw"""
@@ -1818,8 +1894,8 @@ julia> f_vector(p)
 ```
 """
 function pitman_stanley_polytope(y::AbstractVector{<:RationalUnion})
-    @req length(y) >= 1 "length of input must be at least 1"
-    return polyhedron(Polymake.polytope.pitman_stanley(y))
+  @req length(y) >= 1 "length of input must be at least 1"
+  return polyhedron(Polymake.polytope.pitman_stanley(y))
 end
 pitman_stanley_polytope(y::AbstractVector{<:IntegerUnion}) = pitman_stanley_polytope(QQ.(y))
 
@@ -1843,8 +1919,8 @@ julia> f_vector(DP)
 ```
 """
 function pseudo_del_pezzo_polytope(d::Int)
-    @req d >= 1 "Dimension >= 1 required"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.pseudo_delpezzo(d))
+  @req d >= 1 "Dimension >= 1 required"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.pseudo_delpezzo(d))
 end
 
 @doc raw"""
@@ -1868,16 +1944,17 @@ julia> vertices(s)
  [0, 1]
 ```
 """
-function rand01_polytope(d::Int, n::Int; seed::Union{Nothing, Int}=nothing)
-    @req 2 <= d < n <= 2^d "2 <= dim < #vertices <= 2^dim required"
-    # creating the Optionset, the :template_parameters are for templating functions in C++
-    if isnothing(seed)
-        pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
-    else
-        seed = convert(Int64, seed)
-        pm_obj = Polymake.call_function(:polytope, :rand01, d, n; :seed => seed)::Polymake.BigObject
-    end
-    return Polyhedron{QQFieldElem}(pm_obj)
+function rand01_polytope(d::Int, n::Int; seed::Union{Nothing,Int}=nothing)
+  @req 2 <= d < n <= 2^d "2 <= dim < #vertices <= 2^dim required"
+  # creating the Optionset, the :template_parameters are for templating functions in C++
+  if isnothing(seed)
+    pm_obj = Polymake.call_function(:polytope, :rand01, d, n)::Polymake.BigObject
+  else
+    seed = convert(Int64, seed)
+    pm_obj =
+      Polymake.call_function(:polytope, :rand01, d, n; :seed => seed)::Polymake.BigObject
+  end
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
@@ -1907,15 +1984,16 @@ julia> vertices(r)
 ```
 """
 function rand_box_polytope(d::Int, n::Int, b::Int; seed=nothing)
-    @req 1 <= d && 1 <= n && 1 <= b "1 <= dim, #POINTS, b"
-    if isnothing(seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
-    else
-        seed = convert(Int64, seed)
-        opts = Dict{Symbol, Any}(:seed => seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b; opts...)::Polymake.BigObject
-    end
-    return Polyhedron{QQFieldElem}(pm_obj)
+  @req 1 <= d && 1 <= n && 1 <= b "1 <= dim, #POINTS, b"
+  if isnothing(seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_box, d, n, b)::Polymake.BigObject
+  else
+    seed = convert(Int64, seed)
+    opts = Dict{Symbol,Any}(:seed => seed)
+    pm_obj =
+      Polymake.call_function(:polytope, :rand_box, d, n, b; opts...)::Polymake.BigObject
+  end
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
@@ -1940,15 +2018,16 @@ julia> f_vector(r)
 ```
 """
 function rand_cyclic_polytope(d::Int, n::Int; seed=nothing)
-    @req 2 <= d <= n-2 "need d >= 2 and n >= d+2"
-    if isnothing(seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
-    else
-        seed = convert(Int64, seed)
-        opts = Dict{Symbol, Int}(:seed => seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n; opts...)::Polymake.BigObject
-    end
-    return Polyhedron{QQFieldElem}(pm_obj)
+  @req 2 <= d <= n - 2 "need d >= 2 and n >= d+2"
+  if isnothing(seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_cyclic, d, n)::Polymake.BigObject
+  else
+    seed = convert(Int64, seed)
+    opts = Dict{Symbol,Int}(:seed => seed)
+    pm_obj =
+      Polymake.call_function(:polytope, :rand_cyclic, d, n; opts...)::Polymake.BigObject
+  end
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
@@ -1967,14 +2046,14 @@ julia> rand_metric(3, seed=132)
 ```
 """
 function rand_metric(n::Int; seed=nothing)
-    if isnothing(seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
-    else
-        seed = convert(Int64, seed)
-        opts = Dict{Symbol, Int}(:seed => seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
-    end
-    return matrix(QQ, pm_obj)
+  if isnothing(seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_metric, n)
+  else
+    seed = convert(Int64, seed)
+    opts = Dict{Symbol,Int}(:seed => seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_metric, n; opts...)
+  end
+  return matrix(QQ, pm_obj)
 end
 
 @doc raw"""
@@ -1985,14 +2064,14 @@ The values are uniformily distributed in $\[1,2\]$. The distances are integers a
 $[10^digits, 10^(digits+1)[$.
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)
-    if isnothing(seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
-    else
-        seed = convert(Int64, seed)
-        opts = Dict{Symbol, Int}(:seed => seed)
-        pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits; opts...)
-    end
-    return matrix(ZZ, pm_obj)
+  if isnothing(seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits)
+  else
+    seed = convert(Int64, seed)
+    opts = Dict{Symbol,Int}(:seed => seed)
+    pm_obj = Polymake.call_function(:polytope, :rand_metric_int, n, digits; opts...)
+  end
+  return matrix(ZZ, pm_obj)
 end
 @doc raw"""
 
@@ -2022,18 +2101,19 @@ julia> sort(map(x->dot(x,x), vertices(rnp)))
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
-    @req  (2 <= d < n) "2 <= dim < #vertices"
-    opts = Dict{Symbol, Any}()
-    if !isnothing(seed)
-        seed = convert(Int64, seed)
-        opts[:seed] = seed
-    end
-    if !isnothing(precision)
-        precision = convert(Int64, precision)
-        opts[:precision] = precision
-    end
-    pm_obj = Polymake.call_function(:polytope, :rand_normal, d, n; opts...)::Polymake.BigObject
-    return Polyhedron{QQFieldElem}(pm_obj)
+  @req (2 <= d < n) "2 <= dim < #vertices"
+  opts = Dict{Symbol,Any}()
+  if !isnothing(seed)
+    seed = convert(Int64, seed)
+    opts[:seed] = seed
+  end
+  if !isnothing(precision)
+    precision = convert(Int64, precision)
+    opts[:precision] = precision
+  end
+  pm_obj =
+    Polymake.call_function(:polytope, :rand_normal, d, n; opts...)::Polymake.BigObject
+  return Polyhedron{QQFieldElem}(pm_obj)
 end
 
 @doc raw"""
@@ -2078,8 +2158,8 @@ x₄ - x₅ ≦ -1
 ```
 """
 function rss_associahedron(n::Int)
-    @req n >= 2 "n must be at least 2."
-    return Polyhedron{QQFieldElem}(Polymake.polytope.rss_associahedron(n))
+  @req n >= 2 "n must be at least 2."
+  return Polyhedron{QQFieldElem}(Polymake.polytope.rss_associahedron(n))
 end
 
 @doc raw"""
@@ -2108,9 +2188,9 @@ julia> vertices(P)
 ```
 """
 function signed_permutahedron(d::Int)
-    @req d >= 1 "dimension >= 2 required"
-    @req d <= 8*sizeof(Int)-1 "dimension too high"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.signed_permutahedron(d))
+  @req d >= 1 "dimension >= 2 required"
+  @req d <= 8 * sizeof(Int) - 1 "dimension too high"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.signed_permutahedron(d))
 end
 
 @doc raw"""
@@ -2165,7 +2245,9 @@ julia> vertices(S)
  [0, 0, 0]
 ```
 """
-stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(Polymake.polytope.stable_set(Polymake.graph.Graph(ADJACENCY=pm_object(G))))
+stable_set_polytope(G::Graph{Undirected}) = Polyhedron{QQFieldElem}(
+  Polymake.polytope.stable_set(Polymake.graph.Graph(; ADJACENCY=pm_object(G)))
+)
 
 @doc raw"""
     transportation_polytope(r::AbstractVector, c::AbstractVector) 
@@ -2193,9 +2275,9 @@ julia> is_bounded(t)
 true
 ```
 """
-function transportation_polytope(r::AbstractVector, c::AbstractVector) 
-    @req sum(r) == sum(c) "sum of entries of r and c must be equal"
-    return Polyhedron{QQFieldElem}(Polymake.polytope.transportation(r,c))
+function transportation_polytope(r::AbstractVector, c::AbstractVector)
+  @req sum(r) == sum(c) "sum of entries of r and c must be equal"
+  return Polyhedron{QQFieldElem}(Polymake.polytope.transportation(r, c))
 end
 
 @doc raw"""
@@ -2215,10 +2297,12 @@ pm::Matrix<pm::Rational>
 1 1 1/2
 ```
 """
-function zonotope_vertices_fukuda_matrix(M::Union{MatElem, AbstractMatrix})
+function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
   A = M
-  if eltype(M) <: Union{Integer, ZZRingElem}
+  if eltype(M) <: Union{Integer,ZZRingElem}
     A = Polymake.Matrix{Polymake.Rational}(convert(Polymake.PolymakeType, M))
   end
-  return Oscar.dehomogenize(Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A,1)))
+  return Oscar.dehomogenize(
+    Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A, 1))
+  )
 end
