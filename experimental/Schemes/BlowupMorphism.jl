@@ -178,17 +178,17 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
 
     # We have the following diagram:
     #             inc_dom
-    #     Z_trans    ↪     X   ⊃ U_amb ⊃ U
+    #     Z_trans    ↪     Y   ⊃ U_amb ⊃ U
     #
     #  pr_res↓             ↓ p           ↓ p_iso
-    #        Z       ↪     Y   ⊃ V_amb ⊃ V
+    #        Z       ↪     X   ⊃ V_amb ⊃ V
     #             inc_cod
     #
     # Given all the refinements that potentially had to be done, we have 
     # to do the following.
     #  1. Find a `patch` `U_sub` of the `domain` of `inc_dom_cov` for which 
     #    inc_dom : U_sub -> W has a codomain `W` which has `U_amb` as an 
-    #    ancestor. Since `U_amb` is one of the `affine_charts` of `X`, this will work. 
+    #    ancestor. Since `U_amb` is one of the `affine_charts` of `Y`, this will work. 
 
     k = findfirst(x->has_ancestor(y->y===U_amb, codomain(inc_dom_cov[x])), patches(domain(inc_dom_cov)))
     U_sub = patches(domain(inc_dom_cov))[k]
