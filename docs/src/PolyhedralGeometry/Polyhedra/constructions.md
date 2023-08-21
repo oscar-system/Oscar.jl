@@ -136,19 +136,52 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
+SIM_body_polytope
+associahedron
 billera_lee_polytope
+binary_markov_graph_polytope
 birkhoff_polytope
+cyclic_caratheodory_polytope
 cyclic_polytope
 del_pezzo_polytope
+dwarfed_cube
+dwarfed_product_polygons
+explicit_zonotope
 fano_simplex
 fractional_cut_polytope
+fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+goldfarb_cube
+goldfarb_sit_cube
+hypersimplex
+hypertruncated_cube
+k_cyclic_polytope
+klee_minty_cube
+lecture_hall_simplex
+max_GC_rank_polytope
+n_gon
 newton_polytope
 orbit_polytope
+permutahedron
+pile_polytope
+pitman_stanley_polytope
 perles_nonrational_8_polytope
+pseudo_del_pezzo_polytope
+rand01_polytope
+rand_box_polytope
+rand_cyclic_polytope
+rand_metric
+rand_metric_int
+rand_normal_polytope
 rand_spherical_polytope
 rand_subpolytope
+rss_associahedron
+signed_permutahedron
+stable_set_polytope
+transportation_polytope
+zonotope
+zonotope_vertices_fukuda_matrix
 ```
 
 ## Operations on polyhedra

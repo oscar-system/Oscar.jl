@@ -407,7 +407,7 @@ end
 ########################################################################
 # Maps of SpecOpenRings                                                #
 ########################################################################
-function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
+function is_identity_map(f::Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
   domain(f) === codomain(f) || return false
   R = ambient_coordinate_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))

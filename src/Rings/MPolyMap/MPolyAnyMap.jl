@@ -35,7 +35,7 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
     D <: _DomainTypes,
     C <: NCRing,
     U,
-    V} <: Map{D, C, Hecke.Hecke.Map, MPolyAnyMap}
+    V} <: Map{D, C, Map, MPolyAnyMap}
 
   domain::D
   codomain::C

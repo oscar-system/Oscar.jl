@@ -256,7 +256,228 @@ for f in (QQ, ENF)
                 @test is_simplicial(rsph_prec)
                 @test nvertices(rsph_prec) == 20
                 @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec-1))
+                
+                @test_throws ArgumentError SIM_body_polytope([])
+                @test_throws ArgumentError SIM_body_polytope([1,2,3])
+                let sim = SIM_body_polytope([3,2,1])
+                    @test sim isa Polyhedron{T} 
+                    @test size(Oscar.pm_object(sim).INEQUALITIES,1) == 16
+                end
 
+                let a = associahedron(4)
+                    @test a isa Polyhedron{T}
+                    @test dim(a) == 4
+                    @test nfacets(a) == 14
+                end
+
+                let bmg = binary_markov_graph_polytope([0,1,0,0,1])
+                    @test bmg isa Polyhedron{T}
+                    @test ambient_dim(bmg) == 2
+                    adj = Oscar.pm_object(bmg).SUM_PRODUCT_GRAPH.ADJACENCY
+                    @test Polymake.nv(adj) == 12
+                end
+
+                @test_throws ArgumentError dwarfed_cube(1)
+                let dc = dwarfed_cube(3)
+                    @test dc isa Polyhedron{T}
+                    @test dim(dc) == 3
+                    @test nfacets(dc) == 7
+                end
+
+                @test_throws ArgumentError dwarfed_product_polygons(3,2)
+                @test_throws ArgumentError dwarfed_product_polygons(4,2)
+                let dpp = dwarfed_product_polygons(4,5) 
+                    @test dpp isa Polyhedron{T}
+                    @test is_bounded(dpp)
+                end
+
+                @test_throws ArgumentError lecture_hall_simplex(-1)
+                let lhs = lecture_hall_simplex(4)
+                    @test lhs isa Polyhedron{T}
+                    @test is_bounded(lhs)
+                    @test nvertices(lhs) == 5
+                end
+
+                let ez = explicit_zonotope([1 2 3; 4 5 6])
+                    @test ez isa Polyhedron{T}
+                    @test size(Oscar.pm_object(ez).POINTS,1) == 4
+                end
+                
+                @test_throws ArgumentError cyclic_caratheodory_polytope(1,1)
+                @test_throws ArgumentError cyclic_caratheodory_polytope(2,1)
+                let ccp = cyclic_caratheodory_polytope(2,3)
+                    @test ccp isa Polyhedron{T}
+                    @test is_bounded(ccp)
+                    @test nvertices(ccp) == 3
+                end
+
+                let fkp = fractional_knapsack_polytope([-1, -1, 2])
+                    @test fkp isa Polyhedron{T} 
+                    @test is_bounded(fkp)
+                    @test size(Oscar.pm_object(fkp).INEQUALITIES,1) == 4
+                end
+
+                @test_throws ArgumentError hypersimplex(5,3)
+                let hs = hypersimplex(3,5)
+                    @test hs isa Polyhedron{T}
+                    @test is_bounded(hs)
+                    @test nvertices(hs) == 10 
+                    @test length(facets(hs)) == 10
+                end
+
+                @test zonotope([0 0 1; 2 2 2; 1 0 2]) isa Polyhedron{T}
+
+                @test_throws ArgumentError goldfarb_cube(0,0,0)
+                @test_throws ArgumentError goldfarb_cube(3,1,0)
+                @test_throws ArgumentError goldfarb_cube(3,1//4,1//8)
+                let goldfarb = goldfarb_cube(3,1//4,0) # fuer zuweisungen 
+                    @test goldfarb isa Polyhedron{T}
+                    @test ambient_dim(goldfarb) == 3
+                    @test size(Oscar.pm_object(goldfarb).INEQUALITIES,1) == 7 #nur falls oscar danach nicht fragen kann
+                end
+
+                @test_throws ArgumentError goldfarb_sit_cube(0,0,0)
+                @test_throws ArgumentError goldfarb_sit_cube(3,1,0)
+                @test_throws ArgumentError goldfarb_sit_cube(3,1//4,5//8)
+                let gsc = goldfarb_sit_cube(3,1//4,0)
+                    @test gsc isa Polyhedron{T}
+                    @test ambient_dim(gsc) == 3
+                    @test size(Oscar.pm_object(gsc).INEQUALITIES,1) == 7
+                end
+
+                @test_throws ArgumentError hypertruncated_cube(3,5,0)
+                let htc = hypertruncated_cube(3,3//2, 3//4)
+                    @test htc isa Polyhedron{T} 
+                    @test is_bounded(htc)
+                    @test size(Oscar.pm_object(htc).INEQUALITIES,1) == 13
+                end
+
+                let kcp = k_cyclic_polytope(8,[1,2])
+                    @test kcp isa Polyhedron{T}
+                    @test nvertices(kcp) == 8
+                end
+
+                @test_throws ArgumentError klee_minty_cube(0,0)
+                @test_throws ArgumentError klee_minty_cube(3,1)
+                let kmc = klee_minty_cube(4,1//32)
+                    @test kmc isa Polyhedron{T}
+                    @test is_bounded(kmc)
+                    @test size(Oscar.pm_object(kmc).INEQUALITIES,1) == 9
+                end
+
+                @test_throws ArgumentError max_GC_rank_polytope(1)
+                @test_throws ArgumentError max_GC_rank_polytope(100000)
+                let gc = max_GC_rank_polytope(4) 
+                    @test gc isa Polyhedron{T}
+                    @test ambient_dim(gc) == 4
+                    @test is_bounded(gc)
+                end
+
+                @test_throws ArgumentError n_gon(2)
+                let gon = n_gon(4,r=2)
+                    @test gon isa Polyhedron{T}
+                    @test length(vertices(gon)[1]) == 2
+                    @test nvertices(gon) == 4
+                end
+
+                @test_throws ArgumentError permutahedron(-1)
+                let perm = permutahedron(3) 
+                    @test perm isa Polyhedron{T}
+                    @test length(vertices(perm)[1])==4
+                    @test dim(perm) == 3
+                end
+
+                let pile = pile_polytope([2,2])
+                    @test pile isa Polyhedron{T}
+                    @test ambient_dim(pile) == 3
+                    @test nvertices(pile) == 9
+                end
+
+                @test_throws ArgumentError pitman_stanley_polytope(Vector{Rational}([]))
+                let psp = pitman_stanley_polytope([2,4,2])
+                    @test psp isa Polyhedron{T}
+                    @test ambient_dim(psp) == 3
+                    @test size(Oscar.pm_object(psp).INEQUALITIES,1) == 6
+                end
+
+                @test_throws ArgumentError pseudo_del_pezzo_polytope(0)
+                let pdp = pseudo_del_pezzo_polytope(2) 
+                    @test pdp isa Polyhedron{T}
+                    @test is_bounded(pdp)
+                    @test dim(pdp) == 2
+                end
+
+                @test_throws ArgumentError rand01_polytope(1,1) 
+                @test rand01_polytope(2,4) isa Polyhedron{T}
+                let r_01_p = rand01_polytope(2,4; seed = 47)
+                    @test r_01_p isa Polyhedron{T}
+                    @test nvertices(r_01_p) == 4
+                end
+
+                @test_throws ArgumentError rand_box_polytope(1,0,1)
+                let rbox = rand_box_polytope(3,8,1)
+                    @test rbox isa Polyhedron{T}
+                    @test ambient_dim(rbox) == 3
+                    @test size(Oscar.pm_object(rbox).POINTS,1) == 8
+                end
+                let rbox = rand_box_polytope(3,4,1; seed = 456)
+                    @test rbox isa Polyhedron{T}
+                    @test sum(Oscar.pm_object(rbox).POINTS)==6
+                end
+
+                let rmetric = rand_metric(3, seed = 213)
+                    @test rmetric isa QQMatrix
+                end
+
+                let rmetricint = rand_metric_int(3, 2, seed = 213)
+                    @test rmetricint isa ZZMatrix
+                end
+
+                let rnorm = rand_normal_polytope(3, 4, seed = 213)
+                    @test rnorm isa Polyhedron{T}
+                    @test isbounded(rnorm) 
+                    @test size(Oscar.pm_object(rnorm).POINTS, 1) == 4
+                end
+
+                @test_throws ArgumentError rand_cyclic_polytope(2,3)
+                @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
+                let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
+                    @test rcyc isa Polyhedron{T}
+                    @test nvertices(rcyc) == 8
+                end
+
+                #3 more rand testset
+
+                @test_throws ArgumentError rss_associahedron(1)
+                let rss = rss_associahedron(3)
+                    @test rss isa Polyhedron{T}
+                    @test typeof(facets(rss)[1]) == AffineHalfspace{T}
+                    @test ambient_dim(rss) == 3
+                end
+
+                @test_throws ArgumentError signed_permutahedron(0)
+                @test_throws ArgumentError signed_permutahedron(100000)
+                let sph = signed_permutahedron(3) 
+                    @test sph isa Polyhedron{T}
+                    @test nvertices(sph) == 48
+                    @test is_bounded(sph)
+                end
+
+                let G = complete_graph(3)
+                    ssp = stable_set_polytope(G)
+                    @test ssp isa Polyhedron{T}
+                    @test is_bounded(ssp)
+                    @test size(Oscar.pm_object(ssp).INEQUALITIES,1) == 7
+                end
+
+                @test_throws ArgumentError transportation_polytope([2,3,1],[4,5,3])
+                let tp = transportation_polytope([2,3,1],[4,0,2])
+                    @test tp isa Polyhedron{T}
+                    @test ambient_dim(tp) == 9
+                    @test size(Oscar.pm_object(tp).EQUATIONS,1) == 6
+                end
+
+                @test sum(zonotope_vertices_fukuda_matrix([4 4 2; 2 4 1])) == 0
             end
 
         end

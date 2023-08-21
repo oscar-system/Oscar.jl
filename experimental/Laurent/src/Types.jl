@@ -1,7 +1,7 @@
 import .AbstractAlgebra.Generic: LaurentMPolyWrapRing, LaurentMPolyWrap
 import .AbstractAlgebra: LaurentMPolyRing, LaurentMPolyRingElem
 
-@attributes mutable struct LaurentMPolyAnyMap{D, C} <: Map{D, C, Hecke.Hecke.Map, LaurentMPolyAnyMap}
+@attributes mutable struct LaurentMPolyAnyMap{D, C} <: Map{D, C, Map, LaurentMPolyAnyMap}
   R::D
   S::C
   image_of_gens

@@ -593,7 +593,7 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
 
   if ambient_representation
     f_ambient = f
-    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check=check)
+    Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
     B = basis_matrix(L)
     ok, f = can_solve_with_solution(B, B*f_ambient; side = :left)
     @req ok "Isometry does not restrict to L"
@@ -602,9 +602,9 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     C = vcat(B, B2)
-    f_ambient = block_diagonal_matrix([f, identity_matrix(QQ, nrows(B2))])
+    f_ambient = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
     f_ambient = inv(C)*f_ambient*C
-    Vf = quadratic_space_with_isometry(V, f_ambient; check=check)
+    Vf = quadratic_space_with_isometry(V, f_ambient; check)
   end
 
   n = multiplicative_order(f)
@@ -729,7 +729,7 @@ Integer lattice of rank 3 and degree 5
 ```
 """
 function lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion}; isbasis::Bool = true, check::Bool = true)
-  L = lattice(space(Vf), B; isbasis=isbasis, check=check)
+  L = lattice(space(Vf), B; isbasis, check)
   ok, fB = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*isometry(Vf); side = :left)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   @req ok "The lattice defined by B is not preserved under the action of the isometry of Vf"
@@ -781,7 +781,7 @@ true
 function lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem; check::Bool = true)
   @req !check || (rank(B) == nrows(B)) "The rows of B must define a free system of vectors"
   Vf = ambient_space(L)
-  return lattice(Vf, B; check = check)
+  return lattice(Vf, B; check)
 end
 
 ###############################################################################
@@ -844,7 +844,7 @@ with gram matrix
 ```
 """
 function rescale(Lf::ZZLatWithIsom, a::RationalUnion)
-  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check=false)
+  return lattice(rescale(ambient_space(Lf), a), basis_matrix(Lf); check = false)
 end
 
 @doc raw"""
@@ -885,7 +885,7 @@ Integer lattice of rank 5 and degree 5
 ```
 """
 function Base.:^(Lf::ZZLatWithIsom, n::Int)
-  return lattice(ambient_space(Lf)^n, basis_matrix(Lf))
+  return lattice(ambient_space(Lf)^n, basis_matrix(Lf); check = false)
 end
 
 @doc raw"""
@@ -980,11 +980,11 @@ true
 ```
 """
 function lll(Lf::ZZLatWithIsom; same_ambient::Bool = true)
-  L2 = lll(lattice(Lf); same_ambient = same_ambient)
+  L2 = lll(lattice(Lf); same_ambient)
   if same_ambient
-    return lattice_in_same_ambient_space(Lf, basis_matrix(L2); check=false)
+    return lattice_in_same_ambient_space(Lf, basis_matrix(L2); check = false)
   else
-    return integer_lattice_with_isometry(L2, isometry(Lf); check=false, ambient_representation=false)
+    return integer_lattice_with_isometry(L2, isometry(Lf); check = false, ambient_representation = false)
   end
 end
 
@@ -1075,8 +1075,8 @@ Integer lattice of rank 10 and degree 10
 """
 function direct_sum(x::Vector{ZZLatWithIsom})
   Vf, inj = direct_sum(ambient_space.(x))
-  Bs = diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs; check=false), inj
+  Bs = block_diagonal_matrix(basis_matrix.(x))
+  return lattice(Vf, Bs; check = false), inj
 end
 
 direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
@@ -1168,7 +1168,7 @@ Integer lattice of rank 10 and degree 10
 """
 function direct_product(x::Vector{ZZLatWithIsom})
   Vf, proj = direct_product(ambient_space.(x))
-  Bs = diagonal_matrix(basis_matrix.(x))
+  Bs = block_diagonal_matrix(basis_matrix.(x))
   return lattice(Vf, Bs; check=false), proj
 end
 
@@ -1290,7 +1290,7 @@ julia> matrix(compose(inj[1], proj[2]))
 """
 function biproduct(x::Vector{ZZLatWithIsom})
   Vf, inj, proj = biproduct(ambient_space.(x))
-  Bs = diagonal_matrix(basis_matrix.(x))
+  Bs = block_diagonal_matrix(basis_matrix.(x))
   return lattice(Vf, Bs; check=false), inj, proj
 end
 
@@ -1483,12 +1483,14 @@ function discriminant_group(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
-  Oq = orthogonal_group(q)
-  return (q, Oq(gens(matrix_group(f))[1]; check = false))::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
+  f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
+  f = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
+  return (q, f)::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
 end
 
 @doc raw"""
-    image_centralizer_in_Oq(Lf::ZZLatWithIsom) -> AutomorphismGroup{TorQuadModule}
+    image_centralizer_in_Oq(Lf::ZZLatWithIsom) -> AutomorphismGroup{TorQuadModule},
+                                                  GAPGroupHomomorphism
 
 Given an integral lattice with isometry $(L, f)$, return the image $G_L$ in
 $O(q_L, \bar{f})$ of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$
@@ -1503,20 +1505,23 @@ julia> f = matrix(QQ, 2, 2, [1 1; 0 -1]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> G = image_centralizer_in_Oq(Lf)
+julia> G, _ = image_centralizer_in_Oq(Lf)
+(Group of isometries of Finite quadratic module: Z/3 -> Q/2Z generated by 2 elements, Group homomorphism from
 Group of isometries of Finite quadratic module: Z/3 -> Q/2Z generated by 2 elements
+to
+Group of isometries of Finite quadratic module: Z/3 -> Q/2Z generated by 1 elements)
 
 julia> order(G)
 2
 ```
 """
-@attr AutomorphismGroup{TorQuadModule} function image_centralizer_in_Oq(Lf::ZZLatWithIsom)
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_centralizer_in_Oq(Lf::ZZLatWithIsom)
   @req is_integral(Lf) "Underlying lattice must be integral"
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = ambient_isometry(Lf)
   if (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
-    GL, _ = image_in_Oq(L)
+    return image_in_Oq(L)
   elseif is_definite(L) 
     OL = orthogonal_group(L)
     f = OL(f)
@@ -1524,18 +1529,20 @@ julia> order(G)
     qL = discriminant_group(L)
     UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)])) for g in UL]
     unique!(UL)
-    GL = Oscar._orthogonal_group(qL, UL; check = false)
+    OqL = orthogonal_group(qL)
+    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
+    return sub(OqL, UL)
   elseif rank(L) == euler_phi(n)
     qL = discriminant_group(L)
     UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(-lift(t)) for t in gens(qL)]))]
-    unique!(UL)
-    GL = Oscar._orthogonal_group(qL, UL; check = false)
+    OqL = orthogonal_group(qL)
+    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
+    return sub(OqL, UL)
   else
     @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
     dets = Oscar._local_determinants_morphism(Lf)
-    GL, _ = kernel(dets)
+    return kernel(dets)
   end
-  return GL::AutomorphismGroup{TorQuadModule}
 end
 
 ###############################################################################
@@ -1544,23 +1551,21 @@ end
 #
 ###############################################################################
 
-function _real_kernel_signatures(L::ZZLat, M) 
+function _real_kernel_signatures(L::ZZLat, M::MatElem)
   C = base_ring(M)
-  bL = basis_matrix(L)
-  GL = gram_matrix(ambient_space(L))
-  bLC = change_base_ring(C, bL)
-  GLC = change_base_ring(C, GL)
-  k, KC = left_kernel(M)
-  newGC = KC*bLC*GLC*transpose(KC*bLC)
+  G = gram_matrix(L)
+  G = change_base_ring(C, G)
+  _, K = left_kernel(M)
+  diag = K*G*transpose(K)
 
-  newGC = Hecke._gram_schmidt(newGC, C)[1]
-  diagC = diagonal(newGC)
+  diag = Hecke._gram_schmidt(diag, C)[1]
+  diag = diagonal(diag)
 
-  @hassert :ZZLatWithIsom 1 all(z -> isreal(z), diagC)
-  @hassert :ZZLatWithIsom 1 all(z -> !iszero(z), diagC)
+  @hassert :ZZLatWithIsom 1 all(z -> isreal(z), diag)
+  @hassert :ZZLatWithIsom 1 all(z -> !iszero(z), diag)
 
-  k1 = count(z -> z > 0, diagC)
-  k2 = length(diagC) - k1
+  k1 = count(z -> z > 0, diag)
+  k2 = length(diag) - k1
 
   return k1, k2
 end
@@ -1605,11 +1610,11 @@ function signatures(Lf::ZZLatWithIsom)
   eig = eigenvalues(f, QQBar)
   j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
   lambda = C(eig[j])
-  Sq = [i for i in 1:div(n,2) if gcd(i,n) == 1]
-  D = Dict{Integer, Tuple{Int64, Int64}}()
-  fC = change_base_ring(C, f)
+  Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
+  D = Dict{Integer, Tuple{Int, Int}}()
+  f = change_base_ring(C, f)
   for i in Sq
-    M = fC + inv(fC) - lambda^i - lambda^(-i)
+    M = f + inv(f) - lambda^i - lambda^(-i)
     D[i] = _real_kernel_signatures(L, M)
   end
   return D
@@ -1777,7 +1782,7 @@ with gram matrix
 ```
 """
 function invariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  return invariant_lattice(L, matrix.(gens(G)); ambient_representation = ambient_representation)
+  return invariant_lattice(L, matrix.(gens(G)); ambient_representation)
 end
 
 @doc raw"""
@@ -1816,7 +1821,9 @@ function coinvariant_lattice(Lf::ZZLatWithIsom)
   if chi(1) == 0
     R = parent(chi)
     x = gen(R)
-    chi = divexact(chi, x-1)
+    while chi(1) == 0
+      chi = divexact(chi, x-1)
+    end
   end
   return kernel_lattice(Lf, chi)
 end
@@ -1851,15 +1858,14 @@ true
 ```
 """
 function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  F = invariant_lattice(L, G; ambient_representation = ambient_representation)
+  F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
-      mL = matrix(g)
-      m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
-      mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
-      push!(gene, mC)
+      m = solve(basis_matrix(L), matrix(g)*basis_matrix(L))
+      m = solve_left(basis_matrix(C), basis_matrix(C)*m)
+      push!(gene, m)
     else
       push!(gene, matrix(g))
     end
@@ -1904,15 +1910,14 @@ with gram matrix
 ```
 """
 function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
-  F = invariant_lattice(L, G; ambient_representation = ambient_representation)
+  F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
-      mL = matrix(g)
-      m_amb = solve(basis_matrix(L), mL*basis_matrix(L))
-      mC = solve_left(basis_matrix(C), basis_matrix(C)*m_amb)
-      push!(gene, mC)
+      m = solve(basis_matrix(L), matrix(g)*basis_matrix(L))
+      m = solve_left(basis_matrix(C), basis_matrix(C)*m)
+      push!(gene, m)
     else
       push!(gene, matrix(g))
     end
@@ -1962,14 +1967,14 @@ true
   f = isometry(Lf)
   n = order_of_isometry(Lf)
   @req is_finite(n) "Isometry must be of finite order"
-  divs = divisors(n)
+  divs = sort!(divisors(n))
   Qx = Hecke.Globals.Qx
   x = gen(Qx)
   t = Dict{Integer, Tuple}()
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl); check=false, ambient_representation=false)
+      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
@@ -2007,8 +2012,8 @@ function is_of_type(L::ZZLatWithIsom, t::Dict)
   for l in divs
     Hl = kernel_lattice(L, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1, 1, 2])
-      t[l][1] isa Hecke.HermGenus || return false
-      Hl = Hecke.hermitian_structure(lattice(Hl), isometry(Hl); check=false, ambient_representation=false, E = base_field(t[l][1]))
+      t[l][1] isa HermGenus || return false
+      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
     end
     genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)
@@ -2078,7 +2083,7 @@ true
 function is_hermitian(t::Dict)
   ke = collect(keys(t))
   n = maximum(ke)
-  return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n])
+  return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, Int[i for i in ke if i != n])
 end
 
 ###############################################################################

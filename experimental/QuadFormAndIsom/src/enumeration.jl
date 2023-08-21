@@ -13,8 +13,7 @@
 
 # The tuples in output are pairs of positive integers!
 function _tuples_divisors(d::T) where T <: IntegerUnion
-  div = divisors(d)
-  return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in div]
+  return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in divisors(d)]
 end
 
 # This is line 8 of Algorithm 1, they correspond to the possible
@@ -32,12 +31,11 @@ function _find_D(d::T, m::Int, p::Int) where T <: IntegerUnion
   
   D = Tuple{T, T}[]
   # We try all the values of g possible, from 1 to p^m
-  for j in 0:m 
-    g = p^j
+  for g in powers(p, m)
     dj = _tuples_divisors(d*g^2)
-    for (d1,dp) in dj
+    for (d1, dp) in dj
       if mod(d1,g) == mod(dp,g) == 0
-        push!(D,(d1,dp))
+        push!(D, (d1, dp))
       end
     end
   end
@@ -48,25 +46,27 @@ end
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
 function _find_L(pG::Int, nG::Int, r::Int, d::RationalUnion, s::ZZRingElem, l::ZZRingElem, p::IntegerUnion, even = true; pos::Int = -1)
-  L = ZZGenus[]
+  def = ZZGenus[genus(integer_lattice(; gram = matrix(QQ, 0, 0, [])))]
   if r == 0 && d == 1
-    return ZZGenus[genus(integer_lattice(gram = matrix(QQ, 0, 0, [])))]
+    return def
   end
   if pos >= 0
+    pos > pG && return def
     neg = r-pos
-    gen = integer_genera((pos, neg), d; even=even)
-    filter!(G -> divides(numerator(scale(G)), s)[1], gen)
-    filter!(G -> divides(p*l, numerator(level(G)))[1], gen)
-    append!(L, gen)
+    neg > nG && return def
+    gen = integer_genera((pos, neg), d; even)
+    filter!(G -> is_divisible_by(numerator(scale(G)), s), gen)
+    filter!(G -> is_divisible_by(p*l, numerator(level(G))), gen)
   else
-    for (s1,s2) in [(s,t) for s=0:pG for t=0:nG if s+t==r]
-      gen = integer_genera((s1,s2), d; even=even)
-      filter!(G -> divides(numerator(scale(G)), s)[1], gen)
-      filter!(G -> divides(p*l, numerator(level(G)))[1], gen)
-      append!(L, gen)
+    gen = ZZGenus[]
+    for (s1, s2) in Tuple{Int, Int}[(s,t) for s=0:pG for t=0:nG if s+t==r]
+      L = integer_genera((s1,s2), d; even)
+      filter!(G -> is_divisible_by(numerator(scale(G)), s), L)
+      filter!(G -> is_divisible_by(p*l, numerator(level(G))), L)
+      append!(gen, L)
     end
   end
-  return L
+  return gen
 end
 
 @doc raw"""
@@ -102,7 +102,7 @@ true
 ```
 """
 function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
-  zg = genus(integer_lattice(gram = matrix(QQ, 0, 0, [])))
+  zg = genus(integer_lattice(; gram = matrix(QQ, 0, 0, [])))
   AperpB = direct_sum(A, B)
   (signature_tuple(AperpB) == signature_tuple(C)) || (return false)
   if ((A == zg) && (B == C)) || ((B == zg) && (A == C))
@@ -113,7 +113,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
     return false
   end
 
-  @req divides(rank(B), p-1)[1] "p-1 must divide the rank of B"
+  @req is_divisible_by(rank(B), p-1) "p-1 must divide the rank of B"
 
   lA = ngens(discriminant_group(A))
   lB = ngens(discriminant_group(B))
@@ -122,8 +122,8 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   end
 
   # A+B and C must agree locally at every primes except p
-  for q in filter(qq -> qq != p, union([2], primes(AperpB), primes(C)))
-    if local_symbol(AperpB,q) != local_symbol(C,q)
+  for q in filter(qq -> qq != p, union!([2], primes(AperpB), primes(C)))
+    if local_symbol(AperpB, q) != local_symbol(C, q)
       return false
     end
   end
@@ -137,7 +137,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
     return false
   end
 
-  if !(divides(scale(AperpB), scale(C))[1] && divides(p*level(C), level(AperpB))[1])
+  if !is_divisible_by(scale(AperpB), scale(C)) || !is_divisible_by(p*level(C), level(AperpB))
     return false
   end
 
@@ -145,7 +145,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer)
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
-  if !divides(numerator(det(C)), p)[1]
+  if !is_divisible_by(numerator(det(C)), p)
     return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
   end
 
@@ -265,10 +265,10 @@ julia> admissible_triples(g, 2)
 8-element Vector{Tuple{ZZGenus, ZZGenus}}:
  (Genus symbol: II_(5, 0) 2^-1_3 3^1, Genus symbol: II_(0, 0))
  (Genus symbol: II_(4, 0) 2^2_6 3^1, Genus symbol: II_(1, 0) 2^1_1)
- (Genus symbol: II_(3, 0) 2^3_3, Genus symbol: II_(2, 0) 2^-2 3^1)
  (Genus symbol: II_(3, 0) 2^-3_1 3^1, Genus symbol: II_(2, 0) 2^2_2)
- (Genus symbol: II_(2, 0) 2^2_2, Genus symbol: II_(3, 0) 2^-3_1 3^1)
+ (Genus symbol: II_(3, 0) 2^3_3, Genus symbol: II_(2, 0) 2^-2 3^1)
  (Genus symbol: II_(2, 0) 2^-2 3^1, Genus symbol: II_(3, 0) 2^3_3)
+ (Genus symbol: II_(2, 0) 2^2_2, Genus symbol: II_(3, 0) 2^-3_1 3^1)
  (Genus symbol: II_(1, 0) 2^1_1, Genus symbol: II_(4, 0) 2^2_6 3^1)
  (Genus symbol: II_(0, 0), Genus symbol: II_(5, 0) 2^-1_3 3^1)
 ```
@@ -276,7 +276,9 @@ julia> admissible_triples(g, 2)
 function admissible_triples(G::ZZGenus, p::Integer; pA::Int = -1, pB::Int = -1)
   @req is_prime(p) "p must be a prime number"
   @req is_integral(G) "G must be a genus of integral lattices"
-  n = rank(G)
+  rG = rank(G)
+  sG = numerator(scale(G))
+  lG = numerator(level(G))
   pG, nG = signature_pair(G)
   if pA >= 0
     @req pA <= pG "Wrong restrictions"
@@ -289,24 +291,25 @@ function admissible_triples(G::ZZGenus, p::Integer; pA::Int = -1, pB::Int = -1)
     @req pB <= pG "Wrong restrictions"
     pA = pG - pB
   end
-  d = numerator(det(G))
+  dG = numerator(det(G))
   even = iseven(G)
   L = Tuple{ZZGenus, ZZGenus}[]
-  for ep in 0:div(n, p-1)
+  for ep in 0:div(rG, p-1)
     rp = (p-1)*ep
     if pB >= 0
       rp >= pB || continue
     end
-    r1 = n - rp
+    r1 = rG - rp
     if pA >= 0
       r1 >= pA || continue
     end
     m = min(ep, r1) 
-    D = _find_D(d, m, p)
-    for (d1, dp) in D
-      L1 = _find_L(pG, nG, r1, d1, numerator(scale(G)), numerator(level(G)), p, even; pos = pA)
-      Lp = _find_L(pG, nG, rp, dp, numerator(scale(G)), numerator(level(G)), p, even; pos = pB)
-      for (A, B) in [(A, B) for A in L1 for B in Lp]
+    D = _find_D(dG, m, p)
+    while !is_empty(D)
+      d1, dp = pop!(D)
+      L1 = _find_L(pG, nG, r1, d1, sG, lG, p, even; pos = pA)
+      Lp = _find_L(pG, nG, rp, dp, sG, lG, p, even; pos = pB)
+      for (A, B) in Hecke.cartesian_product_iterator([L1, Lp]; inplace = false)
         if is_admissible_triple(A, B, G, p)
           push!(L, (A, B))
         end
@@ -326,7 +329,7 @@ admissible_triples(L::T, p::Integer; pA::Int = -1, pB::Int = -1) where T <: Unio
 
 # we compute ideals of E/K whose absolute norm is equal to d
 
-function _ideals_of_norm(E, d::QQFieldElem)
+function _ideals_of_norm(E::Field, d::QQFieldElem)
   if denominator(d) == 1
     return _ideals_of_norm(E, numerator(d))
   elseif numerator(d) == 1
@@ -336,18 +339,18 @@ function _ideals_of_norm(E, d::QQFieldElem)
   end
 end
 
-function _ideals_of_norm(E, d::ZZRingElem)
-  isone(d) && return [fractional_ideal(maximal_order(E), one(E))]
+function _ideals_of_norm(E::Field, d::ZZRingElem)
+  OE = maximal_order(E)
+  isone(d) && return Hecke.fractional_ideal_type(OE)[fractional_ideal(OE, one(E))]
   @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
   K = base_field(E)
   OK = maximal_order(K)
-  OE = maximal_order(E)
   DE = different(OE)
   ids = Hecke.fractional_ideal_type(OE)[]
-  primes = Vector{typeof(1*OE)}[] 
+  primes = Vector{Hecke.ideal_type(OE)}[]
   for p in prime_divisors(d)
     v = valuation(d, p)
-    pd = [P[1] for P in prime_decomposition(OK, p)]
+    pd = Hecke.ideal_type(OK)[P[1] for P in prime_decomposition(OK, p)]
     for i in 1:length(pd)
       if !is_coprime(DE, ideal(OE, pd[i]))
         P = prime_decomposition(OE, pd[i])[1][1]
@@ -355,7 +358,7 @@ function _ideals_of_norm(E, d::ZZRingElem)
         P = ideal(OE, pd[i])
       end
       nv = valuation(norm(P), pd[i])
-      push!(primes, [P^e for e in 0:divrem(v, nv)[1]])
+      push!(primes, Hecke.ideal_type(OE)[P^e for e in 0:divrem(v, nv)[1]])
     end
   end
   for I in Hecke.cartesian_product_iterator(primes; inplace=false)
@@ -371,7 +374,7 @@ end
 # the possible signatures dictionnaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
 
-function _possible_signatures(s1, s2, E, rk)
+function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)
   @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
   ok, q = Hecke.is_cyclotomic_type(E)
   @hassert :ZZLatWithIsom 1 ok
@@ -449,8 +452,9 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     G = genus(Lf)
     repre = representatives(G)
     @vprintln :ZZLatWithIsom 1 "$(length(repre)) representative(s)"
-    for LL in repre
-      is_of_same_type(Lf, integer_lattice_with_isometry(LL, f^m; check=false)) && push!(reps, integer_lattice_with_isometry(LL, f; check=false))
+    while !is_empty(repre)
+      LL = pop!(repre)
+      is_of_same_type(integer_lattice_with_isometry(LL, f^m; check = false), Lf) && push!(reps, integer_lattice_with_isometry(LL, f; check = false))
     end
     return reps
   end
@@ -461,8 +465,8 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   ok, rk = divides(rk, euler_phi(n*m))
   ok || return reps
 
-  gene = Hecke.HermGenus[]
   E, b = cyclotomic_field_as_cm_extension(n*m)
+  gene = Hecke.genus_herm_type(E)[]
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
 
@@ -492,7 +496,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
       continue
     end
     @vprintln :ZZLatWithIsom 1 "$H"
-    M, fM = Hecke.trace_lattice_with_isometry(H)
+    M, fM = trace_lattice_with_isometry(H)
     det(M) == d || continue
     M = integer_lattice_with_isometry(M, fM)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(M)
@@ -500,7 +504,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     if is_even(M) != is_even(Lf)
       continue
     end
-    if !is_of_same_type(Lf, M^m)
+    if !is_of_same_type(M^m, Lf)
       continue
     end
     gr = genus_representatives(H)
@@ -535,8 +539,8 @@ true
 
 julia> reps = splitting_of_hermitian_prime_power(Lf, 2)
 2-element Vector{ZZLatWithIsom}:
- Integer lattice with isometry of finite order 3
  Integer lattice with isometry of finite order 6
+ Integer lattice with isometry of finite order 3
 
 julia> all(is_of_hermitian_type, reps)
 true
@@ -563,18 +567,17 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int; pA::Int =
   @vprintln :ZZLatWithIsom 1 "Compute admissible triples"
   atp = admissible_triples(Lf, p; pA, pB)
   @vprintln :ZZLatWithIsom 1 "$(length(atp)) admissible triple(s)"
-  for (A, B) in atp
+  while !is_empty(atp)
+    A, B = pop!(atp)
     LB = integer_lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^e)
-    if is_empty(RB)
-      continue
-    end
+    is_empty(RB) && continue
     LA = integer_lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^e)
+    is_empty(RA) && continue
     for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB]; inplace=false)
       E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
       append!(reps, E)
-      GC.gc()
     end
   end
   return reps
@@ -602,10 +605,10 @@ julia> Lf = integer_lattice_with_isometry(L);
 
 julia> splitting_of_prime_power(Lf, 2)
 4-element Vector{ZZLatWithIsom}:
+ Integer lattice with isometry of finite order 2
+ Integer lattice with isometry of finite order 2
+ Integer lattice with isometry of finite order 2
  Integer lattice with isometry of finite order 1
- Integer lattice with isometry of finite order 2
- Integer lattice with isometry of finite order 2
- Integer lattice with isometry of finite order 2
 
 julia> splitting_of_prime_power(Lf, 3, 1)
 1-element Vector{ZZLatWithIsom}:
@@ -640,12 +643,12 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
   A = splitting_of_hermitian_prime_power(A0, p)
   is_empty(A) && return reps
   B = splitting_of_prime_power(B0, p)
+  is_empty(B) && return reps
   for (L1, L2) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
-    b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
+    b == 1 && !is_divisible_by(order_of_isometry(L1), p) && !is_divisible_by(order_of_isometry(L2), p) && continue
     E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p)
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
-    GC.gc()
   end
   return reps
 end
@@ -686,7 +689,7 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
   phi = minimal_polynomial(Lf)
   chi = prod([cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e])
 
-  @req divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
+  @req is_divisible_by(chi, phi) "Minimal polynomial is not of the correct form"
 
   reps = ZZLatWithIsom[]
 
@@ -702,9 +705,9 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
   A = representatives_of_hermitian_type(A0, p)
   is_empty(A) && return reps
   B = splitting_of_pure_mixed_prime_power(B0, p)
+  is_empty(B) && return reps
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
     E = admissible_equivariant_primitive_extensions(LB, LA, Lf, q, p)
-    GC.gc()
     append!(reps, E)
   end
   return reps
@@ -791,12 +794,10 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
   A = splitting_of_pure_mixed_prime_power(A0, p)
   isempty(A) && return reps
   B = splitting_of_mixed_prime_power(B0, p, 0)
+  is_empty(B) && return reps
   for (LA, LB) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
     E = admissible_equivariant_primitive_extensions(LB, LA, Lf, p)
-    GC.gc()
-    if b == 1
-      filter!(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
-    end
+    b == 1 && filter!(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
     append!(reps, E)
   end
   return reps
@@ -831,7 +832,8 @@ function enumerate_classes_of_lattices_with_isometry(L::ZZLat, order::IntegerUni
   vq = valuation(order, q)
   Lq = _enumerate_prime_power(L, q, vq)
   reps = ZZLatWithIsom[]
-  for N in Lq
+  while !is_empty(Lq)
+    N = pop!(Lq)
     append!(reps, _split_prime_power(N, p, vp))
   end
   @hassert :ZZLatWithIsom 6 all(N -> order_of_isometry(N) == order, reps)
@@ -895,7 +897,7 @@ end
 #
 ###############################################################################
 
-function _get_isometry_prime_power!(D, L, p, j)
+function _get_isometry_prime_power!(D::Dict, L::ZZLat, p::IntegerUnion, j::IntegerUnion)
   if !haskey(D, p)
     Dp = splitting_of_prime_power(integer_lattice_with_isometry(L), p, 1)
     D[p] = Dp
@@ -915,7 +917,7 @@ function _get_isometry_prime_power!(D, L, p, j)
   return nothing
 end
 
-function _get_isometry_composite!(D, n)
+function _get_isometry_composite!(D::Dict, n::IntegerUnion)
   p, q = sort(prime_divisors(n))
   i, j = valuation(n, p), valuation(n, q)
   for k in 1:i
@@ -934,8 +936,8 @@ end
 function _test_isometry_enumeration(L::ZZLat, k::Int = 2*rank(L)^2)
   n = rank(L)
   ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:k)
-  pds = union(reduce(vcat, prime_divisors.(ord)))
-  vals = [maximum([valuation(x, p) for x in ord]) for p in pds]
+  pds = unique!(reduce(vcat, prime_divisors.(ord)))
+  vals = Int[maximum([valuation(x, p) for x in ord]) for p in pds]
   D = Dict{Int, Vector{ZZLatWithIsom}}()
   D[1] = ZZLatWithIsom[integer_lattice_with_isometry(L)]
   for i in 1:length(vals)

@@ -142,18 +142,30 @@ end
 end
 
 @testset "CycleType" begin
-  @testset "degree and order" begin
+  @testset "constructors" begin
+    @test Oscar.CycleType([1,2,3,2,3,2,2,2]) == Oscar.CycleType([1 => 1, 2 => 5, 3 => 2])
+#   @test_throws ArgumentError Oscar.CycleType([1 => 1, 1 => 1])
+#T should the input be checked?
+  end
+
+  @testset "degree, order, sign" begin
     g = cperm(1:3, 4:5, 6:7, 8:10, 11:15)
     c = cycle_structure(g)
     @test degree(g) == degree(c)
     @test order(g) == order(c)
     @test order(Int, g) == order(Int, c)
+    @test sign(g) == sign(c)
+    @test iseven(g) == iseven(c)
+    @test isodd(g) == isodd(c)
 
     for g in symmetric_group(6)
       c = cycle_structure(g)
       @test degree(g) == degree(c)
       @test order(g) == order(c)
       @test order(Int, g) == order(Int, c)
+      @test sign(g) == sign(c)
+      @test iseven(g) == iseven(c)
+      @test isodd(g) == isodd(c)
     end
   end
 end
