@@ -513,8 +513,8 @@ function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   f_res_inv = inverse(f_res)
   num = pullback(f_res_inv)(numerator(aa))
   den = pullback(f_res_inv)(denominator(aa))
-  bb = fraction(num)//fraction(den)
-  return function_field(Y)(bb)
+  #bb = fraction(num)//fraction(den)
+  return function_field(Y)(lifted_numerator(num)*lifted_denominator(den), lifted_numerator(den)*lifted_denominator(num))
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
