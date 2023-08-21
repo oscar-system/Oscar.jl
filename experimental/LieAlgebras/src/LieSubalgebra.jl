@@ -19,12 +19,12 @@
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     else
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
-      todo = copy(gens)
-      while !isempty(todo)
-        g = pop!(todo)
+      left = copy(gens)
+      while !isempty(left)
+        g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for i in 1:nrows(basis_matrix)
-          push!(todo, g * L(basis_matrix[i, :]))
+          push!(left, g * L(basis_matrix[i, :]))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)

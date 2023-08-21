@@ -92,7 +92,7 @@ end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
   if get(io, :supercompact, false)
-    print(io, type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
+    print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
     print(
@@ -113,11 +113,11 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
   elseif type == :special_orthogonal
     return "Special orthogonal Lie algebra of degree $n"
   else
-    return "Linear Lie algebra ⊆ gl_$n"
+    return "Linear Lie algebra with $(n)x$(n) matrices"
   end
 end
 
-function type_to_compact_string(type::Symbol, n::Int)
+function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
   if type == :general_linear
     return "gl_$n"
   elseif type == :special_linear
