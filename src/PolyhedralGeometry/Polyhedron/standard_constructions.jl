@@ -2199,19 +2199,26 @@ function transportation_polytope(r::AbstractVector, c::AbstractVector)
 end
 
 @doc raw"""
-    zonotope_vertices_fukuda(M, rows_are_points::Bool=true)
+    zonotope_vertices_fukuda(M::Matrix)
 
-Create the vertices of a zonotope from a matrix whose rows are input points or vectors. 
-`rows_are_points` is `true` in case `M` consists of points instead of vectors; the default is `true`.
+Create the vertices of a zonotope from a matrix whose rows are input points or
+vectors. 
 
 # Examples
 The following creates the vertices of a parallelogram with the origin as its vertex barycenter.
 ```jldoctest
 julia> zonotope_vertices_fukuda_matrix([1 1 0; 1 1 1])
-[1   -1   -1//2]
-[1    0   -1//2]
-[1    0    1//2]
-[1    1    1//2]
+pm::Matrix<pm::Rational>
+-1 -1 -1/2
+0 0 -1/2
+0 0 1/2
+1 1 1/2
 ```
 """
-zonotope_vertices_fukuda_matrix(M::Union{MatElem, AbstractMatrix}, rows_are_points::Bool=true)  = matrix(QQ, Polymake.polytope.zonotope_vertices_fukuda(Polymake.Matrix{Polymake.Rational}(M), rows_are_points=rows_are_points))
+function zonotope_vertices_fukuda_matrix(M::Union{MatElem, AbstractMatrix})
+  A = M
+  if eltype(M) <: Union{Integer, ZZRingElem}
+    A = Polymake.Matrix{Polymake.Rational}(convert(Polymake.PolymakeType, M))
+  end
+  return Oscar.dehomogenize(Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A,1)))
+end

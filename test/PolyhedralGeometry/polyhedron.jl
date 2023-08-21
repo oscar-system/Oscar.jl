@@ -477,7 +477,7 @@ for f in (QQ, ENF)
                     @test size(Oscar.pm_object(tp).EQUATIONS,1) == 6
                 end
 
-                @test sum(zonotope_vertices_fukuda_matrix([4 4 2; 2 4 1])) == 4
+                @test sum(zonotope_vertices_fukuda_matrix([4 4 2; 2 4 1])) == 0
             end
 
         end
