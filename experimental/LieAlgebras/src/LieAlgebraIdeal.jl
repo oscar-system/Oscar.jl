@@ -233,10 +233,14 @@ end
 @doc raw"""
     lie_algebra(I::LieAlgebraIdeal) -> LieAlgebra
 
-Return `I` as a Lie algebra.
+Return `I` as a Lie algebra `LI`, together with an embedding `LI -> L`,
+where `L` is the Lie algebra where `I` lives in.
 """
 function lie_algebra(I::LieAlgebraIdeal)
-  return lie_algebra(basis(I))
+  LI = lie_algebra(basis(I))
+  L = base_lie_algebra(I)
+  emb = hom(LI, L, basis(I))
+  return LI, emb
 end
 
 @doc raw"""

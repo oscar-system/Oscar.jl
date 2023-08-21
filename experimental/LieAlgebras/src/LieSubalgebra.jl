@@ -254,10 +254,14 @@ end
 @doc raw"""
     lie_algebra(S::LieSubalgebra) -> LieAlgebra
 
-Return `S` as a Lie algebra.
+Return `S` as a Lie algebra `LS`, together with an embedding `LS -> L`,
+where `L` is the Lie algebra where `S` lives in.
 """
 function lie_algebra(S::LieSubalgebra)
-  return lie_algebra(basis(S)) #, embedding_hom   # TODO
+  LS = lie_algebra(basis(S))
+  L = base_lie_algebra(S)
+  emb = hom(LS, L, basis(S))
+  return LS, emb
 end
 
 ###############################################################################

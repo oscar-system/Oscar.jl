@@ -14,6 +14,12 @@
         @test length(basis(S)) == dim(S)
         @test all(in(S), gens(S))
         @test all(in(S), basis(S))
+
+        LS, emb = lie_algebra(S)
+        @test dim(LS) == dim(S)
+        @test domain(emb) == LS
+        @test codomain(emb) == L
+        @test image(emb) == S
       end
 
       @test dim(b) == 6
