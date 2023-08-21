@@ -465,44 +465,33 @@ end
 ################################################################################
 # Padic Field
 @registerSerializationType(FlintPadicField)
-has_elem_basic_encoding(obj::FlintPadicField) = true
 
-function save_internal(s::SerializerState, P::FlintPadicField)
-  save_type_dispatch(s, prime(P), :prime)
-  save_type_dispatch(s, precision(P), :precision)
+function save_object(s::SerializerState, P::FlintPadicField)
+  data_dict(s) do
+    save_object(s, prime(P), :prime)
+    save_object(s, precision(P), :precision)
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
-  prime_num = load_type_dispatch(s, ZZRingElem, dict[:prime])
-  precision = load_type_dispatch(s, Int64, dict[:precision])
+function load_object(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
+  prime_num = parse(ZZRingElem, dict[:prime])
+  precision = parse(Int64, dict[:precision])
 
   return PadicField(prime_num, precision)
 end
 
 #elements
 @registerSerializationType(padic)
-is_type_serializing_parent(::Type{padic}) = true
+type_needs_params(::Type{padic}) = true
 
-# This should probably be moved into Hecke?
-# but also might lead to a bit of a discussion.
-# Since padics might are printed as p + p^2 + O(p^3)
-# Maybe it's better to implement a serialize method
-# uses string in most cases except special cases as such?
-function string(n::padic)
-  return string(lift(QQ, n))
+function save_object(s::SerializerState, obj::padic)
+  # currently it seems padics do not store the underlying polynomial
+  save_object(s, lift(QQ, obj))
 end
 
-function load_internal(s::DeserializerState, ::Type{padic}, dict::Dict)
-  rational_rep = load_type_dispatch(s, QQFieldElem, dict[:data])
-  parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
+function load_object(s::DeserializerState, ::Type{padic},
+                     str::String, parent_field::FlintPadicField)
+  rational_rep = load_object(s, QQFieldElem, str)
 
   return parent_field(rational_rep)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{padic},
-                                   str::String,
-                                   parent::FlintPadicField)
-  rational_rep = load_type_dispatch(s, QQFieldElem, str)
-  return parent(rational_rep)
 end

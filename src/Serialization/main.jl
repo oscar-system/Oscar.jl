@@ -396,9 +396,11 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
-  open(filename, "w") do file
+  temp_file = tempname(dirname(filename))
+  open(temp_file, "w") do file
     save(file, obj; metadata=metadata)
   end
+  Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
 end
 
