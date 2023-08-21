@@ -12,10 +12,11 @@ function GlobalSerializerState()
   return GlobalSerializerState(IdDict{Any, UUID}(), Dict{UUID, Any}())
 end
 
-global global_serializer_state = GlobalSerializerState()
+const global_serializer_state = GlobalSerializerState()
 
 function reset_global_serializer_state()
-  global_serializer_state = GlobalSerializerState()
+  empty!(global_serializer_state.obj_to_id)
+  empty!(global_serializer_state.id_to_obj)
 end
 
 # struct which tracks state for (de)serialization

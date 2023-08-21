@@ -14,7 +14,10 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
   data_dict(s) do
     save_object(s, encode_type(S), :name)
     if type_needs_params(T)
-        save_type_params(s, obj[1], :params)
+      if hasmethod(parent, (T,))
+        @req allequal(map(parent, obj)) "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
+      end
+      save_type_params(s, obj[1], :params)
     else
       save_object(s, encode_type(T), :params)
     end

@@ -29,8 +29,9 @@ cases = [
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
   (FF, FF(1), r, "Default Finite Field"),
+  (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
-#(P7, 7 + 3*7^2, 7^5, "Padic Field"),
+
 
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
