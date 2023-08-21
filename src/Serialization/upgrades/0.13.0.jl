@@ -24,8 +24,6 @@ function upgrade_terms(terms)
 end
 
 
-
-
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",
   function upgrade_0_13_0(refs::Dict, dict::Dict)
@@ -55,7 +53,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     T = decode_type(dict[:type])
-    # Types that now have params that haven't already been updated
+    # Types whose type section need an update, i.e. are missing the params section
     if type_needs_params(T)
       # type has already been updated
       if dict[:type] isa Dict
@@ -73,22 +71,52 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           params = "this needs to be filled in"
         end
-      elseif T <: NamedTuple
-        println(json(dict, 2))
-        params = Dict(
-          :tuple_params => "blah"
-        )
-      end
 
-      upgraded_dict[:type] = Dict(
-        :name => dict[:type],
-        :params => params
-      )
+        upgraded_dict[:type] = Dict(:name => "PolyRingElem", :params => params)
+      elseif T <: NamedTuple
+        upgraded_tuple = upgrade_0_13_0(refs,  dict[:data][:content])
+        
+        params = Dict(
+          :tuple_params => upgraded_tuple[:type][:params],
+          :names => dict[:data][:keys][:data][:content]
+        )
+        upgraded_dict[:type] = Dict(:name => "NamedTuple", :params => params)
+        upgraded_dict[:data] = upgraded_tuple[:data]
+        
+      elseif T <: Tuple
+        params = []
+        entry_data = []
+
+        for (i, field_type) in enumerate(dict[:data][:field_types])
+          U = decode_type(field_type)
+          if type_needs_params(U)
+            upgraded_entry = upgrade_0_13_0(refs, dict[:data][:content][i])
+            push!(params, upgraded_entry[:type])
+            push!(entry_data, upgraded_entry[:data])
+          else
+            push!(params, field_type)
+            push!(entry_data, dict[:data][:content][i])
+          end
+        end
+        upgraded_dict[:type] = Dict(:name => "Tuple", :params => params)
+        upgraded_dict[:data] = entry_data
+      elseif  T <: Matrix
+        params = dict[:data][:matrix][1][:data][:entry_type]
+        upgraded_dict[:type] = Dict(:name => "Matrix", :params => params)
+        matrix_data = []
+        for v in dict[:data][:matrix]
+          push!(matrix_data, v[:data][:vector])
+        end
+        upgraded_dict[:data] = matrix_data
+      end
     end
 
+    # update the data section for specific types
     if T <: PolyRing
       upgraded_dict[:data] = upgrade_0_13_0(refs, dict[:data])
-    elseif T <: Field
+    end
+    
+    if T <: Field
       if haskey(dict[:data], :def_pol)
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(refs, dict[:data][:def_pol])
       end

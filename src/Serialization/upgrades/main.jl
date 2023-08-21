@@ -74,6 +74,7 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
       upgraded_dict = upgrade_script(refs, upgraded_dict)
     end
   end
+  println(json(upgraded_dict, 2))
   upgraded_dict[:_ns] = oscarSerializationVersion
   return upgraded_dict
 end

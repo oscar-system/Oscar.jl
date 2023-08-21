@@ -122,8 +122,11 @@ function save_type_params(s::SerializerState, obj::NamedTuple)
   data_dict(s) do
     save_object(s, encode_type(NamedTuple), :name)
     s.key = :params
-    data_dict(s) do 
-      save_type_params(s, values(obj), :tuple_params)
+    data_dict(s) do
+      s.key = :tuple_params
+      for value in values(obj)
+        save_type_params(s, value)
+      end
       save_object(s, keys(obj), :names)
     end
   end
@@ -134,8 +137,16 @@ function save_object(s::SerializerState, obj::NamedTuple)
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Dict)
-  tuple_params = load_type_params(s, Tuple, params[:tuple_params][:params])
-  return (params[:names], tuple_params)
+  loaded_params = Any[]
+  for param in params[:tuple_params]
+    if param isa String
+      push!(loaded_params, decode_type(param))
+    else
+      T = decode_type(param[:name])
+      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+    end
+  end
+  return (params[:names], loaded_params)
 end
 
 function load_object(s::DeserializerState, ::Type{<: NamedTuple},
