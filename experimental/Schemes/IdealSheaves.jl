@@ -940,7 +940,7 @@ function match_on_intersections(
   return matches
 end
 
-function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
+function (phi::Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
   R = domain(phi)
   S = codomain(phi)

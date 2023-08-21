@@ -118,7 +118,7 @@ Any abstract morphism of affine schemes is of the following type:
 ```@docs
     AbsSpecMor{DomainType<:AbsSpec,
                CodomainType<:AbsSpec,
-               PullbackType<:Hecke.Map,
+               PullbackType<:Map,
                MorphismType,
                BaseMorType
                }
@@ -128,7 +128,7 @@ A concrete and minimalistic implementation exist for the type `SpecMor`:
 ```@docs
     SpecMor{DomainType<:AbsSpec,
             CodomainType<:AbsSpec,
-            PullbackType<:Hecke.Map
+            PullbackType<:Map
            }
 ```
 This basic functionality consists of

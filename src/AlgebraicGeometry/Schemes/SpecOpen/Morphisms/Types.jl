@@ -26,7 +26,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
 
   # fields used for caching
   inverse::SpecOpenMor
-  pullback::Hecke.Map
+  pullback::Map
 
   function SpecOpenMor(
       U::DomainType,

@@ -318,8 +318,10 @@ export class_multiplication_coefficient
 export class_names
 export class_parameters
 export class_positions_of_center
+export class_positions_of_derived_subgroup
 export class_positions_of_kernel
 export class_positions_of_pcore
+export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
 export cm_regularity
@@ -636,6 +638,7 @@ export hypersurface_complement
 export icosahedron
 export id_hom
 export ideal
+export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
 export ideal_type
@@ -942,6 +945,7 @@ export minimal_primes
 export minimal_subalgebra_generators
 export minkowski_sum
 export minor
+export module_syzygies
 export modulus
 export moebius_mu
 export molien_series
@@ -1140,6 +1144,7 @@ export quadratic_form
 export quaternion_group
 export quo
 export quotient
+export quotient_ring_as_module
 export radical
 export radical_membership
 export rand
