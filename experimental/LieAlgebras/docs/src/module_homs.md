@@ -30,7 +30,7 @@ The following functions are available for `LieAlgebraModuleHom`s:
 For a homomorphism $h: V_1 \to V_2$, `domain(h)` and `codomain(h)` return $V_1$ and $V_2$ respectively.
 
 ```@docs
-matrix(::LieAlgebraModuleHom)
+matrix(::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}) where {C2<:RingElement}
 ```
 
 ### Image

@@ -218,6 +218,7 @@ julia> [(x, h(x)) for x in basis(L1)]
    (e_1_2, e_1_2)
    (f_1_2, f_1_2)
    (h_1, h_1)
+```
 """
 function hom(
   L1::LieAlgebra{C}, L2::LieAlgebra{C}, imgs::Vector{<:LieAlgebraElem{C}}; check::Bool=true
@@ -250,6 +251,7 @@ julia> [(x, h(x)) for x in basis(L1)]
  (e_1_2, x_1_2)
  (f_1_2, x_2_1)
  (h_1, x_1_1 - x_2_2)
+```
 """
 function hom(
   L1::LieAlgebra{C}, L2::LieAlgebra{C}, mat::MatElem{C}; check::Bool=true

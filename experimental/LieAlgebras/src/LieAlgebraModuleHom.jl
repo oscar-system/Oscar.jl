@@ -233,6 +233,7 @@ julia> [(v, h(v)) for v in basis(V1)]
    (v_1, 0)
    (v_2, 0)
    (v_3, 0)
+```
 """
 function hom(
   V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}, mat::MatElem{C}; check::Bool=true
