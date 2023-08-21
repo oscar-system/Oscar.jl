@@ -118,14 +118,21 @@ end
 @registerSerializationType(NamedTuple)
 type_needs_params(::Type{<:NamedTuple}) = true
 
-function save_type_params(s::SerializerState, obj::NamedTuple)
+function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
   data_dict(s) do
     save_object(s, encode_type(NamedTuple), :name)
     s.key = :params
     data_dict(s) do
       s.key = :tuple_params
-      for value in values(obj)
-        save_type_params(s, value)
+      data_array(s) do 
+        for (i, value) in enumerate(values(obj))
+          U = fieldtype(T, i)
+          if type_needs_params(U)
+            save_type_params(s, value)
+          else
+            save_object(s, encode_type(U))
+          end
+        end
       end
       save_object(s, keys(obj), :names)
     end
