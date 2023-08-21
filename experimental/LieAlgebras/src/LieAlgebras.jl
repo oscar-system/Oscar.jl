@@ -21,6 +21,7 @@ import ..Oscar:
   coefficient_ring,
   coefficients,
   compose,
+  derived_series,
   dim,
   direct_sum,
   dual,
@@ -36,7 +37,9 @@ import ..Oscar:
   inv,
   is_abelian,
   is_isomorphism,
+  is_nilpotent,
   is_simple,
+  is_solvable,
   kernel,
   matrix,
   ngens,
@@ -69,6 +72,7 @@ export bracket
 export coefficient_vector
 export combinations
 export derived_algebra
+export descending_central_series
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -81,6 +85,7 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
+export lower_central_series
 export matrix_repr_basis
 export multicombinations
 export permutations
@@ -127,6 +132,7 @@ export base_module
 export base_modules
 export bracket
 export derived_algebra
+export descending_central_series
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -139,6 +145,7 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
+export lower_central_series
 export matrix_repr_basis
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra

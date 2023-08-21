@@ -337,6 +337,50 @@ end
 
 ###############################################################################
 #
+#   Derived and central series
+#
+###############################################################################
+
+@doc raw"""
+    derived_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
+
+Return the derived series of `L`, i.e. the sequence of ideals 
+$L^{(0)} = L$, $L^{(i + 1)} = [L^{(i)}, L^{(i)}]$.
+"""
+function derived_series(L::LieAlgebra)
+  curr = ideal(L)
+  series = [curr]
+  while true
+    next = bracket(curr, curr)
+    dim(next) == dim(curr) && break
+    push!(series, next)
+    curr = next
+  end
+  return series
+end
+
+@doc raw"""
+    descending_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
+
+Return the descending central series of `L`, i.e. the sequence of ideals
+$L^{(0)} = L$, $L^{(i + 1)} = [L, L^{(i)}]$.
+"""
+function descending_central_series(L::LieAlgebra)
+  curr = ideal(L)
+  series = [curr]
+  while true
+    next = bracket(L, curr)
+    dim(next) == dim(curr) && break
+    push!(series, next)
+    curr = next
+  end
+  return series
+end
+
+@alias lower_central_series descending_central_series
+
+###############################################################################
+#
 #   Properties
 #
 ###############################################################################
@@ -351,6 +395,15 @@ Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 end
 
 @doc raw"""
+    is_nilpotent(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is nilpotent, i.e. the descending central series of `L` terminates in $0$.
+"""
+@attr Bool function is_nilpotent(L::LieAlgebra)
+  return dim(descending_central_series(L)[end]) == 0
+end
+
+@doc raw"""
     is_simple(L::LieAlgebra) -> Bool
 
 Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial ideals.
@@ -361,6 +414,15 @@ Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial i
 @attr Bool function is_simple(L::LieAlgebra)
   is_abelian(L) && return false
   error("Not implemented.") # TODO
+end
+
+@doc raw"""
+    is_solvable(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is solvable, i.e. the derived series of `L` terminates in $0$.
+"""
+@attr Bool function is_solvable(L::LieAlgebra)
+  return dim(derived_series(L)[end]) == 0
 end
 
 ###############################################################################

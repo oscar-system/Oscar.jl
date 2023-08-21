@@ -19,6 +19,7 @@
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     else
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
+      gens = unique(g for g in gens if !iszero(g))
       left = copy(gens)
       while !isempty(left)
         g = pop!(left)
@@ -116,7 +117,7 @@ function Base.show(io::IO, S::LieSubalgebra)
   if get(io, :supercompact, false)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
-    print(io, LowercaseOff(), "Lie subalgebra of ", Lowercase())
+    print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
     print(IOContext(io, :supercompact => true), base_lie_algebra(S))
   end
 end
@@ -180,6 +181,13 @@ function bracket(
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
   return ideal(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
+end
+
+function bracket(
+  L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req L === base_lie_algebra(S) "Incompatible Lie algebras."
+  return bracket(ideal(L), S)
 end
 
 ###############################################################################
