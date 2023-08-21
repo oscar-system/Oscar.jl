@@ -5,9 +5,8 @@
 @attributes mutable struct ToricMorphism
     domain::AbstractNormalToricVariety
     grid_morphism::GrpAbFinGenMap
-    image::AbstractNormalToricVariety
     codomain::AbstractNormalToricVariety
-    ToricMorphism(domain, grid_morphism, image, codomain) = new(domain, grid_morphism, image, codomain)
+    ToricMorphism(domain, grid_morphism, codomain) = new(domain, grid_morphism, codomain)
 end
 
 
@@ -105,11 +104,6 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
     # check for a well-defined map
     @req nrows(matrix(grid_morphism)) == rank(character_lattice(domain)) "The number of rows of the mapping matrix must match the rank of the character lattice of the domain toric variety"
 
-    # compute the image
-    image_rays = matrix(ZZ, rays(domain)) * matrix(grid_morphism)
-    image_rays = hcat([[Int(image_rays[i, j]) for i in 1:nrows(image_rays)] for j in 1:ncols(image_rays)]...)
-    image = normal_toric_variety(polyhedral_fan(image_rays, ray_indices(maximal_cones(domain))))
-
     # compute the morphism
     @req ncols(matrix(grid_morphism)) == rank(character_lattice(codomain)) "The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"
     if check
@@ -119,13 +113,11 @@ function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAb
         @req any(cc -> issubset(c, cc), codomain_cones) "Toric morphism not well-defined"
       end
     end
-    return ToricMorphism(domain, grid_morphism, image, codomain)
+    return ToricMorphism(domain, grid_morphism, codomain)
 end
-function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap)
-    image_rays = matrix(ZZ, rays(domain)) * matrix(grid_morphism)
-    image_rays = hcat([[Int(image_rays[i, j]) for i in 1:nrows(image_rays)] for j in 1:ncols(image_rays)]...)
-    image = normal_toric_variety(polyhedral_fan(image_rays, ray_indices(maximal_cones(domain))))
-    return ToricMorphism(domain, grid_morphism, image, image)
+function toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap; check=true)
+  image = transform(domain, matrix(grid_morphism); check=check)
+  return ToricMorphism(domain, grid_morphism, image)
 end
 
 
@@ -148,7 +140,7 @@ function toric_identity_morphism(variety::AbstractNormalToricVariety)
     r = rank(character_lattice(variety))
     identity_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)
-    return ToricMorphism(variety, grid_morphism, variety, variety)
+    return ToricMorphism(variety, grid_morphism, variety)
 end
 
 
