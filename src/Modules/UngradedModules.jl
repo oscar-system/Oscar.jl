@@ -6649,12 +6649,7 @@ Compute a free resolution of `I`.
 # Examples
 """
 function free_resolution(I::MPolyIdeal)
-  if is_graded(I)
-    F = graded_free_module(Hecke.ring(I), 1)
-  else
-    F = free_module(Hecke.ring(I), 1)
-  end
-  S = sub(F, [x * gen(F, 1) for x = gens(I)], :module)
+  S = ideal_as_module(I)
   n = Hecke.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
@@ -6670,13 +6665,7 @@ Compute a free resolution of `Q`.
 # Examples
 """
 function free_resolution(Q::MPolyQuoRing)
-  br = base_ring(Q)
-  if is_graded(Q)
-    F = graded_free_module(br, 1)
-  else
-    F = free_module(br, 1)
-  end
-  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
+  q = quotient_ring_as_module(Q)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
