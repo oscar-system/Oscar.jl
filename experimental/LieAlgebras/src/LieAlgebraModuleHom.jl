@@ -85,6 +85,26 @@ end
 
 ###############################################################################
 #
+#   Comparison
+#
+###############################################################################
+
+function Base.:(==)(h1::LieAlgebraModuleHom, h2::LieAlgebraModuleHom)
+  return domain(h1) === domain(h2) &&
+         codomain(h1) === codomain(h2) &&
+         matrix(h1) == matrix(h2)
+end
+
+function Base.hash(f::LieAlgebraModuleHom, h::UInt)
+  b = 0x7b887214521c25b7 % UInt
+  h = hash(objectid(domain(f)), h)
+  h = hash(objectid(codomain(f)), h)
+  h = hash(matrix(f), h)
+  return xor(h, b)
+end
+
+###############################################################################
+#
 #   Image and kernel
 #
 ###############################################################################
