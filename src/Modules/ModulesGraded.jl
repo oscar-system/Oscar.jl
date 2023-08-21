@@ -2085,10 +2085,12 @@ function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
       if d in dom_degs
         _, _, sub_mat = _constant_sub_matrix(phi, d)
         r = rank(sub_mat)
-        betti_hash_table[(i-1, d)] = ncols(sub_mat) - r - get(offsets, d, 0)
+        c = ncols(sub_mat) - r - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
         offsets[d] = r
       else
-        betti_hash_table[(i-1, d)] = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+        c = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
       end
     end
   end
