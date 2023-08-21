@@ -176,20 +176,29 @@ function strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
     V_amb = ambient_scheme(V)
     U_amb = ambient_scheme(U)
 
+    # We have the following diagram:
+    #             inc_dom
+    #     Z_trans    ↪     X   ⊃ U_amb ⊃ U
+    #
+    #  pr_res↓             ↓ p           ↓ p_iso
+    #        Z       ↪     Y   ⊃ V_amb ⊃ V
+    #             inc_cod
+    #
     # Given all the refinements that potentially had to be done, we have 
     # to do the following.
-    #  - Find a `patch` `U_sub` of the `domain` of `inc_dom_cov` for which 
-    #    inc_cod : U_sub -> W has a codomain `W` which has `U_amb` as an 
+    #  1. Find a `patch` `U_sub` of the `domain` of `inc_dom_cov` for which 
+    #    inc_dom : U_sub -> W has a codomain `W` which has `U_amb` as an 
     #    ancestor. Since `U_amb` is one of the `affine_charts` of `X`, this will work. 
-    #  - pr_res : U_amb -> V_amb has some codomain such that there exists 
-    #    an ancestor `VV` in the `domain` of `inc_dom_cov` such that 
-    #    inc_dom : VV -> W' has a codomain with `V_amb` as an ancestor. 
-    #  - outside the `complement_equation`s of `U` and `V` the projection 
-    #    was an isomorphism. Then the restriction of `pr_res` to those 
-    #    complements in `U_sub` and `V_sub` also is.
+
     k = findfirst(x->has_ancestor(y->y===U_amb, codomain(inc_dom_cov[x])), patches(domain(inc_dom_cov)))
     U_sub = patches(domain(inc_dom_cov))[k]
-    iso_U_sub = _flatten_open_subscheme(U_sub, domain(inc_dom_cov[U_sub]))
+
+    #  2. pr_res : U_amb -> V_amb has some codomain such that there exists 
+    #    an ancestor `VV` in the `domain` of `inc_dom_cov` such that 
+    #    inc_dom : VV -> W' has a codomain with `V_amb` as an ancestor. 
+    #  3. outside the `complement_equation`s of `U` and `V` the projection 
+    #    was an isomorphism. Then the restriction of `pr_res` to those 
+    #    complements in `U_sub` and `V_sub` also is.
     U_sub_res = PrincipalOpenSubset(U_sub, 
                    pullback(inc_dom_cov[U_sub])(
                        OOX(U_amb, codomain(inc_dom_cov[U_sub]))(
