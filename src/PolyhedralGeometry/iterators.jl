@@ -82,14 +82,15 @@ ray_vector
 ######## Halfspaces and Hyperplanes
 ################################################################################
 
-for (h, comp) in (("alfspace", "≤"), ("yperplane", "="))
+for (h, comp) in (("halfspace", "≤"), ("hyperplane", "="))
 
-  Habs = Symbol("H", h)
-  Haff = Symbol("AffineH", h)
-  Hlin = Symbol("LinearH", h)
-  Fabs = Symbol("h", h)
-  Faff = Symbol("affine_h", h)
-  Flin = Symbol("linear_h", h)
+  H = uppercasefirst(h)
+  Habs = Symbol(H)
+  Haff = Symbol("Affine", H)
+  Hlin = Symbol("Linear", H)
+  Fabs = Symbol(h)
+  Faff = Symbol("affine_", h)
+  Flin = Symbol("linear_", h)
 
   @eval begin
 
