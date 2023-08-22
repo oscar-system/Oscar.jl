@@ -52,6 +52,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       return dict[:id]
     end
 
+    if dict[:type] == "Nemo.fpFieldElem"
+      dict[:type] = "fpFieldElem"
+    end
     T = decode_type(dict[:type])
     # Types whose type section need an update, i.e. are missing the params section
     if type_needs_params(T)
@@ -82,11 +85,13 @@ push!(upgrade_scripts_set, UpgradeScript(
         )
         upgraded_dict[:type] = Dict(:name => "NamedTuple", :params => params)
         upgraded_dict[:data] = upgraded_tuple[:data]
-        
+
+      elseif T <: MPolyIdeal
+        upgraded_parent
       elseif T <: Tuple
         params = []
         entry_data = []
-
+        
         for (i, field_type) in enumerate(dict[:data][:field_types])
           U = decode_type(field_type)
           if type_needs_params(U)

@@ -29,10 +29,12 @@ push!(upgrade_scripts_set, UpgradeScript(
     if !haskey(dict, :type)
       return upgrade_data(upgrade_0_12_2, s, dict)
     end
-    
+
     upgraded_dict = dict
     # we only upgrade polynomials and MPolyIdeals
-    if contains(upgraded_dict[:type], "MPolyIdeal")
+    if upgraded_dict[:type] == "MPolyIdeal"
+      parent = dict[:data][:parent]
+      s.id_to_dict[Symbol(parent[:id])] = parent
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
         push!(upgraded_gens, upgrade_0_12_2(s, gen))
@@ -56,11 +58,14 @@ push!(upgrade_scripts_set, UpgradeScript(
 
       while haskey(parent_dict[:data], :base_ring)
         parent_dict = parent_dict[:data][:base_ring]
-
         if !haskey(parent_dict, :id)
           break
         end
-        s.id_to_dict[Symbol(parent_dict[:id])] = parent_dict
+        if parent_dict[:type] == "#backref"
+          parent_dict = s.id_to_dict[Symbol(parent_dict[:id])]
+        else
+          s.id_to_dict[Symbol(parent_dict[:id])] = parent_dict
+        end
         push!(parents, parent_dict)
         if haskey(parent_dict[:data], :def_pol)
           parent_dict = parent_dict[:data][:def_pol][:data][:parent]
@@ -92,11 +97,15 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
         local_refs[Symbol(id)] = parent
       end
-      
       upgraded_dict[:data][:parents] = upgraded_parents
       terms = []
-      if contains(upgraded_dict[:type], "MPolyRingElem")
+      if upgraded_dict[:type] == "MPolyRingElem"
         for term in dict[:data][:terms]
+          if term[:coeff][:type] == "#backref"
+            term[:coeff] = s.id_to_dict[Symbol(term[:coeff][:id])]
+          else
+            s.id_to_dict[Symbol(term[:coeff][:id])] = term[:coeff]
+          end
           push!(terms, [term[:exponent][:data][:vector],
                         term[:coeff][:data][:data]])
         end

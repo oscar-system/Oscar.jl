@@ -41,7 +41,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     if dict[:type] == "Vector"
       upgraded_vector = []
       entry_type = nothing
-
+      
       for entry in dict[:data][:vector]
         result = upgrade_0_11_3(s, entry)
 

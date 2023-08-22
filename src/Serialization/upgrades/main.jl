@@ -53,6 +53,7 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
       upgraded_dict[key] = new_value
     end
   end
+  println(json(upgraded_dict, 2))
   return upgraded_dict
 end
 
@@ -84,5 +85,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
     end
   end
   upgraded_dict[:_ns] = oscarSerializationVersion
+  #println(json(upgraded_dict, 2))
   return upgraded_dict
 end
