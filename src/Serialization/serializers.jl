@@ -89,7 +89,7 @@ struct DeserializerState
 end
 
 function DeserializerState()
-  return DeserializerState(Dict{Symbol,Any}())
+  return DeserializerState(Dict{Symbol, Any}())
 end
 
 function finish_writing(s::SerializerState)

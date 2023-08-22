@@ -22,12 +22,12 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.2",
-  function upgrade_0_12_2(refs::Dict, dict::Dict)
+  function upgrade_0_12_2(s::UpgradeState, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
     if !haskey(dict, :type)
-      return upgrade_data(upgrade_0_12_2, refs, dict)
+      return upgrade_data(upgrade_0_12_2, s, dict)
     end
     
     upgraded_dict = dict
@@ -35,7 +35,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     if contains(upgraded_dict[:type], "MPolyIdeal")
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
-        push!(upgraded_gens, upgrade_0_12_2(refs, gen))
+        push!(upgraded_gens, upgrade_0_12_2(s, gen))
       end
     elseif contains(upgraded_dict[:type], "PolyRingElem")
       if !haskey(upgraded_dict[:data], :parent)
@@ -47,9 +47,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       parents = []
       if haskey(parent_dict, :id)
         if parent_dict[:type] == "#backref"
-          parent_dict = refs[parent_dict[:id]]
+          parent_dict = s.id_to_dict[Symbol(parent_dict[:id])]
         else
-          refs[Symbol(parent_dict[:id])] = parent_dict
+          s.id_to_dict[Symbol(parent_dict[:id])] = parent_dict
         end
         push!(parents, parent_dict)
       end
@@ -60,8 +60,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         if !haskey(parent_dict, :id)
           break
         end
-        refs[Symbol(parent_dict[:id])] = parent_dict
-        println(refs)
+        s.id_to_dict[Symbol(parent_dict[:id])] = parent_dict
         push!(parents, parent_dict)
         if haskey(parent_dict[:data], :def_pol)
           parent_dict = parent_dict[:data][:def_pol][:data][:parent]
@@ -72,8 +71,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       local_refs = Dict()
       upgraded_parents = []
 
-      # using the parent list we make the refs to be attached
-      # at the root of the file
+      # using the parent list we attach the refs 
+      # to the root of the file
       for parent in parents
         id = parent[:id]
         
@@ -82,7 +81,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           continue
         end
         if haskey(parent[:data], :def_pol)
-          upgraded_def_pol = upgrade_0_12_2(refs, parent[:data][:def_pol])
+          upgraded_def_pol = upgrade_0_12_2(s, parent[:data][:def_pol])
           parent[:data][:def_pol] = upgraded_def_pol
         elseif haskey(parent[:data], :base_ring)
           base_dict = parent[:data][:base_ring]
@@ -110,7 +109,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           if !isa(coeff, Dict)
             upgraded_coeff = coeff
           elseif haskey(coeff[:data], :polynomial)
-            upgraded_coeff = upgrade_0_12_2(refs, coeff[:data][:polynomial])[:data][:terms]
+            upgraded_coeff = upgrade_0_12_2(s, coeff[:data][:polynomial])[:data][:terms]
           else
             upgraded_coeff = coeff[:data][:data]
           end
@@ -121,11 +120,11 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data] = Dict(:terms => terms, 
                                   :parents => upgraded_parents)
-      merge!(refs, local_refs)
+      merge!(s.id_to_dict, local_refs)
     end
 
-    if !isempty(refs)
-      upgraded_dict[:refs] = refs
+    if !isempty(s.id_to_dict)
+      upgraded_dict[:refs] = s.id_to_dict
     end
 
     return upgraded_dict

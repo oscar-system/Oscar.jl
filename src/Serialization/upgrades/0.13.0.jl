@@ -26,7 +26,7 @@ end
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",
-  function upgrade_0_13_0(refs::Dict, dict::Dict)
+  function upgrade_0_13_0(s::UpgradeState, dict::Dict)
     upgraded_dict = dict
     if !haskey(dict, :type)
       if haskey(dict, :base_ring) && dict[:base_ring] isa Dict
@@ -74,7 +74,7 @@ push!(upgrade_scripts_set, UpgradeScript(
 
         upgraded_dict[:type] = Dict(:name => "PolyRingElem", :params => params)
       elseif T <: NamedTuple
-        upgraded_tuple = upgrade_0_13_0(refs,  dict[:data][:content])
+        upgraded_tuple = upgrade_0_13_0(s, dict[:data][:content])
         
         params = Dict(
           :tuple_params => upgraded_tuple[:type][:params],
@@ -90,7 +90,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         for (i, field_type) in enumerate(dict[:data][:field_types])
           U = decode_type(field_type)
           if type_needs_params(U)
-            upgraded_entry = upgrade_0_13_0(refs, dict[:data][:content][i])
+            upgraded_entry = upgrade_0_13_0(s, dict[:data][:content][i])
             push!(params, upgraded_entry[:type])
             push!(entry_data, upgraded_entry[:data])
           else
@@ -113,19 +113,19 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     # update the data section for specific types
     if T <: PolyRing
-      upgraded_dict[:data] = upgrade_0_13_0(refs, dict[:data])
+      upgraded_dict[:data] = upgrade_0_13_0(s, dict[:data])
     end
     
     if T <: Field
       if haskey(dict[:data], :def_pol)
-        upgraded_dict[:data][:def_pol] = upgrade_0_13_0(refs, dict[:data][:def_pol])
+        upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
       end
     end
     
     if haskey(upgraded_dict, :refs)
       upgraded_refs = Dict()
       for (k, v) in upgraded_dict[:refs]
-        upgraded_refs[k] = upgrade_0_13_0(refs, v)
+        upgraded_refs[k] = upgrade_0_13_0(s, v)
       end
       upgraded_dict[:refs] = upgraded_refs
     end

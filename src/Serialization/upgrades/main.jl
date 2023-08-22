@@ -18,20 +18,20 @@ function script(upgrade_script::UpgradeScript)
 end
 
 struct UpgradeState
-  id_to_dict::Dict{UUID, Any}
+  id_to_dict::Dict{Symbol, Any}
 end
 
-function UgradeState()
-  return UpgradeState(Dict{UUID, Any}())
+function UpgradeState()
+  return UpgradeState(Dict{Symbol, Any}())
 end
 
-(u_s::UpgradeScript)(refs::Dict,
-                     dict::Dict{Symbol, Any}) = script(u_s)(refs, dict)
+(u_s::UpgradeScript)(s::UpgradeState,
+                     dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
 upgrade_scripts_set = Set{UpgradeScript}()
 
-function upgrade_data(upgrade::Function, refs::Dict, dict::Dict)
+function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
@@ -40,14 +40,14 @@ function upgrade_data(upgrade::Function, refs::Dict, dict::Dict)
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
     elseif dict_value isa Dict
-      upgraded_dict[key] = upgrade(refs, dict_value)
+      upgraded_dict[key] = upgrade(s, dict_value)
     else  # not a string or a dictionary, so must be a vector
       new_value = []
       for v in dict_value
         if v isa String
           push!(new_value, v)
         else
-          push!(new_value, upgrade(refs, v))
+          push!(new_value, upgrade(s, v))
         end
       end
       upgraded_dict[key] = new_value
@@ -78,8 +78,9 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
       @info("upgrading serialized data....", maxlog=1)
-      refs = Dict()
-      upgraded_dict = upgrade_script(refs, upgraded_dict)
+
+      s = UpgradeState()
+      upgraded_dict = upgrade_script(s, upgraded_dict)
     end
   end
   upgraded_dict[:_ns] = oscarSerializationVersion
