@@ -97,6 +97,9 @@ function __init__()
     add_verbose_scope(:EllipticSurface)
     add_assert_scope(:EllipticSurface)
 
+    add_verbose_scope(:RationalMap)
+    add_assert_scope(:RationalMap)
+
     add_verbose_scope(:Glueing)
     add_assert_scope(:Glueing)
 
@@ -112,6 +115,8 @@ function __init__()
     add_verbose_scope(:Blowup)
     add_assert_scope(:Blowup)
 
+    add_verbose_scope(:hilbert)
+    add_assert_scope(:hilbert)
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)

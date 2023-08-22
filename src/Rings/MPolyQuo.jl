@@ -27,8 +27,7 @@ function groebner_assure(r::MPolyQuoRing)
   ordering = r.ordering
   groebner_assure(r.I, ordering)
   oscar_assure(r.I.gb[ordering])
-  singular_assure(r.I.gb[ordering])
-  SG = r.I.gb[ordering].gens.S
+  SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
@@ -66,7 +65,8 @@ oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.or
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
 singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
@@ -186,22 +186,12 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function singular_assure(a::MPolyQuoIdeal)
-  if isdefined(a.gens.gens, :S)
-    return a.gens.S
-  end
-  a.gens.Sx = singular_poly_ring(base_ring(a))
-  a.gens.S  = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
-end
-
 function groebner_assure(a::MPolyQuoIdeal)
   if !isdefined(a, :gb)
-    singular_assure(a)
-    a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
+    a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
   end
 end
-
 
 @doc raw"""
     gens(a::MPolyQuoIdeal)
@@ -281,8 +271,7 @@ ideal(x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-  singular_assure(a)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens)^m)
 end
 
 @doc raw"""
@@ -308,9 +297,7 @@ ideal(x + y, x^2 + y^2)
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) + singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -336,9 +323,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) * singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -367,13 +352,10 @@ ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
-  singular_assure(a)
-  as = a.gens.S
   for g in b
     @req base_ring(g) == base_ring(a) "base rings must match"
-    singular_assure(g)
   end
-  as = Singular.intersection(as, [g.gens.S for g in b]...)
+  as = Singular.intersection(singular_generators(a.gens), [singular_generators(g.gens) for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
 end
 
@@ -409,10 +391,7 @@ ideal(y)
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(singular_generators(a.gens), singular_generators(b.gens)))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
@@ -470,8 +449,7 @@ true
 """
 @attr Bool function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
-  singular_assure(a)
-  return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_quotient_groebner_basis(R)))
 end
 
 @doc raw"""
@@ -627,8 +605,7 @@ julia> gens(a)
 function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
-  singular_assure(a)
-  red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
+  red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
@@ -1046,13 +1023,11 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   J = oscar_groebner_basis(Q)
 
   BS = IdealGens([a.f], keep_ordering = false)
-  singular_assure(BS)
 
   J = vcat(J, [b.f])
   BJ = IdealGens(J, keep_ordering = false)
-  singular_assure(BJ)
 
-  s, rest = Singular.lift(BJ.S, BS.S)
+  s, rest = Singular.lift(singular_generators(BJ), singular_generators(BS))
   if !iszero(rest)
     return false, a
   end
@@ -1080,11 +1055,10 @@ function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   gb_mod = gens(groebner_basis(mod, ordering=o))
   I = ideal(R, push!(gb_mod, lift(b)))
   # Make sure that the singular side of this ideal is filled with the correct ordering
-  singular_assure(I, o)
   # Get our hands on the actual singular ideal
-  Ising = I.gens.gens.S
+  Ising = singular_generators(I.gens, o)
   # ...and the ring
-  Rsing = I.gens.gens.Sx
+  Rsing = base_ring(Ising)
   a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
   u_sing, rem = Singular.lift(Ising, a_ideal)
   !iszero(rem) && return false, a
@@ -1193,7 +1167,7 @@ julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
 julia> degree(f)
-graded by [4]
+[4]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1610,12 +1584,10 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   if isdefined(I, :gb)
-    singular_assure(I.gb)
-    _, sing_min = Singular.mstd(I.gb.gens.S)
+    _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
     return filter(!iszero, (Q).(gens(sing_min)))
   else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
@@ -1658,8 +1630,7 @@ function small_generating_set(I::MPolyQuoIdeal)
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  singular_assure(I)
-  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
   if !isdefined(I, :gb)
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true

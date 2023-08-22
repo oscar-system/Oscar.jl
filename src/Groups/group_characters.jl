@@ -1026,6 +1026,69 @@ julia> identifier(character_table("A5"))
 """
 @gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(GAPTable(tbl))::GapObj)
 
+
+@doc raw"""
+    class_positions_of_center(tbl::GAPGroupCharacterTable)
+
+Return the array of integers ``i`` such that the ``i``-th conjugacy class
+of `tbl` is contained in the center of the group $G$ of `tbl`,
+i.e., the ``i``-th class has length `1`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table(dihedral_group(8));
+
+julia> println(class_positions_of_center(tbl))
+[1, 4]
+```
+"""
+function class_positions_of_center(tbl::GAPGroupCharacterTable)
+    return Vector{Int}(GAPWrap.ClassPositionsOfCentre(GAPTable(tbl)))
+end
+
+
+@doc raw"""
+    class_positions_of_derived_subgroup(tbl::GAPGroupCharacterTable)
+
+Return the array of integers ``i`` such that the ``i``-th conjugacy class
+of `tbl` is contained in the derived subgroup of the group $G$ of `tbl`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table(dihedral_group(8));
+
+julia> println(class_positions_of_derived_subgroup(tbl))
+[1, 4]
+```
+"""
+function class_positions_of_derived_subgroup(tbl::GAPGroupCharacterTable)
+    return Vector{Int}(GAPWrap.ClassPositionsOfDerivedSubgroup(GAPTable(tbl)))
+end
+
+
+@doc raw"""
+    class_positions_of_solvable_residuum(tbl::GAPGroupCharacterTable)
+
+Return the array of integers ``i`` such that the ``i``-th conjugacy class
+of `tbl` is contained in the solvable residuum of the group $G$ of `tbl`,
+i.e., the smallest normal subgroup $N$ of $G$ such that the factor group
+$G/N$ is solvable.
+This normal subgroup is equal to the last term of the derived series of $G$,
+see [`derived_series`](@ref).
+
+# Examples
+```jldoctest
+julia> tbl = character_table(symmetric_group(4));
+
+julia> println(class_positions_of_solvable_residuum(tbl))
+[1]
+```
+"""
+function class_positions_of_solvable_residuum(tbl::GAPGroupCharacterTable)
+    return Vector{Int}(GAPWrap.ClassPositionsOfSolvableResiduum(GAPTable(tbl)))
+end
+
+
 @doc raw"""
     class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 
@@ -1202,12 +1265,21 @@ end
 class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(ZZRingElem, tbl, i, j, k)
 
 @doc raw"""
-    possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
+    possible_class_fusions(subtbl::GAPGroupCharacterTable,
+                           tbl::GAPGroupCharacterTable;
+                           decompose::Bool = true)
 
 Return the array of possible class fusions from `subtbl` to `tbl`.
 Each entry is an array of positive integers, where the value at position `i`
 is the position of the conjugacy class in `tbl` that contains the `i`-th class
 of `subtbl`.
+
+If `decompose` is set to `true` then the strategy is changed:
+The decomposability of restricted characters of `tbl` as integral linear
+combinations of characters of `subtbl` (with perhaps negative coefficients)
+is not checked;
+this does not change the result,
+but in certain situations it is faster to omit this step.
 
 # Examples
 ```jldoctest
@@ -1219,8 +1291,11 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
  [1, 2, 4, 7, 6]
 ```
 """
-function possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
-  fus = GAPWrap.PossibleClassFusions(GAPTable(subtbl), GAPTable(tbl))
+function possible_class_fusions(subtbl::GAPGroupCharacterTable,
+                                tbl::GAPGroupCharacterTable;
+                                decompose::Bool = true)
+  fus = GAPWrap.PossibleClassFusions(GAPTable(subtbl), GAPTable(tbl),
+            GapObj(Dict(:decompose => decompose)))
   return [Vector{Int}(x::GapObj) for x in fus]
 end
 
@@ -2235,19 +2310,12 @@ function character_field(chi::GAPGroupClassFunction)
     values = chi.values  # a list of GAP cyclotomics
     gapfield = GAPWrap.Field(values)
     N = GAPWrap.Conductor(gapfield)
-    FF, = abelian_closure(QQ)
+    FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)
       # In this case, the want to return a field that knows to be cyclotomic
       # (and the embedding is easy).
       F, z = AbelianClosure.cyclotomic_field(FF, N)
-      f = x::nf_elem -> QQAbElem(x, N)
-      finv = function(x::QQAbElem)
-        g = gcd(x.c, N)
-        K, = AbelianClosure.cyclotomic_field(FF, g)
-        x = Hecke.force_coerce_cyclo(K, x.data)
-        x = Hecke.force_coerce_cyclo(F, x)
-        return x
-      end
+      nfelm = FF(z)
     else
       # In the general case, we have to work for the embedding.
       gapgens = GAPWrap.GeneratorsOfField(gapfield)
@@ -2257,35 +2325,11 @@ function character_field(chi::GAPGroupClassFunction)
       v = Vector{QQFieldElem}(gapcoeffs)
       R, = polynomial_ring(QQ, "x")
       f = R(v)
-      F, z = number_field(f, "z"; cached = true, check = false)
-      K, zz = AbelianClosure.cyclotomic_field(FF, N)
-
-      nfelm = QQAbElem(gapgens[1]).data
-
-      # Compute the expression of powers of `z` as sums of roots of unity (once).
-      powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
-      c = transpose(matrix(QQ, powers))
-
-      f = function(x::nf_elem)
-        return QQAbElem(evaluate(R(x), nfelm), N)
-      end
-
-      finv = function(x::QQAbElem)
-        # Write `x` w.r.t. the N-th cyclotomic field ...
-        g = gcd(x.c, N)
-        Kg, = AbelianClosure.cyclotomic_field(FF, g)
-        x = Hecke.force_coerce_cyclo(Kg, x.data)
-        x = Hecke.force_coerce_cyclo(K, x)
-
-        # ... and then w.r.t. `F`
-        a = coefficients(x)
-        b = transpose(solve(c, matrix(QQ,length(a),1,a)))
-        b = [b[i] for i in 1:length(b)]
-        return F(b)
-      end
+      F, _ = number_field(f, "z"; cached = true, check = false)
+      nfelm = QQAbElem(gapgens[1])
     end
 
-    return F, MapFromFunc(F, FF, f, finv)
+    return F, AbelianClosure._embedding(F, FF, nfelm)
 end
 
 @doc raw"""

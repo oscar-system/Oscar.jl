@@ -168,6 +168,10 @@ secondary_invariants(IR::InvRing)
 irreducible_secondary_invariants(IR::InvRing)
 ```
 
+```@docs
+module_syzygies(RG::InvRing)
+```
+
 ## Fundamental Systems of Invariants
 
 ```@docs

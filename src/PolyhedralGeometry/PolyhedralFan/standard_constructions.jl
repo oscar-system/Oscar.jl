@@ -226,6 +226,35 @@ function star_subdivision(Sigma::_FanLikeType{T}, n::Int) where T<:scalar_types
 end
 
 
+
+@doc raw"""
+    transform(F::_FanLikeType{T}, A::AbstractMatrix; check=true) where T<:scalar_types
+
+Get the image of a fan `F` under the matrix `A`. The default is to check
+whether the images of the maximal cones really form a fan.
+"""
+function transform(F::_FanLikeType{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}; check=true) where {T<:scalar_types, U<:FieldElem}
+  @req ncols(A) == ambient_dim(F) "Incompatible dimension of fan and transformation matrix"
+  OT = _scalar_type_to_polymake(T)
+  return _transform(F, Polymake.Matrix{OT}(A); check=check)
+end
+function _transform(F::_FanLikeType{T}, A::Polymake.Matrix; check) where T<:scalar_types
+  OT = _scalar_type_to_polymake(T)
+  FT = typeof(F)
+  R = pm_object(F).RAYS * transpose(A)
+  L = pm_object(F).LINEALITY_SPACE * transpose(A)
+  MC = pm_object(F).MAXIMAL_CONES
+  opt = Polymake.OptionSet(Dict(["lineality_space" => L]))
+  if(check)
+    result = Polymake.fan.check_fan(R, MC, opt)
+    return FT(result, coefficient_field(F))
+  else
+    result = Polymake.fan.PolyhedralFan{OT}(RAYS=R, LINEALITY_SPACE=L, MAXIMAL_CONES=MC)
+    return FT(result, coefficient_field(F))
+  end
+end
+
+
 ###############################################################################
 ## Cartesian/Direct product
 ###############################################################################

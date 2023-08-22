@@ -181,7 +181,7 @@ function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vecto
     "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' is depcreated, use "*
     "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) "*
     "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}})' instead", :ToricMorphism)
-    toric_morphism(domain, mapping_matrix, codomain = codomain)
+    toric_morphism(domain, mapping_matrix, codomain)
 end
 
 function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
@@ -189,7 +189,7 @@ function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matri
     "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
     "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) "*
     "where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
-    toric_morphism(domain, mapping_matrix, codomain = codomain)
+    toric_morphism(domain, mapping_matrix, codomain)
 end
 
 function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
@@ -197,16 +197,9 @@ function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMat
     "where {T <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
     "'ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::T=nothing) "*
     "where {T <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
-    toric_morphism(domain, mapping_matrix, codomain = codomain)
+    toric_morphism(domain, mapping_matrix, codomain)
 end
 
-function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) where {T <: Union{AbstractNormalToricVariety, Nothing}}
-    Base.depwarn("'ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) "*
-    "where {T <: Union{AbstractNormalToricVariety, Nothing}}' is deprecated, use "*
-    "'ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::T=nothing) "*
-    "where {T <: Union{AbstractNormalToricVariety, Nothing}}' instead", :ToricMorphism)
-    toric_morphism(domain, grid_morphism, codomain = codomain)
-end
 
 @deprecate ToricIdentityMorphism(v::AbstractNormalToricVariety) toric_identity_morphism(v)
 

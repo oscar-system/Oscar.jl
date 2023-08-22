@@ -33,7 +33,7 @@ julia> anticanonical_divisor(v)
 Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = toric_divisor(v, fill(ZZRingElem(1), nrays(v)))
+@attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = -canonical_divisor(v)
 
 
 @doc raw"""

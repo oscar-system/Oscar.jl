@@ -424,7 +424,7 @@ function _blow_up(v::AbstractNormalToricVariety, new_fan::PolyhedralFan{QQFieldE
     set_attribute!(new_variety, :coordinate_names, new_vars)
   end
   dim = ambient_dim(polyhedral_fan(v))
-  return toric_morphism(new_variety, identity_matrix(ZZ, dim), v)
+  return toric_morphism(new_variety, identity_matrix(ZZ, dim), v; check=false)
 end
 
 

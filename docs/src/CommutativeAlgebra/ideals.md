@@ -68,18 +68,24 @@ dim(I::MPolyIdeal)
 codim(I::MPolyIdeal)
 ```
 
+In the graded case, we additionally have:
+
+### Minimal Sets of Generators
+
+```@docs
+minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+```
+
+### Castelnuovo-Mumford Regularity
+
+```@docs
+cm_regularity(I::MPolyIdeal)
+```
+
 ### Degree
 
 ```@docs
 degree(I::MPolyIdeal)
-```
-
-### Minimal Sets of Generators
-
-In the graded case, we have:
-
-```@docs
-minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 ```
     
 ## Operations on Ideals
@@ -135,6 +141,12 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 ```@docs
 eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
+```
+
+### Truncation
+
+```@docs
+truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
 ```
 
 ## Tests on Ideals
@@ -259,6 +271,11 @@ homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing}=nothing)
 dehomogenization(F::MPolyDecRingElem, pos::Int)
 ```
 
+## Ideals as Modules
+
+```@docs
+ideal_as_module(I::MPolyIdeal)
+```
 
 ## Generating Special Ideals
 

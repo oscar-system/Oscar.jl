@@ -948,10 +948,8 @@ function markov4ti2(L::ZZMatrix)
 
   #now we have the file julia4ti2.lat in the current working directory
   #can run 4ti2 with this input file to get a markov basis
-  lib4ti2_jll.exe4ti2gmp() do x 
-    run(ignorestatus(`$x markov -q $name`))
-  end
-
+  run(ignorestatus(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`))
+  
 #        run(`$(lib4ti2_jll.markov) -q $name`)
   #this creates the file julia4ti2.mar with the markov basis
 
