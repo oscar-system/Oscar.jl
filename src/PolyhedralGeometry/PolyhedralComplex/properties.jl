@@ -58,50 +58,75 @@ julia> matrix(QQ, vertices(PC))
 [0   1]
 ```
 """
-vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = lineality_dim(PC) == 0 ? _vertices(as, PC) : _empty_subobjectiterator(as, PC)
-_vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(PC, _vertex_complex, length(_vertex_indices(pm_object(PC))))
+vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  lineality_dim(PC) == 0 ? _vertices(as, PC) : _empty_subobjectiterator(as, PC)
+_vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where {T<:scalar_types} =
+  SubObjectIterator{as}(PC, _vertex_complex, length(_vertex_indices(pm_object(PC))))
 
-_vertex_complex(::Type{PointVector{T}}, PC::PolyhedralComplex, i::Base.Integer) where T<:scalar_types = PointVector{T}(coefficient_field(PC), @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC))[i], 2:end])
+_vertex_complex(
+  ::Type{PointVector{T}}, PC::PolyhedralComplex, i::Base.Integer
+) where {T<:scalar_types} = PointVector{T}(
+  coefficient_field(PC),
+  @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC))[i], 2:end]
+)
 
-_point_matrix(::Val{_vertex_complex}, PC::PolyhedralComplex; homogenized=false) = @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC)), (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_vertex_complex}, PC::PolyhedralComplex; homogenized=false) =
+  @view pm_object(PC).VERTICES[_vertex_indices(pm_object(PC)), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_complex}) = _point_matrix
 
 function _all_vertex_indices(P::Polymake.BigObject)
-    vi = Polymake.get_attachment(P, "_all_vertex_indices")
-    if isnothing(vi)
-        A = P.VERTICES
-        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(Vector(1:Polymake.nrows(A)))
-        Polymake.attach(P, "_all_vertex_indices", vi)
-    end
-    return vi
+  vi = Polymake.get_attachment(P, "_all_vertex_indices")
+  if isnothing(vi)
+    A = P.VERTICES
+    vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(Vector(1:Polymake.nrows(A)))
+    Polymake.attach(P, "_all_vertex_indices", vi)
+  end
+  return vi
 end
 
-function _vertex_or_ray_complex(::Type{Union{PointVector{T}, RayVector{T}}}, PC::PolyhedralComplex, i::Base.Integer) where T<:scalar_types
-    A = pm_object(PC).VERTICES
-    if iszero(A[_all_vertex_indices(pm_object(PC))[i],1])
-        return RayVector{T}(coefficient_field(PC), @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end])
-    else
-        return PointVector{T}(coefficient_field(PC), @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end])
-    end
+function _vertex_or_ray_complex(
+  ::Type{Union{PointVector{T},RayVector{T}}}, PC::PolyhedralComplex, i::Base.Integer
+) where {T<:scalar_types}
+  A = pm_object(PC).VERTICES
+  if iszero(A[_all_vertex_indices(pm_object(PC))[i], 1])
+    return RayVector{T}(
+      coefficient_field(PC),
+      @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end]
+    )
+  else
+    return PointVector{T}(
+      coefficient_field(PC),
+      @view pm_object(PC).VERTICES[_all_vertex_indices(pm_object(PC))[i], 2:end]
+    )
+  end
 end
 
-_vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(PC, _vertex_or_ray_complex, length(_all_vertex_indices(pm_object(PC))))
+_vertices(
+  as::Type{Union{RayVector{T},PointVector{T}}}, PC::PolyhedralComplex
+) where {T<:scalar_types} = SubObjectIterator{as}(
+  PC, _vertex_or_ray_complex, length(_all_vertex_indices(pm_object(PC)))
+)
 
-vertices_and_rays(PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(Union{PointVector{T}, RayVector{T}}, PC)
+vertices_and_rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  _vertices(Union{PointVector{T},RayVector{T}}, PC)
 
-_vector_matrix(::Val{_vertex_or_ray_complex}, PC::PolyhedralComplex; homogenized = false) = homogenized ? pm_object(PC).VERTICES : @view pm_object(PC).VERTICES[:, 2:end]
+_vector_matrix(::Val{_vertex_or_ray_complex}, PC::PolyhedralComplex; homogenized=false) =
+  homogenized ? pm_object(PC).VERTICES : @view pm_object(PC).VERTICES[:, 2:end]
 
-_vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
+_vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  _vertices(PointVector{T}, PC)
 
-vertices(PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(PointVector{T}, PC)
-_vertices(PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
+vertices(PC::PolyhedralComplex{T}) where {T<:scalar_types} = vertices(PointVector{T}, PC)
+_vertices(PC::PolyhedralComplex{T}) where {T<:scalar_types} = _vertices(PointVector{T}, PC)
 
-_rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(PC, _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC))))
+_rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where {T<:scalar_types} =
+  SubObjectIterator{as}(
+    PC, _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC)))
+  )
 
-
-rays(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = lineality_dim(PC) == 0 ? _rays(RayVector{T}, PC) : _empty_subobjectiterator(as, PC)
-
+rays(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  lineality_dim(PC) == 0 ? _rays(RayVector{T}, PC) : _empty_subobjectiterator(as, PC)
 
 @doc raw"""
     rays_modulo_lineality(as, PC::PolyhedralComplex)
@@ -138,15 +163,30 @@ julia> RML.lineality_basis
  [0, 0, 1]
 ```
 """
-rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
-function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex) where T<:scalar_types
-    return (
-        rays_modulo_lineality = _rays(RayVector{T}, PC),
-        lineality_basis = lineality_space(PC)
-    )
+rays_modulo_lineality(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  rays_modulo_lineality(
+    NamedTuple{
+      (:rays_modulo_lineality, :lineality_basis),
+      Tuple{SubObjectIterator{RayVector{T}},SubObjectIterator{RayVector{T}}},
+    },
+    PC,
+  )
+function rays_modulo_lineality(
+  as::Type{
+    NamedTuple{
+      (:rays_modulo_lineality, :lineality_basis),
+      Tuple{SubObjectIterator{RayVector{T}},SubObjectIterator{RayVector{T}}},
+    },
+  },
+  PC::PolyhedralComplex,
+) where {T<:scalar_types}
+  return (
+    rays_modulo_lineality=_rays(RayVector{T}, PC), lineality_basis=lineality_space(PC)
+  )
 end
-rays_modulo_lineality(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _rays(RayVector{T}, PC)
-
+rays_modulo_lineality(
+  as::Type{RayVector{T}}, PC::PolyhedralComplex{T}
+) where {T<:scalar_types} = _rays(RayVector{T}, PC)
 
 @doc raw"""
     minimal_faces(as, PC::PolyhedralComplex)
@@ -183,15 +223,26 @@ julia> MFPC.lineality_basis
  [0, 0, 1]
 ```
 """
-minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, PC)
-function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, PC::PolyhedralComplex{T}) where T<:scalar_types
-    return (
-        base_points = _vertices(PointVector{T}, PC),
-        lineality_basis = lineality_space(PC)
-    )
+minimal_faces(PC::PolyhedralComplex{T}) where {T<:scalar_types} = minimal_faces(
+  NamedTuple{
+    (:base_points, :lineality_basis),
+    Tuple{SubObjectIterator{PointVector{T}},SubObjectIterator{RayVector{T}}},
+  },
+  PC,
+)
+function minimal_faces(
+  as::Type{
+    NamedTuple{
+      (:base_points, :lineality_basis),
+      Tuple{SubObjectIterator{PointVector{T}},SubObjectIterator{RayVector{T}}},
+    },
+  },
+  PC::PolyhedralComplex{T},
+) where {T<:scalar_types}
+  return (base_points=_vertices(PointVector{T}, PC), lineality_basis=lineality_space(PC))
 end
-minimal_faces(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where T<:scalar_types = _vertices(PointVector{T}, PC)
-
+minimal_faces(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  _vertices(PointVector{T}, PC)
 
 @doc raw"""
     rays(PC::PolyhedralComplex)
@@ -215,27 +266,41 @@ julia> matrix(QQ, rays(PC))
 [1   0]
 ```
 """
-rays(PC::PolyhedralComplex{T}) where T<:scalar_types = rays(RayVector{T},PC)
-_rays(PC::PolyhedralComplex{T}) where T<:scalar_types = _rays(RayVector{T},PC)
+rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} = rays(RayVector{T}, PC)
+_rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} = _rays(RayVector{T}, PC)
 
-_ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
+_ray_indices_polyhedral_complex(PC::Polymake.BigObject) =
+  collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
 
-_ray_polyhedral_complex(::Type{RayVector{T}}, PC::PolyhedralComplex, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PC), @view pm_object(PC).VERTICES[_ray_indices_polyhedral_complex(pm_object(PC))[i], 2:end])
+_ray_polyhedral_complex(
+  ::Type{RayVector{T}}, PC::PolyhedralComplex, i::Base.Integer
+) where {T<:scalar_types} = RayVector{T}(
+  coefficient_field(PC),
+  @view pm_object(PC).VERTICES[_ray_indices_polyhedral_complex(pm_object(PC))[i], 2:end]
+)
 
 _matrix_for_polymake(::Val{_ray_polyhedral_complex}) = _vector_matrix
 
-_vector_matrix(::Val{_ray_polyhedral_complex}, PC::PolyhedralComplex; homogenized = false) = @view pm_object(PC).VERTICES[_ray_indices_polyhedral_complex(pm_object(PC)), (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_ray_polyhedral_complex}, PC::PolyhedralComplex; homogenized=false) =
+  @view pm_object(PC).VERTICES[
+    _ray_indices_polyhedral_complex(pm_object(PC)), (homogenized ? 1 : 2):end
+  ]
 
-_maximal_polyhedron(::Type{Polyhedron{T}}, PC::PolyhedralComplex, i::Base.Integer) where T<:scalar_types = Polyhedron{T}(Polymake.fan.polytope(pm_object(PC), i-1), coefficient_field(PC))
+_maximal_polyhedron(
+  ::Type{Polyhedron{T}}, PC::PolyhedralComplex, i::Base.Integer
+) where {T<:scalar_types} =
+  Polyhedron{T}(Polymake.fan.polytope(pm_object(PC), i - 1), coefficient_field(PC))
 
-_vertex_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) = pm_object(PC).MAXIMAL_POLYTOPES[:, _vertex_indices(pm_object(PC))]
+_vertex_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
+  pm_object(PC).MAXIMAL_POLYTOPES[:, _vertex_indices(pm_object(PC))]
 
-_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) = pm_object(PC).MAXIMAL_POLYTOPES[:, _ray_indices_polyhedral_complex(pm_object(PC))]
+_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
+  pm_object(PC).MAXIMAL_POLYTOPES[:, _ray_indices_polyhedral_complex(pm_object(PC))]
 
 _incidencematrix(::Val{_maximal_polyhedron}) = _vertex_and_ray_indices
 
-_vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) = pm_object(PC).MAXIMAL_POLYTOPES
-
+_vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
+  pm_object(PC).MAXIMAL_POLYTOPES
 
 @doc raw"""
     maximal_polyhedra(PC::PolyhedralComplex)
@@ -266,8 +331,8 @@ julia> maximal_polyhedra(PC)
  Polyhedron in ambient dimension 2
 ```
 """
-maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{Polyhedron{T}}(PC, _maximal_polyhedron, n_maximal_polyhedra(PC))
-
+maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  SubObjectIterator{Polyhedron{T}}(PC, _maximal_polyhedron, n_maximal_polyhedra(PC))
 
 @doc raw"""
     n_maximal_polyhedra(PC::PolyhedralComplex)
@@ -298,7 +363,6 @@ julia> n_maximal_polyhedra(PC)
 """
 n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
-
 @doc raw"""
     is_simplicial(PC::PolyhedralComplex)
 
@@ -319,7 +383,6 @@ true
 """
 is_simplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
 
-
 @doc raw"""
     is_pure(PC::PolyhedralComplex)
 
@@ -339,7 +402,6 @@ true
 ```
 """
 is_pure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
-
 
 @doc raw"""
     dim(PC::PolyhedralComplex)
@@ -392,40 +454,64 @@ julia> for p in P1s
 1
 ```
 """
-function polyhedra_of_dim(PC::PolyhedralComplex{T}, polyhedron_dim::Int) where T<:scalar_types
-    n = polyhedron_dim - lineality_dim(PC) + 1
-    n < 0 && return nothing
-    pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
-    nfaces = Polymake.nrows(pfaces)
-    rfaces = Vector{Int64}()
-    nfarf = 0
-    farf = Polymake.to_one_based_indexing(pm_object(PC).FAR_VERTICES)
-    for index in 1:nfaces
-        face = Polymake.row(pfaces, index)
-        if face <= farf
-            nfarf += 1
-        else
-            append!(rfaces, index)
-        end
+function polyhedra_of_dim(
+  PC::PolyhedralComplex{T}, polyhedron_dim::Int
+) where {T<:scalar_types}
+  n = polyhedron_dim - lineality_dim(PC) + 1
+  n < 0 && return nothing
+  pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
+  nfaces = Polymake.nrows(pfaces)
+  rfaces = Vector{Int64}()
+  nfarf = 0
+  farf = Polymake.to_one_based_indexing(pm_object(PC).FAR_VERTICES)
+  for index in 1:nfaces
+    face = Polymake.row(pfaces, index)
+    if face <= farf
+      nfarf += 1
+    else
+      append!(rfaces, index)
     end
-    return SubObjectIterator{Polyhedron{T}}(PC, _ith_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
+  end
+  return SubObjectIterator{Polyhedron{T}}(
+    PC, _ith_polyhedron, length(rfaces), (f_dim=n, f_ind=rfaces)
+  )
 end
 
-function _ith_polyhedron(::Type{Polyhedron{T}}, PC::PolyhedralComplex, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
-    pface = Polymake.row(Polymake.fan.cones_of_dim(pm_object(PC), f_dim), f_ind[i])
-    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(PC).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(PC).LINEALITY_SPACE), coefficient_field(PC))
+function _ith_polyhedron(
+  ::Type{Polyhedron{T}},
+  PC::PolyhedralComplex,
+  i::Base.Integer;
+  f_dim::Int=-1,
+  f_ind::Vector{Int64}=Vector{Int64}(),
+) where {T<:scalar_types}
+  pface = Polymake.row(Polymake.fan.cones_of_dim(pm_object(PC), f_dim), f_ind[i])
+  return Polyhedron{T}(
+    Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(;
+      VERTICES=pm_object(PC).VERTICES[collect(pface), :],
+      LINEALITY_SPACE=pm_object(PC).LINEALITY_SPACE,
+    ),
+    coefficient_field(PC),
+  )
 end
 
-lineality_space(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(PC, _lineality_complex, lineality_dim(PC))
+lineality_space(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  SubObjectIterator{RayVector{T}}(PC, _lineality_complex, lineality_dim(PC))
 
-_lineality_complex(::Type{RayVector{T}}, PC::PolyhedralComplex, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(PC), @view pm_object(PC).LINEALITY_SPACE[i, 2:end])
+_lineality_complex(
+  ::Type{RayVector{T}}, PC::PolyhedralComplex, i::Base.Integer
+) where {T<:scalar_types} =
+  RayVector{T}(coefficient_field(PC), @view pm_object(PC).LINEALITY_SPACE[i, 2:end])
 
-_generator_matrix(::Val{_lineality_complex}, PC::PolyhedralComplex; homogenized=false) = homogenized ? pm_object(PC).LINEALITY_SPACE : @view pm_object(PC).LINEALITY_SPACE[:, 2:end]
+_generator_matrix(::Val{_lineality_complex}, PC::PolyhedralComplex; homogenized=false) =
+  if homogenized
+    pm_object(PC).LINEALITY_SPACE
+  else
+    @view pm_object(PC).LINEALITY_SPACE[:, 2:end]
+  end
 
 _matrix_for_polymake(::Val{_lineality_complex}) = _generator_matrix
 
 lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
-
 
 @doc raw"""
     f_vector(PC::PolyhedralComplex)
@@ -451,11 +537,10 @@ julia> f_vector(PC)
 ```
 """
 function f_vector(PC::PolyhedralComplex)
-    ldim = lineality_dim(PC)
-    f_vec=vcat(zeros(Int64, ldim), [length(polyhedra_of_dim(PC,i)) for i in ldim:dim(PC)])
-    return f_vec
+  ldim = lineality_dim(PC)
+  f_vec = vcat(zeros(Int64, ldim), [length(polyhedra_of_dim(PC, i)) for i in ldim:dim(PC)])
+  return f_vec
 end
-
 
 @doc raw"""
     nrays(PC::PolyhedralComplex)
@@ -479,7 +564,6 @@ julia> nrays(PC)
 nrays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nrays(PC) : 0
 _nrays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
 
-
 @doc raw"""
     nvertices(PC::PolyhedralComplex)
 
@@ -501,7 +585,6 @@ julia> nvertices(PC)
 """
 nvertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nvertices(PC) : 0
 _nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _nrays(PC)
-
 
 @doc raw"""
     npolyhedra(PC::PolyhedralComplex)
@@ -544,8 +627,7 @@ julia> codim(PC)
 1
 ```
 """
-codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
-
+codim(PC::PolyhedralComplex) = ambient_dim(PC) - dim(PC)
 
 @doc raw"""
     is_embedded(PC::PolyhedralComplex)
@@ -567,7 +649,7 @@ true
 ```
 """
 function is_embedded(PC::PolyhedralComplex)
-    pmo = pm_object(PC)
-    schedule = Polymake.call_method(pmo,:get_schedule,"VERTICES")
-    return schedule != nothing
+  pmo = pm_object(PC)
+  schedule = Polymake.call_method(pmo, :get_schedule, "VERTICES")
+  return !isnothing(schedule)
 end

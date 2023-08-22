@@ -271,6 +271,11 @@ homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing}=nothing)
 dehomogenization(F::MPolyDecRingElem, pos::Int)
 ```
 
+## Ideals as Modules
+
+```@docs
+ideal_as_module(I::MPolyIdeal)
+```
 
 ## Generating Special Ideals
 

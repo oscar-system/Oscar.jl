@@ -502,6 +502,19 @@ function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
 end
 
 function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+  X = domain(f)
+  Y = codomain(f)
+  parent(a) === function_field(X) || error("element does not belong to the correct ring")
+  has_attribute(f, :isomorphism_on_open_subset) || error("need an isomorphism on some open subset")
+  f_res = isomorphism_on_open_subset(f)
+  U = domain(f_res)
+  V = codomain(f_res)
+  aa = a[ambient_scheme(U)]
+  f_res_inv = inverse(f_res)
+  num = pullback(f_res_inv)(numerator(aa))
+  den = pullback(f_res_inv)(denominator(aa))
+  #bb = fraction(num)//fraction(den)
+  return function_field(Y)(lifted_numerator(num)*lifted_denominator(den), lifted_numerator(den)*lifted_denominator(num))
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)

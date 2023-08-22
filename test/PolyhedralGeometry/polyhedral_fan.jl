@@ -1,8 +1,9 @@
 NF, sr2 = quadratic_field(2)
+ENF, sre2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
 Qx, x = QQ["x"]
 K, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
 
-for f in (QQ, NF, K)
+for f in (QQ, ENF, K)
 
     T = elem_type(f)
     @testset "PolyhedralFan{$T}" begin
@@ -89,6 +90,31 @@ for f in (QQ, NF, K)
             @test IncidenceMatrix(maximal_cones(F2NR)) == incidence2
         end
         
+    end
+
+    @testset "Transform" begin
+      square = cube(f, 2)
+      nf_square = normal_fan(square)
+      m_good = matrix(f, [1 0; 0 1])
+      m_bad = matrix(f, [1 1])
+      nf_transformed = transform(nf_square, m_good)
+      @test nf_transformed isa PolyhedralFan{T}
+      @test nrays(nf_transformed) == 4
+      @test n_maximal_cones(nf_transformed) == 4
+      @test_throws ErrorException transform(nf_square, m_bad)
+      nf_unverified = transform(nf_square, m_good; check=false)
+      @test nf_unverified isa PolyhedralFan{T}
+      @test nrays(nf_unverified) == 4
+      @test n_maximal_cones(nf_unverified) == 4
+
+      cdeg = convex_hull(f, [1 0 0; 0 0 0])
+      nflin = normal_fan(cdeg)
+      mm = matrix(f, [1 0 0; 0 1 0; 0 0 1])
+      nflin_transformed = transform(nflin, mm)
+      @test nflin_transformed isa PolyhedralFan{T}
+      @test nrays(nflin_transformed) == 0
+      @test n_maximal_cones(nflin_transformed) == 2
+      @test lineality_dim(nflin_transformed) == 2
     end
 
     @testset "Star Subdivision" begin

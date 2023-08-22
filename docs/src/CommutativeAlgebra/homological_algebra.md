@@ -33,7 +33,7 @@ free_resolution(M::SubquoModule{<:MPolyRingElem};
   )
 ```
 
-## Betti Diagrams
+## Betti Tables
 
 Given a $\mathbb Z$-graded multivariate polynomial ring $S$, and given
 a graded free resolution  with finitely generated graded free $S$-modules 
@@ -78,8 +78,14 @@ betti_table(F::FreeResolution)
 ```
 
 ```@docs
-minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
+minimal_betti_table(F::FreeResolution{T}) where {T<:ModuleFP}
 ```
+
+```@docs
+minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}
+```
+
+## Castelnuovo-Mumford Regularity
 
 ```@docs
 cm_regularity(M::ModuleFP)

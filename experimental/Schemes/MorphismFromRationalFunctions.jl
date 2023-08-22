@@ -1,5 +1,5 @@
 @doc raw"""
-    RationalMap{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
+    MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
 
 A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
 by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
@@ -44,7 +44,7 @@ Spectrum
 julia> t = first(gens(OO(U)))
 (t//s)
 
-julia> Phi = oscar.RationalMap(IP1, IP2, U, V, [1//t, 1//t^2]);
+julia> Phi = oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
 
 julia> realizations = oscar.realize_on_patch(Phi, U);
 
@@ -58,10 +58,10 @@ given by the pullback function
 
 ```
 """
-@attributes mutable struct RationalMap{DomainType<:AbsCoveredScheme, 
+@attributes mutable struct MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, 
                                        CodomainType<:AbsCoveredScheme
                                       } <: AbsCoveredSchemeMorphism{DomainType, CodomainType, 
-                                                                    RationalMap, Nothing}
+                                                                    MorphismFromRationalFunctions, Nothing}
   domain::DomainType
   codomain::CodomainType
   domain_covering::Covering
@@ -70,6 +70,7 @@ given by the pullback function
   codomain_chart::AbsSpec
   coord_imgs::Vector{<:FieldElem}
 
+  ### Various fields for caching
   patch_representatives::IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:Vector{<:FieldElem}}}
   realizations::IdDict{<:AbsSpec, <:Vector{<:AbsSpecMor}}
   realization_previews::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:Vector{<:FieldElem}}
@@ -77,7 +78,7 @@ given by the pullback function
   cheap_realizations::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsSpecMor}
   full_realization::CoveredSchemeMorphism
 
-  function RationalMap(
+  function MorphismFromRationalFunctions(
       X::AbsCoveredScheme, Y::AbsCoveredScheme, 
       U::AbsSpec, V::AbsSpec,
       a::Vector{<:FieldElem};
@@ -109,21 +110,53 @@ given by the pullback function
   end
 end
 
-domain(Phi::RationalMap) = Phi.domain
-codomain(Phi::RationalMap) = Phi.codomain
-domain_covering(Phi::RationalMap) = Phi.domain_covering
-codomain_covering(Phi::RationalMap) = Phi.codomain_covering
-domain_chart(Phi::RationalMap) = Phi.domain_chart
-codomain_chart(Phi::RationalMap) = Phi.codomain_chart
-coordinate_images(Phi::RationalMap) = Phi.coord_imgs
+domain(Phi::MorphismFromRationalFunctions) = Phi.domain
+codomain(Phi::MorphismFromRationalFunctions) = Phi.codomain
+domain_covering(Phi::MorphismFromRationalFunctions) = Phi.domain_covering
+codomain_covering(Phi::MorphismFromRationalFunctions) = Phi.codomain_covering
+domain_chart(Phi::MorphismFromRationalFunctions) = Phi.domain_chart
+codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
+coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 
-patch_representatives(Phi::RationalMap) = Phi.patch_representatives
-realizations(Phi::RationalMap) = Phi.realizations
-maximal_extensions(Phi::RationalMap) = Phi.maximal_extensions
-realization_previews(Phi::RationalMap) = Phi.realization_previews
-cheap_realizations(Phi::RationalMap) = Phi.cheap_realizations
+# For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
+# the pullback `f₁,…,fᵣ` of the `gens` of `OO(V)` along `Phi` can be represented as 
+# rational functions on `U`. This returns a dictionary where `U` can be used 
+# as a key and a list of pairs `(V, [f₁,…,fᵣ])` is returned for every `V` for 
+# which this has already been computed. 
+patch_representatives(Phi::MorphismFromRationalFunctions) = Phi.patch_representatives
 
-function realize_on_patch(Phi::RationalMap, U::AbsSpec)
+# The full realizations of the morphism: Keys are the `patches` `U` of the `domain_covering`
+# and the output is a list of morphisms `φ : U' → V` from `PrincipalOpenSubset`s of `U` 
+# to `patches` of the `codomain_covering` which are needed to provide a full 
+# `CoveringMorphism` for `Phi`.
+realizations(Phi::MorphismFromRationalFunctions) = Phi.realizations
+
+# For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
+# there is a maximal open subset `U' ⊂ U` (not necessarily principally open) so that 
+# `φ : U' → V` is the restriction of `Phi` to `U'`. This returns a dictionary which takes 
+# the pair `(U, V)` as input and returns a list of morphisms `φₖ : U'ₖ → V` with 
+# all `U'ₖ` principally open in `U` and so that all the `U'ₖ` cover `U'`.
+maximal_extensions(Phi::MorphismFromRationalFunctions) = Phi.maximal_extensions
+
+# This is similar to `patch_representatives` only that this returns a dictionary 
+# which takes pairs `(U, V)` as input and returns the pullback of `gens(OO(V))` as 
+# rational functions in the fraction field of the `ambient_coordinate_ring` of `U`.
+realization_previews(Phi::MorphismFromRationalFunctions) = Phi.realization_previews
+
+# This is similar to `maximal_extensions`, but here only one `PrincipalOpenSubset` `U' ⊂ U` 
+# is produced such that `Phi` can be realized as `φ : U' → V`, i.e. `U'` need not 
+# be maximal with this property.
+cheap_realizations(Phi::MorphismFromRationalFunctions) = Phi.cheap_realizations
+
+@doc raw"""
+    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
+
+For ``U`` in the `domain_covering` of `Phi` construct a list of morphisms 
+``fₖ : U'ₖ → Vₖ`` from `PrincipalOpenSubset`s ``U'ₖ`` of ``U`` to `patches` 
+``Vₖ`` in the `codomain_covering` so that altogether the `fₖ` can be assembled 
+to a `CoveringMorphism` which realizes `Phi`.
+"""
+function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   if haskey(realizations(Phi), U)
     return realizations(Phi)[U]
   end
@@ -176,8 +209,14 @@ function realize_on_patch(Phi::RationalMap, U::AbsSpec)
   realizations(Phi)[U] = Psi_res
   return Psi_res
 end
+@doc raw"""
+    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
 
-function realize_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+Returns a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such 
+that the restriction of `Phi` to `U'` is `f`. Note that `U'` need not be maximal 
+with this property!
+"""
+function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   X = domain(Phi)
   Y = codomain(Phi)
   # Check that the input is admissible
@@ -201,7 +240,15 @@ function realize_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return _restrict_properly(prelim, V)
 end
 
-function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+@doc raw"""
+    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+
+For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
+of `Phi`, respectively, this returns a list of elements in the fraction field of the 
+`ambient_coordinate_ring` of `U` which represent the pullbacks of `gens(OO(V))` under 
+`Phi` to `U`.
+"""
+function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(realization_previews(Phi), (U, V))
     return realization_previews(Phi)[(U, V)]
   end
@@ -225,14 +272,33 @@ function realization_preview(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return img_gens_frac
 end
 
-function random_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+@doc raw"""
+    random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+
+For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
+of `Phi`, respectively, this creates a random `PrincipalOpenSubset` `U'` on which 
+the restriction `f : U' → V` of `Phi` can be realized and returns that restriction.
+Note that `U'` need not (and usually will not) be maximal with this property.
+"""
+function random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
   phi = SpecMor(U_sub, ambient_space(V), img_gens, check=true) # Set to false
   return phi
 end
 
-function cheap_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+@doc raw"""
+    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+
+For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
+of `Phi`, respectively, this creates a random `PrincipalOpenSubset` `U'` on which 
+the restriction `f : U' → V` of `Phi` can be realized and returns that restriction.
+Note that `U'` need not (and usually will not) be maximal with this property.
+
+This method is cheap in the sense that it simply inverts all representatives of 
+the denominators occuring in the `realization_preview(Phi, U, V)`.
+"""
+function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(cheap_realizations(Phi), (U, V))
     return cheap_realizations(Phi)[(U, V)]
   end
@@ -265,7 +331,15 @@ function cheap_realization(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
   return phi
 end
 
-function realize_maximally_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSpec)
+@doc raw"""
+    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+
+For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
+of `Phi`, respectively, this returns a list of morphisms `fₖ : U'ₖ → V` such that the 
+restriction of `Phi` to `U'ₖ` and `V` is `fₖ` and altogether the `U'ₖ` cover the maximal 
+open subset `U'⊂ U` on which the restriction `U' → V` of `Phi` can be realized.
+"""
+function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(maximal_extensions(Phi), (U, V))
     return maximal_extensions(Phi)[(U, V)]
   end
@@ -281,7 +355,14 @@ function realize_maximally_on_open_subset(Phi::RationalMap, U::AbsSpec, V::AbsSp
 end
 
 
-function realize(Phi::RationalMap)
+@doc raw"""
+    realize(Phi::MorphismFromRationalFunctions)
+
+Computes a full realization of `Phi` as a `CoveredSchemeMorphism`. Note 
+that this computation is very expensive and usage of this method should 
+be avoided.
+"""
+function realize(Phi::MorphismFromRationalFunctions)
   if !isdefined(Phi, :full_realization)
     realizations = AbsSpecMor[]
     mor_dict = IdDict{AbsSpec, AbsSpecMor}()
@@ -303,8 +384,11 @@ function realize(Phi::RationalMap)
   return Phi.full_realization
 end
 
-underlying_morphism(Phi::RationalMap) = realize(Phi)
+underlying_morphism(Phi::MorphismFromRationalFunctions) = realize(Phi)
 
+###
+# Find a random open subset `W ⊂ U` to which all the rational functions 
+# represented by the elements in `a` can be extended as regular functions.
 function _random_extension(U::AbsSpec, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
   if iszero(length(a))
@@ -338,6 +422,11 @@ function _random_extension(U::AbsSpec, a::Vector{<:FieldElem})
   return Ug, b
 end
 
+###
+# Find a maximal open subset `W ⊂ U` to which all the rational functions 
+# represented by the elements in `a` can be extended as regular functions
+# and return a list of tuples `(W', a')` of realizations on principal 
+# open subsets W' covering W.
 function _extend(U::AbsSpec, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
   if iszero(length(a))
@@ -398,10 +487,20 @@ function _extend(U::AbsSpec, a::Vector{<:FieldElem})
   return result
 end
 
+# Some functionality that was missing and should probably be moved elsewhere.
+# TODO: Do that.
 equidimensional_decomposition_radical(I::MPolyQuoIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 equidimensional_decomposition_radical(I::MPolyLocalizedIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 equidimensional_decomposition_radical(I::MPolyQuoLocalizedIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 
+### When realizing a `MorphismFromRationalFunctions` `Phi` on pairs 
+# of patches `(U, V)`, it is essential to use information on 
+# other pairs `(U', V')` of patchs which is already available 
+# through feasible channels. Now, for example, for `U'` as above
+# this finds another patch `U` for which the glueing of `U` and `U'` 
+# is already fully computed, but which is not in `covered`. 
+# If no such `U` exists: Bad luck. We just take any other one 
+# and the glueing has to be computed eventually. 
 function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
   U = [x for x in patches(cov) if !any(y->y===x, covered)]
   glue = glueings(cov)
@@ -418,6 +517,10 @@ function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
   return first(U), first(covered)
 end
 
+# Even though a list of rational functions might be realizable 
+# as regular functions on U' and a morphism U' → A to the `ambient_space` 
+# of V can be realized, V might be so small that we need a proper restriction 
+# of the domain. The methods below take care of that. 
 function _restrict_properly(f::AbsSpecMor, V::AbsSpec{<:Ring, <:MPolyRing})
   return restrict(f, domain(f), V, check=false)
 end
@@ -454,7 +557,11 @@ function _restrict_properly(
   return restrict(f, UU, V, check=false)
 end
 
-function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
+### The natural mathematical way to deal with algebraic cycles. However, since 
+# we can not realize fraction fields of integral domains 𝕜[x₁,…,xₙ]/I properly, 
+# not even to speak of their transcendence degrees, this functionality is rather 
+# limited at the moment. 
+function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
   all(x->isprime(x), components(D)) || error("divisor must be given in terms of irreducible components")
@@ -491,10 +598,14 @@ function pushforward(Phi::RationalMap, D::AbsAlgebraicCycle)
   return AlgebraicCycle(Y, coefficient_ring(D), pushed_comps)
 end
 
-function pushforward(Phi::RationalMap, D::WeilDivisor)
+function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
   return WeilDivisor(pushforward(Phi, underlying_cycle(D)))
 end
 
+# The following attributes can not be checked algorithmically at the moment. 
+# But they can be set by the user so that certain checks of other methods 
+# are satisfied; i.e. the user has to take responsibility and confirm that 
+# they know what they're doing through these channels. 
 @attr function is_proper(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check properness")
 end
@@ -503,20 +614,21 @@ end
   error("no method implemented to check for being an isomorphism")
 end
 
-function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
+### Pullback of algebraic cycles along an isomorphism. 
+function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
   is_isomorphism(phi) || error("method is currently only implemented for isomorphisms")
   X = domain(phi)
   Y = codomain(phi)
   R = coefficient_ring(C)
   comps = IdDict{IdealSheaf, elem_type(R)}()
   for I in components(C)
-    @vprint :RationalMap 1 "trying cheap pullback\n"
+    @vprint :MorphismFromRationalFunctions 1 "trying cheap pullback\n"
     pbI = _try_pullback_cheap(phi, I)
     if pbI === nothing
-      @vprint :RationalMap 1 "trying randomized pullback\n"
+      @vprint :MorphismFromRationalFunctions 1 "trying randomized pullback\n"
       pbI = _try_randomized_pullback(phi, I)
       if pbI === nothing
-        @vprint :RationalMap 1 "trying the full pullback\n"
+        @vprint :MorphismFromRationalFunctions 1 "trying the full pullback\n"
         pbI = _pullback(phi, I)
       end
     end
@@ -526,7 +638,12 @@ function pullback(phi::RationalMap, C::AbsAlgebraicCycle)
   return AlgebraicCycle(X, R, comps)
 end
 
-function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
+# In order to pull back an ideal sheaf I along phi we need to find only pair of 
+# dense open subsets (U, V) such that the restriction of `phi` can be realized 
+# as a regular morphism f : U → V with f*(I) non-zero in OO(U). 
+# The method below tries to find such a pair in a cheap way which might not 
+# be successful.
+function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -571,7 +688,14 @@ function _try_pullback_cheap(phi::RationalMap, I::IdealSheaf)
   return nothing
 end
 
-function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
+# Similar to the above function, but this time we try pairs (U, V) and determine the 
+# maximal open subset W ⊂ U such that the restriction `W → V` of `phi` can be realized. 
+# Then we take a random linear combination `h` of the generators of the ideal for the 
+# complement of W in U and realize the restriction of `phi` on the hypersurface complement 
+# of `h`. With probability 1 this will produce a non-trivial pullback of I on this 
+# patch whenever I was non-trivial on V. But it is not as cheap as the method above 
+# since the rational functions must be converted to regular functions on D(h). 
+function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -604,7 +728,8 @@ function _try_randomized_pullback(phi::RationalMap, I::IdealSheaf)
   return nothing
 end
 
-function _pullback(phi::RationalMap, I::IdealSheaf)
+### Deprecated method below, left here for recycling.
+function _pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -646,6 +771,6 @@ function _pullback(phi::RationalMap, I::IdealSheaf)
   error("ideal sheaf could not be pulled back")
 end
 
-function pullback(phi::RationalMap, D::WeilDivisor)
+function pullback(phi::MorphismFromRationalFunctions, D::WeilDivisor)
   return WeilDivisor(pullback(phi)(underlying_cycle(D)), check=false) 
 end
