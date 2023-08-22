@@ -7,7 +7,7 @@ function save_object(s::SerializerState, ntv::NormalToricVarietyType)
   save_object(s, ntv.polymakeNTV)
 end
 
-function load_object(s::DeserializerState, ::Type{T}, dict::Dict, field::Field) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
+function load_object(s::DeserializerState, ::Type{T}, dict::Dict) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
   return T(load_object(s, Polymake.BigObject, dict))
 end
 
