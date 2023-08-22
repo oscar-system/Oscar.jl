@@ -4,6 +4,16 @@
 ###############################################################################
 ###############################################################################
 
+struct PolyhedralFan{T} <: PolyhedralObject{T}
+    pm_fan::Polymake.BigObject
+    parent_field::Field
+
+    PolyhedralFan{T}(pm::Polymake.BigObject, f::Field) where T<:scalar_types = new{T}(pm, f)
+    PolyhedralFan{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
+end
+
+const _FanLikeType = Union{NormalToricVarietyType, PolyhedralFan}
+const _FanLikeTypeQQ = Union{NormalToricVarietyType, PolyhedralFan{QQFieldElem}}
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
