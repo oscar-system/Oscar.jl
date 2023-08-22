@@ -38,6 +38,7 @@ import ..Oscar:
   is_abelian,
   is_isomorphism,
   is_nilpotent,
+  is_perfect,
   is_simple,
   is_solvable,
   kernel,

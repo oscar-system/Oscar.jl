@@ -404,6 +404,15 @@ Return `true` if `L` is nilpotent, i.e. the descending central series of `L` ter
 end
 
 @doc raw"""
+    is_perfect(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is perfect, i.e. $[L, L] = L$.
+"""
+@attr Bool function is_perfect(L::LieAlgebra)
+  return dim(derived_algebra(L)) == dim(L)
+end
+
+@doc raw"""
     is_simple(L::LieAlgebra) -> Bool
 
 Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial ideals.
@@ -413,6 +422,7 @@ Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial i
 """
 @attr Bool function is_simple(L::LieAlgebra)
   is_abelian(L) && return false
+  !is_perfect(L) && return false
   error("Not implemented.") # TODO
 end
 

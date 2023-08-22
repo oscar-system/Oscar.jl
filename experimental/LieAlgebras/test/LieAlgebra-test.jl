@@ -157,6 +157,16 @@ include("LinearLieAlgebra-test.jl")
     end
   end
 
+  @testset "Perfectness" begin
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+      L = general_linear_lie_algebra(F, n)
+      @test !is_perfect(L)
+
+      L = special_linear_lie_algebra(F, n)
+      @test is_perfect(L) == !(n == 2 && characteristic(F) == 2)
+    end
+  end
+
   @testset "Solvability and nilpotency" begin
     L = abelian_lie_algebra(QQ, 3)
     @test is_nilpotent(L)
