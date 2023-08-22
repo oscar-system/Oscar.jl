@@ -245,14 +245,14 @@ julia> V2 = trivial_module(L);
 
 julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
 Lie algebra module morphism
-  from standard module of dimension 3 over sl_3
-  to   abstract Lie algebra module of dimension 1 over sl_3
+  from standard module of dimension 3 over gl_3
+  to   abstract Lie algebra module of dimension 1 over gl_3
   
 julia> [(v, h(v)) for v in basis(V1)]
-  3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
-   (v_1, 0)
-   (v_2, 0)
-   (v_3, 0)
+3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+ (v_1, 0)
+ (v_2, 0)
+ (v_3, 0)
 ```
 """
 function hom(
@@ -269,9 +269,6 @@ Construct the identity map on `V`.
 # Examples
 ```jldoctest
 julia> L = special_linear_lie_algebra(QQ, 3);
-Special linear Lie algebra of degree 3
-  of dimension 8
-over rational field
 
 julia> V = standard_module(L)
 Standard module

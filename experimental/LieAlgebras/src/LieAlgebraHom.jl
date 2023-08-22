@@ -234,10 +234,10 @@ Lie algebra morphism
   to   special linear Lie algebra of degree 3 over QQ
   
 julia> [(x, h(x)) for x in basis(L1)]
-  3-element Vector{Tuple{LinearLieAlgebraElem{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}}}:
-   (e_1_2, e_1_2)
-   (f_1_2, f_1_2)
-   (h_1, h_1)
+3-element Vector{Tuple{LinearLieAlgebraElem{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}}}:
+ (e_1_2, e_1_2)
+ (f_1_2, f_1_2)
+ (h_1, h_1)
 ```
 """
 function hom(
