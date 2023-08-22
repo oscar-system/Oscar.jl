@@ -573,6 +573,7 @@ export glueing_domains
 export glueing_graph
 export glueing_morphisms
 export glueings
+export gorenstein_index
 export goldfarb_cube
 export goldfarb_sit_cube
 export grade
@@ -913,6 +914,8 @@ export low_index_subgroup_reps
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
+export map_from_picard_group_to_class_group
+export map_from_torusinvariant_cartier_divisor_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_picard_group
 export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group
 export map_from_torusinvariant_weil_divisor_group_to_class_group
@@ -1106,6 +1109,7 @@ export permutation_of_terms
 export permuted
 export picard_class
 export picard_group
+export picard_index
 export pile_polytope
 export pitman_stanley_polytope
 export platonic_solid

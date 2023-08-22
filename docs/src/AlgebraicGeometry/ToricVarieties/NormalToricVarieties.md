@@ -140,6 +140,13 @@ torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```
 
+### Gorenstein and Picard index
+
+```@docs
+gorenstein_index(v::AbstractNormalToricVariety)
+picard_index(v::AbstractNormalToricVariety)
+```
+
 ### Cones and Fans
 
 ```@docs

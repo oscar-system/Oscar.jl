@@ -1327,13 +1327,13 @@ R^1 <---- R^4 <---- R^4 <---- R^1 <---- 0
 0         1         2         3         4
 
 julia> betti_table(FA)
-       0  1  2  3  
+       0  1  2  3
 ------------------
-0    : 1  -  -  -  
-1    : -  2  1  -  
-2    : -  2  3  1  
+0    : 1  -  -  -
+1    : -  2  1  -
+2    : -  2  3  1
 ------------------
-total: 1  4  4  1  
+total: 1  4  4  1
 ```
 """
 function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
@@ -1392,7 +1392,7 @@ function Base.show(io::IO, b::BettiTable)
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
       print(io, " "^(s2 + (7 - s2)))
       for j in min:step:max
-        print(io, j, " "^(spaces - ndigits(j) + 1))
+        print(io, j, j == max ? "" : " "^(spaces - ndigits(j) + 1))
       end
       print(io, "\n")
       divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
@@ -1407,7 +1407,7 @@ function Base.show(io::IO, b::BettiTable)
         for h in min:step:max
           sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
           print(io, sum_current == 0 ? "-" : sum_current)
-          print(io, " "^(spaces - (sum_current == 0 ? 0 : ndigits(sum_current)) + (sum_current == 0 ? 0 : 1)))
+          h == max || print(io, " "^(spaces - (sum_current == 0 ? 0 : ndigits(sum_current)) + (sum_current == 0 ? 0 : 1)))
         end
         print(io,"\n")
       end
@@ -1415,7 +1415,7 @@ function Base.show(io::IO, b::BettiTable)
       print(io, "\n", "total: ")
       for i_total in min:step:max
         sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
-        print(io, sum_row, " "^(spaces - ndigits(sum_row) + 1))
+        print(io, sum_row, i_total == max ? "" : " " ^ (spaces - ndigits(sum_row) + 1))
       end
       print(io, "\n")
     end
@@ -1988,13 +1988,13 @@ julia> A, _ = quo(R, I)
 R to A defined by a julia-function with inverse)
 
 julia> minimal_betti_table(A)
-       0  1  2  3  
+       0  1  2  3
 ------------------
-0    : 1  -  -  -  
-1    : -  5  5  -  
-2    : -  -  -  1  
+0    : 1  -  -  -
+1    : -  5  5  -
+2    : -  -  -  1
 ------------------
-total: 1  5  5  1  
+total: 1  5  5  1
 ```
 """
 function minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}

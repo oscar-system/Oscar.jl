@@ -1118,9 +1118,9 @@ end
   # To reproduce the string on the right hand side, evaluate 
   #   `"$(oscar.minimal_betti_table(M))"` 
   # and insert the result here; after verification of the result!
-  @test "$(oscar.minimal_betti_table(A))" == "       0  1  2  3  4  \n---------------------\n0    : 1  -  -  -  -  \n1    : -  -  -  -  -  \n2    : -  7  10 5  1  \n---------------------\ntotal: 1  7  10 5  1  \n"
+  @test "$(oscar.minimal_betti_table(A))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
 
-  @test "$(oscar.minimal_betti_table(M))" == "       0  1  2  3  4  \n---------------------\n0    : 1  -  -  -  -  \n1    : -  -  -  -  -  \n2    : -  7  10 5  1  \n---------------------\ntotal: 1  7  10 5  1  \n"
+  @test "$(oscar.minimal_betti_table(M))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
 
   @test "$(oscar.minimal_betti_table(I))" == "$(oscar.minimal_betti_table(sub_F))"
 
@@ -1129,12 +1129,12 @@ end
   R, x = grade(R)
   I = ideal(R, [x[1]*x[2]*x[5], x[1]*x[2]*x[6], x[3]*x[4]*x[6], x[3]*x[4]*x[7], x[5]*x[7]])
   A, _ = quo(R, I)
-  @test "$(oscar.minimal_betti_table(A))" == "       0  1  2  3  \n------------------\n0    : 1  -  -  -  \n1    : -  1  -  -  \n2    : -  4  4  -  \n3    : -  -  1  -  \n4    : -  -  -  1  \n------------------\ntotal: 1  5  5  1  \n"
+  @test "$(oscar.minimal_betti_table(A))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
 
   # another example due to Wolfram
   R, _ = polynomial_ring(QQ, [:x, :y, :z, :w])
   R, (x, y, z, w) = grade(R)
   I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
   A, _ = quo(R, I)
-  @test "$(oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3  \n------------------\n0    : 1  -  -  -  \n1    : -  5  5  -  \n2    : -  -  -  1  \n------------------\ntotal: 1  5  5  1  \n"
+  @test "$(oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
 end

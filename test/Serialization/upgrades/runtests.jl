@@ -4,7 +4,6 @@
     R, x = QQ["x"]
     p = R(L)
     loaded_p = load(joinpath(@__DIR__, "file_version<=0.11.2.json"); params=R);
-
     @test p == loaded_p
   end
 
@@ -14,7 +13,6 @@
     Rx, x = Fin["x"]
     p = x^2 + d * x + 1
     loaded_p =  load(joinpath(@__DIR__, "file_version<=0.12.0.json"); params=Rx);
-
     @test p == loaded_p
   end
 end

@@ -41,6 +41,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:type] = "PolyRing"
     end
 
+
     if upgraded_dict[:type] == "Nemo.fpFieldElem"
       upgraded_dict[:type] = "fpFieldElem"
     end

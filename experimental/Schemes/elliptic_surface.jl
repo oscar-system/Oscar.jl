@@ -433,7 +433,7 @@ Return the relatively minimal model $X \to C$ and the contraction
 $\Psi \colon X \to S$ to its Weierstrass model $S$.
 """
 function relatively_minimal_model(E::EllipticSurface)
-  if isdefined(E, :blowups)
+  if isdefined(E, :blowup)
     return E.Y, E.blowup
   end
   S, inc_S = weierstrass_model(E)
@@ -491,6 +491,10 @@ function relatively_minimal_model(E::EllipticSurface)
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1]) # radical to have small number of generators
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    # Set the attribute so that the strict_transform does some extra work
+    isomorphism_on_open_subset(pr_X1)
+
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
     E1 = exceptional_divisor(pr_X1)
@@ -511,18 +515,22 @@ function relatively_minimal_model(E::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
   end
   E.Y = Y0
   E.blowups = projectionsY
   E.ambient_blowups = projectionsX
   E.ambient_exceptionals = ambient_exceptionals
-  piY = reduce(*, reverse(projectionsY))
+  #piY = reduce(*, reverse(projectionsY))
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   E.blowup = piY
   E.inc_Y = inc_Y0
 
-  set_attribute!(Y0, :is_irreducible=>true)
-  set_attribute!(Y0, :is_reduced=>true)
-  set_attribute!(Y0, :is_integral=>true)
   return Y0, piY
 end
 
