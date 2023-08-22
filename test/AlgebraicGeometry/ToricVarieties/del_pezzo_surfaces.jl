@@ -32,6 +32,12 @@
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP1)) == picard_group(dP1)
         @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP1)) == torusinvariant_cartier_divisor_group(dP1)
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP1)) == torusinvariant_weil_divisor_group(dP1)
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP1)) == torusinvariant_cartier_divisor_group(dP1)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP1)) == class_group(dP1)
+        @test domain(map_from_picard_group_to_class_group(dP1)) == picard_group(dP1)
+        @test codomain(map_from_picard_group_to_class_group(dP1)) == class_group(dP1)
+        @test gorenstein_index(dP1) == 1
+        @test picard_index(dP1) == 1
         if set_attributes
             @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP1)) == matrix(ZZ, [[1, 1], [1, 1], [1, 0], [0, -1]])
             @test coordinate_names(dP1) == ["x1", "x2", "x3", "e1"]
@@ -49,6 +55,12 @@
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP2)) == picard_group(dP2)
         @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP2)) == torusinvariant_cartier_divisor_group(dP2)
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP2)) == torusinvariant_weil_divisor_group(dP2)
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP2)) == torusinvariant_cartier_divisor_group(dP2)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP2)) == class_group(dP2)
+        @test domain(map_from_picard_group_to_class_group(dP2)) == picard_group(dP2)
+        @test codomain(map_from_picard_group_to_class_group(dP2)) == class_group(dP2)
+        @test gorenstein_index(dP2) == 1
+        @test picard_index(dP2) == 1
         if set_attributes
             @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP2)) == matrix(ZZ, [[1, 1, 1], [1, 1, 0], [1, 0, 1], [0, -1, 0], [0, 0, -1]])
             @test coordinate_names(dP2) == ["x1", "x2", "x3", "e1", "e2"]
@@ -66,6 +78,12 @@
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP3)) == picard_group(dP3)
         @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP3)) == torusinvariant_cartier_divisor_group(dP3)
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(dP3)) == torusinvariant_weil_divisor_group(dP3)
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP3)) == torusinvariant_cartier_divisor_group(dP3)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_class_group(dP3)) == class_group(dP3)
+        @test domain(map_from_picard_group_to_class_group(dP3)) == picard_group(dP3)
+        @test codomain(map_from_picard_group_to_class_group(dP3)) == class_group(dP3)
+        @test gorenstein_index(dP3) == 1
+        @test picard_index(dP3) == 1
         if set_attributes
             @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(dP3)) == matrix(ZZ, [[1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 1, 1], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
             @test coordinate_names(dP3) == ["x1", "x2", "x3", "e1", "e2", "e3"]
