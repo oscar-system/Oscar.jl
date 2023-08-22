@@ -1186,3 +1186,80 @@ function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, <:MPolyQuoLocRing
                                               <:MPolyQuoRingElem, <:MPolyLocRingElem}})
   return f
 end
+
+########################################################################
+# Internal functionality for Weierstrass transformation 
+########################################################################
+
+
+@doc raw"""
+    _normalize_quartic(g::MPolyRingElem, parent=nothing)
+
+Transform ``a(x)y^2 + b(x)y - h(x)`` in ``K(t)[x,y]`` to ``y'^2 - h(x')``
+"""
+function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
+  R = oscar.parent(g)
+  @assert ngens(R) == 2 "polynomial must be bivariate"
+  F = fraction_field(R)
+  kt = coefficient_ring(R)
+  (x, y) = gens(R)
+
+  # Prepare the output ring
+  if parent===nothing
+    R1, (x1, y1) = polynomial_ring(kt, [:x, :y], cached=false)
+  else
+    R1 = parent
+    @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
+    (x1, y1) = gens(R1)
+  end
+
+  # Get the coefficients of g as a univariate polynomial in y
+  ktx, X = polynomial_ring(kt, :X)
+  ktxy, Y = polynomial_ring(ktx, :y)
+
+  # Maps to transform to univariate polynomials in y
+  split_map_R = hom(R, ktxy, [ktxy(X), Y])
+  split_map_R1 = hom(R1, ktxy, [ktxy(X), Y])
+  G = split_map_R(g)
+  @assert degree(G) == 2 "polynomial must be of degree 2 in its second variable"
+
+  #complete the square
+  h, b, a = collect(coefficients(G))
+  h = -h
+  u = unit(factor(a))
+  a = inv(u)*a
+  b = inv(u)*b
+  @assert issquare(a) "leading coefficient as univariate polynomial in the second variable must be a square"
+  sqa = sqrt(a)
+
+  # inverse map
+  F1 = fraction_field(R1)
+  [x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]
+  F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))])
+  psi = hom(R1, F, F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]))
+  conv = MapFromFunc(ktx, R1, f->evaluate(f, x1))
+  (a1, b1, sqa1) = conv.([a, b, sqa])
+  phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
+  phiF = MapFromFunc(F, F1, x-> phi(numerator(x))//phi(denominator(x)))
+  psiF = MapFromFunc(F1, F, x-> psi(numerator(x))//psi(denominator(x)))
+  @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+
+  # absorb squares into y1
+  g1 = numerator(phi(g))
+  G1 = split_map_R1(g1)
+  ff = factor(first(coefficients(G1)))
+  c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
+  #d = sqrt(my_coeff(g1, y1, 2))
+  d = last(coefficients(split_map_R1(g1)))
+  @assert issquare(d) "leading coefficient must be a square"
+  d = sqrt(d)
+
+  phi1 = hom(R1, F1, [F1(x1), F1(evaluate(c, x1), evaluate(d, x1))*y1])
+  phiF1 = MapFromFunc(F1, F1, x-> phi1(numerator(x))//phi1(denominator(x)))
+  phi2 = compose(phi, phiF1)
+  g2 = numerator(phi1(g1))
+  #c = my_coeff(g2, y1, 2)
+  c = last(coefficients(split_map_R1(g2)))
+  g2 = divexact(g2, evaluate(c, x1))
+  return g2, phi2
+end
