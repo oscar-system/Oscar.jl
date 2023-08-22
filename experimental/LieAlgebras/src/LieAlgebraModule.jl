@@ -72,16 +72,17 @@ dim(V::LieAlgebraModule) = V.dim
 
 Return a basis of the Lie algebra module `V`.
 """
-basis(L::LieAlgebraModule) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
+basis(V::LieAlgebraModule) = [basis(V, i)::elem_type(V) for i in 1:dim(V)]
 
 @doc raw"""
     basis(V::LieAlgebraModule{C}, i::Int) -> LieAlgebraModuleElem{C}
 
 Return the `i`-th basis element of the Lie algebra module `V`.
 """
-function basis(L::LieAlgebraModule, i::Int)
-  R = coefficient_ring(L)
-  return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
+function basis(V::LieAlgebraModule, i::Int)
+  @req 1 <= i <= dim(V) "Index out of bounds."
+  R = coefficient_ring(V)
+  return V([(j == i ? one(R) : zero(R)) for j in 1:dim(V)])
 end
 
 @doc raw"""

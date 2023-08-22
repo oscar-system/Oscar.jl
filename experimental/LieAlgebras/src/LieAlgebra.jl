@@ -52,6 +52,7 @@ basis(L::LieAlgebra) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 Return the `i`-th basis element of the Lie algebra `L`.
 """
 function basis(L::LieAlgebra, i::Int)
+  @req 1 <= i <= dim(L) "Index out of bounds."
   R = coefficient_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
