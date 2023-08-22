@@ -33,23 +33,6 @@ codomain(tm::ToricMorphism) = tm.codomain
 
 
 @doc raw"""
-    image(tm::ToricMorphism)
-
-Return the image of the toric morphism `tm`.
-
-# Examples
-```jldoctest
-julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
-
-julia> image(toric_identity_morphism(F4))
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
-```
-"""
-image(tm::ToricMorphism) = tm.image
-
-
-@doc raw"""
     grid_morphism(tm::ToricMorphism)
 
 Return the underlying grid morphism of the toric morphism `tm`.

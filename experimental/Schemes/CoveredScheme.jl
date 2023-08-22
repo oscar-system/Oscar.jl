@@ -572,6 +572,41 @@ end
 # Composite morphism of covered schemes
 ########################################################################
 
+@doc raw"""
+    CompositeCoveredSchemeMorphism{
+        DomainType<:AbsCoveredScheme,
+        CodomainType<:AbsCoveredScheme,
+        BaseMorphismType
+       } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 BaseMorphismType,
+                                 CoveredSchemeMorphism
+                                }
+
+A special concrete type of an `AbsCoveredSchemeMorphism` of the 
+form ``f = hᵣ ∘ hᵣ₋₁ ∘ … ∘ h₁: X → Y`` for arbitrary 
+`AbsCoveredSchemeMorphism`s ``h₁ : X → Z₁``, ``h₂ : Z₁ → Z₂``, ..., 
+``hᵣ : Zᵣ₋₁ → Y``. 
+
+Since every such morphism ``hⱼ`` will in general have an underlying 
+`CoveringMorphism` with `domain` and `codomain` `covering` actual 
+composition of such a sequence of morphisms will lead to an exponential 
+increase in complexity of these coverings because of the necessary 
+refinements. Nevertheless, the pullback or pushforward of various objects
+on either ``X`` or ``Y`` through such a chain of maps is possible stepwise.
+This type allows one to have one concrete morphism rather than a list 
+of morphisms and to reroute such calculations to iteration over the 
+various maps. 
+
+In addition to the usual functionality of the `AbsCoveredSchemeMorphism` 
+interface, this concrete type has the getters 
+
+    maps(f::CompositeCoveredSchemeMorphism)
+
+to obtain a list of the ``hⱼ`` and `map(f, j)` to obtain the `j`-th map 
+directly. 
+"""
 @attributes mutable struct CompositeCoveredSchemeMorphism{
     DomainType<:AbsCoveredScheme,
     CodomainType<:AbsCoveredScheme,
@@ -599,6 +634,7 @@ end
 
 ### Essential getters
 maps(f::CompositeCoveredSchemeMorphism) = f.maps
+map(f::CompositeCoveredSchemeMorphism, i::Int) = f.maps[i]
 domain(f::CompositeCoveredSchemeMorphism) = domain(first(f.maps))
 codomain(f::CompositeCoveredSchemeMorphism) = codomain(f.maps[end])
 
@@ -688,13 +724,11 @@ function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
   if get(io, :supercompact, false)
     print(io, "Composite morphism")
   else
-    map_string = "$(domain(f)) -> "
+    print(io, "Composition of ", "$(domain(f)) -> ")
     for i in 2:length(maps(f))
-      map_string = map_string * "$(domain(map(f)[i])) -> "
+      print(io, "$(domain(map(f)[i])) -> ")
     end
-    map_string = map_string * "$(codomain(map(f)[end]))"
-
-    print(io, "Composition of ", map_string)
+    print(io, "$(codomain(map(f)[end]))")
   end
 end
 
@@ -704,6 +738,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::CompositeCoveredSchemeMorphism
   for g in maps(f)
     println(io, g)
   end
+  println(io, Dedent())
 end
 
 ########################################################################
