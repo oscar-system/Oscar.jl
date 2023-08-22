@@ -617,3 +617,20 @@ function pushforward(f::BlowupMorphism, g::VarietyFunctionFieldElem)
   pfg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
   return FY.(pfg)
 end
+
+@attr AbsSpecMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
+  error("attribute not found; this needs to be set manually in general")
+end
+
+function compose(f::BlowupMorphism, g::BlowupMorphism)
+  return composite_map(f, g)
+end
+
+function compose(f::BlowupMorphism, g::AbsCoveredSchemeMorphism)
+  return composite_map(f, g)
+end
+
+function compose(f::AbsCoveredSchemeMorphism, g::BlowupMorphism)
+  return composite_map(f, g)
+end
+
