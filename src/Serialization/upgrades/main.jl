@@ -5,16 +5,16 @@
 # been upgraded to the latest format.
 
 struct UpgradeScript
-    version::VersionNumber # version to be upgraded to
-    script::Function
+  version::VersionNumber # version to be upgraded to
+  script::Function
 end
 
 function version(upgrade_script::UpgradeScript)
-    return upgrade_script.version
+  return upgrade_script.version
 end
 
 function script(upgrade_script::UpgradeScript)
-    return upgrade_script.script
+  return upgrade_script.script
 end
 
 (u_s::UpgradeScript)(s::DeserializerState,
@@ -24,28 +24,28 @@ end
 const upgrade_scripts = Vector{UpgradeScript}()
 
 function upgrade_data(upgrade::Function, s::DeserializerState, dict::Dict)
-    # file comes from polymake
-    haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
-    
-    upgraded_dict = Dict{Symbol, Any}()
-    for (key, dict_value) in dict
-        if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
-            upgraded_dict[key] = dict_value
-        elseif dict_value isa Dict{Symbol, Any}
-            upgraded_dict[key] = upgrade(s, dict_value)
-        else  # not a string or a dictionary, so must be a vector
-            new_value = []
-            for v in dict_value
-                if v isa String
-                    push!(new_value, v)
-                else
-                    push!(new_value, upgrade(s, v))
-                end
-            end
-            upgraded_dict[key] = new_value
+  # file comes from polymake
+  haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
+  
+  upgraded_dict = Dict{Symbol, Any}()
+  for (key, dict_value) in dict
+    if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
+      upgraded_dict[key] = dict_value
+    elseif dict_value isa Dict{Symbol, Any}
+      upgraded_dict[key] = upgrade(s, dict_value)
+    else  # not a string or a dictionary, so must be a vector
+      new_value = []
+      for v in dict_value
+        if v isa String
+          push!(new_value, v)
+        else
+          push!(new_value, upgrade(s, v))
         end
+      end
+      upgraded_dict[key] = new_value
     end
-    return upgraded_dict
+  end
+  return upgraded_dict
 end
 
 include("0.11.3.jl")
@@ -60,20 +60,20 @@ sort!(upgrade_scripts; by=version)
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
 function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
-    upgraded_dict = dict
-    for upgrade_script in upgrade_scripts
-        script_version = version(upgrade_script)
+  upgraded_dict = dict
+  for upgrade_script in upgrade_scripts
+    script_version = version(upgrade_script)
 
-        if dict_version < script_version
-            # TODO: use a macro from Hecke that will allow user to suppress
-            # such a message
-            @info("upgrading serialized data....", maxlog=1)
-            s = DeserializerState()
-            upgraded_dict = upgrade_script(s, upgraded_dict)
-        end
+    if dict_version < script_version
+      # TODO: use a macro from Hecke that will allow user to suppress
+      # such a message
+      @info("upgrading serialized data....", maxlog=1)
+      s = DeserializerState()
+      upgraded_dict = upgrade_script(s, upgraded_dict)
     end
+  end
 
-    upgraded_dict[:_ns] = oscarSerializationVersion
-    
-    return upgraded_dict
+  upgraded_dict[:_ns] = oscarSerializationVersion
+  
+  return upgraded_dict
 end

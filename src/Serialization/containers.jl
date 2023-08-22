@@ -1,191 +1,207 @@
 ################################################################################
+# Helper functions
+get_nested_entry(x::Any) = x
+get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
+
+################################################################################
 # Saving and loading vectors
 
 @registerSerializationType(Vector)
+type_needs_params(::Type{<:Vector})  = true
+MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
-function save_internal(s::SerializerState, vec::Vector{T}) where T
-    d = Dict{Symbol, Any}(
-        :vector => [save_type_dispatch(s, x) for x in vec]
-    )
-    if is_basic_serialization_type(T)
-        d[:entry_type] = encodeType(T)
+function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
+  data_dict(s) do
+    save_object(s, encode_type(S), :name)
+    if type_needs_params(T)
+      if hasmethod(parent, (T,))
+        parents = map(parent, obj)
+        parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
+        @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
+      end
+      save_type_params(s, obj[1], :params)
+    else
+      save_object(s, encode_type(T), :params)
     end
-    return d
+  end
 end
 
-function save_internal(s::SerializerState, vec::Vector{T};
-                       include_parents::Bool=true) where T <: RingElem
-    encoded_vec = [save_internal(s, x; include_parents=false) for x in vec]
-
-    if include_parents
-        entries_parent = parent(vec[1])
-
-        if has_elem_basic_encoding(entries_parent)
-            return Dict(
-                :parent => save_as_ref(s, entries_parent),
-                :vector => encoded_vec
-            )
-        end
-        return Dict(
-            :parents => get_parent_refs(s, entries_parent),
-            :vector => [save_internal(s, x; include_parents=false) for x in vec]
-        )
-    end
-    return encoded_vec
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::String)
+  return decode_type(str)
 end
 
-# deserialize with specific content type
-function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
-    if isconcretetype(T)
-        if haskey(dict, :parents)
-            parents = load_parents(s, dict[:parents])
-            return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
-        elseif haskey(dict, :parent)
-            parent =  load_type_dispatch(s, parent_type(T), dict[:parent])
-            return [
-                load_internal_with_parent(s, T, x, parent)
-                for x in dict[:vector]
-                    ]
-        elseif haskey(dict, :entry_type)
-            return [load_type_dispatch(s, T, x) for x in dict[:vector]]
-        end
-
-        return Vector{T}([load_type_dispatch(s, T, x) for x in dict[:vector]])
-    end
-    return Vector{T}([load_unknown_type(s, x) for x in dict[:vector]])
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, dict::Dict)
+  T = decode_type(dict[:name])
+  params = load_type_params(s, T, dict[:params])
+  return (T, params)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Vector{T}},
-                                   dict::Dict,
-                                   parent) where T
-    if isconcretetype(T)
-        if haskey(dict, :parent)
-            return [
-                load_internal_with_parent(s, elem_type(parent), x, parent)
-                for x in dict[:vector]
-                    ]
-        elseif haskey(dict, :parents)
-            parents = get_parents(parent)
-            return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
-        elseif haskey(dict, :entry_type)
-            return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
-        end
-        return Vector{T}([load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]])
-    end
-    return Vector{T}([load_unknown_type(s, x; parent=parent) for x in dict[:vector]])
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
+  return (elem_type(override_params), override_params)
 end
 
-# deserialize without specific content type
-function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
-    if haskey(dict, :parent)
-        parent = load_unknown_type(s, dict[:parent])
-        return [
-            load_internal_with_parent(s, elem_type(parent), x, parent)
-            for x in dict[:vector]
-                ]
-
-        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
-    elseif haskey(dict, :parents)
-        parents = load_parents(s, dict[:parents])
-        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
-    elseif haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
-        return [load_type_dispatch(s, T, x) for x in dict[:vector]]
+function save_object(s::SerializerState, x::Vector)
+  data_array(s) do
+    for elem in x
+      save_object(s, elem)
     end
-    
-    return [load_unknown_type(s, x) for x in dict[:vector]]
+  end
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Vector},
-                                   dict::Dict,
-                                   parent)
-    if haskey(dict, :parent)
-        return [load_internal_with_parent(s, elem_type(parent), x, parent) for
-                    x in dict[:vector]]
-    elseif haskey(dict, :parents)
-        parents = get_parents(parent)
-        return [load_terms(s, parents, x, parents[end]) for x in dict[:vector]]
-    elseif haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
-        
-        return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
-    end
-    
-    return [load_unknown_type(s, x; parent=parent) for x in dict[:vector]]
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Type)
+  loaded_v = [load_object(s, params, x) for x in v]
+  return loaded_v
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                                 v::Vector, params::Tuple)
+  T = params[1]
+  return [load_object(s, T, x, params[2]) for x in v]
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Ring)
+  T = elem_type(params)
+  return [load_object(s, T, x, params) for x in v]
 end
 
 ################################################################################
 # Saving and loading Tuple
 @registerSerializationType(Tuple)
+type_needs_params(::Type{<:Tuple}) = true
 
-function save_internal(s::SerializerState, tup::T) where T <: Tuple
+function save_type_params(s::SerializerState, tup::T) where T <: Tuple
+  data_dict(s) do
+    save_object(s, encode_type(Tuple), :name)
     n = fieldcount(T)
-    return Dict(
-        :field_types => [encodeType(fieldtype(T, i)) for i in 1:n],
-        :content => [save_type_dispatch(s, x) for x in tup]
-    )
+    s.key = :params
+    data_array(s) do 
+      for i in 1:n
+        U = fieldtype(T, i)
+        if type_needs_params(U)
+          save_type_params(s, tup[i])
+        else
+          save_object(s, encode_type(U))
+        end
+      end
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
-    field_types = map(decodeType, dict[:field_types])
-    n = length(field_types)
-    content = dict[:content]
-    @assert length(content) == n  "Wrong length of tuple, data may be corrupted."
-    return T(load_type_dispatch(s, field_types[i], content[i]) for i in 1:n)
+function load_type_params(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
+  loaded_params = Any[]
+  for param in params
+    if param isa String
+      push!(loaded_params, decode_type(param))
+    else
+      T = decode_type(param[:name])
+      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+    end
+  end
+  return loaded_params
+end
+
+function save_object(s::SerializerState, obj::Tuple)
+  data_array(s) do 
+    for entry in obj
+      save_object(s, entry)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:Tuple},
+                                 v::Vector{Any}, params::Vector)
+  return Tuple(
+    params[i] isa Type ? load_object(s, params[i], v[i]) :
+      load_object(s, params[i][1], v[i], params[i][2]) for i in 1:length(v)
+  )
 end
 
 ################################################################################
 # Saving and loading NamedTuple
 @registerSerializationType(NamedTuple)
+type_needs_params(::Type{<:NamedTuple}) = true
 
-function save_internal(s::SerializerState, n_tup:: NamedTuple)
-    return Dict(
-        :keys => save_type_dispatch(s, keys(n_tup)),
-        :content => save_type_dispatch(s, values(n_tup))
-    )
+function save_type_params(s::SerializerState, obj::NamedTuple)
+  data_dict(s) do
+    save_object(s, encode_type(NamedTuple), :name)
+    s.key = :params
+    data_dict(s) do 
+      save_type_params(s, values(obj), :tuple_params)
+      save_object(s, keys(obj), :names)
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{<:NamedTuple}, dict::Dict)
-    tup = load_unknown_type(s, dict[:content])
-    keys = load_type_dispatch(s, Tuple, dict[:keys])
-    return NamedTuple{keys}(tup)
+function save_object(s::SerializerState, obj::NamedTuple)
+  save_object(s, values(obj))
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Dict)
+  tuple_params = load_type_params(s, Tuple, params[:tuple_params][:params])
+  return (params[:names], tuple_params)
+end
+
+function load_object(s::DeserializerState, ::Type{<: NamedTuple},
+                                 v::Vector, params::Tuple)
+  keys, tuple_params = params
+  tuple = load_object(s, Tuple, v, tuple_params)
+  keys = map(Symbol, keys)
+  return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
 
 
 ################################################################################
 # Saving and loading matrices
-
 @registerSerializationType(Matrix)
+type_needs_params(::Type{<:Matrix}) = true
+  
+function save_object(s::SerializerState, mat::Matrix)
+  m, n = size(mat)
+  data_array(s) do
+    for i in 1:m
+      save_object(s, [mat[i, j] for j in 1:n])
+    end
+  end
+end
 
-function save_internal(s::SerializerState, mat::Matrix{T}) where T
-    m, n = size(mat)
-    return Dict(
-        :matrix => [save_type_dispatch(s, [mat[i, j] for j in 1:n]) for i in 1:m]
-    )
+function load_object(s::DeserializerState, ::Type{<:Matrix},
+                                 entries::Vector, params::Type)
+  m = reduce(vcat, [
+    permutedims(load_object(s, Vector, v, params)) for v in entries
+      ])
+  return Matrix{params}(m)
+end
+
+function load_object(s::DeserializerState, ::Type{<:Matrix},
+                     entries::Vector, params::Tuple)
+  m = reduce(vcat, [
+    permutedims(load_object(s, Vector, v, params)) for v in entries
+      ])
+  return Matrix{params[1]}(m)
 end
 
 # deserialize with specific content type
 function load_internal(s::DeserializerState, ::Type{Matrix{T}}, dict::Dict) where T
-    x = dict[:matrix]
-    y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector{T}, x[i])) for i in 1:length(x)])
-    return Matrix{T}(y)
+  x = dict[:matrix]
+  y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector{T}, x[i])) for i in 1:length(x)])
+  return Matrix{T}(y)
 end
 
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Matrix}, dict::Dict)
-    x = dict[:matrix]
-    y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector, x[i])) for i in 1:length(x)])
-    return Matrix(y)
+  x = dict[:matrix]
+  y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector, x[i])) for i in 1:length(x)])
+  return Matrix(y)
 end
 
 # deserialize without specific content type
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{Matrix}, dict::Dict, parent)
-    x = dict[:matrix]
-    y = reduce(vcat, [
-        permutedims(load_type_dispatch(s, Vector, x[i], parent=parent)) for i in 1:length(x)
-            ])
-    return Matrix(y)
+  x = dict[:matrix]
+  y = reduce(vcat, [
+    permutedims(load_type_dispatch(s, Vector, x[i], parent=parent)) for i in 1:length(x)
+      ])
+  return Matrix(y)
 end

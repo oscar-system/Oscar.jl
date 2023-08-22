@@ -1,3 +1,4 @@
+import Base.string
 # module Tropical
 
 # import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring
@@ -160,6 +161,13 @@ Oscar.zero(x::TropicalSemiringElem) = zero(parent(x))
 
 # The underlying rational number. This is undefined for inf.
 data(x::TropicalSemiringElem) = x.data
+
+function string(x::TropicalSemiringElem)
+    if isinf(x)
+        return "infinity"
+    end
+    return string(data(x))
+end
 
 # Test if something is inf.
 isinf(x::TropicalSemiringElem) = x.isinf
