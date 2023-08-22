@@ -31,8 +31,13 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
     
     upgraded_dict = dict
-    # we only upgrade univariate polynomials
-    if contains(upgraded_dict[:type], "PolyRingElem")
+    # we only upgrade polynomials and MPolyIdeals
+    if contains(upgraded_dict[:type], "MPolyIdeal")
+      upgraded_gens = []
+      for gen in dict[:data][:gens][:data][:vector]
+        push!(upgraded_gens, upgrade_0_12_2(refs, gen))
+      end
+    elseif contains(upgraded_dict[:type], "PolyRingElem")
       if !haskey(upgraded_dict[:data], :parent)
         return upgraded_dict
       end
@@ -41,16 +46,22 @@ push!(upgrade_scripts_set, UpgradeScript(
       parent_dict = upgraded_dict[:data][:parent]
       parents = []
       if haskey(parent_dict, :id)
+        if parent_dict[:type] == "#backref"
+          parent_dict = refs[parent_dict[:id]]
+        else
+          refs[Symbol(parent_dict[:id])] = parent_dict
+        end
         push!(parents, parent_dict)
       end
-      
+
       while haskey(parent_dict[:data], :base_ring)
         parent_dict = parent_dict[:data][:base_ring]
 
         if !haskey(parent_dict, :id)
           break
         end
-        
+        refs[Symbol(parent_dict[:id])] = parent_dict
+        println(refs)
         push!(parents, parent_dict)
         if haskey(parent_dict[:data], :def_pol)
           parent_dict = parent_dict[:data][:def_pol][:data][:parent]
@@ -85,21 +96,28 @@ push!(upgrade_scripts_set, UpgradeScript(
       
       upgraded_dict[:data][:parents] = upgraded_parents
       terms = []
-      exponent = 0
-
-      # we convert the vector of coefficients
-      # to the new terms format
-      for coeff in upgraded_dict[:data][:coeffs][:data][:vector]
-        if !isa(coeff, Dict)
-          upgraded_coeff = coeff
-        elseif haskey(coeff[:data], :polynomial)
-          upgraded_coeff = upgrade_0_12_2(refs, coeff[:data][:polynomial])[:data][:terms]
-        else
-          upgraded_coeff = coeff[:data][:data]
+      if contains(upgraded_dict[:type], "MPolyRingElem")
+        for term in dict[:data][:terms]
+          push!(terms, [term[:exponent][:data][:vector],
+                        term[:coeff][:data][:data]])
         end
-        term = (exponent, upgraded_coeff)
-        push!(terms, term)
-        exponent += 1
+      else
+        exponent = 0
+        
+        # we convert the vector of coefficients
+        # to the new terms format
+        for coeff in upgraded_dict[:data][:coeffs][:data][:vector]
+          if !isa(coeff, Dict)
+            upgraded_coeff = coeff
+          elseif haskey(coeff[:data], :polynomial)
+            upgraded_coeff = upgrade_0_12_2(refs, coeff[:data][:polynomial])[:data][:terms]
+          else
+            upgraded_coeff = coeff[:data][:data]
+          end
+          term = (exponent, upgraded_coeff)
+          push!(terms, term)
+          exponent += 1
+        end
       end
       upgraded_dict[:data] = Dict(:terms => terms, 
                                   :parents => upgraded_parents)
