@@ -15,7 +15,9 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
     save_object(s, encode_type(S), :name)
     if type_needs_params(T)
       if hasmethod(parent, (T,))
-        @req allequal(map(parent, obj)) "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
+        parents = map(parent, obj)
+        parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
+        @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
       end
       save_type_params(s, obj[1], :params)
     else
