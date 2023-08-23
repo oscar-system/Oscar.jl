@@ -99,7 +99,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data][:parents] = upgraded_parents
       terms = []
+              
       if upgraded_dict[:type] == "MPolyRingElem"
+        # convert the terms array to the new format
         for term in dict[:data][:terms]
           if term[:coeff][:type] == "#backref"
             term[:coeff] = s.id_to_dict[Symbol(term[:coeff][:id])]
@@ -110,10 +112,9 @@ push!(upgrade_scripts_set, UpgradeScript(
                         term[:coeff][:data][:data]])
         end
       else
-        exponent = 0
-        
         # we convert the vector of coefficients
         # to the new terms format
+        exponent = 0
         for coeff in upgraded_dict[:data][:coeffs][:data][:vector]
           if !isa(coeff, Dict)
             upgraded_coeff = coeff

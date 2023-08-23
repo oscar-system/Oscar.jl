@@ -42,12 +42,13 @@ push!(upgrade_scripts_set, UpgradeScript(
   function upgrade_0_13_0(s::UpgradeState, dict::Dict)
     upgraded_dict = dict
     if !haskey(dict, :type)
+      # this section deals will PolyRings and MPolyRings
       if haskey(dict, :base_ring) && dict[:base_ring] isa Dict
         if dict[:base_ring][:type] == "#backref"
           upgraded_dict[:base_ring] = dict[:base_ring][:id]
         elseif haskey(dict[:base_ring], :data)
           # should have only one key, since any base_ring that
-          # doesn't use an id has one one paramater
+          # doesn't use an id has one paramater
           key = first(keys(dict[:base_ring][:data]))
           upgraded_dict[:base_ring][:data] = string(dict[:base_ring][:data][key])
         end
@@ -75,7 +76,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       return dict
     end
     if T <: Vector
-      params = Dict(:params => Dict())
+      # this section wasn't necessary for upgrading the folder of surfaces
+      # which was our primary focus, this may be updated upon request
+      throw(Error("The upgrade script needs an update"))
     elseif T <: Union{PolyRingElem, MPolyRingElem}
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
         upgraded_parents = Any[
@@ -84,7 +87,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         params = upgraded_parents
         upgraded_dict[:data] = upgrade_terms(dict[:data][:terms])
       else
-        params = "this needs to be filled in"
+        # this section wasn't necessary for upgrading the folder of surfaces
+        # which was our primary focus, this may be updated upon request
+        throw(Error("The upgrade script needs an update"))
       end
 
       upgraded_dict[:type] = Dict(:name => "PolyRingElem", :params => params)
