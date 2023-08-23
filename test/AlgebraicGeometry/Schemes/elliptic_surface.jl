@@ -88,3 +88,18 @@ end
   f_trans, trans = oscar.transform_to_weierstrass(f, x, y, QQ.([0, 2]))
   @test trans(f//1) == (16*x^6 + 1//8*x^5 + 14*x^4*y - 16383//4096*x^4 - 16*x^3*y^2 + 647//128*x^3*y)//y^4
 end
+
+@testset "normalize_quartic and transform_to_weierstrass over function fields" begin
+  pt, t = QQ[:t]
+  kt = fraction_field(pt)
+  R, (x, y) = polynomial_ring(kt, [:x, :y])
+  P, (u, v) = polynomial_ring(kt, [:u, :v])
+  f = (3*x^2 - 5*t^2)^2*(y - 5*t*x^3 + 30*x - 5)^2 - (t*x^2 -5*x + 2*t^2)
+  g, trans = oscar._normalize_hyperelliptic_curve(f, parent=P)
+  @test trans(f) == g
+
+  R, (x, y) = polynomial_ring(kt, [:x, :y])
+  f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4*t^8
+  f_trans, trans = oscar.transform_to_weierstrass(f, x, y, kt.([0, 2*t^4]))
+  @test f_trans == 65536*t^32*x^3 + (-24576*t^24 + 25088*t^16)*x^2 + 57344*t^24*x*y + (-16384*t^24 + 2304*t^16 - 4704*t^8 + 2401)*x - 65536*t^32*y^2 + (20480*t^24 - 10752*t^16 + 10976*t^8)*y
+end
