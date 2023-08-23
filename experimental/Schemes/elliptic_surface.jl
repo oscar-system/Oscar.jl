@@ -1264,14 +1264,13 @@ end
 
 
 @doc raw"""
-    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem}; return_inverse::Bool=false)
+    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
-to some better form. This returns an endomorphism of the `fraction_field` of `parent(g)`. 
+to some better form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
+`fraction_field` of `parent(g)` and `f` is the transform.
 """
-function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem};
-    return_inverse::Bool=false
-  )
+function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
   R = parent(g)
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
@@ -1334,7 +1333,6 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
     x1 = evaluate(x1, [-x//c, y//c])
     y1 = evaluate(y1, [-x//c, y//c])
     x1 = x1+px
-    return_inverse && error("not implemented")
     #@assert x == evaluate(x1, [x2, y2])
     #@assert y == evaluate(y1, [x2, y2])
   end
