@@ -41,7 +41,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem},
   elem = parent_algebra(0)
   for term  in terms
     loaded_coeff = load_object(s, coeff_type, term[2])
-    loaded_term = parent_algebra(1)
+    loaded_term = parent_algebra(loaded_coeff)
     for word in term[1]
       loaded_term *= parent_algebra[parse(Int, word)]
     end
@@ -50,3 +50,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem},
 
   return elem
 end
+
+# Ideals
+@registerSerializationType(FreeAssAlgIdeal)
+type_needs_params(::Type{<:FreeAssAlgIdeal}) = true
