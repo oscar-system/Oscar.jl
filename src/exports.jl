@@ -1362,7 +1362,6 @@ export toric_ideal
 export toric_identity_morphism
 export toric_line_bundle
 export toric_morphism
-#export toric_spec
 export toric_vanishing_set
 export toric_variety
 export torus # requires a distinction from e.g. an algebraic group
