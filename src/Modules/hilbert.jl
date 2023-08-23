@@ -86,6 +86,7 @@ julia> den
 function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_positively_graded(R) "ring must be positively graded"
 
   # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
   # free Abelian group. 
@@ -119,6 +120,7 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring
 end
 
 function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+  @req is_positively_graded(base_ring(F)) "ring must be positively graded"
   return multi_hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
 end
 
