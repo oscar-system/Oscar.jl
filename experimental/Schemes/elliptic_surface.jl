@@ -1249,7 +1249,7 @@ function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRin
   c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
   #d = sqrt(my_coeff(g1, y1, 2))
   d = last(coefficients(split_map_R1(g1)))
-  success, d = sqrt(d)
+  success, d = is_square_with_sqrt(d)
   @assert success "leading coefficient must be a square"
 
   phi1 = hom(R1, F1, [F1(x1), F1(evaluate(c, x1), evaluate(d, x1))*y1])
@@ -1341,6 +1341,30 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
   # TODO: eventually add the inverse.
   trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
-  return trans(F(g)), trans
+  f_trans = trans(F(g))
+  fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
+  isone(length(fac)) || error("transform to weierstrass form did not succeed")
+  return first(fac), trans
+end
+
+function _is_in_weierstrass_form(f::MPolyElem)
+  R = parent(f)
+  @req ngens(R) == 2 "polynomial must be bivariate"
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  (x, y) = gens(R)
+  f = -inv(my_const(coeff(f, [x, y], [0, 2]))) * f
+  isone(-coeff(f, [x, y], [0, 2])) || return false
+  isone(coeff(f, [x, y], [3, 0])) || return false
+  
+  a6 = coeff(f, [x,y], [0,0])
+  a4 = coeff(f, [x,y], [1,0])
+  a2 = coeff(f, [x,y], [2,0])
+  a3 = -coeff(f, [x,y], [0,1])
+  a1 = -coeff(f, [x,y], [1,1])
+  a_invars = [my_const(i) for i in [a1,a2,a3,a4,a6]]
+  (a1,a2,a3,a4,a6) = a_invars
+  return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
 end
 
