@@ -2,64 +2,51 @@
 # FreeAssAlgebra
 
 # Free associative algebra serialization
-@registerSerializationType(AbstractAlgebra.Generic.FreeAssAlgebra, true)
+@registerSerializationType(FreeAssAlgebra, true)
 
-function save_internal(s::SerializerState, A::FreeAssAlgebra)
-  d = Dict(
-    :base_ring => save_as_ref(s, base_ring(A)),
-    :symbols => save_internal(s, symbols(A)),
-  )
-  return d
+function save_object(s::SerializerState, A::FreeAssAlgebra)
+  data_dict(s) do
+    save_typed_object(s, base_ring(A), :base_ring),
+    save_object(s, symbols(A), :symbols)
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{<:FreeAssAlgebra}, dict::Dict)
-  R = load_unknown_type(s, dict[:base_ring])
-  gens = load_internal(s, Vector{Symbol}, dict[:symbols])
+function load_object(s::DeserializerState, ::Type{<:FreeAssAlgebra}, dict::Dict)
+  R = load_typed_object(s, dict[:base_ring])
+  gens = map(Symbol, dict[:symbols])
   return free_associative_algebra(R, gens)[1]
 end
 
 # Free associative algebra element serialization
 @registerSerializationType(FreeAssAlgElem)
+type_needs_params(::Type{<:FreeAssAlgElem}) = true
 
-function save_internal(s::SerializerState, f::FreeAssAlgElem)
-  d = Dict(
-    :parent => save_as_ref(s, parent(f)),
-    :coeffs => save_internal(s, collect(coefficients(f))),
-    :exps => save_internal(s, collect(exponent_words(f))),
-    :length => save_internal(s, length(f)),
-  )
-  return d
+# see save_type_params in Rings
+
+function save_object(s::SerializerState, f::FreeAssAlgElem)
+  data_array(s) do
+    for term in terms(f)
+      data_array(s) do
+        save_object(s, collect(exponent_words(term))[1])
+        save_object(s, collect(coefficients(term))[1])
+      end
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{<:FreeAssAlgElem}, dict::Dict)
-  parent = load_ref(s, dict[:parent])
-  coeff_type=elem_type(coefficient_ring(parent))
-  coeffs = load_internal(s, Vector{coeff_type}, dict[:coeffs]) 
-  exps = load_internal(s, Vector{Vector{Int}},  dict[:exps]) 
-  length = load_internal(s, Int, dict[:length])
-  element = parent(coeffs, exps)
-  return element
-end
+function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem},
+                     terms::Vector, parents::Vector)
+  parent_algebra = parents[end]
+  coeff_type = elem_type(base_ring(parent_algebra))
+  elem = parent_algebra(0)
+  for term  in terms
+    loaded_coeff = load_object(s, coeff_type, term[2])
+    loaded_term = parent_algebra(1)
+    for word in term[1]
+      loaded_term *= parent_algebra[parse(Int, word)]
+    end
+    elem += loaded_term
+  end
 
-# Free associative algebra element serialization
-@registerSerializationType(FreeAssAlgElem)
-
-function save_internal(s::SerializerState, f::FreeAssAlgElem)
-  d = Dict(
-    :parent => save_as_ref(s, parent(f)),
-    :coeffs => save_internal(s, collect(coefficients(f))),
-    :exps => save_internal(s, collect(exponent_words(f))),
-    :length => save_internal(s, length(f)),
-  )
-  return d
-end
-
-function load_internal(s::DeserializerState, ::Type{<:FreeAssAlgElem}, dict::Dict)
-  parent = load_ref(s, dict[:parent])
-  coeff_type=elem_type(coefficient_ring(parent))
-  coeffs = load_internal(s, Vector{coeff_type}, dict[:coeffs]) 
-  exps = load_internal(s, Vector{Vector{Int}},  dict[:exps]) 
-  length = load_internal(s, Int, dict[:length])
-  element = parent(coeffs, exps)
-  return element
+  return elem
 end

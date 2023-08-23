@@ -1,6 +1,8 @@
 ################################################################################
 # Utility functions for ring parent tree
-RingMatSpaceUnion = Union{Ring, MatSpace}
+# this union will also need a better name at some point
+RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
+
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   # with new structure it seems like we may be able to remove the
@@ -29,7 +31,9 @@ end
 
 ################################################################################
 # Handling RingElem Params
-RingMatElemUnion = Union{RingElem, MatElem}
+# this will need a better name at some point
+RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
+
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
     save_object(s, encode_type(T), :name)
