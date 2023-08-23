@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-  Oscar.AbstractAlgebra.set_current_module(@__MODULE__)
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Invariants of Finite Groups
