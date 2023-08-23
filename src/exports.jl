@@ -1356,7 +1356,6 @@ export tetrahedron
 export tighten_simulation
 export to_elementary_symmetric
 export tor
-#export toric_covered_scheme
 export toric_divisor
 export toric_divisor_class
 export toric_ideal
