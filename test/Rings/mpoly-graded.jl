@@ -323,6 +323,10 @@ end
   I = ideal(S, [ f ])
   @test forget_decoration(I) == ideal(R, [ x + y ])
   @test forget_grading(I) == ideal(R, [ x + y ])
+  @test ideal(S, forget_decoration(I)) == I
+
+  T, _ = graded_polynomial_ring(QQ, [ "t" ], [ 1 ])
+  @test_throws ArgumentError ideal(T, forget_decoration(I))
 end
 
 @testset "Verify homogenization bugfix" begin

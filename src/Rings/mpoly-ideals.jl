@@ -54,6 +54,12 @@ function ideal(g::Vector{T}) where {T <: MPolyRingElem}
   return ideal(parent(g[1]), g)
 end
 
+# Coerce an ungraded ideal in a graded ring
+function ideal(S::MPolyDecRing, I::MPolyIdeal)
+  @req base_ring(I) === forget_grading(S) "Rings do not coincide"
+  return ideal(S, [ S(f) for f in gens(I) ])
+end
+
 function is_graded(I::MPolyIdeal)
   return is_graded(Hecke.ring(I))
 end

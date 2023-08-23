@@ -311,6 +311,11 @@ end
    @testset for x in gens(G)
        @test iseven(rank(matrix(x)-1))
    end
+
+   G = matrix_group(matrix(QQ, 2, 2, [ -1 0 ; 0 -1 ]))
+   K, _ = cyclotomic_field(4)
+   H = change_base_ring(K, G)
+   @test H == matrix_group(matrix(K, 2, 2, [ -1 0 ; 0 -1 ]))
 end
 
 
