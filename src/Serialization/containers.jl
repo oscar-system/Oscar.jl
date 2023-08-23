@@ -8,7 +8,7 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 
 @registerSerializationType(Vector)
 type_needs_params(::Type{<:Vector})  = true
-MatVecType{T} = Union{Matrix{T}, Vector{T}}
+const MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
   data_dict(s) do

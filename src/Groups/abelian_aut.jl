@@ -1,6 +1,6 @@
-AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
-AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
-AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
+const AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
+const AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
+const AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   iso = isomorphism(T, A)

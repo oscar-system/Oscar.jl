@@ -143,7 +143,7 @@ end
 @registerSerializationType(fqPolyRepFieldElem)
 @registerSerializationType(nf_elem)
 @registerSerializationType(Hecke.NfRelElem)
-NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
+const NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
 type_needs_params(T::Type{<:NumFieldElemTypeUnion}) = true
 
 function save_object(s::SerializerState, k::NumFieldElemTypeUnion)

@@ -44,4 +44,4 @@ end
     polymakeNTV::Polymake.BigObject
 end
 
-NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariety, CyclicQuotientSingularity}
+const NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariety, CyclicQuotientSingularity}

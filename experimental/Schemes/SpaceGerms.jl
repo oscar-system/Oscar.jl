@@ -209,7 +209,8 @@ end
 ## for convenience of users thinking in terms of local rings
 #########################################################################################
 
-LocalRing = Union{MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+const LocalRing = Union{
+                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
                                         <:MPolyComplementOfKPointIdeal},
                   MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
                                      <:MPolyComplementOfKPointIdeal},
