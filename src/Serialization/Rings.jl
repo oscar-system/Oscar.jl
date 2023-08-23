@@ -1,6 +1,12 @@
 ################################################################################
+# Common union types
+
+const RingMatElemUnion = Union{RingElem, MatElem}
+const RingMatSpaceUnion = Union{Ring, MatSpace}
+
+################################################################################
 # Utility functions for ring parent tree
-RingMatSpaceUnion = Union{Ring, MatSpace}
+
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   # with new structure it seems like we may be able to remove the
@@ -28,8 +34,7 @@ function save_parents(s::SerializerState, parent_ring::T) where T <: RingMatSpac
 end
 
 ################################################################################
-# Handling RingElem Params
-RingMatElemUnion = Union{RingElem, MatElem}
+# Handling RingElem MatElem, FieldElem ... Params
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -42,6 +47,10 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
     end
   end
 end
+
+# These three different load methods are necessary for handling the way parent
+# Rings (Fields, MatSpaces, etc.) are loaded. Ideally this should be reduced to
+# a single method but will require a bit of a refactor for RingElem, etc.
 
 function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
   return load_typed_object(s, dict)

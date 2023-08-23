@@ -1,9 +1,31 @@
+################################################################################
+# Description of the saving and loading mechanisms
+
+# There are three saving and loading functions that are used during serialization
+# they are save_typed_object, load_typed_object, save_type_params, load_type_params
+# and save_object, load_object.
+
+################################################################################
+# save_type_object / load_type_object
+
+# Theses functions are at the core of the serialization. For the most part these
+# functions should not be touched and are used to (de)serialize the object with its
+# type information as well as it's data. They can be used on a first attempt at
+# serializing an object, but in general this will lead to a verbose format and
+# should ultimately only be used for the root object (top level object) i.e. should
+# in general only be call from the save/load function.
+
+################################################################################
+#
+
+
+
+
 using JSON
 using UUIDs
 
 include("serializers.jl")
 
-const backref_sym = Symbol("#backref")
 ################################################################################
 # Meta Data
 
@@ -82,7 +104,6 @@ macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothin
   return registerSerializationType(ex, uses_id, str)
 end
 
-
 function encode_type(::Type{T}) where T
   error("unsupported type '$T' for encoding")
 end
@@ -159,8 +180,8 @@ end
 
 has_elem_basic_encoding(obj::T) where T = false
 
-# used for types that require parents when serialized
-type_needs_params(::Type) where Type = false
+# used for types that require params when serialized
+type_needs_params(::Type) = false
 
 ################################################################################
 # High level
