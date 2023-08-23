@@ -22,6 +22,14 @@ function pop_largest_factor!(f::Fac{ZZRingElem})
   return m
 end
 
+# TODO : Should be fixed in Nemo
+function (k::Nemo.FpField)(a::Vector)
+  @assert isone(length(a))
+  return k(a[1])
+end
+function (k::FqPolyRepField)(a::Vector)
+  return k(polynomial(GF(ZZ(characteristic(k))), a))
+end
 
 # TODO : Should be fixed in Hecke for prime fields
 function coords(x::FinFieldElem)
