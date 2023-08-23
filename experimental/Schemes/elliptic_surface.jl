@@ -1344,7 +1344,12 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
   f_trans = trans(F(g))
   fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
   isone(length(fac)) || error("transform to weierstrass form did not succeed")
-  return first(fac), trans
+
+  # normalize the output
+  result = first(fac)
+  result = inv(first(coefficients(coeff(result, gens(parent(result)), [3, 0]))))*result
+
+  return result, trans
 end
 
 function _is_in_weierstrass_form(f::MPolyElem)
