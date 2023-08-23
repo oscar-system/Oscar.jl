@@ -56,6 +56,7 @@ with default covering
 ```
 """
 @attr function underlying_scheme(Z::NormalToricVariety)
+  @req is_pure(polyhedral_fan(Z)) "underlying_scheme is currently only supported for toric varieties whose fan is pure"
   patch_list = affine_open_covering(Z)
   for (k, A) in enumerate(patch_list)
     C = cone(pm_object(A).WEIGHT_CONE)
