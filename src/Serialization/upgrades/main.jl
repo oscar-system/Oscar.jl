@@ -84,8 +84,5 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
     end
   end
   upgraded_dict[:_ns] = oscarSerializationVersion
-  open("/home/antonydv/data/debug.json", "w") do file
-    write(file, json(upgraded_dict, 2))
-  end
   return upgraded_dict
 end
