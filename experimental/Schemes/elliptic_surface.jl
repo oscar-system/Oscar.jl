@@ -1232,17 +1232,15 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
   @assert issquare(a) "leading coefficient as univariate polynomial in the second variable must be a square"
   sqa = sqrt(a)
 
-  # inverse map
   F1 = fraction_field(R1)
-  [x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]
-  F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))])
   psi = hom(R1, F, F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]))
   conv = MapFromFunc(ktx, R1, f->evaluate(f, x1))
   (a1, b1, sqa1) = conv.([a, b, sqa])
   phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
   phiF = MapFromFunc(F, F1, x-> phi(numerator(x))//phi(denominator(x)))
-  psiF = MapFromFunc(F1, F, x-> psi(numerator(x))//psi(denominator(x)))
-  @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+  # the inverse map if wanted
+  # psiF = MapFromFunc(F1, F, x-> psi(numerator(x))//psi(denominator(x)))
+  # @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
 
   # absorb squares into y1
   g1 = numerator(phi(g))
@@ -1265,10 +1263,6 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
 end
 
 
-#    r"""
-#    y^2 - quartic(x)
-#   TODO: Use pen and paper to calculate the inverse in the else clause
-#    """
 @doc raw"""
     transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem}; return_inverse::Bool=false)
 
@@ -1323,13 +1317,14 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
     y1 = (A*y^2+B*x*y+C*x^2+D*x^3)//y^2
     x1 = x1+px
 
-    x2 = (y-(A+B*x+C*x^2))//(D*x^2)
-    y2 = x2//x
-    x2 = evaluate(x2, [x-px, y])
-    y2 = evaluate(y2, [x-px, y])
+    # TODO: The following are needed for the inverse. To be added eventually.
+    # x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+    # y2 = x2//x
+    # x2 = evaluate(x2, [x-px, y])
+    # y2 = evaluate(y2, [x-px, y])
 
-    @assert x == evaluate(x1, [x2, y2])
-    @assert y == evaluate(y1, [x2, y2])
+    # @assert x == evaluate(x1, [x2, y2])
+    # @assert y == evaluate(y1, [x2, y2])
   else
     # TODO compute the inverse transformation (x2,y2)
     x1 = 1//x
@@ -1345,6 +1340,8 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
   end
   F = fraction_field(R)
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
-  return MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  # TODO: eventually add the inverse.
+  trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  return trans(F(g)), trans
 end
 
