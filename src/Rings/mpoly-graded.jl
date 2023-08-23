@@ -359,7 +359,7 @@ false
   is_free(G) || return false
   if ngens(G) == rank(G)
     W = vcat([x.coeff for x = R.d])
-    if is_positive_grading_matrix(W)
+    if is_positive_grading_matrix(transpose(W))
        return true
     end
   end
