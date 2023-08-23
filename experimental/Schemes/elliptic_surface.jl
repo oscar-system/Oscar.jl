@@ -1193,11 +1193,11 @@ end
 
 
 @doc raw"""
-    _normalize_quartic(g::MPolyRingElem, parent=nothing)
+    _normalize_hyperelliptic_curve(g::MPolyRingElem, parent=nothing)
 
 Transform ``a(x)y^2 + b(x)y - h(x)`` in ``K(t)[x,y]`` to ``y'^2 - h(x')``
 """
-function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
+function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
   R = oscar.parent(g)
   @assert ngens(R) == 2 "polynomial must be bivariate"
   F = fraction_field(R)
@@ -1206,7 +1206,7 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
 
   # Prepare the output ring
   if parent===nothing
-    R1, (x1, y1) = polynomial_ring(kt, [:x, :y], cached=false)
+    R1, (x1, y1) = R, gens(R)
   else
     R1 = parent
     @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
@@ -1214,8 +1214,8 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
   end
 
   # Get the coefficients of g as a univariate polynomial in y
-  ktx, X = polynomial_ring(kt, :X)
-  ktxy, Y = polynomial_ring(ktx, :y)
+  ktx, X = polynomial_ring(kt, :X, cached=false)
+  ktxy, Y = polynomial_ring(ktx, :y, cached=false)
 
   # Maps to transform to univariate polynomials in y
   split_map_R = hom(R, ktxy, [ktxy(X), Y])
@@ -1229,8 +1229,8 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
   u = unit(factor(a))
   a = inv(u)*a
   b = inv(u)*b
-  @assert issquare(a) "leading coefficient as univariate polynomial in the second variable must be a square"
-  sqa = sqrt(a)
+  success, sqa = is_square_with_sqrt(a)
+  @assert success "leading coefficient as univariate polynomial in the second variable must be a square"
 
   F1 = fraction_field(R1)
   psi = hom(R1, F, F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]))
@@ -1249,8 +1249,8 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
   c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
   #d = sqrt(my_coeff(g1, y1, 2))
   d = last(coefficients(split_map_R1(g1)))
-  @assert issquare(d) "leading coefficient must be a square"
-  d = sqrt(d)
+  success, d = sqrt(d)
+  @assert success "leading coefficient must be a square"
 
   phi1 = hom(R1, F1, [F1(x1), F1(evaluate(c, x1), evaluate(d, x1))*y1])
   phiF1 = MapFromFunc(F1, F1, x-> phi1(numerator(x))//phi1(denominator(x)))
@@ -1267,8 +1267,9 @@ end
     transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
-to some better form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
-`fraction_field` of `parent(g)` and `f` is the transform.
+to Weierstrass form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
+`fraction_field` of `parent(g)` and `f` is the transform. The input `P` must be a rational point 
+on the curve defined by `g`, i.e. `g(P) == 0`.
 """
 function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
   R = parent(g)
