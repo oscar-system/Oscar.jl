@@ -99,6 +99,10 @@ grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
 ```@docs
+monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+```
+
+```@docs
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 ```
 
@@ -110,6 +114,10 @@ dim(A::MPolyQuoRing)
 
 ```@docs
 vector_space_dimension(A::MPolyQuoRing)
+```
+
+```@docs
+monomial_basis(A::MPolyQuoRing)
 ```
 
 ## Elements of Affine Algebras
@@ -640,4 +648,10 @@ degree(A::MPolyQuoRing)
 multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
+```
+
+## Affine Algebras as Modules
+
+```@docs
+quotient_ring_as_module(A::MPolyQuoRing)
 ```

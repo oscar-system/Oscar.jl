@@ -146,7 +146,7 @@ hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredSc
 
 
 @doc raw"""
-    hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+    hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
 
 This method constructs a hypersurface model over a base space that is not
 fully specified. In the background, we construct an auxiliary toric base space.
@@ -211,9 +211,14 @@ julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fi
 Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
+
+julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p; toric_sample = false)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
 ```
 """
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
   
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
@@ -242,7 +247,6 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
   set_fiber_vars = Set(gens_fiber_names)
-  gens_p = gens(parent(p))
   set_p_vars = Set([string(g) for g in gens(parent(p))])
   
   # Conduct simple consistency checks
@@ -259,30 +263,26 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   # Inform about the assume Kbar grading
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # Construct auxiliary base space
-  auxiliary_base_space = _auxiliary_base_space(auxiliary_base_vars, auxiliary_base_grading, d)
-
-  # Construct auxiliary ambient space
-  D1_class = toric_divisor_class(auxiliary_base_space, D1)
-  D2_class = toric_divisor_class(auxiliary_base_space, D2)
-  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1_class, D2_class)
+  # Construct the spaces
+  if toric_sample
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
+  else
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
+  end
   
-  # Map p to cox ring of ambient space
-  S = cox_ring(auxiliary_ambient_space)
+  # Map p to coordinate ring of ambient space
   gens_S = gens(S)
   image_list = Vector{MPolyRingElem}()
-  for g in gens_p
+  for g in gens(parent(p))
     index = findfirst(u -> string(u) == string(g), gens(S))
     push!(image_list, gens(S)[index])
   end
-  ring_map = hom(parent(p), S, image_list)
-  hypersurface_equation = ring_map(p)
-  
-  # construct model
-  model = HypersurfaceModel(toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space), toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
+  hypersurface_equation = hom(parent(p), S, image_list)(p)
+
+  # Construct the model
+  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, toric_covered_scheme(fiber_ambient_space), hypersurface_equation)
   set_attribute!(model, :base_fully_specified, false)
   return model
-  
 end
 
 

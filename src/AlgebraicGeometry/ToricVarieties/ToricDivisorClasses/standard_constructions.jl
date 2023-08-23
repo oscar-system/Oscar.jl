@@ -33,7 +33,7 @@ julia> anticanonical_divisor_class(v)
 Divisor class on a normal toric variety
 ```
 """
-@attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = toric_divisor_class(anticanonical_divisor(v))
+@attr ToricDivisorClass anticanonical_divisor_class(v::AbstractNormalToricVariety) = -canonical_divisor_class(v)
 
 
 @doc raw"""

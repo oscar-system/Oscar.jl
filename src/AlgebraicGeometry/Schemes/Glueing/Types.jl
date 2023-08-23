@@ -13,8 +13,8 @@ abstract type AbsGlueing{LeftSpecType<:AbsSpec,
                          RightSpecType<:AbsSpec,
                          LeftOpenType<:Scheme,
                          RightOpenType<:Scheme,
-                         LeftMorType<:Hecke.Map,
-                         RightMorType<:Hecke.Map
+                         LeftMorType<:Map,
+                         RightMorType<:Map
                         } end
 
 ########################################################################

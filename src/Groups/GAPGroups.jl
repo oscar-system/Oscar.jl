@@ -442,20 +442,6 @@ end
 #
 ################################################################################
 
-"""
-    GroupConjClass{T, S}
-
-It can be either the conjugacy class of an element or of a subgroup of type `S`
-in a group `G` of type `T`.
-It is displayed as
-```
-     cc = x ^ G
-```
-where `G` is a group and `x` = `representative`(`cc`) is either an element
-or a subgroup of `G`.
-"""
-abstract type GroupConjClass{T, S} end
-
 struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
    X::T
    repr::S
@@ -575,21 +561,21 @@ i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
-     return representative_action_in_gl_or_sl(G, x, y)[1]
+     return is_conjugate_with_data_in_gl_or_sl(G, x, y)[1]
    end
    return GAPWrap.IsConjugate(G.X, x.X, y.X)
 end
 
 """
-    representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+    is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
 return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
 """
-function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
-     return representative_action_in_gl_or_sl(G, x, y)
+     return is_conjugate_with_data_in_gl_or_sl(G, x, y)
    end
    conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)::GapObj
    if conj != GAP.Globals.fail
@@ -795,7 +781,7 @@ false
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
-    representative_action(G::Group, H::Group, K::Group)
+    is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `true, z`
 where `H^z = K`; otherwise, return `false, nothing`.
@@ -810,18 +796,18 @@ Group([ (1,2) ])
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
 Group([ (3,4) ])
 
-julia> representative_action(G, H, K)
+julia> is_conjugate_with_data(G, H, K)
 (true, (1,3)(2,4))
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
 Group([ (1,2)(3,4) ])
 
-julia> representative_action(G, H, K)
+julia> is_conjugate_with_data(G, H, K)
 (false, nothing)
 
 ```
 """
-function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+function is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)
    conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
@@ -912,7 +898,7 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
 
   R = PermGroupElem[]
   for c in can
-    success, d = representative_action(G, c, s)
+    success, d = is_conjugate_with_data(G, c, s)
     if success
       push!(R, d)
       @assert c^R[end] == s

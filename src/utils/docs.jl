@@ -36,7 +36,7 @@ end
 
 function get_document(set_meta::Bool)
   if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` first (a dev version of Documenter for now)")
+    error("you need to do `using Documenter` first")
   end
 
   if isdefined(Main.Documenter, :Document)

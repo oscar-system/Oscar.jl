@@ -24,6 +24,8 @@ include("SimplifiedSpec.jl")
 include("transforms.jl")
 include("VectorBundles.jl")
 include("WeilDivisor.jl")
-include("duValSing.jl")
-include("RationalMap.jl")
-
+#= include("duValSing.jl") =#
+include("MorphismFromRationalFunctions.jl")
+include("AffineRationalPoint.jl")
+include("ProjectiveRationalPoint.jl")
+include("BlowupMorphism.jl")

@@ -132,7 +132,7 @@ global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::
 ################################################
 
 @doc raw"""
-    global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
+    global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
 fully specified.
@@ -170,9 +170,14 @@ julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base
+
+julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais; toric_sample = false)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base
 ```
 """
-function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
+function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
   
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
@@ -199,6 +204,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
     push!(gens_base_names, "Kbar")
   end
   
+  # Execute consistency checks
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
@@ -214,29 +220,22 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   # inform about the assume Kbar grading
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # convert Tate sections into polynomials of the auxiliary base
-  auxiliary_base_space = _auxiliary_base_space(gens_base_names, auxiliary_base_grading, d)
-  S = cox_ring(auxiliary_base_space)
-  ring_map = hom(auxiliary_base_ring, S, gens(S)[1:ngens(auxiliary_base_ring)])
+  # Construct the model
+  if toric_sample
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, gens_base_names, d)
+    R = cox_ring(auxiliary_ambient_space)
+  else
+    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
+    R = coordinate_ring(auxiliary_ambient_space)
+  end
+  ring_map = hom(parent(ais[1]), S, gens(S)[1:ngens(parent(ais[1]))])
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
-  
-  # construct ambient space
-  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-  D1 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
-  D1[1] = 2
-  D1 = toric_divisor_class(auxiliary_base_space, D1)
-  D2 = [0 for i in 1:rank(class_group(auxiliary_base_space))]
-  D2[1] = 3
-  D2 = toric_divisor_class(auxiliary_base_space, D2)
-  auxiliary_ambient_space = _ambient_space(auxiliary_base_space, fiber_ambient_space, D1, D2)
-  
-  # construct the model
-  pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, toric_covered_scheme(auxiliary_base_space), toric_covered_scheme(auxiliary_ambient_space))
+  pt = _tate_polynomial([a1, a2, a3, a4, a6], R)
+  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :base_fully_specified, false)
   return model
 end
+
 
 
 ################################################

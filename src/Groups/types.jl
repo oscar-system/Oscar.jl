@@ -88,7 +88,7 @@ julia> parent(y)
 Sym( [ 1 .. 5 ] )
 ```
 
-If `G` is a permutation group and `L` is a vector of integers,
+If `G` is a permutation group and `x` is a vector of integers,
 `G(x)` returns a [`PermGroupElem`](@ref) with parent `G`;
 an exception is thrown if the element does not embed into `G`.
 
@@ -214,6 +214,54 @@ TODO: document this
 """
 const FPGroupElem = BasicGAPGroupElem{FPGroup}
 
+abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
+
+# NOTE: always defined are deg, ring and at least one between { X, gens, descr }
+"""
+    MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+
+Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
+"""
+@attributes mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+   deg::Int
+   ring::Ring
+   X::GapObj
+   gens::Vector{<:AbstractMatrixGroupElem}
+   descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
+   ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
+
+   function MatrixGroup{RE,T}(F::Ring, m::Int) where {RE,T}
+     G = new{RE, T}()
+     G.deg = m
+     G.ring = F
+     return G
+   end
+end
+
+# NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
+"""
+    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+
+Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
+"""
+mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
+   parent::MatrixGroup{RE, T}
+   elm::T                         # Oscar matrix
+   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
+
+   # full constructor
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
+
+   # constructor which leaves `X` undefined
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
+
+   # constructor which leaves `elm` undefined
+   function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
+      z = new{RE,T}(G)
+      z.X = x_gap
+      return z
+   end
+end
 
 ################################################################################
 #
@@ -232,14 +280,47 @@ function _oscar_group(obj::GapObj, G::PermGroup)
 end
 
 # `MatrixGroup`: set dimension and ring of `G`
-# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+function _oscar_group(obj::GapObj, G::MatrixGroup)
+  d = GAP.Globals.DimensionOfMatrixGroup(obj)
+  d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
 
+  R = G.ring
+  iso = G.ring_iso
+  GAPWrap.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
+
+  M = matrix_group(R, d)
+  M.X = obj
+  M.ring = R
+  M.ring_iso = iso
+  return M
+end
 
 ################################################################################
 #
 # "Coerce" an Oscar group `G` to one that is compatible with
 # the given Oscar group `S`.
 compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
+
+
+################################################################################
+#
+#   Conjugacy Classes
+#
+################################################################################
+
+"""
+    GroupConjClass{T, S}
+
+It can be either the conjugacy class of an element or of a subgroup of type `S`
+in a group `G` of type `T`.
+It is displayed as
+```
+     cc = x ^ G
+```
+where `G` is a group and `x` = `representative`(`cc`) is either an element
+or a subgroup of `G`.
+"""
+abstract type GroupConjClass{T, S} end
 
 
 ################################################################################
@@ -391,7 +472,7 @@ function _get_type(G::GapObj)
                  deg = GAP.Globals.DimensionOfMatrixGroup(dom)
                  iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(dom))
                  ring = codomain(iso)
-                 matgrp = MatrixGroup(deg, ring)
+                 matgrp = matrix_group(ring, deg)
                  matgrp.ring_iso = inv(iso)
                  matgrp.X = dom
                  return matgrp

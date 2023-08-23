@@ -384,6 +384,8 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
+dim(X::AbsSpec)
+
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
   return dim(saturated_ideal(modulus(OO(X))))
 end

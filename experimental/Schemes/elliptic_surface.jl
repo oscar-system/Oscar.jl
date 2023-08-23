@@ -433,7 +433,7 @@ Return the relatively minimal model $X \to C$ and the contraction
 $\Psi \colon X \to S$ to its Weierstrass model $S$.
 """
 function relatively_minimal_model(E::EllipticSurface)
-  if isdefined(E, :blowups)
+  if isdefined(E, :blowup)
     return E.Y, E.blowup
   end
   S, inc_S = weierstrass_model(E)
@@ -452,7 +452,7 @@ function relatively_minimal_model(E::EllipticSurface)
 
   ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
-  projectionsX = BlowupMorphism{typeof(X0)}[]
+  projectionsX = BlowupMorphism[]
   projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
@@ -491,6 +491,10 @@ function relatively_minimal_model(E::EllipticSurface)
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1]) # radical to have small number of generators
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    # Set the attribute so that the strict_transform does some extra work
+    isomorphism_on_open_subset(pr_X1)
+
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
     E1 = exceptional_divisor(pr_X1)
@@ -511,18 +515,22 @@ function relatively_minimal_model(E::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
   end
   E.Y = Y0
   E.blowups = projectionsY
   E.ambient_blowups = projectionsX
   E.ambient_exceptionals = ambient_exceptionals
-  piY = reduce(*, reverse(projectionsY))
+  #piY = reduce(*, reverse(projectionsY))
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   E.blowup = piY
   E.inc_Y = inc_Y0
 
-  set_attribute!(Y0, :is_irreducible=>true)
-  set_attribute!(Y0, :is_reduced=>true)
-  set_attribute!(Y0, :is_integral=>true)
   return Y0, piY
 end
 
@@ -1021,26 +1029,28 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   P0_div = section(X, P0)
   @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the trivial lattice
+  F1 = F - p0  # should be contained in the QQ-trivial-lattice
   F2 = F1
-  tmp = F1
-  if all(denominator(i)==1 for i in F1)
+  if all(isone(denominator(i)) for i in F1)
     # no torsion
     P = P0
     P_div = P0_div
   else
-    for (T, tor) in tors
-      if all(denominator(i)==1 for i in F1-tor)
+    found = false
+    for (i,(T, tor)) in enumerate(tors)
+      d = F2-vec(tor)
+      if all(isone(denominator(i)) for i in d)
+        found = true
+        T0 = mordell_weil_torsion(X)[i]
+        P = P0 + T0
         break
-        flag = true
-        P = P0 - T
-        F2 = F1 - tor
-        tmp = tor
       end
     end
-    @assert flag
+    @assert found
     P_div = section(X, P)
-    @assert basis_representation(X, P_div) == tmp
+    p = basis_representation(X, P_div)
+    F2 = F1 - p
+    @assert all( isone(denominator(i)) for i in F2)
   end
   D = P_div
   D = D + ZZ(F2[2])*zero_section(X)

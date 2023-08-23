@@ -118,7 +118,7 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   # Perform resolution
   for k in 1:nr_blowups
     S = cox_ring(resolved_ambient_space)
-    resolved_ambient_space = blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k], set_attributes = true)
+    resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k], set_attributes = true))
   end
   return toric_covered_scheme(resolved_ambient_space)
 end

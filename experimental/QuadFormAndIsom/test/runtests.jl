@@ -1,6 +1,9 @@
 using Test
 using Oscar
 
+Oscar.set_lwi_level(2)
+set_verbosity_level(:ZZLatWithIsom, -1)
+
 @testset "Printings" begin
   function _show_details(io::IO, X::Union{ZZLatWithIsom, QuadSpaceWithIsom})
     return show(io, MIME"text/plain"(), X)
@@ -67,8 +70,8 @@ end
                 ]
   OA3 = matrix_group(agg)
   set_attribute!(A3, :isometry_group, OA3)
-  f = rand(agg)
-  g = rand(agg)
+  f = agg[2]
+  g = agg[4]
 
   L = integer_lattice(gram = matrix(QQ, 0, 0, []))
   Lf = integer_lattice_with_isometry(L; neg = true)
@@ -80,7 +83,7 @@ end
   @test isone(isometry(L))
   @test isone(ambient_isometry(L))
   @test isone(order_of_isometry(L))
-  @test order(image_centralizer_in_Oq(L)) == 2
+  @test order(image_centralizer_in_Oq(L)[1]) == 2
 
   for func in [rank, genus, basis_matrix, is_positive_definite,
                gram_matrix, det, scale, norm, is_integral, is_negative_definite,
@@ -131,7 +134,7 @@ end
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
 
-  GLf = @inferred image_centralizer_in_Oq(Lf)
+  GLf, _ = @inferred image_centralizer_in_Oq(Lf)
   @test order(GLf) == 600
 
   M = @inferred coinvariant_lattice(Lf)
@@ -160,7 +163,7 @@ end
   L = integer_lattice(B; gram = G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 -1 1 0 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 -1 1]);
   Lf = integer_lattice_with_isometry(L, f);
-  GL = image_centralizer_in_Oq(Lf)
+  GL = image_centralizer_in_Oq(Lf)[1]
   @test order(GL) == 72
 
   B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
@@ -168,7 +171,7 @@ end
   L = integer_lattice(B; gram = G);
   f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 -1 0 0 1; 0 0 0 -1 1 -1]);
   Lf = integer_lattice_with_isometry(L, f);
-  GL = image_centralizer_in_Oq(Lf)
+  GL = image_centralizer_in_Oq(Lf)[1]
   @test order(GL) == 2
 
   F, C, _ = invariant_coinvariant_pair(A3, OA3)
@@ -176,6 +179,8 @@ end
   @test C == A3
   _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation = false)
   @test order(G) == order(OA3)
+  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1])
+  @test is_sublattice(A3, C)
 
 end
 
@@ -198,16 +203,17 @@ end
   end
   
   N = rand(D[6])
-  ONf = image_centralizer_in_Oq(integer_lattice_with_isometry(lattice(N), ambient_isometry(N)))
+  ONf = image_centralizer_in_Oq(integer_lattice_with_isometry(lattice(N), ambient_isometry(N)))[1]
     # for N, the image in OqN of the centralizer of fN in ON is directly
     # computing during the construction of the admissible primitive extension.
     # We compare if at least we obtain the same orders (we can't directly
     # compare the groups since they do not act exactly on the same module...
     # and isomorphism test might be slow)
-  @test order(ONf) == order(image_centralizer_in_Oq(N))
+  @test order(ONf) == order(image_centralizer_in_Oq(N)[1])
 
   E6 = root_lattice(:E, 6)
   @test length(enumerate_classes_of_lattices_with_isometry(E6, 10)) == 3
+  @test length(enumerate_classes_of_lattices_with_isometry(E6, 20)) == 0
   @test length(enumerate_classes_of_lattices_with_isometry(E6, 18)) == 1
   @test length(enumerate_classes_of_lattices_with_isometry(genus(E6), 1)) == 1
 
@@ -218,34 +224,39 @@ end
 
 @testset "Primitive embeddings" begin
   # Compute orbits of short vectors
-  k = integer_lattice(gram=matrix(QQ,1,1,[4]))
+  k = integer_lattice(; gram=matrix(QQ,1,1,[4]))
   E8 = root_lattice(:E, 8)
-  ok, sv = primitive_embeddings_of_primary_lattice(E8, k; classification =:sublat)
+  ok, sv = primitive_embeddings(E8, k; classification =:sublat)
   @test ok
   @test length(sv) == 1
-  ok, sv = primitive_embeddings_in_primary_lattice(rescale(E8, 2), rescale(k, QQ(1//2)); check=false)
+  ok, sv = primitive_embeddings(rescale(E8, 2), rescale(k, QQ(1//2)); check=false)
   @test !ok
   @test is_empty(sv)
-  @test_throws ArgumentError primitive_embeddings_of_primary_lattice(rescale(E8, -1), k; check=false)
+  @test_throws ArgumentError primitive_embeddings(rescale(E8, -1), k; check=false)
 
-  k = integer_lattice(gram=matrix(QQ,1,1,[6]))
+  k = integer_lattice(; gram=matrix(QQ,1,1,[6]))
   E7 = root_lattice(:E, 7)
-  ok, sv = primitive_embeddings_in_primary_lattice(E7, k; classification = :emb)
+  ok, sv = primitive_embeddings(E7, k; classification = :emb)
   @test ok
   @test length(sv) == 2
   q = discriminant_group(E7)
   p, z, n = signature_tuple(E7)
-  ok, _ = primitive_embeddings_in_primary_lattice(q, (p,n), E7; classification = :none)
+  ok, _ = primitive_embeddings(q, (p,n), E7; classification = :none)
   @test ok
-  k = integer_lattice(gram=matrix(QQ,1,1,[2]))
-  ok, sv = primitive_embeddings_of_primary_lattice(E7, k)
+  A5 = root_lattice(:A, 5)
+  ok, sv = primitive_embeddings(A5, k)
+  @test ok
+  @test length(sv) == 2
+
+  k = integer_lattice(; gram=matrix(QQ,1,1,[2]))
+  ok, sv = primitive_embeddings(E7, k)
   @test ok
   @test length(sv) == 1
 
-  ok, _ = primitive_embeddings_of_primary_lattice(q, (p,n), E7; classification = :none)
+  ok, _ = primitive_embeddings(q, (p,n), E7; classification = :none)
   @test ok
 
-  @test !primitive_embeddings_in_primary_lattice(rescale(E7, 2), k; classification = :none, check = false)[1]
+  @test !primitive_embeddings(rescale(E7, 2), k; classification = :none, check = false)[1]
 
   B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
   G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
@@ -257,6 +268,4 @@ end
   reps = @inferred admissible_equivariant_primitive_extensions(F, C, Lf^0, 5)
   @test length(reps) == 1
   @test is_of_same_type(Lf, reps[1])
-
 end
-

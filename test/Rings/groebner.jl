@@ -191,3 +191,17 @@ end
   @test is_groebner_basis(gb, ordering = lex(R))
   @test haskey(I.gb, lex(R))
 end
+
+@testset "groebner basis modular" begin
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal(R, [x^2, x*y + 32771*y^2])
+  gb = Oscar.groebner_basis_modular(I, ordering = degrevlex(R))
+  @test is_groebner_basis(I.gb[degrevlex(R)], ordering = degrevlex(R))
+  @test all(iszero, Oscar.reduce(groebner_basis(I), gb))
+  @test all(iszero, Oscar.reduce(gb, groebner_basis(I)))
+  J = ideal(R, [x+y^2, x*y+y^3])
+  J.gb[degrevlex(R)] = Oscar.IdealGens(R, [x^3])
+  @test Oscar._certify_modular_groebner_basis(J, degrevlex(R)) == false
+  groebner_basis_modular(J, ordering=wdegrevlex(R,[2,1]), certify=true)
+  @test gens(J.gb[wdegrevlex([x, y], [2, 1])]) == QQMPolyRingElem[x+y^2]
+end

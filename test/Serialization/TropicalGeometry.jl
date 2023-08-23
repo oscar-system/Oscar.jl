@@ -28,7 +28,7 @@
             f = x + y^2
             Tf = TropicalHypersurface(f)
             test_save_load_roundtrip(path, Tf) do loaded
-                @test test_equality(f, polynomial(loaded))
+                @test f == polynomial(loaded)
             end
         end
     end
