@@ -1263,3 +1263,88 @@ function _normalize_quartic(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=
   g2 = divexact(g2, evaluate(c, x1))
   return g2, phi2
 end
+
+
+#    r"""
+#    y^2 - quartic(x)
+#   TODO: Use pen and paper to calculate the inverse in the else clause
+#    """
+@doc raw"""
+    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem}; return_inverse::Bool=false)
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
+to some better form. This returns an endomorphism of the `fraction_field` of `parent(g)`. 
+"""
+function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem};
+    return_inverse::Bool=false
+  )
+  R = parent(g)
+  @assert ngens(R) == 2 "input polynomial must be bivariate"
+  @assert x in gens(R) "second argument must be a variable of the parent of the first"
+  @assert y in gens(R) "third argument must be a variable of the parent of the first"
+
+  kk = coefficient_ring(R)
+  kkx, X = polynomial_ring(kk, :x, cached=false)
+  kkxy, Y = polynomial_ring(kkx, :y, cached=false)
+
+  imgs = [kkxy(X), Y]
+  if x == R[2] && y == R[1]
+    imgs = reverse(imgs)
+  end
+  split_map = hom(R, kkxy, imgs)
+
+  G = split_map(g)
+  @assert degree(G) == 2 "input polynomial must be of degree 2 in y"
+  @assert all(h->degree(h)<=4, coefficients(G)) "input polynomial must be of degree <= 4 in x"
+  @assert iszero(coefficients(G)[1]) "coefficient of linear term in y must be zero"
+  @assert isone(coefficients(G)[2]) "leading coefficient in y must be one"
+
+  length(P) == 2 || error("need precisely two point coordinates")
+  (px, py) = P
+  #    assert g.subs({x:px,y:py})==0
+  @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
+  gx = -evaluate(g, [X + px, zero(X)])
+  coeff_gx = collect(coefficients(gx))
+  A = coeff(gx, 4)
+  B = coeff(gx, 3)
+  C = coeff(gx, 2)
+  D = coeff(gx, 1)
+  E = coeff(gx, 0)
+  #E, D, C, B, A = coeff_gx
+  if !iszero(E)
+    b = py
+    a4, a3, a2, a1, a0 = A,B,C,D,E
+    A = b
+    B = a1//(2*b)
+    C = (4*a2*b^2-a1^2)//(8*b^3)
+    D = -2*b
+
+    x1 = x//y
+    y1 = (A*y^2+B*x*y+C*x^2+D*x^3)//y^2
+    x1 = x1+px
+
+    x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+    y2 = x2//x
+    x2 = evaluate(x2, [x-px, y])
+    y2 = evaluate(y2, [x-px, y])
+
+    @assert x == evaluate(x1, [x2, y2])
+    @assert y == evaluate(y1, [x2, y2])
+  else
+    # TODO compute the inverse transformation (x2,y2)
+    x1 = 1//x
+    y1 = y//x^2
+    g1 = numerator(evaluate(g, [x1, y1]))
+    c = coeff(g1, [x], [3])
+    x1 = evaluate(x1, [-x//c, y//c])
+    y1 = evaluate(y1, [-x//c, y//c])
+    x1 = x1+px
+    return_inverse && error("not implemented")
+    #@assert x == evaluate(x1, [x2, y2])
+    #@assert y == evaluate(y1, [x2, y2])
+  end
+  F = fraction_field(R)
+  @assert F === parent(x1) "something is wrong with caching of fraction fields"
+  return MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+end
+

@@ -76,10 +76,15 @@
   end
 end
 
-@testset "normalize quartic" begin
+@testset "normalize_quartic and transform_to_weierstrass" begin
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   P, (u, v) = polynomial_ring(QQ, [:u, :v])
   f = (3*x^2 - 5)^2*(y - 5*x^3 + 30*x - 5)^2 - (x^2 -5*x + 2)
   g, trans = oscar._normalize_quartic(f, parent=P)
   @test trans(f) == g
+
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4
+  trans = oscar.transform_to_weierstrass(f, x, y, QQ.([0, 2]))
+  @test trans(f//1) == (16*x^6 + 1//8*x^5 + 14*x^4*y - 16383//4096*x^4 - 16*x^3*y^2 + 647//128*x^3*y)//y^4
 end
