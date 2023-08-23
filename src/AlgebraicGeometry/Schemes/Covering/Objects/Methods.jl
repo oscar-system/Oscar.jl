@@ -56,13 +56,18 @@ function neighbor_patches(C::Covering, U::AbsSpec)
 end
 
 ## compute the glueing graph for the given covering and store it
-function update_glueing_graph(C::Covering)
+function update_glueing_graph(C::Covering; all_dense::Bool=false)
   n = npatches(C)
   gg = Graph{Undirected}(n)
   for (X, Y) in keys(glueings(C))
-    (U, V) = glueing_domains(C[X,Y])
-    is_dense(U) && add_edge!(gg, C[X], C[Y])
-    is_dense(V) && add_edge!(gg, C[Y], C[X])
+    if all_dense
+      add_edge!(gg, C[X], C[Y])
+      add_edge!(gg, C[Y], C[X])
+    else
+      (U, V) = glueing_domains(C[X,Y])
+      is_dense(U) && add_edge!(gg, C[X], C[Y])
+      is_dense(V) && add_edge!(gg, C[Y], C[X])
+    end
   end
   C.glueing_graph = gg
   return gg
@@ -208,7 +213,13 @@ julia> U1 = Spec(P1);
 julia> U2 = Spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
-Covering with 2 patches
+Covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [x, y]
+    2: [u, v]
 
 julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
 
@@ -221,7 +232,13 @@ julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 julia> G = Glueing(U1, U2, f, g); # Construct the glueing
 
 julia> add_glueing!(C, G) # Make the glueing part of the Covering
-Covering with 2 patches
+Covering
+  described by patches
+    1: spec of multivariate polynomial ring
+    2: spec of multivariate polynomial ring
+  in the coordinate(s)
+    1: [x, y]
+    2: [u, v]
 
 julia> C[U1, U2] == G # Check whether the glueing of U1 and U2 in C is G.
 true
@@ -237,12 +254,47 @@ end
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, C::Covering) 
-  print(io, 
-          "Covering with $(npatches(C)) patch" * 
-          (npatches(C) == 1 ? "" : "es"))
-#           " and glueing graph")
-#   print(io, glueing_graph(C))
+
+# We print the details on the charts, and we label them
+#
+# Note: we may more than 10 charts, so we decide to align the labels on the
+# right and we need to take of a little left offset for small labels
+function Base.show(io::IO, ::MIME"text/plain", C::Covering)
+  io = pretty(io)
+  if length(C) == 0
+    print(io, "Empty covering")
+  else
+    l = ndigits(length(C))
+    println(io, "Covering")
+    print(io, Indent(), "described by patches") 
+    print(io, Indent())
+    for i in 1:length(C)
+      li = ndigits(i)
+      println(io)
+      print(io, " "^(l-li)*"$(i): ", Lowercase(), C[i])
+    end
+    println(io)
+    print(io, Dedent(), "in the coordinate(s)")
+    print(io, Indent())
+    for i in 1:length(C)
+      li = ndigits(i)
+      println(io)
+      co = coordinates(C[i])
+      str = "["*join(co, ", ")*"]"
+      print(io, " "^(l-li)*"$(i): ", str)
+    end
+    print(io, Dedent())
+    print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, C::Covering)
+  if get(io, :supercompact, false)
+    print(io, "Covering")
+  else
+    print(io,  "Covering with $(npatches(C)) patch") 
+    npatches(C) > 1 && print(io, "es")
+  end
 end
 
 ########################################################################
@@ -348,5 +400,15 @@ function base_change(phi::Any, C::Covering)
     mor_dict[V] = phi
   end
 
-  return CC, CoveringMorphism(CC, C, mor_dict, check=true) # TODO: Set to false after testing
+  # Maintain decomposition information if applicable
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  if has_decomposition_info(C)
+    for (U, psi) in patch_change
+      V = codomain(psi)
+      decomp_dict[U] = elem_type(OO(U))[pullback(psi)(a) for a in decomposition_info(C)[V]]
+    end
+  end
+  set_decomposition_info!(CC, decomp_dict)
+
+  return CC, CoveringMorphism(CC, C, mor_dict, check=false)
 end

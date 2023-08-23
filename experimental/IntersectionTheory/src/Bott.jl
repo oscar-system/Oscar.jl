@@ -169,7 +169,7 @@ end
 function _parse_weight(n::Int, w)
   w == :int && return ZZ.(collect(1:n))
   w == :poly && return PolynomialRing(QQ, ["u$i" for i in 1:n])[2]
-  if (w isa UnitRange) w = collect(w) end
+  if (w isa AbstractUnitRange) w = collect(w) end
   w isa Vector && length(w) == n && return w
   error("incorrect specification for weights")
 end

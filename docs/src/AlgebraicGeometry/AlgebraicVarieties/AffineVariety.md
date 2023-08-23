@@ -7,22 +7,20 @@ using Oscar
 ```
 
 # Affine Varieties
-An affine variety over an algebraically closed field
-is an irreducible affine algebraic set. See [Affine Algebraic Sets](@ref).
+An affine variety is an algebraic set such that $X(K)$ is irreducible for $k \subseteq K$ an algebraic closure.
+See [Affine Algebraic Sets](@ref).
 
-In practice we work over non-closed fields. To be called a variety
-an algebraic set $V$ must stay irreducible when viewed over the algebraic closure.
-
-In Oscar varieties are [Affine schemes](@ref) and more formally defined as follows.
+In Oscar varieties are implemented as special instances of [Affine schemes](@ref) and more formally defined as follows.
 ```@docs
 AbsAffineVariety
 ```
+Functionality which is not (yet) provided by a variety-specific implementation, falls back to the appropriate functionality of schemes.
 
 ## Constructors
 ```@docs
-affine_variety(I::MPolyIdeal; check=true)
-affine_variety(X::Spec{<:Field}; check::Bool=true)
-affine_variety(R::MPolyAnyRing; check=true)
+variety(I::MPolyIdeal; check=true)
+variety(X::AbsSpec{<:Field}; is_reduced=false, check::Bool=true)
+variety(R::MPolyAnyRing; check=true)
 ```
 
 ## Attributes

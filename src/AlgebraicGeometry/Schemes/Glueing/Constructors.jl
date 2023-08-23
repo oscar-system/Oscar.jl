@@ -23,17 +23,15 @@ julia> f = SpecMor(V1, V2, [1//x, y//x]); # The glueing isomorphism
 julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
-Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map morphism from
-
-	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
-
-to
-
-	Spec of Localization of multivariate polynomial ring in 2 variables over QQ at products of 1 element
-
-with coordinates
-
-	1/x, y/x
+Glueing
+  of  spec of multivariate polynomial ring
+  and spec of multivariate polynomial ring
+along the open subsets
+  [x, y]   spec of localized ring
+  [u, v]   spec of localized ring
+given by the pullback function
+  u -> 1/x
+  v -> y/x
 
 julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
 true
@@ -47,7 +45,19 @@ julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
 julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
 julia> H = Glueing(U1, U2, h1, h2)
-Glueing of Spec of Multivariate polynomial ring in 2 variables over QQ and Spec of Multivariate polynomial ring in 2 variables over QQ along the map Morphism from complement of zero locus of QQMPolyRingElem[x] in Spec of Multivariate polynomial ring in 2 variables over QQ to complement of zero locus of QQMPolyRingElem[u] in Spec of Multivariate polynomial ring in 2 variables over QQ
+Glueing
+  of  spec of multivariate polynomial ring
+  and spec of multivariate polynomial ring
+along the open subsets
+  [x, y]   complement to V(x) in affine scheme with coordinates [x, y]
+  [u, v]   complement to V(u) in affine scheme with coordinates [u, v]
+defined by the map
+  morphism
+    from [x, y]  spec of localized ring
+    to   [u, v]  spec of multivariate polynomial ring
+  given by the pullback function
+    u -> 1/x
+    v -> y/x
 
 julia> typeof(H)<:Glueing
 true
@@ -97,6 +107,14 @@ function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   return restrict(underlying_glueing(G), X, Y, check=check)
 end
 
+function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec,
+    Ures::Scheme, Vres::Scheme;
+    check::Bool=true
+  )
+  return restrict(underlying_glueing(G), X, Y, Ures, Vres, check=check)
+end
+
+
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
@@ -114,6 +132,30 @@ function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   UX = PrincipalOpenSubset(X, OO(X)(lifted_numerator(complement_equation(U))))
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
+  f_res = restrict(f, UX, VY, check=check)
+  g_res = restrict(g, VY, UX, check=check)
+  return SimpleGlueing(X, Y, f_res, g_res, check=check)
+end
+
+function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec,
+    Ures::SpecOpen, Vres::SpecOpen;
+    check::Bool=true
+  )
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
+  return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
+end
+
+function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec,
+    UX::PrincipalOpenSubset, VY::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
+  @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   f_res = restrict(f, UX, VY, check=check)
   g_res = restrict(g, VY, UX, check=check)
   return SimpleGlueing(X, Y, f_res, g_res, check=check)
@@ -149,6 +191,35 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                         ),
                  compose(restrict(ginv, V2, domain(h2), check=check), 
                          compose(h2, restrict(f, domain(h1), U2, check=check))
+                        ),
+                 check=check
+                )
+end
+
+function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor,
+    f_res::SchemeMor, g_res::SchemeMor;
+    check::Bool=true
+  )
+  (X1, Y1) = patches(G)
+  X1 === domain(f) || error("maps not compatible")
+  X2 = codomain(f)
+  finv = inverse(f)
+
+  Y1 === domain(g) || error("maps not compatible")
+  Y2 = codomain(g)
+  ginv = inverse(g)
+
+  (h1, h2) = glueing_morphisms(G)
+
+  U2 = codomain(f_res)
+  V2 = codomain(f_res)
+
+  return Glueing(X2, Y2, 
+                 compose(inverse(f_res), 
+                         compose(h1, g_res)
+                        ),
+                 compose(inverse(g_res), 
+                         compose(h2, f_res)
                         ),
                  check=check
                 )

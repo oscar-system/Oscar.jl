@@ -21,7 +21,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
 
    Fq, matrices_Fq, OtoFq = good_reduction(matrices, 2)
 
-   G = matrix_group(n, Fq, matrices_Fq)
+   G = matrix_group(Fq, n, matrices_Fq)
    N = order(G)
    if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
       error("Group is not finite")
@@ -74,7 +74,7 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
     preimg = function(y)
       return one(G)
     end
-    return Gp, MapFromFunc(img, preimg, G, Gp)
+    return Gp, MapFromFunc(G, Gp, img, preimg)
   end
 
   matrices = map(x -> x.elm, gens(G))
@@ -93,7 +93,7 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
                                   GAP.GapObj(gen))
   end
 
-  return Gp, MapFromFunc(img, preimg, G, Gp)
+  return Gp, MapFromFunc(G, Gp, img, preimg)
 end
 
 function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}

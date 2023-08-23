@@ -113,9 +113,9 @@ Compute the closure of ``U ⊂ Y``.
 """
 function closure(
     U::SpecOpen,
-    Y::AbsSpec 
+    Y::AbsSpec; check::Bool=true
   )
-  issubset(U, Y) || error("the first set is not contained in the second")
+  @check issubset(U, Y) "the first set is not contained in the second"
   X = closure(U)
   return intersect(X, Y)
 end
@@ -134,12 +134,75 @@ end
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, U::SpecOpen)
+
+function Base.show(io::IO, ::MIME"text/plain", U::SpecOpen)
+  io = pretty(io)
+  println(io, "Open subset")
+  println(io, Indent(), "of ", Lowercase(), ambient_space(U))
+  print(io, Dedent(), "complement to V(")
+  join(io, gens(complement_ideal(U)), ", ")
+  print(io, ")")
+end
+
+# For the printing of regular functions, we need details on the affine patches.
+# In general, one could avoid those details by just stating what is its ambient
+# space and complement (see printing above)
+function _show_semi_compact(io::IO, U::SpecOpen)
+  io = pretty(io)
+  println(io, "Zariski open subset")
+  c = ambient_coordinates(U)
+  str = "["*join(c, ", ")*"]"
+  print(io, Indent(), "of affine scheme with coordinate")
+  length(c) > 1 && print(io, "s")
+  println(io, " "*str)
+  print(io, Dedent(), "complement to V(")
+  join(io, gens(complement_ideal(U)), ", ")
+  print(io, ")")
+  if npatches(U) > 0
+    println(io)
+    l = ndigits(npatches(U))
+    print(io, "covered by $(npatches(U)) affine patch")
+    npatches(U) > 1 && print(io, "es")
+    print(io, Indent())
+    co_str = [""]
+    for V in affine_patches(U)
+      cV = ambient_coordinates(V)
+      str = "["*join(cV, ", ")*"]"
+      push!(co_str, str)
+    end
+    k = max(length.(co_str)...)
+    for i in 1:npatches(U)
+      li = ndigits(i)
+      V = affine_patches(U)[i]
+      println(io)
+      kV = length(co_str[i+1])
+      print(io, " "^(l-li)*"$(i): "*co_str[i+1]*" "^(k-kV+3), Lowercase(), V)
+    end
+    print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, U::SpecOpen, show_coord::Bool = true)
+  io = pretty(io)
   if isdefined(U, :name) 
     print(io, name(U))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Scheme")
+  elseif get_attribute(U, :is_empty, false)
+    print(io, "Empty open subset of ", Lowercase(), ambient_space(U))
+  else
+    print(io, "Complement to V(")
+    print(io, join(gens(complement_ideal(U)), ", "), ")")
+    if show_coord
+      c = ambient_coordinates(U)
+      str = "["*join(c, ", ")*"]"
+      print(io, " in affine scheme with coordinate")
+      if length(c) > 1
+        print(io, "s")
+      end
+      print(io, " "*str)
+    end
   end
-  print(io, "complement of zero locus of $(complement_equations(U)) in $(ambient_scheme(U))")
 end
 
 ########################################################################

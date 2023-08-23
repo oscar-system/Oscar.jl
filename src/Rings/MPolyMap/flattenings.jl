@@ -10,15 +10,15 @@
 ########################################################################
 @attributes mutable struct RingFlattening{TowerRingType<:Union{MPolyRing, MPolyQuoRing}, 
                               FlatRingType<:Ring, CoeffRingType<:Ring
-                             } <: Hecke.Map{TowerRingType, FlatRingType, 
-                                            SetMap, RingFlattening
-                                           }
+                             } <: Map{TowerRingType, FlatRingType, 
+                                      SetMap, RingFlattening
+                                      }
   orig::TowerRingType
   flat::FlatRingType
   R::CoeffRingType
   orig_to_flat::MPolyAnyMap{TowerRingType, FlatRingType}
-  flat_to_orig::Hecke.Map{FlatRingType, TowerRingType}
-  base_ring_to_flat::Hecke.Map{CoeffRingType, FlatRingType}
+  flat_to_orig::Map{FlatRingType, TowerRingType}
+  base_ring_to_flat::Map{CoeffRingType, FlatRingType}
 
   function RingFlattening(
       S::MPolyRing{RingElemType}
@@ -197,7 +197,7 @@
     end
 
     #S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))), check=false)
-    S_flat_to_S = MapFromFunc(my_map, S_flat, S)
+    S_flat_to_S = MapFromFunc(S_flat, S, my_map)
 
     return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
                                                      S_to_S_flat, S_flat_to_S,
@@ -234,7 +234,7 @@
       return pp*qq
     end
 
-    S_flat_to_S = MapFromFunc(my_map, S_flat, S)
+    S_flat_to_S = MapFromFunc(S_flat, S, my_map)
     return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
                                                      S_to_S_flat, S_flat_to_S,
                                                      L_to_S_flat

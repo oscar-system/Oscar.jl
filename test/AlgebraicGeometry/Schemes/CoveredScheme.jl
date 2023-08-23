@@ -234,3 +234,20 @@ end
   (a, b, c) = base_change(pr, inc_X)
   @test compose(a, inc_X) == compose(b, c)
 end
+
+@testset "decomposition info" begin
+  P3 = projective_space(ZZ, 3)
+  X = covered_scheme(P3)
+  kk = GF(29)
+  X29, f = base_change(kk, X)
+  @test oscar.has_decomposition_info(default_covering(X29))
+  orig_cov = default_covering(X)
+  U = first(patches(orig_cov))
+  x, y, z = gens(OO(U))
+  V2 = PrincipalOpenSubset(U, x)
+  V1 = PrincipalOpenSubset(U, x-1)
+  new_cov = Covering(append!(AbsSpec[V1, V2], patches(orig_cov)[2:end]))
+  oscar.inherit_glueings!(new_cov, orig_cov)
+  oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
+  @test oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
+end

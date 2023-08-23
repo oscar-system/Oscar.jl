@@ -20,6 +20,7 @@ const orderedpkgs = [
   "FTheoryTools",
   "JuLie",
   "IntersectionTheory",
+  "OrthogonalDiscriminants",  # needs code from JuLie
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -51,7 +52,6 @@ include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
 include("Schemes/SpaceGerms.jl")
-include("Schemes/singular_locus.jl")
 include("Schemes/Sheaves.jl")
 include("Schemes/IdealSheaves.jl")
 include("Schemes/AlgebraicCycles.jl")
@@ -65,5 +65,8 @@ include("Schemes/LazyGlueing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
+include("Schemes/duValSing.jl")
+include("Schemes/elliptic_surface.jl")
+include("Schemes/MorphismFromRationalFunctions.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

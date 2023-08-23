@@ -19,10 +19,13 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> affine_toric_scheme = ToricSpec(antv)
-Spec of an affine toric variety with cone spanned by RayVector{QQFieldElem}[[1, 0], [0, 1]]
+Spec of an affine toric variety
 
 julia> underlying_scheme(affine_toric_scheme)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables over QQ
+    by ideal(0)
 ```
 """
 @attr underlying_scheme(X::ToricSpec) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
@@ -42,10 +45,20 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> toric_scheme = ToricCoveredScheme(P2)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0], [0, 1], [-1, -1]]
+Scheme of a toric variety
 
 julia> underlying_scheme(toric_scheme)
-covered scheme with 3 affine patches in its default covering
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: spec of an affine toric variety
+    2: spec of an affine toric variety
+    3: spec of an affine toric variety
+  in the coordinate(s)
+    1: [x1, x2]
+    2: [x1, x2]
+    3: [x1, x2]
 ```
 """
 @attr function underlying_scheme(Z::ToricCoveredScheme)
@@ -145,18 +158,22 @@ cox_ring(X::ToricCoveredScheme) = cox_ring(X.ntv)
 dim(X::ToricCoveredScheme) = dim(X.ntv)
 dim_of_torusfactor(X::ToricCoveredScheme) = dim_of_torusfactor(X.ntv)
 euler_characteristic(X::ToricCoveredScheme) = euler_characteristic(X.ntv)
-fan(X::ToricCoveredScheme) = fan(X.ntv)
+gorenstein_index(X::ToricCoveredScheme) = gorenstein_index(X.ntv)
+polyhedral_fan(X::ToricCoveredScheme) = polyhedral_fan(X.ntv)
 ideal_of_linear_relations(R::MPolyRing, X::ToricCoveredScheme) = ideal_of_linear_relations(R, X.ntv)
 ideal_of_linear_relations(X::ToricCoveredScheme) = ideal_of_linear_relations(X.ntv)
 irrelevant_ideal(R::MPolyRing, X::ToricCoveredScheme) = irrelevant_ideal(R, X.ntv)
 irrelevant_ideal(X::ToricCoveredScheme) = irrelevant_ideal(X.ntv)
 map_from_character_lattice_to_torusinvariant_weil_divisor_group(X::ToricCoveredScheme) = map_from_character_lattice_to_torusinvariant_weil_divisor_group(X.ntv)
+map_from_torusinvariant_cartier_divisor_group_to_class_group(X::ToricCoveredScheme) = map_from_torusinvariant_cartier_divisor_group_to_class_group(X.ntv)
 map_from_torusinvariant_cartier_divisor_group_to_picard_group(X::ToricCoveredScheme) = map_from_torusinvariant_cartier_divisor_group_to_picard_group(X.ntv)
 map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(X::ToricCoveredScheme) = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(X.ntv)
 map_from_torusinvariant_weil_divisor_group_to_class_group(X::ToricCoveredScheme) = map_from_torusinvariant_weil_divisor_group_to_class_group(X.ntv)
+map_from_picard_group_to_class_group(X::ToricCoveredScheme) = map_from_picard_group_to_class_group(X.ntv)
 mori_cone(X::ToricCoveredScheme) = mori_cone(X.ntv)
 nef_cone(X::ToricCoveredScheme) = nef_cone(X.ntv)
 picard_group(X::ToricCoveredScheme) = picard_group(X.ntv)
+picard_index(X::ToricCoveredScheme) = picard_index(X.ntv)
 set_coordinate_names(X::ToricCoveredScheme) = set_coordinate_names(X.ntv)
 set_coordinate_names_of_torus(X::ToricCoveredScheme) = set_coordinate_names_of_torus(X.ntv)
 stanley_reisner_ideal(R::MPolyRing, X::ToricCoveredScheme) = stanley_reisner_ideal(R, X.ntv)
@@ -186,17 +203,21 @@ cox_ring(X::ToricSpec) = cox_ring(X.antv)
 dim(X::ToricSpec) = dim(X.antv)
 dim_of_torusfactor(X::ToricSpec) = dim_of_torusfactor(X.antv)
 euler_characteristic(X::ToricSpec) = euler_characteristic(X.antv)
-fan(X::ToricSpec) = fan(X.antv)
+gorenstein_index(X::ToricSpec) = gorenstein_index(X.antv)
+polyhedral_fan(X::ToricSpec) = polyhedral_fan(X.antv)
 ideal_of_linear_relations(R::MPolyRing, X::ToricSpec) = ideal_of_linear_relations(R, X.antv)
 ideal_of_linear_relations(X::ToricSpec) = ideal_of_linear_relations(X.antv)
 irrelevant_ideal(R::MPolyRing, X::ToricSpec) = irrelevant_ideal(R, X.antv)
 irrelevant_ideal(X::ToricSpec) = irrelevant_ideal(X.antv)
 map_from_character_lattice_to_torusinvariant_weil_divisor_group(X::ToricSpec) = map_from_character_lattice_to_torusinvariant_weil_divisor_group(X.antv)
+map_from_torusinvariant_cartier_divisor_group_to_class_group(X::ToricSpec) = map_from_torusinvariant_cartier_divisor_group_to_class_group(X.antv)
 map_from_torusinvariant_cartier_divisor_group_to_picard_group(X::ToricSpec) = map_from_torusinvariant_cartier_divisor_group_to_picard_group(X.antv)
 map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(X::ToricSpec) = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(X.antv)
 map_from_torusinvariant_weil_divisor_group_to_class_group(X::ToricSpec) = map_from_torusinvariant_weil_divisor_group_to_class_group(X.antv)
+map_from_picard_group_to_class_group(X::ToricSpec) = map_from_picard_group_to_class_group(X.antv)
 mori_cone(X::ToricSpec) = mori_cone(X.antv)
 nef_cone(X::ToricSpec) = nef_cone(X.antv)
+picard_index(X::ToricSpec) = picard_index(X.antv)
 picard_group(X::ToricSpec) = picard_group(X.antv)
 set_coordinate_names(X::ToricSpec) = set_coordinate_names(X.antv)
 set_coordinate_names_of_torus(X::ToricSpec) = set_coordinate_names_of_torus(X.antv)

@@ -15,7 +15,9 @@
 Return the Tate section ``a_1``.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a1(t)
@@ -31,7 +33,9 @@ tate_section_a1(t::GlobalTateModel) = t.tate_a1
 Return the Tate section ``a_2``.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a2(t)
@@ -47,7 +51,9 @@ tate_section_a2(t::GlobalTateModel) = t.tate_a2
 Return the Tate section ``a_3``.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a3(t)
@@ -63,7 +69,9 @@ tate_section_a3(t::GlobalTateModel) = t.tate_a3
 Return the Tate section ``a_4``.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a4(t)
@@ -79,7 +87,9 @@ tate_section_a4(t::GlobalTateModel) = t.tate_a4
 Return the Tate section ``a_6``.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a6(t)
@@ -99,7 +109,9 @@ tate_section_a6(t::GlobalTateModel) = t.tate_a6
 Return the Tate polynomial of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_polynomial(t)
@@ -119,11 +131,13 @@ tate_polynomial(t::GlobalTateModel) = t.tate_polynomial
 Return the base space of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0]]
+Scheme of a toric variety
 ```
 """
 function base_space(t::GlobalTateModel)
@@ -138,11 +152,13 @@ end
 Return the ambient space of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, -1, -3//2]]
+Scheme of a toric variety
 ```
 """
 function ambient_space(t::GlobalTateModel)
@@ -158,10 +174,12 @@ Return the fiber ambient space of the global Tate model.
 
 ```jldoctest
 julia> t = su5_tate_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base
 
 julia> fiber_ambient_space(t)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Scheme of a toric variety
 ```
 """
 fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space
@@ -188,7 +206,9 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> calabi_yau_hypersurface(t)
@@ -207,20 +227,22 @@ end
 #####################################################
 
 @doc raw"""
-    global_weierstrass_model(t::GlobalTateModel)
+    weierstrass_model(t::GlobalTateModel)
 
-Return the global Weierstrass model which is equivalent to the given Tate model.
+Return the Weierstrass model which is equivalent to the given Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> global_weierstrass_model(t)
-Global Weierstrass model over a not fully specified base
+julia> weierstrass_model(t)
+Weierstrass model over a not fully specified base
 ```
 """
-@attr GlobalWeierstrassModel function global_weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into global Weierstrass model is currently only supported for toric varieties/schemes as base space"
+@attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
+  @req typeof(base_space(t)) <: ToricCoveredScheme "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties/schemes as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
@@ -230,7 +252,7 @@ Global Weierstrass model over a not fully specified base
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  model = GlobalWeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
   set_attribute!(model, :base_fully_specified, base_fully_specified(t))
   return model
 end
@@ -246,7 +268,9 @@ end
 Return the discriminant of the global Tate model.
 
 ```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> discriminant(t);
@@ -254,7 +278,7 @@ julia> discriminant(t);
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
   @req typeof(base_space(t)) <: ToricCoveredScheme "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
-  return discriminant(global_weierstrass_model(t))
+  return discriminant(weierstrass_model(t))
 end
 
 
@@ -295,6 +319,8 @@ sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify t
 ```jldoctest
 julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
 
+julia> auxiliary_base_grading = [1 2 3 4 6 0; -1 -1 -1 -1 -2 1];
+
 julia> a1 = a11 * w;
 
 julia> a2 = a21 * w;
@@ -307,7 +333,9 @@ julia> a6 = a62 * w^2;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = global_tate_model(ais, auxiliary_base_ring, 3)
+julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais)
+Assuming that the first row of the given grading is the grading under Kbar
+
 Global Tate model over a not fully specified base
 
 julia> length(singular_loci(t))
@@ -319,154 +347,5 @@ julia> singular_loci(t)[2]
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
   @req typeof(base_space(t)) <: ToricCoveredScheme "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
-  return singular_loci(global_weierstrass_model(t))
-end
-
-
-#####################################################
-# 7: Resolutions for a global Tate model
-#####################################################
-
-@doc raw"""
-    resolutions(t::GlobalTateModel)
-
-Return the list of all known resolutions for the global
-Tate model.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> length(resolutions(t))
-1
-```
-"""
-function resolutions(t::GlobalTateModel)
-  @req has_attribute(t, :resolutions) "No resolutions known for this model"
-  return get_attribute(t, :resolutions)
-end
-
-
-#####################################################
-# 8: Attributes for literature Tate models
-#####################################################
-
-@doc raw"""
-    doi(t::GlobalTateModel)
-
-Return the `doi` of the publication which introduced
-the global Tate model in question. If no `doi` is
-known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> doi(t)
-"10.1016/j.nuclphysb.2011.12.013"
-```
-"""
-function doi(t::GlobalTateModel)
-  @req has_attribute(t, :doi) "No doi known for this model"
-  return get_attribute(t, :doi)
-end
-
-@doc raw"""
-    arxiv_id(t::GlobalTateModel)
-
-Return the `arxiv_id` of the publication which introduced
-the global Tate model in question. If no `arxiv_id` is
-known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> arxiv_id(t)
-"1109.3454"
-```
-"""
-function arxiv_id(t::GlobalTateModel)
-  @req has_attribute(t, :arxiv_id) "No arxiv identifier known for this model"
-  return get_attribute(t, :arxiv_id)
-end
-
-@doc raw"""
-    version(t::GlobalTateModel)
-
-Return the `version` of the arxiv publication which
-introduced the global Tate model in question. If no
-`version` is known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> version(t)
-"2"
-```
-"""
-function version(t::GlobalTateModel)
-  @req has_attribute(t, :version) "No version known for this model"
-  return get_attribute(t, :version)
-end
-
-@doc raw"""
-    equation_number(t::GlobalTateModel)
-
-Return the `equation_number` in which the model was introduced
-in the publication on our record (either specified by
-`doi` or, if uploaded to the arxiv, the `arxiv_id` and
-`version`). If no `equation_number` is known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> equation_number(t)
-"3.1"
-```
-"""
-function equation_number(t::GlobalTateModel)
-  @req has_attribute(t, :equation_number) "No equation number known for this model"
-  return get_attribute(t, :equation_number)
-end
-
-@doc raw"""
-    description(t::GlobalTateModel)
-
-Return the `description` of the model in question.
-If no `description` is known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> description(t)
-"SU(5)xU(1) restricted Tate model"
-```
-"""
-function description(t::GlobalTateModel)
-  @req has_attribute(t, :description) "No description known for this model"
-  return get_attribute(t, :description)
-end
-
-@doc raw"""
-    link(t::GlobalTateModel)
-
-Return the `link` (formatted as string) to the online
-version of the paper which introduced the model in question.
-If no link is known, an error is raised.
-
-```jldoctest
-julia> t = literature_tate_model(arxiv_id = "1109.3454", equation = "3.1")
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> link(t)
-"https://arxiv.org/abs/1109.3454v2"
-```
-"""
-function link(t::GlobalTateModel)
-  @req has_attribute(t, :link) "No link known for this model"
-  return get_attribute(t, :link)
+  return singular_loci(weierstrass_model(t))
 end

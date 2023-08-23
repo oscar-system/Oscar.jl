@@ -1,8 +1,5 @@
 @testset "QuadForm" begin
-    
   mktempdir() do path
-
-
     @testset "ZZLat" begin
       L = integer_lattice(ZZ[1 2;],gram=ZZ[0 1;1 0])
       V = ambient_space(L)

@@ -6,7 +6,7 @@ we compute ``X' = X ×ₖ Spec(R)`` and return a pair `(X', f)` where
 ``f : X' → X`` is the canonical morphism.
 
 !!! note
-    We do not restrict `phi` to be a `Hecke.Map` so that one can also use coercion, anonymous functions, etc. 
+    We do not restrict `phi` to be of type `Map` so that one can also use coercion, anonymous functions, etc. 
 """
 function base_change(phi::Any, X::Scheme)
   error("base_change not implemented for input of type $(typeof(X))")
@@ -24,7 +24,7 @@ where ``a : X' → X`` is the morphism from `base_change(phi, X)`,
 morphism on those fiber products.
 
 !!! note
-    We do not restrict `phi` to be a `Hecke.Map` so that one can also use coercion, anonymous functions, etc. 
+    We do not restrict `phi` to be of type `Map` so that one can also use coercion, anonymous functions, etc. 
 
 !!! note 
     The morphisms ``a`` and ``b`` can be passed as the optional arguments `domain_map` and `codomain_map`, respectively. 

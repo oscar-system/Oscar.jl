@@ -3,6 +3,49 @@
 # Constructors for SpecOpenRing                                        #
 ########################################################################
 
+@doc raw"""
+    OO(U::SpecOpen) -> SpecOpenRing
+
+Given a Zariski open subset `U` of an affine scheme `X`, return the ring
+`𝒪(X, U)` of regular functions on `U`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> A = Spec(P)
+Spectrum
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+
+julia> Y = Spec(P, I)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables over QQ
+    by ideal(x^3 - y^2*z)
+
+julia> U = complement(A, Y)
+Open subset
+  of spec of multivariate polynomial ring
+complement to V(x^3 - y^2*z)
+
+julia> OO(U)
+Ring of regular functions
+  on complement to V(x^3 - y^2*z) in affine scheme with coordinates [x, y, z]
+
+julia> one(OO(U))
+Regular function
+  on zariski open subset
+    of affine scheme with coordinates [x, y, z]
+  complement to V(x^3 - y^2*z)
+  covered by 1 affine patch
+    1: [x, y, z]   spec of localized ring
+with restriction
+  patch 1: 1
+```
+"""
 function OO(U::SpecOpen) 
   if !isdefined(U, :ring_of_functions) 
     U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U, check=false)
@@ -18,14 +61,14 @@ end
 ########################################################################
 # Coercion                                                             #
 ########################################################################
-(R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(f::RingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
+(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
 
-(R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
+(R::SpecOpenRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
 
-function (R::SpecOpenRing)(f::SpecOpenRingElem)
+function (R::SpecOpenRing)(f::SpecOpenRingElem; check::Bool=true)
   parent(f) === R && return f
-  return SpecOpenRingElem(R, [restrict(f, U) for U in affine_patches(domain(R))])
+  return SpecOpenRingElem(R, [restrict(f, U, check=check) for U in affine_patches(domain(R))])
 end
 
 ########################################################################

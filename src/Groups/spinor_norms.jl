@@ -259,7 +259,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   #@assert infinity
   K, _ = Hecke.rationals_as_number_field()
   # f : QQ -> K
-  f = MapFromFunc(x -> K(x), x -> coeff(x, 0), QQ, K)
+  f = MapFromFunc(QQ, K, x -> K(x), x -> coeff(x, 0))
   OK = maximal_order(K)
   primes_as_ideals = [prime_decomposition(OK, p)[1][1] for p in primes]
   stuff = [Hecke.local_multiplicative_group_modulo_squares(P) for P in primes_as_ideals]
@@ -267,7 +267,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   maps = Any[s[2] for s in stuff]
   if infinity
     Ainf = abelian_group(2)
-    minf = MapFromFunc(x -> iszero(x[1]) ? one(K) : -one(K), x -> coeff(x, 0) > 0 ? Ainf([0]) : Ainf([1]), Ainf, K)
+    minf = MapFromFunc(Ainf, K, x -> iszero(x[1]) ? one(K) : -one(K), x -> coeff(x, 0) > 0 ? Ainf([0]) : Ainf([1]))
     push!(grps, Ainf)
     push!(maps, minf)
   end
@@ -299,7 +299,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   grps_det = [abelian_group(2) for i in 1:length(primes)]
   push!(grps_det, A)
   D, projD, injD = direct_product(grps_det...,task=:both)
-  maps_det = [(primes[i],MapFromFunc(x-> isone(x) ? zero(grps_det[i]) : grps_det[i][1], ZZ, grps_det[i])*injD[i]) for i in 1:length(primes)]
+  maps_det = [(primes[i],MapFromFunc(ZZ, grps_det[i], x-> isone(x) ? zero(grps_det[i]) : grps_det[i][1])*injD[i]) for i in 1:length(primes)]
   maps_det = Dict(maps_det)
   projd = Any[(primes[i],projD[end]*proj[i]*maps[i]*inv(f)) for i in 1:length(primes)]
   injd = Any[(primes[i],f*inv(maps[i])*inj[i]*injD[end]) for i in 1:length(primes)]
@@ -309,7 +309,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   end
   projd = Dict(projd)
   injd = Dict(injd)
-  diagonal_morphism = MapFromFunc(forwardmap, backwardmap, A, QQ)
+  diagonal_morphism = MapFromFunc(A, QQ, forwardmap, backwardmap)
   return D, inv(diagonal_morphism)*injD[end], projd, injd, maps_det
 end
 
@@ -414,7 +414,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
       g = u * fp * inv(u)
       while true
         R = residue_ring(ZZ, p^(prec+3))
-        conv = MapFromFunc(x -> R(numerator(x)) * R(denominator(x)^(-1)), QQ, R)
+        conv = MapFromFunc(QQ, R, x -> R(numerator(x)) * R(denominator(x)^(-1)))
         _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
         g = change_base_ring(ZZ, _g)
         gg = t*M*g*inv(t*M)
@@ -478,7 +478,7 @@ julia> order(Oq)
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
-  return sub(Oq, [Oq(g, check=false) for g in gens(G)])
+  return sub(Oq, unique!([Oq(g, check=false) for g in gens(G)]))
 end
 
 @attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}

@@ -10,11 +10,9 @@
   SQR::Singular.PolyRing # Singular quotient ring
   SQRGB::Singular.sideal # Singular Groebner basis defining quotient ring
 
-  #= ordering, gb assure =#
-  #= the current design decision is to fix the ordering to be default_ordering(R) =#
-  #= that is, the user is not allowed to change this with the outer constructor quo =#
   function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
-    @assert base_ring(I) === R
+    @req base_ring(I) === R "Base rings must be the same."
+    @req is_global(ordering) "Ordering must be global."
     r = new{elem_type(R)}()
     r.I = I
     r.ordering = ordering
@@ -29,8 +27,7 @@ function groebner_assure(r::MPolyQuoRing)
   ordering = r.ordering
   groebner_assure(r.I, ordering)
   oscar_assure(r.I.gb[ordering])
-  singular_assure(r.I.gb[ordering])
-  SG = r.I.gb[ordering].gens.S
+  SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
@@ -68,7 +65,8 @@ oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.or
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
 singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
@@ -188,22 +186,12 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function singular_assure(a::MPolyQuoIdeal)
-  if isdefined(a.gens.gens, :S)
-    return a.gens.S
-  end
-  a.gens.Sx = singular_poly_ring(base_ring(a))
-  a.gens.S  = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
-end
-
 function groebner_assure(a::MPolyQuoIdeal)
   if !isdefined(a, :gb)
-    singular_assure(a)
-    a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
+    a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
   end
 end
-
 
 @doc raw"""
     gens(a::MPolyQuoIdeal)
@@ -283,8 +271,7 @@ ideal(x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-  singular_assure(a)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens)^m)
 end
 
 @doc raw"""
@@ -310,9 +297,7 @@ ideal(x + y, x^2 + y^2)
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) + singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -338,9 +323,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) * singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -369,13 +352,10 @@ ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
-  singular_assure(a)
-  as = a.gens.S
   for g in b
     @req base_ring(g) == base_ring(a) "base rings must match"
-    singular_assure(g)
   end
-  as = Singular.intersection(as, [g.gens.S for g in b]...)
+  as = Singular.intersection(singular_generators(a.gens), [singular_generators(g.gens) for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
 end
 
@@ -411,16 +391,19 @@ ideal(y)
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(singular_generators(a.gens), singular_generators(b.gens)))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
 # TODO: replace by a more efficient method!
 @attr function is_prime(I::MPolyQuoIdeal)
   return is_prime(saturated_ideal(I))
+end
+
+@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
 end
 
 # The following is to streamline the programmer's
@@ -433,6 +416,11 @@ end
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J
+end
+
+# TODO: Replace by a more efficient method!
+@attr Bool function is_radical(I::MPolyQuoIdeal)
+  return is_radical(saturated_ideal(I))
 end
 
 @doc raw"""
@@ -461,8 +449,7 @@ true
 """
 @attr Bool function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
-  singular_assure(a)
-  return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_quotient_groebner_basis(R)))
 end
 
 @doc raw"""
@@ -553,7 +540,13 @@ end
 
 *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
+  if b >= 0
+    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+  else
+    return inv(a)^(-b)
+  end
+end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
@@ -612,8 +605,7 @@ julia> gens(a)
 function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
-  singular_assure(a)
-  red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
+  red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
@@ -818,10 +810,11 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 end
 
 @doc raw"""
-    quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
-ring as well as the projection map `R` $\to$ `R/I`.
+ring as well as the projection map `R` $\to$ `R/I`. Computations inside `R/I` are
+done w.r.t. `ordering`.
 
     quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
 
@@ -865,8 +858,8 @@ julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 ```
 """
-function quo(R::MPolyRing, I::MPolyIdeal)
-  q = MPolyQuoRing(R, I)
+function quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R))
+  q = MPolyQuoRing(R, I, ordering)
   function im(a::MPolyRingElem)
     parent(a) !== R && error("Element not in the domain of the map")
     return MPolyQuoRingElem(a, q)
@@ -874,22 +867,23 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
-function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
-  return quo(R, ideal(I))
+function quo(R::MPolyRing, I::Vector{<:MPolyRingElem}; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(I); ordering)
 end
 
-function quo(R::MPolyRing, f::MPolyRingElem...)
-  return quo(R, ideal(collect(f)))
+function quo(R::MPolyRing, f::MPolyRingElem...; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(collect(f)); ordering)
 end
 
 lift(a::MPolyQuoRingElem) = a.f
 
+
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
-function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
+function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   if parent(a) === Q
     return a
   else
@@ -897,12 +891,18 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   end
 end
 
-function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  @req base_ring(Q) === parent(a) "Parent mismatch"
+function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
+  @req base_ring(parent(a)) === Q "parent missmatch"
+  return lift(a)
+end
+
+
+function (Q::MPolyQuoRing{S})(a::S; check::Bool=false) where {S <: MPolyRingElem}
+  @req base_ring(Q) === parent(a) "parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 
-function (Q::MPolyQuoRing)(a::MPolyRingElem)
+function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
 end
 
@@ -917,7 +917,7 @@ function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
   return S(a.f)
 end
 
-(Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
+(Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
 one(Q::MPolyQuoRing) = Q(1)
 
@@ -968,7 +968,7 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::UnitRange)
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
@@ -985,7 +985,7 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
+function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
   S = sparse_matrix(R)
   for g = 1:Singular.ngens(M)
     (g in V) || continue
@@ -1023,17 +1023,46 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   J = oscar_groebner_basis(Q)
 
   BS = IdealGens([a.f], keep_ordering = false)
-  singular_assure(BS)
 
   J = vcat(J, [b.f])
   BJ = IdealGens(J, keep_ordering = false)
-  singular_assure(BJ)
 
-  s, rest = Singular.lift(BJ.S, BS.S)
+  s, rest = Singular.lift(singular_generators(BJ), singular_generators(BS))
   if !iszero(rest)
     return false, a
   end
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
+end
+
+### 
+# The following two functions below provide a hotfix to make sure that the preferred 
+# ordering provided to the constructor of the quotient ring is actually used for the 
+# groebner basis computations.
+function ordering(A::MPolyQuoRing)
+  return A.ordering
+end
+
+function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  check_parent(a, b)
+  iszero(a) && iszero(b) && return (true, zero(parent(a)))
+  iszero(b) && error("cannot divide by zero")
+
+  A = parent(a)
+  R = base_ring(A)
+  mod = modulus(A)
+  o = ordering(A)
+  # Take a groebner basis for the preferred ordering, hoping that it will speed up things
+  gb_mod = gens(groebner_basis(mod, ordering=o))
+  I = ideal(R, push!(gb_mod, lift(b)))
+  # Make sure that the singular side of this ideal is filled with the correct ordering
+  # Get our hands on the actual singular ideal
+  Ising = singular_generators(I.gens, o)
+  # ...and the ring
+  Rsing = base_ring(Ising)
+  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  u_sing, rem = Singular.lift(Ising, a_ideal)
+  !iszero(rem) && return false, a
+  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
 end
 
 #TODO: find a more descriptive, meaningful name
@@ -1041,13 +1070,11 @@ function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal was no zero-dimensional")
+    error("ideal is not zero-dimensional")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
 
-#TODO: the reverse map...
-# problem: the "canonical" reps are not the monomials.
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   R = base_ring(Q)
   @assert K == base_ring(R)
@@ -1056,15 +1083,36 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   function im(a::Generic.FreeModuleElem)
     @assert parent(a) == V
     b = R(0)
-    for i=1:length(l)
-      c = a[i]
+    for k=1:length(l)
+      c = a[k]
       if !iszero(c)
-        b += c*l[i]
+        b += c*l[k]
       end
     end
     return Q(b)
   end
-  return V, MapFromFunc(im, V, Q)
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(a::MPolyQuoRingElem)
+    @assert parent(a) === Q
+    b = lift(a)::MPolyElem
+    o = default_ordering(R)
+    # TODO: Make sure the ordering is the same as the one used for the _kbase above
+    @assert is_global(o) "ordering must be global"
+    b = normal_form(b, modulus(Q), ordering=o)
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=o)
+      c = leading_coefficient(b, ordering=o)
+      j = findfirst(n->n==m, l)
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1119,7 +1167,7 @@ julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
 julia> degree(f)
-graded by [4]
+[4]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1435,7 +1483,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
@@ -1536,12 +1584,10 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   if isdefined(I, :gb)
-    singular_assure(I.gb)
-    _, sing_min = Singular.mstd(I.gb.gens.S)
+    _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
     return filter(!iszero, (Q).(gens(sing_min)))
   else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
@@ -1584,8 +1630,7 @@ function small_generating_set(I::MPolyQuoIdeal)
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  singular_assure(I)
-  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
   if !isdefined(I, :gb)
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true

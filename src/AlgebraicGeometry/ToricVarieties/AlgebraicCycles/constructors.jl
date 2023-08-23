@@ -267,11 +267,18 @@ end
 
 
 ####################################################
-# 6: Equality
+# 6: Equality and hash
 ####################################################
 
 function Base.:(==)(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
-    return toric_variety(ac1) === toric_variety(ac2) && iszero(polynomial(ac1-ac2))
+    return toric_variety(ac1) === toric_variety(ac2) && polynomial(ac1) == polynomial(ac2)
+end
+
+function Base.hash(ac::RationalEquivalenceClass, h::UInt) 
+    b = 0xb5d4ac6b9084eb6e  % UInt
+    h = hash(toric_variety(ac), h)
+    h = hash(polynomial(ac), h)
+    return xor(h, b)
 end
 
 

@@ -30,8 +30,8 @@
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
@@ -47,8 +47,10 @@
 # J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
   I = IdealSheaf(X, U, OO(U).([x[1]-1]))
   J = IdealSheaf(X, U, OO(U).([x[2]-5]))
+  oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
+  
   @test D + 2*E == D + E + E
 
   KK = VarietyFunctionField(X)
@@ -90,7 +92,12 @@
   K = function_field(adeK3)
   x,y,t= ambient_coordinates(adeK3[1][6])
   phi = K(-8*t^8 + 4*t^7 + 6*t^5 + 4*x*t^3 + 3*t^4 - 13*x*t^2 - 7*y*t^2 - 12*t^3 - 12*x*t + 12*y*t - 14*t^2 - 14*x - y - 10*t + 10)//K(6*t^8 - 5*t^7 + 14*t^6 - 7*x*t^4 - 13*t^5 - 5*x*t^3 - 6*x*t^2 - 5*t^3 - 9*x*t - 10*t^2 + 4*x - 8*t + 4)
-  @test Oscar.order_on_divisor(phi, D) == -1
+  @test Oscar.order_on_divisor(phi, D, check=false) == -1
+
+  (x,z,t) = coordinates(adeK3[1][2])
+  o = weil_divisor(ideal_sheaf(adeK3, adeK3[1][2], [z,x]), check=false)
+  @test order_on_divisor(K(z), o, check=false) == 3
+  @test order_on_divisor(K(x), o, check=false) == 1
 end
 
 @testset "orders on divisors" begin
@@ -124,9 +131,9 @@ end
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
   P = IdealSheaf(P2, [H])
-  @test ngens(subsystem(L, P, 1)[1]) == 3
-  @test ngens(subsystem(L, P, 2)[1]) == 1
-  @test ngens(subsystem(L, P, 3)[1]) == 0
+  @test ngens(Oscar._subsystem(L, P, 1)[1]) == 3
+  @test ngens(Oscar._subsystem(L, P, 2)[1]) == 1
+  @test ngens(Oscar._subsystem(L, P, 3)[1]) == 0
 end
 
 @testset "WeilDivisor" begin
@@ -153,4 +160,52 @@ end
   u, v = gens(OO(U))
   f = KK(u, v) 
   @test !in_linear_system(f, D)
+end
+
+@testset "intersections of weil divisors on surfaces" begin
+  P = projective_space(QQ, 2)
+  X = covered_scheme(P)
+  S = homogeneous_coordinate_ring(P)
+  x = gens(S)
+  I1 = IdealSheaf(P, x[1]^3 + x[2]^3 + x[3]^3)
+  I2 = IdealSheaf(P, x[2])
+  I3 = IdealSheaf(P, x[1] + x[2] + x[3])
+
+  D1 = 7 * weil_divisor(I1)
+  D2 = weil_divisor(I2)
+  D3 = weil_divisor(I3)
+  @test intersect(D1, D2) == intersect(D1, D3) == 21
+  @test intersect(D2, D3) == 1
+end
+
+@testset "decomposition" begin 
+  P3 = projective_space(QQ, 3)
+  S = homogeneous_coordinate_ring(P3)
+  (x, y, z, w) = gens(S)
+  I = ideal(S, x^2*y^3)
+  II = ideal_sheaf(P3, I)
+  X = covered_scheme(P3)
+  D = weil_divisor(II)
+  E = oscar.irreducible_decomposition(D)
+  @test length(keys(coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+end
+
+@testset "intersection numbers on surfaces" begin
+  P3 = projective_space(QQ, 3)
+  S = homogeneous_coordinate_ring(P3)
+  (x,y, z, w) = gens(S)
+  I = ideal(S, [x^4+y^4+z^4+w^4])
+  II = ideal_sheaf(P3, I)
+  P = covered_scheme(P3)
+  inc = oscar.CoveredClosedEmbedding(covered_scheme(P3), II)
+  X = domain(inc)
+  C1 = EffectiveCartierDivisor(ideal_sheaf(P3, [x+y+z+w]))
+  C2 = EffectiveCartierDivisor(ideal_sheaf(P3, [x^2*y + y^2*z + z^2*w + w^2*x]))
+  C1 = pullback(inc)(C1)
+  C2 = pullback(inc)(C2)
+  d = intersect(weil_divisor(C1), weil_divisor(C2))
+  pts = oscar.irreducible_decomposition(intersect(C1, C2))
+  @test integral(pts) == d
 end

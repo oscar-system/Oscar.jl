@@ -53,8 +53,8 @@ end
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
@@ -118,3 +118,63 @@ end
   @test is_irreducible(Xc) #fails
 
 end
+
+@testset "pullbacks for function fields" begin
+  P = projective_space(QQ, ["x", "y", "z"])
+  (x, y, z) = gens(homogeneous_coordinate_ring(P))
+  Y = covered_scheme(P)
+  II = ideal_sheaf(P, [x,y])
+  p = blow_up(II)
+  X = domain(p)
+  KY = function_field(Y)
+  KX = function_field(X)
+  U1 = first(affine_charts(Y))
+  R1 = OO(U1)
+  a = KY(R1[1], R1[2])
+  b = pullback(projection(p))(a)
+  U2 = affine_charts(Y)[2]
+  R2 = OO(U2)
+  a2 = KY(R2[1], R2[2])
+  b2 = pullback(projection(p))(a2)
+  V = representative_patch(KX)
+  c = 5*a-a2^2
+  pbc = pullback(projection(p))(c)
+  d = 5*b - b2^2
+  @test OO(V)(numerator(pbc)*denominator(d)) == OO(V)(numerator(d)*denominator(pbc))
+end
+
+@testset "refinements" begin
+  P = projective_space(QQ, ["x", "y", "z"])
+  S = homogeneous_coordinate_ring(P)
+  (x, y, z) = gens(S)
+  Y = covered_scheme(P)
+  I = ideal(S,[x^2-y*z])
+  Q = subscheme(P, I)
+  X = covered_scheme(Q)
+  C = oscar.simplified_covering(X)
+  KK = function_field(X)
+  for U in patches(C)
+    x = first(gens(OO(U)))
+    a = lifted_numerator(x)
+    b = KK(a, one(a))
+    invb = KK(one(a), a)
+    @test isone(b*invb)
+  end
+  P1 = projective_space(QQ, ["a", "b"])
+  S1 = homogeneous_coordinate_ring(P1)
+  (a, b) = gens(S1)
+  Phi = ProjectiveSchemeMor(P1, Q, [a*b, a^2, b^2])
+  phi = covered_scheme_morphism(Phi)
+  phi_cov = covering_morphism(phi)
+  rho = X[codomain(phi_cov), C]
+  psi_cov = compose(phi_cov, rho)
+  L = domain(phi)
+  psi = CoveredSchemeMorphism(L, X, psi_cov)
+
+  U = first(patches(C))
+  a = first(gens(OO(U)))
+  a = lifted_numerator(a)
+  h = KK(a, one(a))
+  pullback(psi)(h)
+end
+
