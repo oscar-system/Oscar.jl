@@ -511,3 +511,8 @@ let
   t = gen(parent(e))
   @test e == sum(t^i for i in 1:10; init = t^0)
 end
+
+@testset "is_positively_graded" begin
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, -1])
+  @test is_positively_graded(R) == false
+end
