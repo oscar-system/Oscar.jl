@@ -361,12 +361,12 @@ function derived_series(L::LieAlgebra)
 end
 
 @doc raw"""
-    descending_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
+    lower_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
 
-Return the descending central series of `L`, i.e. the sequence of ideals
+Return the lower central series of `L`, i.e. the sequence of ideals
 $L^{(0)} = L$, $L^{(i + 1)} = [L, L^{(i)}]$.
 """
-function descending_central_series(L::LieAlgebra)
+function lower_central_series(L::LieAlgebra)
   curr = ideal(L)
   series = [curr]
   while true
@@ -377,8 +377,6 @@ function descending_central_series(L::LieAlgebra)
   end
   return series
 end
-
-@alias lower_central_series descending_central_series
 
 ###############################################################################
 #
@@ -398,10 +396,10 @@ end
 @doc raw"""
     is_nilpotent(L::LieAlgebra) -> Bool
 
-Return `true` if `L` is nilpotent, i.e. the descending central series of `L` terminates in $0$.
+Return `true` if `L` is nilpotent, i.e. the lower central series of `L` terminates in $0$.
 """
 @attr Bool function is_nilpotent(L::LieAlgebra)
-  return dim(descending_central_series(L)[end]) == 0
+  return dim(lower_central_series(L)[end]) == 0
 end
 
 @doc raw"""

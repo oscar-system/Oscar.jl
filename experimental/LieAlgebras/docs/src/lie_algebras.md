@@ -77,7 +77,7 @@ centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
 centralizer(L::LieAlgebra, x::LieAlgebraElem)
 derived_algebra(L::LieAlgebra)
 derived_series(L::LieAlgebra)
-descending_central_series(L::LieAlgebra)
+lower_central_series(L::LieAlgebra)
 ```
 
 ## Lie algebra constructors

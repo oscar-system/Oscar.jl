@@ -73,7 +73,6 @@ export bracket
 export coefficient_vector
 export combinations
 export derived_algebra
-export descending_central_series
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -133,7 +132,6 @@ export base_module
 export base_modules
 export bracket
 export derived_algebra
-export descending_central_series
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
