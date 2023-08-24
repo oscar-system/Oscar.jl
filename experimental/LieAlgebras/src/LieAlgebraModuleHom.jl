@@ -1,5 +1,5 @@
-mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
-               Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
+@attributes mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
+                           Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
   header::MapHeader
   matrix::MatElem
 
@@ -171,7 +171,7 @@ Return `true` if `h` is an isomorphism.
 This function tries to invert the transformation matrix of `h` and caches the result.
 The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this function.
 """
-function is_isomorphism(h::LieAlgebraModuleHom)
+@attr Bool function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
   fl, invmat = is_invertible_with_inverse(h.matrix)
   fl || return false
