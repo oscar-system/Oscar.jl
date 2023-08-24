@@ -1482,8 +1482,7 @@ end
 
 # modular gröbner basis techniques using Singular
 @doc raw"""
-groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                           certify::Bool = false)
+    groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrdering = default_ordering(base_ring(I)), certify::Bool = false)
 
 Compute the reduced Gröbner basis of `I` w.r.t. `ordering` using a
 multi-modular strategy.

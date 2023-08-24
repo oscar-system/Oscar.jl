@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    chow_ring(v::AbstractNormalToricVariety)
+    chow_ring(v::NormalToricVarietyType)
 
 Return the Chow ring of the simplicial toric variety `v`.
 
@@ -49,7 +49,7 @@ Quotient
   by ideal(x_{1} - x_{2}, x_{1} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 ```
 """
-@attr MPolyQuoRing function chow_ring(v::AbstractNormalToricVariety)
+@attr MPolyQuoRing function chow_ring(v::NormalToricVarietyType)
     @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
     R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
     linear_relations = ideal_of_linear_relations(R, v)
@@ -59,7 +59,7 @@ end
 
 
 @doc raw"""
-    gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
+    gens_of_rational_equivalence_classes(v::NormalToricVarietyType)
 
 Return a list of generators of the Chow ring of a
 complete, simplicial toric variety.
@@ -84,7 +84,7 @@ julia> gens_of_rational_equivalence_classes(p2)
  x3
 ```
 """
-@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
+@attr Vector{MPolyQuoRingElem{QQMPolyRingElem}} function gens_of_rational_equivalence_classes(v::NormalToricVarietyType)
   cr = chow_ring(v)
   R = base_ring(cr)
   cs = cones(v)
@@ -93,7 +93,7 @@ end
 
 
 @doc raw"""
-    map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
+    map_gens_of_chow_ring_to_cox_ring(v::NormalToricVarietyType)
 
 Return a dictionary which maps the generators of the chow
 ring to monomials in the Cox ring. This dictionary involves
@@ -109,7 +109,7 @@ Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 ent
   x3   => x3
 ```
 """
-@attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
+@attr Dict{QQMPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} function map_gens_of_chow_ring_to_cox_ring(v::NormalToricVarietyType)
   cr = chow_ring(v)
   R = base_ring(cr)
   co = cox_ring(v)

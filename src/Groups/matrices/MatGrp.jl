@@ -104,6 +104,13 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   error("$x has neither :X nor :elm")
 end
 
+function change_base_ring(R::Ring, G::MatrixGroup)
+  g = dense_matrix_type(R)[]
+  for h in gens(G)
+    push!(g, map_entries(R, h.elm))
+  end
+  return matrix_group(g)
+end
 
 ########################################################################
 #

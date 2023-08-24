@@ -175,3 +175,14 @@ end
     @test isone(sum(!isone(P(U)) for U in patches(CC)))
   end
 end
+
+@testset "saturation of ideal sheaves" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+
+  I = IdealSheaf(IP2, [x+y])
+  J = IdealSheaf(IP2, [z^2])
+
+  @test J == saturation(I*J, I)
+end

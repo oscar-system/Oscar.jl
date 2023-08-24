@@ -3,9 +3,9 @@
 #########################
 
 @attributes mutable struct ToricDivisorClass
-    toric_variety::AbstractNormalToricVariety
+    toric_variety::NormalToricVarietyType
     class::GrpAbFinGenElem
-    function ToricDivisorClass(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+    function ToricDivisorClass(toric_variety::NormalToricVarietyType, class::GrpAbFinGenElem)
         @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+    toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem)
 
 Construct the toric divisor class associated to a group
 element of the class group of the normal toric variety `v`.
@@ -31,11 +31,11 @@ julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
+toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
 
 
 @doc raw"""
-    toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the toric divisor class associated to a list of integers which
 specify an element of the class group of the normal toric variety `v`.
@@ -49,7 +49,7 @@ julia> tdc = toric_divisor_class(P2, class_group(P2)([ZZRingElem(1)]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([ZZRingElem(c) for c in coeffs]))
+toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([ZZRingElem(c) for c in coeffs]))
 
 
 ######################

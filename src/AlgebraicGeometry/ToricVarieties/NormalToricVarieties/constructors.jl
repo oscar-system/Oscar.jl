@@ -1,21 +1,10 @@
 ######################
 # Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety <: _FanLikeType{QQFieldElem} end
 
-@attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
+pm_object(v::NormalToricVarietyType) = v.polymakeNTV
 
-@attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
-           polymakeNTV::Polymake.BigObject
-           AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
-end
-
-pm_object(v::AbstractNormalToricVariety) = v.polymakeNTV
-
-coefficient_field(::AbstractNormalToricVariety) = QQ
+coefficient_field(::NormalToricVarietyType) = QQ
 
 ######################
 # Constructors
@@ -216,7 +205,8 @@ end
 ######################
 # Display
 ######################
-function Base.show(io::IO, v::AbstractNormalToricVariety)
+
+function Base.show(io::IO, v::NormalToricVarietyType)
     # initiate properties string
     properties_string = ["Normal"]
     
@@ -247,3 +237,5 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     
     join(io, properties_string, " ")
 end
+
+Base.show(io::IO, ::MIME"text/plain", v::NormalToricVarietyType) = Base.show(pretty(io), v)

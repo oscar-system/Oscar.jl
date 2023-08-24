@@ -4,7 +4,7 @@
 
 
 @doc raw"""
-    dim(v::AbstractNormalToricVariety)
+    dim(v::NormalToricVarietyType)
 
 Return the dimension of the normal toric variety `v`.
 
@@ -18,11 +18,11 @@ julia> dim(antv)
 1
 ```
 """
-@attr Int dim(v::AbstractNormalToricVariety) = pm_object(v).FAN_DIM
+@attr Int dim(v::NormalToricVarietyType) = pm_object(v).FAN_DIM
 
 
 @doc raw"""
-    dim_of_torusfactor(v::AbstractNormalToricVariety)
+    dim_of_torusfactor(v::NormalToricVarietyType)
 
 Return the dimension of the torus factor of the normal toric variety `v`.
 
@@ -36,7 +36,7 @@ julia> dim_of_torusfactor(antv)
 1
 ```
 """
-@attr Int function dim_of_torusfactor(v::AbstractNormalToricVariety)
+@attr Int function dim_of_torusfactor(v::NormalToricVarietyType)
     if has_torusfactor(v) == false
         return 0
     end
@@ -47,7 +47,7 @@ end
 
 
 @doc raw"""
-    euler_characteristic(v::AbstractNormalToricVariety)
+    euler_characteristic(v::NormalToricVarietyType)
 
 Return the Euler characteristic of the normal toric variety `v`.
 
@@ -61,7 +61,7 @@ julia> euler_characteristic(antv)
 1
 ```
 """
-@attr Int function euler_characteristic(v::AbstractNormalToricVariety)
+@attr Int function euler_characteristic(v::NormalToricVarietyType)
     f_vector = Vector{Int}(pm_object(v).F_VECTOR)
     return f_vector[dim(v)]
 end
@@ -73,7 +73,7 @@ end
 
 
 @doc raw"""
-    is_finalized(v::AbstractNormalToricVariety)
+    is_finalized(v::NormalToricVarietyType)
 
 Checks if the Cox ring, the coordinate ring of the torus,
 the cohomology_ring, the Chow ring, the Stanley-Reisner ideal,
@@ -87,7 +87,7 @@ julia> is_finalized(del_pezzo_surface(NormalToricVariety, 3))
 false
 ```
 """
-function is_finalized(v::AbstractNormalToricVariety)
+function is_finalized(v::NormalToricVarietyType)
     properties = [
         :cox_ring,
         :coordinate_ring_of_torus,
@@ -103,10 +103,10 @@ end
 
 
 @doc raw"""
-    set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
 
 Allows to set the names of the homogeneous coordinates as long as the toric variety in
-question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
+question is not yet finalized (cf. [`is_finalized(v::NormalToricVarietyType)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -121,7 +121,7 @@ julia> coordinate_names(antv)
  "u"
 ```
 """
-function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
@@ -131,7 +131,7 @@ end
 
 
 @doc raw"""
-    set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
 
 Allows to set the names of the coordinates of the torus.
 
@@ -147,7 +147,7 @@ julia> coordinate_names_of_torus(F3)
  "v"
 ```
 """
-function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
@@ -163,7 +163,7 @@ end
 
 
 @doc raw"""
-    coefficient_ring(v::AbstractNormalToricVariety)
+    coefficient_ring(v::NormalToricVarietyType)
 
 Return the coefficient_ring `QQ` of the normal toric variety `v`.
 
@@ -177,11 +177,11 @@ julia> coefficient_ring(antv) == QQ
 true
 ```
 """
-coefficient_ring(v::AbstractNormalToricVariety) = QQ
+coefficient_ring(v::NormalToricVarietyType) = QQ
 
 
 @doc raw"""
-    coordinate_names(v::AbstractNormalToricVariety)
+    coordinate_names(v::NormalToricVarietyType)
 
 Return the names of the homogeneous coordinates of
 the normal toric variety `v`. The default is `x1, ..., xn`.
@@ -197,12 +197,12 @@ julia> coordinate_names(antv)
  "x1"
 ```
 """
-@attr Vector{String} function coordinate_names(v::AbstractNormalToricVariety)
+@attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
     return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
-function _cox_ring_weights(v::AbstractNormalToricVariety)
+function _cox_ring_weights(v::NormalToricVarietyType)
     return get_attribute(v, :cox_ring_weights) do
         return [map_from_torusinvariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torusinvariant_weil_divisor_group(v))]
     end
@@ -210,7 +210,7 @@ end
 
 
 @doc raw"""
-    cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
+    cox_ring(R::MPolyRing, v::NormalToricVarietyType)
 
 Computes the Cox ring of the normal toric variety `v`, in this case by adding
 the Cox grading to the given ring `R`.
@@ -229,7 +229,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   x3 -> [1]
 ```
 """
-function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
+function cox_ring(R::MPolyRing, v::NormalToricVarietyType)
     weights = _cox_ring_weights(v)
     @req length(weights) == nvars(R) "Wrong number of variables"
     return grade(R, weights)[1]
@@ -237,7 +237,7 @@ end
 
 
 @doc raw"""
-    cox_ring(v::AbstractNormalToricVariety)
+    cox_ring(v::NormalToricVarietyType)
 
 Computes the Cox ring of the normal toric variety `v`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
@@ -255,7 +255,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   y3 -> [1]
 ```
 """
-@attr MPolyRing function cox_ring(v::AbstractNormalToricVariety)
+@attr MPolyRing function cox_ring(v::NormalToricVarietyType)
     S, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached=false)
     return cox_ring(S, v)
 end
@@ -266,7 +266,7 @@ end
 ########################################
 
 
-@attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::AbstractNormalToricVariety)
+@attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::NormalToricVarietyType)
     I = ray_indices(maximal_cones(v))
     K = SimplicialComplex(I)
     return minimal_nonfaces(IncidenceMatrix, K)
@@ -274,7 +274,7 @@ end
 
 
 @doc raw"""
-    stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+    stanley_reisner_ideal(R::MPolyRing, v::NormalToricVarietyType)
 
 Return the Stanley-Reisner ideal of a normal toric variety `v` as an ideal of
 `R`.
@@ -289,7 +289,7 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 1
 ```
 """
-function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+function stanley_reisner_ideal(R::MPolyRing, v::NormalToricVarietyType)
     n = nrays(v)
     @req n == nvars(R) "Wrong number of variables"
     mnf = _minimal_nonfaces(v)
@@ -299,7 +299,7 @@ end
 
 
 @doc raw"""
-    stanley_reisner_ideal(v::AbstractNormalToricVariety)
+    stanley_reisner_ideal(v::NormalToricVarietyType)
 
 Return the Stanley-Reisner ideal of a normal toric variety `v`.
 
@@ -311,7 +311,7 @@ julia> ngens(stanley_reisner_ideal(p2))
 1
 ```
 """
-@attr MPolyIdeal stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox_ring(v), v)
+@attr MPolyIdeal stanley_reisner_ideal(v::NormalToricVarietyType) = stanley_reisner_ideal(cox_ring(v), v)
 
 
 ########################################
@@ -319,7 +319,7 @@ julia> ngens(stanley_reisner_ideal(p2))
 ########################################
 
 
-@attr Vector{Vector{Int}} function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
+@attr Vector{Vector{Int}} function _irrelevant_ideal_monomials(v::NormalToricVarietyType)
     mc = ray_indices(maximal_cones(v))
     result = Vector{Vector{Int}}()
     onesv = ones(Int, Polymake.ncols(mc))
@@ -331,7 +331,7 @@ end
 
 
 @doc raw"""
-    irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+    irrelevant_ideal(R::MPolyRing, v::NormalToricVarietyType)
 
 Return the irrelevant ideal of a normal toric variety `v` as an ideal in `R`.
 
@@ -345,7 +345,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 3
 ```
 """
-function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+function irrelevant_ideal(R::MPolyRing, v::NormalToricVarietyType)
     monoms = _irrelevant_ideal_monomials(v)
     @req nvars(R) == nrays(v) "Wrong number of variables in polynomial ring"
     return ideal([R([1], [x]) for x in monoms])
@@ -353,7 +353,7 @@ end
 
 
 @doc raw"""
-    irrelevant_ideal(v::AbstractNormalToricVariety)
+    irrelevant_ideal(v::NormalToricVarietyType)
 
 Return the irrelevant ideal of a normal toric variety `v`.
 
@@ -365,7 +365,7 @@ julia> length(gens(irrelevant_ideal(p2)))
 3
 ```
 """
-@attr MPolyIdeal function irrelevant_ideal(v::AbstractNormalToricVariety)
+@attr MPolyIdeal function irrelevant_ideal(v::NormalToricVarietyType)
     R = cox_ring(v)
     return irrelevant_ideal(R, v)
 end
@@ -377,7 +377,7 @@ end
 
 
 @doc raw"""
-    ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
+    ideal_of_linear_relations(R::MPolyRing, v::NormalToricVarietyType)
 
 Return the ideal of linear relations of the simplicial and complete toric variety `v` in the ring R.
 
@@ -391,7 +391,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 2
 ```
 """
-function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
+function ideal_of_linear_relations(R::MPolyRing, v::NormalToricVarietyType)
     @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
     @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
     return ideal(transpose(matrix(ZZ, rays(v))) * gens(R))
@@ -399,7 +399,7 @@ end
 
 
 @doc raw"""
-    ideal_of_linear_relations(v::AbstractNormalToricVariety)
+    ideal_of_linear_relations(v::NormalToricVarietyType)
 
 Return the ideal of linear relations of the simplicial and complete toric variety `v`.
 
@@ -411,7 +411,7 @@ julia> ngens(ideal_of_linear_relations(p2))
 2
 ```
 """
-@attr MPolyIdeal function ideal_of_linear_relations(v::AbstractNormalToricVariety)
+@attr MPolyIdeal function ideal_of_linear_relations(v::NormalToricVarietyType)
     R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v))
     weights = [1 for i in 1:ngens(R)]
     grade(R, weights)
@@ -496,23 +496,23 @@ end
 
 
 @doc raw"""
-    coordinate_names_of_torus(v::AbstractNormalToricVariety)
+    coordinate_names_of_torus(v::NormalToricVarietyType)
 
 Return the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1, ..., xn`.
 """
-@attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
+@attr Vector{String} function coordinate_names_of_torus(v::NormalToricVarietyType)
     return ["x$(i)" for i in 1:ambient_dim(v)]
 end
 
 
 @doc raw"""
-    coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+    coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
 
 Computes the coordinate ring of the torus of the normal toric variety `v`
 in the given polynomial ring `R`.
 """
-function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+function coordinate_ring_of_torus(R::MPolyRing, v::NormalToricVarietyType)
     n = length(coordinate_names_of_torus(v))
     @req ngens(R) >= 2 * n "The given ring must have at least $n indeterminates"
     relations = [gen(R, i) * gen(R, i+n) - one(coefficient_ring(R)) for i in 1:n]
@@ -521,7 +521,7 @@ end
 
 
 @doc raw"""
-    coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+    coordinate_ring_of_torus(v::NormalToricVarietyType)
 
 Computes the coordinate ring of the torus of the normal toric variety `v`.
 
@@ -537,7 +537,7 @@ Quotient
   by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
-@attr MPolyQuoRing function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+@attr MPolyQuoRing function coordinate_ring_of_torus(v::NormalToricVarietyType)
     S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
     return coordinate_ring_of_torus(S, v)
 end
@@ -549,7 +549,7 @@ end
 
 
 @doc raw"""
-    character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+    character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
 
@@ -561,15 +561,15 @@ julia> character_to_rational_function(p2, [-1, 2])
 x2^2*x1_
 ```
 """
-function character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+function character_to_rational_function(v::NormalToricVarietyType, character::Vector{ZZRingElem})
     S, _ = polynomial_ring(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
-    return character_to_rational_function(S, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+    return character_to_rational_function(S, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 end
-character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
+character_to_rational_function(v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(v, [ZZRingElem(k) for k in character])
 
 
 @doc raw"""
-    character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+    character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{ZZRingElem})
 
 Computes the rational function corresponding to a character of the normal toric variety `v`.
 
@@ -583,7 +583,7 @@ julia> character_to_rational_function(R, p2, [-1, 2])
 x2^2*x3
 ```
 """
-function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{ZZRingElem})
+function character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{ZZRingElem})
     if ambient_dim(v) != length(character)
         throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety"))
     end
@@ -598,7 +598,7 @@ function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVari
     end
     return rational_function
 end
-character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(R, v, [ZZRingElem(k) for k in character])
+character_to_rational_function(R::MPolyRing, v::NormalToricVarietyType, character::Vector{Int}) = character_to_rational_function(R, v, [ZZRingElem(k) for k in character])
 
 
 ##############################################
@@ -607,7 +607,7 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 
 
 @doc raw"""
-    character_lattice(v::AbstractNormalToricVariety)
+    character_lattice(v::NormalToricVarietyType)
 
 Return the character lattice of a normal toric variety `v`.
 
@@ -619,11 +619,11 @@ julia> character_lattice(p2)
 GrpAb: Z^2
 ```
 """
-@attr GrpAbFinGen character_lattice(v::AbstractNormalToricVariety) = free_abelian_group(ambient_dim(v))
+@attr GrpAbFinGen character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
 
 
 @doc raw"""
-    torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+    torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
 
 Return the torusinvariant divisor group of a normal toric variety `v`.
 
@@ -635,11 +635,11 @@ julia> torusinvariant_weil_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety) = free_abelian_group(nrays(v))
+@attr GrpAbFinGen torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(nrays(v))
 
 
 @doc raw"""
-    map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+    map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
 
 Return the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
 
@@ -657,14 +657,14 @@ Codomain:
 Abelian group with structure: Z^3
 ```
 """
-@attr GrpAbFinGenMap function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     mat = transpose(matrix(ZZ, rays(v)))
     return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
 end
 
 
 @doc raw"""
-    torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
+    torusinvariant_prime_divisors(v::NormalToricVarietyType)
 
 Return the list of all torus invariant prime divisors in a normal toric variety `v`.
 
@@ -679,7 +679,7 @@ julia> torusinvariant_prime_divisors(p2)
  Torus-invariant, prime divisor on a normal toric variety
 ```
 """
-@attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
+@attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::NormalToricVarietyType)
     ti_divisors = torusinvariant_weil_divisor_group(v)
     prime_divisors = ToricDivisor[]
     for i in 1:rank(ti_divisors)
@@ -692,7 +692,7 @@ end
 
 
 @doc raw"""
-    class_group(v::AbstractNormalToricVariety)
+    class_group(v::NormalToricVarietyType)
 
 Return the class group of the normal toric variety `v`.
 
@@ -704,11 +704,11 @@ julia> class_group(p2)
 GrpAb: Z
 ```
 """
-@attr GrpAbFinGen class_group(v::AbstractNormalToricVariety) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
+@attr GrpAbFinGen class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 
 
 @doc raw"""
-    map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
 
 Return the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
 
@@ -726,7 +726,7 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
     map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
     map2 = inv(snf(codomain(map1))[2])
     return map1*map2
@@ -734,7 +734,7 @@ end
 
 
 @doc raw"""
-    map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
 
 Return the embedding of the group of Cartier divisors into the group of
 torus-invariant Weil divisors of an abstract normal toric variety `v`.
@@ -754,7 +754,7 @@ Codomain:
 Abelian group with structure: Z^3
 ```
 """
-@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
     # check input
     if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"))
@@ -816,7 +816,7 @@ end
 
 
 @doc raw"""
-    torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
+    torusinvariant_cartier_divisor_group(v::NormalToricVarietyType)
 
 Return the Cartier divisor group of an abstract normal toric variety `v`.
 
@@ -829,12 +829,12 @@ julia> torusinvariant_cartier_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGen function torusinvariant_cartier_divisor_group(v::NormalToricVarietyType)
     return domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v))
 end
 
 @doc raw"""
-    map_from_torusinvariant_cartier_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_cartier_divisor_group_to_class_group(v::NormalToricVarietyType)
 
 Return the map from the Cartier divisors to the class group
 of an abstract normal toric variety `v`.
@@ -854,7 +854,7 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::NormalToricVarietyType)
     # check input
     @req !has_torusfactor(v) "Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"
 
@@ -865,7 +865,7 @@ end
 
 
 @doc raw"""
-    map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::NormalToricVarietyType)
 
 Return the map from the Cartier divisors to the Picard group
 of an abstract normal toric variety `v`.
@@ -885,7 +885,7 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::NormalToricVarietyType)
     # check input
     if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"))
@@ -897,7 +897,7 @@ end
 
 
 @doc raw"""
-    picard_group(v::AbstractNormalToricVariety)
+    picard_group(v::NormalToricVarietyType)
 
 Return the Picard group of an abstract normal toric variety `v`.
 
@@ -910,12 +910,12 @@ julia> picard_group(p2)
 GrpAb: Z
 ```
 """
-@attr GrpAbFinGen function picard_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGen function picard_group(v::NormalToricVarietyType)
     return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
 end
 
 @doc raw"""
-    map_from_picard_group_to_class_group(v::AbstractNormalToricVariety)
+    map_from_picard_group_to_class_group(v::NormalToricVarietyType)
 
 Return the embedding of the Picard group into the class group of an abstract normal toric variety `v`.
 
@@ -934,7 +934,7 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_picard_group_to_class_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_picard_group_to_class_group(v::NormalToricVarietyType)
     f = image(map_from_torusinvariant_cartier_divisor_group_to_class_group(v))[2]
     g = snf(domain(f))[2] * f
     return hom(picard_group(v), class_group(v), matrix(g))
@@ -946,7 +946,7 @@ end
 ############################
 
 @doc raw"""
-    gorenstein_index(v::AbstractNormalToricVariety)
+    gorenstein_index(v::NormalToricVarietyType)
 
 Return the Gorenstein index of a $\mathbb{Q}$-Gorenstein normal toric variety `v`. 
 This is the smallest positive integer $l$ such that $-l K$ is Cartier, where $K$
@@ -958,7 +958,7 @@ julia> gorenstein_index(weighted_projective_space(NormalToricVariety, [2,3,5]))
 3
 ```
 """
-@attr ZZRingElem function gorenstein_index(v::AbstractNormalToricVariety)
+@attr ZZRingElem function gorenstein_index(v::NormalToricVarietyType)
     @req is_q_gorenstein(v) "gorenstein index can only be computed for Q-gorenstein varieties"
     c = divisor_class(canonical_divisor_class(v))
     f = cokernel(map_from_picard_group_to_class_group(v))[2]
@@ -967,7 +967,7 @@ end
 
 
 @doc raw"""
-    picard_index(v::AbstractNormalToricVariety)
+    picard_index(v::NormalToricVarietyType)
 
 Return the index of the Picard group in the class group of a simplicial normal 
 toric variety `v`. Here, the Picard group embeds as the group of Cartier divisor
@@ -980,7 +980,7 @@ julia> picard_index(weighted_projective_space(NormalToricVariety, [2,3,5]))
 30
 ```
 """
-@attr ZZRingElem function picard_index(v::AbstractNormalToricVariety) 
+@attr ZZRingElem function picard_index(v::NormalToricVarietyType) 
     @req is_simplicial(v) "picard index can only be computed for simplicial varieties"
     return order(cokernel(map_from_picard_group_to_class_group(v))[1]) 
 end
@@ -1037,7 +1037,7 @@ julia> dim(mori)
 
 
 @doc raw"""
-    polyhedral_fan(v::AbstractNormalToricVariety)
+    polyhedral_fan(v::NormalToricVarietyType)
 
 Return the fan of an abstract normal toric variety `v`.
 
@@ -1050,7 +1050,7 @@ julia> polyhedral_fan(p2)
 Polyhedral fan in ambient dimension 2
 ```
 """
-function polyhedral_fan(v::AbstractNormalToricVariety)
+function polyhedral_fan(v::NormalToricVarietyType)
   result = Base.deepcopy(pm_object(v))
   Polymake.cast!(result, Polymake.BigObjectType("fan::PolyhedralFan<Rational>"))
   return PolyhedralFan{QQFieldElem}(result, QQ)
@@ -1117,8 +1117,8 @@ julia> hilbert_basis(antv)
 @attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(dual_cone(v)))
 
 
-_variable_ray_correspondence(v::AbstractNormalToricVariety) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))
-_ray_variable_correspondence(v::AbstractNormalToricVariety) = Dict{MPolyRingElem, RayVector}(zip(gens(cox_ring(v)), rays(v)))
+_variable_ray_correspondence(v::NormalToricVarietyType) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))
+_ray_variable_correspondence(v::NormalToricVarietyType) = Dict{MPolyRingElem, RayVector}(zip(gens(cox_ring(v)), rays(v)))
 
 
 ############################
@@ -1127,7 +1127,7 @@ _ray_variable_correspondence(v::AbstractNormalToricVariety) = Dict{MPolyRingElem
 
 
 @doc raw"""
-    affine_open_covering(v::AbstractNormalToricVariety)
+    affine_open_covering(v::NormalToricVarietyType)
 
 Compute an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
 
@@ -1143,7 +1143,7 @@ julia> affine_open_covering(p2)
  Normal, affine toric variety
 ```
 """
-@attr Vector{AffineNormalToricVariety} function affine_open_covering(v::AbstractNormalToricVariety)
+@attr Vector{AffineNormalToricVariety} function affine_open_covering(v::NormalToricVarietyType)
     charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
     for i in 1:pm_object(v).N_MAXIMAL_CONES
         charts[i] = affine_normal_toric_variety(cone(Polymake.fan.cone(pm_object(v), i-1)))

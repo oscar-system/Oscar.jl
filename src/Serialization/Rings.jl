@@ -7,6 +7,9 @@ const RingMatSpaceUnion = Union{Ring, MatSpace}
 ################################################################################
 # Utility functions for ring parent tree
 
+# this union will also need a better name at some point
+const RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
+
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   # with new structure it seems like we may be able to remove the
@@ -35,6 +38,10 @@ end
 
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
+
+# this will need a better name at some point
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
+
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -271,7 +278,7 @@ end
 
 @registerSerializationType(MPolyIdeal)
 @registerSerializationType(Laurent.LaurentMPolyIdeal)
-IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal}
+const IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal, FreeAssAlgIdeal}
 type_needs_params(::Type{<: IdealUnionType}) = true
 
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType

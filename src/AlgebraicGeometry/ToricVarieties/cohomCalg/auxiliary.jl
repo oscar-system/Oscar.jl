@@ -2,7 +2,7 @@
 # (1) Call cohomCalg to compute line bundle cohomolgy
 ###################################
 
-function command_string(v::AbstractNormalToricVariety, c::Vector{ZZRingElem})
+function command_string(v::NormalToricVarietyType, c::Vector{ZZRingElem})
     # Initialize a list of strings, which we will eventually join to form the command string
     string_list = Vector{String}()
     
@@ -29,7 +29,7 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{ZZRingElem})
     # Join and return
     return join(string_list, ";")
 end
-command_string(v::AbstractNormalToricVariety) = command_string(v, [ZZRingElem(0) for i in 1:rank(picard_group(v))])
+command_string(v::NormalToricVarietyType) = command_string(v, [ZZRingElem(0) for i in 1:rank(picard_group(v))])
 
 
 
@@ -37,7 +37,7 @@ command_string(v::AbstractNormalToricVariety) = command_string(v, [ZZRingElem(0)
 # (2) Compute the denominators of the rationoms
 ###################################
 
-function contributing_denominators(variety::AbstractNormalToricVariety)
+function contributing_denominators(variety::NormalToricVarietyType)
     
     # execute cohomCalg
     out = Pipe()
@@ -118,7 +118,7 @@ end
 # (3) Turn denominators into shifted cones (-> vanishing sets)
 ######################################
 
-function turn_denominator_into_polyhedron(variety::AbstractNormalToricVariety, monom::String)
+function turn_denominator_into_polyhedron(variety::NormalToricVarietyType, monom::String)
     
     # (1) which variables appear in the monom?
     present_variables = [occursin(coordinate_names(variety)[i], monom) for i in 1:ngens(cox_ring(variety))]

@@ -15,7 +15,7 @@ w = weierstrass_model(base; completeness_check = false)
   @test dim(base_space(w)) == 3
   @test dim(ambient_space(w)) == 5
   @test is_smooth(ambient_space(w)) == false
-  @test toric_variety(calabi_yau_hypersurface(w)) == underlying_toric_variety(ambient_space(w))
+  @test toric_variety(calabi_yau_hypersurface(w)) == ambient_space(w)
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
@@ -39,7 +39,7 @@ w2 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
   @test dim(base_space(w2)) == 3
   @test dim(ambient_space(w2)) == 5
   @test is_smooth(ambient_space(w2)) == false
-  @test toric_variety(calabi_yau_hypersurface(w2)) == underlying_toric_variety(ambient_space(w2))
+  @test toric_variety(calabi_yau_hypersurface(w2)) == ambient_space(w2)
   @test length(singular_loci(w2)) == 1
 end
 

@@ -20,12 +20,12 @@
   end
 end
 
-function groebner_assure(r::MPolyQuoRing)
+function groebner_basis(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
   ordering = r.ordering
-  groebner_assure(r.I, ordering)
+  groebner_basis(r.I, ordering=ordering)
   oscar_assure(r.I.gb[ordering])
   SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
@@ -61,10 +61,10 @@ Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
+oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
@@ -186,11 +186,17 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function groebner_assure(a::MPolyQuoIdeal)
+function groebner_basis(a::MPolyQuoIdeal)
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
   end
+end
+
+function singular_groebner_generators(a::MPolyQuoIdeal)
+  groebner_basis(a)
+
+  return a.gb.S
 end
 
 @doc raw"""
@@ -638,10 +644,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  groebner_assure(b)
   SR = singular_poly_ring(base_ring(b))
-  as = simplify(a)
-  return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
+  return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
 end
 
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
@@ -673,9 +677,8 @@ true
 """
 function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  as = simplify(a)
-  groebner_assure(b)
-  return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
+  simplify(a)
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_groebner_generators(b)))
 end
 
 @doc raw"""
@@ -1518,8 +1521,7 @@ function dim(a::MPolyQuoIdeal)
   if a.dim > -1
     return a.dim
   end
-  groebner_assure(a)
-  a.dim = Singular.dimension(a.gb.S)
+  a.dim = Singular.dimension(singular_groebner_generators(a))
   return a.dim
 end
 

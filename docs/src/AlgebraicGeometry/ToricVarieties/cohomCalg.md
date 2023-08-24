@@ -28,7 +28,7 @@ a vanishing set is the complement of a finite family of polyhedra.
 
 For a toric variety, all vanishing sets are computed as follows:
 ```@docs
-vanishing_sets(variety::AbstractNormalToricVariety)
+vanishing_sets(variety::NormalToricVarietyType)
 ```
 The return value is a vector of vanishing sets. This vector has length one
 larger than the dimension of the variety in question. The first vanishing

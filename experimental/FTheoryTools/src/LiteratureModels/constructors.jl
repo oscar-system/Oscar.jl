@@ -35,13 +35,13 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Scheme of a toric variety
+Normal toric variety
 
 julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
 
 julia> I = ideal([x,y,w]);
 
-julia> v2 = domain(blow_up(underlying_toric_variety(v),I))
+julia> v2 = domain(blow_up(v, I))
 Normal toric variety
 
 julia> cox_ring(v2)

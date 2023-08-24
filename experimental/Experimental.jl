@@ -16,8 +16,6 @@ const oldexppkgs = [
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "ToricSchemes",
-  "FTheoryTools",
   "JuLie",
   "IntersectionTheory",
   "OrthogonalDiscriminants",  # needs code from JuLie
