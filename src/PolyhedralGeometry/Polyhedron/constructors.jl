@@ -30,8 +30,15 @@ polyhedron(A) = polyhedron(QQFieldElem, A)
 Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`. Scalar type and parent field will be detected automatically. To improve type stability and performance, please use [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref) instead, where possible.
 """
 function polyhedron(p::Polymake.BigObject)
-    T, f = _detect_scalar_and_field(Polyhedron, p)
-    return Polyhedron{T}(p, f)
+  T, f = _detect_scalar_and_field(Polyhedron, p)
+  if T == EmbeddedElem{nf_elem} && Hecke.isquadratic_type(number_field(f))[1]
+    scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(p)))
+    typename = scalar_regexp[1]
+    if typename == "QuadraticExtension<Rational>"
+      p = _polyhedron_qe_to_on(p, f)
+    end
+  end 
+  return Polyhedron{T}(p, f)
 end
 
 @doc raw"""

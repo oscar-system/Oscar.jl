@@ -540,3 +540,28 @@ end
 function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem)
    return is_rational(e)
 end
+
+# convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
+
+function _polyhedron_qe_to_on(x::Polymake.BigObject, f::Field)
+  res = Polymake.polytope.Polytope{Polymake.OscarNumber}()
+  for pn in Polymake.list_properties(x)
+    prop = Polymake.give(x, pn)
+    Polymake.take(res, string(pn), _property_qe_to_on(prop, f))
+  end
+  return res
+end
+
+_property_qe_to_on(x::Polymake.BigObject, f::Field) = Polymake.BigObject(Polymake.bigobject_type(x), x)
+
+_property_qe_to_on(x::Polymake.PropertyValue, f::Field) = x
+
+_property_qe_to_on(x::Polymake.QuadraticExtension{Polymake.Rational}, f::Field) = f(x)
+
+function _property_qe_to_on(x, f::Field)
+  if hasmethod(length, (typeof(x),)) && eltype(x) <: Polymake.QuadraticExtension{Polymake.Rational}
+    return f.(x)
+  else
+    return x
+  end
+end
