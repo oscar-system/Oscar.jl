@@ -2,7 +2,7 @@
 # FreeAssAlgebra
 
 # Free associative algebra serialization
-@registerSerializationType(FreeAssAlgebra, true)
+@register_serialization_type(FreeAssAlgebra, true)
 
 function save_object(s::SerializerState, A::FreeAssAlgebra)
   data_dict(s) do
