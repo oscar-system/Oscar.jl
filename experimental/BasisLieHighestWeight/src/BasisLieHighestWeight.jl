@@ -307,47 +307,63 @@ function basis_lie_highest_weight_lustzig(
     type::String,
     rank::Int, 
     highest_weight::Vector{Int};
-    operators::Union{String, Vector{Int}} = "regular", 
+    reduced_expression::Vector{Int},
     monomial_order::Union{String, Function} = "oplex", 
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
+    """
+    Lustzig polytope
+    """
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+    return basis_lie_highest_weight(type, rank, highest_weight, 
+                                    monomial_order=monomial_order, cache_size=cache_size)
 end
 
 function basis_lie_highest_weight_string(
     type::String,
     rank::Int, 
     highest_weight::Vector{Int};
-    operators::Union{String, Vector{Int}} = "regular", 
+    reduced_expression::Vector{Int},
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
+    """
+    String / Littelmann-Berenstein-Zelevinsky polytope
+    """
     monomial_order = "oplex"
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+    return basis_lie_highest_weight(type, rank, highest_weight, operators=reduced_expression, 
+                                    monomial_order=monomial_order, cache_size=cache_size)
 end
 
-function basis_lie_highest_weight_feigin_fflv(
+function basis_lie_highest_weight_fflv(
     type::String,
     rank::Int, 
     highest_weight::Vector{Int};
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
+    """
+    Feigin-Fourier-Littelmann-Vinberg polytope  
+    """
     monomial_order = "oplex"
-    # operators = some sequence of the Feigin-Fourier-Littelmann-Vinberg polytope
-    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+    # operators = all positive roots, same ordering as GAP uses
+    return basis_lie_highest_weight(type, rank, highest_weight, operators="regular", 
+                                    monomial_order=monomial_order, cache_size=cache_size)
 end
 
 function basis_lie_highest_weight_nZ(
     type::String,
     rank::Int, 
     highest_weight::Vector{Int};
-    operators::Union{String, Vector{Int}} = "regular", 
+    reduced_expression::Vector{Int}, 
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
+    """
+    Nakashima-Zelevinsky polytope
+    """
     monomial_order = "lex"
     # operators = some sequence of the Nakashima-Zelevinsky polytope, same as for _string
-    return basis_lie_highest_weight(type, rank, highest_weight, monomial_order=monomial_order, cache_size)
+    return basis_lie_highest_weight(type, rank, highest_weight, 
+                                    monomial_order=monomial_order, cache_size)
 end
 
 function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::GAP.Obj
@@ -630,6 +646,9 @@ function add_by_hand(
     set_mon::Set{ZZMPolyRingElem},
     cache_size::Int,
     )::Set{ZZMPolyRingElem}
+
+    println("add_by_hand", highest_weight)
+
     """
     This function calculates the missing monomials by going through each non full weightspace and adding possible 
     monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
@@ -669,12 +688,15 @@ function add_by_hand(
     # Oscar dependencies. But I plan to reimplement this. 
     # insert known monomials into basis
     for (weight_w, _) in weightspaces
+        print(".")
         add_known_monomials!(birational_sequence, ZZx, weight_w, set_mon_in_weightspace, matrices_of_operators, 
                                 calc_monomials, space, v0, cache_size)
     end 
 
+    println("")
     # calculate new monomials
     for (weight_w, dim_weightspace) in weightspaces
+        print("*")
         add_new_monomials!(lie_algebra, birational_sequence, ZZx, matrices_of_operators,
                             monomial_order_lt, 
                             dim_weightspace, weight_w,
@@ -682,6 +704,7 @@ function add_by_hand(
                             calc_monomials, space, v0, 
                             cache_size, set_mon)         
     end
+    println("")
     return set_mon
 end
 
