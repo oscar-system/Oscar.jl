@@ -53,4 +53,4 @@ end
 # Common type fo subsets of affine space                               #
 ########################################################################
 
-SpecSubset = Union{SpecOpen,AbsSpec,PrincipalOpenSubset}
+const SpecSubset = Union{SpecOpen,AbsSpec,PrincipalOpenSubset}

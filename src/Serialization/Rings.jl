@@ -1,8 +1,7 @@
 ################################################################################
 # Utility functions for ring parent tree
-# this union will also need a better name at some point
-RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
-
+# TODO: this union will also need a better name at some point
+const RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   # with new structure it seems like we may be able to remove the
@@ -30,10 +29,9 @@ function save_parents(s::SerializerState, parent_ring::T) where T <: RingMatSpac
 end
 
 ################################################################################
-# Handling RingElem Params
-# this will need a better name at some point
-RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
-
+# Handling RingElem / MatElem / FreeAssAlgElem params
+# TODO this will need a better name at some point
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -148,7 +146,7 @@ end
 @registerSerializationType(MPolyRingElem)
 @registerSerializationType(UniversalPolyRingElem)
 @registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
-PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
+const PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
 type_needs_params(::Type{<:PolyElemUniontype}) = true
 
 # elements
