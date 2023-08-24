@@ -289,7 +289,7 @@ function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType},
-                     gen_terms::Vector, parent_ring::Ring)
+                     gen_terms::Vector, parent_ring::RingMatSpaceUnion)
   gens = [
     load_object(s, elem_type(parent_ring), g, parent_ring) for g in gen_terms
       ]
