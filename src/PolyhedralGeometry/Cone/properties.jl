@@ -162,7 +162,7 @@ end
 function _face_cone_facet(::Type{Cone{T}}, C::Cone{T}, i::Base.Integer) where T<:scalar_types
   R = pm_object(C).RAYS[collect(pm_object(C).RAYS_IN_FACETS[i, :]), :]
   L = pm_object(C).LINEALITY_SPACE
-  PT = _scalar_type_to_polymake(T, eltype(R))
+  PT = _scalar_type_to_polymake(T)
   return Cone{T}(Polymake.polytope.Cone{PT}(RAYS = R, LINEALITY_SPACE = pm_object(C).LINEALITY_SPACE), coefficient_field(C))
 end
 
