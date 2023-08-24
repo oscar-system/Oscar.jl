@@ -93,7 +93,14 @@ end
 Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
+
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
+
+@attr AbsSpec function weierstrass_chart_on_minimal_model(S::EllipticSurface)
+  # make sure the minimal model is known
+  relatively_minimal_model(S)
+  return get_attribute(S, :weierstrass_chart_on_minimal_model)
+end
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -330,29 +337,36 @@ function _separate_singularities!(X::EllipticSurface)
   # to make sure that there is only a single singular point in each chart
   refined_charts = AbsSpec[]
   U = P[1][1]  # the weierstrass_chart
-  IsingU = I_sing_P(U)
-  dec_info = []
+  IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
     push!(refined_charts, U)
+    set_attribute!(U, :is_smooth => true)
+    # we want one smooth weierstrass chart
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => U)
   else
     # there is at most one singularity in every fiber
     # project the singular locus to an affine chart of P1
     disc = gens(eliminate(IsingU, coordinates(U)[1:2]))[1]
+    # The t-coordinates of the reducible fibers
     redfib = [f[1] for f in factor(disc)]
+    # One chart with all reducible fibers taken out
+    UU = PrincipalOpenSubset(U, redfib)
+    set_attribute!(UU, :is_smooth => true)
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => UU)
+    push!(refined_charts, UU)
     if length(redfib)==1
-      push!(refined_charts, U)
+      # We need to recreate U as a PrincipalOpenSubset of itself here 
+      # in order to maintain the correct tree-structure for refinements.
+      # In any Covering no patch is allowed to be an ancestor of another. 
+      push!(refined_charts, PrincipalOpenSubset(U, one(OO(U))))
     else
       for i in 1:length(redfib)
+        # We take out all but the i-th singular fiber
         r = copy(redfib)
         g = r[i]
         deleteat!(r, i)
         Uref = PrincipalOpenSubset(U, r)
         push!(refined_charts, Uref)
-        if i>1
-          push!(dec_info, Uref=> RingElem[g])
-        else
-         push!(dec_info, Uref=> RingElem[])
-        end
       end
     end
   end
