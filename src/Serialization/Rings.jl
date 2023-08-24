@@ -64,7 +64,8 @@ end
 # ideally all load should look like this without passing a vector of parents
 
 # fix for polynomial cases
-function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, terms::Vector{Any}, parent_ring::RingMatSpaceUnion) 
+function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion},
+                     terms::Vector{Any}, parent_ring::RingMatSpaceUnion) 
   parents = get_parents(parent_ring)
   return load_object(s, T, terms, parents)
 end
@@ -203,9 +204,8 @@ function save_object(s::SerializerState, p::PolyRingElem)
   end
 end
 
-function load_object(s::DeserializerState,
-                                 ::Type{<: PolyRingElem},
-                                 terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
+                     terms::Vector, parents::Vector)
   parent_ring = parents[end]
   if isempty(terms)
     return parent_ring(0)
@@ -282,16 +282,18 @@ function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}, param
 end
 
 function save_object(s::SerializerState, I::T) where T <: IdealUnionType
-  data_dict(s) do
-    save_object(s, gens(I), :gens)
-  end
+  save_object(s, gens(I))
+end
+
+function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
+                     gen_terms::Vector, params::Vector)
+  return load_object(s, T, gen_terms, params[end])
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType},
-                                 dict::Dict{Symbol, Any}, params::Vector)
-  parent_ring = params[end]
+                     gen_terms::Vector, parent_ring::Ring)
   gens = [
-    load_object(s, elem_type(parent_ring), g, params) for g in dict[:gens]
+    load_object(s, elem_type(parent_ring), g, parent_ring) for g in gen_terms
       ]
   return ideal(parent_ring, gens)
 end

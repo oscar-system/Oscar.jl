@@ -286,7 +286,6 @@ function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where 
   fields = []
   for (n,t) in zip(fieldnames(T), fieldtypes(T))
     if n!= :__attrs
-      println(t)
       push!(fields, load_object(s, t, dict[n]))
     end
   end
@@ -299,7 +298,6 @@ end
 # loads parent tree
 function load_parents(s::DeserializerState, parent_ids::Vector)
   loaded_parents = []
-
   for id in parent_ids
     loaded_parent = load_ref(s, id)
     push!(loaded_parents, loaded_parent)
@@ -329,12 +327,17 @@ include("upgrades/main.jl")
 
 function get_file_version(dict::Dict{Symbol, Any})
   ns = dict[:_ns]
-  version_dict = ns[:Oscar][2]
-  return get_version_number(version_dict)
+  version_info = ns[:Oscar][2]
+  return get_version_number(version_info)
 end
 
 function get_version_number(v_number::String)
   return VersionNumber(v_number)
+end
+
+# needed for older versions 
+function get_version_number(dict::Dict)
+  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
 ################################################################################
