@@ -20,6 +20,7 @@ include("HypersurfaceModels/properties.jl")
 include("HypersurfaceModels/methods.jl")
 
 include("standard_constructions.jl")
+include("serialization.jl")
 
 include("LiteratureModels/constructors.jl")
 include("LiteratureModels/attributes.jl")
