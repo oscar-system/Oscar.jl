@@ -2,7 +2,7 @@
 BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
-  data_basic(s, string(x))
+  data_basic(s, x)
 end
 
 ################################################################################

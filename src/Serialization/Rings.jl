@@ -1,14 +1,14 @@
 ################################################################################
 # Common union types
 
-const RingMatElemUnion = Union{RingElem, MatElem}
-const RingMatSpaceUnion = Union{Ring, MatSpace}
-
-################################################################################
-# Utility functions for ring parent tree
+# this will need a better name at some point
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
 
 # this union will also need a better name at some point
 const RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
+
+################################################################################
+# Utility functions for ring parent tree
 
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
@@ -38,9 +38,6 @@ end
 
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
-
-# this will need a better name at some point
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
 
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   data_dict(s) do
@@ -452,7 +449,7 @@ function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
 end
 
 function load_object(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
-                                 dict::Dict, parents::Vector)
+                     dict::Dict, parents::Vector)
   parent_ring = parents[end]
   valuation = parse(Int, dict[:valuation])
   pol_length = parse(Int, dict[:pol_length])
@@ -479,7 +476,7 @@ function load_object(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
 end
 
 function load_object(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
-                                 dict::Dict, parents::Vector)
+                     dict::Dict, parents::Vector)
   parent_ring = parents[end]
   pol_length = parse(Int, dict[:pol_length])
   precision = parse(Int, dict[:precision])
@@ -570,9 +567,8 @@ function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZ
   end
 end
 
-function load_object(s::DeserializerState,
-                                 ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
-                                 dict::Dict, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
+                     dict::Dict, parents::Vector)
   parent_ring = parents[end]
   terms = dict[:terms]
   highest_degree = max(map(x->parse(Int, x[1]), terms)...)

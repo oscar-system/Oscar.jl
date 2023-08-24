@@ -8,17 +8,90 @@
 ################################################################################
 # save_type_object / load_type_object
 
-# Theses functions are at the core of the serialization. For the most part these
-# functions should not be touched and are used to (de)serialize the object with its
+# For the most part these functions should not be touched, they are high level
+# functions and are used to (de)serialize the object with its
 # type information as well as it's data. They can be used on a first attempt at
 # serializing an object, but in general this will lead to a verbose format and
 # should ultimately only be used for the root object (top level object) i.e. should
-# in general only be call from the save/load function.
+# in general only be called from the save/load function.
 
 ################################################################################
+# save_object / load_object
+
+# These functions are at the core of the serialization and are the first functions
+# that should be implemented when working on the serialization of a new type.
+# Here is where one should use functions data_dict and data_array to structure
+# the serialization.
+
+#  Examples
+#  function save_object(s::SerializerState, obj::NewType)
+#    data_array(s) do
+#      save_object(s, obj.1)
+#      save_object(s, obj.2)
 #
+#      data_dict(s) do
+#        save_object(s, obj.3, :key1)
+#        save_object(s, obj.4, :key2)
+#      end
+#    end
+#  end
+#
+#  This will result in a data format that looks like
+#  [
+#    obj.1,
+#    obj.2,
+#    {
+#      "key1": obj.3,
+#      "key2": obj.4
+#    }
+#  ]
 
+#  function save_object(s::SerializerState, obj::NewType)
+#    data_dict(s) do
+#      save_object(s, obj.1, :key1)
+#      s.key = :key2
+#      data_array(s) do
+#        save_object(s, obj.3)
+#        save_typed_object(s, obj.4) # This is ok
+#      end
+#    end
+#  end
 
+#  This will result in a data format that looks like
+#  {
+#    "key1": obj.1,
+#    "key2":[
+#      obj.3,
+#      {
+#        "type": "Type of obj.4",
+#        "data": obj.4
+#      }
+#    ]
+#  }
+#
+# This is ok
+# function save_object(s::SerializerState, obj:NewType)
+#   save_object(s, obj.1)
+# end
+
+# This is bad
+# function save_object(s::SerializerState, obj:NewType)
+#   save_object(s, obj.1, :key)
+# end
+# if you insist on having a key you should
+# first open a data_dict
+#
+################################################################################
+# save_type_params / load_type_params
+
+# Avoiding type information inside the data branch will lead to a more
+# efficient serialization format. When type_needs_params(MyType) = true
+# type information will be stored as a Dict. In general implementing
+# a save_type_params and load_type_params should not happen frequently
+# since many types will serializes their types in a similar fashion
+# for example
+
+  
 
 
 using JSON
