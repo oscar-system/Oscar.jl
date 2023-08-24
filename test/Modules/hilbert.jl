@@ -1,14 +1,14 @@
 @testset "Hilbert series and free resolution" begin
   R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
   Z = abelian_group(0);
-  Rg, (x, y, z) = grade(R, [3*Z[1],Z[1],-Z[1]]);
+  Rg, (x, y, z) = grade(R, [3*Z[1],Z[1],Z[1]]);
   F = graded_free_module(Rg, 1);
   A = Rg[x; y];
   B = Rg[x^2+y^6; y^7; z^4];
   M = SubquoModule(F, A, B);
   fr = free_resolution(M)
 
-  # There is no length(fr), so instead we do the following
+  # 2023-08-18 There is no length(fr), so instead we do the following
   indexes = range(fr.C);
   fr_len = first(indexes)
 

@@ -927,6 +927,29 @@ function separate_simple_pps(gens::Vector{PP})
 end
 
 
+# !!!OBSOLESCENT!!!   2023-08-17 this fn will no be needed after Wolfram's PR is merged
+# Returns nothing; throws if ker(W) contains a non-zero vector >= 0
+#function _hilbert_series_check_weights(W::Vector{Vector{Int}})
+#  # assumes W is rectangular (and at least 1x1)
+#  # Transpose while converting:
+#  ncols = length(W);
+#  nrows = length(W[1]);
+#  A = zero_matrix(FlintZZ, nrows,ncols);
+#  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
+#  b = zero_matrix(FlintZZ, nrows,1);
+#  try
+#    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
+#  catch e
+#    if !(e isa ArgumentError && e.msg == "Polyhedron not bounded")
+#      rethrow(e)
+#    end
+#    # solve_non_negative must have thrown because there is a non-zero soln
+#    error("given weights permit infinite dimensional homogeneous spaces")
+#  end
+#  return nothing # otherwise it returns the result of solve_non_negative (Doh!!)
+#end
+
+
 # Check args: either throws or returns nothing.
 function HSNum_check_args(gens::Vector{PP}, W::Vector{Vector{Int}})
   if isempty(W)

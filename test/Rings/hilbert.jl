@@ -113,3 +113,11 @@ end
   @test numer1 == evaluate(numer2, T)
   @test numer3 == evaluate(numer2, first(gens(parent(numer3))))
 end
+
+@testset "Hilbert series part 3" begin
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, -1]);
+  I = ideal(R, [x]);
+  RmodI, _ = quo(R, I);
+  @test_throws ArgumentError  hilbert_series(RmodI);  # weights must be non-neg
+  @test_throws ArgumentError  multi_hilbert_series(RmodI); # possible infinite dimension
+end
