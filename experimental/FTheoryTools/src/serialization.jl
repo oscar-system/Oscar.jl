@@ -12,14 +12,13 @@ end
 
 function save_object(s::SerializerState, gtm::GlobalTateModel)
   data_dict(s) do
-    s.key = :tate_as
-    data_array(s) do
-      # I am not sure what the type of these entries are? here you might not want to
-      # serialize as a Vector but use another data_array(s) do ... 
-      save_object(s, [gtm.tate_a1, gtm.tate_a2, gtm.tate_a3, gtm.tate_a4, gtm.tate_a6])
-      save_object(s, gtm.tate_polynomial, :tate_polynomial)
+    # I am not sure what the type of these entries are? here you might not want to
+    # serialize as a Vector but use another data_array(s) do ... 
+    save_object(s, [gtm.tate_a1, gtm.tate_a2, gtm.tate_a3, gtm.tate_a4, gtm.tate_a6], :tate_as)
 
-      # this property can probably be moved to type parameters
-      save_object(s, gtm.base_space, :base_space) 
-    end
+    save_object(s, gtm.tate_polynomial, :tate_polynomial)
+
+    # this property can probably be moved to type parameters
+    save_object(s, gtm.base_space, :base_space) 
+
 end
