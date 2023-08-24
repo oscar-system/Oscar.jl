@@ -89,10 +89,9 @@
 # type information will be stored as a Dict. In general implementing
 # a save_type_params and load_type_params should not happen frequently
 # since many types will serializes their types in a similar fashion
-# for example
-
-  
-
+# for example serialization of a FieldElem will inherit from RingElem
+# since in these instances the only param needed for such types is
+# their parent.
 
 using JSON
 using UUIDs
@@ -120,36 +119,36 @@ function get_version_info()
   )
   return result
 end
-const oscarSerializationVersion = get_version_info()
+const oscar_serialization_version = get_version_info()
 
 ################################################################################
 # (De|En)coding types
 #
 # parameters of type should not matter here
-const reverseTypeMap = Dict{String, Type}()
+const reverse_type_map = Dict{String, Type}()
 
-function registerSerializationType(@nospecialize(T::Type), str::String)
-  if haskey(reverseTypeMap, str) && reverseTypeMap[str] != T
-    error("encoded type $str already registered for a different type: $T versus $(reverseTypeMap[str])")
+function register_serialization_type(@nospecialize(T::Type), str::String)
+  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
+    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
   end
-  reverseTypeMap[str] = T
+  reverse_type_map[str] = T
 end
 
-# registerSerializationType is a macro to ensure that the string we generate
+# register_serialization_type is a macro to ensure that the string we generate
 # matches exactly the expression passed as first argument, and does not change
 # in unexpected ways when import/export statements are adjusted.
 # It also sets the value of serialize_with_id, which determines
 # whether or not the type can be back referenced.
 # If omitted, the default is that no back references are allowed.
-function registerSerializationType(ex::Any,
-                                   uses_id::Bool,
-                                   str::Union{String,Nothing} = nothing)
+function register_serialization_type(ex::Any,
+                                     uses_id::Bool,
+                                     str::Union{String,Nothing} = nothing)
   if str === nothing
     str = string(ex)
   end
   return esc(
     quote
-      registerSerializationType($ex, $str)
+      register_serialization_type($ex, $str)
       encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
@@ -169,12 +168,12 @@ function registerSerializationType(ex::Any,
     end)
 end
 
-macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
-  return registerSerializationType(ex, false, str)
+macro register_serialization_type(ex::Any, str::Union{String,Nothing} = nothing)
+  return register_serialization_type(ex, false, str)
 end
 
-macro registerSerializationType(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
-  return registerSerializationType(ex, uses_id, str)
+macro register_serialization_type(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
+  return register_serialization_type(ex, uses_id, str)
 end
 
 function encode_type(::Type{T}) where T
@@ -182,7 +181,7 @@ function encode_type(::Type{T}) where T
 end
 
 function decode_type(input::String)
-  get(reverseTypeMap, input) do
+  get(reverse_type_map, input) do
     error("unsupported type '$input' for decoding")
   end
 end
