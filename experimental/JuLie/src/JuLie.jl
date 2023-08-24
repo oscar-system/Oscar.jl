@@ -10,4 +10,26 @@ include("tableaux.jl")
 end
 
 using .JuLie
-export Partition, partitions, ascending_partitions, dominates, conjugate, getindex_safe, num_partitions, schur_polynomial, Tableau, shape, semistandard_tableaux, is_standard, is_semistandard, standard_tableaux, schensted, hook_length, hook_lengths, num_standard_tableaux, reading_word, weight, bump!
+
+export Partition
+export Tableau
+export ascending_partitions
+export bump!
+export conjugate
+export dominates
+export getindex_safe
+export hook_length
+export hook_lengths
+export is_semistandard
+export is_standard
+export num_partitions
+export num_standard_tableaux
+export partition
+export partitions
+export reading_word
+export schensted
+export schur_polynomial
+export semistandard_tableaux
+export shape
+export standard_tableaux
+export weight

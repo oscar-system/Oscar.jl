@@ -65,13 +65,14 @@ function ngens(a::FreeAssAlgIdeal)
   return length(a.gens)
 end
 
-function gens(a::FreeAssAlgIdeal{T}) where T
-  return T[a.gens[Val(:O), i] for i in 1:ngens(I)]
-end
-
 function gen(a::FreeAssAlgIdeal{T}, i::Int) where T
   return a.gens[Val(:O), i]
 end
+
+function gens(a::FreeAssAlgIdeal{T}) where T
+  return T[gen(a,i) for i in 1:ngens(a)]
+end
+
 
 function Base.:+(a::FreeAssAlgIdeal{T}, b::FreeAssAlgIdeal{T}) where T
   R = base_ring(a)

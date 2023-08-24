@@ -21,34 +21,17 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     _M = Symbol("_", sym)
     @eval begin
         $M(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}}) = matrix(QQ, Matrix{QQFieldElem}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
-        $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = Matrix{T}($_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $_M(::Any, ::PolyhedralObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
 
-function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{QQFieldElem}, Hyperplane{QQFieldElem}, Polyhedron{QQFieldElem}, Cone{QQFieldElem}, Pair{Matrix{QQFieldElem}, QQFieldElem}}})
-    try
-        h = affine_matrix_for_polymake(iter)
-        return (A = matrix(QQ, Matrix{QQFieldElem}(h[:, 2:end])), b = -h[:, 1])
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
-end
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
     try
+        f = coefficient_field(iter.Obj)
         h = affine_matrix_for_polymake(iter)
-        return (A = Matrix{T}(h[:, 2:end]), b = Vector{T}(-h[:, 1]))
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
-end
-
-function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}})
-    try
-        h = affine_matrix_for_polymake(iter)
-        return (A = Matrix{nf_scalar}(h[:, 2:end]), b = Vector{nf_scalar}(-h[:, 1]))
+        return (A = matrix(f, h[:, 2:end]), b = Vector{T}(f.(-h[:, 1])))
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end

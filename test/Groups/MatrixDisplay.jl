@@ -197,7 +197,7 @@ end
           :footer => ["footer"],
         );
   labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\nfooter\n"
+  @test String(take!(io)) == "\\begin{array}{rr}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n\n\\begin{array}{l}\nfooter \\\\\n\\end{array}\n"
 
   # with row labels as vector
   ioc = IOContext(io, :TeX => true,

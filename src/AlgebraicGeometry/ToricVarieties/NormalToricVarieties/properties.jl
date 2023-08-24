@@ -3,7 +3,7 @@
 ######################
 
 @doc raw"""
-    is_normal(v::AbstractNormalToricVariety)
+    is_normal(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
@@ -13,11 +13,11 @@ julia> is_normal(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-is_normal(v::AbstractNormalToricVariety) = true
+is_normal(v::NormalToricVarietyType) = true
 
 
 @doc raw"""
-    is_affine(v::AbstractNormalToricVariety)
+    is_affine(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is affine.
 
@@ -27,11 +27,11 @@ julia> is_affine(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool is_affine(v::AbstractNormalToricVariety) = pm_object(v).AFFINE
+@attr Bool is_affine(v::NormalToricVarietyType) = pm_object(v).AFFINE
 
 
 @doc raw"""
-    is_projective(v::AbstractNormalToricVariety)
+    is_projective(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
@@ -41,11 +41,11 @@ julia> is_projective(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_projective(v::AbstractNormalToricVariety) = pm_object(v).PROJECTIVE
+@attr Bool is_projective(v::NormalToricVarietyType) = pm_object(v).PROJECTIVE
 
 
 @doc raw"""
-    is_projective_space(v::AbstractNormalToricVariety)
+    is_projective_space(v::NormalToricVarietyType)
 
 Decides if the normal toric varieties `v` is a projective space.
 
@@ -61,7 +61,7 @@ julia> is_projective_space(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool function is_projective_space(v::AbstractNormalToricVariety)
+@attr Bool function is_projective_space(v::NormalToricVarietyType)
     if is_smooth(v) == false
         return false
     end
@@ -86,7 +86,7 @@ end
 
 
 @doc raw"""
-    is_smooth(v::AbstractNormalToricVariety)
+    is_smooth(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is smooth.
 
@@ -96,11 +96,11 @@ julia> is_smooth(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_smooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
+@attr Bool is_smooth(v::NormalToricVarietyType) = pm_object(v).SMOOTH
 
 
 @doc raw"""
-    is_complete(v::AbstractNormalToricVariety)
+    is_complete(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is complete.
 
@@ -110,11 +110,11 @@ julia> is_complete(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_complete(v::AbstractNormalToricVariety) = pm_object(v).COMPLETE
+@attr Bool is_complete(v::NormalToricVarietyType) = pm_object(v).COMPLETE
 
 
 @doc raw"""
-    has_torusfactor(v::AbstractNormalToricVariety)
+    has_torusfactor(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` has a torus factor.
 
@@ -124,11 +124,11 @@ julia> has_torusfactor(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool has_torusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
+@attr Bool has_torusfactor(v::NormalToricVarietyType) = Polymake.common.rank(rays(v)) < ambient_dim(v)
 
 
 @doc raw"""
-    is_orbifold(v::AbstractNormalToricVariety)
+    is_orbifold(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is an orbifold.
 
@@ -138,11 +138,11 @@ julia> is_orbifold(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_orbifold(v::AbstractNormalToricVariety) = pm_object(v).SIMPLICIAL
+@attr Bool is_orbifold(v::NormalToricVarietyType) = pm_object(v).SIMPLICIAL
 
 
 @doc raw"""
-    is_simplicial(v::AbstractNormalToricVariety)
+    is_simplicial(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
@@ -152,11 +152,11 @@ julia> is_simplicial(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-is_simplicial(v::AbstractNormalToricVariety) = is_orbifold(v)
+is_simplicial(v::NormalToricVarietyType) = is_orbifold(v)
 
 
 @doc raw"""
-    is_gorenstein(v::AbstractNormalToricVariety)
+    is_gorenstein(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is Gorenstein.
 
@@ -166,11 +166,11 @@ julia> is_gorenstein(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
+@attr Bool is_gorenstein(v::NormalToricVarietyType) = pm_object(v).GORENSTEIN
 
 
 @doc raw"""
-    is_q_gorenstein(v::AbstractNormalToricVariety)
+    is_q_gorenstein(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is Q-Gorenstein.
 
@@ -180,11 +180,11 @@ julia> is_q_gorenstein(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_q_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).Q_GORENSTEIN
+@attr Bool is_q_gorenstein(v::NormalToricVarietyType) = pm_object(v).Q_GORENSTEIN
 
 
 @doc raw"""
-    is_fano(v::AbstractNormalToricVariety)
+    is_fano(v::NormalToricVarietyType)
 
 Checks if the normal toric variety `v` is fano.
 
@@ -194,4 +194,4 @@ julia> is_fano(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool is_fano(v::AbstractNormalToricVariety) = pm_object(v).FANO
+@attr Bool is_fano(v::NormalToricVarietyType) = pm_object(v).FANO

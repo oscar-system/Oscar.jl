@@ -111,10 +111,9 @@ conjugacy_classes(G::GrpAbFinGen) = [GrpAbFinGenConjClass(G, x) for x in G]
 
 is_conjugate(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem) = (x == y)
 
-function representative_action(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem)
+function is_conjugate_with_data(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem)
    x == y ? (true, zero(G)) : (false, nothing)
 end
-
 
 ################################################################################
 #
@@ -172,7 +171,7 @@ function is_conjugate(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
           is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
 end
 
-function representative_action(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
+function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
    if is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
      return true, zero(G)
    else
@@ -366,7 +365,7 @@ is_sporadic_simple(G::GrpAbFinGen) = false
 function is_pgroup_with_prime(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
   is_trivial(G) && return true, nothing
   is_finite(G) || return false, nothing
-  flag, p, e = is_prime_power_with_data(order(G))
+  flag, _, p = is_prime_power_with_data(order(G))
   flag && return true, T(p)
   return false, nothing
 end
@@ -382,7 +381,7 @@ nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 # prime_of_pgroup.
 # TODO: enhance @gapattribute so this is not necessary
 function _prime_of_pgroup(G::GrpAbFinGen)
-  flag, p, e = is_prime_power_with_data(order(G))
+  flag, _, p = is_prime_power_with_data(order(G))
   @req flag "only supported for non-trivial p-groups"
   return p
 end

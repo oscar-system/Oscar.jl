@@ -1,9 +1,57 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, f::SpecOpenMor) 
-  print(io, "Morphism from $(domain(f)) to $(codomain(f))")
-  #given by the rational map $(generic_fractions(f))")
+
+# For the printing, we describe the domain and codomain with coordinates
+# for the ambient space and the description of the complement (and we do not
+# forget to avoid printing again the coordinates by using the `false`) argument
+# in both the show function for `domain(f)` and `codomain(f)`).
+function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
+  io = pretty(io)
+  X = domain(f)
+  cX = ambient_coordinates(X)
+  Y = codomain(f)
+  cY = ambient_coordinates(Y)
+  co_str = String[]
+  str = "["*join(cX, ", ")*"]"
+  kX = length(str)
+  push!(co_str, str)
+  str = "["*join(cY, ", ")*"]"
+  kY = length(str)
+  push!(co_str, str)
+  k = max(length.(co_str)...)
+  println(io, "Morphism")
+  print(io, Indent(), "from ")
+  print(io, co_str[1]*" "^(k-kX+2), Lowercase())
+  show(io, domain(f), false)
+  println(io)
+  print(io, "to   ", co_str[2]*" "^(k-kY+2), Lowercase())
+  show(io, codomain(f), false)
+  mop = maps_on_patches(f)
+  if length(mop) > 0
+    println(io)
+    print(io, Dedent(), "defined by the map")
+    length(mop) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(mop)
+      println(io, Lowercase())
+      Base.show(io, MIME"text/plain"(), mop[i])
+      if i != length(mop)
+        println(io)
+        print(io, "----------------------------------------------------------------------")
+      end
+    end
+  end
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::SpecOpenMor)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Morphism")
+  else
+    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
 end
 
 ########################################################################

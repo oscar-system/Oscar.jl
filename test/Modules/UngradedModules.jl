@@ -177,7 +177,7 @@ end
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
     @test is_complete(free_res) == true
-	free_res = free_resolution(M, algorithm=:sres)
+	free_res = free_resolution(M)
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
@@ -1020,7 +1020,7 @@ end
   MS, mapM = change_base_ring(S, M)
   @test iszero(mapM(M[1]))
 
-  f = MapFromFunc(x->S(x), R, S)
+  f = MapFromFunc(R, S, x->S(x))
   MS, mapM = change_base_ring(f, M)
   @test iszero(mapM(M[1]))
 end
@@ -1076,4 +1076,17 @@ end
   Mk1 = Mk[1]
   fr = free_resolution(Mk1)
   @test rank(domain(map(fr.C,1))) == 0
+end
+
+@testset "vector_space_dimension and vector_space_basis" begin
+  R,(x,y,z,w) = QQ["x","y","z","w"]
+  U=complement_of_point_ideal(R,[0,0,0,0])
+  RL, loc_map = localization(R,U)
+  Floc = free_module(RL,2)
+  v = gens(Floc)
+  Mloc, _=quo(Floc,[x*v[1],y*v[1],z*v[1],w^2*(w+1)^3*v[1],v[2]])
+  @test vector_space_dimension(Mloc) == 2
+  @test vector_space_dimension(Mloc,1) == 1
+  @test length(vector_space_basis(Mloc)) == 2
+  @test length(vector_space_basis(Mloc,0)) == 1
 end

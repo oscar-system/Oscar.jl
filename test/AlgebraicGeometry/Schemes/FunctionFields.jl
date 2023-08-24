@@ -151,7 +151,7 @@ end
   I = ideal(S,[x^2-y*z])
   Q = subscheme(P, I)
   X = covered_scheme(Q)
-  C = oscar.simplified_covering(X)
+  C = Oscar.simplified_covering(X)
   KK = function_field(X)
   for U in patches(C)
     x = first(gens(OO(U)))

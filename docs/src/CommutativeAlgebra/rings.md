@@ -328,6 +328,10 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
+monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+```
+
+```@docs
 homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
 ```
 

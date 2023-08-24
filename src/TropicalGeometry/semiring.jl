@@ -1,3 +1,4 @@
+import Base.string
 # module Tropical
 
 # import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring
@@ -161,6 +162,13 @@ Oscar.zero(x::TropicalSemiringElem) = zero(parent(x))
 # The underlying rational number. This is undefined for inf.
 data(x::TropicalSemiringElem) = x.data
 
+function string(x::TropicalSemiringElem)
+    if isinf(x)
+        return "infinity"
+    end
+    return string(data(x))
+end
+
 # Test if something is inf.
 isinf(x::TropicalSemiringElem) = x.isinf
 
@@ -227,7 +235,7 @@ Oscar.isone(x::TropicalSemiringElem) = !isinf(x) && iszero(data(x))
 
 ################################################################################
 #
-#  Equality
+#  Equality and hash
 #
 ################################################################################
 
@@ -235,6 +243,15 @@ function Base.:(==)(x::TropicalSemiringElem, y::TropicalSemiringElem)
   (isinf(x) && isinf(y)) && return true
   ((isinf(x) && !isinf(y)) || (!isinf(x) && isinf(y))) && return false
   return data(x) == data(y)
+end
+
+function Base.hash(x::TropicalSemiringElem, h::UInt)
+  b = 0x4df38853cc07aa27   % UInt
+  h = hash(isinf(x), h)
+  if !isinf(x)
+    h = hash(data(x), h)
+  end
+  return xor(h, b)
 end
 
 ################################################################################

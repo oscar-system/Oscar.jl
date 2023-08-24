@@ -3,9 +3,9 @@
 #############################
 
 @attributes mutable struct CohomologyClass
-    v::AbstractNormalToricVariety
+    v::NormalToricVarietyType
     p::MPolyQuoRingElem
-    function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+    function CohomologyClass(v::NormalToricVarietyType, p::MPolyQuoRingElem)
         @req parent(p) == cohomology_ring(v) "The polynomial must reside in the cohomology ring of the toric variety"
         return new(v, p)
     end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+    cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 
 Construct the toric cohomology class
 on the toric variety `v` corresponding
@@ -33,7 +33,7 @@ julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
 ```
 """
-cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem) = CohomologyClass(v, p)
+cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem) = CohomologyClass(v, p)
 
 
 @doc raw"""
@@ -145,11 +145,19 @@ Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(t
 
 
 ########################
-# 5: Equality
+# 5: Equality and hash
 ########################
 
-Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass) = toric_variety(cc1) === toric_variety(cc2) && iszero(polynomial(cc1-cc2))
+function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass) 
+    toric_variety(cc1) === toric_variety(cc2) && polynomial(cc1) == polynomial(cc2)
+end
 
+function Base.hash(cc::CohomologyClass, h::UInt) 
+    b = 0x4de32042e67d89c8 % UInt
+    h = hash(toric_variety(cc), h)
+    h = hash(polynomial(cc), h)
+    return xor(h, b)
+end
 
 ######################
 # 6: Display

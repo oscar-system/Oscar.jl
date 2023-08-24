@@ -67,12 +67,25 @@ dim(I::MPolyIdeal)
 ```@docs
 codim(I::MPolyIdeal)
 ```
-### Minimal Sets of Generators
 
-In the graded case, we have:
+In the graded case, we additionally have:
+
+### Minimal Sets of Generators
 
 ```@docs
 minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+```
+
+### Castelnuovo-Mumford Regularity
+
+```@docs
+cm_regularity(I::MPolyIdeal)
+```
+
+### Degree
+
+```@docs
+degree(I::MPolyIdeal)
 ```
     
 ## Operations on Ideals
@@ -128,6 +141,12 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 ```@docs
 eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
+```
+
+### Truncation
+
+```@docs
+truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
 ```
 
 ## Tests on Ideals
@@ -241,19 +260,32 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs
-homogenization(f::MPolyRingElem, var::VarName, pos::Int=1)
+homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs
 dehomogenization(F::MPolyDecRingElem, pos::Int)
 ```
 
+## Ideals as Modules
+
+```@docs
+ideal_as_module(I::MPolyIdeal)
+```
 
 ## Generating Special Ideals
+
+### Katsura-n
+
+These systems appeared in a problem of magnetism in physics.
+For a given $n$ `katsura(n)` has $2^n$ solutions and is defined in a
+polynomial ring with $n+1$ variables over the rational numbers. For a
+given polynomial ring `R` with $n$ variables `katsura(R)` defines the
+corresponding system with $2^{n-1}$ solutions.
 
 ```@docs
 katsura(n::Int)

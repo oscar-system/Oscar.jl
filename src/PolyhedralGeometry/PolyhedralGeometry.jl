@@ -1,6 +1,5 @@
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
-
 include("helpers.jl")
 include("iterators.jl")
 include("Polyhedron/constructors.jl")

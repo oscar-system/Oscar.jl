@@ -6,7 +6,12 @@ function Base.show(io::IO, x::GAPGroupHomomorphism)
 end
 
 function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
-   return f.map == g.map
+  return f.map == g.map
+end
+
+function Base.hash(f::GAPGroupHomomorphism{S,T}, h::UInt) where S where T
+  b = 0xdc777737af4c0c7b % UInt
+  return xor(hash(f.map, hash((S, T), h)), b)
 end
 
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(f, g)
@@ -543,7 +548,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
        return group_element(G, res)
      end
 
-     return GroupIsomorphismFromFunc(f, finv, G, A)
+     return GroupIsomorphismFromFunc(G, A, f, finv)
    end::GroupIsomorphismFromFunc{typeof(G), GrpAbFinGen}
 end
 
@@ -619,7 +624,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        return Aindep_to_A(Aindep(exp))
      end
 
-     return GroupIsomorphismFromFunc(f, finv, A, G)
+     return GroupIsomorphismFromFunc(A, G, f, finv)
    end::GroupIsomorphismFromFunc{GrpAbFinGen, T}
 end
 
@@ -628,12 +633,12 @@ mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFr
     map::MapFromFunc{R, T}
 end
 
-function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
-  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
+function GroupIsomorphismFromFunc{R, T}(D::R, C::T, f, g) where {R, T}
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end
 
-function GroupIsomorphismFromFunc(f, g, D, C)
-  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(f, g, D, C)
+function GroupIsomorphismFromFunc(D, C, f, g)
+  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(D, C, f, g)
 end
 
 # install the same methods as for `MapFromFunc`,
@@ -726,9 +731,9 @@ function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
       @assert is_finite(A) == is_finite(F)
       is_finite(A) && @assert order(A) == order(F)
       return MapFromFunc(
+        A, F,
         y->F([i => y[i] for i=1:ngens(A)]),
-        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),
-        A, F)
+        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)))
    end::MapFromFunc{GrpAbFinGen, FPGroup}
 end
 
@@ -788,7 +793,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
        finv = function(g)
          return bwd[g]
        end
-       return MapFromFunc(f, finv, A, GP)
+       return MapFromFunc(A, GP, f, finv)
      else
        m = isomorphism(T, GP)
 
@@ -800,7 +805,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
          return bwd[preimage(m, g)]
        end
 
-       return MapFromFunc(f, finv, A, codomain(m))
+       return MapFromFunc(A, codomain(m), f, finv)
      end
    end::MapFromFunc{GrpGen, T}
 end
