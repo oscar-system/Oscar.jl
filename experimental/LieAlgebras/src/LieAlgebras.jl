@@ -5,7 +5,7 @@ using ..Oscar
 import Oscar: GAPWrap, IntegerUnion, MapHeader
 
 # not importet in Oscar
-using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!
+using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
 
 using AbstractAlgebra.PrettyPrinting
 

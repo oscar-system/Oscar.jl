@@ -192,17 +192,17 @@ function _show_inner(io::IO, V::LieAlgebraModule)
     end
     print(io, Dedent())
   elseif type == :exterior_power
-    println(io, "$(get_attribute(V, :power))-th exterior power of")
+    println(io, "$(ordinal_number_string(get_attribute(V, :power))) exterior power of")
     print(io, Indent())
     _show_inner(io, base_module(V))
     print(io, Dedent())
   elseif type == :symmetric_power
-    println(io, "$(get_attribute(V, :power))-th symmetric power of")
+    println(io, "$(ordinal_number_string(get_attribute(V, :power))) symmetric power of")
     print(io, Indent())
     _show_inner(io, base_module(V))
     print(io, Dedent())
   elseif type == :tensor_power
-    println(io, "$(get_attribute(V, :power))-th tensor power of")
+    println(io, "$(ordinal_number_string(get_attribute(V, :power))) tensor power of")
     print(io, Indent())
     _show_inner(io, base_module(V))
     print(io, Dedent())
@@ -752,8 +752,8 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> dual(V)
 Dual module
   of dimension 3
-  dual of 
-    2-th exterior power of
+  dual of
+    2nd exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -797,9 +797,9 @@ julia> direct_sum(V1, V2)
 Direct sum module
   of dimension 13
   direct sum with direct summands
-    2-th exterior power of
+    2nd exterior power of
       standard module
-    3-th symmetric power of
+    3rd symmetric power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -852,9 +852,9 @@ julia> tensor_product(V1, V2)
 Tensor product module
   of dimension 30
   tensor product with tensor factors
-    2-th exterior power of
+    2nd exterior power of
       standard module
-    3-th symmetric power of
+    3rd symmetric power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -918,8 +918,8 @@ julia> V = symmetric_power(standard_module(L), 3); # some module
 julia> exterior_power(V, 2)
 Exterior power module
   of dimension 45
-  2-th exterior power of
-    3-th symmetric power of
+  2nd exterior power of
+    3rd symmetric power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -971,8 +971,8 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> symmetric_power(V, 3)
 Symmetric power module
   of dimension 10
-  3-th symmetric power of
-    2-th exterior power of
+  3rd symmetric power of
+    2nd exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
@@ -1044,8 +1044,8 @@ julia> V = exterior_power(standard_module(L), 2); # some module
 julia> tensor_power(V, 3)
 Tensor power module
   of dimension 27
-  3-th tensor power of
-    2-th exterior power of
+  3rd tensor power of
+    2nd exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
