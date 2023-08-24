@@ -439,15 +439,11 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
-
-_facet_cone(::Type{Polyhedron{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = polyhedron(coefficient_field(C), -view(pm_object(C).FACETS, [i], :), 0)
-
-_facet_cone(::Type{AffineHalfspace{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = affine_halfspace(coefficient_field(C), -view(pm_object(C).FACETS, [i], :), 0)
+facets(as::Type{<:Union{LinearHalfspace{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = linear_halfspace(coefficient_field(C), -pm_object(C).FACETS[[i], :])
 
-_facet_cone(::Type{Cone{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(coefficient_field(C), -view(pm_object(C).FACETS, [i], :))
+_facet_cone(::Type{Cone{T}}, C::Cone, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.polytope.facet(pm_object(C), i-1), coefficient_field(C))
 
 _linear_inequality_matrix(::Val{_facet_cone}, C::Cone) = -pm_object(C).FACETS
 
@@ -460,6 +456,8 @@ _incidencematrix(::Val{_facet_cone}) = _ray_indices
 facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
 facets(::Type{Halfspace}, C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
+
+facets(::Type{Cone}, C::Cone{T}) where T<:scalar_types = facets(Cone{T}, C)
 
 @doc raw"""
     lineality_space(C::Cone)
