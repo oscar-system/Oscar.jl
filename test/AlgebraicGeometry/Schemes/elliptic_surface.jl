@@ -80,12 +80,12 @@ end
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   P, (u, v) = polynomial_ring(QQ, [:u, :v])
   f = (3*x^2 - 5)^2*(y - 5*x^3 + 30*x - 5)^2 - (x^2 -5*x + 2)
-  g, trans = oscar._normalize_hyperelliptic_curve(f, parent=P)
+  g, trans = Oscar._normalize_hyperelliptic_curve(f, parent=P)
   @test trans(f) == g
 
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4
-  f_trans, trans = oscar.transform_to_weierstrass(f, x, y, QQ.([0, 2]))
+  f_trans, trans = Oscar.transform_to_weierstrass(f, x, y, QQ.([0, 2]))
   @test trans(f//1) == (16*x^6 + 1//8*x^5 + 14*x^4*y - 16383//4096*x^4 - 16*x^3*y^2 + 647//128*x^3*y)//y^4
 end
 
@@ -95,11 +95,12 @@ end
   R, (x, y) = polynomial_ring(kt, [:x, :y])
   P, (u, v) = polynomial_ring(kt, [:u, :v])
   f = (3*x^2 - 5*t^2)^2*(y - 5*t*x^3 + 30*x - 5)^2 - (t*x^2 -5*x + 2*t^2)
-  g, trans = oscar._normalize_hyperelliptic_curve(f, parent=P)
+  g, trans = Oscar._normalize_hyperelliptic_curve(f, parent=P)
   @test trans(f) == g
 
   R, (x, y) = polynomial_ring(kt, [:x, :y])
   f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4*t^8
-  f_trans, trans = oscar.transform_to_weierstrass(f, x, y, kt.([0, 2*t^4]))
+  f_trans, trans = Oscar.transform_to_weierstrass(f, x, y, kt.([0, 2*t^4]))
   @test f_trans == x^3 + (-3//8*t^8 + 49//128)//t^16*x^2 + 7//8//t^8*x*y + (-1//4*t^24 + 9//256*t^16 - 147//2048*t^8 + 2401//65536)//t^32*x - y^2 + (5//16*t^16 - 21//128*t^8 + 343//2048)//t^24*y
 end
+

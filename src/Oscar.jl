@@ -245,9 +245,6 @@ include("aliases.jl")
 
 include("deprecations.jl")
 
-const global OSCAR = Oscar
-const global oscar = Oscar
-
 @doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
   ?Nemo
