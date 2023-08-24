@@ -1,7 +1,7 @@
 ################################################################################
 # Toric varieties
-@registerSerializationType(AffineNormalToricVariety, true)
-@registerSerializationType(NormalToricVariety, true)
+@register_serialization_type(AffineNormalToricVariety, true)
+@register_serialization_type(NormalToricVariety, true)
 
 function save_object(s::SerializerState, ntv::NormalToricVarietyType)
   save_object(s, ntv.polymakeNTV)
@@ -13,7 +13,7 @@ end
 
 ################################################################################
 # Torus invariant divisors on toric varieties
-@registerSerializationType(ToricDivisor)
+@register_serialization_type(ToricDivisor)
 type_needs_params(::Type{<:ToricDivisor}) = true
 
 function save_type_params(s::SerializerState, obj::ToricDivisor)

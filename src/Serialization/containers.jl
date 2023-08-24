@@ -6,7 +6,7 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 ################################################################################
 # Saving and loading vectors
 
-@registerSerializationType(Vector)
+@register_serialization_type(Vector)
 type_needs_params(::Type{<:Vector})  = true
 MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
@@ -68,7 +68,7 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-@registerSerializationType(Tuple)
+@register_serialization_type(Tuple)
 type_needs_params(::Type{<:Tuple}) = true
 
 function save_type_params(s::SerializerState, tup::T) where T <: Tuple
@@ -120,7 +120,7 @@ end
 
 ################################################################################
 # Saving and loading NamedTuple
-@registerSerializationType(NamedTuple)
+@register_serialization_type(NamedTuple)
 type_needs_params(::Type{<:NamedTuple}) = true
 
 function save_type_params(s::SerializerState, obj::NamedTuple)
@@ -154,7 +154,7 @@ end
 
 ################################################################################
 # Saving and loading matrices
-@registerSerializationType(Matrix)
+@register_serialization_type(Matrix)
 type_needs_params(::Type{<:Matrix}) = true
   
 function save_object(s::SerializerState, mat::Matrix)

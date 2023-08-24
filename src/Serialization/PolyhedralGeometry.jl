@@ -57,7 +57,7 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 ##############################################################################
-@registerSerializationType(LinearProgram)
+@register_serialization_type(LinearProgram)
 
 function save_object(s::SerializerState, lp::LinearProgram)
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
@@ -89,7 +89,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram},
 end
 
 ##############################################################################
-@registerSerializationType(MixedIntegerLinearProgram)
+@register_serialization_type(MixedIntegerLinearProgram)
 
 function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
@@ -137,8 +137,8 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
 end
 
 # use generic serialization for the other types:
-@registerSerializationType(Cone)
-@registerSerializationType(PolyhedralComplex)
-@registerSerializationType(Polyhedron)
-@registerSerializationType(PolyhedralFan)
-@registerSerializationType(SubdivisionOfPoints)
+@register_serialization_type(Cone)
+@register_serialization_type(PolyhedralComplex)
+@register_serialization_type(Polyhedron)
+@register_serialization_type(PolyhedralFan)
+@register_serialization_type(SubdivisionOfPoints)

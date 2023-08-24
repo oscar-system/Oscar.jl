@@ -88,11 +88,11 @@ end
 
 ################################################################################
 # ring of integers (singleton type)
-@registerSerializationType(ZZRing)
+@register_serialization_type(ZZRing)
 
 ################################################################################
 #  non simpleton base rings
-@registerSerializationType(Nemo.zzModRing, "Nemo.zzModRing")
+@register_serialization_type(Nemo.zzModRing, "Nemo.zzModRing")
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
@@ -105,7 +105,7 @@ function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
 end
 
 #elements
-@registerSerializationType(zzModRingElem)
+@register_serialization_type(zzModRingElem)
 type_needs_params(T::Type{zzModRingElem}) = true
 
 function save_object(s::SerializerState, x::zzModRingElem)
@@ -120,10 +120,10 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@registerSerializationType(PolyRing, true)
-@registerSerializationType(MPolyRing, true)
-@registerSerializationType(UniversalPolyRing, true)
-@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrapRing, true)
+@register_serialization_type(PolyRing, true)
+@register_serialization_type(MPolyRing, true)
+@register_serialization_type(UniversalPolyRing, true)
+@register_serialization_type(AbstractAlgebra.Generic.LaurentMPolyWrapRing, true)
 
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
   data_dict(s) do
@@ -153,9 +153,9 @@ end
 
 ################################################################################
 #  Polynomial Ring Types
-@registerSerializationType(MPolyRingElem)
-@registerSerializationType(UniversalPolyRingElem)
-@registerSerializationType(AbstractAlgebra.Generic.LaurentMPolyWrap)
+@register_serialization_type(MPolyRingElem)
+@register_serialization_type(UniversalPolyRingElem)
+@register_serialization_type(AbstractAlgebra.Generic.LaurentMPolyWrap)
 PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
 type_needs_params(::Type{<:PolyElemUniontype}) = true
 
@@ -190,7 +190,7 @@ end
 ################################################################################
 # Univariate Polynomials
 
-@registerSerializationType(PolyRingElem)
+@register_serialization_type(PolyRingElem)
 type_needs_params(::Type{<:PolyRingElem}) = true
 
 function save_object(s::SerializerState, p::PolyRingElem)
@@ -273,8 +273,8 @@ end
 ################################################################################
 # Polynomial Ideals
 
-@registerSerializationType(MPolyIdeal)
-@registerSerializationType(Laurent.LaurentMPolyIdeal)
+@register_serialization_type(MPolyIdeal)
+@register_serialization_type(Laurent.LaurentMPolyIdeal)
 const IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal, FreeAssAlgIdeal}
 type_needs_params(::Type{<: IdealUnionType}) = true
 
@@ -307,8 +307,8 @@ end
 
 ################################################################################
 # Matrices
-@registerSerializationType(MatSpace, true)
-@registerSerializationType(MatElem)
+@register_serialization_type(MatSpace, true)
+@register_serialization_type(MatElem)
 type_needs_params(::Type{<:MatElem}) = true
 
 # not all 
@@ -350,7 +350,7 @@ end
 
 ################################################################################
 # Power Series
-@registerSerializationType(SeriesRing, true)
+@register_serialization_type(SeriesRing, true)
 
 function save_object(s::SerializerState, R::Union{
   Generic.RelPowerSeriesRing,
@@ -393,8 +393,8 @@ function load_object(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
 end
 
 # elements
-@registerSerializationType(RelPowerSeriesRingElem)
-@registerSerializationType(AbsPowerSeriesRingElem)
+@register_serialization_type(RelPowerSeriesRingElem)
+@register_serialization_type(AbsPowerSeriesRingElem)
 type_needs_params(::Type{<: Union{RelPowerSeriesRingElem, AbsPowerSeriesRingElem}}) = true
 
 function save_object(s::SerializerState, r::RelPowerSeriesRingElem)
@@ -504,9 +504,9 @@ end
 
 ################################################################################
 # Laurent Series
-@registerSerializationType(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
-@registerSerializationType(Generic.LaurentSeriesField, true, "LaurentSeriesField")
-@registerSerializationType(ZZLaurentSeriesRing)
+@register_serialization_type(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
+@register_serialization_type(Generic.LaurentSeriesField, true, "LaurentSeriesField")
+@register_serialization_type(ZZLaurentSeriesRing)
 
 function save_object(s::SerializerState, R::Union{
   Generic.LaurentSeriesRing,
@@ -533,9 +533,9 @@ function load_object(s::DeserializerState,
 end
 
 # elements
-@registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
-@registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
-@registerSerializationType(ZZLaurentSeriesRingElem)
+@register_serialization_type(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
+@register_serialization_type(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
+@register_serialization_type(ZZLaurentSeriesRingElem)
 type_needs_params(::Type{<: Union{ZZLaurentSeriesRingElem,
                                   Generic.LaurentSeriesFieldElem,
                                   Generic.LaurentSeriesRingElem}}) = true
