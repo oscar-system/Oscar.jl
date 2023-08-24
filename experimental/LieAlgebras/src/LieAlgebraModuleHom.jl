@@ -148,6 +148,7 @@ function compose(
       g.inverse_isomorphism.matrix * f.inverse_isomorphism.matrix;
       check=false,
     )
+    h.inverse_isomorphism.inverse_isomorphism = h
   end
   return h
 end
