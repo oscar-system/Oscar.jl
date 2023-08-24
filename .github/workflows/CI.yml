@@ -100,15 +100,17 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
-      - name: "Run tests"
-        # HACK: since macOS runners are so expensive, we reuse this one to run
-        # both regular tests and doctests
-        if: runner.os == 'macOS'
-        uses: julia-actions/julia-runtest@latest
-        with:
-          annotate: ${{ matrix.julia-version == '1.9' }}
-          coverage: ${{ matrix.julia-version == '1.9' }}
-          depwarn: error
+#       - name: "Run tests"
+#         # HACK: since macOS runners are so expensive, we reuse this one to run
+#         # both regular tests and doctests
+#         # FIXME: since the tests got too slow, we can't afford this HACK anymore,
+#         # so disable it again....
+#         if: runner.os == 'macOS'
+#         uses: julia-actions/julia-runtest@latest
+#         with:
+#           annotate: ${{ matrix.julia-version == '1.9' }}
+#           coverage: ${{ matrix.julia-version == '1.9' }}
+#           depwarn: error
       - name: "Setup package"
         run: |
           julia --project=docs --color=yes -e '
