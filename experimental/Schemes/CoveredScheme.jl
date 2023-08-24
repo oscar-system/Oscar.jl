@@ -685,17 +685,17 @@ julia> pr = blow_up(IA2, I);
 
 julia> JJ = ideal_sheaf(exceptional_divisor(pr));
 
-julia> inc_E = oscar.CoveredClosedEmbedding(domain(pr), JJ);
+julia> inc_E = Oscar.CoveredClosedEmbedding(domain(pr), JJ);
 
-julia> comp = oscar.composite_map(inc_E, pr)
+julia> comp = Oscar.composite_map(inc_E, pr)
 Composite morphism of
   Morphism: scheme over QQ covered with 2 patches -> scheme over QQ covered with 2 patches
   Blow-up: scheme over QQ covered with 2 patches -> scheme over QQ covered with 1 patch
 
-julia> oscar.maps(comp)[1] === inc_E
+julia> Oscar.maps(comp)[1] === inc_E
 true
 
-julia> oscar.maps(comp)[2] === pr
+julia> Oscar.maps(comp)[2] === pr
 true
 
 ```

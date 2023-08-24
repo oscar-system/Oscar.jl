@@ -126,7 +126,6 @@ export MonomialOrdering
 export Nemo
 export NormalToricVariety
 export OO
-export OSCAR
 export OpenInclusion
 export PBWAlgElem
 export PBWAlgQuo
@@ -1088,7 +1087,6 @@ export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
-export oscar
 export outneighbors
 export pappus_matroid
 export parallel_extension

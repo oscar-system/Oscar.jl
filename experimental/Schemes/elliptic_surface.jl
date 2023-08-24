@@ -1198,7 +1198,7 @@ end
 Transform ``a(x)y^2 + b(x)y - h(x)`` in ``K(t)[x,y]`` to ``y'^2 - h(x')``
 """
 function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
-  R = oscar.parent(g)
+  R = Oscar.parent(g)
   @assert ngens(R) == 2 "polynomial must be bivariate"
   F = fraction_field(R)
   kt = coefficient_ring(R)

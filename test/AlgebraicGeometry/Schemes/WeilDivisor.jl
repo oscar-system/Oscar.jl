@@ -47,7 +47,7 @@
 # J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
   I = IdealSheaf(X, U, OO(U).([x[1]-1]))
   J = IdealSheaf(X, U, OO(U).([x[2]-5]))
-  oscar.maximal_associated_points(I)
+  Oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
   
@@ -186,7 +186,7 @@ end
   II = ideal_sheaf(P3, I)
   X = covered_scheme(P3)
   D = weil_divisor(II)
-  E = oscar.irreducible_decomposition(D)
+  E = Oscar.irreducible_decomposition(D)
   @test length(keys(coefficient_dict(E))) == 2
   @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
   @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
@@ -199,13 +199,13 @@ end
   I = ideal(S, [x^4+y^4+z^4+w^4])
   II = ideal_sheaf(P3, I)
   P = covered_scheme(P3)
-  inc = oscar.CoveredClosedEmbedding(covered_scheme(P3), II)
+  inc = Oscar.CoveredClosedEmbedding(covered_scheme(P3), II)
   X = domain(inc)
   C1 = EffectiveCartierDivisor(ideal_sheaf(P3, [x+y+z+w]))
   C2 = EffectiveCartierDivisor(ideal_sheaf(P3, [x^2*y + y^2*z + z^2*w + w^2*x]))
   C1 = pullback(inc)(C1)
   C2 = pullback(inc)(C2)
   d = intersect(weil_divisor(C1), weil_divisor(C2))
-  pts = oscar.irreducible_decomposition(intersect(C1, C2))
+  pts = Oscar.irreducible_decomposition(intersect(C1, C2))
   @test integral(pts) == d
 end

@@ -265,5 +265,5 @@ end
   I = ideal(R, 1-x*y)
   o = revlex([x, y])
   Q = MPolyQuo(R, I, o)
-  @test oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+  @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end

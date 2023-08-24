@@ -119,12 +119,12 @@ end
   (x,y, z, w) = gens(S)
   I = ideal(S, [x^3+y^3+z^3+w^3, x+y+z+w, 37*x^2-x*z+4*w^2-5*w*z])
   II = ideal_sheaf(P3, I)
-  @test oscar.colength(II) == 6
-  @test oscar.colength(II, covering=oscar.simplified_covering(X)) == 6
+  @test Oscar.colength(II) == 6
+  @test Oscar.colength(II, covering=Oscar.simplified_covering(X)) == 6
   J = ideal(S, [x, y, z^4])
   JJ = ideal_sheaf(P3, J)
-  @test oscar.colength(JJ) == 4
-  @test oscar.colength(JJ, covering=oscar.simplified_covering(X)) == 4
+  @test Oscar.colength(JJ) == 4
+  @test Oscar.colength(JJ, covering=Oscar.simplified_covering(X)) == 4
 end
 
 @testset "separation of ideal sheaves" begin
@@ -142,11 +142,11 @@ end
 
   II = [IdealSheaf(P2, a) for a in I]
   X = covered_scheme(P2)
-  C = oscar._separate_disjoint_components(II, covering=oscar.simplified_covering(X))
+  C = Oscar._separate_disjoint_components(II, covering=Oscar.simplified_covering(X))
   for U in patches(C)
     @test sum(isone(I(U)) for I in II) == 6
   end
-  C = oscar._separate_disjoint_components(II)
+  C = Oscar._separate_disjoint_components(II)
   for U in patches(C)
     @test sum(isone(I(U)) for I in II) == 6
   end
@@ -163,14 +163,14 @@ end
   J = J*ideal(S, [5*x + 9*y - 5*z + 3*w, x+8*y+z+w])
   J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
   #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
-  JJ = oscar.maximal_associated_points(ideal_sheaf(X, J))
+  JJ = Oscar.maximal_associated_points(ideal_sheaf(X, J))
   X = covered_scheme(X)
-  C = oscar._separate_disjoint_components(JJ, covering=oscar.simplified_covering(X))
+  C = Oscar._separate_disjoint_components(JJ, covering=Oscar.simplified_covering(X))
   for U in patches(C)
     @test sum(!isone(I(U)) for I in JJ) == 1
   end
 
-  CC = oscar._one_patch_per_component(C, JJ)
+  CC = Oscar._one_patch_per_component(C, JJ)
   for P in JJ
     @test isone(sum(!isone(P(U)) for U in patches(CC)))
   end
