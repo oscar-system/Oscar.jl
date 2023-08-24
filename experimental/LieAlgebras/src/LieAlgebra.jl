@@ -390,7 +390,9 @@ end
 Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 """
 @attr Bool function is_abelian(L::LieAlgebra)
-  return all(iszero, x * y for (x, y) in combinations(basis(L), 2))
+  b = basis(L)
+  n = length(b)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
 end
 
 @doc raw"""
