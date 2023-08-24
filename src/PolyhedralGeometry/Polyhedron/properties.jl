@@ -39,7 +39,7 @@ function _face_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base.Integ
   pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim))[f_ind[i]]
   V = pm_object(P).VERTICES[collect(pface), :]
   L = pm_object(P).LINEALITY_SPACE
-  PT = _scalar_type_to_polymake(T, eltype(V))
+  PT = _scalar_type_to_polymake(T)
   return Polyhedron{T}(Polymake.polytope.Polytope{PT}(VERTICES = V, LINEALITY_SPACE = L), coefficient_field(P))
 end
 
@@ -61,7 +61,7 @@ function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base
   pface = pm_object(P).VERTICES_IN_FACETS[_facet_index(pm_object(P), i), :]
   V = pm_object(P).VERTICES[collect(pface), :]
   L = pm_object(P).LINEALITY_SPACE
-  PT = _scalar_type_to_polymake(T, eltype(V))
+  PT = _scalar_type_to_polymake(T)
   return Polyhedron{T}(Polymake.polytope.Polytope{PT}(VERTICES = V, LINEALITY_SPACE = L), coefficient_field(P))
 end
 

@@ -487,8 +487,14 @@ for f in (QQ, ENF)
 
             @testset "Dodecahedron" begin
 
-              Q,  = quadratic_field(5)
-              R, a = Hecke.embedded_field(Q, real_embeddings(Q)[2])
+              D = polyhedron(Polymake.polytope.dodecahedron())
+              R = coefficient_field(D)
+              NF = number_field(R)
+              let isq = Hecke.isquadratic_type(NF)
+                @test isq[1]
+                @test isq[2] == 5
+              end
+              a = R(gens(NF)[])
 
                 V = [[1//2, a//4 + 3//4, 0],
                     [-1//2, a//4 + 3//4, 0],
@@ -511,9 +517,7 @@ for f in (QQ, ENF)
                     [1//2, -a//4 - 3//4, 0],
                     [-1//2, -a//4 - 3//4, 0]]
 
-                D = Polyhedron{T}(Polymake.polytope.dodecahedron(), R)
                 @test D isa Polyhedron{T}
-                @test polyhedron(Polymake.polytope.dodecahedron()) == D
 
                 @test nvertices(D) == 20
                 @test vertices(D) == V
