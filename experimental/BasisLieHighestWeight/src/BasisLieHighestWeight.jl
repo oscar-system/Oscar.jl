@@ -647,7 +647,7 @@ function add_by_hand(
     cache_size::Int,
     )::Set{ZZMPolyRingElem}
 
-    println("add_by_hand", highest_weight)
+    # println("add_by_hand", highest_weight)
 
     """
     This function calculates the missing monomials by going through each non full weightspace and adding possible 
@@ -688,23 +688,23 @@ function add_by_hand(
     # Oscar dependencies. But I plan to reimplement this. 
     # insert known monomials into basis
     for (weight_w, _) in weightspaces
-        print(".")
+        # print(".")
         add_known_monomials!(birational_sequence, ZZx, weight_w, set_mon_in_weightspace, matrices_of_operators, 
                                 calc_monomials, space, v0, cache_size)
     end 
 
-    println("")
+    # println("")
     # calculate new monomials
     for (weight_w, dim_weightspace) in weightspaces
-        print("*")
+        # print("*")
         add_new_monomials!(lie_algebra, birational_sequence, ZZx, matrices_of_operators,
                             monomial_order_lt, 
                             dim_weightspace, weight_w,
                             set_mon_in_weightspace, 
                             calc_monomials, space, v0, 
-                            cache_size, set_mon)         
+                            cache_size, set_mon)       
     end
-    println("")
+    # println("")
     return set_mon
 end
 

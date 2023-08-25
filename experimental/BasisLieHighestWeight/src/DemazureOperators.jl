@@ -13,9 +13,8 @@ function monomial_from_degrees(
     if length(degs) != length(vars)
         throw(ArgumentError("Length of degree vector must match the number of variables in the polynomial ring!"))
     end
-
+    
     monomial = prod(v^d for (v, d) in zip(vars, degs))
-
     return monomial
 end
 
@@ -35,13 +34,13 @@ end
 
 function demazure_operator_monom(
     ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
-    beta::Int, 
+    beta::Int,
     e_lambda::AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}
-    )    
+    )
     lambda = leading_exponent_vector(e_lambda)
     scalar_prod = demazure_scalar_prod(beta, lambda)
     if scalar_prod >= 0
-        result = ZZ_x(1)
+        result = ZZ_x(0)
         for i in 0:lambda[beta]
             result += monomial_from_degrees(ZZ_x, lambda)
             lambda[beta] -= 1
@@ -49,13 +48,12 @@ function demazure_operator_monom(
     elseif scalar_prod == -1
         result = ZZ_x(0)
     else
-        result = ZZ_x(1)
+        result = ZZ_x(0)
         for i in 0:lambda[beta]
             result += monomial_from_degrees(ZZ_x, lambda)
             lambda[beta] -= 1
         end
     end
-
     return result
 end
 
@@ -81,7 +79,7 @@ function demazure_operators_summary(
     weyl_word::Vector{Int}
     )
     ZZ_x, x = LaurentPolynomialRing(ZZ, length(lambda))
-    sub_word = []   
+    sub_word = []
     p = monomial_from_degrees(ZZ_x, lambda)
     for i in weyl_word
         push!(sub_word, i)
