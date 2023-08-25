@@ -1,12 +1,14 @@
 ################################################################################
 # Utility functions for parent tree
 function get_parents(parent_ring::Field)
-  if has_elem_basic_encoding(parent_ring)
-    return Any[]
+  # we have reached the end of the parent references and the current ring
+  # can be found as the base_ring of the previous parent without ambiguity
+  if !serialize_with_id(parent_ring)
+    return RingMatSpaceUnion[]
   end
 
   if absolute_degree(parent_ring) == 1
-    return Any[]
+    return RingMatSpaceUnion[]
   end
   base = parent(defining_polynomial(parent_ring))
   parents = get_parents(base)
@@ -25,8 +27,10 @@ end
 function get_parents(parent_ring::T) where T <: Union{FracField,
                                                       AbstractAlgebra.Generic.RationalFunctionField,
                                                       AbstractAlgebra.Generic.LaurentSeriesField}
-  if has_elem_basic_encoding(parent_ring)
-    return Any[]
+  # we have reached the end of the parent references and the current ring
+  # can be found as the base_ring of the previous parent without ambiguity
+  if !serialize_with_id(parent_ring)
+    return RingMatSpaceUnion[]
   end
   
   base = base_ring(parent_ring)

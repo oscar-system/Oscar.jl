@@ -23,9 +23,9 @@ function save_object(s::SerializerState, V::Hecke.QuadSpace)
 end
 
 function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace},
-                     entries::Vector, params::Any)
+                     entries::Vector, params::MatSpace)
   gram = load_object(s, MatElem, entries, params)
-  F =  base_ring(params[end])
+  F =  base_ring(params)
   return quadratic_space(F, gram)
 end
 

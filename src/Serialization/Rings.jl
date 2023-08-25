@@ -12,13 +12,10 @@ const RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
 
 # builds parent tree
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
-  # with new structure it seems like we may be able to remove the
-  # array of parents encoded, or at least it seems like it may
-  # make the code a bit cleaner, which will probably allow for
-  # this line, and the function it uses below to be removed.
-  # However i will leave this to a later PR.
-  if has_elem_basic_encoding(parent_ring)
-    return Any[]
+  # we have reached the end of the parent references and the current ring
+  # can be found as the base_ring of the previous parent without ambiguity
+  if !serialize_with_id(parent_ring)
+    return RingMatSpaceUnion[]
   end
   base = base_ring(parent_ring)
 
@@ -44,33 +41,15 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
     save_object(s, encode_type(T), :name)
     parent_x = parent(x)
     if serialize_with_id(parent_x)
-      parent_refs = save_parents(s, parent_x)
-      save_object(s, parent_refs, :params)
+      parent_ref = save_as_ref(s, parent_x)
+      save_object(s, parent_ref, :params)
     else
       save_typed_object(s, parent_x, :params)
     end
   end
 end
 
-# These three different load methods are necessary for handling the way parent
-# Rings (Fields, MatSpaces, etc.) are loaded. Ideally this should be reduced to
-# a single method but will require a bit of a refactor for RingElem, etc.
-
-function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
-  return load_typed_object(s, dict)
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, refs::Vector{Any})
-  return load_parents(s, refs)
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, parent_ring::T)  where T <: RingMatSpaceUnion
-  return get_parents(parent_ring)
-end
-
-# this should be properly dealt with later and is only an intermediate solution
-# to getting the tests to pass when forcing a type and passing params
-# ideally all load should look like this without passing a vector of parents
+# see General load_type_params for loading
 
 # fix for polynomial cases
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion},
@@ -85,7 +64,6 @@ function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal,
   parents = get_parents(parent_ring)
   return load_object(s, T, terms, parents)
 end
-
 
 ################################################################################
 # ring of integers (singleton type)
@@ -277,12 +255,13 @@ const IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal, FreeAssAlgId
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   data_dict(s) do
     save_object(s, encode_type(T), :name)
-    refs = save_parents(s, parent(gens(x)[1]))
-    save_object(s, refs, :params)
+    ref = save_as_ref(s, parent(gens(x)[1]))
+    save_object(s, ref, :params)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}, params::Any)
+function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType},
+                          params::T) where T <: RingMatSpaceUnion
   return load_type_params(s, RingElem, params)
 end
 

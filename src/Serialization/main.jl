@@ -199,67 +199,9 @@ function decode_type(input::Dict{Symbol, Any})
   return decode_type(input[:name])
 end
 
-################################################################################
-# Encoding helper functions
-
-@doc raw"""
-    is_basic_serialization_type(::Type)
-
-During the serialization of types of the form `Vector{T}`, entries
-of type `T` will either be serialized as strings if `is_basic_serialization_type`
-returns `true`, or serialized as a dict provided the serialization for such a `T`
-exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
-then the `entry_type` keyword is used to store the type `T` as a property of
-the vector.
-
-# Examples
-
-```jldoctest
-julia> is_basic_serialization_type(ZZRingElem)
-true
-```
-"""
-is_basic_serialization_type(::Type) = false
-is_basic_serialization_type(::Type{ZZRingElem}) = true
-is_basic_serialization_type(::Type{QQFieldElem}) = true
-is_basic_serialization_type(::Type{Bool}) = true
-is_basic_serialization_type(::Type{String}) = true
-is_basic_serialization_type(::Type{Symbol}) = true
-# this deals with int32, int64 etc.:precision
-is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
-
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
-
-# Objects having a basic encoding are fundamental objects. They are "atomic"
-# with regards to the available types in Oscar (maybe in general), they are base cases when
-# a parent tree is constructed via recursion, and they can be decoded from a string or array of
-# strings provided their parent is known. All types with basic serialization have a basic encoding
-# has_elem_basic_encoding also deals with basic parametrized types.
-
-# a basic serialization type is a type that only requires a single property for serialization.
-# examples: QQ, Symbol, Int
-
-# a basic encoded type is a type that only requires a single property or a list of ordered properties
-# of the same type and a known parent for serialization.
-# example: elements of ZZ/nZZ. Say the parent is ZZ/7ZZ then we can (de)serialize "6", in a sense once the parent is known
-# the serialization relies on a "basic" serialization or list of ordered "basic" serializations. We use the word encoding
-# here to mean serialization knowing how elements are represented in the parent.
-
-# has_elem_basic_encoding is used for parent types (and only makes sense for parent types)
-
-function has_elem_basic_encoding(obj::T) where T <: Ring
-  return is_basic_serialization_type(elem_type(obj))
-end
-
-has_basic_encoding(obj::T) where T = is_basic_serialization_type(T)
-
-function has_basic_encoding(obj::T) where T <: RingElem
-  return has_elem_basic_encoding(parent(obj))
-end
-
-has_elem_basic_encoding(obj::T) where T = false
 
 ################################################################################
 # High level
@@ -344,6 +286,16 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
+# general loading of a reference
+function load_type_params(s::DeserializerState, ::Type, ref::String)
+  return load_ref(s, ref)
+end
+
+# general loading of dict params
+function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
+  return load_typed_object(s, dict)
+end
+
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
@@ -352,7 +304,7 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
-      params = load_type_params(s, T, override_params)
+      params = override_params
     else
       # depending on the type, :params is either an object to be loaded or a
       # dict with keys and object values to be loaded
