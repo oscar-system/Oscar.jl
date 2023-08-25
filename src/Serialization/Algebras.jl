@@ -2,7 +2,7 @@
 # FreeAssAlgebra
 
 # Free associative algebra serialization
-@register_serialization_type(FreeAssAlgebra, true)
+@register_serialization_type FreeAssAlgebra uses_id
 
 function save_object(s::SerializerState, A::FreeAssAlgebra)
   data_dict(s) do
@@ -18,8 +18,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgebra}, dict::Dict)
 end
 
 # Free associative algebra element serialization
-@register_serialization_type(FreeAssAlgElem)
-type_needs_params(::Type{<:FreeAssAlgElem}) = true
+@register_serialization_type FreeAssAlgElem uses_params
 
 # see save_type_params in Rings
 
@@ -52,5 +51,4 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem},
 end
 
 # Ideals
-@register_serialization_type(FreeAssAlgIdeal)
-type_needs_params(::Type{<:FreeAssAlgIdeal}) = true
+@register_serialization_type FreeAssAlgIdeal uses_params

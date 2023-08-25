@@ -3,8 +3,8 @@ using JSON
 ###############################################################################
 ## Graphs
 ###############################################################################
-@register_serialization_type(Graph{Directed}, "Graph{Directed}")
-@register_serialization_type(Graph{Undirected}, "Graph{Undirected}")
+@register_serialization_type Graph{Directed} "Graph{Directed}"
+@register_serialization_type Graph{Undirected} "Graph{Undirected}"
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
   smallobject = pm_object(g)
@@ -22,7 +22,7 @@ end
 ###############################################################################
 ## IncidenceMatrix
 ###############################################################################
-@register_serialization_type(Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric})
+@register_serialization_type Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}
 
 function save_object(s::SerializerState, IM::IncidenceMatrix)
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, IM)
@@ -39,7 +39,7 @@ end
 ###############################################################################
 ## SimplicialComplex
 ###############################################################################
-@register_serialization_type(SimplicialComplex)
+@register_serialization_type SimplicialComplex
 
 function save_object(s::SerializerState, K::SimplicialComplex)
   save_object(s, pm_object(K))

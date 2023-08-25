@@ -88,11 +88,11 @@ end
 
 ################################################################################
 # ring of integers (singleton type)
-@register_serialization_type(ZZRing)
+@register_serialization_type ZZRing
 
 ################################################################################
 #  non simpleton base rings
-@register_serialization_type(Nemo.zzModRing, "Nemo.zzModRing")
+@register_serialization_type Nemo.zzModRing
 has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
@@ -105,8 +105,7 @@ function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
 end
 
 #elements
-@register_serialization_type(zzModRingElem)
-type_needs_params(T::Type{zzModRingElem}) = true
+@register_serialization_type zzModRingElem uses_params
 
 function save_object(s::SerializerState, x::zzModRingElem)
   data_basic(s, string(x))
@@ -120,10 +119,10 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@register_serialization_type(PolyRing, true)
-@register_serialization_type(MPolyRing, true)
-@register_serialization_type(UniversalPolyRing, true)
-@register_serialization_type(AbstractAlgebra.Generic.LaurentMPolyWrapRing, true)
+@register_serialization_type PolyRing uses_id
+@register_serialization_type MPolyRing uses_id
+@register_serialization_type UniversalPolyRing uses_id
+@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
   data_dict(s) do
@@ -153,11 +152,10 @@ end
 
 ################################################################################
 #  Polynomial Ring Types
-@register_serialization_type(MPolyRingElem)
-@register_serialization_type(UniversalPolyRingElem)
-@register_serialization_type(AbstractAlgebra.Generic.LaurentMPolyWrap)
-PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
-type_needs_params(::Type{<:PolyElemUniontype}) = true
+@register_serialization_type MPolyRingElem uses_params
+@register_serialization_type UniversalPolyRingElem uses_params
+@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params
+const PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
@@ -190,8 +188,7 @@ end
 ################################################################################
 # Univariate Polynomials
 
-@register_serialization_type(PolyRingElem)
-type_needs_params(::Type{<:PolyRingElem}) = true
+@register_serialization_type PolyRingElem uses_id
 
 function save_object(s::SerializerState, p::PolyRingElem)
   coeffs = coefficients(p)
@@ -231,7 +228,7 @@ function load_object(s::DeserializerState,
     exponent, coeff = term
     # account for shift
     exponent += 1
-    if type_needs_params(coeff_type)
+    if serialize_with_params(coeff_type)
       if length(parents) == 1
         params = coefficient_ring(parent_ring)
       else
@@ -254,7 +251,7 @@ function load_object(s::DeserializerState,
   polynomial = MPolyBuildCtx(parent_ring)
   coeff_type = elem_type(base)
   for (e, coeff) in terms
-    if type_needs_params(coeff_type)
+    if serialize_with_params(coeff_type)
       if length(parents) == 1
         params = coefficient_ring(parent_ring)
       else
@@ -273,10 +270,9 @@ end
 ################################################################################
 # Polynomial Ideals
 
-@register_serialization_type(MPolyIdeal)
-@register_serialization_type(Laurent.LaurentMPolyIdeal)
+@register_serialization_type MPolyIdeal uses_params
+@register_serialization_type Laurent.LaurentMPolyIdeal uses_params
 const IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal, FreeAssAlgIdeal}
-type_needs_params(::Type{<: IdealUnionType}) = true
 
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   data_dict(s) do
@@ -307,11 +303,9 @@ end
 
 ################################################################################
 # Matrices
-@register_serialization_type(MatSpace, true)
-@register_serialization_type(MatElem)
-type_needs_params(::Type{<:MatElem}) = true
+@register_serialization_type MatSpace uses_id
+@register_serialization_type MatElem uses_params
 
-# not all 
 function save_object(s::SerializerState, obj::MatSpace)
   data_dict(s) do
     save_typed_object(s, base_ring(obj), :base_ring)
@@ -335,7 +329,7 @@ function load_object(s::DeserializerState, ::Type{<:MatElem},
                      entries::Vector, parents::Vector)
   parent = parents[end]
   T = elem_type(base_ring(parent))
-  if type_needs_params(T)
+  if serialize_with_params(T)
     if length(parents) == 1
       params = base_ring(parent)
     else
@@ -350,7 +344,7 @@ end
 
 ################################################################################
 # Power Series
-@register_serialization_type(SeriesRing, true)
+@register_serialization_type SeriesRing uses_id
 
 function save_object(s::SerializerState, R::Union{
   Generic.RelPowerSeriesRing,
@@ -393,9 +387,8 @@ function load_object(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
 end
 
 # elements
-@register_serialization_type(RelPowerSeriesRingElem)
-@register_serialization_type(AbsPowerSeriesRingElem)
-type_needs_params(::Type{<: Union{RelPowerSeriesRingElem, AbsPowerSeriesRingElem}}) = true
+@register_serialization_type RelPowerSeriesRingElem uses_params
+@register_serialization_type AbsPowerSeriesRingElem uses_params
 
 function save_object(s::SerializerState, r::RelPowerSeriesRingElem)
   v = valuation(r)
@@ -458,7 +451,7 @@ function load_object(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
   for (exponent, coeff) in dict[:terms]
-    if type_needs_params(coeff_type)
+    if serialize_with_params(coeff_type)
       if length(parents) == 1
         params = base
       else
@@ -484,7 +477,7 @@ function load_object(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
   for (exponent, coeff) in dict[:terms]
-    if type_needs_params(coeff_type)
+    if serialize_with_params(coeff_type)
       if length(parents) == 1
         params = base
       else
@@ -504,9 +497,9 @@ end
 
 ################################################################################
 # Laurent Series
-@register_serialization_type(Generic.LaurentSeriesRing, true, "LaurentSeriesRing")
-@register_serialization_type(Generic.LaurentSeriesField, true, "LaurentSeriesField")
-@register_serialization_type(ZZLaurentSeriesRing)
+@register_serialization_type Generic.LaurentSeriesRing  "LaurentSeriesRing" uses_id
+@register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
+@register_serialization_type ZZLaurentSeriesRing uses_id
 
 function save_object(s::SerializerState, R::Union{
   Generic.LaurentSeriesRing,
@@ -533,12 +526,9 @@ function load_object(s::DeserializerState,
 end
 
 # elements
-@register_serialization_type(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
-@register_serialization_type(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
-@register_serialization_type(ZZLaurentSeriesRingElem)
-type_needs_params(::Type{<: Union{ZZLaurentSeriesRingElem,
-                                  Generic.LaurentSeriesFieldElem,
-                                  Generic.LaurentSeriesRingElem}}) = true
+@register_serialization_type Generic.LaurentSeriesFieldElem "LaurentSeriesFieldElem" uses_params
+@register_serialization_type Generic.LaurentSeriesRingElem "LaurentSeriesRingElem" uses_params
+@register_serialization_type ZZLaurentSeriesRingElem uses_params
 
 function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem})
   v = valuation(r)
@@ -580,7 +570,7 @@ function load_object(s::DeserializerState, ::Type{<: Union{Generic.LaurentSeries
   for (exponent, coeff) in terms
     e = parse(Int, exponent)
     e -= lowest_degree - 1
-    if type_needs_params(coeff_type)
+    if serialize_with_params(coeff_type)
       if length(parents) == 1
         params = base
       else

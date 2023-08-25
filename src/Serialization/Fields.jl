@@ -47,11 +47,11 @@ end
 
 ################################################################################
 # field of rationals (singleton type)
-@register_serialization_type(QQField)
+@register_serialization_type QQField
 
 ################################################################################
 # non-ZZRingElem variant
-@register_serialization_type(Nemo.fpField)
+@register_serialization_type Nemo.fpField
 has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_object(s::SerializerState, F::Nemo.fpField)
@@ -63,8 +63,7 @@ function load_object(s::DeserializerState, ::Type{Nemo.fpField}, str::String)
 end
 
 # elements
-@register_serialization_type(fpFieldElem)
-type_needs_params(T::Type{fpFieldElem}) = true
+@register_serialization_type fpFieldElem uses_params
 
 function save_object(s::SerializerState, elem::fpFieldElem)
   data_basic(s, string(elem))
@@ -77,7 +76,7 @@ end
 
 ################################################################################
 # ZZRingElem variant
-@register_serialization_type(Nemo.FpField)
+@register_serialization_type Nemo.FpField
 has_elem_basic_encoding(obj::Nemo.FpField) = true
 
 function save_object(s::SerializerState, F::Nemo.FpField)
@@ -89,8 +88,7 @@ function load_object(s::DeserializerState, ::Type{Nemo.FpField}, str::String)
 end
 
 # elements
-@register_serialization_type(FpFieldElem)
-type_needs_params(T::Type{FpFieldElem}) = true
+@register_serialization_type FpFieldElem uses_params
 
 function save_object(s::SerializerState, elem::FpFieldElem)
   data_basic(s, string(elem))
@@ -104,8 +102,8 @@ end
 ################################################################################
 # SimpleNumField
 
-@register_serialization_type(Hecke.NfRel, true)
-@register_serialization_type(AnticNumberField, true)
+@register_serialization_type Hecke.NfRel uses_id
+@register_serialization_type AnticNumberField uses_id
 
 function save_object(s::SerializerState, K::SimpleNumField)
   data_dict(s) do 
@@ -123,7 +121,7 @@ end
 
 ################################################################################
 # FqNmodfinitefield
-@register_serialization_type(fqPolyRepField, true)
+@register_serialization_type fqPolyRepField uses_id
 
 function save_object(s::SerializerState, K::fqPolyRepField)
   data_dict(s) do
@@ -140,11 +138,10 @@ function load_object(s::DeserializerState,
 end
 
 #elements
-@register_serialization_type(fqPolyRepFieldElem)
-@register_serialization_type(nf_elem)
-@register_serialization_type(Hecke.NfRelElem)
-NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
-type_needs_params(T::Type{<:NumFieldElemTypeUnion}) = true
+@register_serialization_type fqPolyRepFieldElem uses_params
+@register_serialization_type nf_elem uses_params
+@register_serialization_type Hecke.NfRelElem uses_params
+const NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem}
 
 function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
   K = parent(k)
@@ -162,9 +159,8 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type(FqField, true)
-@register_serialization_type(FqFieldElem)
-type_needs_params(::Type{FqFieldElem}) = true
+@register_serialization_type FqField uses_id
+@register_serialization_type FqFieldElem uses_params
 has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 
 function save_object(s::SerializerState, K::FqField)
@@ -217,8 +213,8 @@ end
 ################################################################################
 # Non Simple Extension
 
-@register_serialization_type(Hecke.NfRelNS, true)
-@register_serialization_type(NfAbsNS, true)
+@register_serialization_type Hecke.NfRelNS uses_id
+@register_serialization_type NfAbsNS uses_id
 
 function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
   def_pols = defining_polynomials(K)
@@ -238,9 +234,8 @@ function load_object(s::DeserializerState,
 end
 
 #elements
-@register_serialization_type(Hecke.NfRelNSElem)
-@register_serialization_type(NfAbsNSElem)
-type_needs_params(::Type{<:Union{NfAbsNSElem, Hecke.NfRelNSElem}}) = true
+@register_serialization_type Hecke.NfRelNSElem uses_params
+@register_serialization_type NfAbsNSElem uses_params
 
 function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
   polynomial = Oscar.Hecke.data(k)
@@ -262,7 +257,7 @@ end
 ################################################################################
 # FracField
 
-@register_serialization_type(FracField, true)
+@register_serialization_type FracField uses_id
 
 function save_object(s::SerializerState, K::FracField)
   save_typed_object(s, base_ring(K), :data)
@@ -281,9 +276,9 @@ function load_object(s::DeserializerState, ::Type{<: FracField}, str::String)
 end
 
 # elements
-@register_serialization_type(FracElem)
+@register_serialization_type FracElem
 # might need a better way to block QQFieldElem here so that more FracElems can be serialized
-type_needs_params(::Type{<:FracElem{T}}) where T <: Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem} = true
+serialize_with_params(::Type{<:FracElem{T}}) where T <: Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem} = true
 
 function save_object(s::SerializerState, f::FracElem)
   data_array(s) do
@@ -305,9 +300,7 @@ end
 ################################################################################
 # RationalFunctionField
 
-@register_serialization_type(AbstractAlgebra.Generic.RationalFunctionField,
-                           true,
-                           "RationalFunctionField")
+@register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -332,10 +325,7 @@ function load_object(s::DeserializerState,
 end
 
 #elements
-@register_serialization_type(AbstractAlgebra.Generic.RationalFunctionFieldElem,
-                           true,
-                           "RationalFunctionFieldElem")
-type_needs_params(::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem}) = true
+@register_serialization_type AbstractAlgebra.Generic.RationalFunctionFieldElem "RationalFunctionFieldElem" uses_params
 
 function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
   data_array(s) do
@@ -358,10 +348,9 @@ end
 
 ################################################################################
 # ArbField
-@register_serialization_type(ArbField)
-@register_serialization_type(arb)
+@register_serialization_type ArbField
+@register_serialization_type arb uses_params
 has_elem_basic_encoding(obj::ArbField) = true
-type_needs_params(::Type{arb}) = true
 
 function save_object(s::SerializerState, RR::Nemo.ArbField)
   save_object(s, precision(RR))
@@ -391,10 +380,9 @@ end
 
 ################################################################################
 # AcbField
-@register_serialization_type(AcbField)
-@register_serialization_type(acb)
+@register_serialization_type AcbField
+@register_serialization_type acb uses_params
 has_elem_basic_encoding(obj::AcbField) = true
-type_needs_params(::Type{acb}) = true
 
 function save_object(s::SerializerState, CC::AcbField)
   save_object(s, precision(CC))
@@ -423,7 +411,7 @@ end
 ################################################################################
 # Field Embeddings
 
-@register_serialization_type(Hecke.NumFieldEmbNfAbs, true)
+@register_serialization_type Hecke.NumFieldEmbNfAbs  uses_id
 
 function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   K = number_field(E)
@@ -443,7 +431,7 @@ function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict:
   return complex_embedding(K, gen_ball)
 end
 
-@register_serialization_type(Hecke.NumFieldEmbNfAbsNS, true)
+@register_serialization_type Hecke.NumFieldEmbNfAbsNS uses_id
 
 function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
   K = number_field(E)
@@ -464,7 +452,7 @@ end
 
 ################################################################################
 # Padic Field
-@register_serialization_type(FlintPadicField)
+@register_serialization_type FlintPadicField
 
 function save_object(s::SerializerState, P::FlintPadicField)
   data_dict(s) do
@@ -481,8 +469,7 @@ function load_object(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
 end
 
 #elements
-@register_serialization_type(padic)
-type_needs_params(::Type{padic}) = true
+@register_serialization_type padic uses_params
 
 function save_object(s::SerializerState, obj::padic)
   # currently it seems padics do not store the underlying polynomial

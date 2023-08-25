@@ -29,7 +29,6 @@ end
 
 ##############################################################################
 # Abstract Polyhedral Object
-type_needs_params(::Type{<:PolyhedralObject}) = true
 
 function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
   data_dict(s) do
@@ -57,7 +56,7 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 ##############################################################################
-@register_serialization_type(LinearProgram)
+@register_serialization_type LinearProgram uses_params
 
 function save_object(s::SerializerState, lp::LinearProgram)
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
@@ -89,7 +88,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram},
 end
 
 ##############################################################################
-@register_serialization_type(MixedIntegerLinearProgram)
+@register_serialization_type MixedIntegerLinearProgram uses_params
 
 function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
@@ -137,8 +136,9 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
 end
 
 # use generic serialization for the other types:
-@register_serialization_type(Cone)
-@register_serialization_type(PolyhedralComplex)
-@register_serialization_type(Polyhedron)
-@register_serialization_type(PolyhedralFan)
-@register_serialization_type(SubdivisionOfPoints)
+@register_serialization_type Cone uses_params
+@register_serialization_type PolyhedralComplex uses_params
+@register_serialization_type Polyhedron uses_params
+@register_serialization_type PolyhedralFan uses_params
+@register_serialization_type SubdivisionOfPoints uses_params
+

@@ -1,11 +1,10 @@
 # Tropical Semiring
-@register_serialization_type(TropicalSemiring{typeof(min)})
-@register_serialization_type(TropicalSemiring{typeof(max)})
+@register_serialization_type TropicalSemiring{typeof(min)}
+@register_serialization_type TropicalSemiring{typeof(max)}
 has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
-@register_serialization_type(TropicalSemiringElem)
-type_needs_params(T::Type{<: TropicalSemiringElem}) = true
+@register_serialization_type TropicalSemiringElem uses_params
 
 function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
   s.key = key
@@ -31,7 +30,7 @@ function load_object(s::DeserializerState,
 end
 
 # Tropical Hypersurfaces
-@register_serialization_type(TropicalHypersurface, true)
+@register_serialization_type TropicalHypersurface uses_id
 
 function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
   save_typed_object(s, polynomial(t_surf), :data)
@@ -43,7 +42,7 @@ function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict
 end
 
 # Tropical Curves
-@register_serialization_type(TropicalCurve, true)
+@register_serialization_type TropicalCurve uses_id
 
 function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
   data_dict(s) do 

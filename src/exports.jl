@@ -1207,6 +1207,7 @@ export regular_120_cell
 export regular_600_cell
 export regular_triangulation
 export regular_triangulations
+export @register_serialization_type
 export relations
 export relative_ambient_dimension
 export relative_interior_point

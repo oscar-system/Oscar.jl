@@ -6,14 +6,13 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 ################################################################################
 # Saving and loading vectors
 
-@register_serialization_type(Vector)
-type_needs_params(::Type{<:Vector})  = true
-MatVecType{T} = Union{Matrix{T}, Vector{T}}
+@register_serialization_type Vector uses_params
+const MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
   data_dict(s) do
     save_object(s, encode_type(S), :name)
-    if type_needs_params(T)
+    if serialize_with_params(T)
       if hasmethod(parent, (T,))
         parents = map(parent, obj)
         parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
@@ -68,8 +67,7 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-@register_serialization_type(Tuple)
-type_needs_params(::Type{<:Tuple}) = true
+@register_serialization_type Tuple uses_params
 
 function save_type_params(s::SerializerState, tup::T) where T <: Tuple
   data_dict(s) do
@@ -79,7 +77,7 @@ function save_type_params(s::SerializerState, tup::T) where T <: Tuple
     data_array(s) do 
       for i in 1:n
         U = fieldtype(T, i)
-        if type_needs_params(U)
+        if serialize_with_params(U)
           save_type_params(s, tup[i])
         else
           save_object(s, encode_type(U))
@@ -120,8 +118,7 @@ end
 
 ################################################################################
 # Saving and loading NamedTuple
-@register_serialization_type(NamedTuple)
-type_needs_params(::Type{<:NamedTuple}) = true
+@register_serialization_type NamedTuple uses_params
 
 function save_type_params(s::SerializerState, obj::NamedTuple)
   data_dict(s) do
@@ -154,8 +151,7 @@ end
 
 ################################################################################
 # Saving and loading matrices
-@register_serialization_type(Matrix)
-type_needs_params(::Type{<:Matrix}) = true
+@register_serialization_type Matrix uses_params
   
 function save_object(s::SerializerState, mat::Matrix)
   m, n = size(mat)

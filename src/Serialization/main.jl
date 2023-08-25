@@ -140,12 +140,7 @@ end
 # It also sets the value of serialize_with_id, which determines
 # whether or not the type can be back referenced.
 # If omitted, the default is that no back references are allowed.
-function register_serialization_type(ex::Any,
-                                     uses_id::Bool,
-                                     str::Union{String,Nothing} = nothing)
-  if str === nothing
-    str = string(ex)
-  end
+function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
     quote
       register_serialization_type($ex, $str)
@@ -164,16 +159,29 @@ function register_serialization_type(ex::Any,
       # ambiguities in their encodings.
 
       serialize_with_id(obj::T) where T <: $ex = $uses_id 
-      serialize_with_id(T::Type{<:$ex}) = $uses_id 
+      serialize_with_id(T::Type{<:$ex}) = $uses_id
+      serialize_with_params(T::Type{<:$ex}) = $uses_params
     end)
 end
 
-macro register_serialization_type(ex::Any, str::Union{String,Nothing} = nothing)
-  return register_serialization_type(ex, false, str)
-end
+macro register_serialization_type(ex::Any, args...)
+  uses_id = false
+  uses_params = false
+  str = nothing
+  for el in args
+    if el isa String
+      str = el
+    elseif el == Symbol("uses_id")
+      uses_id = true
+    elseif el == Symbol("uses_params")
+      uses_params = true
+    end
+  end
+  if str === nothing
+    str = string(ex)
+  end
 
-macro register_serialization_type(ex::Any, uses_id::Bool, str::Union{String,Nothing} = nothing)
-  return register_serialization_type(ex, uses_id, str)
+  return register_serialization_type(ex, str, uses_id, uses_params)
 end
 
 function encode_type(::Type{T}) where T
@@ -252,9 +260,6 @@ end
 
 has_elem_basic_encoding(obj::T) where T = false
 
-# used for types that require params when serialized
-type_needs_params(::Type) = false
-
 ################################################################################
 # High level
 
@@ -309,7 +314,7 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
 end
 
 function save_typed_object(s::SerializerState, x::T) where T
-  if type_needs_params(T)
+  if serialize_with_params(T)
     save_type_params(s, x, :type)
     save_object(s, x, :data)
   elseif Base.issingletontype(T)
@@ -344,7 +349,7 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
                            override_params::Any = nothing)
   T = decode_type(dict[:type])
   if Base.issingletontype(T) && return T()
-  elseif type_needs_params(T)
+  elseif serialize_with_params(T)
     if !isnothing(override_params)
       params = load_type_params(s, T, override_params)
     else
@@ -379,7 +384,6 @@ function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where 
   fields = []
   for (n,t) in zip(fieldnames(T), fieldtypes(T))
     if n!= :__attrs
-      println(t)
       push!(fields, load_object(s, t, dict[n]))
     end
   end
@@ -479,7 +483,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
         end
       end
     end
-    save_header(state, oscarSerializationVersion, :_ns)
+    save_header(state, oscar_serialization_version, :_ns)
     
     if !isnothing(metadata)
       save_json(state, json(metadata), :meta)
@@ -589,7 +593,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
     U = decode_type(jsondict[:type])
     U <: type || U >: type || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
 
-    if type_needs_params(type)
+    if serialize_with_params(type)
       if isnothing(params) 
         params = load_type_params(state, type, jsondict[:type][:params])
       end

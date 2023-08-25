@@ -1,8 +1,7 @@
 ############################################################
 # QuadSpace
-@register_serialization_type(Hecke.QuadSpace)
-@register_serialization_type(ZZLat)
-type_needs_params(::Type{<: Hecke.QuadSpace}) = true
+@register_serialization_type Hecke.QuadSpace uses_params
+@register_serialization_type ZZLat
 
 function save_type_params(s::SerializerState, V::Hecke.QuadSpace)
   data_dict(s) do
