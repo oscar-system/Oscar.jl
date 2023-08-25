@@ -195,7 +195,7 @@ function decode_type(input::String)
   end
 end
 
-function decode_type(input::Dict{Symbol, Any})
+function decode_type(input::Dict)
   return decode_type(input[:name])
 end
 
@@ -289,11 +289,6 @@ end
 # general loading of a reference
 function load_type_params(s::DeserializerState, ::Type, ref::String)
   return load_ref(s, ref)
-end
-
-# general loading of dict params
-function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
-  return load_typed_object(s, dict)
 end
 
 # The load mechanism first checks if the type needs to load necessary

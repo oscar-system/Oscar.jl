@@ -49,7 +49,9 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   end
 end
 
-# see General load_type_params for loading
+function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion}, dict::Dict{Symbol, Any})
+  return load_typed_object(s, dict)
+end
 
 # fix for polynomial cases
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion},

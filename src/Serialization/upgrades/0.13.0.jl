@@ -81,9 +81,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       throw(Error("The upgrade script needs an update"))
     elseif T <: Union{PolyRingElem, MPolyRingElem}
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
-        upgraded_parents = Any[
-          p[:id] for p in dict[:data][:parents]
-            ]
+        upgraded_parents = dict[:data][:parents][end]
         params = upgraded_parents
         upgraded_dict[:data] = upgrade_terms(dict[:data][:terms])
       else
@@ -112,8 +110,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data] = string(dict[:data][:characteristic])
     elseif T <: MPolyIdeal
-      upgraded_parents = upgrade_0_13_0(s, dict[:data][:parent])
-      upgraded_dict[:type] = Dict(:name => "MPolyIdeal", :params => upgraded_parents)
+      upgraded_parent = upgrade_0_13_0(s, dict[:data][:parent])[:id]
+      upgraded_dict[:type] = Dict(:name => "MPolyIdeal", :params => upgraded_parent)
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
         push!(upgraded_gens, upgrade_0_13_0(s, gen)[:data])
