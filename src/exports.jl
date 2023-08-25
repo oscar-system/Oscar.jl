@@ -247,6 +247,7 @@ export as_gset
 export as_perm_group
 export as_polycyclic_group
 export associahedron
+export atlas_description
 export atlas_group
 export atlas_irrationality
 export atlas_program
@@ -673,6 +674,7 @@ export induced_automorphism
 export induced_cyclic
 export induced_ring_ordering
 export initial
+export init_class_fusion
 export inneighbors
 export inner_automorphism
 export inner_automorphism_group
