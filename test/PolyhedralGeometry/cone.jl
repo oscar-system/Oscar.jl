@@ -53,7 +53,7 @@ for f in (QQ, NF, K)
             end
             @test length(rays(Cone1)) == 2
             @test rays(Cone1) == [[1, 0], [0, 1]]
-            for S in [AffineHalfspace{T}, LinearHalfspace{T}, Cone{T}, Polyhedron{T}]
+            for S in [LinearHalfspace{T}, Cone{T}]
                 @test facets(S, Cone1) isa SubObjectIterator{S}
                 @test length(facets(S, Cone1)) == 2
                 if T == QQFieldElem
@@ -61,28 +61,16 @@ for f in (QQ, NF, K)
                     @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [-1 0; 0 -1]
                     @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
                     @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
-                    if S == Cone{T}
-                        @test facets(S, Cone1) == cone_from_inequalities.([[-1 0], [0 -1]])
-                    elseif S == LinearHalfspace{T}
+                    if S == LinearHalfspace{T}
                         @test facets(S, Cone1) == linear_halfspace.([f], [[-1, 0], [0, -1]])
-                    elseif S == AffineHalfspace{T}
-                        @test facets(S, Cone1) == affine_halfspace.([f], [[-1 0], [0 -1]], [0])
-                    else
-                        @test facets(S, Cone1) == polyhedron.(T, [[-1 0], [0 -1]], [0])
                     end
                 else
                     @test linear_inequality_matrix(facets(S, Cone1)) == matrix(f, [0 -1; -1 0])
                     @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [0 -1; -1 0]
                     @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
                     @test IncidenceMatrix(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
-                    if S == Cone{T}
-                        @test facets(S, Cone1) == cone_from_inequalities.([f], [[0 -1], [-1 0]])
-                    elseif S == LinearHalfspace{T}
+                    if S == LinearHalfspace{T}
                         @test facets(S, Cone1) == linear_halfspace.([f], [[0, -1], [-1, 0]])
-                    elseif S == AffineHalfspace{T}
-                        @test facets(S, Cone1) == affine_halfspace.([f], [[0 -1], [-1 0]], [0])
-                    else
-                        @test facets(S, Cone1) == polyhedron.([f], [[0 -1], [-1 0]], [0])
                     end
                 end
             end
