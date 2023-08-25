@@ -46,13 +46,13 @@ end
   Y = scheme(II)
   p = blow_up(II)
   X = domain(p)
-  f = oscar.isomorphism_on_complement_of_center(p)
+  f = Oscar.isomorphism_on_complement_of_center(p)
   h = inverse(f)
   U = domain(f)
   @test compose(f, h) == identity_map(U)
   V = codomain(f)
   @test compose(h, f) == identity_map(V)
-  g = oscar.isomorphism_on_open_subset(p)
+  g = Oscar.isomorphism_on_open_subset(p)
   @test is_isomorphism(g)
   KY = function_field(Y)
   KX = function_field(X)
@@ -61,11 +61,11 @@ end
   b = KY(a[affine_charts(Y)[2]])
   @test pullback(p)(a) == pullback(p)(b)
 
-  inc_C = oscar.CoveredClosedEmbedding(scheme(JJ), JJ)
+  inc_C = Oscar.CoveredClosedEmbedding(scheme(JJ), JJ)
   C = domain(inc_C)
   C_up, inc_C_up, p_res = strict_transform(p, inc_C)
 
-  @test is_isomorphism(oscar.isomorphism_on_open_subset(p_res))
+  @test is_isomorphism(Oscar.isomorphism_on_open_subset(p_res))
   
   KC_up = function_field(C_up)
   KC = function_field(C)
@@ -88,14 +88,14 @@ end
   f = x^4 - y*z
   I = ideal(OO(IA3), f)
   II = ideal_sheaf(Y0, IA3, [f])
-  inc = oscar.CoveredClosedEmbedding(Y0, II)
+  inc = Oscar.CoveredClosedEmbedding(Y0, II)
   X0 = domain(inc)
   KX0 = function_field(X0)
   xx0 = KX0(x)
   yy0 = KX0(y)
   zz0 = KX0(z)
   # Need to call this once so that the attribute is set
-  oscar.isomorphism_on_open_subset(pr1)
+  Oscar.isomorphism_on_open_subset(pr1)
   X1, inc1, pr1_res = strict_transform(pr1, inc)
   xx1 = pullback(pr1_res)(xx0)
   @test xx0 == pushforward(pr1_res, xx1)
@@ -104,17 +104,17 @@ end
   zz1 = pullback(pr1_res)(zz0)
   @test zz0 == pushforward(pr1_res, zz1)
 
-  I_sing = radical(pushforward(inc1, oscar.ideal_sheaf_of_singular_locus(X1)))
+  I_sing = radical(pushforward(inc1, Oscar.ideal_sheaf_of_singular_locus(X1)))
 
   pr2 = blow_up(I_sing)
   @test scheme(I_sing) === domain(pr1)
   @test codomain(pr2) === domain(pr1)
-  oscar.isomorphism_on_open_subset(pr2)
+  Oscar.isomorphism_on_open_subset(pr2)
   Y2 = domain(pr2)
   X2, inc2, pr2_res = strict_transform(pr2, inc1)
 
-  pr_res = oscar.composite_map(pr2_res, pr1_res)
-  pr = oscar.compose(pr2, pr1)
+  pr_res = Oscar.composite_map(pr2_res, pr1_res)
+  pr = Oscar.compose(pr2, pr1)
   @test pushforward(pr, pullback(pr, yy)^2) == yy^2
   @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
 
@@ -122,7 +122,7 @@ end
   @test underlying_morphism(pr1) isa CoveredSchemeMorphism
   @test domain(underlying_morphism(pr1)) === domain(pr1)
   @test codomain(underlying_morphism(pr1)) === codomain(pr1)
-  @test compose(inc2, pr2) isa oscar.CompositeCoveredSchemeMorphism
+  @test compose(inc2, pr2) isa Oscar.CompositeCoveredSchemeMorphism
   @test domain(compose(inc2, pr2)) === domain(inc2)
   @test codomain(compose(inc2, pr2)) === codomain(pr2)
 
@@ -136,10 +136,10 @@ end
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc3)
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc4)
 
-  pr_inc_alt = oscar.composite_map(pr2_res, compose(inc1, pr1))
-  pr_inc_alt2 = oscar.composite_map(compose(pr2_res, inc1), pr1)
-  pr_inc_alt3 = oscar.composite_map(pr2_res, compose(inc1, underlying_morphism(pr1)))
-  pr_inc_alt4 = oscar.composite_map(compose(pr2_res, inc1), underlying_morphism(pr1))
+  pr_inc_alt = Oscar.composite_map(pr2_res, compose(inc1, pr1))
+  pr_inc_alt2 = Oscar.composite_map(compose(pr2_res, inc1), pr1)
+  pr_inc_alt3 = Oscar.composite_map(pr2_res, compose(inc1, underlying_morphism(pr1)))
+  pr_inc_alt4 = Oscar.composite_map(compose(pr2_res, inc1), underlying_morphism(pr1))
 
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt)
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt2)

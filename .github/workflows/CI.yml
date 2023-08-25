@@ -119,8 +119,9 @@ jobs:
         run: |
           julia --project=docs --depwarn=error --color=yes -e'
             using Documenter
+            include("docs/documenter_helpers.jl")
             using Oscar
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
+            DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
             doctest(Oscar)'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.9'

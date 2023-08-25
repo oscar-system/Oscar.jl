@@ -44,9 +44,9 @@ Spectrum
 julia> t = first(gens(OO(U)))
 (t//s)
 
-julia> Phi = oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
+julia> Phi = Oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
 
-julia> realizations = oscar.realize_on_patch(Phi, U);
+julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
 Morphism

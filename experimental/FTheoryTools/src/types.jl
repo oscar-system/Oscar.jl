@@ -8,7 +8,7 @@
   dim::Int
   FamilyOfSpaces(coordinate_ring::MPolyRing, grading::Matrix{Int64}, dim::Int) = new(coordinate_ring, grading, dim)
 end
-FTheorySpace = Union{AbsCoveredScheme, FamilyOfSpaces}
+const FTheorySpace = Union{AbsCoveredScheme, FamilyOfSpaces}
 
 
 ################################################

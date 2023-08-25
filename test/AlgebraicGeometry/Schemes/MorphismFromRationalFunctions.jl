@@ -11,16 +11,16 @@
   U = X[1][4]
   V = IP1[1][2]
   (x, y, z) = gens(ambient_coordinate_ring(U))
-  Phi = oscar.MorphismFromRationalFunctions(X, IP1, U, V, [x//y])
+  Phi = Oscar.MorphismFromRationalFunctions(X, IP1, U, V, [x//y])
 
   @test domain(Phi) === X 
   @test codomain(Phi) === IP1
 
-  oscar.realize_on_patch(Phi, U)
-  oscar.realize_on_patch(Phi, X[1][1])
-  oscar.realize_on_patch(Phi, X[1][2])
-  oscar.realize_on_patch(Phi, X[1][3])
-  oscar.realize(Phi)
+  Oscar.realize_on_patch(Phi, U)
+  Oscar.realize_on_patch(Phi, X[1][1])
+  Oscar.realize_on_patch(Phi, X[1][2])
+  Oscar.realize_on_patch(Phi, X[1][3])
+  Oscar.realize(Phi)
 end
 
 @testset "The standard Cremona transformation" begin
@@ -39,10 +39,10 @@ end
   V = first(affine_charts(IP2))
   U = first(affine_charts(X))
   pr_cov = covering_morphism(projection(bl))
-  U_simp = first(patches(oscar.simplified_covering(X)))
+  U_simp = first(patches(Oscar.simplified_covering(X)))
   pb_y, pb_z = pullback(pr_cov[U]).(gens(OO(V)))
-  Phi = oscar.MorphismFromRationalFunctions(X, X, U, U, [inv(fraction(pb_y)), fraction(pb_z)//fraction(pb_y), fraction(pb_z)])
-  oscar.realize_on_patch(Phi, U)
+  Phi = Oscar.MorphismFromRationalFunctions(X, X, U, U, [inv(fraction(pb_y)), fraction(pb_z)//fraction(pb_y), fraction(pb_z)])
+  Oscar.realize_on_patch(Phi, U)
 
   Hx = IdealSheaf(IP2_proj, ideal(S, x))
   Hy = IdealSheaf(IP2_proj, ideal(S, y))
@@ -53,7 +53,7 @@ end
   pbHy = strict_transform(bl, Hy)
   pbHz = strict_transform(bl, Hz)
 
-  E = oscar.irreducible_decomposition(weil_divisor(exceptional_divisor(bl)))
+  E = Oscar.irreducible_decomposition(weil_divisor(exceptional_divisor(bl)))
 
   H = weil_divisor.([pbHx, pbHy, pbHz])
   E1, E2, E3 = weil_divisor.(components(E))
@@ -68,7 +68,7 @@ end
   # Test the different versions of realization and their compatibility
   realizations = []
   for U in affine_charts(X)
-    realizations = vcat(realizations, oscar.realize_on_patch(Phi, U))
+    realizations = vcat(realizations, Oscar.realize_on_patch(Phi, U))
   end
 
   new_patches = [domain(phi) for phi in realizations]
@@ -76,8 +76,8 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  oscar.inherit_glueings!(dom_cov, default_covering(X))
-  oscar.inherit_glueings!(cod_cov, default_covering(X))
+  Oscar.inherit_glueings!(dom_cov, default_covering(X))
+  Oscar.inherit_glueings!(cod_cov, default_covering(X))
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
@@ -89,7 +89,7 @@ end
   realizations = []
   for U in affine_charts(X)
     for V in affine_charts(X) 
-      realizations = vcat(realizations, oscar.realize_maximally_on_open_subset(Phi, U, V))
+      realizations = vcat(realizations, Oscar.realize_maximally_on_open_subset(Phi, U, V))
     end
   end
 
@@ -99,8 +99,8 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  oscar.inherit_glueings!(dom_cov, default_covering(X))
-  oscar.inherit_glueings!(cod_cov, default_covering(X))
+  Oscar.inherit_glueings!(dom_cov, default_covering(X))
+  Oscar.inherit_glueings!(cod_cov, default_covering(X))
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi

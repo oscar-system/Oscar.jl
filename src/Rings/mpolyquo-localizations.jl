@@ -106,14 +106,11 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
 end
 
 ### for convenience of later use
-MPAnyQuoRing = Union{MPolyQuoLocRing, 
-                MPolyQuoRing
-               }
+const MPAnyQuoRing = Union{MPolyQuoLocRing, MPolyQuoRing}
 
-MPAnyNonQuoRing = Union{MPolyRing, MPolyLocRing
-                  }
+const MPAnyNonQuoRing = Union{MPolyRing, MPolyLocRing}
 
-MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
+const MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
                 MPolyLocRing,MPolyQuoLocRing
                }
 
@@ -1613,7 +1610,7 @@ pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 
 ### a shorthand notation for any MPolyIdeal 
-MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
+const MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
                  MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal
                 }
 

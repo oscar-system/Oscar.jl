@@ -101,9 +101,9 @@ end
   II = ideal_sheaf(P3, I)
   pr = blow_up(II)
   Y = domain(projection(pr))
-  @test oscar.has_decomposition_info(oscar.simplified_covering(Y))
+  @test Oscar.has_decomposition_info(Oscar.simplified_covering(Y))
   E = exceptional_divisor(pr)
   IE = ideal_sheaf(E)
   Z = subscheme(IE)
-  @test oscar.has_decomposition_info(oscar.simplified_covering(Z))
+  @test Oscar.has_decomposition_info(Oscar.simplified_covering(Z))
 end

@@ -779,12 +779,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
   end
 
   d = valuation(n, p)
-  if n != p^d
-    _, e, q = is_prime_power_with_data(divexact(n, p^d))
-  else
-    q = 1
-    e = 0
-  end
+  _, e, q = is_prime_power_with_data(divexact(n, p^d))
 
   reps = ZZLatWithIsom[]
 

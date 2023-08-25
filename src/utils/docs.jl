@@ -48,7 +48,7 @@ function get_document(set_meta::Bool)
 
   if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     #ugly: needs to be in sync with the docs/make_docs.jl file
-    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
+    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
   end
 
   return doc

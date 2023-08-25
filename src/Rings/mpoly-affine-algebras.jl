@@ -544,6 +544,7 @@ function multi_hilbert_series(
   R = base_ring(A)
   I = modulus(A)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @req is_positively_graded(A) "the ring must be positively graded"
 
   # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
   # free Abelian group. 
@@ -561,7 +562,7 @@ function multi_hilbert_series(
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
-    (numer, denom), _ = multi_hilbert_series(AA; algorithm, parent)
+    (numer, denom), _ = multi_hilbert_series(AA; algorithm, backend, parent)
     return (numer, denom), (H, iso)
   end
 
@@ -735,6 +736,7 @@ G
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+  @req is_positively_graded(A) "ring must be positively graded"
    (p, q), (H, iso) = multi_hilbert_series(A, algorithm=algorithm)
    f = p//evaluate(q)
    p = numerator(f)

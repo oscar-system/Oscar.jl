@@ -144,6 +144,8 @@ const testlist = [
 
   "Serialization/runtests.jl",
 
+  "Data/runtests.jl",
+
   "StraightLinePrograms/runtests.jl"
 ]
 
