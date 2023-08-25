@@ -89,7 +89,7 @@
 # type information will be stored as a Dict. This can be set by using the
 # uses_params flag of register_serialization. In general implementing
 # a save_type_params and load_type_params should not happen frequently
-# since many types will serializes their types in a similar fashion
+# since many types will serialize their types in a similar fashion
 # for example serialization of a FieldElem will inherit from RingElem
 # since in these instances the only param needed for such types is
 # their parent.
