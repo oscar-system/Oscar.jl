@@ -189,7 +189,7 @@ end
 ################################################################################
 # Univariate Polynomials
 
-@register_serialization_type PolyRingElem uses_id
+@register_serialization_type PolyRingElem uses_params
 
 function save_object(s::SerializerState, p::PolyRingElem)
   coeffs = coefficients(p)

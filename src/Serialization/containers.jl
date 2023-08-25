@@ -130,7 +130,7 @@ function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
       data_array(s) do 
         for (i, value) in enumerate(values(obj))
           U = fieldtype(T, i)
-          if type_needs_params(U)
+          if serialize_with_params(U)
             save_type_params(s, value)
           else
             save_object(s, encode_type(U))

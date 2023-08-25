@@ -136,7 +136,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       
       for (i, field_type) in enumerate(dict[:data][:field_types])
         U = decode_type(field_type)
-        if type_needs_params(U)
+        if serialize_with_params(U)
           upgraded_entry = upgrade_0_13_0(s, dict[:data][:content][i])
           push!(params, upgraded_entry[:type])
           push!(entry_data, upgraded_entry[:data])
