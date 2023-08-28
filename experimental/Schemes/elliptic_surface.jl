@@ -262,9 +262,9 @@ end
 @doc raw"""
     weierstrass_model(X::EllipticSurface) -> CoveredScheme, CoveredClosedEmbedding
 
-Return the weierstrass model ``S`` of ``X`` and the inclusion
+Return the Weierstrass model ``S`` of ``X`` and the inclusion
 
-\[S \subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})\]
+$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})$$
 """
 function weierstrass_model(X::EllipticSurface)
   if isdefined(X, :Weierstrassmodel)
