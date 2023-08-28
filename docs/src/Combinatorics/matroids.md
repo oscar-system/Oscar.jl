@@ -130,7 +130,13 @@ is_representable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=noth
 defining_ideal(RS::MatroidRealizationSpace)
 inequations(RS::MatroidRealizationSpace)
 ambient_ring(RS::MatroidRealizationSpace)
-representation_matrix(RS::MatroidRealizationSpace)
+realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, reduce::Bool=true,
+    char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
+realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, reduce::Bool=true,
+    char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
+realization(RS::MatroidRealizationSpace)
 ```
 
 If ``B`` is the polynomial ring `ambient_ring(RS)`, ``I`` the ideal `defining_ideal(RS)`, and 

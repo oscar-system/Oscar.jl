@@ -1379,3 +1379,7 @@ export defining_ideal
 export inequations
 export ambient_ring
 export representation_matrix
+export combinatorially_reduced_realization_matrix
+export realization_space_matrix
+export MatroidRealizationSpace
+export realization
