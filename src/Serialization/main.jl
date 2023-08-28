@@ -1,16 +1,20 @@
 ################################################################################
 # Description of the saving and loading mechanisms
 
-# There are three saving and loading functions that are used during serialization
-# they are save_typed_object, load_typed_object, save_type_params, load_type_params
-# and save_object, load_object.
+# There are three pairs of saving and loading functions that are used
+# during serialization:
+# 1. save_typed_object, load_typed_object;
+# 2. save_type_params, load_type_params;
+# 3. save_object, load_object.
+#
+# In the following, we discuss each pair in turn.
 
 ################################################################################
 # save_type_object / load_type_object
 
 # For the most part these functions should not be touched, they are high level
 # functions and are used to (de)serialize the object with its
-# type information as well as it's data. They can be used on a first attempt at
+# type information as well as its data. They can be used on a first attempt at
 # serializing an object, but in general this will lead to a verbose format and
 # should ultimately only be used for the root object (top level object) i.e. should
 # in general only be called from the save/load function.
@@ -172,9 +176,9 @@ macro register_serialization_type(ex::Any, args...)
   for el in args
     if el isa String
       str = el
-    elseif el == Symbol("uses_id")
+    elseif el == :uses_id
       uses_id = true
-    elseif el == Symbol("uses_params")
+    elseif el == :uses_params
       uses_params = true
     end
   end
