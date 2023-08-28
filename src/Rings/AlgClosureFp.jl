@@ -90,6 +90,18 @@ function ext_of_degree(A::AlgClosure, d::Int)
   if haskey(A.fld, d)
     return A.fld[d]
   end
+
+  #see if the subfield lattice already has the field...
+  for x = values(A.fld)
+    degree(x) % d == 0 || continue
+    for (deg, mK) = Nemo.subfields(x)
+      if d == deg
+        A.fld[d] = K = domain(mK[1])
+        return K
+      end
+    end
+  end
+    
   k = base_ring(A)
   if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
     K = GF(Int(characteristic(k)), d, cached = false)
