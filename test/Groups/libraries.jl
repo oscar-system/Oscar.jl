@@ -31,7 +31,7 @@
       is_perfect,
       is_quasisimple,
       is_simple,
-      is_sporadic_simple
+      is_sporadic_simple,
       is_solvable,
       is_supersolvable,
       is_transitive,
