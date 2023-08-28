@@ -70,7 +70,7 @@ end
 @register_serialization_type fpFieldElem uses_params
 
 function save_object(s::SerializerState, elem::fpFieldElem)
-  data_basic(s, string(elem))
+  save_data_basic(s, string(elem))
 end
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem},
@@ -95,7 +95,7 @@ end
 @register_serialization_type FpFieldElem uses_params
 
 function save_object(s::SerializerState, elem::FpFieldElem)
-  data_basic(s, string(elem))
+  save_data_basic(s, string(elem))
 end
 
 function load_object(s::DeserializerState, ::Type{FpFieldElem},
@@ -110,7 +110,7 @@ end
 @register_serialization_type AnticNumberField uses_id
 
 function save_object(s::SerializerState, K::SimpleNumField)
-  data_dict(s) do 
+  save_data_dict(s) do 
     save_typed_object(s, defining_polynomial(K), :def_pol)
     save_object(s, var(K), :var)
   end
@@ -128,7 +128,7 @@ end
 @register_serialization_type fqPolyRepField uses_id
 
 function save_object(s::SerializerState, K::fqPolyRepField)
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, defining_polynomial(K), :def_pol)
   end
 end
@@ -171,7 +171,7 @@ function save_object(s::SerializerState, K::FqField)
   if absolute_degree(K) == 1
     save_object(s, order(K))
   else
-    data_dict(s) do
+    save_data_dict(s) do
       save_typed_object(s, defining_polynomial(K))
     end
   end
@@ -222,7 +222,7 @@ end
 
 function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
   def_pols = defining_polynomials(K)
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, def_pols, :def_pols)
     save_object(s, vars(K), :vars)
   end
@@ -284,7 +284,7 @@ end
 @register_serialization_type FracElem{<:Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}} "FracElem" uses_params
 
 function save_object(s::SerializerState, f::FracElem)
-  data_array(s) do
+  save_data_array(s) do
     save_object(s, numerator(f))
     save_object(s, denominator(f))
   end
@@ -307,7 +307,7 @@ end
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, base_ring(RF), :base_ring)
     syms = symbols(RF)
     save_object(s, syms, :symbols)
@@ -331,7 +331,7 @@ end
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionFieldElem "RationalFunctionFieldElem" uses_params
 
 function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
-  data_array(s) do
+  save_data_array(s) do
     save_object(s, numerator(f))
     save_object(s, denominator(f))
   end
@@ -398,7 +398,7 @@ end
 
 # elements
 function save_object(s::SerializerState, c::acb)
-  data_array(s) do
+  save_data_array(s) do
     save_object(s, real(c))
     save_object(s, imag(c))
   end
@@ -421,7 +421,7 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   g = gen(K)
   g_ball = E(g)
 
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, K, :num_field)
     save_typed_object(s, g_ball, :gen_ball)
   end
@@ -440,7 +440,7 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
   K = number_field(E)
   gen_balls = map(E, gens(K))
 
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, K, :num_field)
     save_typed_object(s, gen_balls, :gen_balls)
   end
@@ -458,7 +458,7 @@ end
 @register_serialization_type FlintPadicField
 
 function save_object(s::SerializerState, P::FlintPadicField)
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, prime(P), :prime)
     save_object(s, precision(P), :precision)
   end

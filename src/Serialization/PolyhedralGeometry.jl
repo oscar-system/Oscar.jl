@@ -31,7 +31,7 @@ end
 # Abstract Polyhedral Object
 
 function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, coefficient_field(obj), :params)
   end
@@ -62,7 +62,7 @@ function save_object(s::SerializerState, lp::LinearProgram)
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-  data_dict(s) do 
+  save_data_dict(s) do 
     save_object(s, lp.feasible_region, :feasible_region)
     save_object(s, lp.convention, :convention)
     save_json(s, jsonstr, :lpcoeffs)
@@ -99,7 +99,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
     Symbol("Core::Serializer"), :serialize, int_vars)
   coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
   int_vars_jsonstr = Polymake.call_function(:common, :encode_json, int_vars_serialized)
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, milp.feasible_region, :feasible_region)
     save_object(s, milp.convention, :convention)
     save_json(s, coeffs_jsonstr, :milp_coeffs)

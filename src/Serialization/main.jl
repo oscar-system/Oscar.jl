@@ -1,11 +1,25 @@
 ################################################################################
 # Description of the saving and loading mechanisms
+#
+# We require that any types serialized through OSCAR are registered using the
+# @register_serialization_type macro, like so
+
+# @register_serialization_type NewType "String Representation of type" uses_id uses_params
+
+# The last three arguments are optional and can arise in any order. Passing a String
+# arguement will override how the type is store as a string. The last two are boolean
+# flags. When setting uses_id the object will be stored as a reference and will be
+# referred to throughout the serialization using a UUID. This should typically only
+# be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
+# Using the uses_params flag will serialize the object with a more structured type
+# description which will make the serialization more efficient see the discussion on
+# save_type_params / load_type_params below.
 
 # There are three pairs of saving and loading functions that are used
 # during serialization:
 # 1. save_typed_object, load_typed_object;
-# 2. save_type_params, load_type_params;
-# 3. save_object, load_object.
+# 2. save_object, load_object.
+# 3. save_type_params, load_type_params;
 #
 # In the following, we discuss each pair in turn.
 
@@ -14,26 +28,30 @@
 
 # For the most part these functions should not be touched, they are high level
 # functions and are used to (de)serialize the object with its
-# type information as well as its data. They can be used on a first attempt at
-# serializing an object, but in general this will lead to a verbose format and
-# should ultimately only be used for the root object (top level object) i.e. should
-# in general only be called from the save/load function.
+# type information as well as its data. The data and type nodes are
+# set in save_typed_object resulting in a "data branch" and "type branch".
+# The usage of these functions can be used inside save_object / load_object
+# and save_type_params / load_type_params. However using save_typed_object inside
+# a save_object implementation will lead to a verbose format and should at some
+# point be move to save_type_params.
 
 ################################################################################
 # save_object / load_object
 
 # These functions are at the core of the serialization and are the first functions
 # that should be implemented when working on the serialization of a new type.
-# Here is where one should use functions data_dict and data_array to structure
-# the serialization.
+# Here is where one should use functions save_data_dict and save_data_array to structure
+# the serialization. The examples show they can be used to save data using the structure
+# of an array or dict. Each nested call to save_data_dict or save_data_array should be
+# called with a key that can be passed as the second parameter.
 
 #  Examples
 #  function save_object(s::SerializerState, obj::NewType)
-#    data_array(s) do
+#    save_data_array(s) do
 #      save_object(s, obj.1)
 #      save_object(s, obj.2)
 #
-#      data_dict(s) do
+#      save_data_dict(s) do
 #        save_object(s, obj.3, :key1)
 #        save_object(s, obj.4, :key2)
 #      end
@@ -51,10 +69,9 @@
 #  ]
 
 #  function save_object(s::SerializerState, obj::NewType)
-#    data_dict(s) do
+#    save_data_dict(s) do
 #      save_object(s, obj.1, :key1)
-#      s.key = :key2
-#      data_array(s) do
+#      save_data_array(s, :key2) do
 #        save_object(s, obj.3)
 #        save_typed_object(s, obj.4) # This is ok
 #      end
@@ -78,25 +95,35 @@
 #   save_object(s, obj.1)
 # end
 
-# This is bad
+# This will throw an error 
 # function save_object(s::SerializerState, obj:NewType)
 #   save_object(s, obj.1, :key)
 # end
-# if you insist on having a key you should
-# first open a data_dict
+
+# If you insist on having a key you should, first open a save_data_dict.
+
+# function save_object(s::SerializerState, obj:NewType)
+#   save_data_dict(s) do
+#     save_object(s, obj.1, :key)
+#   end
+# end
 #
 ################################################################################
 # save_type_params / load_type_params
 
+# The serialization mechanism stores data in the format of a tree, with the
+# exception that some nodes may point to a shared reference. The "data branch"
+# is anything that is a child node of a data node, whereas the "type branch" is
+# any information that is stored in a node that is a child of a type node.
 # Avoiding type information inside the data branch will lead to a more
-# efficient serialization format. When serialize_with_params(MyType) = true
-# type information will be stored as a Dict. This can be set by using the
-# uses_params flag of register_serialization. In general implementing
-# a save_type_params and load_type_params should not happen frequently
-# since many types will serialize their types in a similar fashion
-# for example serialization of a FieldElem will inherit from RingElem
-# since in these instances the only param needed for such types is
-# their parent.
+# efficient serialization format. When the uses_params is set while calling
+# @register_serialization_type (de)serialization will use 
+# save_type_params / load_type_params to format the type information.
+# In general we expect that implementing a save_type_params and load_type_params
+# should not always be necessary. Many types will serialize their types
+# in a similar fashion for example serialization of a FieldElem will
+# use the save_type_params / load_type_params from RingElem since in both cases
+# the only parameter needed for such types is their parent.
 
 using JSON
 using UUIDs
@@ -199,7 +226,7 @@ function decode_type(input::String)
   end
 end
 
-function decode_type(input::Dict)
+function decode_type(input::Dict{Symbol, Any})
   return decode_type(input[:name])
 end
 
@@ -238,22 +265,21 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function save_object(s::SerializerState, x::Any, key::Symbol)
-  s.key = key
+  set_key(s, key)
   save_object(s, x)
 end
 
 function save_json(s::SerializerState, x::Any)
-  data_json(s, x)
+  save_data_json(s, x)
 end
 
 function save_json(s::SerializerState, x::Any, key::Symbol)
-  s.key = key
+  set_key(s, key)
   save_json(s, x)
 end
 
 function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
-  s.key = key
-  data_dict(s) do
+  save_data_dict(s, key) do
     for (k, v) in h
       save_object(s, v, k)
     end
@@ -273,20 +299,20 @@ function save_typed_object(s::SerializerState, x::T) where T
 end
 
 function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
-  s.key = key
+  set_key(s, key)
   if serialize_with_id(x)
     # key should already be set before function call
     ref = save_as_ref(s, x)
     save_object(s, ref)
   else
-    data_dict(s) do 
+    save_data_dict(s) do 
       save_typed_object(s, x)
     end
   end
 end
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
-  s.key = key
+  set_key(s, key)
   save_type_params(s, obj)
 end
 
@@ -322,8 +348,7 @@ end
 ################################################################################
 # Default generic save_internal, load_internal
 function save_object_generic(s::SerializerState, obj::T) where T
-  s.key = :data
-  data_dict(s) do
+  save_data_dict(s, :data) do
     for n in fieldnames(T)
       if n != :__attrs
         save_typed_object(s, getfield(obj, n), Symbol(n))
@@ -416,7 +441,7 @@ julia> load("/tmp/fourtitwo.json")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where T
   state = serializer_open(io)
-  data_dict(state) do
+  save_data_dict(state) do
     save_typed_object(state, obj)
 
     if serialize_with_id(T)
@@ -429,12 +454,11 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
     end
     
     # this should be handled by serializers in a later commit / PR
-    state.key = :refs
-    !isempty(state.refs) && data_dict(state) do
+    !isempty(state.refs) && save_data_dict(state, :refs) do
       for id in state.refs
         ref_obj = global_serializer_state.id_to_obj[id]
         state.key = Symbol(id)
-        data_dict(state) do
+        save_data_dict(state) do
           save_typed_object(state, ref_obj)
         end
       end

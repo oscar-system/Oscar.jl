@@ -6,9 +6,8 @@ has_elem_basic_encoding(obj::TropicalSemiring) = true
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params
 
-function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
-  s.key = key
-  data_dict(s) do
+function save_type_params(s::SerializerState, x::TropicalSemiringElem)
+  save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, parent(x), :params)
   end
@@ -45,7 +44,7 @@ end
 @register_serialization_type TropicalCurve uses_id
 
 function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
-  data_dict(s) do 
+  save_data_dict(s) do 
     if EMB
       save_typed_object(s, underlying_polyhedral_complex(t_curve), :polyhedral_complex)
       save_object(s, true, :is_embedded)

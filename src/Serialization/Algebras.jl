@@ -5,7 +5,7 @@
 @register_serialization_type FreeAssAlgebra uses_id
 
 function save_object(s::SerializerState, A::FreeAssAlgebra)
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, base_ring(A), :base_ring),
     save_object(s, symbols(A), :symbols)
   end
@@ -23,9 +23,9 @@ end
 # see save_type_params in Rings
 
 function save_object(s::SerializerState, f::FreeAssAlgElem)
-  data_array(s) do
+  save_data_array(s) do
     for term in terms(f)
-      data_array(s) do
+      save_data_array(s) do
         save_object(s, collect(exponent_words(term))[1])
         save_object(s, collect(coefficients(term))[1])
       end

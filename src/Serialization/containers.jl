@@ -11,7 +11,7 @@ get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
 const MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(S), :name)
     if serialize_with_params(T)
       if hasmethod(parent, (T,))
@@ -41,7 +41,7 @@ function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_p
 end
 
 function save_object(s::SerializerState, x::Vector)
-  data_array(s) do
+  save_data_array(s) do
     for elem in x
       save_object(s, elem)
     end
@@ -71,11 +71,10 @@ end
 @register_serialization_type Tuple uses_params
 
 function save_type_params(s::SerializerState, tup::T) where T <: Tuple
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(Tuple), :name)
     n = fieldcount(T)
-    s.key = :params
-    data_array(s) do 
+    save_data_array(s, :params) do 
       for i in 1:n
         U = fieldtype(T, i)
         if serialize_with_params(U)
@@ -102,7 +101,7 @@ function load_type_params(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
 end
 
 function save_object(s::SerializerState, obj::Tuple)
-  data_array(s) do 
+  save_data_array(s) do 
     for entry in obj
       save_object(s, entry)
     end
@@ -122,12 +121,10 @@ end
 @register_serialization_type NamedTuple uses_params
 
 function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(NamedTuple), :name)
-    s.key = :params
-    data_dict(s) do
-      s.key = :tuple_params
-      data_array(s) do 
+    save_data_dict(s, :params) do
+      save_data_array(s, :tuple_params) do 
         for (i, value) in enumerate(values(obj))
           U = fieldtype(T, i)
           if serialize_with_params(U)
@@ -174,7 +171,7 @@ end
   
 function save_object(s::SerializerState, mat::Matrix)
   m, n = size(mat)
-  data_array(s) do
+  save_data_array(s) do
     for i in 1:m
       save_object(s, [mat[i, j] for j in 1:n])
     end

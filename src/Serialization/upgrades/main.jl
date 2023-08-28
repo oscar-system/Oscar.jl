@@ -66,7 +66,7 @@ sort!(upgrade_scripts; by=version)
 
 ################################################################################
 # Loading with upgrade checks on dict
-const backref_sym = "#backref"
+const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version

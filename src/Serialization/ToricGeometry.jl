@@ -16,7 +16,7 @@ end
 @register_serialization_type ToricDivisor uses_params
 
 function save_type_params(s::SerializerState, obj::ToricDivisor)
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(ToricDivisor), :name)
     save_typed_object(s, obj.toric_variety, :params)
   end

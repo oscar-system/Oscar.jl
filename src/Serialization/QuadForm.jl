@@ -4,7 +4,7 @@
 @register_serialization_type ZZLat
 
 function save_type_params(s::SerializerState, V::Hecke.QuadSpace)
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(Hecke.QuadSpace), :name)
     save_type_params(s, gram_matrix(V), :params)
   end
@@ -32,7 +32,7 @@ end
 # We should move this somewhere else at some point, maybe when there is a section
 # on modules
 function save_object(s::SerializerState, L::ZZLat)
-  data_dict(s) do
+  save_data_dict(s) do
     save_typed_object(s, basis_matrix(L), :basis)
     save_typed_object(s, ambient_space(L), :ambient_space)
   end
