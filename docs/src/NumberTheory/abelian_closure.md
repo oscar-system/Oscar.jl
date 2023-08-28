@@ -21,6 +21,8 @@ Given the abelian closure, the generator can be recovered as follows:
 
 ```@docs
 gen(::QQAbField)
+atlas_irrationality
+atlas_description
 ```
 
 ## Printing

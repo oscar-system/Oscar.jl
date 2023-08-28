@@ -241,12 +241,14 @@ export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
 export anticanonical_divisor_class
+export approximate_class_fusion
 export archimedean_solid
 export as_dictionary
 export as_gset
 export as_perm_group
 export as_polycyclic_group
 export associahedron
+export atlas_description
 export atlas_group
 export atlas_irrationality
 export atlas_program
