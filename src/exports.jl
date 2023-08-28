@@ -241,6 +241,7 @@ export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
 export anticanonical_divisor_class
+export approximate_class_fusion
 export archimedean_solid
 export as_dictionary
 export as_gset
@@ -674,7 +675,6 @@ export induced_automorphism
 export induced_cyclic
 export induced_ring_ordering
 export initial
-export init_class_fusion
 export inneighbors
 export inner_automorphism
 export inner_automorphism_group

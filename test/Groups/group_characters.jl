@@ -958,8 +958,8 @@ end
   @test fus1 == fus2
   fus3 = possible_class_fusions(subtbl, tbl, fusionmap = fus1[1])
   @test length(fus3) == 1 && fus3[1] == fus1[1]
-  @test init_class_fusion(subtbl, tbl) == [1, 2, [3, 4], [6, 7], [6, 7]]
-  @test init_class_fusion(tbl, subtbl) == []
+  @test approximate_class_fusion(subtbl, tbl) == [1, 2, [3, 4], [6, 7], [6, 7]]
+  @test approximate_class_fusion(tbl, subtbl) == []
 end
 
 @testset "normal subgroups" begin

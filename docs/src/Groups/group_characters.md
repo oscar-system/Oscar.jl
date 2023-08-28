@@ -206,7 +206,7 @@ class_multiplication_coefficient
 known_class_fusion
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
-init_class_fusion
+approximate_class_fusion
 ```
 
 ## Character tables and normal subgroups

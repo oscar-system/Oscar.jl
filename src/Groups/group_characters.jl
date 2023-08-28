@@ -1294,8 +1294,8 @@ end
 class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(ZZRingElem, tbl, i, j, k)
 
 @doc raw"""
-    init_class_fusion(subtbl::GAPGroupCharacterTable,
-                      tbl::GAPGroupCharacterTable)
+    approximate_class_fusion(subtbl::GAPGroupCharacterTable,
+                             tbl::GAPGroupCharacterTable)
 
 Compute for each class of `subtbl` all those classes in `tbl` to which it can
 fuse under an embedding of the group of `subtbl` into the group of `tbl`,
@@ -1309,13 +1309,15 @@ image classes.
 
 # Examples
 ```jldoctest
-julia> println(init_class_fusion(character_table("A5"), character_table("A6")))
+julia> subtbl = character_table("A5"); tbl = character_table("A6");
+
+julia> println(approximate_class_fusion(subtbl, tbl))
 Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
 
 ```
 """
-function init_class_fusion(subtbl::GAPGroupCharacterTable,
-                           tbl::GAPGroupCharacterTable)
+function approximate_class_fusion(subtbl::GAPGroupCharacterTable,
+                                  tbl::GAPGroupCharacterTable)
   fus = GAPWrap.InitFusion(GAPTable(subtbl), GAPTable(tbl))
   res = Union{Int, Vector{Int}}[]
   fus == GAP.Globals.fail && return res
