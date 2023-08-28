@@ -280,6 +280,7 @@ function load_object(s::DeserializerState, ::Type{<: FracField}, str::String)
 end
 
 # elements
+# we use the union to prevent QQFieldElem being registered here
 @register_serialization_type FracElem{<:Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}} "FracElem" uses_params
 
 function save_object(s::SerializerState, f::FracElem)
