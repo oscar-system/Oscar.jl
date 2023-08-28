@@ -24,15 +24,6 @@ function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   return parents
 end
 
-function save_parents(s::SerializerState, parent_ring::T) where T <: RingMatSpaceUnion
-  parents = get_parents(parent_ring)
-  refs = []
-  for p in parents
-    push!(refs, save_as_ref(s, p))
-  end
-  return refs
-end
-
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
