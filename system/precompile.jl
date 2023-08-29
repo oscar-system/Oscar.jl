@@ -6,10 +6,5 @@ Pkg.add("Aqua")
 
 Pkg.precompile()
 
-println("Path of Oscar is $(pkgdir(Oscar))")
-
-exit(1)
-
 include(joinpath(pkgdir(Oscar), "test", "runtests.jl"))
 Hecke.system("precompile.jl")
-

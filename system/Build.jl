@@ -4,13 +4,9 @@ end
 
 oscarpath = pkgdir(Oscar)
 
-println("=====================")
-println(oscarpath)
-println("=====================")
-
 using Pkg
 Pkg.activate(temp=true)
-Pkg.add(path="$(oscarpath)")
+Pkg.develop(path="$(oscarpath)")
 using Oscar
 Pkg.add("PackageCompiler")
 Pkg.add("Libdl")
@@ -23,11 +19,9 @@ CO = joinpath(tmp, "CompileOscar.jl")
 
 write(CO, """
 using Pkg
-Pkg.add(path="$(oscarpath)")
-Pkg.precompile()
+Pkg.develop(path="$(oscarpath)")
 using Oscar
 using Test
-println("oscarpath is $(oscarpath) , while Oscar path is $(pkgdir(Oscar))")
 Oscar.system("precompile.jl")
 """)
 
