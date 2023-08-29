@@ -59,14 +59,16 @@ function image_ideal(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     M1 = matrix(mixed_ring_xy,m,m,[zz[i,j] for i in 1:m for j in 1:m])
     ztozz = hom(R,mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
     #rep_mat in the new ring
-    new_rep_map = matrix(mixed_ring_xy,n,n,[image_in_map(rep_mat[i,j], ztozz) for i in 1:n, j in 1:n])
+    new_rep_map = matrix(mixed_ring_xy,n,n,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
     new_vars = new_rep_map*[x[i] for i in 1:n]
     ideal_vect = [y[i] - new_vars[i] for i in 1:n]
     Base.push!(ideal_vect,det(M1) - 1)
     return (ideal(mixed_ring_xy, ideal_vect), new_rep_map)
 end
 
+
 #tested
+#don't need this
 function image_in_map(X::Union{MPolyRingElem,AbstractAlgebra.Generic.MPoly}, f::Oscar.MPolyAnyMap)
     #x in f.domain || error
     answer = f.codomain()
@@ -147,22 +149,23 @@ function inv_generators(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceEle
     m = Int(sqrt(ngens(parent(det_))))
     n = ncols(rep_mat)
     mapp_ = hom(parent(rep_mat[1,1]), mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
-    new_det = image_in_map(det_, mapp_)
+    new_det = mapp_(det_)
     #new_gens_wrong_ring = Vector{Union{MPolyRingElem,AbstractAlgebra.Generic.MPoly}}(undef,0) #what do i do here?
     #for gen in genss
      #   Base.push!(new_gens_wrong_ring, reynolds__(gen, m, new_rep_mat, new_det))
     #end
-    new_gens_wrong_ring = [reynolds__(genss[i], new_rep_mat, new_det) for i in 1:length(genss)]
+    new_gens_wrong_ring = [reynolds__(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
     img_genss = vcat(gens(ringg), zeros(ringg, n+m^2))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
     new_gens = Vector{MPolyRingElem}(undef,0)
     for elemm in new_gens_wrong_ring
-        Base.push!(new_gens, image_in_map(elemm, mixed_to_ring))
+        Base.push!(new_gens, mixed_to_ring(elemm))
     end
     return new_gens
 end
 
-function image_in_action_ring(X::MPolyRingElem, map::MPolyAnyMap)
+#don't need this
+function image_in_action_ring(X::MPolyRingElem, map::Oscar.MPolyAnyMap)
     #X in f.domain || error
     n = ngens(f.domain)
     answer = parent(X)()
@@ -195,8 +198,7 @@ function mu_star(new_rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     return D
 end
 
-function reynolds__(elem::MPolyRingElem, new_rep_mat::T where T<:AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyRingElem)
-    n = ncols(new_rep_mat)
+function reynolds__(elem::MPolyRingElem, new_rep_mat::T where T<:AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyRingElem, m)
     D = mu_star(new_rep_mat)
     mixed_ring_xy = parent(elem)
     sum = mixed_ring_xy()
@@ -212,17 +214,27 @@ function reynolds__(elem::MPolyRingElem, new_rep_mat::T where T<:AbstractAlgebra
         end
         sum += k
     end
-    if !divides(total_degree(sum), n)[1]
+    t = needed_degree(sum, m)
+    if !divides(t, m)[1]
         return parent(elem)()
     else
-        p = divexact(total_degree(sum), n)
+        p = divexact(t, m)
     end
     num = omegap(p, new_det, sum)
+    #num = omegap(p, new_det, elem)
     den = omegap(p, new_det, (new_det)^p)
     if denominator(num//den) != 1
         @error("denominatior of reynolds not rational")
     end
     return numerator(num//den)
+end
+
+function needed_degree(elem::MPolyElem, m::Int64)
+    R = parent(elem)
+    n = numerator((ngens(R) - m^2)//2)
+    extra_ring, zzz = PolynomialRing(base_ring(R), "zzz"=>1:m^2)
+    mapp = hom(R,extra_ring, vcat([1 for i in 1:2*n], gens(extra_ring)))
+    return total_degree(mapp(elem))
 end
 
 #works
@@ -285,7 +297,7 @@ function rep_mat_(m::Int64, field::Field, sym_deg::Int64)
     #we have to return mat in a different ring! 
     group_ring, Z = PolynomialRing(field, "Z"=>(1:m, 1:m))
     mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
-    Mat = matrix(group_ring, n, n, [image_in_map(mat[i,j], mapp) for i in 1:n, j in 1:n])
+    Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
     return Mat            
 end
 
