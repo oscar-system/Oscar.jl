@@ -264,11 +264,13 @@ end
 @register_serialization_type FracField uses_id
 
 function save_object(s::SerializerState, K::FracField)
-  save_typed_object(s, base_ring(K), :data)
+  save_data_dict(s) do 
+    save_typed_object(s, base_ring(K), :base_ring)
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{<: FracField}, dict::Dict)
-  R = load_typed_object(s, dict)
+  R = load_typed_object(s, dict[:base_ring])
 
   return fraction_field(R, cached=false)
 end

@@ -442,6 +442,9 @@ julia> load("/tmp/fourtitwo.json")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where T
   state = serializer_open(io)
   save_data_dict(state) do
+    # write out the namespace first
+    save_header(state, oscar_serialization_version, :_ns)
+
     save_typed_object(state, obj)
 
     if serialize_with_id(T)
@@ -463,7 +466,6 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
         end
       end
     end
-    save_header(state, oscar_serialization_version, :_ns)
     
     if !isnothing(metadata)
       save_json(state, json(metadata), :meta)

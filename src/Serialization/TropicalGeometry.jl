@@ -32,11 +32,13 @@ end
 @register_serialization_type TropicalHypersurface uses_id
 
 function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
-  save_typed_object(s, polynomial(t_surf), :data)
+  save_data_dict(s) do
+    save_typed_object(s, polynomial(t_surf), :polynomial)
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
-  polynomial = load_typed_object(s, dict)
+  polynomial = load_typed_object(s, dict[:polynomial])
   return TropicalHypersurface(polynomial)
 end
 
