@@ -22,6 +22,13 @@ underlying_scheme(X::AffineNormalToricVariety)
 underlying_scheme(X::NormalToricVariety)
 ```
 
+We also provide functionality to forget the toric structure completely.
+In this sense, the following methods return the underlying covered scheme,
+but this scheme does not remember being a toric variety.
+```@docs
+forget_toric_structure(X::AffineNormalToricVariety)
+forget_toric_structure(X::NormalToricVariety)
+```
 
 ## Contact
 
