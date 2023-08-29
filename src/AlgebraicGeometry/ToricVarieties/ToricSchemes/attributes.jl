@@ -49,7 +49,7 @@ with default covering
     1: normal, affine toric variety
     2: normal, affine toric variety
     3: normal, affine toric variety
-  in the coordinate(s)Od
+  in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]
     3: [x_1_3, x_2_3]
