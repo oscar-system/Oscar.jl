@@ -27,4 +27,19 @@ using Test
     @test is_smooth(underlying_scheme(Y)) == is_smooth(Y)
     @test length(values(glueings(default_covering(Y)))) == 16
   end
+
+  IP2 = projective_space(NormalToricVariety, 2; set_attributes = set_attributes)
+  X, iso = Oscar.forget_toric_structure(IP2)
+
+  @testset "Forget toric structure" begin
+    @test X isa CoveredScheme
+    @test codomain(iso) === IP2
+    @test is_smooth(X) == is_smooth(IP2)
+    @test length(keys(glueings(default_covering(X)))) == 9
+    @test domain(iso) === X
+    @test codomain(iso) === IP2
+    @test domain(inverse(iso)) === IP2
+    @test codomain(inverse(iso)) === X 
+  end
+
 end

@@ -1,5 +1,94 @@
 #######################################
-### 1: Underlying scheme
+### Forget toric structure
+#######################################
+
+@doc raw"""
+    forget_toric_structure(X::AffineNormalToricVariety)
+
+Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure, 
+together with an isomorphism `iso : Y → X`.
+
+# Examples
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia> antv = affine_normal_toric_variety(C)
+Normal, affine toric variety
+
+julia> forget_toric_structure(antv)
+(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> Normal, affine toric variety)
+```
+"""
+function forget_toric_structure(X::AffineNormalToricVariety)
+  Y = underlying_scheme(X)
+  iso = SpecMor(Y, X, identity_map(OO(X)), check=true)
+  iso_inv = SpecMor(X, Y, identity_map(OO(X)), check=true)
+  set_attribute!(iso, :inverse => iso_inv)
+  set_attribute!(iso_inv, :inverse => iso)
+  return Y, iso
+end
+
+@doc raw"""
+    forget_toric_structure(X::NormalToricVariety)
+
+Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure, 
+together with an isomorphism `iso : Y → X`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> forget_toric_structure(P2)
+(Scheme over QQ covered with 3 patches, Morphism: scheme over QQ covered with 3 patches -> normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor)
+```
+"""
+function forget_toric_structure(X::NormalToricVariety)
+  # Collect all the isomorphisms forgetting the toric structure
+  iso_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in affine_charts(X)
+    iso_dict[U] = forget_toric_structure(U)[2] # store only the isomorphism
+  end
+  cov = Covering([domain(phi) for (U, phi) in iso_dict])
+
+  # Prepare a dictionary that can be used in the constructor of the covering morphism
+  iso_dict_covariant = IdDict{AbsSpec, AbsSpecMor}()
+  for (U, phi) in iso_dict
+    iso_dict_covariant[domain(phi)] = phi
+  end
+
+  # Recreate all the glueings with the new patches
+  for U in affine_charts(X), V in affine_charts(X)
+    glue = default_covering(X)[U, V]
+    new_glue = restrict(glue, inverse(iso_dict[U]), inverse(iso_dict[V]), check=true)
+    add_glueing!(cov, new_glue)
+  end
+
+  # Prepare the underlying covering morphisms for the identifying isomorphisms
+  iso_cov = CoveringMorphism(cov, default_covering(X), iso_dict_covariant)
+  inv_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for (U, phi) in iso_dict
+    inv_dict[U] = inverse(phi)
+  end
+  iso_cov_inv = CoveringMorphism(default_covering(X), cov, inv_dict)
+
+  # Create the actual scheme without toric structure
+  Y = CoveredScheme(cov)
+
+  # Make the identifying isomorphisms
+  iso = CoveredSchemeMorphism(Y, X, iso_cov)
+  iso_inv = CoveredSchemeMorphism(X, Y, iso_cov_inv)
+  
+  set_attribute!(iso, :inverse => iso_inv)
+  set_attribute!(iso_inv, :inverse => iso)
+
+  return Y, iso
+end
+
+
+#######################################
+### Underlying scheme
 #######################################
 
 @doc raw"""
@@ -133,4 +222,3 @@ function _compute_image_generators(AX::ZZMatrix, AY::ZZMatrix, vmat::ZZMatrix)
   Idext[l,l] = 0
   img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
 end
-
