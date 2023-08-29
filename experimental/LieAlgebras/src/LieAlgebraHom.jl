@@ -1,6 +1,6 @@
 @attributes mutable struct LieAlgebraHom{T1<:LieAlgebra,T2<:LieAlgebra} <:
                            Map{T1,T2,Hecke.HeckeMap,LieAlgebraHom}
-  header::MapHeader
+  header::MapHeader{T1,T2}
   matrix::MatElem
 
   inverse_isomorphism::LieAlgebraHom{T2,T1}
@@ -109,7 +109,7 @@ Return the image of `x` under `h`.
 """
 function image(h::LieAlgebraHom, x::LieAlgebraElem)
   @req parent(x) === domain(h) "Domain mismatch"
-  return codomain(h)(_matrix(x) * h.matrix)
+  return codomain(h)(_matrix(x) * matrix(h))
 end
 
 @doc raw"""
@@ -168,12 +168,12 @@ function compose(
   f::LieAlgebraHom{T1,T2}, g::LieAlgebraHom{T2,T3}
 ) where {T1<:LieAlgebra,T2<:LieAlgebra,T3<:LieAlgebra}
   @req codomain(f) === domain(g) "Composition: Maps are not compatible"
-  h = LieAlgebraHom(domain(f), codomain(g), f.matrix * g.matrix; check=false)
+  h = LieAlgebraHom(domain(f), codomain(g), matrix(f) * matrix(g); check=false)
   if isdefined(f, :inverse_isomorphism) && isdefined(g, :inverse_isomorphism)
     h.inverse_isomorphism = LieAlgebraHom(
       codomain(g),
       domain(f),
-      g.inverse_isomorphism.matrix * f.inverse_isomorphism.matrix;
+      matrix(g.inverse_isomorphism) * matrix(f.inverse_isomorphism);
       check=false,
     )
     h.inverse_isomorphism.inverse_isomorphism = h
@@ -201,7 +201,7 @@ The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this 
 """
 @attr Bool function is_isomorphism(h::LieAlgebraHom)
   isdefined(h, :inverse_isomorphism) && return true
-  fl, invmat = is_invertible_with_inverse(h.matrix)
+  fl, invmat = is_invertible_with_inverse(matrix(h))
   fl || return false
   h.inverse_isomorphism = LieAlgebraHom(codomain(h), domain(h), invmat; check=false)
   h.inverse_isomorphism.inverse_isomorphism = h

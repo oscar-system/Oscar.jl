@@ -367,22 +367,23 @@ function (V::LieAlgebraModule{C})(
   elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
     @req all(x -> parent(x) === base_module(V), a) "Incompatible modules."
-    mat = zero_matrix(coefficient_ring(V), 1, dim(V))
+    R = coefficient_ring(V)
+    mat = zero_matrix(R, 1, dim(V))
     if is_exterior_power(V)
       for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
         (inds, sgn) in permutations_with_sign(_inds)
 
-        mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds))
+        mat[1, i] += sgn * prod(a[j].mat[k] for (j, k) in enumerate(inds); init=one(R))
       end
     elseif is_symmetric_power(V)
       for (i, _inds) in enumerate(get_attribute(V, :ind_map)),
         inds in unique(permutations(_inds))
 
-        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds); init=one(R))
       end
     elseif is_tensor_power(V)
       for (i, inds) in enumerate(get_attribute(V, :ind_map))
-        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
+        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds); init=one(R))
       end
     end
     return LieAlgebraModuleElem{C}(V, mat)
