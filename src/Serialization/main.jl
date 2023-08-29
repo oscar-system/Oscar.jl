@@ -2,12 +2,12 @@
 # Description of the saving and loading mechanisms
 #
 # We require that any types serialized through OSCAR are registered using the
-# @register_serialization_type macro, like so
+# @register_serialization_type macro. For more information, see its docstring.
 
 # @register_serialization_type NewType "String Representation of type" uses_id uses_params
 
-# The last three arguments are optional and can arise in any order. Passing a String
-# arguement will override how the type is store as a string. The last two are boolean
+# The last three arguments are optional and can arise in any order. Passing a string
+# argument will override how the type is stored as a string. The last two are boolean
 # flags. When setting uses_id the object will be stored as a reference and will be
 # referred to throughout the serialization using a UUID. This should typically only
 # be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
