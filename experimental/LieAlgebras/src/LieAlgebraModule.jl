@@ -925,6 +925,7 @@ over special linear Lie algebra of degree 3 over QQ
 ```
 """
 function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+  @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V), k)
   ind_map = collect(combinations(1:dim(V), k))
@@ -942,7 +943,9 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     basis_change_T2E * transformation_matrix(T, i) * basis_change_E2T
   end
 
-  s = if k == 1
+  s = if k == 0
+    [Symbol("1")]
+  elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
     [Symbol(join(s, " ∧ ")) for s in combinations(symbols(V), k)]
@@ -978,6 +981,7 @@ over special linear Lie algebra of degree 3 over QQ
 ```
 """
 function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+  @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   dim_pow_V = binomial(dim(V) + k - 1, k)
   ind_map = collect(multicombinations(1:dim(V), k))
@@ -995,7 +999,9 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     basis_change_T2S * transformation_matrix(T, i) * basis_change_S2T
   end
 
-  s = if k == 1
+  s = if k == 0
+    [Symbol("1")]
+  elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
     [
@@ -1051,16 +1057,22 @@ over special linear Lie algebra of degree 3 over QQ
 ```
 """
 function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+  @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   dim_pow_V = dim(V)^k
-  ind_map = reverse.(collect(ProductIterator(1:dim(V), k)))
+  ind_map = k > 0 ? reverse.(collect(ProductIterator(1:dim(V), k))) : [Int[]]
 
   transformation_matrices = map(1:dim(L)) do i
     y = transformation_matrix(V, i)
-    sum(reduce(kronecker_product, (j == i ? y : one(y) for j in 1:k)) for i in 1:k)
+    sum(
+      reduce(kronecker_product, (j == i ? y : one(y) for j in 1:k)) for i in 1:k;
+      init=zero_matrix(coefficient_ring(V), dim_pow_V, dim_pow_V),
+    )
   end
 
-  s = if k == 1
+  s = if k == 0
+    [Symbol("1")]
+  elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
     [Symbol(join(s, " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
