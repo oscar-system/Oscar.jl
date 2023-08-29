@@ -8,7 +8,7 @@
       @test is_smooth(X) == true
       @test (a < 2) == is_fano(X)
       @test rank(picard_group(X)) == 2
-      @test integrate(cohomology_class(anticanonical_divisor(X))^dim(X)) == integrate(cohomology_class(anticanonical_divisor(hirzebruch_surface(a)))^2)
+      @test integrate(cohomology_class(anticanonical_divisor(X))^dim(X)) == integrate(cohomology_class(anticanonical_divisor(hirzebruch_surface(NormalToricVariety, a)))^2)
     end
   end
 

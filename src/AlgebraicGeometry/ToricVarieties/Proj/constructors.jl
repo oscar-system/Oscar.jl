@@ -1,5 +1,5 @@
 @doc raw"""
-        function proj(E::ToricLineBundle...)::Union{Nothing,NormalToricVariety}
+    function proj(E::ToricLineBundle...)
 
 This function computes the projectivization of a direct sum of line bundles or divisors.
 
@@ -22,24 +22,21 @@ julia> Y = proj(L1,L2)
 Normal toric variety
 ```
 """
-function proj(E::ToricLineBundle...)::Union{Nothing,NormalToricVariety}
-    return _proj(E...)
+function proj(E::ToricLineBundle...)
+    return _proj([E...,])
 end
 
-function proj(E::ToricDivisor...)::Union{Nothing,NormalToricVariety}
-    return _proj(E...)
+function proj(E::ToricDivisor...)
+    return _proj([E...,])
 end
 
-function _proj(E...)::Union{Nothing,NormalToricVariety}
+function _proj(E::Vector{T}) where T<: Union{ToricDivisor,ToricLineBundle}
 
     v = toric_variety(E[1])
 
     length(E) == 1 && return v
 
-    if any(i -> toric_variety(E[i]) != v, eachindex(E))
-        error("The divisors are defined on different toric varieties.")
-        return nothing
-    end
+    @req all(i -> toric_variety(E[i]) == v, eachindex(E)) "The divisors are defined on different toric varieties."
 
     PF_Pr = normal_fan(simplex(length(E) - 1))
     l = rays(PF_Pr)
