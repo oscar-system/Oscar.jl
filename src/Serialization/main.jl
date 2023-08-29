@@ -160,7 +160,7 @@ const oscar_serialization_version = get_version_info()
 # parameters of type should not matter here
 const reverse_type_map = Dict{String, Type}()
 
-function register_serialization_type1(@nospecialize(T::Type), str::String)
+function register_serialization_type(@nospecialize(T::Type), str::String)
   if haskey(reverse_type_map, str) && reverse_type_map[str] != T
     error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
   end
