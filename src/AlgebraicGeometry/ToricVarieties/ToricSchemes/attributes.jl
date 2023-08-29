@@ -49,7 +49,7 @@ with default covering
     1: normal, affine toric variety
     2: normal, affine toric variety
     3: normal, affine toric variety
-  in the coordinate(s)
+  in the coordinate(s)Od
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]
     3: [x_1_3, x_2_3]
@@ -68,65 +68,14 @@ with default covering
   
   for i in 1:(length(patch_list)-1)
     for j in i+1:length(patch_list)
-      
       X = patch_list[i]
       Y = patch_list[j]
-      
-      # Step 1: Only glue if the cone of intersection has the "right" dimension:
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue
-      
-      # Step 2: Find localization element vmat
-      CXdual = dual_cone(X)
-      CYdual = dual_cone(Y)
-      candidates = polarize(facet).pm_cone.HILBERT_BASIS_GENERATORS[2]
-      pos = findfirst(j -> ((candidates[j,:] in CXdual) && ((-candidates[j,:]) in CYdual)), 1:nrows(candidates))
-      sign = 1
-      if pos === nothing
-        pos = findfirst(j -> (((-candidates[j,:]) in CXdual) && (candidates[j,:] in CYdual)), 1:nrows(candidates))
-        sign = -1
-      end
-      @req pos !== nothing "no element found for localization"
-      vmat = sign * matrix(ZZ.(collect(candidates[pos,:])))
-      
-      # Step 3: Localize X at vmat
-      AX = transpose(hilbert_basis(X))
-      Id = identity_matrix(ZZ, ncols(AX))
-      sol = solve_mixed(AX, vmat, Id, zero(vmat))
-      fX = prod([x^k for (x, k) in zip(gens(ambient_coordinate_ring(X)), sol)])
-      U = PrincipalOpenSubset(X, OO(X)(fX))
-      
-      # Step 4: Localize Y at vmat
-      AY = transpose(hilbert_basis(Y))
-      Id = identity_matrix(ZZ, ncols(AY))
-      sol = solve_mixed(AY, -vmat, Id, zero(vmat))
-      fY = prod([x^(k>0 ? 1 : 0) for (x, k) in zip(gens(ambient_coordinate_ring(Y)), sol)])
-      V = PrincipalOpenSubset(Y, OO(Y)(fY))
-      
-      # Step 5: Compute the glueing isomorphisms V -> U
-      l = findfirst(j -> (vmat == AX[:,j]), 1:ncols(AX))
-      Idext = identity_matrix(ZZ, ncols(AX))
-      Idext[l,l] = 0
-      img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
-      fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
-      
-      # Step 6: Compute the glueing isomorphisms U -> V
-      l = findfirst(j -> (-vmat == AY[:,j]), 1:ncols(AY))
-      Idext = identity_matrix(ZZ, ncols(AY))
-      Idext[l,l] = 0
-      img_gens = [solve_mixed(AY, AX[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AX)]
-      gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
-      
-      # Step 7: Assign the gluing isomorphisms
-      set_attribute!(gres, :inverse, fres)
-      set_attribute!(fres, :inverse, gres)
-      f = SpecMor(U, V, fres)
-      g = SpecMor(V, U, gres)
-      set_attribute!(g, :inverse, f)
-      set_attribute!(f, :inverse, g)
-      G = SimpleGlueing(X, Y, f, g)
-      add_glueing!(cov, G)
-      
+      vmat = _find_localization_element(cone(X), cone(Y), facet)
+      U = _localize_affine_toric_variety(X, vmat)
+      V = _localize_affine_toric_variety(Y, (-1)*vmat)
+      add_glueing!(cov, _compute_gluings(X, Y, vmat, U, V))
     end
   end
   
@@ -135,3 +84,53 @@ with default covering
   fill_transitions!(cov)
   return CoveredScheme(cov)
 end
+
+
+function _find_localization_element(X::Cone{QQFieldElem}, Y::Cone{QQFieldElem}, facet::Cone{QQFieldElem})
+  CXdual = polarize(X)
+  CYdual = polarize(Y)
+  candidates = polarize(facet).pm_cone.HILBERT_BASIS_GENERATORS[2]
+  pos = findfirst(j -> ((candidates[j,:] in CXdual) && ((-candidates[j,:]) in CYdual)), 1:nrows(candidates))
+  sign = 1
+  if pos === nothing
+    pos = findfirst(j -> (((-candidates[j,:]) in CXdual) && (candidates[j,:] in CYdual)), 1:nrows(candidates))
+    sign = -1
+  end
+  @req pos !== nothing "no element found for localization"
+  return sign * matrix(ZZ.(collect(candidates[pos,:])))
+end
+
+
+function _localize_affine_toric_variety(X::AffineNormalToricVariety, vmat::ZZMatrix)
+  AX = transpose(hilbert_basis(X))
+  Id = identity_matrix(ZZ, ncols(AX))
+  sol = solve_mixed(AX, vmat, Id, zero(vmat))
+  fX = prod([x^k for (x, k) in zip(gens(ambient_coordinate_ring(X)), sol)])
+  return PrincipalOpenSubset(X, OO(X)(fX))
+end
+
+
+function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVariety, vmat::ZZMatrix, U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+  AX = transpose(hilbert_basis(X))
+  AY = transpose(hilbert_basis(Y))
+  img_gens = _compute_image_generators(AX, AY, vmat)
+  fres = hom(OO(V), OO(U), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(U)), w)]) for w in img_gens])
+  img_gens = _compute_image_generators(AY, AX, (-1)*vmat)
+  gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
+  set_attribute!(gres, :inverse, fres)
+  set_attribute!(fres, :inverse, gres)
+  f = SpecMor(U, V, fres)
+  g = SpecMor(V, U, gres)
+  set_attribute!(g, :inverse, f)
+  set_attribute!(f, :inverse, g)
+  return SimpleGlueing(X, Y, f, g)
+end
+
+
+function _compute_image_generators(AX::ZZMatrix, AY::ZZMatrix, vmat::ZZMatrix)
+  l = findfirst(j -> (vmat == AX[:,j]), 1:ncols(AX))
+  Idext = identity_matrix(ZZ, ncols(AX))
+  Idext[l,l] = 0
+  img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
+end
+
