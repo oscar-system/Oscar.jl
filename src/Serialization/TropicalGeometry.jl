@@ -1,15 +1,13 @@
 # Tropical Semiring
-@registerSerializationType(TropicalSemiring{typeof(min)})
-@registerSerializationType(TropicalSemiring{typeof(max)})
+@register_serialization_type TropicalSemiring{typeof(min)}
+@register_serialization_type TropicalSemiring{typeof(max)}
 has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
-@registerSerializationType(TropicalSemiringElem)
-type_needs_params(T::Type{<: TropicalSemiringElem}) = true
+@register_serialization_type TropicalSemiringElem uses_params
 
-function save_type_params(s::SerializerState, x::TropicalSemiringElem, key::Symbol)
-  s.key = key
-  data_dict(s) do
+function save_type_params(s::SerializerState, x::TropicalSemiringElem)
+  save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, parent(x), :params)
   end
@@ -31,22 +29,24 @@ function load_object(s::DeserializerState,
 end
 
 # Tropical Hypersurfaces
-@registerSerializationType(TropicalHypersurface, true)
+@register_serialization_type TropicalHypersurface uses_id
 
 function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
-  save_typed_object(s, polynomial(t_surf), :data)
+  save_data_dict(s) do
+    save_typed_object(s, polynomial(t_surf), :polynomial)
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
-  polynomial = load_typed_object(s, dict)
+  polynomial = load_typed_object(s, dict[:polynomial])
   return TropicalHypersurface(polynomial)
 end
 
 # Tropical Curves
-@registerSerializationType(TropicalCurve, true)
+@register_serialization_type TropicalCurve uses_id
 
 function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
-  data_dict(s) do 
+  save_data_dict(s) do 
     if EMB
       save_typed_object(s, underlying_polyhedral_complex(t_curve), :polyhedral_complex)
       save_object(s, true, :is_embedded)

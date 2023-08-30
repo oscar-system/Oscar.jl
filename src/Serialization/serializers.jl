@@ -96,30 +96,43 @@ function finish_writing(s::SerializerState)
   # nothing to do here
 end
 
+function set_key(s::SerializerState, key::Symbol)
+  @req isnothing(s.key) "Key :$(s.key) is being overriden by :$key before write."
+  s.key = key
+end
+
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
-function data_dict(f::Function, s::SerializerState)
+function save_data_dict(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   serialize_dict(s) do
     s.new_level_entry = true
     f()
   end
 end
 
-function data_array(f::Function, s::SerializerState)
+function save_data_array(f::Function, s::SerializerState,
+                         key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   serialize_array(s) do
     s.new_level_entry = true
     f()
   end
 end
 
-function data_basic(s::SerializerState, x::Any)
+function save_data_basic(s::SerializerState, x::Any,
+                         key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   begin_node(s)
   str = string(x)
   write(s.io, "\"$str\"")
 end
 
-function data_json(s::SerializerState, jsonstr::Any)
+function save_data_json(s::SerializerState, jsonstr::Any,
+                        key::Union{Symbol, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   begin_node(s)
   write(s.io, jsonstr)
 end

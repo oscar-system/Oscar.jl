@@ -710,7 +710,6 @@ export is_almostsimple, has_is_almostsimple, set_is_almostsimple
 export is_alternating
 export is_ample
 export is_basepoint_free
-export is_basic_serialization_type
 export is_bicoset
 export is_bijective
 export is_binary
@@ -1209,6 +1208,7 @@ export regular_24_cell
 export regular_600_cell
 export regular_triangulation
 export regular_triangulations
+export @register_serialization_type
 export relations
 export relative_ambient_dimension
 export relative_interior_point
