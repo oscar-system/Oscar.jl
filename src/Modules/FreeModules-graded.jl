@@ -1214,25 +1214,32 @@ function direct_product(G::ModuleFP_dec...; task::Symbol = :none)
 end
 ⊕(M::ModuleFP_dec...) = direct_product(M..., task = :none)
 
-
-function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
+function canonical_injections(G::ModuleFP_dec)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
-  return hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
+  @req H !== nothing "module not a direct product"
+  return [canonical_injection(G, i) for i in 1:length(H)]
 end
 
-function Hecke.canonical_projection(G::ModuleFP_dec, i::Int)
+function canonical_injection(G::ModuleFP_dec, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  return hom(G, H[i], vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)]))
+  @req H !== nothing "module not a direct product"
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+  return hom(H[i], G, [G[l+j] for l in 1:ngens(H[i])])
+end
+
+function canonical_projections(G::ModuleFP_dec)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_projection(G, i) for i in 1:length(H)]
+end
+
+function canonical_projection(G::ModuleFP_dec, i::Int)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
+  return hom(G, H[i], vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)]))
 end
     
 ##################################################
