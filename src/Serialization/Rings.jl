@@ -65,7 +65,6 @@ end
 ################################################################################
 #  non simpleton base rings
 @register_serialization_type Nemo.zzModRing
-has_elem_basic_encoding(obj::Nemo.zzModRing) = true
 
 function save_object(s::SerializerState, R::Nemo.zzModRing)
   save_object(s, string(modulus(R)))
