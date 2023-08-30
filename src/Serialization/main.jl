@@ -484,7 +484,11 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
-  temp_file = tempname(dirname(filename))
+  dir_name = dirname(filename)
+  if dir_name == ""
+    dir_name = pwd()
+  end
+  temp_file = tempname(dir_name)
   open(temp_file, "w") do file
     save(file, obj; metadata=metadata)
   end
