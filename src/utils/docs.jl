@@ -113,9 +113,13 @@ end
 
 function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
   build_dir = normpath(Oscar.oscardir, "docs", "build")
-  cmd = "using Pkg; Pkg.activate(temp = true);
-         Pkg.add(\"LiveServer\"); using LiveServer;
-         LiveServer.serve(dir = \"$build_dir\", launch_browser = $open_browser, port = $port);"
+  cmd = """
+        using Pkg;
+        Pkg.activate(temp = true);
+        Pkg.add("LiveServer");
+        using LiveServer;
+        LiveServer.serve(dir = "$build_dir", launch_browser = $open_browser, port = $port);
+        """
   live_server_process = run(`julia -e $cmd`, wait = false)
   atexit(_ -> kill(live_server_process))
   @info "Starting server with PID $(getpid(live_server_process)) listening on 127.0.0.1:$port"
@@ -167,7 +171,7 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false, open_browser=true, start_server = false)
+function build_doc(; doctest::Union{Symbol, Bool} = false, strict::Bool = false, open_browser::Bool = true, start_server::Bool = false)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = 
 "The Julia reference version for the doctests is 1.7 or later, but you are using
@@ -181,11 +185,10 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  if open_browser && !start_server
-    open_doc()
-  end
   if start_server
     start_doc_preview_server(open_browser = open_browser)
+  elseif open_browser
+    open_doc()
   end
   if doctest != false && !versioncheck
     @warn versionwarn
