@@ -321,16 +321,33 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   x3 -> [0 1]
   x4 -> [1 0]
   e -> [1 -1]
+
+julia> I2 = ideal([x2 * x3])
+ideal(x2*x3)
+
+julia> b2P3 = blow_up(P3, I2);
+
+julia> codomain(b2P3) == P3
+true
 ```
 """
 function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
-    @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
-    rs = matrix(ZZ, rays(v))
-    new_ray = vec(sum([rs[i,:] for i in indices]))
-    new_ray = new_ray ./ gcd(new_ray)
-    return blow_up(v, new_ray; coordinate_name = coordinate_name, set_attributes = set_attributes)
+    if length(indices) == ngens(I) && (nothing in indices) == false
+      # We perform this blowup with toric techniques.
+      rs = matrix(ZZ, rays(v))
+      new_ray = vec(sum([rs[i,:] for i in indices]))
+      new_ray = new_ray ./ gcd(new_ray)
+      return blow_up(v, new_ray; coordinate_name = coordinate_name, set_attributes = set_attributes)
+    else
+      # We rely on advanced techniques to conduct this blowup (if available).
+      return _generic_blow_up(v, I)
+    end
+end
+
+function _generic_blow_up(v::Any, I::Any)
+  error("Not yet supported")
 end
 
 
