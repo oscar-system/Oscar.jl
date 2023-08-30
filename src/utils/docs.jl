@@ -120,7 +120,7 @@ function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
         using LiveServer;
         LiveServer.serve(dir = "$build_dir", launch_browser = $open_browser, port = $port);
         """
-  live_server_process = run(`julia -e $cmd`, wait = false)
+  live_server_process = run(`$(Base.julia_cmd()) -e $cmd`, wait = false)
   atexit(_ -> kill(live_server_process))
   @info "Starting server with PID $(getpid(live_server_process)) listening on 127.0.0.1:$port"
   return nothing
