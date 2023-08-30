@@ -1305,3 +1305,6 @@ function _my_dot(v::PointVector{ZZRingElem}, u::ZZMatrix)
   return sum(v[i]*u[1,i] for i in 1:n; init=zero(QQ))
 end
 
+function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
+  return blow_up(IdealSheaf(v, I))
+end
