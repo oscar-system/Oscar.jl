@@ -1219,3 +1219,89 @@ function saturation(I::IdealSheaf, J::IdealSheaf)
   return IdealSheaf(X, K, check=false)
 end
 
+
+@doc raw"""
+    IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
+
+Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal 
+`I` in its `cox_ring`.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> I = ideal([x2,x3])
+ideal(x2, x3)
+
+julia> IdealSheaf(P3, I);
+```
+"""
+function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
+  @req base_ring(I) === cox_ring(X) "ideal must live in the cox ring of the variety"
+
+  # We currently only support this provided that the following conditions are met:
+  # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
+  # 2. The dimension of all maximal cones matches the dimension of the fan.
+  @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
+  @req all(m -> dim(m) == dim(X), maximal_cones(X)) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
+
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+
+  # We need to dehomogenize the ideal I in the Cox ring S to the local
+  # charts U_sigma, with sigma a cone in the fan of the variety.
+  # To this end we use Proposition 5.2.10 from Cox-Little-Schenck, p. 223ff.
+  # Abstractly, the chart U_sigma is isomorphic to C^n with n the number
+  # of ray generators of sigma, owing to the assumptions 1 an 2 above.
+  # Note however that the coordinates of C^n are not one to one to
+  # the homogeneous coordinates of the Cox ring. Rather, the coordinates 
+  # of the affine pieces correspond to the `hilbert_basis(polarize(sigma))`.
+
+  # TODO: In the long run we should think about making the creation of the 
+  # following dictionary lazy. But this requires partial rewriting of the 
+  # ideal sheaves as a whole, so we postpone it for the moment.
+
+  for (k, U) in enumerate(affine_charts(X))
+
+    # We first create the morphism \pi_s* from p. 224, l. 3.
+    indices = [j for j in 1:nrays(X) if ray_indices(maximal_cones(X))[k,j]]
+    help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
+    phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
+
+    # Now we need to create the inverse of alpha*.
+    imgs_alpha_star = elem_type(help_ring)[]
+    for m in hilbert_basis(dual_cone(U))
+      img = one(help_ring)
+      for j in 1:length(indices)
+        u_rho = matrix(ZZ,rays(X))[indices[j],:]
+        expo = ZZ(_my_dot(m, u_rho))
+        img = img * x_rho[j]^expo
+      end
+      push!(imgs_alpha_star, img)
+    end
+    alpha_star = hom(OO(U), help_ring, imgs_alpha_star)
+
+    # TODO: There should be better ways to create this map!
+    # Presumably, one can invert the matrix with the `expo`s as entries?
+    # @larskastner If you can confirm this, let's change this.
+    alpha_star_inv = inverse(alpha_star)
+    ideal_dict[U] = ideal(OO(U), [alpha_star_inv(phi_s_star(g)) for g in gens(I)])
+  end
+
+  return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
+end
+
+function _my_dot(v::PointVector{ZZRingElem}, u::ZZMatrix)
+  n = length(v)
+  @req n == length(u) "matrix sizes do not match"
+  return sum(v[i]*u[1,i] for i in 1:n; init=zero(QQ))
+end
+
