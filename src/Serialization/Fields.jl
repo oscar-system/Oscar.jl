@@ -56,7 +56,6 @@ end
 ################################################################################
 # non-ZZRingElem variant
 @register_serialization_type Nemo.fpField
-has_elem_basic_encoding(obj::Nemo.fpField) = true
 
 function save_object(s::SerializerState, F::Nemo.fpField)
   save_object(s, string(characteristic(F)))
@@ -81,7 +80,6 @@ end
 ################################################################################
 # ZZRingElem variant
 @register_serialization_type Nemo.FpField
-has_elem_basic_encoding(obj::Nemo.FpField) = true
 
 function save_object(s::SerializerState, F::Nemo.FpField)
   save_object(s, string(characteristic(F)))
@@ -165,7 +163,6 @@ end
 # FqField
 @register_serialization_type FqField uses_id
 @register_serialization_type FqFieldElem uses_params
-has_elem_basic_encoding(obj::FqField) = absolute_degree(obj) == 1
 
 function save_object(s::SerializerState, K::FqField)
   if absolute_degree(K) == 1
@@ -355,7 +352,6 @@ end
 # ArbField
 @register_serialization_type ArbField
 @register_serialization_type arb uses_params
-has_elem_basic_encoding(obj::ArbField) = true
 
 function save_object(s::SerializerState, RR::Nemo.ArbField)
   save_object(s, precision(RR))
@@ -387,7 +383,6 @@ end
 # AcbField
 @register_serialization_type AcbField
 @register_serialization_type acb uses_params
-has_elem_basic_encoding(obj::AcbField) = true
 
 function save_object(s::SerializerState, CC::AcbField)
   save_object(s, precision(CC))

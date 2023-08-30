@@ -1,7 +1,6 @@
 # Tropical Semiring
 @register_serialization_type TropicalSemiring{typeof(min)}
 @register_serialization_type TropicalSemiring{typeof(max)}
-has_elem_basic_encoding(obj::TropicalSemiring) = true
 
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params
