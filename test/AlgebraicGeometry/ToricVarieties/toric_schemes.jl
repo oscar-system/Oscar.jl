@@ -41,5 +41,13 @@ using Test
     @test domain(inverse(iso)) === IP2
     @test codomain(inverse(iso)) === X 
   end
-
+  
+  IP3 = projective_space(NormalToricVariety, 3; set_attributes = set_attributes)
+  
+  @testset "Toric ideal sheaves" begin
+    S = cox_ring(IP3)
+    I = ideal(S, gens(S)[2:3])
+    II = IdealSheaf(IP3, I)
+  end
+  
 end
