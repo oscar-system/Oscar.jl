@@ -485,10 +485,8 @@ end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
   dir_name = dirname(filename)
-  if dir_name == ""
-    dir_name = pwd()
-  end
-  temp_file = tempname(dir_name)
+  # julia dirname does not return "." for plain filenames without any slashes
+  temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   open(temp_file, "w") do file
     save(file, obj; metadata=metadata)
   end
