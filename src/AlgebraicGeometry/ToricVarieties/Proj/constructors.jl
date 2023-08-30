@@ -2,6 +2,7 @@
     function proj(E::ToricLineBundle...)
 
 This function computes the projectivization of a direct sum of line bundles or divisors.
+Please see [OM78](@cite) for more background information.
 
 # Examples
 ```jldoctest
