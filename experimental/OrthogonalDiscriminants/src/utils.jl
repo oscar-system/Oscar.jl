@@ -67,6 +67,8 @@ Otherwise the coefficients of the result have a squarefree g.c.d.
 
 # Examples
 ```jldoctest
+julia> F, z = cyclotomic_field(4);
+
 julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, 4*z^0)
 1
 
