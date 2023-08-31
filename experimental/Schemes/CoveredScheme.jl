@@ -726,9 +726,9 @@ function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
   else
     print(io, "Composition of ", "$(domain(f)) -> ")
     for i in 2:length(maps(f))
-      print(io, "$(domain(map(f)[i])) -> ")
+      print(io, "$(domain(maps(f)[i])) -> ")
     end
-    print(io, "$(codomain(map(f)[end]))")
+    print(io, "$(codomain(maps(f)[end]))")
   end
 end
 
