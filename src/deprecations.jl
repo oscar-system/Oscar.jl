@@ -406,3 +406,5 @@ end
 @alias ishermitian_form is_hermitian_form
 @alias isquadratic_form is_quadratic_form
 @alias issymmetric_form is_symmetric_form
+
+@deprecate dual_cone(v::AffineNormalToricVariety) weight_cone(v)
