@@ -1058,7 +1058,8 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   V = ambient_space(NS)
   @req inner_product(V, F, F)==0 "not an isotropic divisor"
   @req euler_characteristic(X) == 2 "not a K3 surface"
-  F0 = basisNS[1]
+  F0 = zeros(QQ,degree(NS)); F0[1]=1
+
   @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
@@ -1066,13 +1067,22 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
   # transform to a quartic y'^2 = q(x)
   if iszero(P[3])  #  P = O
-    error("not implemented")
+    eqn1, phi1 = _conversion_case_1(X, u)
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
+    function phi_func(x)
+      y = phi1(x)
+      n = numerator(y)
+      d = denominator(y)
+      return phi2(n)//phi2(d)
+    end
+    phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
   elseif iszero(2*P) # P is a 2-torsion section
     error("not implemented")
   else  # P has infinite order
     error("not implemented")
   end
-  return
+
+  return eqn2, phi
 end
 
 @doc raw"""
