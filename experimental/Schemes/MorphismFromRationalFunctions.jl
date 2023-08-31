@@ -130,17 +130,27 @@ end
 function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalFunctions)
   io = pretty(io)
   println(io, "Morphism from rational functions")
-  println(io, Indent())
+  print(io, Indent())
   println(io, "from ", Lowercase(), domain(Phi))
-  println(io, "to ", Lowercase(), domain(Phi), Dedent())
+  println(io, "to ", Lowercase(), codomain(Phi), Dedent())
   println(io, "with representatives")
-  println(io, Indent())
+  print(io, Indent())
   c = collect(patch_representatives(Phi))
-  for (U,(V,a)) in c[1:end-1]
-    println(io, coordinates(U), " -> ", a)
+  for (U,(V,imgs)) in c[1:end-1]
+    print(io, "("))
+    join(io, coordinates(U), ",")
+    print(io, ") -> ")
+    print(io, "(")
+    join(io, imgs, ",")
+    print(io, ")")
   end
-  (U,(V,a)) = c[end]
-  print(io, coordinates(U), " -> ", a)
+  (U,(V,imgs)) = c[end]
+  print(io, "("))
+  join(io, coordinates(U), ",")
+  print(io, ") -> ")
+  print(io, "(")
+  join(io, imgs, ",")
+  print(io, ")")
   print(io, Dedent())
 end
 # For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
