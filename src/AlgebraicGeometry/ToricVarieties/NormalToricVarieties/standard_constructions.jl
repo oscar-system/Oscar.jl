@@ -334,7 +334,7 @@ true
 function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
-    if length(indices) == ngens(I) && (nothing in indices) == false
+    if length(indices) == ngens(I) && !(nothing in indices)
       # We perform this blowup with toric techniques.
       rs = matrix(ZZ, rays(v))
       new_ray = vec(sum([rs[i,:] for i in indices]))
