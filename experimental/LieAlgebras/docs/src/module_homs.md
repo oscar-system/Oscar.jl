@@ -48,3 +48,13 @@ compose(::LieAlgebraModuleHom{T1,T2}, ::LieAlgebraModuleHom{T2,T3}) where {T1<:L
 is_isomorphism(::LieAlgebraModuleHom)
 inv(::LieAlgebraModuleHom)
 ```
+
+### Hom constructions
+Lie algebra module homomorphisms support `+` and `-` if they have the same domain and codomain.
+
+```@docs
+canonical_injections(::LieAlgebraModule)
+canonical_injection(::LieAlgebraModule, ::Int)
+canonical_projections(::LieAlgebraModule)
+canonical_projection(::LieAlgebraModule, ::Int)
+```

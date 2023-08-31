@@ -73,4 +73,23 @@
     @test identity_map(V) == compose(h, inv(h))
     @test identity_map(V) == compose(inv(h), h)
   end
+
+  @testset "Direct sum constructions" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    Vs = [
+      standard_module(L), dual(standard_module(L)), exterior_power(standard_module(L), 2)
+    ]
+    V = direct_sum(Vs...)
+
+    @test canonical_injections(V) == [canonical_injection(V, i) for i in 1:length(Vs)]
+    @test canonical_projections(V) == [canonical_projection(V, i) for i in 1:length(Vs)]
+
+    # direct sum universal properties
+    for i in 1:length(Vs)
+      @test canonical_injection(V, i) * canonical_projection(V, i) == identity_map(Vs[i])
+    end
+    @test sum(
+      proj * inj for (proj, inj) in zip(canonical_projections(V), canonical_injections(V))
+    ) == identity_map(V)
+  end
 end

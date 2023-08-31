@@ -285,3 +285,89 @@ Lie algebra module morphism
 function identity_map(V::LieAlgebraModule)
   return hom(V, V, basis(V); check=false)
 end
+
+###############################################################################
+#
+#   Hom constructions
+#
+###############################################################################
+
+function Base.:-(h::LieAlgebraModuleHom)
+  return hom(domain(h), codomain(h), -matrix(h); check=false)
+end
+
+function Base.:+(
+  h1::LieAlgebraModuleHom{T1,T2}, h2::LieAlgebraModuleHom{T1,T2}
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+  @req domain(h1) === domain(h2) "Maps must have the same domain"
+  @req codomain(h1) === codomain(h2) "Maps must have the same codomain"
+  return hom(domain(h1), codomain(h1), matrix(h1) + matrix(h2); check=false)
+end
+
+function Base.:-(
+  h1::LieAlgebraModuleHom{T1,T2}, h2::LieAlgebraModuleHom{T1,T2}
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+  @req domain(h1) === domain(h2) "Maps must have the same domain"
+  @req codomain(h1) === codomain(h2) "Maps must have the same codomain"
+  return hom(domain(h1), codomain(h1), matrix(h1) - matrix(h2); check=false)
+end
+
+@doc raw"""
+    canonical_injections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
+
+Return the canonical injections from all components into $V$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_injections(V::LieAlgebraModule)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  return [canonical_injection(V, i) for i in 1:length(base_modules(V))]
+end
+
+@doc raw"""
+    canonical_injection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
+
+Return the canonical injection $V_i \to V$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_injection(V::LieAlgebraModule, i::Int)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  Vs = base_modules(V)
+  @req 0 < i <= length(Vs) "Index out of bound"
+  j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
+  emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])])
+  return emb
+end
+
+@doc raw"""
+    canonical_projections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
+
+Return the canonical projections from $V$ to all components
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_projections(V::LieAlgebraModule)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  return [canonical_projection(V, i) for i in 1:length(base_modules(V))]
+end
+
+@doc raw"""
+    canonical_projection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
+
+Return the canonical projection $V \to V_i$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_projection(V::LieAlgebraModule, i::Int)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  Vs = base_modules(V)
+  @req 0 < i <= length(Vs) "Index out of bound"
+  j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
+  proj = hom(
+    V,
+    Vs[i],
+    [
+      [zero(Vs[i]) for l in 1:j]
+      basis(Vs[i])
+      [zero(Vs[i]) for l in (j + dim(Vs[i]) + 1):dim(V)]
+    ],
+  )
+  return proj
+end
