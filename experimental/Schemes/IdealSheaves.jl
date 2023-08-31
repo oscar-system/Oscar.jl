@@ -1263,10 +1263,11 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   # following dictionary lazy. But this requires partial rewriting of the 
   # ideal sheaves as a whole, so we postpone it for the moment.
 
+  IM = maximal_cones(IncidenceMatrix, X)
   for (k, U) in enumerate(affine_charts(X))
 
     # We first create the morphism \pi_s* from p. 224, l. 3.
-    indices = [j for j in 1:nrays(X) if ray_indices(maximal_cones(X))[k,j]]
+    indices = [k for k in row(IM, k)]
     help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
     imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
     phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
