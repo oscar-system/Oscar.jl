@@ -1359,6 +1359,8 @@ function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRin
   #c = my_coeff(g2, y1, 2)
   c = last(coefficients(split_map_R1(g2)))
   g2 = divexact(g2, evaluate(c, x1))
+  @assert degree(g2, gen(parent, 1)) <= 4 "degree in the first variable is too high"
+  @assert degree(g2, gen(parent, 1)) >= 3 "degree in the first variable is too low"
   return g2, phi2
 end
 
@@ -1514,9 +1516,8 @@ function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem)
   @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
 
   h = f_loc - y^2
-  @show h
-  u_poly = R_to_kkt_frac_XY(numerator(u))*inv(R_to_kkt_frac_XY(denominator(u))) # Will throw if the latter is not a unit
-  @show u_poly
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+  u_poly = R_to_kkt_frac_XY(numerator(u_loc))*inv(R_to_kkt_frac_XY(denominator(u_loc))) # Will throw if the latter is not a unit
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
@@ -1525,10 +1526,23 @@ function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem)
   b_t = my_const(coeff(u_poly, [xx, yy], [1, 0]))
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
-  S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
-  #x_subst = 
+  kkt2, t2 = polynomial_ring(kk, :t₂, cached=false)
+  kkt2_frac = fraction_field(kkt2)
+  S, (x2, y2) = polynomial_ring(kkt2_frac, [:x₂, :y₂], cached=false)
+  FS = fraction_field(S)
+  a_t = evaluate(a_t, x2)
+  b_t = evaluate(b_t, x2)
+  phi = hom(R, FS, FS.([(t2 - a_t)//b_t, y2, x2]))
+  f_trans = phi(f_loc)
+  return numerator(f_trans), phi
+end
 
-  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+function evaluate(f::AbstractAlgebra.Generic.Frac{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
+end
+
+function evaluate(f::AbstractAlgebra.Generic.Frac{<:PolyRingElem}, a::RingElem)
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
 function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem)
