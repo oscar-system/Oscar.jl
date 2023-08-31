@@ -553,8 +553,10 @@ end
 @doc raw"""
     _trivial_lattice(S::EllipticSurface)
 
-Internal function. Output:
-basis of the trivial lattice, gram matrix, fiber_components
+Internal function. Returns a list consisting of:
+- basis of the trivial lattice
+- gram matrix
+- fiber_components without multiplicities
 """
 @attr function _trivial_lattice(S::EllipticSurface)
   #=
@@ -602,8 +604,6 @@ basis of the trivial lattice, gram matrix, fiber_components
 
   O = zero_section(S)
   pt0, F = fiber(S)
-  # we manually set the self-intersections
-  set_attribute!(components(F)[1], :_self_intersection, 0)
   set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
 
 
@@ -688,7 +688,7 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   end
   r = length(f)
   G = -2*identity_matrix(ZZ, r)
-  @vprint :EllipticSurface 2 "computing intersections:"
+  @vprintln :EllipticSurface 2 "computing intersections:"
   for i in 1:r
     @vprint :EllipticSurface 3 "\nrow $(i): \n"
     for j in 1:i-1
@@ -786,14 +786,33 @@ function fiber_components(S::EllipticSurface, P)
 end
 
 function fiber(X::EllipticSurface)
-  pt, F = irreducible_fiber(X)
-  return pt, weil_divisor(F)
+  b, pt, F = irreducible_fiber(X)
+  if b
+    W = weil_divisor(F)
+    # we manually set the self-intersection
+    set_attribute!(components(W)[1], :_self_intersection, 0)
+  else
+    # all fibers are reducible pick the one over [0 : 1]
+    k = base_ring(X)
+    pt = [k(0),k(1)]
+    f = fiber_components(X, pt)
+    fiber_type, W, componentsW, gramW = standardize_fiber(X, f)
+  end
+  set_attribute!(W, :name=> "Fiber over ($(pt[1]), $(pt[2]))")
+  return pt, W
 end
 
-@doc raw"""
-    irreducible_fiber(S::EllipticSurface) -> EffectiveCartierDivisor
 
-Return an irreducible fiber as a cartier divisor.
+@doc raw"""
+    irreducible_fiber(S::EllipticSurface) -> Bool, Point, EffectiveCartierDivisor
+
+Return an irreducible fiber as a cartier divisor and whether it exists.
+
+The return value is a triple `(b, pt, F)` where
+
+- `b` is `true` if an irreducible fiber exists over the base field of `S`
+- `pt` the base point of the fiber
+- `F` the irreducible fiber which projects to `pt`
 """
 function irreducible_fiber(S::EllipticSurface)
   W = weierstrass_model(S)
@@ -802,12 +821,13 @@ function irreducible_fiber(S::EllipticSurface)
   k = coefficient_ring(kt)
   r = [k.(roots(i[1])) for i in factor(d) if i[2]>=2]
   sing = reduce(append!,r, init=[])
-
+  pt = k.([0,0]) # initialize
+  found = false
   if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
     pt = k.([1, 0])
+    found = true
   else
     if is_finite(k)
-      found = false
       for i in k
         if !(i in sing)  # true if the fiber over [i,1] is irreducible
           pt = k.([i,1])
@@ -815,22 +835,20 @@ function irreducible_fiber(S::EllipticSurface)
           break
         end
       end
-      found || error("there is no irreducible fiber defined over the base field")
     else
       i = k(0)
       while true
         i = i+1
         if !(i in sing)
           pt = k.([i,1])
+          found = true
           break
         end
       end
     end
   end
-  # F = fiber_components(S,pt) this does not terminate .... so we have to build it by hand
-  # @assert length(F) == 1
   F = fiber_cartier(S, pt)
-  return pt,F
+  return found, pt, F
 end
 
 @doc raw"""
@@ -867,7 +885,9 @@ function _section(X::EllipticSurface, P::EllCrvPt)
   PY = pullback(X.inc_Y, PX)
   set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
   set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
-  return WeilDivisor(PY, check=false)
+  W =  WeilDivisor(PY, check=false)
+  set_attribute!(W, :is_prime=>true)
+  return W
 end
 
 @doc raw"""
