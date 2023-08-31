@@ -29,10 +29,9 @@ end
 
 ##############################################################################
 # Abstract Polyhedral Object
-type_needs_params(::Type{<:PolyhedralObject}) = true
 
 function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, coefficient_field(obj), :params)
   end
@@ -57,13 +56,13 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 ##############################################################################
-@registerSerializationType(LinearProgram)
+@register_serialization_type LinearProgram uses_params
 
 function save_object(s::SerializerState, lp::LinearProgram)
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-  data_dict(s) do 
+  save_data_dict(s) do 
     save_object(s, lp.feasible_region, :feasible_region)
     save_object(s, lp.convention, :convention)
     save_json(s, jsonstr, :lpcoeffs)
@@ -89,7 +88,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram},
 end
 
 ##############################################################################
-@registerSerializationType(MixedIntegerLinearProgram)
+@register_serialization_type MixedIntegerLinearProgram uses_params
 
 function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
@@ -100,7 +99,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
     Symbol("Core::Serializer"), :serialize, int_vars)
   coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
   int_vars_jsonstr = Polymake.call_function(:common, :encode_json, int_vars_serialized)
-  data_dict(s) do
+  save_data_dict(s) do
     save_object(s, milp.feasible_region, :feasible_region)
     save_object(s, milp.convention, :convention)
     save_json(s, coeffs_jsonstr, :milp_coeffs)
@@ -137,8 +136,9 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
 end
 
 # use generic serialization for the other types:
-@registerSerializationType(Cone)
-@registerSerializationType(PolyhedralComplex)
-@registerSerializationType(Polyhedron)
-@registerSerializationType(PolyhedralFan)
-@registerSerializationType(SubdivisionOfPoints)
+@register_serialization_type Cone uses_params
+@register_serialization_type PolyhedralComplex uses_params
+@register_serialization_type Polyhedron uses_params
+@register_serialization_type PolyhedralFan uses_params
+@register_serialization_type SubdivisionOfPoints uses_params
+

@@ -168,6 +168,7 @@ let exclude_hecke = [
     :narrow_class_group,
     :Partition,
     :perm,
+    :QQBar,
     :SymmetricGroup,
     :tail,
     :terms,
@@ -180,13 +181,14 @@ let exclude_hecke = [
 end
 
 import Hecke:
+  conjugate,
+  expand,
   field_extension,
   hensel_qf,
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
   primitive_element,
-  conjugate,
-  expand
+  QQBar
 
 import cohomCalg_jll

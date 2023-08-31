@@ -366,4 +366,15 @@ end
     @test F isa AnticNumberField
     @test dim(F) == 8
   end
+
+  @testset "Atlas irrationalities" begin
+    K, z = abelian_closure(QQ)
+    vals = [z(7) + z(7)^2 + z(7)^4,
+            z(8) + z(8)^3,
+            z(9) + z(9)^-1,
+            z(3) - z(3)^2]
+    for val in vals
+      @test atlas_irrationality(atlas_description(val)) == val
+    end
+  end
 end

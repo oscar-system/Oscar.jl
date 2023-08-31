@@ -138,11 +138,9 @@ for f in (QQ, ENF)
                       Pair{Matrix{T}, T},
                       Polyhedron{T}]
                 @test facets(S, Pos) isa SubObjectIterator{S}
-                if S == Polyhedron{T}
-                    @test facets(S, Pos) == polyhedron.([f], [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
-                elseif S == Pair{Matrix{T}, T}
+                if S == Pair{Matrix{T}, T}
                     @test facets(S, Pos) == S.([f.([-1 0 0]), f.([0 -1 0]), f.([0 0 -1])], [f(0)])
-                else
+                  elseif S == AffineHalfspace{T}
                     @test facets(S, Pos) == affine_halfspace.([f], [[-1 0 0], [0 -1 0], [0 0 -1]], [0])
                 end
                 @test length(facets(S, Pos)) == 3

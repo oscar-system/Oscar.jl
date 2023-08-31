@@ -8934,13 +8934,13 @@ end
     vector_space_basis(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Then the command returns a monomial basis of the kk-vectorspace corresponding to the
+Then the command returns a monomial basis of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each generator of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_basis(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``kk``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
 
 # Examples:
 ```jldoctest

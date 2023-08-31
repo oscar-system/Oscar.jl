@@ -99,8 +99,8 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     U = decode_type(dict_type)
 
-    # Upgrades QQFieldElem serialization
-    if is_basic_serialization_type(U)
+    # Upgrades basic types
+    if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, Nemo.zzModRing}
       if U === QQFieldElem
         num = dict[:data][:num][:data]
         den = dict[:data][:den][:data]

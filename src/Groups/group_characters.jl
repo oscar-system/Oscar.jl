@@ -19,7 +19,7 @@
 ##
 ##  Atlas irrationalities
 ##
-"""
+@doc raw"""
     atlas_irrationality([F::AnticNumberField, ]description::String)
 
 Return the value encoded by `description`.
@@ -30,6 +30,7 @@ if `F` is not given then the result has type `QQAbElem`.
 `description` is assumed to have the format defined in
 [CCNPW85](@cite), Chapter 6, Section 10.
 
+# Examples
 ```jldoctest
 julia> Oscar.with_unicode() do
          show(atlas_irrationality("r5"))
@@ -62,6 +63,34 @@ end
 function atlas_irrationality(description::String)
     F = abelian_closure(QQ)[1]
     return F(GAPWrap.AtlasIrrationality(GapObj(description)))
+end
+
+
+@doc raw"""
+    atlas_description(val::QQAbElem)
+
+Return a string in the format defined in
+[CCNPW85](@cite), Chapter 6, Section 10,
+describing `val`.
+Applying [`atlas_irrationality`](@ref) to the result yields `val`.
+
+# Examples
+```jldoctest
+julia> K, z = abelian_closure(QQ);
+
+julia> val = z(5) + z(5)^4;
+
+julia> str = Oscar.atlas_description(val)
+"b5"
+
+julia> val == atlas_irrationality(str)
+true
+```
+"""
+function atlas_description(val::QQAbElem)
+    iso = Oscar.iso_oscar_gap(parent(val))
+    val = iso(val)
+    return string(GAP.Globals.CTblLib.StringOfAtlasIrrationality(val))
 end
 
 
@@ -1265,9 +1294,49 @@ end
 class_multiplication_coefficient(tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) = class_multiplication_coefficient(ZZRingElem, tbl, i, j, k)
 
 @doc raw"""
+    approximate_class_fusion(subtbl::GAPGroupCharacterTable,
+                             tbl::GAPGroupCharacterTable)
+
+Compute for each class of `subtbl` all those classes in `tbl` to which it can
+fuse under an embedding of the group of `subtbl` into the group of `tbl`,
+according to element orders and centralizer orders in the two tables.
+
+If no embedding is possible then return an empty vector.
+Otherwise return a vector of length equal to the number of classes of
+`subtbl`, such that the entry at position $i$ either an integer (if there is
+a unique possible image class) or the vector of the positions of possible
+image classes.
+
+# Examples
+```jldoctest
+julia> subtbl = character_table("A5"); tbl = character_table("A6");
+
+julia> println(approximate_class_fusion(subtbl, tbl))
+Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
+
+```
+"""
+function approximate_class_fusion(subtbl::GAPGroupCharacterTable,
+                                  tbl::GAPGroupCharacterTable)
+  fus = GAPWrap.InitFusion(GAPTable(subtbl), GAPTable(tbl))
+  res = Union{Int, Vector{Int}}[]
+  fus == GAP.Globals.fail && return res
+  for i in 1:length(fus)
+    if fus[i] isa Int
+      push!(res, fus[i])
+    else
+      push!(res, Vector{Int}(fus[i]))
+    end
+  end
+  return res
+end
+
+
+@doc raw"""
     possible_class_fusions(subtbl::GAPGroupCharacterTable,
                            tbl::GAPGroupCharacterTable;
-                           decompose::Bool = true)
+                           decompose::Bool = true,
+                           fusionmap::Vector = [])
 
 Return the array of possible class fusions from `subtbl` to `tbl`.
 Each entry is an array of positive integers, where the value at position `i`
@@ -1281,6 +1350,9 @@ is not checked;
 this does not change the result,
 but in certain situations it is faster to omit this step.
 
+If `fusionmap` is set to a vector of integers and integer vectors then
+only those maps are returned that are compatible with the prescribed value.
+
 # Examples
 ```jldoctest
 julia> possible_class_fusions(character_table("A5"), character_table("A6"))
@@ -1293,9 +1365,14 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
 """
 function possible_class_fusions(subtbl::GAPGroupCharacterTable,
                                 tbl::GAPGroupCharacterTable;
-                                decompose::Bool = true)
+                                decompose::Bool = true,
+                                fusionmap::Vector = [])
+  cond = Dict{Symbol, Any}(:decompose => decompose)
+  if length(fusionmap) != 0
+    cond[:fusionmap] = GapObj(fusionmap, recursive = true)
+  end
   fus = GAPWrap.PossibleClassFusions(GAPTable(subtbl), GAPTable(tbl),
-            GapObj(Dict(:decompose => decompose)))
+            GapObj(cond))
   return [Vector{Int}(x::GapObj) for x in fus]
 end
 
