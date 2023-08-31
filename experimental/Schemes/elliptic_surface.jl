@@ -1387,3 +1387,142 @@ function _is_in_weierstrass_form(f::MPolyElem)
   return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
 end
 
+########################################################################
+# The three conversions from Section 39.1 in 
+#   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+# pp. 44--45.
+########################################################################
+function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem)
+  U = weierstrass_chart(X)
+  R = ambient_coordinate_ring(U)
+  x, y, t = gens(R)
+  loc_eqn = first(gens(modulus(OO(U))))
+  E = generic_fiber(X)::EllCrv
+  f = equation(E)
+  kk = base_ring(X)
+  kkt_frac_XY = parent(f)::MPolyRing
+  (xx, yy) = gens(kkt_frac_XY)
+  kkt_frac = coefficient_ring(kkt_frac_XY)::AbstractAlgebra.Generic.FracField
+  kkt = base_ring(kkt_frac)::PolyRing
+  T = first(gens(kkt))
+
+# kk = base_ring(U)
+# kkt, T = polynomial_ring(kk, :T, cached=false)
+# kkt_frac = fraction_field(kkt)
+# kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
+  R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
+
+  f_loc = first(gens(modulus(OO(U))))
+  @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
+  a = a_invars(E)
+
+  # We verify the assumptions made on p. 44 of 
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+  # for the first case considered there.
+  @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
+  a = numerator.(a)
+  @assert iszero(a[1]) "local equation does not have the correct form"
+  @assert degree(a[2]) <= 4 "local equation does not have the correct form"
+  @assert iszero(a[3]) "local equation does not have the correct form"
+  @assert degree(a[4]) <= 8 "local equation does not have the correct form"
+  @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
+
+  h = f_loc - y^2
+  @show h
+  u_poly = R_to_kkt_frac_XY(numerator(u))*inv(R_to_kkt_frac_XY(denominator(u))) # Will throw if the latter is not a unit
+  @show u_poly
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  # Extract a(t) and b(t) as in the notation of the paper
+  a_t = my_const(coeff(u_poly, [xx, yy], [0, 0]))
+  b_t = my_const(coeff(u_poly, [xx, yy], [1, 0]))
+
+  # Set up the ambient_coordinate_ring of the new Weierstrass-chart
+  S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
+  #x_subst = 
+
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+end
+
+function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem)
+  U = weierstrass_chart(X)
+  R = ambient_coordinate_ring(U)
+  x, y, t = gens(R)
+  loc_eqn = first(gens(modulus(OO(U))))
+  E = generic_fiber(X)::EllCrv
+  f = equation(E)
+  kk = base_ring(X)
+  kkt_frac_XY = parent(f)::MPolyRing
+  (xx, yy) = gens(kkt_frac_XY)
+  kkt_frac = coefficient_ring(kkt_frac_XY)::AbstractAlgebra.Generic.FracField
+  kkt = base_ring(kkt_frac)::PolyRing
+  T = first(gens(kkt))
+
+# kk = base_ring(U)
+# kkt, T = polynomial_ring(kk, :T, cached=false)
+# kkt_frac = fraction_field(kkt)
+# kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
+  R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
+
+  f_loc = first(gens(modulus(OO(U))))
+  @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
+  a = a_invars(E)
+
+  # We verify the assumptions made on p. 44 of 
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+  # for the first case considered there.
+  @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
+  a = numerator.(a)
+  @assert iszero(a[1]) "local equation does not have the correct form"
+  @assert degree(a[2]) <= 4 "local equation does not have the correct form"
+  @assert iszero(a[3]) "local equation does not have the correct form"
+  @assert degree(a[4]) <= 8 "local equation does not have the correct form"
+  @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
+
+  h = f_loc - y^2
+  @show h
+  S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+end
+
+function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem)
+  U = weierstrass_chart(X)
+  R = ambient_coordinate_ring(U)
+  x, y, t = gens(R)
+  loc_eqn = first(gens(modulus(OO(U))))
+  E = generic_fiber(X)::EllCrv
+  f = equation(E)
+  kk = base_ring(X)
+  kkt_frac_XY = parent(f)::MPolyRing
+  (xx, yy) = gens(kkt_frac_XY)
+  kkt_frac = coefficient_ring(kkt_frac_XY)::AbstractAlgebra.Generic.FracField
+  kkt = base_ring(kkt_frac)::PolyRing
+  T = first(gens(kkt))
+
+# kk = base_ring(U)
+# kkt, T = polynomial_ring(kk, :T, cached=false)
+# kkt_frac = fraction_field(kkt)
+# kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
+  R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
+
+  f_loc = first(gens(modulus(OO(U))))
+  @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
+  a = a_invars(E)
+
+  # We verify the assumptions made on p. 44 of 
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+  # for the first case considered there.
+  @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
+  a = numerator.(a)
+  @assert iszero(a[1]) "local equation does not have the correct form"
+  @assert degree(a[2]) <= 4 "local equation does not have the correct form"
+  @assert iszero(a[3]) "local equation does not have the correct form"
+  @assert degree(a[4]) <= 8 "local equation does not have the correct form"
+  @assert iszero(a[5]) "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
+
+  h = f_loc - y^2
+  @show h
+  S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+end
