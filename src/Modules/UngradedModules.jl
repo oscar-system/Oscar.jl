@@ -4965,7 +4965,7 @@ function show_morphism(f::ModuleFPHom)
 end
 
 @doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
 say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
@@ -4998,8 +4998,8 @@ end
 @doc raw"""
     hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
 
-Given modules `M`, `N` which are products with the same number of factors,  
-say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^r N_j$, and given a matrix 
+Given modules `M` and `N` which are products with `r` respective `s` factors,  
+say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
