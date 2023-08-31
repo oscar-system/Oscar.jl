@@ -23,6 +23,9 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
+# Forward multiplication with oscar matrices.
+Base.:*(A::MatElem, v::PointVector) = A*v.p
+
 PointVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = PointVector{U}(p.(v))
 
 PointVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(p.(zeros(Int, n)))
@@ -63,6 +66,9 @@ end
 Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
+
+# Forward multiplication with oscar matrices.
+Base.:*(A::MatElem, v::RayVector) = A*v.p
 
 RayVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = RayVector{U}(p.(v))
 
@@ -308,6 +314,9 @@ matrix(R::ZZRing, iter::SubObjectIterator{<:Union{RayVector{ZZRingElem},PointVec
     matrix(R, matrix_for_polymake(iter))
 matrix(R::QQField, iter::SubObjectIterator{<:Union{RayVector{QQFieldElem}, PointVector{QQFieldElem}}}) =
     matrix(R, matrix_for_polymake(iter))
+matrix(K, iter::SubObjectIterator{<:Union{RayVector{<:FieldElem}, PointVector{<:FieldElem}}}) =
+    matrix(K, matrix_for_polymake(iter))
+
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})

@@ -1251,7 +1251,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
   # 2. The dimension of all maximal cones matches the dimension of the fan.
   @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
-  @req all(m -> dim(m) == dim(X), maximal_cones(X)) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
+  @req ispure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
 
   ideal_dict = IdDict{AbsSpec, Ideal}()
 
@@ -1282,7 +1282,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
       img = one(help_ring)
       for j in 1:length(indices)
         u_rho = matrix(ZZ,rays(X))[indices[j],:]
-        expo = ZZ(_my_dot(m, u_rho))
+        expo = (u_rho*m)[1]
         img = img * x_rho[j]^expo
       end
       push!(imgs_alpha_star, img)
@@ -1297,12 +1297,6 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   end
 
   return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
-end
-
-function _my_dot(v::PointVector{ZZRingElem}, u::ZZMatrix)
-  n = length(v)
-  @req n == length(u) "matrix sizes do not match"
-  return sum(v[i]*u[1,i] for i in 1:n; init=zero(QQ))
 end
 
 function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
