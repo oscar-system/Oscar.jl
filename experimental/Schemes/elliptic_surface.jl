@@ -998,6 +998,8 @@ end
 Compute the linear system ``|O + P + k F|`` on the elliptic surface ``X``.
 Here ``F`` is the class of the fiber over ``[0:1]``, ``O`` the zero section
 and ``P`` any section given as a point on the generic fiber.
+
+The linear system is represented in terms of the Weierstrass coordinates.
 """
 function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
   euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
@@ -1033,21 +1035,60 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
     end
   end
   return sections
-  sectionsX = pullback(X.blowup).(sections)
-  return sectionX
 end
 
 @doc raw"""
-  elliptic_parameter(X::EllipticSurface, F::ZZMat) -> LinearSystem
+    two_neighbor_step(X::EllipticSurface, F1::Vector{QQFieldElem})
 
-Return the complete linear system ``|F|``.
+Given an isotropic nef divisor ``F1`` with ``F1.F = 2``,
+compute the linear system ``|F1|`` and return the corresponding generic fiber
+as a double cover `C` of the projective line branched over four points.
 
-Here `F` must be given with respect to the basis of
-`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
-a K3 surface.
+Input:
+``F1`` is represented as a vector in the `algebraic_lattice(X)`
+
+Output:
+A tuple `(C, (x1, y1, t1))` defined as follows.
+- `C` is given by a polynomial `y1^2 - q(x1)` in `k(t)[x1,y1]` with `q` of degree 3 or 4.
+- (x1,y1,t1) are expressed as rational functions in terms of the weierstrass coordinates `(x,y,t)`.
 """
-function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
-  # TODO: Adapt this to compute linear systems on elliptic surfaces in general.
+function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
+  E = generic_fiber(X)
+  basisNS, tors, NS = algebraic_lattice(X)
+  V = ambient_space(NS)
+  @req inner_product(V, F, F)==0 "not an isotropic divisor"
+  @req euler_characteristic(X) == 2 "not a K3 surface"
+  F0 = basisNS[1]
+  @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
+
+  D1, D, P, l, c = horizontal_decomposition(X, F)
+  u = _elliptic_parameter(X, D1, D, P, l, c)
+
+  # transform to a quartic y'^2 = q(x)
+  if iszero(P[3])  #  P = O
+    error("not implemented")
+  elseif iszero(2*P) # P is a 2-torsion section
+    error("not implemented")
+  else  # P has infinite order
+    error("not implemented")
+  end
+  return
+end
+
+@doc raw"""
+    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllCrvPt
+
+Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
+find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
+``O`` is the zero section, ``P`` is any section and ``V`` is vertical.
+
+Returns a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
+``D <= D1 = (n-1)O + P + n_1F_1 + ... n_k F_k`` with ``l = n_1 + ... n_k`` minimal
+and the `F_i` are some other fibers.
+The rational function `c=c(t)` has divisor of zeros and poles``
+(c) = lF - n_0F_1 + ... n_k F_k``
+"""
+function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   E = generic_fiber(X)
   basisNS, tors, NS = algebraic_lattice(X)
   V = ambient_space(NS)
@@ -1136,11 +1177,37 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert all(F4[i]>=0 for i in 1:length(basisNS))
   D = D + sum(ZZ(F4[i])*basisNS[i] for i in 1:length(basisNS))
   @assert D<=D1
+  l = Int(l)
+  return D1, D, P, l, c
+end
 
+@doc raw"""
+  elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
+
+Return the complete linear system ``|F|``.
+
+Here `F` must be given with respect to the basis of
+`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
+a K3 surface.
+"""
+function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
+  D1, D, P, l, c = horizontal_decomposition(X, F)
+  return _elliptic_parameter(X, D1, D, P, l, c)
+end
+
+@doc raw"""
+    _elliptic_parameter(X::EllipticSurface, D::WeilDivisor, l, c)
+
+Compute the linear system of ``D = (n-1) O + P + V``.
+where V is vertical and `l` is the coefficient of the fiber class.
+Assumes `D` nef and `D^2=0`.
+Typically ``D`` is the output of `horizontal_decomposition`.
+"""
+function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllCrvPt, l::Int, c)
   S, piS = weierstrass_model(X);
   _,piX = relatively_minimal_model(X)
   c = function_field(S)(c)
-  L = [i*c for i in linear_system(X, P, Int(l))];
+  L = [i*c for i in linear_system(X, P, l)];
   LonX = linear_system(pullback(piX).(L), D1, check=false);
 
   LsubF, Tmat = subsystem(LonX, D);
@@ -1152,7 +1219,6 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   u2 = LsubFonS[2]//LsubFonS[1]
   return u2
 end
-
 
 
 @doc raw"""
