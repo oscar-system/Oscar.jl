@@ -28,8 +28,11 @@ for f in (QQ, ENF)
         end
         s = simplex(f, 2)
         R,x = polynomial_ring(QQ, "x")
+        v = T[f(1), f(1)]
 
         @testset "core functionality" begin
+            @test matrix(f, rays(Q1))*v == T[f(2)]
+            @test matrix(f, vertices(Q1))*v == T[f(1), f(0), f(1)]
             @test issubset(Q0, Q1)
             @test !issubset(Q1, Q0)
             @test [1, 0] in Q0
