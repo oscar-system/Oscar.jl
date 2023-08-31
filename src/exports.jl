@@ -470,7 +470,6 @@ export double_coset
 export double_cosets
 export double_dual
 export dst
-export dual_cone
 export dual_continued_fraction_hirzebruch_jung
 export dual_matroid
 export dual_subdivision
@@ -1437,6 +1436,7 @@ export wdeglex
 export wdegrevlex
 export weakly_connected_components
 export weight
+export weight_cone
 export weight_ordering
 export weighted_projective_space
 export weyl_algebra

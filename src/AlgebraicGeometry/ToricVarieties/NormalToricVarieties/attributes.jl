@@ -1072,7 +1072,7 @@ Polyhedral cone in ambient dimension 2
 
 
 @doc raw"""
-    dual_cone(v::AffineNormalToricVariety)
+    weight_cone(v::AffineNormalToricVariety)
 
 Return the dual cone of the affine normal toric variety `v`.
 
@@ -1084,14 +1084,14 @@ Polyhedral cone in ambient dimension 2
 julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
-julia> dual_cone(antv)
+julia> weight_cone(antv)
 Polyhedral cone in ambient dimension 2
 
-julia> polarize(cone(antv)) == dual_cone(antv)
+julia> polarize(cone(antv)) == weight_cone(antv)
 true
 ```
 """
-@attr Cone dual_cone(v::AffineNormalToricVariety) = polarize(cone(v))
+@attr Cone weight_cone(v::AffineNormalToricVariety) = polarize(cone(v))
 
 
 @doc raw"""
@@ -1114,7 +1114,7 @@ julia> hilbert_basis(antv)
 [ 0   1]
 ```
 """
-@attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(dual_cone(v)))
+@attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(weight_cone(v)))
 
 
 _variable_ray_correspondence(v::NormalToricVarietyType) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))

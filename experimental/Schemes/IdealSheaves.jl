@@ -1273,7 +1273,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
 
     # Now we need to create the inverse of alpha*.
     imgs_alpha_star = elem_type(help_ring)[]
-    for m in hilbert_basis(dual_cone(U))
+    for m in hilbert_basis(weight_cone(U))
       img = one(help_ring)
       for j in 1:length(indices)
         u_rho = matrix(ZZ,rays(X))[indices[j],:]
