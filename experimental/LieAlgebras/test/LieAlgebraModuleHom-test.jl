@@ -17,11 +17,7 @@
         0 0 1 0 0 0
       ],
     )
-    for x in basis(L)
-      for v in basis(V1)
-        @test h(x * v) == x * h(v)
-      end
-    end
+    @test is_welldefined(h)
   end
 
   @testset "Image and kernel" begin
@@ -55,6 +51,7 @@
     for x in basis(V1)
       @test h(x) == g(f(x))
     end
+    @test is_welldefined(h)
   end
 
   @testset "Inverses" begin
@@ -69,6 +66,7 @@
 
     h = hom(V, V, [v4, v5, v6, v1, v2, v3])
     @test is_isomorphism(h)
+    @test is_welldefined(inv(h))
     @test h == inv(h)
     @test identity_map(V) == compose(h, inv(h))
     @test identity_map(V) == compose(inv(h), h)
@@ -83,6 +81,9 @@
 
     @test canonical_injections(V) == [canonical_injection(V, i) for i in 1:length(Vs)]
     @test canonical_projections(V) == [canonical_projection(V, i) for i in 1:length(Vs)]
+
+    @test all(is_welldefined, canonical_injections(V))
+    @test all(is_welldefined, canonical_projections(V))
 
     # direct sum universal properties
     for i in 1:length(Vs)

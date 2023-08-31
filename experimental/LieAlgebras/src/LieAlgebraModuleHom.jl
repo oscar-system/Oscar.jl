@@ -31,9 +31,7 @@
     h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
     h.header = MapHeader(V1, V2)
     if check
-      for x in basis(base_lie_algebra(V1)), v in basis(V1)
-        @req x * h(v) == h(x * v) "Not a homomorphism"
-      end
+      @req is_welldefined(h) "Not a homomorphism"
     end
     return h
   end
@@ -56,6 +54,20 @@ function matrix(
   h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
 ) where {C2<:RingElement}
   return (h.matrix)::dense_matrix_type(C2)
+end
+
+@doc raw"""
+    is_welldefined(h::LieAlgebraModuleHom) -> Bool
+
+Return `true` if `h` is a well-defined homomorphism of Lie algebra modules.
+This function is used internally when calling `hom` with `check=true`.
+"""
+function is_welldefined(h::LieAlgebraModuleHom)
+  V1 = domain(h)
+  for x in basis(base_lie_algebra(V1)), v in basis(V1)
+    x * h(v) == h(x * v) || return false
+  end
+  return true
 end
 
 ###############################################################################
@@ -334,7 +346,7 @@ function canonical_injection(V::LieAlgebraModule, i::Int)
   Vs = base_modules(V)
   @req 0 < i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
-  emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])])
+  emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])]; check=false)
   return emb
 end
 
@@ -367,7 +379,8 @@ function canonical_projection(V::LieAlgebraModule, i::Int)
       [zero(Vs[i]) for l in 1:j]
       basis(Vs[i])
       [zero(Vs[i]) for l in (j + dim(Vs[i]) + 1):dim(V)]
-    ],
+    ];
+    check=false,
   )
   return proj
 end

@@ -46,6 +46,7 @@ import ..Oscar:
   is_perfect,
   is_simple,
   is_solvable,
+  is_welldefined,
   kernel,
   matrix,
   ngens,
