@@ -946,7 +946,7 @@ end
 	@assert is_welldefined(M2_to_N2)
 
 	phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
-    @test degree(phi) == 6*Z[1]
+	@test degree(phi) == 6*Z[1]
 	for g in gens(M1)
 		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
 		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
