@@ -135,7 +135,7 @@ function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalF
   println(io, "to ", Lowercase(), domain(Phi), Dedent())
   println(io, "defined by")
   println(io, Indent())
-  print(io, gens(codomain_chart(Phi)), " -> ")
+  print(io, coordinates(codomain_chart(Phi)), " -> ")
   println(io, Phi.a)
 end
 # For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
