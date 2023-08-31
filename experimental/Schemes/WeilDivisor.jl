@@ -332,8 +332,15 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
         result = a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
-        @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-        result = result + a1 * a2 * colength(I, covering=covering)
+        if dim(I) > 0
+          if c1 == c2
+            result = a1*a2*_self_intersection(c1)
+          else
+            error("self intersection unknown")
+          end
+        else
+          result = result + a1 * a2 * colength(I, covering=covering)
+        end
       end
     end
   end
@@ -586,6 +593,7 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   RP, _ = Localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   K = function_field(X)
+
   denom_mult = order_on_divisor(K(common_denominator), P, check=false)
   #denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!

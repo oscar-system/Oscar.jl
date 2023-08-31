@@ -339,10 +339,9 @@ function _separate_singularities!(X::EllipticSurface)
   U = P[1][1]  # the weierstrass_chart
   IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
+    # we want one smooth weierstrass chart
     push!(refined_charts, U)
     set_attribute!(U, :is_smooth => true)
-    # we want one smooth weierstrass chart
-    set_attribute!(X, :weierstrass_chart_on_minimal_model => U)
   else
     # there is at most one singularity in every fiber
     # project the singular locus to an affine chart of P1
@@ -352,7 +351,6 @@ function _separate_singularities!(X::EllipticSurface)
     # One chart with all reducible fibers taken out
     UU = PrincipalOpenSubset(U, redfib)
     set_attribute!(UU, :is_smooth => true)
-    set_attribute!(X, :weierstrass_chart_on_minimal_model => UU)
     push!(refined_charts, UU)
     if length(redfib)==1
       # We need to recreate U as a PrincipalOpenSubset of itself here 
@@ -1490,7 +1488,8 @@ end
 #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
 # pp. 44--45.
 ########################################################################
-function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem)
+function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem, names=[:x₂, :y₂, :t₂])
+  @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
   R = ambient_coordinate_ring(U)
   x, y, t = gens(R)
@@ -1536,9 +1535,9 @@ function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem)
   b_t = my_const(coeff(u_poly, [xx, yy], [1, 0]))
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
-  kkt2, t2 = polynomial_ring(kk, :t₂, cached=false)
+  kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
   kkt2_frac = fraction_field(kkt2)
-  S, (x2, y2) = polynomial_ring(kkt2_frac, [:x₂, :y₂], cached=false)
+  S, (x2, y2) = polynomial_ring(kkt2_frac, names[1:2], cached=false)
   FS = fraction_field(S)
   a_t = evaluate(a_t, x2)
   b_t = evaluate(b_t, x2)
