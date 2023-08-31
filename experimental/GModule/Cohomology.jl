@@ -2074,7 +2074,7 @@ end
 
 """
 Let C be a G-module with G action on M. Then this function find the
-subgroup of 'Aut(M) x Aut(G)' that is compatibel with the G-module
+subgroup of 'Aut(M) x Aut(G)' that is compatible with the G-module
 structure:
 
 Let 'h: G to Aut(M)'  from C, then '(alpha, gamma) in Aut(M) x Aut(G)'

@@ -389,7 +389,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   #
   # Note: we do not remove the factor to be able to map the corresponding the
   # factors between the two products we construct. We do this componentwise to
-  # avoid computing unncessary crt. This will hold for the rest of the code, we
+  # avoid computing unnecessary crt. This will hold for the rest of the code, we
   # for those particular objects, the `dlog` maps take vectors, corresponding to
   # finite adeles.
   Fdata = Tuple{NfOrdIdl, Int}[]
@@ -698,7 +698,7 @@ end
 # blocks of H_p which are of P-valuation different from -a
 #
 # In our context of use, -a is actually the biggest scale valuation for
-# D^{-1}H^#. Since we take care ealier to discard the cases where D^{-1}H^# is
+# D^{-1}H^#. Since we take care earlier to discard the cases where D^{-1}H^# is
 # P^{-a}=modular locally at p, we just have to remove the last jordan block from
 # the jordan decomposition of D^{-1}H^# at p. From that point, we massage a bit
 # the basis matrices of the other jordan blocks to obtain local basis matrices
@@ -732,7 +732,7 @@ end
 # If the prime ideal is non dyadic, then 1//2 will always be good for us.
 # Otherwise, if the prime p is dyadic, we do in two different ways
 #  - p is inert or split, in which case we can use an algorithm of Markus
-#    Kirschmer, implemented on Hecke which provies us the "special unit", which is
+#    Kirschmer, implemented on Hecke which provides us the "special unit", which is
 #    exactly what we look for (a unit at P with trace 1);
 #  - p is ramified, and then we cook up a good element. The actual code from
 #    that part is taken from the Sage implementation of Simon Brandhorst

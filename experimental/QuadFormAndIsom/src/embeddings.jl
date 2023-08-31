@@ -387,7 +387,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   Qp, VtoVp, VptoQp = _cokernel_as_Fp_vector_space(H0inV, p)
   Vp = codomain(VtoVp)
 
-  # Should never happend, but who knows...
+  # Should never happen, but who knows...
   dim(Qp) == 0 && return res
 
   # We descend G to V for computing stabilizers later on
@@ -515,7 +515,7 @@ function _classes_automorphic_subgroups(q::TorQuadModule,
   # reconstruct the stabilizer. Since primary parts do not talk to each other,
   # we concatenate generators on an orthogonal direct sum of q into its primary
   # parts (as we do for computations of orthogonal groups in the non split
-  # degenrate case)
+  # degenerate case)
   for lis in Hecke.cartesian_product_iterator(list_can; inplace = false)
     embs = TorQuadModuleMor[l[1] for l in lis]
     embs = TorQuadModuleMor[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
@@ -1061,7 +1061,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
 
     # We want all isometries of SB which preserves p^l*q_B and such that they
     # define isometries of rho_{l+1}(B). If `spec == true`, then rho_{l+1}(B) is
-    # equiped with a quadratic form and we check isometries preserving it.
+    # equipped with a quadratic form and we check isometries preserving it.
     # Otherwise, only isometries preserving the underlying bilinear product.
     OSBrB = _compute_double_stabilizer(SBinqB, l, spec)
     @hassert :ZZLatWithIsom 1 fSB in OSBrB   # Should always hold since the construction of rho_{l+1}(B) is natural in B
@@ -1122,7 +1122,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
       @hassert :ZZLatWithIsom 1 is_isometry(phi2)              # In fact they are the same module so phi2, mathematically, is the identity.
 
       # So now this new integer lattice with isometry `(C2, fC2)` is a good
-      # output. Just remain toi compute GC2 in a smart way.
+      # output. Just remain to compute GC2 in a smart way.
       geneOSA =  AutomorphismGroupElem{TorQuadModule}[OSA(compose(phig, compose(hom(g1), inv(phig)))) for g1 in unique(gens(imB))]
       im2_phi, _ = sub(OSA, geneOSA)
       im3, _, _ = intersect(imA, im2_phi)

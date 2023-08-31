@@ -48,7 +48,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           upgraded_dict[:base_ring] = dict[:base_ring][:id]
         elseif haskey(dict[:base_ring], :data)
           # should have only one key, since any base_ring that
-          # doesn't use an id has one paramater
+          # doesn't use an id has one parameter
           key = first(keys(dict[:base_ring][:data]))
           upgraded_dict[:base_ring][:data] = string(dict[:base_ring][:data][key])
         end

@@ -296,7 +296,7 @@ the restriction `f : U' → V` of `Phi` can be realized and returns that restric
 Note that `U'` need not (and usually will not) be maximal with this property.
 
 This method is cheap in the sense that it simply inverts all representatives of 
-the denominators occuring in the `realization_preview(Phi, U, V)`.
+the denominators occurring in the `realization_preview(Phi, U, V)`.
 """
 function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   if haskey(cheap_realizations(Phi), (U, V))
@@ -495,7 +495,7 @@ equidimensional_decomposition_radical(I::MPolyQuoLocalizedIdeal) = [ideal(base_r
 
 ### When realizing a `MorphismFromRationalFunctions` `Phi` on pairs 
 # of patches `(U, V)`, it is essential to use information on 
-# other pairs `(U', V')` of patchs which is already available 
+# other pairs `(U', V')` of patches which is already available 
 # through feasible channels. Now, for example, for `U'` as above
 # this finds another patch `U` for which the glueing of `U` and `U'` 
 # is already fully computed, but which is not in `covered`. 

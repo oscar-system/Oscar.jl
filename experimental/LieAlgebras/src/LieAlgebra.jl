@@ -155,7 +155,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
 
-Return the element of `L` with coefficent vector `v`.
+Return the element of `L` with coefficient vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (L::LieAlgebra)(v::Vector{Int})
@@ -165,7 +165,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
 
-Return the element of `L` with coefficent vector `v`.
+Return the element of `L` with coefficient vector `v`.
 """
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(L) "Length of vector does not match dimension."
@@ -187,7 +187,7 @@ end
 @doc raw"""
     (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
 
-Return the element of `L` with coefficent vector `v`.
+Return the element of `L` with coefficient vector `v`.
 """
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(L))

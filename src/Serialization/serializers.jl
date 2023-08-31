@@ -97,7 +97,7 @@ function finish_writing(s::SerializerState)
 end
 
 function set_key(s::SerializerState, key::Symbol)
-  @req isnothing(s.key) "Key :$(s.key) is being overriden by :$key before write."
+  @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
   s.key = key
 end
 

@@ -31,7 +31,7 @@ vanishing_ideal(X::AbsProjectiveAlgebraicSet) = defining_ideal(X)
 @doc raw"""
     fat_ideal(X::AbsProjectiveAlgebraicSet) -> Ideal
 
-Return a homogenous ideal whose radical is the vanishing ideal of `X`.
+Return a homogeneous ideal whose radical is the vanishing ideal of `X`.
 """
 fat_ideal(X::AbsProjectiveAlgebraicSet) = defining_ideal(fat_scheme(X))
 

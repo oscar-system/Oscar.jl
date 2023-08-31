@@ -190,12 +190,12 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       # The ids are only necessary for parent types, checking for element type equality
       # can be done once the parents are known to be equal.
       # For example two serializations of QQ[x] require ids to check for equality.
-      # Although they're isomorphic rings, they may want to be treated as seperate
+      # Although they're isomorphic rings, they may want to be treated as separate
       # This is done since other software might not use symbols in their serialization of QQ[x].
       # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
       # whenever there is a possibility (amongst any software system) that the objects
-      # cannot be distinguish on a syntatic level we use ids.
-      # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntatic
+      # cannot be distinguish on a syntactic level we use ids.
+      # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
       serialize_with_id(obj::T) where T <: $ex = $uses_id 
