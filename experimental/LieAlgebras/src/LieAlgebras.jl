@@ -36,6 +36,7 @@ import ..Oscar:
   gen,
   gens,
   hom,
+  hom_tensor,
   identity_map,
   ideal,
   image,

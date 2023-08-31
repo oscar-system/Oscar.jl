@@ -93,4 +93,21 @@
       proj * inj for (proj, inj) in zip(canonical_projections(V), canonical_injections(V))
     ) == identity_map(V)
   end
+
+  @testset "hom_tensor" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    V11 = standard_module(L)
+    V12 = dual(standard_module(L))
+    V21 = dual(dual(standard_module(L)))
+    V22 = exterior_power(standard_module(L), 2)
+    V1 = tensor_product(V11, V12)
+    V2 = tensor_product(V21, V22)
+    h1 = hom(V11, V21, basis(V21))
+    h2 = hom(V12, V22, [zero(V22) for _ in basis(V12)])
+
+    h = hom_tensor(V1, V2, [h1, h2])
+    @test domain(h) == V1
+    @test codomain(h) == V2
+    @test is_welldefined(h)
+  end
 end

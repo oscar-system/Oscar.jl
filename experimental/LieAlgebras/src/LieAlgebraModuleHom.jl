@@ -384,3 +384,34 @@ function canonical_projection(V::LieAlgebraModule, i::Int)
   )
   return proj
 end
+
+# function hom_direct_sum(...)
+# end
+
+@doc raw"""
+    hom_tensor(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are tensor products with the same number of factors,
+say $V = V_1 \otimes \cdots \otimes V_r$, $W = W_1 \otimes \cdots \otimes W_r$,
+and given a vector `hs` of homomorphisms $a_i : V_i \to W_i$, return 
+$a_1 \otimes \cdots \otimes a_r$.
+"""
+function hom_tensor(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
+) where {C<:RingElement}
+  @req is_tensor_product(V) "First module must be a tensor product"
+  @req is_tensor_product(W) "Second module must be a tensor product"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+
+  @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
+  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+  decompose_V = get_attribute(V, :tensor_generator_decompose_function)::Function
+  pure_W = get_attribute(W, :tensor_pure_function)::Function
+  function map_basis(v)
+    v_decomposed = decompose_V(v)
+    image_as_tuple = Tuple(hi(vi) for (hi, vi) in zip(hs, v_decomposed))
+    return pure_W(image_as_tuple)
+  end
+  return hom(V, W, map(map_basis, basis(V)); check=false)
+end
