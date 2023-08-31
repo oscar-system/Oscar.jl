@@ -1477,7 +1477,6 @@ end
 
 mutable struct sheafCohTable
   twist_range::UnitRange{Int}
-  n::Int
   values::Matrix{Int}
 end
 
@@ -1511,6 +1510,22 @@ function Base.show(io::IO, table::sheafCohTable)
   end
   println(io, repeat("-", size_row))
   println(io, prod(chi_print))
+end
+
+function sheafCoh_BGG_regul(M::SubquoModule{T},
+                            l::Int, h::Int,
+                            reg::Int=Int(cm_regularity(M))) where {T <: MPolyDecRingElem}
+
+  cokern = present_as_cokernel(M)
+  quo_gens = relations(cokern)
+  sing_mod = singular_generators(ModuleGens(quo_gens))
+
+  free_mod = ambient_free_module(M)
+  @assert is_standard_graded(free_mod)
+  weights = [d.coeff.c for d in degrees_of_generators(free_mod)]
+
+  values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod, l, h, reg, weights)
+  return sheafCohTable(l:h, values)
 end
 
 # helper functions
