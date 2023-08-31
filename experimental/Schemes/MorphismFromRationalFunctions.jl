@@ -133,10 +133,15 @@ function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalF
   println(io, Indent())
   println(io, "from ", Lowercase(), domain(Phi))
   println(io, "to ", Lowercase(), domain(Phi), Dedent())
-  println(io, "defined by")
+  println(io, "with representatives")
   println(io, Indent())
-  print(io, coordinates(codomain_chart(Phi)), " -> ")
-  println(io, Phi.a)
+  c = collect(patch_representatives(Phi))
+  for (U,(V,a)) in c[1:end-1]
+    println(io, coordinates(U), " -> ", a)
+  end
+  (U,(V,a)) = c[end]
+  print(io, coordinates(U), " -> ", a)
+  print(io, Dedent())
 end
 # For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
 # the pullback `f₁,…,fᵣ` of the `gens` of `OO(V)` along `Phi` can be represented as 
