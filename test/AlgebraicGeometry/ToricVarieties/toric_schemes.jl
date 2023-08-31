@@ -9,7 +9,7 @@ using Test
   @testset "A simplicial (and not smooth) affine toric scheme" begin
     @test is_smooth(underlying_scheme(antv)) == is_smooth(antv)
     @test dim(underlying_scheme(antv)) == dim(antv)
-    @test polarize(cone(antv)) == dual_cone(antv)
+    @test polarize(cone(antv)) == weight_cone(antv)
     @test ngens(ambient_coordinate_ring(antv)) == nrows(hilbert_basis(antv)) == 3
   end
   

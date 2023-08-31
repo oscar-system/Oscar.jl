@@ -153,7 +153,7 @@ picard_index(v::NormalToricVarietyType)
 ```@docs
 polyhedral_fan(v::NormalToricVarietyType)
 cone(v::AffineNormalToricVariety)
-dual_cone(v::AffineNormalToricVariety)
+weight_cone(v::AffineNormalToricVariety)
 hilbert_basis(v::AffineNormalToricVariety)
 mori_cone(v::NormalToricVariety)
 nef_cone(v::NormalToricVariety)
