@@ -990,6 +990,10 @@ function _prop217(E::EllCrv, P::EllCrvPt, k)
   return result
 end
 
+function iszero(P::EllCrvPt)
+  return iszero(P[1]) && isone(P[2]) && iszero(P[3])
+end
+
 @doc raw"""
     linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64) -> LinearSystem
 
@@ -1164,7 +1168,9 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
     else
       t0 = t//(t*pt[2]-pt[1])
     end
+    @show f0
     while any(F3[i]<0 for i in nonzero)
+      @show F3
       F3 = F3 - f0
       D = D + Fib0
       D1 = D1 + fiber
@@ -1172,6 +1178,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
       @assert F3[1]>=0
     end
   end
+  @show F3
   pt, _ = fiber(X)
   if pt[2]==0 # at infinity
     t0 = t
