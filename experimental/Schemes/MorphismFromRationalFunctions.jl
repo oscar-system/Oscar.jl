@@ -118,6 +118,26 @@ domain_chart(Phi::MorphismFromRationalFunctions) = Phi.domain_chart
 codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
 coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 
+function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print("Morphism from rational functions")
+  else
+    print("hom: ", X, " -> ", Y)
+  end
+end
+
+function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalFunctions)
+  io = pretty(io)
+  println(io, "Morphism from rational functions")
+  println(io, Indent())
+  println(io, "from ", Lowercase(), domain(Phi))
+  println(io, "to ", Lowercase(), domain(Phi), Dedent())
+  println(io, "defined by")
+  println(io, Indent())
+  print(io, gens(codomain_chart(Phi)), " -> ")
+  println(io, Phi.a)
+end
 # For every pair of patches `U` in the `domain_covering` and `V` in the `codomain_covering` 
 # the pullback `f₁,…,fᵣ` of the `gens` of `OO(V)` along `Phi` can be represented as 
 # rational functions on `U`. This returns a dictionary where `U` can be used 
@@ -209,6 +229,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   realizations(Phi)[U] = Psi_res
   return Psi_res
 end
+
 @doc raw"""
     realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
 
