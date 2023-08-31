@@ -1231,12 +1231,7 @@ Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
-4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x1
- x2
- x3
- x4
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3));
 
 julia> I = ideal([x2,x3])
 ideal(x2, x3)
