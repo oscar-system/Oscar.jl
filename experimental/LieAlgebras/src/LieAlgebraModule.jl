@@ -281,7 +281,7 @@ end
 @doc raw"""
     (V::LieAlgebraModule{C})(v::Vector{Int}) -> LieAlgebraModuleElem{C}
 
-Return the element of `V` with coefficent vector `v`.
+Return the element of `V` with coefficient vector `v`.
 Fails, if `Int` cannot be coerced into the base ring of `L`.
 """
 function (V::LieAlgebraModule)(v::Vector{Int})
@@ -291,7 +291,7 @@ end
 @doc raw"""
     (V::LieAlgebraModule{C})(v::Vector{C}) -> LieAlgebraModuleElem{C}
 
-Return the element of `V` with coefficent vector `v`.
+Return the element of `V` with coefficient vector `v`.
 """
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(V) "Length of vector does not match dimension."
@@ -314,7 +314,7 @@ end
 @doc raw"""
     (V::LieAlgebraModule{C})(v::SRow{C}) -> LieAlgebraModuleElem{C}
 
-Return the element of `V` with coefficent vector `v`.
+Return the element of `V` with coefficient vector `v`.
 """
 function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
   mat = dense_row(v, dim(V))

@@ -291,7 +291,7 @@ end
     algebraic_closure(F::FinField)
 
 Let `F` be a prime field of order `p`.
-Return a field `K` that is the union of finite fields of oder `p^d`,
+Return a field `K` that is the union of finite fields of order `p^d`,
 for all positive integers `d`.
 The degree `d` extension of `F` can be obtained as `ext_of_degree(K, d)`.
 

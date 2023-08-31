@@ -371,7 +371,7 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
 end
 
 # given a cyclotomic field (as cm extension) E/K, return all
-# the possible signatures dictionnaries of any hermitian lattice over
+# the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
 
 function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)

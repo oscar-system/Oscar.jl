@@ -196,7 +196,7 @@ end
 
 # Used in nested printing, where we assume that the associated scheme is already
 # printed in the nest - we keep track of the good covering `cov` to describe
-# everything consistenly.
+# everything consistently.
 function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
   io = pretty(io)
   X = scheme(D)

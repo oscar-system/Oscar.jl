@@ -794,7 +794,7 @@ function blow_up(
     # Gather the information on the isomorphism on the complement
     p = covered_projection_to_base(local_blowups[U])
     isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
-    # manual merge becaus `merge` does not preserve IdDicts.
+    # manual merge because `merge` does not preserve IdDicts.
     for x in keys(isos_on_complement_of_center)
       comp_iso_dict[x] = isos_on_complement_of_center[x]
     end

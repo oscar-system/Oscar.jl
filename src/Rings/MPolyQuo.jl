@@ -895,7 +895,7 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
 end
 
 function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
-  @req base_ring(parent(a)) === Q "parent missmatch"
+  @req base_ring(parent(a)) === Q "parent mismatch"
   return lift(a)
 end
 
