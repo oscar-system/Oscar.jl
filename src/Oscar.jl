@@ -97,6 +97,9 @@ function __init__()
     add_verbose_scope(:EllipticSurface)
     add_assert_scope(:EllipticSurface)
 
+    add_verbose_scope(:MorphismFromRationalFunctions)
+    add_assert_scope(:MorphismFromRationalFunctions)
+
     add_verbose_scope(:Glueing)
     add_assert_scope(:Glueing)
 
@@ -112,6 +115,8 @@ function __init__()
     add_verbose_scope(:Blowup)
     add_assert_scope(:Blowup)
 
+    add_verbose_scope(:hilbert)
+    add_assert_scope(:hilbert)
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
@@ -189,6 +194,7 @@ include("fallbacks.jl")
 
 
 include("Rings/Rings.jl")
+include("forward_declarations.jl")
 include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
@@ -238,9 +244,6 @@ include("Serialization/main.jl")
 include("aliases.jl")
 
 include("deprecations.jl")
-
-const global OSCAR = Oscar
-const global oscar = Oscar
 
 @doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see

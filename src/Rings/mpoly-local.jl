@@ -9,10 +9,10 @@ end
 @doc raw"""
     MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebra.FieldElem
 
-The localization Pₘ = { f/g : f, g ∈ R, g ∉ 𝔪 } of a polynomial ring P = 𝕜[x₁,…,xₙ] over a 
-base ring 𝕜 at a maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩ with coefficients aᵢ∈ 𝕜. 
+The localization Pₘ = { f/g : f, g ∈ R, g ∉ 𝔪 } of a polynomial ring P = 𝕜[x₁,…,xₙ] over a
+base ring 𝕜 at a maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩ with coefficients aᵢ∈ 𝕜.
 
-The data being stored consists of 
+The data being stored consists of
   * a multivariate polynomial ring P = 𝕜[x₁,…,xₙ] with 𝕜 of type T;
   * the maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ P;
   * the number of variables n.
@@ -40,7 +40,7 @@ end
 
 An element f/g in an instance of `MPolyRingLoc{T}`.
 
-The data being stored consists of 
+The data being stored consists of
   * the fraction f/g as an instance of `AbstractAlgebra.Generic.Frac`;
   * the parent instance of `MPolyRingLoc{T}`.
 """
@@ -192,7 +192,7 @@ in `R`.
 """
 function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) where T
   return Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(base_ring(R))),
-              symbols(R);
+              _variables_for_singular(symbols(R));
               ordering = ord,
               cached = false)[1]
 end
@@ -200,8 +200,8 @@ end
 @doc raw"""
     IdealGensLoc{S}
 
-The main workhorse for translation of localizations of polynomial algebras at 
-maximal ideals (i.e. instances of `MPolyRingLoc`) to the singular ring with 
+The main workhorse for translation of localizations of polynomial algebras at
+maximal ideals (i.e. instances of `MPolyRingLoc`) to the singular ring with
 local orderings in the backend.
 
 This struct stores the following data:
@@ -245,7 +245,7 @@ end
 
 An ideal I in an instance of `MPolyRingLoc{S}`.
 
-The data being stored consists of 
+The data being stored consists of
   * an instance of `IdealGensLoc{S}` for the set of generators of I
 and some further fields used for caching.
 """

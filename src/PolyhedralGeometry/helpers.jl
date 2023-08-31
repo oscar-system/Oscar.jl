@@ -350,6 +350,11 @@ end
 
 abstract type PolyhedralObject{T} end
 
+# several toric types need to inherit from abstract schemes and thus cannot
+# inherit from PolyhedralObject, but they still need to behave like polyhedral objects
+# for some operations.
+const PolyhedralObjectUnion = Union{PolyhedralObject, NormalToricVarietyType}
+
 @doc raw"""
     coefficient_field(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}) where T<:scalar_types
 
@@ -366,6 +371,9 @@ Rational field
 """
 coefficient_field(x::PolyhedralObject) =  x.parent_field
 coefficient_field(x::PolyhedralObject{QQFieldElem}) = QQ
+
+_get_scalar_type(::PolyhedralObject{T}) where T = T
+_get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 
 ################################################################################
 ######## Scalar types

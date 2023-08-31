@@ -53,6 +53,12 @@
         @test domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(F5)) == torusinvariant_cartier_divisor_group(F5)
         @test codomain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(F5)) == torusinvariant_weil_divisor_group(F5)
         @test matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(F5)) == matrix(ZZ, [[1, 0], [0, 1], [1, 0], [5, 1]])
+        @test domain(map_from_torusinvariant_cartier_divisor_group_to_class_group(F5)) == torusinvariant_cartier_divisor_group(F5)
+        @test codomain(map_from_torusinvariant_cartier_divisor_group_to_class_group(F5)) == class_group(F5)
+        @test domain(map_from_picard_group_to_class_group(F5)) == picard_group(F5)
+        @test codomain(map_from_picard_group_to_class_group(F5)) == class_group(F5)
+        @test gorenstein_index(F5) == 1
+        @test picard_index(F5) == 1
         if set_attributes
             @test coordinate_names(F5) == ["t1", "x1", "t2", "x2"]
         end

@@ -65,7 +65,7 @@ end
   I = ideal(S, x^2*y^3*(x+y+z))
   C = Oscar.effective_cartier_divisor(IP2, gen(I, 1))
   CW = Oscar.weil_divisor(C)
-  CW = oscar.irreducible_decomposition(CW)
+  CW = Oscar.irreducible_decomposition(CW)
   @test length(components(CW)) == 3
   @test 1 in collect(values(CW.C.coefficients))
   @test 2 in collect(values(CW.C.coefficients))

@@ -940,7 +940,7 @@ function match_on_intersections(
   return matches
 end
 
-function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
+function (phi::Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
   R = domain(phi)
   S = codomain(phi)
@@ -1199,3 +1199,14 @@ end
   g = small_generating_set(saturated_ideal(I))
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end
+
+
+function saturation(I::IdealSheaf, J::IdealSheaf)
+  X = scheme(I)
+  K = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+    K[U] = saturation(I(U), J(U))
+  end
+  return IdealSheaf(X, K, check=false)
+end
+

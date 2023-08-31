@@ -1,12 +1,15 @@
-################################################################################
-# Bool
-@registerSerializationType(Bool)
-
-function save_internal(s::SerializerState, b::Bool)
-    return string(b)
+# This type should not be exported
+const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
+                       Number, ZZRingElem, TropicalSemiringElem}
+function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
+  save_data_basic(s, x)
 end
 
-function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
+################################################################################
+# Bool
+@register_serialization_type Bool 
+
+function load_object(s::DeserializerState, ::Type{Bool}, str::String)
   if str == "true"
     return true
   end
@@ -20,98 +23,75 @@ end
 
 ################################################################################
 # ZZRingElem
-@registerSerializationType(ZZRingElem)
+@register_serialization_type ZZRingElem
 
-function save_internal(s::SerializerState, z::ZZRingElem; kwargs...)
-    return string(z)
-end
-
-function load_internal(s::DeserializerState, ::Type{ZZRingElem}, str::String)
-    return ZZRingElem(str)
+function load_object(s::DeserializerState, ::Type{ZZRingElem}, str::String)
+  return ZZRingElem(str)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{ZZRingElem},
                                    str::String,
                                    parent::ZZRing)
-    return parent(ZZRingElem(str))
+  return parent(ZZRingElem(str))
 end
 
 ################################################################################
 # QQFieldElem
-@registerSerializationType(QQFieldElem)
+@register_serialization_type QQFieldElem
 
-function save_internal(s::SerializerState, q::QQFieldElem; kwargs...)
-    return string(q)
-end
+function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
+  # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
+  # is merged and in a Nemo release
+  fraction_parts = collect(map(String, split(q, "//")))
+  fraction_parts = [ZZRingElem(s) for s in fraction_parts]
 
-function load_internal(s::DeserializerState, ::Type{QQFieldElem}, q::String)
-    # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
-    # is merged and in a Nemo release
-    fraction_parts = collect(map(String, split(q, "//")))
-    fraction_parts = [ZZRingElem(s) for s in fraction_parts]
-
-    return QQFieldElem(fraction_parts...)
+  return QQFieldElem(fraction_parts...)
 end
 
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{QQFieldElem},
                                    str::String,
                                    parent::QQField)
-    return parent(load_internal(s, QQFieldElem, str))
+  return parent(load_internal(s, QQFieldElem, str))
 end
-
 
 ################################################################################
 # Number
-@registerSerializationType(Int8)
-@registerSerializationType(Int16)
-@registerSerializationType(Int32)
-@registerSerializationType(Int64, false, "Base.Int")
-@registerSerializationType(Int128)
+@register_serialization_type Int8
+@register_serialization_type Int16
+@register_serialization_type Int32
+@register_serialization_type Int64 "Base.Int"
+@register_serialization_type Int128
 
-@registerSerializationType(UInt8)
-@registerSerializationType(UInt16)
-@registerSerializationType(UInt32)
-@registerSerializationType(UInt64)
-@registerSerializationType(UInt128)
+@register_serialization_type UInt8
+@register_serialization_type UInt16
+@register_serialization_type UInt32
+@register_serialization_type UInt64
+@register_serialization_type UInt128
 
-@registerSerializationType(BigInt)
+@register_serialization_type BigInt
 
-@registerSerializationType(Float16)
-@registerSerializationType(Float32)
-@registerSerializationType(Float64)
+@register_serialization_type Float16
+@register_serialization_type Float32
+@register_serialization_type Float64
 
-function save_internal(s::SerializerState, z::Number)
-    return string(z)
+function load_object(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
+  return parse(T, str)
 end
-
-function load_internal(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
-    return parse(T, str)
-end
-
 
 ################################################################################
 # Strings
-@registerSerializationType(String)
+@register_serialization_type String
 
-function save_internal(s::SerializerState, str::String)
-    return str
+function load_object(s::DeserializerState, ::Type{String}, str::String)
+  return str
 end
-
-function load_internal(s::DeserializerState, ::Type{String}, str::String)
-    return str
-end
-
 
 ################################################################################
 # Symbol
-@registerSerializationType(Symbol)
+@register_serialization_type Symbol
 
-function save_internal(s::SerializerState, sym::Symbol)
-   return string(sym)
-end
-
-function load_internal(s::DeserializerState, ::Type{Symbol}, str::String)
-   return Symbol(str)
+function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
+  return Symbol(str)
 end

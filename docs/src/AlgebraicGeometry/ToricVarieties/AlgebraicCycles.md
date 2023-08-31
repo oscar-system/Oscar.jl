@@ -57,8 +57,8 @@ the cones in the fan of the toric variety.
 ### General constructors
 
 ```@docs
-rational_equivalence_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
-rational_equivalence_class(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
+rational_equivalence_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
+rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
@@ -149,7 +149,7 @@ is trivial via `is_trivial`. Equality can be tested with `==`.
 ## Special attributes of toric varieties
 
 ```@docs
-chow_ring(v::AbstractNormalToricVariety)
-gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
-map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
+chow_ring(v::NormalToricVarietyType)
+gens_of_rational_equivalence_classes(v::NormalToricVarietyType)
+map_gens_of_chow_ring_to_cox_ring(v::NormalToricVarietyType)
 ```

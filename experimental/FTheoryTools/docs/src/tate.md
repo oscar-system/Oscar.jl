@@ -101,19 +101,10 @@ However, completeness is an expensive check. Therefore, we provide an optional a
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-global_tate_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-global_tate_model(base::AbstractNormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
+global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
-### A toric scheme as base space
-
-For the same reasons as above, the toric base must be complete. Similar to toric varieties as
-bases, we can use the optional argument `completeness_check = false` to switch off the
-expensive completeness check. The following examples demonstrate this:
-```@docs
-global_tate_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-global_tate_model(base::ToricCoveredScheme, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
-```
 
 ### A (covered) scheme as base space
 
@@ -146,7 +137,7 @@ such an analysis are not limited to the world of toric varieties.
 
 For constructions along these lines, we support the following constructor:
 ```@docs
-global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
 ```
 
 

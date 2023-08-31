@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-  Oscar.AbstractAlgebra.set_current_module(@__MODULE__)
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Invariants of Finite Groups
@@ -166,6 +163,10 @@ secondary_invariants(IR::InvRing)
 
 ```@docs
 irreducible_secondary_invariants(IR::InvRing)
+```
+
+```@docs
+module_syzygies(RG::InvRing)
 ```
 
 ## Fundamental Systems of Invariants

@@ -19,7 +19,7 @@ function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing}
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty projective algebraic set")
   else
-    print(io, "V(")
+    print(io, LowercaseOff(), "V(")
     if isdefined(X, :Xred)
       I = vanishing_ideal(X)
     else

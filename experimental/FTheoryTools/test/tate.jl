@@ -21,14 +21,14 @@ t = global_tate_model(base; completeness_check = false)
   @test parent(tate_section_a3(t)) == cox_ring(base_space(t))
   @test parent(tate_section_a4(t)) == cox_ring(base_space(t))
   @test parent(tate_section_a6(t)) == cox_ring(base_space(t))
-  @test parent(tate_polynomial(t)) == cox_ring(underlying_toric_variety(ambient_space(t)))
+  @test parent(tate_polynomial(t)) == cox_ring(ambient_space(t))
   @test parent(discriminant(t)) == cox_ring(base_space(t))
   @test dim(base_space(t)) == 3
   @test dim(ambient_space(t)) == 5
   @test base_fully_specified(t) == true
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
-  @test toric_variety(calabi_yau_hypersurface(t)) == underlying_toric_variety(ambient_space(t))
+  @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
@@ -93,7 +93,7 @@ t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 
   @test base_fully_specified(t_i5_s) == false
   @test base_fully_specified(t_i5_s) == base_fully_specified(weierstrass_model(t_i5_s))
   @test is_smooth(ambient_space(t_i5_s)) == false
-  @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == underlying_toric_variety(ambient_space(t_i5_s))
+  @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == ambient_space(t_i5_s)
 end
 
 @testset "Error messages in global Tate models over generic base space" begin

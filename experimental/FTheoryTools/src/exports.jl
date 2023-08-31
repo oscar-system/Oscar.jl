@@ -1,6 +1,7 @@
 export AbstractFTheoryModel
 export ClosedSubschemeModel
 export CompleteIntersectionModel
+export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
 export WeierstrassModel
@@ -12,8 +13,10 @@ export ambient_space
 export analyze_fibers
 export base_fully_specified
 export base_space
+export coordinate_ring
 export calabi_yau_hypersurface
 export discriminant
+export family_of_spaces
 export fiber_ambient_space
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
@@ -23,7 +26,6 @@ export hypersurface_equation
 export hypersurface_model_over_del_pezzo_surface
 export hypersurface_model_over_hirzebruch_surface
 export hypersurface_model_over_projective_space
-export sample_toric_scheme
 export sample_toric_variety
 export has_arxiv_id
 export has_arxiv_doi
@@ -113,3 +115,4 @@ export weierstrass_model_over_projective_space
 export weierstrass_polynomial
 export weierstrass_section_f
 export weierstrass_section_g
+export weights

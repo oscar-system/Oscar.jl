@@ -62,18 +62,8 @@ Completeness is an expensive check. Therefore, we provide an optional argument w
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-hypersurface_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-hypersurface_model(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
-```
-
-### A toric scheme as base space
-
-For the same reasons as above, the toric base must be complete. Similar to toric varieties as
-bases, we can use the optional argument `completeness_check = false` to switch off the
-expensive completeness check. The following examples demonstrate this:
-```@docs
-hypersurface_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
@@ -85,7 +75,7 @@ This functionality does not yet exist.
 This method constructs a hypersurface model over a base space, where
 this base space is not (fully) specified. We currently provide the following constructors:
 ```@docs
-hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
 ```
 
 ### Standard constructions

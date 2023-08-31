@@ -160,6 +160,31 @@ end
     end
   end
 
+  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo._GF]
+    K, z = abelian_closure(QQ)
+    F = gf_fun(2, 1)
+    @test reduce(z(2), F) == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
+    @test_throws ErrorException reduce(z(4), F)
+    F = gf_fun(2, 2)
+    red = reduce(z(3), F)
+    @test red != one(F) && red^3 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(7), F)
+    F = gf_fun(2, 3)
+    red = reduce(z(7), F)
+    @test red != one(F) && red^7 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    F = gf_fun(3, 2)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
+  end
+
   @testset "Unsafe operations" begin
     K, z = abelian_closure(QQ)
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end
@@ -340,5 +365,16 @@ end
     F, a = QQ[z(5), z(3)]
     @test F isa AnticNumberField
     @test dim(F) == 8
+  end
+
+  @testset "Atlas irrationalities" begin
+    K, z = abelian_closure(QQ)
+    vals = [z(7) + z(7)^2 + z(7)^4,
+            z(8) + z(8)^3,
+            z(9) + z(9)^-1,
+            z(3) - z(3)^2]
+    for val in vals
+      @test atlas_irrationality(atlas_description(val)) == val
+    end
   end
 end

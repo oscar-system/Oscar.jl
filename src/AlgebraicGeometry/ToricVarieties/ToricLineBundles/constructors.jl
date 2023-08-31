@@ -5,9 +5,9 @@
 abstract type ToricCoherentSheaf end
 
 @attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
-    toric_variety::AbstractNormalToricVariety
+    toric_variety::NormalToricVarietyType
     picard_class::GrpAbFinGenElem
-    function ToricLineBundle(toric_variety::AbstractNormalToricVariety, picard_class::GrpAbFinGenElem)
+    function ToricLineBundle(toric_variety::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
         @req parent(picard_class) === picard_group(toric_variety) "The class must belong to the Picard group of the toric variety"
         return new(toric_variety, picard_class)
     end
@@ -19,7 +19,7 @@ end
 ########################
 
 @doc raw"""
-    toric_line_bundle(v::AbstractNormalToricVariety, picard_class::GrpAbFinGenElem)
+    toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
 
 Construct the line bundle on the abstract normal toric variety with given class
 in the Picard group of the toric variety in question.
@@ -33,11 +33,11 @@ julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
 Toric line bundle on a normal toric variety
 ```
 """
-toric_line_bundle(v::AbstractNormalToricVariety, picard_class::GrpAbFinGenElem) = ToricLineBundle(v, picard_class)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem) = ToricLineBundle(v, picard_class)
 
 
 @doc raw"""
-    toric_line_bundle(v::AbstractNormalToricVariety, picard_class::Vector{T}) where {T <: IntegerUnion}
+    toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`
 in the Picard group of `v`.
@@ -51,7 +51,7 @@ julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 ```
 """
-function toric_line_bundle(v::AbstractNormalToricVariety, picard_class::Vector{T}) where {T <: IntegerUnion}
+function toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
     return ToricLineBundle(v, picard_group(v)(picard_class))
 end
 
@@ -61,7 +61,7 @@ end
 ########################
 
 @doc raw"""
-    toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+    toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
 
 Construct the toric variety associated to a (Cartier) torus-invariant divisor `d` on the normal toric variety `v`.
 
@@ -74,7 +74,7 @@ julia> l = toric_line_bundle(v, toric_divisor(v, [1, 2, 3]))
 Toric line bundle on a normal toric variety
 ```
 """
-function toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+function toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
     @req is_cartier(d) "The toric divisor must be Cartier to define a toric line bundle"
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
     g = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
@@ -104,7 +104,7 @@ Toric line bundle on a normal toric variety
 toric_line_bundle(d::ToricDivisor) = toric_line_bundle(toric_variety(d), d)
 
 @doc raw"""
-    toric_line_bundle(v::AbstractNormalToricVariety, dc::ToricDivisorClass)
+    toric_line_bundle(v::NormalToricVarietyType, dc::ToricDivisorClass)
 
 Construct the toric variety associated to a divisor class in the class group
 of a toric variety.
@@ -124,7 +124,7 @@ julia> l = toric_line_bundle(v, dc)
 Toric line bundle on a normal toric variety
 ```
 """
-function toric_line_bundle(v::AbstractNormalToricVariety, dc::ToricDivisorClass)
+function toric_line_bundle(v::NormalToricVarietyType, dc::ToricDivisorClass)
   f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
   g = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
   h = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
