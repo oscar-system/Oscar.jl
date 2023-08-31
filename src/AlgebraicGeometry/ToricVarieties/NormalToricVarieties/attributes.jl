@@ -1114,7 +1114,11 @@ julia> hilbert_basis(antv)
 [ 0   1]
 ```
 """
-@attr ZZMatrix hilbert_basis(v::AffineNormalToricVariety) = matrix(ZZ, hilbert_basis(weight_cone(v)))
+@attr ZZMatrix function hilbert_basis(v::AffineNormalToricVariety)
+  @req is_pointed(weight_cone(v)) "Weight cone is not pointed"
+  @req isfulldimensional(weight_cone(v)) "Weight cone is not full dimensional"
+  return matrix(ZZ, hilbert_basis(weight_cone(v)))
+end
 
 
 _variable_ray_correspondence(v::NormalToricVarietyType) = Dict{RayVector, MPolyRingElem}(zip(rays(v), gens(cox_ring(v))))
