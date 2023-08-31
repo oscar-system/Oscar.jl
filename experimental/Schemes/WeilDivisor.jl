@@ -181,11 +181,16 @@ function Base.show(io::IO, D::WeilDivisor)
     print(io, name(D))
   elseif get(io, :supercompact, false)
     print(io, "Algebraic cycle")
+  # if the divisor is prime and the ideal sheaf has a name print that
+  elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
+    I = first(components(D))
+    I_name = get_attribute(I, :name)
+    print(io, Lowercase(), I_name)
   elseif length(components(D)) == 0
     print(io, "Zero weil divisor on ", Lowercase(),  X)
   elseif eff
     if prim
-      print(io, "Prime weil divisor on ", Lowercase(), X)
+      print(io, "Prime Weil divisor on ", Lowercase(), X)
     else
       print(io, "Effective Weil divisor on ", Lowercase(), X)
     end
