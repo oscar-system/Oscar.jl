@@ -52,6 +52,7 @@ basis(L::LieAlgebra) = [basis(L, i)::elem_type(L) for i in 1:dim(L)]
 Return the `i`-th basis element of the Lie algebra `L`.
 """
 function basis(L::LieAlgebra, i::Int)
+  @req 1 <= i <= dim(L) "Index out of bounds."
   R = coefficient_ring(L)
   return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
 end
@@ -337,6 +338,48 @@ end
 
 ###############################################################################
 #
+#   Derived and central series
+#
+###############################################################################
+
+@doc raw"""
+    derived_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
+
+Return the derived series of `L`, i.e. the sequence of ideals 
+$L^{(0)} = L$, $L^{(i + 1)} = [L^{(i)}, L^{(i)}]$.
+"""
+function derived_series(L::LieAlgebra)
+  curr = ideal(L)
+  series = [curr]
+  while true
+    next = bracket(curr, curr)
+    dim(next) == dim(curr) && break
+    push!(series, next)
+    curr = next
+  end
+  return series
+end
+
+@doc raw"""
+    lower_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
+
+Return the lower central series of `L`, i.e. the sequence of ideals
+$L^{(0)} = L$, $L^{(i + 1)} = [L, L^{(i)}]$.
+"""
+function lower_central_series(L::LieAlgebra)
+  curr = ideal(L)
+  series = [curr]
+  while true
+    next = bracket(L, curr)
+    dim(next) == dim(curr) && break
+    push!(series, next)
+    curr = next
+  end
+  return series
+end
+
+###############################################################################
+#
 #   Properties
 #
 ###############################################################################
@@ -346,8 +389,28 @@ end
 
 Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 """
-function is_abelian(L::LieAlgebra)
-  return all(iszero, x * y for (x, y) in combinations(basis(L), 2))
+@attr Bool function is_abelian(L::LieAlgebra)
+  b = basis(L)
+  n = length(b)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
+end
+
+@doc raw"""
+    is_nilpotent(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is nilpotent, i.e. the lower central series of `L` terminates in $0$.
+"""
+@attr Bool function is_nilpotent(L::LieAlgebra)
+  return dim(lower_central_series(L)[end]) == 0
+end
+
+@doc raw"""
+    is_perfect(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is perfect, i.e. $[L, L] = L$.
+"""
+@attr Bool function is_perfect(L::LieAlgebra)
+  return dim(derived_algebra(L)) == dim(L)
 end
 
 @doc raw"""
@@ -358,9 +421,19 @@ Return `true` if `L` is simple, i.e. `L` is not abelian and has no non-trivial i
 !!! warning
     This function is not implemented yet.
 """
-function is_simple(L::LieAlgebra)
+@attr Bool function is_simple(L::LieAlgebra)
   is_abelian(L) && return false
+  !is_perfect(L) && return false
   error("Not implemented.") # TODO
+end
+
+@doc raw"""
+    is_solvable(L::LieAlgebra) -> Bool
+
+Return `true` if `L` is solvable, i.e. the derived series of `L` terminates in $0$.
+"""
+@attr Bool function is_solvable(L::LieAlgebra)
+  return dim(derived_series(L)[end]) == 0
 end
 
 ###############################################################################

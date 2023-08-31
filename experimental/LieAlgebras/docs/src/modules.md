@@ -52,6 +52,7 @@ The module action is defined as `*`.
 ## Module constructors
 
 ```@docs
+trivial_module(L::LieAlgebra, d::IntegerUnion=1)
 standard_module(::LinearLieAlgebra)
 dual(::LieAlgebraModule{C}) where {C<:RingElement}
 direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}

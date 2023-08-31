@@ -156,4 +156,46 @@ include("LinearLieAlgebra-test.jl")
       @test_broken is_simple(L) == (characteristic(F) != 3)
     end
   end
+
+  @testset "Perfectness" begin
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+      L = general_linear_lie_algebra(F, n)
+      @test !is_perfect(L)
+
+      L = special_linear_lie_algebra(F, n)
+      @test is_perfect(L) == !(n == 2 && characteristic(F) == 2)
+    end
+  end
+
+  @testset "Solvability and nilpotency" begin
+    L = abelian_lie_algebra(QQ, 3)
+    @test is_nilpotent(L)
+    @test is_solvable(L)
+
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+      L = lie_algebra(
+        F,
+        n,
+        [(b = zero_matrix(F, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n],
+        ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n],
+      )
+      @test is_nilpotent(L)
+      @test is_solvable(L)
+    end
+
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+      L = lie_algebra(
+        F,
+        n,
+        [(b = zero_matrix(F, n, n); b[i, j] = 1; b) for i in 1:n for j in i:n],
+        ["x_$(i)_$(j)" for i in 1:n for j in i:n],
+      )
+      @test !is_nilpotent(L)
+      @test is_solvable(L)
+    end
+
+    L = special_linear_lie_algebra(QQ, 3)
+    @test !is_nilpotent(L)
+    @test !is_solvable(L)
+  end
 end

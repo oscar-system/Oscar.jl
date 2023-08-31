@@ -3,6 +3,8 @@
       "introduction.md",
       "lie_algebras.md",
       "ideals_and_subalgebras.md",
+      "lie_algebra_homs.md",
       "modules.md",
+      "module_homs.md",
    ],
 ]
