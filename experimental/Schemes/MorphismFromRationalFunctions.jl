@@ -137,7 +137,7 @@ function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalF
   print(io, Indent())
   c = collect(patch_representatives(Phi))
   for (U,(V,imgs)) in c[1:end-1]
-    print(io, "("))
+    print(io, "(")
     join(io, coordinates(U), ",")
     print(io, ") -> ")
     print(io, "(")
@@ -145,7 +145,7 @@ function Base.show(io::IOContext, ::MIME"text/plain", Phi::MorphismFromRationalF
     print(io, ")")
   end
   (U,(V,imgs)) = c[end]
-  print(io, "("))
+  print(io, "(")
   join(io, coordinates(U), ",")
   print(io, ") -> ")
   print(io, "(")
