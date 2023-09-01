@@ -1532,7 +1532,7 @@ end
 ########################################################################
 
 function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFieldElem; 
-    case::Symbol=:case1, names=[:x₂, :y₂, :t₂]
+    case::Symbol=:case1, names=[:x, :y, :t]
   )
   @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
