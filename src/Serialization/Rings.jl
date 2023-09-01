@@ -63,11 +63,13 @@ end
 @register_serialization_type ZZRing
 
 ################################################################################
-#  non simpleton base rings
+#  Mod Rings
 @register_serialization_type Nemo.zzModRing
+@register_serialization_type Nemo.ZZModRing
+const ModRingUnion = Union{Nemo.zzModRing, Nemo.ZZModRing}
 
-function save_object(s::SerializerState, R::Nemo.zzModRing)
-  save_object(s, string(modulus(R)))
+function save_object(s::SerializerState, R::T) where T <: ModRingUnion
+  save_object(s, modulus(R))
 end
 
 function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
@@ -75,15 +77,22 @@ function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
   return Nemo.zzModRing(modulus)
 end
 
+function load_object(s::DeserializerState, ::Type{Nemo.ZZModRing}, str::String)
+  modulus = ZZRingElem(str)
+  return Nemo.ZZModRing(modulus)
+end
+
 #elements
 @register_serialization_type zzModRingElem uses_params
+@register_serialization_type ZZModRingElem uses_params
+const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
-function save_object(s::SerializerState, x::zzModRingElem)
+function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
 end
 
-function load_object(s::DeserializerState, ::Type{zzModRingElem},
-                                 str::String, parent_ring::Nemo.zzModRing)
+function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
+                                 str::String, parent_ring::T) where T <: ModRingUnion
   return parent_ring(ZZRingElem(str))
 end
 
