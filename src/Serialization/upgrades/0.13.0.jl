@@ -78,14 +78,16 @@ push!(upgrade_scripts_set, UpgradeScript(
     if T <: Vector
       # this section wasn't necessary for upgrading the folder of surfaces
       # which was our primary focus, this may be updated upon request
-      throw(error("The upgrade script needs an update"))
+      error("The upgrade script needs an update")
     elseif T <: Union{PolyRingElem, MPolyRingElem}
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
         upgraded_parents = dict[:data][:parents][end]
         params = upgraded_parents
         upgraded_dict[:data] = upgrade_terms(dict[:data][:terms])
       else
-        println(json(dict, 2))
+        # this section wasn't necessary for upgrading the folder of surfaces
+        # which was our primary focus, this may be updated upon request
+        error("The upgrade script needs an update")
       end
 
       upgraded_dict[:_type] = Dict(:name => "PolyRingElem", :params => params)
