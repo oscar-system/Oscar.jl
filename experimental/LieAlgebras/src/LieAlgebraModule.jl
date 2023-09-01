@@ -913,7 +913,7 @@ function tensor_product(
   function pure(as::Tuple)
     return pure(as...)::LieAlgebraModuleElem{C}
   end
-  function pure(as::Vector{LieAlgebraModuleElem})
+  function pure(as::Vector{LieAlgebraModuleElem{C}})
     return pure(as...)::LieAlgebraModuleElem{C}
   end
 
