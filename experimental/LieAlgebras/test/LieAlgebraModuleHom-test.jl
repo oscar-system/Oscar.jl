@@ -144,7 +144,7 @@
     #@test kernel(h) == kernel(canonical_injjection(V1, 1))
   end
 
-  @testset "hom_tensor" begin
+  @testset "hom_tensor (tensor product)" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V11 = standard_module(L)
     V12 = dual(standard_module(L))
@@ -158,6 +158,33 @@
     h = hom_tensor(V1, V2, [h1, h2])
     @test domain(h) == V1
     @test codomain(h) == V2
+    @test is_welldefined(h)
+
+    V11 = standard_module(L)
+    V12 = dual(standard_module(L))
+    V2i = dual(dual(standard_module(L)))
+    V1 = tensor_product(V11, V12)
+    V2 = tensor_power(V2i, 2)
+    h1 = hom(V11, V2i, basis(V2i))
+    h2 = hom(V12, V2i, [zero(V2i) for _ in basis(V12)])
+
+    h = hom_tensor(V1, V2, [h1, h2])
+    @test domain(h) == V1
+    @test codomain(h) == V2
+    @test is_welldefined(h)
+  end
+
+  @testset "hom_tensor (tensor power)" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    Vb = standard_module(L)
+    Wb = dual(dual(standard_module(L)))
+    V = tensor_power(Vb, 3)
+    W = tensor_power(Wb, 3)
+    hb = hom(Vb, Wb, basis(Wb))
+
+    h = hom_tensor(V, W, hb)
+    @test domain(h) == V
+    @test codomain(h) == W
     @test is_welldefined(h)
   end
 end

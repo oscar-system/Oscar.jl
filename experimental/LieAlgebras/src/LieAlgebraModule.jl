@@ -596,6 +596,8 @@ function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
     return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
   elseif is_direct_sum(V)
     return get_attribute(V, :direct_sum)::Vector{LieAlgebraModule{C}}
+  elseif is_tensor_power(V)
+    return [base_module(V) for _ in 1:get_attribute(V, :power)]
   else
     error("Not a direct sum or tensor product module.")
   end

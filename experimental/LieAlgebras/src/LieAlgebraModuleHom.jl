@@ -455,17 +455,38 @@ Given modules `V` and `W` which are tensor products with the same number of fact
 say $V = V_1 \otimes \cdots \otimes V_r$, $W = W_1 \otimes \cdots \otimes W_r$,
 and given a vector `hs` of homomorphisms $a_i : V_i \to W_i$, return 
 $a_1 \otimes \cdots \otimes a_r$.
+
+This works for $r$th tensor powers as well.
 """
 function hom_tensor(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
 ) where {C<:RingElement}
-  @req is_tensor_product(V) "First module must be a tensor product"
-  @req is_tensor_product(W) "Second module must be a tensor product"
+  @req is_tensor_product(V) || is_tensor_power(V) "First module must be a tensor product or power"
+  @req is_tensor_product(W) || is_tensor_power(W) "Second module must be a tensor product or power"
   Vs = base_modules(V)
   Ws = base_modules(W)
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
   mat = reduce(kronecker_product, [matrix(hi) for hi in hs])
+  return hom(V, W, mat; check=false)
+end
+
+@doc raw"""
+    hom_tensor(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are tensor powers with the same exponent,
+say $V = T^k V'$, $W = T^k W'$, and given a homomorphism $h : V' \to W'$, return
+$h \otimes \cdots \otimes h$.
+"""
+function hom_tensor(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
+) where {C<:RingElement}
+  @req is_tensor_power(V) "First module must be a tensor power"
+  @req is_tensor_power(W) "Second module must be a tensor power"
+  @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
+  @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
+
+  mat = reduce(kronecker_product, [matrix(h) for _ in 1:get_attribute(V, :power)])
   return hom(V, W, mat; check=false)
 end
