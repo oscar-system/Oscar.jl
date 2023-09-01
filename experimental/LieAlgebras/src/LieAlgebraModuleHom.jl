@@ -466,12 +466,6 @@ function hom_tensor(
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
-  decompose_V = get_attribute(V, :tensor_generator_decompose_function)::Function
-  pure_W = get_attribute(W, :tensor_pure_function)::Function
-  function map_basis(v)
-    v_decomposed = decompose_V(v)
-    image_as_tuple = Tuple(hi(vi) for (hi, vi) in zip(hs, v_decomposed))
-    return pure_W(image_as_tuple)
-  end
-  return hom(V, W, map(map_basis, basis(V)); check=false)
+  mat = reduce(kronecker_product, [matrix(hi) for hi in hs])
+  return hom(V, W, mat; check=false)
 end
