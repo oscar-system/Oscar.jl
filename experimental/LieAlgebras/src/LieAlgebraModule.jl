@@ -359,7 +359,7 @@ function (V::LieAlgebraModule{C})(
   elseif is_tensor_product(V)
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::LieAlgebraModuleElem{C}
-  elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
+  elseif is_exterior_power(V) || is_symmetric_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
     @req all(x -> parent(x) === base_module(V), a) "Incompatible modules."
     R = coefficient_ring(V)
@@ -376,12 +376,11 @@ function (V::LieAlgebraModule{C})(
 
         mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds); init=one(R))
       end
-    elseif is_tensor_power(V)
-      for (i, inds) in enumerate(get_attribute(V, :ind_map))
-        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds); init=one(R))
-      end
     end
     return LieAlgebraModuleElem{C}(V, mat)
+  elseif is_tensor_power(V)
+    pure = get_attribute(V, :tensor_pure_function)
+    return pure(a)::LieAlgebraModuleElem{C}
   else
     throw(ArgumentError("Invalid input."))
   end
@@ -877,8 +876,10 @@ function tensor_product(
   transformation_matrices = map(1:dim(L)) do i
     ys = [transformation_matrix(Vj, i) for Vj in Vs]
     sum(
-      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:length(Vs))) for
-      i in 1:length(Vs)
+      kronecker_product(
+        kronecker_product(identity_matrix(R, prod(dim, Vs[1:(j - 1)]; init=1)), ys[j]),
+        identity_matrix(R, prod(dim, Vs[(j + 1):end]; init=1)),
+      ) for j in 1:length(Vs)
     )
   end
 
@@ -903,7 +904,7 @@ function tensor_product(
   function pure(as::LieAlgebraModuleElem{C}...)
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
-    mat = zero_matrix(R, 1, dim(tensor_product_V))
+    mat = zero_matrix(R, 1, dim_tensor_product_V)
     for (i, inds) in enumerate(ind_map)
       mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
     end
@@ -1098,14 +1099,18 @@ over special linear Lie algebra of degree 3 over QQ
 function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
+  R = coefficient_ring(V)
   dim_pow_V = dim(V)^k
   ind_map = k > 0 ? reverse.(collect(ProductIterator(1:dim(V), k))) : [Int[]]
 
   transformation_matrices = map(1:dim(L)) do i
     y = transformation_matrix(V, i)
     sum(
-      reduce(kronecker_product, (j == i ? y : one(y) for j in 1:k)) for i in 1:k;
-      init=zero_matrix(coefficient_ring(V), dim_pow_V, dim_pow_V),
+      kronecker_product(
+        kronecker_product(identity_matrix(R, dim(V)^(j - 1)), y),
+        identity_matrix(R, dim(V)^(k - j)),
+      ) for j in 1:k;
+      init=zero_matrix(R, dim_pow_V, dim_pow_V),
     )
   end
 
@@ -1120,8 +1125,44 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_pow_V, transformation_matrices, s; check=false)
+
+  function pure(as::LieAlgebraModuleElem{C}...)
+    @req length(as) == k "Length of vector does not match."
+    @req all(a -> parent(a) === V, as) "Incompatible modules."
+    mat = zero_matrix(R, 1, dim_pow_V)
+    for (i, inds) in enumerate(ind_map)
+      mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
+    end
+    return pow_V(mat)
+  end
+
+  function pure(as::Tuple)
+    return pure(as...)::LieAlgebraModuleElem{C}
+  end
+  function pure(as::Vector{LieAlgebraModuleElem{C}})
+    return pure(as...)::LieAlgebraModuleElem{C}
+  end
+
+  function inv_pure(a::LieAlgebraModuleElem{C})
+    @req parent(a) === pow_V "Incompatible modules."
+    if iszero(a)
+      return Tuple(zero(V) for _ in 1:k)
+    end
+    nz = findall(!iszero, coefficients(a))
+    @req length(nz) == 1 "Non-pure tensor product element."
+    @req isone(coeff(a, nz[1])) "Non-pure tensor product element."
+    inds = ind_map[nz[1]]
+    return Tuple(basis(V, i) for i in inds)
+  end
+
   set_attribute!(
-    pow_V, :type => :tensor_power, :power => k, :base_module => V, :ind_map => ind_map
+    pow_V,
+    :type => :tensor_power,
+    :power => k,
+    :base_module => V,
+    :ind_map => ind_map, # deprecated
+    :tensor_pure_function => pure,
+    :tensor_generator_decompose_function => inv_pure,
   )
   return pow_V
 end
