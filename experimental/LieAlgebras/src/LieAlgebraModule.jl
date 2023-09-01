@@ -352,18 +352,13 @@ where _correct_ depends on the case above.
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
-  if is_direct_sum(V) || is_tensor_product(V)
+  if is_direct_sum(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
     @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
-    if is_direct_sum(V)
-      return V(vcat([coefficients(x) for x in a]...))
-    elseif is_tensor_product(V)
-      mat = zero_matrix(coefficient_ring(V), 1, dim(V))
-      for (i, inds) in enumerate(get_attribute(V, :ind_map))
-        mat[1, i] += prod(a[j].mat[k] for (j, k) in enumerate(inds))
-      end
-      return LieAlgebraModuleElem{C}(V, mat)
-    end
+    return V(vcat([coefficients(x) for x in a]...))
+  elseif is_tensor_product(V)
+    pure = get_attribute(V, :tensor_pure_function)
+    return pure(a)::LieAlgebraModuleElem{C}
   elseif is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V)
     @req length(a) == get_attribute(V, :power) "Length of vector does not match power."
     @req all(x -> parent(x) === base_module(V), a) "Incompatible modules."
@@ -598,8 +593,13 @@ Returns the summands or tensor factors of `V`,
 if `V` has been constructed as a direct sum or tensor product of modules.
 """
 function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
-  @req is_direct_sum(V) || is_tensor_product(V) "Not a direct sum or tensor product module."
-  return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
+  if is_tensor_product(V)
+    return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
+  elseif is_direct_sum(V)
+    return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
+  else
+    error("Not a direct sum or tensor product module.")
+  end
 end
 
 ###############################################################################
@@ -836,10 +836,11 @@ end
   direct_sum(V, Vs...)
 
 @doc raw"""
-  tensor_product(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
-  ⊗(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+  tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+  ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
-Construct the tensor product of the modules `V...`.
+Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
+construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.
 
 # Examples
 ```jldoctest
@@ -863,28 +864,31 @@ over special linear Lie algebra of degree 3 over QQ
 function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
-  L = base_lie_algebra(V)
+  Vs = [V; Vs...]
+  L = base_lie_algebra(Vs[1])
   @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
+  R = coefficient_ring(Vs[1])
 
-  dim_tensor_product_V = dim(V) * prod(dim, Vs; init=1)
-  ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse([V, Vs...])])))
+  dim_tensor_product_V = prod(dim, Vs; init=1)
+  ind_map = collect(reverse.(ProductIterator([1:dim(Vi) for Vi in reverse(Vs)])))
 
   transformation_matrices = map(1:dim(L)) do i
-    ys = [transformation_matrix(Vj, i) for Vj in [V, Vs...]]
+    ys = [transformation_matrix(Vj, i) for Vj in Vs]
     sum(
-      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:(1 + length(Vs)))) for i in 1:(1 + length(Vs))
+      reduce(kronecker_product, (j == i ? ys[j] : one(ys[j]) for j in 1:length(Vs))) for
+      i in 1:length(Vs)
     )
   end
 
-  s = if length(Vs) == 0
-    symbols(V)
+  s = if length(Vs) == 1
+    symbols(Vs[1])
   else
     [
       Symbol(join(s, " ⊗ ")) for s in
       reverse.(
         ProductIterator([
           is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
-          Vi in reverse([V, Vs...])
+          Vi in reverse(Vs)
         ])
       )
     ]
@@ -893,12 +897,44 @@ function tensor_product(
   tensor_product_V = LieAlgebraModule{C}(
     L, dim_tensor_product_V, transformation_matrices, s; check=false
   )
+
+  function pure(as::LieAlgebraModuleElem{C}...)
+    @req length(as) == length(Vs) "Length of vector does not match."
+    @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
+    mat = zero_matrix(R, 1, dim(tensor_product_V))
+    for (i, inds) in enumerate(ind_map)
+      mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
+    end
+    return tensor_product_V(mat)
+  end
+
+  function pure(as::Tuple)
+    return pure(as...)::LieAlgebraModuleElem{C}
+  end
+  function pure(as::Vector{LieAlgebraModuleElem})
+    return pure(as...)::LieAlgebraModuleElem{C}
+  end
+
+  function inv_pure(a::LieAlgebraModuleElem{C})
+    @req parent(a) === tensor_product_V "Incompatible modules."
+    if iszero(a)
+      return Tuple(zero(Vi) for Vi in Vs)
+    end
+    nz = findall(!iszero, coefficients(a))
+    @req length(nz) == 1 "Non-pure tensor product element."
+    @req isone(coeff(a, nz[1])) "Non-pure tensor product element."
+    inds = ind_map[nz[1]]
+    return Tuple(basis(Vi, indi) for (Vi, indi) in zip(Vs, inds))
+  end
+
   set_attribute!(
     tensor_product_V,
     :type => :tensor_product,
-    :base_modules => collect([V, Vs...]),
-    :ind_map => ind_map,
+    :tensor_product => Vs,
+    :tensor_pure_function => pure,
+    :tensor_generator_decompose_function => inv_pure,
   )
+
   return tensor_product_V
 end
 
