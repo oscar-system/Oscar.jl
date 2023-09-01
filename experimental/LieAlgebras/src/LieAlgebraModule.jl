@@ -355,7 +355,7 @@ function (V::LieAlgebraModule{C})(
   if is_direct_sum(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
     @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
-    return V(vcat([coefficients(x) for x in a]...))
+    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
   elseif is_tensor_product(V)
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::LieAlgebraModuleElem{C}
@@ -596,7 +596,7 @@ function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
   if is_tensor_product(V)
     return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
   elseif is_direct_sum(V)
-    return get_attribute(V, :base_modules)::Vector{LieAlgebraModule{C}}
+    return get_attribute(V, :direct_sum)::Vector{LieAlgebraModule{C}}
   else
     error("Not a direct sum or tensor product module.")
   end
@@ -808,19 +808,21 @@ over special linear Lie algebra of degree 3 over QQ
 function direct_sum(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
 ) where {C<:RingElement}
-  L = base_lie_algebra(V)
+  Vs = [V; Vs...]
+
+  L = base_lie_algebra(Vs[1])
   @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
 
-  dim_direct_sum_V = dim(V) + sum(dim, Vs; init=0)
+  dim_direct_sum_V = sum(dim, Vs; init=0)
   transformation_matrices = map(1:dim(L)) do i
-    block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in [V, Vs...]])
+    block_diagonal_matrix([transformation_matrix(Vj, i) for Vj in Vs])
   end
 
-  s = if length(Vs) == 0
-    symbols(V)
+  s = if length(Vs) == 1
+    symbols(Vs[1])
   else
     [
-      Symbol("$s^($j)") for (j, Vj) in enumerate([V, Vs...]) for
+      Symbol("$s^($j)") for (j, Vj) in enumerate(Vs) for
       s in (is_standard_module(Vj) ? symbols(Vj) : (x -> "($x)").(symbols(Vj)))
     ]
   end
@@ -828,7 +830,7 @@ function direct_sum(
   direct_sum_V = LieAlgebraModule{C}(
     L, dim_direct_sum_V, transformation_matrices, s; check=false
   )
-  set_attribute!(direct_sum_V, :type => :direct_sum, :base_modules => collect([V, Vs...]))
+  set_attribute!(direct_sum_V, :type => :direct_sum, :direct_sum => Vs)
   return direct_sum_V
 end
 
