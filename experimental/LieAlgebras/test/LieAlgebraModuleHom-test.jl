@@ -33,6 +33,35 @@
     @test image(h, v6) == h(v6) == v3
   end
 
+  @testset "Identity and zero map" begin
+    L = special_linear_lie_algebra(QQ, 3)
+    stdV = standard_module(L)
+    V1 = symmetric_power(stdV, 3)
+    V2 = exterior_power(stdV, 2)
+
+    h = identity_map(V1)
+    @test domain(h) == V1
+    @test codomain(h) == V1
+    @test matrix(h) == identity_matrix(QQ, dim(V1))
+    @test is_welldefined(h)
+    for v in basis(V1)
+      @test h(v) == v
+    end
+    # @test image(h) == ...
+    # @test kernel(h) == ...
+
+    h = zero_map(V1, V2)
+    @test domain(h) == V1
+    @test codomain(h) == V2
+    @test matrix(h) == zero_matrix(QQ, dim(V1), dim(V2))
+    @test is_welldefined(h)
+    for v in basis(V1)
+      @test h(v) == zero(V2)
+    end
+    # @test image(h) == ...
+    # @test kernel(h) == ...
+  end
+
   @testset "Composition" begin
     L = special_orthogonal_lie_algebra(QQ, 3)
     V1 = standard_module(L)

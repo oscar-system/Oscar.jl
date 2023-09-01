@@ -26,9 +26,7 @@
     h.matrix = mat::dense_matrix_type(coefficient_ring(L2))
     h.header = MapHeader(L1, L2)
     if check
-      for x1 in basis(L1), x2 in basis(L1)
-        @req h(x1) * h(x2) == h(x1 * x2) "Not a homomorphism"
-      end
+      @req is_welldefined(h) "Not a homomorphism"
     end
     return h
   end
@@ -49,6 +47,20 @@ Note: The matrix operates on the coefficient vectors from the right.
 """
 function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:RingElement}
   return (h.matrix)::dense_matrix_type(C2)
+end
+
+@doc raw"""
+    is_welldefined(h::LieAlgebraHom) -> Bool
+
+Return `true` if `h` is a well-defined homomorphism of Lie algebras.
+This function is used internally when calling `hom` with `check=true`.
+"""
+function is_welldefined(h::LieAlgebraHom)
+  L1 = domain(h)
+  for x1 in basis(L1), x2 in basis(L1)
+    h(x1) * h(x2) == h(x1 * x2) || return false
+  end
+  return true
 end
 
 ###############################################################################

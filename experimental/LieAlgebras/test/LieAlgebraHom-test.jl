@@ -7,11 +7,7 @@
     @test domain(h) == L1
     @test codomain(h) == L2
     @test matrix(h) == matrix(QQ, [0 1 0 0; 0 0 1 0; 1 0 0 -1])
-    for x1 in basis(L1)
-      for x2 in basis(L1)
-        @test h(x1 * x2) == h(x1) * h(x2)
-      end
-    end
+    @test is_welldefined(h)
   end
 
   @testset "Image and kernel" begin
@@ -45,6 +41,7 @@
     @test domain(h) == L1
     @test codomain(h) == L1
     @test matrix(h) == identity_matrix(QQ, dim(L1))
+    @test is_welldefined(h)
     for x in basis(L1)
       @test h(x) == x
     end
@@ -55,6 +52,7 @@
     @test domain(h) == L1
     @test codomain(h) == L2
     @test matrix(h) == zero_matrix(QQ, dim(L1), dim(L2))
+    @test is_welldefined(h)
     for x in basis(L1)
       @test h(x) == zero(L2)
     end
