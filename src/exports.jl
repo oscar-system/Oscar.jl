@@ -267,6 +267,7 @@ export basic_patches
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
+export basis_representation
 export bell
 export betti
 export betti_number
@@ -483,6 +484,7 @@ export element_to_homomorphism
 export elementary_symmetric
 export elements
 export eliminate
+export elliptic_parameter
 export embedding
 export embedding_orthogonal_group
 export empty_covered_scheme
@@ -975,6 +977,7 @@ export monomial_ordering
 export monomials
 export mori_cone
 export morphism_from_cox_variety
+export MorphismFromRationalFunctions
 export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
@@ -1391,6 +1394,7 @@ export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
+export two_neighbor_step
 export two_sided_ideal
 export underlying_glueing
 export underlying_morphism
