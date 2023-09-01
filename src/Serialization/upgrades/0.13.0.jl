@@ -67,18 +67,18 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     if dict[:type] == "Nemo.fpFieldElem"
-      dict[:type] = "fpFieldElem"
+      dict[:_type] = "fpFieldElem"
     end
     T = decode_type(dict[:type])
 
     # type has already been updated
-    if dict[:type] isa Dict
+    if haskey(dict, :_type) && dict[:_type] isa Dict
       return dict
     end
     if T <: Vector
       # this section wasn't necessary for upgrading the folder of surfaces
       # which was our primary focus, this may be updated upon request
-      throw(Error("The upgrade script needs an update"))
+      error("The upgrade script needs an update")
     elseif T <: Union{PolyRingElem, MPolyRingElem}
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
         upgraded_parents = dict[:data][:parents][end]
@@ -87,18 +87,18 @@ push!(upgrade_scripts_set, UpgradeScript(
       else
         # this section wasn't necessary for upgrading the folder of surfaces
         # which was our primary focus, this may be updated upon request
-        throw(Error("The upgrade script needs an update"))
+        error("The upgrade script needs an update")
       end
 
-      upgraded_dict[:type] = Dict(:name => "PolyRingElem", :params => params)
+      upgraded_dict[:_type] = Dict(:name => "PolyRingElem", :params => params)
     elseif T <: NamedTuple
       upgraded_tuple = upgrade_0_13_0(s, dict[:data][:content])
-      
+
       params = Dict(
-        :tuple_params => upgraded_tuple[:type][:params],
+        :tuple_params => upgraded_tuple[:_type][:params],
         :names => dict[:data][:keys][:data][:content]
       )
-      upgraded_dict[:type] = Dict(:name => "NamedTuple", :params => params)
+      upgraded_dict[:_type] = Dict(:name => "NamedTuple", :params => params)
       upgraded_dict[:data] = upgraded_tuple[:data]
 
     elseif T <: Nemo.fpField
@@ -111,7 +111,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = string(dict[:data][:characteristic])
     elseif T <: MPolyIdeal
       upgraded_parent = upgrade_0_13_0(s, dict[:data][:parent])[:id]
-      upgraded_dict[:type] = Dict(:name => "MPolyIdeal", :params => upgraded_parent)
+      upgraded_dict[:_type] = Dict(:name => "MPolyIdeal", :params => upgraded_parent)
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
         push!(upgraded_gens, upgrade_0_13_0(s, gen)[:data])
@@ -136,18 +136,18 @@ push!(upgrade_scripts_set, UpgradeScript(
         U = decode_type(field_type)
         if serialize_with_params(U)
           upgraded_entry = upgrade_0_13_0(s, dict[:data][:content][i])
-          push!(params, upgraded_entry[:type])
+          push!(params, upgraded_entry[:_type])
           push!(entry_data, upgraded_entry[:data])
         else
           push!(params, field_type)
           push!(entry_data, dict[:data][:content][i])
         end
       end
-      upgraded_dict[:type] = Dict(:name => "Tuple", :params => params)
+      upgraded_dict[:_type] = Dict(:name => "Tuple", :params => params)
       upgraded_dict[:data] = entry_data
     elseif  T <: Matrix
       params = dict[:data][:matrix][1][:data][:entry_type]
-      upgraded_dict[:type] = Dict(:name => "Matrix", :params => params)
+      upgraded_dict[:_type] = Dict(:name => "Matrix", :params => params)
       matrix_data = []
       for v in dict[:data][:matrix]
         push!(matrix_data, v[:data][:vector])
@@ -165,13 +165,14 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
       end
     end
-    
+
+
     if haskey(upgraded_dict, :refs)
       upgraded_refs = Dict()
       for (k, v) in upgraded_dict[:refs]
         upgraded_refs[k] = upgrade_0_13_0(s, v)
       end
-      upgraded_dict[:refs] = upgraded_refs
+      upgraded_dict[:_refs] = upgraded_refs
     end
     return upgraded_dict
   end
