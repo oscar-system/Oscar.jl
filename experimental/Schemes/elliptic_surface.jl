@@ -1101,6 +1101,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
     error("not implemented")
+    eqn1, phi1 = _conversion_case_2(X, u)
   end
 
   return eqn2, phi
@@ -1628,11 +1629,14 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   u_den = R_to_kkt_frac_XY(denominator(u_loc))
   @assert degree(u_num, 2) == 1 && degree(u_num, 1) == 0 "numerator does not have the correct degree"
   @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
+  @show u_num
+  @show u_den
 
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   y0 = my_const(coeff(u_num, [xx, yy], [0, 0]))
+  @show coeff(u_num, [xx, yy], [0, 0])
   x0 = -my_const(coeff(u_den, [xx, yy], [0, 0]))
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
@@ -1640,6 +1644,14 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   kkt2_frac = fraction_field(kkt2)
   S, (x2, y2) = polynomial_ring(kkt2_frac, names[1:2], cached=false)
   FS = fraction_field(S)
+  # We have 
+  #
+  #   y ↦ (u - a_t) * (x - x₀) / b_t - y₀ = (t₂ - a_t(x₂)) * (y₂ - x₀(x₂)) / b_t(x₂) - y₀(x₂)
+  #   x ↦ y₂
+  #   t ↦ x₂
+  @show [y2, (t2 - evaluate(a_t, x2)) * (y2 - evaluate(x0, x2)) // evaluate(b_t, x2) - evaluate(y0, x2), x2]
+  phi = hom(R, FS, FS.([]))
+   
 end
 
 # D = O + T
@@ -1687,7 +1699,6 @@ function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   u_num = R_to_kkt_frac_XY(numerator(u_loc))
   u_den = R_to_kkt_frac_XY(denominator(u_loc))
   u_frac = u_num//u_den
-  u_frac = u_frac + 3
   @assert denominator(u_frac) == xx "elliptic parameter was not brought to the correct form"
   u_num = numerator(u_frac)
   @assert degree(u_num, 1) <= 1 && degree(u_num, 2) <= 1 "numerator does not have the correct degrees"
