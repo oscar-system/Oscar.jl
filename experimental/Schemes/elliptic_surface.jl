@@ -1013,8 +1013,6 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
   if iszero(P[3])
     append!(sections, [FS(t)^(i-k) for i in 0:k])
     append!(sections, [FS(t)^(i-k)*FS(x) for i in 0:k-4])
-  #elseif iszero((2*P)[3])
-  #  error("not implemented for 2-torsion sections")
   else
     xn = numerator(P[1])
     xd = denominator(P[1])
@@ -1168,9 +1166,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
     else
       t0 = t//(t*pt[2]-pt[1])
     end
-    @show f0
     while any(F3[i]<0 for i in nonzero)
-      @show F3
       F3 = F3 - f0
       D = D + Fib0
       D1 = D1 + fiber
@@ -1178,7 +1174,6 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
       @assert F3[1]>=0
     end
   end
-  @show F3
   pt, _ = fiber(X)
   if pt[2]==0 # at infinity
     t0 = t
@@ -1597,7 +1592,6 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem)
   @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
 
   h = f_loc - y^2
-  @show h
   S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
   u_loc = u[U]::AbstractAlgebra.Generic.Frac
 end
@@ -1638,7 +1632,6 @@ function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem)
   @assert iszero(a[5]) "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
 
   h = f_loc - y^2
-  @show h
   S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
   u_loc = u[U]::AbstractAlgebra.Generic.Frac
 end
