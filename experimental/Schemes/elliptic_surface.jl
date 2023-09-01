@@ -96,12 +96,6 @@ generic_fiber(S::EllipticSurface) = S.E
 
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
 
-@attr AbsSpec function weierstrass_chart_on_minimal_model(S::EllipticSurface)
-  # make sure the minimal model is known
-  relatively_minimal_model(S)
-  return get_attribute(S, :weierstrass_chart_on_minimal_model)
-end
-
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
 
