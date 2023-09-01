@@ -1633,8 +1633,13 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
+  tmp = my_const(coeff(u_num, [xx, yy], [0, 1]))
   y0 = my_const(coeff(u_num, [xx, yy], [0, 0]))
+  y0 = divexact(y0, tmp)
+  tmp = my_const(coeff(u_den, [xx, yy], [1, 0]))
   x0 = -my_const(coeff(u_den, [xx, yy], [0, 0]))
+  x0 = divexact(x0, tmp)
+
   # We expect a form as on p. 44, l. -4
   u_frac = u_num//u_den
   @assert denominator(u_frac) == xx - x0 "fraction was not brought into the correct form"
