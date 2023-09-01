@@ -57,5 +57,6 @@ canonical_injections(::LieAlgebraModule)
 canonical_injection(::LieAlgebraModule, ::Int)
 canonical_projections(::LieAlgebraModule)
 canonical_projection(::LieAlgebraModule, ::Int)
+hom_direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Matrix{<:LieAlgebraModuleHom}) where {C<:RingElement}
 hom_tensor(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleHom}) where {C<:RingElement}
 ```

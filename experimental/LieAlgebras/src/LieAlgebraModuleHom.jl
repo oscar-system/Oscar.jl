@@ -385,8 +385,39 @@ function canonical_projection(V::LieAlgebraModule, i::Int)
   return proj
 end
 
-# function hom_direct_sum(...)
-# end
+@doc raw"""
+    hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are direct sums with `r` respective `s` summands,  
+say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix 
+`hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
+$V \to W$ with $ij$-components $h_{ij}$.
+"""
+function hom_direct_sum(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
+) where {C<:RingElement}
+  @req is_direct_sum(V) "First module must be a direct sum"
+  @req is_direct_sum(W) "Second module must be a direct sum"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+  @req length(Vs) == size(hs, 1) "Length mismatch"
+  @req length(Ws) == size(hs, 2) "Length mismatch"
+  @req all(
+    domain(hs[i, j]) === Vs[i] && codomain(hs[i, j]) === Ws[j] for i in 1:size(hs, 1),
+    j in 1:size(hs, 2)
+  ) "Domain/codomain mismatch"
+
+  Winjs = canonical_injections(W)
+  Vprojs = canonical_projections(V)
+  function map_basis(v)
+    return sum(
+      Winjs[j](sum(hs[i, j](Vprojs[i](v)) for i in 1:length(Vs); init=zero(Ws[j]))) for
+      j in 1:length(Ws);
+      init=zero(W),
+    )
+  end
+  return hom(V, W, map(map_basis, basis(V)); check=false)
+end
 
 @doc raw"""
     hom_tensor(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
@@ -403,9 +434,9 @@ function hom_tensor(
   @req is_tensor_product(W) "Second module must be a tensor product"
   Vs = base_modules(V)
   Ws = base_modules(W)
-
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+
   decompose_V = get_attribute(V, :tensor_generator_decompose_function)::Function
   pure_W = get_attribute(W, :tensor_pure_function)::Function
   function map_basis(v)

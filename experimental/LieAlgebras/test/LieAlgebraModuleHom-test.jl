@@ -94,6 +94,27 @@
     ) == identity_map(V)
   end
 
+  @testset "hom_direct_sum" begin
+    L = special_orthogonal_lie_algebra(QQ, 4)
+    V11 = standard_module(L)
+    V12 = dual(standard_module(L))
+    V21 = exterior_power(standard_module(L), 2)
+    V22 = dual(dual(standard_module(L)))
+    V1 = direct_sum(V11, V12)
+    V2 = direct_sum(V21, V22)
+    h11 = hom(V11, V21, [zero(V21) for _ in basis(V11)])
+    h12 = hom(V11, V22, basis(V22))
+    h21 = hom(V12, V21, [zero(V21) for _ in basis(V12)])
+    h22 = hom(V12, V22, [zero(V22) for _ in basis(V12)])
+
+    h = hom_direct_sum(V1, V2, [h11 h12; h21 h22])
+    @test domain(h) == V1
+    @test codomain(h) == V2
+    @test is_welldefined(h)
+    #@test image(h) == image(canonical_injection(V2, 2))
+    #@test kernel(h) == kernel(canonical_injjection(V1, 1))
+  end
+
   @testset "hom_tensor" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V11 = standard_module(L)
