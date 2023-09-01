@@ -131,6 +131,8 @@ using UUIDs
 
 include("serializers.jl")
 
+const type_key = :_type
+const refs_key = :_refs
 ################################################################################
 # Meta Data
 
@@ -296,12 +298,12 @@ end
 
 function save_typed_object(s::SerializerState, x::T) where T
   if serialize_with_params(T)
-    save_type_params(s, x, :type)
+    save_type_params(s, x, type_key)
     save_object(s, x, :data)
   elseif Base.issingletontype(T)
-    save_object(s, encode_type(T), :type)
+    save_object(s, encode_type(T), type_key)
   else
-    save_object(s, encode_type(T), :type)
+    save_object(s, encode_type(T), type_key)
     save_object(s, x, :data)
   end
 end
@@ -333,7 +335,7 @@ end
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
                            override_params::Any = nothing)
-  T = decode_type(dict[:type])
+  T = decode_type(dict[type_key])
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
@@ -341,7 +343,7 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
     else
       # depending on the type, :params is either an object to be loaded or a
       # dict with keys and object values to be loaded
-      params = load_type_params(s, T, dict[:type][:params])
+      params = load_type_params(s, T, dict[type_key][:params])
     end
     return load_object(s, T, dict[:data], params)
   else
@@ -465,7 +467,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
     end
     
     # this should be handled by serializers in a later commit / PR
-    !isempty(state.refs) && save_data_dict(state, :refs) do
+    !isempty(state.refs) && save_data_dict(state, refs_key) do
       for id in state.refs
         ref_obj = global_serializer_state.id_to_obj[id]
         state.key = Symbol(id)
@@ -571,8 +573,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
   end
 
   # add refs to state for referencing during recursion
-  if haskey(jsondict, :refs)
-    merge!(state.refs, jsondict[:refs])
+  if haskey(jsondict, refs_key)
+    merge!(state.refs, jsondict[refs_key])
   end
 
   if type !== nothing
@@ -582,12 +584,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
     # concrete, and `U <: T` should hold.
     #
     # This check should maybe change to a check on the whole type tree?
-    U = decode_type(jsondict[:type])
-    U <: type || U >: type || error("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T")
+    U = decode_type(jsondict[type_key])
+    U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
     if serialize_with_params(type)
       if isnothing(params) 
-        params = load_type_params(state, type, jsondict[:type][:params])
+        params = load_type_params(state, type, jsondict[type_key][:params])
       end
       return load_object(state, type, jsondict[:data], params)
     end

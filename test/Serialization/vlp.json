@@ -1,10 +1,10 @@
 {
-  "type": {
+  "_type": {
     "name": "Vector",
     "params": {
       "name": "LinearProgram",
       "params": {
-        "type": "QQField"
+        "_type": "QQField"
       }
     }
   },
