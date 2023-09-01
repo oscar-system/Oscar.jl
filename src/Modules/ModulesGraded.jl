@@ -1512,19 +1512,28 @@ function Base.show(io::IO, table::sheafCohTable)
   println(io, prod(chi_print))
 end
 
-function sheafCoh_BGG_regul(M::SubquoModule{T},
+function sheafCoh_BGG_regul(M::ModuleFP{T},
                             l::Int, h::Int,
                             reg::Int=Int(cm_regularity(M))) where {T <: MPolyDecRingElem}
 
-  cokern = present_as_cokernel(M)
-  quo_gens = relations(cokern)
-  sing_mod = singular_generators(ModuleGens(quo_gens))
 
   free_mod = ambient_free_module(M)
-  @assert is_standard_graded(free_mod)
+  @assert is_standard_graded(free_mod) "Only supported for the standard grading of polynomials."
+
+  # get a cokernel presentation of M
+  p = presentation(M)
+  cokern_repr = image(map(p, 1))[1]
+  cokern_gens = relations(cokern_repr)
+  if isempty(cokern_gens)
+    cokern_gens = [zero(ambient_free_module(cokern_repr))]
+  end
+  sing_mod = singular_generators(ModuleGens(cokern_gens))
+
   weights = [d.coeff.c for d in degrees_of_generators(free_mod)]
 
-  values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod, l, h, reg, weights)
+  values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
+                                                   l, h, reg,
+                                                   weights)
   return sheafCohTable(l:h, values)
 end
 
