@@ -1079,7 +1079,16 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     end
     phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
   elseif iszero(2*P) # P is a 2-torsion section
-    error("not implemented")
+    eqn1, phi1 = _conversion_case_3(X, u)
+    @show eqn1
+    (x2, y2) = gens(parent(eqn1))
+    # According to 
+    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+    # p. 45, l. 15 we expect the following cancellation to be possible:
+    success, eqn1 = divides(eqn1, y2)
+    @show eqn1
+    @assert success "equation did not come out in the anticipated form"
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
   else  # P has infinite order
     error("not implemented")
   end
@@ -1363,7 +1372,9 @@ function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRin
   ff = factor(first(coefficients(G1)))
   c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
   #d = sqrt(my_coeff(g1, y1, 2))
+  @show g1
   d = last(coefficients(split_map_R1(g1)))
+  @show d
   success, d = is_square_with_sqrt(d)
   @assert success "leading coefficient must be a square"
 
@@ -1495,6 +1506,8 @@ end
 #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
 # pp. 44--45.
 ########################################################################
+
+# D = 2O
 function _conversion_case_1(X::EllipticSurface, u::VarietyFunctionFieldElem, names=[:x₂, :y₂, :t₂])
   @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
@@ -1561,7 +1574,8 @@ function evaluate(f::AbstractAlgebra.Generic.Frac{<:PolyRingElem}, a::RingElem)
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
-function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem)
+# D = O + P
+function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, names=[:x₂, :y₂, :t₂])
   U = weierstrass_chart(X)
   R = ambient_coordinate_ring(U)
   x, y, t = gens(R)
@@ -1599,10 +1613,33 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem)
   h = f_loc - y^2
   @show h
   S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
-  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+  @show u_loc
+  #u_poly = R_to_kkt_frac_XY(numerator(u_loc))//(R_to_kkt_frac_XY(denominator(u_loc)))::AbstractAlgebra.Generic.Frac
+  #u_num = numerator(u_poly)
+  #u_den = denominator(u_poly)
+  u_num = R_to_kkt_frac_XY(numerator(u_loc))
+  u_den = R_to_kkt_frac_XY(denominator(u_loc))
+  @assert degree(u_num, 2) == 1 && degree(u_num, 1) == 0 "numerator does not have the correct degree"
+  @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
+
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  y0 = my_const(coeff(u_num, [xx, yy], [0, 0]))
+  @show y0
+  x0 = -my_const(coeff(u_den, [xx, yy], [0, 0]))
+  @show x0
+
+  # Set up the ambient_coordinate_ring of the new Weierstrass-chart
+  kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
+  kkt2_frac = fraction_field(kkt2)
+  S, (x2, y2) = polynomial_ring(kkt2_frac, names[1:2], cached=false)
+  FS = fraction_field(S)
 end
 
-function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem)
+# D = O + T
+function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem, names=[:x₂, :y₂, :t₂])
   U = weierstrass_chart(X)
   R = ambient_coordinate_ring(U)
   x, y, t = gens(R)
@@ -1640,7 +1677,47 @@ function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem)
   h = f_loc - y^2
   @show h
   S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
-  u_loc = u[U]::AbstractAlgebra.Generic.Frac
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+  @show u_loc
+  #u_poly = R_to_kkt_frac_XY(numerator(u_loc))//(R_to_kkt_frac_XY(denominator(u_loc)))::AbstractAlgebra.Generic.Frac
+  #u_num = numerator(u_poly)
+  #u_den = denominator(u_poly)
+  u_num = R_to_kkt_frac_XY(numerator(u_loc))
+  u_den = R_to_kkt_frac_XY(denominator(u_loc))
+  @show u_num
+  @show u_den
+  u_frac = u_num//u_den
+  @show u_frac
+  u_frac = u_frac + 3
+  @show u_frac
+  @assert denominator(u_frac) == xx "elliptic parameter was not brought to the correct form"
+  u_num = numerator(u_frac)
+  @show u_num
+  @assert degree(u_num, 1) <= 1 && degree(u_num, 2) <= 1 "numerator does not have the correct degrees"
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+  a_t = my_const(coeff(u_num, [xx, yy], [1, 0]))
+  @show a_t
+  b_t = my_const(coeff(u_num, [xx, yy], [0, 1]))
+  @show b_t
+  
+  # Set up the ambient_coordinate_ring of the new Weierstrass-chart
+  kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
+  kkt2_frac = fraction_field(kkt2)
+  S, (x2, y2) = polynomial_ring(kkt2_frac, names[1:2], cached=false)
+  FS = fraction_field(S)
+
+  # New Weierstrass equation is of the form 
+  #
+  #   x^2 = h(t, u)
+  #
+  # so y₂ = x, x₂ = t, and t₂ = u.
+  #
+  # We have u = a_t + b_t * y/x ⇒ y = (u - a_t) * x / b_t = (t₂ - a_t(x₂)) * y₂ / b_t(x₂)
+  @show [y2, (t2 - evaluate(a_t, x2)) * y2 // evaluate(b_t, x2), x2]
+  phi = hom(R, FS, FS.([y2, (t2 - evaluate(a_t, x2)) * y2 // evaluate(b_t, x2), x2]))
+  f_trans = phi(f_loc)
+  return numerator(f_trans), phi
 end
 
 function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
