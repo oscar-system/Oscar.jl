@@ -1067,41 +1067,46 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)
 
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
   # transform to a quartic y'^2 = q(x)
   if iszero(P[3])  #  P = O
     eqn1, phi1 = _conversion_case_1(X, u)
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
-    function phi_func(x)
-      y = phi1(x)
-      n = numerator(y)
-      d = denominator(y)
-      return phi2(n)//phi2(d)
-    end
-    phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
-    # TODO: Verify that the construction below also works and replace by that, eventually.
-    phi_alt = compose(phi1, extend_domain_to_fraction_field(phi2))
-    @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
+#   function phi_func(x)
+#     y = phi1(x)
+#     n = numerator(y)
+#     d = denominator(y)
+#     return phi2(n)//phi2(d)
+#   end
+#   phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
+#   # TODO: Verify that the construction below also works and replace by that, eventually.
+#   phi_alt = compose(phi1, extend_domain_to_fraction_field(phi2))
+#   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
+   phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   elseif iszero(2*P) # P is a 2-torsion section
     eqn1, phi1 = _conversion_case_3(X, u)
     (x2, y2) = gens(parent(eqn1))
-    # According to 
-    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 15 we expect the following cancellation to be possible:
-    success, eqn1 = divides(eqn1, y2)
-    @assert success "equation did not come out in the anticipated form"
 
     # Make sure the coefficient of y² is one (or a square) so that 
     # completing the square works. 
-    # Helper function
-    my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
     c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
     phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
-    error("not implemented")
     eqn1, phi1 = _conversion_case_2(X, u)
+    (x2, y2) = gens(parent(eqn1))
+    
+    # Make sure the coefficient of y² is one (or a square) so that 
+    # completing the square works. 
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    eqn1 = inv(unit(factor(c)))*eqn1
+
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
+    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   end
 
   return eqn2, phi
@@ -1629,15 +1634,22 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   u_den = R_to_kkt_frac_XY(denominator(u_loc))
   @assert degree(u_num, 2) == 1 && degree(u_num, 1) == 0 "numerator does not have the correct degree"
   @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
-  @show u_num
-  @show u_den
 
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   y0 = my_const(coeff(u_num, [xx, yy], [0, 0]))
-  @show coeff(u_num, [xx, yy], [0, 0])
   x0 = -my_const(coeff(u_den, [xx, yy], [0, 0]))
+  # We expect a form as on p. 44, l. -4
+  u_frac = u_num//u_den
+  @assert denominator(u_frac) == xx - x0 "fraction was not brought into the correct form"
+  u_num = numerator(u_frac)
+  @assert degree(u_num, 1) == 0 && degree(u_num, 2) <= 1 "numerator is not in the correct form"
+  b_t = my_const(coeff(u_num, [xx, yy], [0, 1]))
+  tmp = u_num - b_t * (yy + y0)
+  success, tmp = divides(tmp, xx - x0)
+  @assert success "numerator is not in the correct form"
+  a_t = my_const(coeff(tmp, [xx, yy], [0, 0]))
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
   kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
@@ -1649,9 +1661,15 @@ function _conversion_case_2(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   #   y ↦ (u - a_t) * (x - x₀) / b_t - y₀ = (t₂ - a_t(x₂)) * (y₂ - x₀(x₂)) / b_t(x₂) - y₀(x₂)
   #   x ↦ y₂
   #   t ↦ x₂
-  @show [y2, (t2 - evaluate(a_t, x2)) * (y2 - evaluate(x0, x2)) // evaluate(b_t, x2) - evaluate(y0, x2), x2]
-  phi = hom(R, FS, FS.([]))
-   
+  phi = hom(R, FS, FS.([y2, (t2 - evaluate(a_t, x2)) * (y2 - evaluate(x0, x2)) // evaluate(b_t, x2) - evaluate(y0, x2), x2]))
+  f_trans = phi(f_loc)
+  eqn1 = numerator(f_trans)
+  # According to 
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+  # p. 45, l. 1 we expect the following cancellation to be possible:
+  success, eqn1 = divides(eqn1, y2 - evaluate(numerator(x0), x2)*inv(evaluate(denominator(x0), x2)))
+  @assert success "division failed"
+  return eqn1, phi
 end
 
 # D = O + T
@@ -1722,7 +1740,13 @@ function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem, nam
   # We have u = a_t + b_t * y/x ⇒ y = (u - a_t) * x / b_t = (t₂ - a_t(x₂)) * y₂ / b_t(x₂)
   phi = hom(R, FS, FS.([y2, (t2 - evaluate(a_t, x2)) * y2 // evaluate(b_t, x2), x2]))
   f_trans = phi(f_loc)
-  return numerator(f_trans), phi
+  eqn1 = numerator(f_trans)
+  # According to 
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+  # p. 45, l. 15 we expect the following cancellation to be possible:
+  success, eqn1 = divides(eqn1, y2)
+  @assert success "equation did not come out in the anticipated form"
+  return eqn1, phi
 end
 
 function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
