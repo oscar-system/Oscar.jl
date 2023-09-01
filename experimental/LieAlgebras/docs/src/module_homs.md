@@ -20,6 +20,7 @@ or a $\dim V_1 \times \dim V_2$ matrix.
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleElem{C}}; check::Bool=true) where {C<:RingElement}
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::MatElem{C}; check::Bool=true) where {C<:RingElement}
 identity_map(::LieAlgebraModule)
+zero_map(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
 ```
 
 ## Functions

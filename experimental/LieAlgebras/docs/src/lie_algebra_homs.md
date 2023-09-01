@@ -19,6 +19,7 @@ the images of the basis elements of $L_1$ or a $\dim L_1 \times \dim L_2$ matrix
 hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::Vector{<:LieAlgebraElem{C}}; check::Bool=true) where {C<:RingElement}
 hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::MatElem{C}; check::Bool=true) where {C<:RingElement}
 identity_map(::LieAlgebra)
+zero_map(::LieAlgebra{C}, ::LieAlgebra{C}) where {C<:RingElement}
 ```
 
 ## Functions

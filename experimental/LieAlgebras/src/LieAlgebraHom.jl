@@ -301,3 +301,30 @@ Lie algebra morphism
 function identity_map(L::LieAlgebra)
   return hom(L, L, basis(L); check=false)
 end
+
+@doc raw"""
+    zero_map(L1::LieAlgebra, L2::LieAlgebra) -> LieAlgebraHom
+    zero_map(L::LieAlgebra) -> LieAlgebraHom
+
+Construct the zero map from `L1` to `L2` or from `L` to `L`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3)
+Special linear Lie algebra of degree 3
+  of dimension 8
+over rational field
+
+julia> zero_map(L)
+Lie algebra morphism
+  from special linear Lie algebra of degree 3 over QQ
+  to   special linear Lie algebra of degree 3 over QQ
+```
+"""
+function zero_map(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}
+  return hom(L1, L2, zero_matrix(coefficient_ring(L2), dim(L1), dim(L2)); check=false)
+end
+
+function zero_map(L::LieAlgebra)
+  return zero_map(L, L)
+end

@@ -298,6 +298,35 @@ function identity_map(V::LieAlgebraModule)
   return hom(V, V, basis(V); check=false)
 end
 
+@doc raw"""
+    zero_map(V1::LieAlgebraModule, V2::LieAlgebraModule) -> LieAlgebraModuleHom
+    zero_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Construct the zero map from `V1` to `V2` or from `V` to `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = standard_module(L)
+Standard module
+  of dimension 3
+over special linear Lie algebra of degree 3 over QQ
+
+julia> zero_map(V)
+Lie algebra module morphism
+  from standard module of dimension 3 over sl_3
+  to   standard module of dimension 3 over sl_3
+```
+"""
+function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
+  return hom(V1, V2, zero_matrix(coefficient_ring(V2), dim(V1), dim(V2)); check=false)
+end
+
+function zero_map(V::LieAlgebraModule)
+  return zero_map(V, V)
+end
+
 ###############################################################################
 #
 #   Hom constructions
