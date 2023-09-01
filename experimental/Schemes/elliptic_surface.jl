@@ -1636,3 +1636,9 @@ function _conversion_case_3(X::EllipticSurface, u::VarietyFunctionFieldElem)
   S, (u2, y2, t2) = polynomial_ring(kk, [:u, :y, :t])
   u_loc = u[U]::AbstractAlgebra.Generic.Frac
 end
+
+function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
+  ext_dom = fraction_field(domain(phi))
+  return MapFromFunc(ext_dom, codomain(phi), x->phi(numerator(x))*inv(phi(denominator(x))))
+end
+
