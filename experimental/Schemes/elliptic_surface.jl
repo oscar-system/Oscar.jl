@@ -1221,11 +1221,11 @@ end
 @doc raw"""
   elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
 
-Return the complete linear system ``|F|``.
+Return the elliptic parameter ``u`` of the divisor class `F`. 
 
-Here `F` must be given with respect to the basis of
-`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
-a K3 surface.
+The input `F` must be given with respect to the basis of
+`algebraic_lattice(X)` and be an isotropic nef divisor. 
+This method assumes that $X$ is a K3 surface.
 """
 function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   D1, D, P, l, c = horizontal_decomposition(X, F)

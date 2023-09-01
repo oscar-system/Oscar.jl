@@ -329,12 +329,12 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
     for c2 in components(E)
       a2 = E[c2]
       if c1 === c2
-        result = a1*a2*_self_intersection(c1)
+        result = result + a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
         if dim(I) > 0
           if c1 == c2
-            result = a1*a2*_self_intersection(c1)
+            result = result + a1*a2*_self_intersection(c1)
           else
             error("self intersection unknown")
           end
