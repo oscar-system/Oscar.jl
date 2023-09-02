@@ -96,12 +96,6 @@ generic_fiber(S::EllipticSurface) = S.E
 
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
 
-@attr AbsSpec function weierstrass_chart_on_minimal_model(S::EllipticSurface)
-  # make sure the minimal model is known
-  relatively_minimal_model(S)
-  return get_attribute(S, :weierstrass_chart_on_minimal_model)
-end
-
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
 
@@ -1221,11 +1215,11 @@ end
 @doc raw"""
   elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
 
-Return the complete linear system ``|F|``.
+Return the elliptic parameter ``u`` of the divisor class `F`. 
 
-Here `F` must be given with respect to the basis of
-`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
-a K3 surface.
+The input `F` must be given with respect to the basis of
+`algebraic_lattice(X)` and be an isotropic nef divisor. 
+This method assumes that $X$ is a K3 surface.
 """
 function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   D1, D, P, l, c = horizontal_decomposition(X, F)
@@ -1532,7 +1526,7 @@ end
 ########################################################################
 
 function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFieldElem; 
-    case::Symbol=:case1, names=[:x₂, :y₂, :t₂]
+    case::Symbol=:case1, names=[:x, :y, :t]
   )
   @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
