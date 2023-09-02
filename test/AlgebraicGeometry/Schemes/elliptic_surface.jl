@@ -79,7 +79,7 @@ end
 @testset "normalize_quartic and transform_to_weierstrass" begin
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   P, (u, v) = polynomial_ring(QQ, [:u, :v])
-  f = (3*x^2 - 5)^2*(y - 5*x^3 + 30*x - 5)^2 - (x^2 -5*x + 2)
+  f = (3*x^2 - 5)^2*(y - 5*x^3 + 30*x - 5)^2 - (7*x^3 + x^2 -5*x + 2)
   g, trans = Oscar._normalize_hyperelliptic_curve(f, parent=P)
   @test trans(f) == g
 
