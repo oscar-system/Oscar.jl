@@ -5,8 +5,8 @@ This function computes the projectivization of a direct sum of line bundles or d
 Please see [OM78](@cite) for more background information.
 
 # Examples
-```jldoctest
 Let us construct the projective bundles ``X=\mathbb{P}(\mathcal{O}_{\mathbb{P}^1}\oplus\mathcal{O}_{\mathbb{P}^1}(1))`` and ``Y=\mathbb{P}(\mathcal{O}_{\mathbb{P}^1}\oplus\mathcal{O}_{\mathbb{P}^1}(2))``.
+```jldoctest
 julia> P1 = projective_space(NormalToricVariety, 1);
 
 julia> D0 = toric_divisor(P1, [0,0]);
