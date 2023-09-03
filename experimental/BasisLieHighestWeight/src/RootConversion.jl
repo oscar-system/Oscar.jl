@@ -59,27 +59,26 @@ function eps_to_alpha(type::String, rank::Int, weight_eps::Vector{Int})::Vector{
     end
 end
 
-function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
-    C = get_CartanMatrix(type, rank)
-    return [i for i in C*weight_w]
-end
-
-function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
-    C_inv = get_inverse_CartanMatrix(type, rank)
-    # println("C_inv: ", C_inv)
-    return [i for i in C_inv*weight_alpha]
-end
-
 #function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
-#    C = get_inverse_CartanMatrix(type, rank)
-#    return [nearly_round(i) for i in C*weight_w]
+#    C = get_CartanMatrix(type, rank)
+#    return [i for i in C*weight_w]
 #end
 
 #function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
-#    C_inv = get_CartanMatrix(type, rank)
+#    C_inv = get_inverse_CartanMatrix(type, rank)
     # println("C_inv: ", C_inv)
-#    return [nearly_round(i) for i in C_inv*weight_alpha]
+#    return [i for i in C_inv*weight_alpha]
 #end
+
+function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
+    C = get_inverse_CartanMatrix(type, rank)
+    return [nearly_round(i) for i in C*weight_w]
+end
+
+function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+    C_inv = get_CartanMatrix(type, rank)
+    return [nearly_round(i) for i in C_inv*weight_alpha]
+end
 
 function nearly_round(x; tol=1e-8)
     diff = abs(x - round(x))

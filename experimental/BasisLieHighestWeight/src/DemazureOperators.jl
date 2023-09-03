@@ -85,8 +85,8 @@ function demazure_operators_summary(
     ZZ_x, x = LaurentPolynomialRing(ZZ, length(lambda))
     sub_word = []
     p = monomial_from_degrees(ZZ_x, lambda)
-    for alpha_i in weyl_word
-        push!(sub_word, beta_i)
+    for alpha_i in reverse(weyl_word)
+        append!(sub_word, alpha_i)
         p = demazure_operator(ZZ_x, alpha_i, alpha_wi_list[alpha_i], p)
         println("")
         println("sub_word: ", sub_word)
