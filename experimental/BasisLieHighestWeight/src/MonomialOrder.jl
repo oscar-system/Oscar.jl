@@ -1,6 +1,6 @@
 function get_monomial_order_lt(monomial_order::Union{String, Function}, ZZx::ZZMPolyRing)::Function
     """
-    Returns the desired monomial_order function less than
+    Returns the desired monomial_order function less than, i.e. return true <=> mon1 < mon2
     """
     if isa(monomial_order, Function)
        choosen_monomial_order = monomial_order
@@ -19,12 +19,33 @@ function get_monomial_order_lt(monomial_order::Union{String, Function}, ZZx::ZZM
 end
 
 function oplex_lt(mon1::ZZMPolyRingElem, mon2::ZZMPolyRingElem)
+    """
+    Less-than function for monomials in oplex order
+    (mon1, mon2) -> (mon1 < mon2)
+    """
     deg1 = degrees(mon1)
     deg2 = degrees(mon2)
+    
+    # Start comparing, starting with the first degree
     for i in 1:length(deg1)
-        if deg1[i] != deg2[i]
-            return deg1[i] > deg2[i]
+        diff = deg1[i] - deg2[i]
+        
+        if diff != 0
+            return diff > 0 # return mon1 < mon2 if first non-zero of difference is positive
         end
     end
-    return False
+
+    return false # mon1 == mon2 and therefore not <
 end
+
+#function oplex_lt(ZZx::ZZMPolyRing, mon1::ZZMPolyRingElem, mon2::ZZMPolyRingElem)
+#    # opposite of lex, return true if first non-zero if - is positive.
+#    if degrees(mon1) == degrees(mon2)
+#        return false
+#    else
+#        x = gens(ZZx)
+#        lex_order = eval(Symbol("lex"))(x)
+#        return (cmp(lex_order, mon1, mon2) == 1)
+#    end
+#    return false
+#end

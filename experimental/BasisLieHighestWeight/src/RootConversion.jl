@@ -14,7 +14,8 @@ function eps_to_w(type::String, rank::Int, weight_eps::Vector{Int})::Vector{Int}
     converts weight in rootsystem eps_i to w_i
     """
     if type in ["A", "B", "C", "D", "E", "F", "G"]
-        return round.(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
+        # return round.(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
+        return nearly_round(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
     else
         println("Type needs to be one of A-D")
     end
@@ -65,13 +66,35 @@ end
 
 function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
     C_inv = get_inverse_CartanMatrix(type, rank)
+    # println("C_inv: ", C_inv)
     return [i for i in C_inv*weight_alpha]
+end
+
+#function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
+#    C = get_inverse_CartanMatrix(type, rank)
+#    return [nearly_round(i) for i in C*weight_w]
+#end
+
+#function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+#    C_inv = get_CartanMatrix(type, rank)
+    # println("C_inv: ", C_inv)
+#    return [nearly_round(i) for i in C_inv*weight_alpha]
+#end
+
+function nearly_round(x; tol=1e-8)
+    diff = abs(x - round(x))
+    if diff < tol
+        return round(Int, x)
+    else
+        throw(ErrorException("Not correctly rounded"))
+    end
 end
 
 function get_CartanMatrix(type::String, rank::Int)
     L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     R = GAP.Globals.RootSystem(L)
     C = Matrix{Int}(GAP.Globals.CartanMatrix(R))
+    # println("C: ", C)
     return C
 end
 

@@ -268,11 +268,12 @@ function basis_lie_highest_weight(
     # lie_algebra of type, rank and its chevalley_basis
     lie_algebra = LieAlgebraStructure(type, rank)
     chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+    
 
     # operators that are represented by our monomials. x_i is connected to operators[i]
     operators = get_operators(lie_algebra, operators, chevalley_basis) 
     weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
-    weights_w = (weight_w->Int.(weight_w)).(weights_w)
+    weights_w = (weight_w->Int.(weight_w)).(weights_w)  
     weights_eps = [w_to_eps(type, rank, weight_w) for weight_w in weights_w] # other root system
     
     asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
@@ -337,7 +338,7 @@ end
 
 function basis_lie_highest_weight_fflv(
     type::String,
-    rank::Int, 
+    rank::Int,
     highest_weight::Vector{Int};
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
@@ -478,6 +479,13 @@ function compute_monomials(
             union!(set_mon, mon_sum)
         end
         # check if we found enough monomials
+
+        #println("")
+        #println("highest_weight: ", highest_weight)
+        #println("required monomials: ", gap_dim)
+        #println("monomials from Minkowski-sum: ", length(set_mon))
+        #println(set_mon)
+
         if length(set_mon) < gap_dim
             push!(no_minkowski, highest_weight)
             set_mon = add_by_hand(lie_algebra, birational_sequence, ZZx, highest_weight, 
@@ -648,6 +656,7 @@ function add_by_hand(
     )::Set{ZZMPolyRingElem}
 
     # println("add_by_hand", highest_weight)
+    set_mon_temp = copy(set_mon)
 
     """
     This function calculates the missing monomials by going through each non full weightspace and adding possible 
@@ -704,7 +713,11 @@ function add_by_hand(
                             calc_monomials, space, v0, 
                             cache_size, set_mon)       
     end
-    # println("")
+
+    #println("")
+    #println("highest_weight: ", highest_weight)
+    #println("added-by-hand: ", [mon for mon in set_mon if !(mon in set_mon_temp)])
+
     return set_mon
 end
 

@@ -35,6 +35,7 @@ end
 function demazure_operator_monom(
     ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
     beta::Int,
+    beta_wi::Vector{Int},
     e_lambda::AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}
     )
     lambda = leading_exponent_vector(e_lambda)
@@ -43,7 +44,7 @@ function demazure_operator_monom(
         result = ZZ_x(0)
         for i in 0:lambda[beta]
             result += monomial_from_degrees(ZZ_x, lambda)
-            lambda[beta] -= 1
+            lambda -= beta_wi
         end
     elseif scalar_prod == -1
         result = ZZ_x(0)
@@ -51,7 +52,7 @@ function demazure_operator_monom(
         result = ZZ_x(0)
         for i in 0:lambda[beta]
             result += monomial_from_degrees(ZZ_x, lambda)
-            lambda[beta] -= 1
+            lambda -= beta_wi
         end
     end
     return result
@@ -60,13 +61,14 @@ end
 function demazure_operator(
     ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
     beta::Int,
+    beta_wi::Vector{Int},
     e_lambda::AbstractAlgebra.Generic.LaurentMPolyWrap{ZZRingElem, ZZMPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}}
     )
     monoms = terms(e_lambda)
     result_poly = zero(e_lambda)
     
     for monom in monoms
-        result_poly += demazure_operator_monom(ZZ_x, beta, monom)
+        result_poly += demazure_operator_monom(ZZ_x, beta, beta_wi, monom)
     end
     
     return result_poly
@@ -78,12 +80,14 @@ function demazure_operators_summary(
     lambda::Vector{Int},
     weyl_word::Vector{Int}
     )
+    alpha_list = [ [i == j ? 1 : 0 for i in 1:rank] for j in 1:rank] # [..., [0, .., 0, 1, 0, ..., 0], ...]
+    alpha_wi_list = [alpha_to_w(type, rank, alpha_i) for alpha_i in alpha_list]
     ZZ_x, x = LaurentPolynomialRing(ZZ, length(lambda))
     sub_word = []
     p = monomial_from_degrees(ZZ_x, lambda)
-    for i in weyl_word
-        push!(sub_word, i)
-        p = demazure_operator(ZZ_x, i, p)
+    for alpha_i in weyl_word
+        push!(sub_word, beta_i)
+        p = demazure_operator(ZZ_x, alpha_i, alpha_wi_list[alpha_i], p)
         println("")
         println("sub_word: ", sub_word)
         println("p: ", p)
