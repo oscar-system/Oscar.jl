@@ -128,7 +128,7 @@ ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType
 
 
 # this constructs the zero ideal sheaf
-function IdealSheaf(X::CoveredScheme) 
+function IdealSheaf(X::AbsCoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(C)
