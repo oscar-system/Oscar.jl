@@ -141,7 +141,7 @@ end
   @test dim(Spec(W)) == 1
 end
 
-@testset "dimensions of affine schemes over the integers" begin
+@testset "dimensions of affine schemes over quotients of the integers" begin
   kk, _ = quo(ZZ, 4)
   R, (x,y,z) = kk["x", "y", "z"]
   A3 = Spec(R)
