@@ -94,7 +94,7 @@ Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
 
-weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
+weierstrass_chart(S::EllipticSurface) = S[1][1] # A Weierstrass chart on the relatively minimal model
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
