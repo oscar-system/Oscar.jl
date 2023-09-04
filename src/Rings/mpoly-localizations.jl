@@ -217,7 +217,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
       check::Bool=true
     ) where {RingElemType}
     R = base_ring(P)
-    check && (is_prime(P) || error("the ideal $P is not prime"))
+    @check is_prime(P) "the ideal $P is not prime"
     return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R, P)
   end
 end
@@ -321,6 +321,7 @@ mutable struct MPolyComplementOfKPointIdeal{
   R::RingType
   # The coordinates aᵢ of the point in 𝕜ⁿ corresponding to the maximal ideal
   a::Vector{BaseRingElemType}
+  m::MPolyIdeal # Field for caching the associated maximal ideal
 
   function MPolyComplementOfKPointIdeal(R::RingType, a::Vector{T}) where {RingType<:MPolyRing, T<:RingElement}
     length(a) == ngens(R) || error("the number of variables in the ring does not coincide with the number of coordinates")
@@ -332,12 +333,21 @@ mutable struct MPolyComplementOfKPointIdeal{
   end
 end
 
-# the name matches MPolyComplementOfPrimeIdeal
+# A function with this name exists with a method for 
+# MPolyComplementOfPrimeIdeal. In order to treat them in 
+# parallel, we introduce the analogous method here. 
 function prime_ideal(S::MPolyComplementOfKPointIdeal) 
-  R = ambient_ring(S)
-  x = gens(R)
-  n = ngens(R)
-  return ideal(R, [x[i]-S.a[i] for i in 1:n])
+  if !isdefined(S, :m)
+    R = ambient_ring(S)
+    x = gens(R)
+    n = ngens(R)
+    m = ideal(R, [x[i]-a for (i, a) in enumerate(point_coordinates(S))])
+    set_attribute!(m, :is_prime=>true)
+    set_attribute!(m, :is_maximal=>true)
+    set_attribute!(m, :dim=>0)
+    S.m = m
+  end
+  return S.m
 end
 
 @doc raw"""  
