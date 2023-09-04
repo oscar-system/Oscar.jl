@@ -29,7 +29,7 @@ export trivializing_covering
       ID[U] = ideal(OO(U), D[U])
     end
     I = IdealSheaf(X, ID, check=check)
-    if check
+    @check begin
       for U in keys(D)
         is_zero_divisor(OO(U)(D[U])) && error("local elements must not be zero divisors")
       end

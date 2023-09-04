@@ -421,7 +421,7 @@ identifications given by the glueings in the `default_covering`.
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
-  ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
+  ID::IdDict{AbsSpec, Ideal} # the ideals on the patches of some covering of X
   OOX::StructureSheafOfRings # the structure sheaf on X
   I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 

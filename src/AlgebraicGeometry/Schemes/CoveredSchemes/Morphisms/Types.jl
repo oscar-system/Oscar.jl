@@ -32,8 +32,8 @@ end
       Y::CodomainType,
       f::CoveringMorphism{<:Any, <:Any, BaseMorType}
     ) where {
-             DomainType<:CoveredScheme,
-             CodomainType<:CoveredScheme,
+             DomainType<:AbsCoveredScheme,
+             CodomainType<:AbsCoveredScheme,
              BaseMorType
             }
     domain(f) in coverings(X) || error("covering not found in domain")
