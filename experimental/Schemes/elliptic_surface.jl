@@ -530,14 +530,24 @@ function relatively_minimal_model(E::EllipticSurface)
   end
   E.Y = Y0
   E.blowups = projectionsY
+
+  # We need to rewrap the last maps so that the domain is really E
+  last_pr = pop!(projectionsY)
+  last_pr_wrap = CoveredSchemeMorphism(E, codomain(last_pr), covering_morphism(last_pr))
+  push!(projectionsY, last_pr_wrap)
   E.ambient_blowups = projectionsX
+
   E.ambient_exceptionals = ambient_exceptionals
-  #piY = reduce(*, reverse(projectionsY))
   piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   E.blowup = piY
-  E.inc_Y = inc_Y0
 
-  return Y0, piY
+  inc_Y0_wrap = CoveredClosedEmbedding(E, codomain(inc_Y0), covering_morphism(inc_Y0), check=true)
+  E.inc_Y = inc_Y0_wrap
+
+  set_attribute!(E, :is_irreducible=> true)
+  set_attribute!(E, :is_reduced=>true)
+  set_attribute!(E, :is_integral=>true)
+  return E, piY
 end
 
 #  global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
