@@ -769,7 +769,7 @@ function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   else
     error("[0,0] is not a point in projective space")
   end
-  F = EffectiveCartierDivisor(S0, D, trivializing_covering=S0[1])
+  F = EffectiveCartierDivisor(S0, D, trivializing_covering=S0[1], check=false)
   return pullback(S.blowup)(F)
 end
 
