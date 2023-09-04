@@ -345,7 +345,7 @@ function prime_ideal(S::MPolyComplementOfKPointIdeal)
     n = ngens(R)
     m = ideal(R, [x[i]-a for (i, a) in enumerate(point_coordinates(S))])
     set_attribute!(m, :is_prime=>true)
-    set_attribute!(m, :is_maximal=>iszero(dim(kk)))
+    kk isa Field && set_attribute!(m, :is_maximal=>true)
     set_attribute!(m, :dim=>dim(coefficient_ring(ambient_ring(S))))
     S.m = m
   end
