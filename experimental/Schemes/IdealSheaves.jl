@@ -195,7 +195,7 @@ function IdealSheaf(Y::AbsCoveredScheme,
   V = [codomain(ff) for ff in values(maps)]
   dict = IdDict{AbsSpec, Ideal}()
   V = unique!(V)
-  for W in W
+  for W in V
     i = findall(x->(codomain(x) == W), maps)
     dict[W] = image_ideal(maps[first(i)])
   end
@@ -278,8 +278,9 @@ Replaces the set of generators of the ideal sheaf by a minimal
 set of random linear combinations in every affine patch. 
 """
 function simplify!(I::IdealSheaf)
+  new_ideal_dict = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(default_covering(space(I)))
-    Oscar.object_cache(underlying_presheaf(I))[U] = ideal(OO(U), small_generating_set(I(U)))
+    new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
     #=
     n = ngens(I(U)) 
     n == 0 && continue
@@ -298,6 +299,8 @@ function simplify!(I::IdealSheaf)
     Oscar.object_cache(underlying_presheaf(I))[U] = K 
     =#
   end
+  I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
+  #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
 end
 

@@ -541,7 +541,7 @@ function relatively_minimal_model(E::EllipticSurface)
   piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   E.blowup = piY
 
-  inc_Y0_wrap = CoveredClosedEmbedding(E, codomain(inc_Y0), covering_morphism(inc_Y0), check=true)
+  inc_Y0_wrap = CoveredClosedEmbedding(E, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
   E.inc_Y = inc_Y0_wrap
 
   set_attribute!(E, :is_irreducible=> true)
