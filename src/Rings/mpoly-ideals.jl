@@ -1311,7 +1311,12 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
+
+# Some fixes which were necessary for the above
+dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
+dim(R::ZZRing) = 1
 
 
 ################################################################################
