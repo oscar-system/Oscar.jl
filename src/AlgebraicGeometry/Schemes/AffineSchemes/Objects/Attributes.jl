@@ -387,13 +387,37 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 dim(X::AbsSpec)
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
-  return dim(saturated_ideal(modulus(OO(X))))
+  error("Not implemented")
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+  println("QuoLoc PowersOfElement")
+  return dim(closure(X))
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}})
+  println("QuoLoc ComplementOfPrimeIdeal")
+  # Spec (R / I)_P
+  R = OO(X)
+  P = prime_ideal(inverted_set(R))
+  I = saturated_ideal(modulus(R))
+  return dim(I) - dim(P)
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing})
-  # the following line is supposed to refer the problem to the
-  # algebra side of the problem
-  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
+  error("Not implemented")
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+  println("Loc PowersOfElement")
+  # zariski open subset of A^n
+  return dim(closure(X))
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}})
+  println("Loc ComplementOfPrimeIdeal")
+  P = prime_ideal(inverted_set(OO(X)))
+  return codim(P)
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyRing})
@@ -403,7 +427,6 @@ end
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoRing})
   return dim(modulus(OO(X)))
 end
-
 
 @doc raw"""
     codim(X::AbsSpec)

@@ -214,7 +214,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
 
   function MPolyComplementOfPrimeIdeal(
       P::MPolyIdeal{RingElemType}; 
-      check::Bool=false
+      check::Bool=true
     ) where {RingElemType}
     R = base_ring(P)
     check && (is_prime(P) || error("the ideal $P is not prime"))
@@ -378,7 +378,7 @@ Complement
   in multivariate polynomial ring in 3 variables over QQ
 ```
 """
-complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false) = MPolyComplementOfPrimeIdeal(P; check)
+complement_of_prime_ideal(P::MPolyIdeal; check::Bool=true) = MPolyComplementOfPrimeIdeal(P; check)
 
 @doc raw"""  
     powers_of_element(f::MPolyRingElem)
@@ -1178,7 +1178,7 @@ function Localization(
 end
 
 ### additional constructors
-MPolyLocRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocRing(R, MPolyComplementOfPrimeIdeal(P))
+MPolyLocRing(R::RingType, P::MPolyIdeal{RingElemType}; check::Bool=true) where {RingType, RingElemType} = MPolyLocRing(R, MPolyComplementOfPrimeIdeal(P); check)
 
 Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyRingElem} = Localization(MPolyPowersOfElement(R, v))
 
