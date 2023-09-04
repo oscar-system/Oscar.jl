@@ -188,20 +188,26 @@ of `ClosedEmbedding`s; return the ideal sheaf describing the images
 of the local morphisms.
 """
 function IdealSheaf(Y::AbsCoveredScheme, 
-    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding};
+    check::Bool=true
   )
   maps = morphisms(phi)
   V = [codomain(ff) for ff in values(maps)]
   dict = IdDict{AbsSpec, Ideal}()
-  for U in affine_charts(Y)
-    if U in V
-      i = findall(x->(codomain(x) == U), maps)
-      dict[U] = image_ideal(maps[first(i)])
-    else
-      dict[U] = ideal(OO(U), one(OO(U)))
-    end
+  V = unique!(V)
+  for W in W
+    i = findall(x->(codomain(x) == W), maps)
+    dict[W] = image_ideal(maps[first(i)])
   end
-  return IdealSheaf(Y, dict) # TODO: set check=false?
+#  for U in affine_charts(Y)
+#    if U in V
+#      i = findall(x->(codomain(x) == U), maps)
+#      dict[U] = image_ideal(maps[first(i)])
+#    else
+#      dict[U] = ideal(OO(U), one(OO(U)))
+#    end
+#  end
+  return IdealSheaf(Y, dict, check=check)
 end
 
     
