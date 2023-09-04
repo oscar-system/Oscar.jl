@@ -17,7 +17,7 @@
   (4*t^4 + 5*t^3 + 5*t^2 + 6*t + 13,  9*t^6 + 21*t^5 + 17*t^4 + 12*t^2 + 3*t + 6)]]
   S = elliptic_surface(E, 2, mwl_basis)
   weierstrass_model(S)
-  relatively_minimal_model(S)
+  weierstrass_contraction(S)
 
   E = EllipticCurve(kP1, [0,0,0,1,t^10])
   X = elliptic_surface(E, 2)
@@ -52,7 +52,7 @@
   Qtf = fraction_field(Qt)
   E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
-  relatively_minimal_model(X3)
+  weierstrass_contraction(X3)
   trivial_lattice(X3)
   =#
 
@@ -72,7 +72,8 @@
     ff = QQFieldElem[9, 4, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 0, 0, 0, -1]
     @test det(algebraic_lattice(X)[3])==-1183
     @test length(Oscar.mordell_weil_torsion(X)) == 0 # no torsion points
-    elliptic_parameter(X, ff)
+    u = elliptic_parameter(X, ff)
+    two_neighbor_step(X, ff)
   end
 end
 

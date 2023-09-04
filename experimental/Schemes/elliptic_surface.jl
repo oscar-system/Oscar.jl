@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -54,6 +54,8 @@ base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fi
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
 
+This is also known as the Kodaira-Néron model of ``E``.
+
 # Examples
 ```jldoctest
 julia> Qt, t = polynomial_ring(QQ, :t);
@@ -80,11 +82,15 @@ function elliptic_surface(generic_fiber::EllCrv{BaseField}, euler_characteristic
   return S
 end
 
+kodaira_neron_model(E::EllCrv) = elliptic_surface(E)
+
 function underlying_scheme(S::EllipticSurface)
   if isdefined(S,:Y)
     return S.Y
   end
-  return relatively_minimal_model(S)[1]
+  # trigger the computation
+  weierstrass_contraction(S)
+  return underlying_scheme(S)
 end
 
 @doc raw"""
@@ -94,7 +100,18 @@ Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
 
-weierstrass_chart(S::EllipticSurface) = S[1][1] # A Weierstrass chart on the relatively minimal model
+@doc raw"""
+    weierstrass_chart(X::EllipticSurface)
+
+Return the weierstrass chart of ``X``.
+
+This returns a chart of ``U`` of ``X`` with affine coordinates ``(x,y,t)``. The  chart ``U`` is constructed as an open subset of
+the vanishing locus of
+``y^2 + a_1(t) xy + a_3y= x^3 + a_2 x^2 + a_4 x + a_6``
+minus the reducible singular fibers.
+
+"""
+weierstrass_chart(X::EllipticSurface) = X[1][1]
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -256,9 +273,9 @@ end
 @doc raw"""
     weierstrass_model(X::EllipticSurface) -> CoveredScheme, CoveredClosedEmbedding
 
-Return the Weierstrass model ``S`` of ``X`` and the inclusion
-
-$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})$$
+Return the Weierstrass model ``S`` of ``X`` and the inclusion in
+its ambient projective bundle
+$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1}).$$
 """
 function weierstrass_model(X::EllipticSurface)
   if isdefined(X, :Weierstrassmodel)
@@ -433,12 +450,14 @@ function _separate_singularities!(X::EllipticSurface)
 end
 
 @doc raw"""
-    relatively_minimal_model(E::EllipticSurface) -> CoveredScheme, SchemeMor
+    weierstrass_contraction(X::EllipticSurface) -> SchemeMor
 
-Return the relatively minimal model $X \to C$ and the contraction
-$\Psi \colon X \to S$ to its Weierstrass model $S$.
+Return the contraction morphism of ``X`` to its Weierstrass model.
+
+This triggers the computation of the `underlying_scheme` of ``X``
+as a blowup from its Weierstrass model. It may take a few minutes.
 """
-function relatively_minimal_model(E::EllipticSurface)
+function weierstrass_contraction(X::EllipticSurface)
   if isdefined(E, :blowup)
     return E.Y, E.blowup
   end
@@ -724,7 +743,7 @@ Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
 """
 function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
-  _ = relatively_minimal_model(S) # cache stuff
+  underlying_scheme(S) # cache stuff
   D = IdDict{AbsSpec, RingElem}()
   k = base_ring(S0)
   P = k.(P)
@@ -1068,7 +1087,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)
-  _, pr = relatively_minimal_model(X)
+  pr = weierstrass_contraction(X)
   u_up = pullback(pr)(u)
 
   # Helper function
@@ -1248,7 +1267,7 @@ Typically ``D`` is the output of `horizontal_decomposition`.
 """
 function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllCrvPt, l::Int, c)
   S, piS = weierstrass_model(X);
-  _,piX = relatively_minimal_model(X)
+  piX = weierstrass_contraction(X)
   c = function_field(S)(c)
   L = [i*c for i in linear_system(X, P, l)];
   LonX = linear_system(pullback(piX).(L), D1, check=false);
