@@ -642,19 +642,14 @@ Otherwise, return the remainder in a *weak* standard representation for `g` on d
 Return a `Vector` which contains, for each element `g` of `G`, a remainder as above.
 
 !!! note
-    In the global case, the returned remainders are fully reduced.
+    The returned remainders are fully reduced if `complete_reduction` is set to `true` and `ordering` is global.
+
+!!! note
+    The reduction strategy behind the `reduce` function and the reduction strategy behind the functions 
+    `reduce_with_quotients` and `reduce_with_quotients_and_unit` differ. As a consequence, the computed
+    remainders may differ.
 
 # Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
-
-julia> reduce(y^3, [x^2, x*y-y^3])
-x*y
-
-julia> reduce(y^3, [x^2, x*y-y^3], ordering = lex(R))
-y^3
-```
-
 ```jldoctest
 julia> R, (z, y, x) = polynomial_ring(QQ, ["z", "y", "x"]);
 
@@ -665,6 +660,21 @@ julia> g = x^3*y-3*y^2*z^2+x*y*z;
 julia> reduce(g, [f1, f2], ordering = lex(R))
 -3*x^10 + x^6 + x^5
 ```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
+
+julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
+
+julia> reduce(g, [f1, f2, f3], ordering = lex(R))
+x^5 + x^3*y + x^2*y^2*z^2 + z^6
+
+julia> reduce(g, [f1,f2, f3], ordering = lex(R), complete_reduction = true)
+x^5 - x^3 + y^6 + z^6
+```
+
 """
 function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f)), complete_reduction::Bool = false) where {T <: MPolyRingElem}
 	@assert parent(f) == parent(F[1])
@@ -695,7 +705,12 @@ Return the unit, the quotients and the remainder in a weak standard representati
 Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients, and a remainder as above.
 
 !!! note
-    In the global case, a standard representation with a fully reduced remainder is computed.
+    The returned remainders are fully reduced if `complete_reduction` is set to `true` and `ordering` is global.
+
+!!! note
+    The reduction strategy behind the `reduce` function and the reduction strategy behind the functions 
+    `reduce_with_quotients` and `reduce_with_quotients_and_unit` differ. As a consequence, the computed
+    remainders may differ.
 
 # Examples
 ```jldoctest
@@ -705,24 +720,27 @@ julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 
 julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 
-julia> u, Q, h = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
-([y+1], [x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0)
+julia> u, Q, h =reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = lex(R));
 
-julia> u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
-true
+julia> u
+[1]
 
 julia> G = [g, x*y^3-3*x^2*y^2*z^2];
 
-julia> U, Q,  H = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
+julia> U, Q, H = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = negdegrevlex(R));
 
 julia> U
-[1   0]
-[0   1]
+[y + 1       0]
+[    0   y + 1]
+
+julia> Q
+[x^3 - x*y^2*z^2 + x*y + y^2*z^2         0   y*z^2 + z^2]
+[               -3*y^2*z^2 - y*z   x*y + x             0]
 
 julia> H
 2-element Vector{QQMPolyRingElem}:
- -z^9 + z^7 + z^6 + z^4
- -3*z^7 + z^6
+ 0
+ 0
 
 julia> U*G == Q*[f1, f2, f3]+H
 true
@@ -869,42 +887,28 @@ Otherwise, return the quotients and the remainder in a *weak* standard represent
 Return a `Vector` which contains, for each element `g` of `G`, quotients and a remainder as above.
 
 !!! note
-    In the global case, the returned remainders are fully reduced.
+    The returned remainders are fully reduced if `complete_reduction` is set to `true` and `ordering` is global.
+
+!!! note
+    The reduction strategy behind the `reduce` function and the reduction strategy behind the functions 
+    `reduce_with_quotients` and `reduce_with_quotients_and_unit` differ. As a consequence, the computed
+    remainders may differ.
 
 # Examples
 
 ```jldoctest
-julia> R, (z, y, x) = polynomial_ring(QQ, ["z", "y", "x"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> f1 = y-x^2; f2 = z-x^3;
+julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 
-julia> g = x^3*y-3*y^2*z^2+x*y*z;
+julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 
-julia> Q, h = reduce_with_quotients(g, [f1, f2], ordering = lex(R));
-
-julia> Q
-[-3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
+julia> Q, h = reduce_with_quotients(g, [f1,f2, f3], ordering = lex(R));
 
 julia> h
--3*x^10 + x^6 + x^5
+-z^9 + z^7 + z^6 + z^4
 
-julia> g == Q[1]*f1+Q[2]*f2+h
-true
-
-julia> G = [g, x*y^3-3*x^2*y^2*z^2];
-
-julia> Q, H = reduce_with_quotients(G, [f1, f2], ordering = lex(R));
-
-julia> Q
-[          -3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
-[y^2*x - 3*y*x^8 + y*x^3 - 3*x^10 + x^5     -3*z*y^2*x^2 - 3*y^2*x^5]
-
-julia> H
-2-element Vector{QQMPolyRingElem}:
- -3*x^10 + x^6 + x^5
- -3*x^12 + x^7
-
-julia> G == Q*[f1, f2]+H
+julia> g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
 true
 ```
 """
