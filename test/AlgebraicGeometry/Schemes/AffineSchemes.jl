@@ -141,6 +141,24 @@ end
   @test dim(Spec(W)) == 1
 end
 
+@testset "dimensions of affine schemes over the integers" begin
+  kk, _ = quo(ZZ, 4)
+  R, (x,y,z) = kk["x", "y", "z"]
+  A3 = Spec(R)
+  X = subscheme(A3, x*y)
+  U = hypersurface_complement(A3, z)
+  @test dim(A3) == 3
+  @test dim(U) == 3
+  @test codim(A3) == 0
+  @test codim(X) == 1
+  disjoint_plane_and_line = subscheme(A3, [x*(x - 1), x*y])
+  line = hypersurface_complement(disjoint_plane_and_line, x)
+  plane = hypersurface_complement(disjoint_plane_and_line, y)
+  @test dim(line) == 1
+  @test dim(plane) == 2
+  # The other tests from above do not run, because the singular side does not digest the rings.
+end
+
 
 @testset "smoothness tests" begin
   R, (x,y,z) = QQ["x", "y", "z"]
