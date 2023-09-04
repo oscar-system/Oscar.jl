@@ -458,16 +458,17 @@ This triggers the computation of the `underlying_scheme` of ``X``
 as a blowup from its Weierstrass model. It may take a few minutes.
 """
 function weierstrass_contraction(X::EllipticSurface)
-  if isdefined(E, :blowup)
-    return E.Y, E.blowup
+  Y = X
+  if isdefined(Y, :blowup)
+    return Y.blowup
   end
-  S, inc_S = weierstrass_model(E)
-  Crefined = _separate_singularities!(E)
+  S, inc_S = weierstrass_model(Y)
+  Crefined = _separate_singularities!(Y)
   # Blow up singular points (one at a time) until smooth
   # and compute the strict transforms of the `divisors`
   # collect the exceptional divisors
   # blowup ambient spaces: X0 → X   ⊂
-  # blowup pi: (K3 = Y0)  → (S singular weierstrass model)
+  # blowup pi: Y  → (S singular weierstrass model)
   #
   # initialization for the while loop
   X0 = codomain(inc_S)
@@ -547,26 +548,26 @@ function weierstrass_contraction(X::EllipticSurface)
     set_attribute!(X0, :is_reduced=>true)
     set_attribute!(X0, :is_integral=>true)
   end
-  E.Y = Y0
-  E.blowups = projectionsY
+  Y.Y = Y0
+  Y.blowups = projectionsY
 
-  # We need to rewrap the last maps so that the domain is really E
+  # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
-  last_pr_wrap = CoveredSchemeMorphism(E, codomain(last_pr), covering_morphism(last_pr))
+  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
   push!(projectionsY, last_pr_wrap)
-  E.ambient_blowups = projectionsX
+  Y.ambient_blowups = projectionsX
 
-  E.ambient_exceptionals = ambient_exceptionals
+  Y.ambient_exceptionals = ambient_exceptionals
   piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
-  E.blowup = piY
+  Y.blowup = piY
 
-  inc_Y0_wrap = CoveredClosedEmbedding(E, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
-  E.inc_Y = inc_Y0_wrap
+  inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
+  Y.inc_Y = inc_Y0_wrap
 
-  set_attribute!(E, :is_irreducible=> true)
-  set_attribute!(E, :is_reduced=>true)
-  set_attribute!(E, :is_integral=>true)
-  return E, piY
+  set_attribute!(Y, :is_irreducible=> true)
+  set_attribute!(Y, :is_reduced=>true)
+  set_attribute!(Y, :is_integral=>true)
+  return piY
 end
 
 #  global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
@@ -1635,7 +1636,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 
     u_num = R_to_kkt_frac_XY(numerator(u_loc))
     u_den = R_to_kkt_frac_XY(denominator(u_loc))
-    @assert degree(u_num, 2) == 1 && degree(u_num, 1) == 0 "numerator does not have the correct degree"
+    @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
     @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
 
     tmp = my_const(coeff(u_num, [xx, yy], [0, 1]))
