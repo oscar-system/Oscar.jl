@@ -228,6 +228,8 @@ include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
+include("Serialization/main.jl")
+
 include("../experimental/Experimental.jl")
 
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
@@ -239,7 +241,6 @@ if is_dev
   include("../examples/PrimDec.jl")
 end
 
-include("Serialization/main.jl")
 
 include("aliases.jl")
 
