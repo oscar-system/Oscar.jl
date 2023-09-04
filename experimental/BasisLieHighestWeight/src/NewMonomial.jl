@@ -1,9 +1,9 @@
-function calc_weight(mon::ZZMPolyRingElem, weights_w::Vector{Vector{Int}})::Vector{Int}
+function calc_weight(mon::ZZMPolyRingElem, weights_w::Vector{Vector{ZZRingElem}})::Vector{ZZRingElem}
     """
     calculates weight associated with monomial mon
     """
     degree_mon = degrees(mon)
-    weight_w = [0 for i in 1:length(weights_w[1])]
+    weight_w = [ZZ(0) for i in 1:length(weights_w[1])]
     for i in 1:length(degree_mon)
         weight_w .+= degree_mon[i] * weights_w[i]
     end
@@ -54,10 +54,10 @@ end
 
 function calc_new_mon!(x::Vector{ZZMPolyRingElem},
     mon::ZZMPolyRingElem,
-    weights_w::Vector{Vector{Int}}, 
+    weights_w::Vector{Vector{ZZRingElem}}, 
     matrices_of_operators::Union{Vector{SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}}, Vector{SMat{ZZRingElem}}},
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}, 
-    space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis}, 
+    space::Dict{Vector{ZZRingElem}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis}, 
     cache_size::Int
     )::SRow{ZZRingElem}
     # calculate vector of mon by extending a previous calculated vector to a

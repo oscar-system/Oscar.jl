@@ -39,16 +39,16 @@ end
 
 @testset "Test BasisLieHighestWeight" begin
     @testset "is_fundamental" begin
-        @test BasisLieHighestWeight.is_fundamental([0, 1, 0])
-        @test !BasisLieHighestWeight.is_fundamental([0, 1, 1])
+        @test BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(0)])
+        @test !BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(1)])
     end
 
     @testset "compute_sub_weights" begin
-        @test isequal(BasisLieHighestWeight.compute_sub_weights([0, 0, 0]), [])
-        sub_weights =  [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 0, 0],
+        @test isequal(BasisLieHighestWeight.compute_sub_weights([ZZ(0), ZZ(0), ZZ(0)]), [])
+        sub_weights =  convert(Vector{Vector{ZZRingElem}}, [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 0, 0],
                         [0, 2, 0], [2, 1, 0], [1, 2, 0], [2, 0, 1], [0, 2, 1], [2, 1, 1], [1, 2, 1], [2, 2, 0],
-                        [0, 3, 0], [2, 2, 1], [1, 3, 0], [0, 3, 1], [1, 3, 1], [2, 3, 0]]
-        @test isequal(BasisLieHighestWeight.compute_sub_weights([2,3,1]), sub_weights)
+                        [0, 3, 0], [2, 2, 1], [1, 3, 0], [0, 3, 1], [1, 3, 1], [2, 3, 0]])
+        @test isequal(BasisLieHighestWeight.compute_sub_weights([ZZ(2), ZZ(3), ZZ(1)]), sub_weights)
     end
 
     @testset "Known examples basis_lie_highest_weight" begin

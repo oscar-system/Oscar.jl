@@ -8,7 +8,7 @@ include("../src/NewMonomial.jl")
     x = gens(ZZx)
     mon1 = ZZx(1)
     mon2 = x[1]^2 * x[2]
-    weights = [[1, 1], [2, 1]]
+    weights = [[ZZ(1), ZZ(1)], [ZZ(2), ZZ(1)]]
     A = sparse_matrix(ZZ, 2, 2) # [0, 1; 2, 1]
     setindex!(A, sparse_row(ZZ, [2], [ZZ(1)]), 1)
     setindex!(A, sparse_row(ZZ, [1, 2], [ZZ(2), ZZ(1)]), 2)
@@ -22,8 +22,8 @@ include("../src/NewMonomial.jl")
     mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])::SRow{ZZRingElem}
 
     @testset "calc_weight" begin
-        @test isequal(calc_weight(mon1, weights), [0, 0])
-        @test isequal(calc_weight(mon2, weights), [4, 3])
+        @test isequal(calc_weight(mon1, weights), [ZZ(0), ZZ(0)])
+        @test isequal(calc_weight(mon2, weights), [ZZ(4), ZZ(3)])
     end
 
     @testset "calc_vec" begin

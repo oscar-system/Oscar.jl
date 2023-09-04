@@ -67,8 +67,8 @@ end
 struct BirationalSequence
     operators::GAP.Obj # TODO Integer 
     operators_vectors::Vector{Vector{Any}}
-    weights_w::Vector{Vector{Int}}
-    weights_eps::Vector{Vector{Int}}
+    weights_w::Vector{Vector{ZZRingElem}}
+    weights_eps::Vector{Vector{QQFieldElem}}
 end
 
 function Base.show(io::IO, birational_sequence::BirationalSequence)
@@ -85,7 +85,7 @@ struct MonomialBasis
     polytope::Oscar.Polymake.BigObjectAllocated
 end
 
-function MonomialBasis(ZZx::ZZMPolyRing, set_mon::Set{ZZMPolyRingElem}, no_minkowski::Set{Vector{Int}})
+function MonomialBasis(ZZx::ZZMPolyRing, set_mon::Set{ZZMPolyRingElem}, no_minkowski::Set{Vector{ZZRingElem}})
     vertices = degrees.(collect(set_mon))
     vertices_hom = transpose(reduce(hcat, [prepend!(vec, 1) for vec in vertices])) # homogenoues coordinate system
     poly = Oscar.Polymake.polytope.Polytope(POINTS=vertices_hom)
@@ -261,6 +261,7 @@ function basis_lie_highest_weight(
         go through them one by one in monomial_order until basis is full
         return set_mon
     """
+    highest_weight = convert(Vector{ZZRingElem}, highest_weight)
     # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
     # steps. Then it starts the recursion and returns the result.
 
@@ -273,8 +274,8 @@ function basis_lie_highest_weight(
     # operators that are represented by our monomials. x_i is connected to operators[i]
     operators = get_operators(lie_algebra, operators, chevalley_basis) 
     weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
-    weights_w = (weight_w->Int.(weight_w)).(weights_w)  
-    weights_eps = [w_to_eps(type, rank, weight_w) for weight_w in weights_w] # other root system
+    # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
+    weights_eps = [w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
     
     asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
     birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps)
@@ -283,9 +284,9 @@ function basis_lie_highest_weight(
     monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx) # less than function to sort monomials by order
     
     # save computations from recursions
-    calc_highest_weight = Dict{Vector{Int}, Set{ZZMPolyRingElem}}([0 for i in 1:rank] => Set([ZZx(1)]))
+    calc_highest_weight = Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}}([ZZ(0) for i in 1:rank] => Set([ZZx(1)]))
     # we save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-    no_minkowski = Set{Vector{Int}}()
+    no_minkowski = Set{Vector{ZZRingElem}}()
 
     # start recursion over highest_weight
     set_mon = compute_monomials(lie_algebra, birational_sequence, ZZx, highest_weight, monomial_order_lt, calc_highest_weight, cache_size, no_minkowski)
@@ -299,7 +300,7 @@ function basis_lie_highest_weight(
         MonomialBasis(
             ZZx,
             set_mon,
-            no_minkowski,
+            no_minkowski
         )
     )
 end
@@ -420,11 +421,11 @@ function compute_monomials(
     lie_algebra::LieAlgebraStructure,
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing, 
-    highest_weight::Vector{Int},
+    highest_weight::Vector{ZZRingElem},
     monomial_order_lt::Function, 
-    calc_highest_weight::Dict{Vector{Int64}, Set{ZZMPolyRingElem}},
+    calc_highest_weight::Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}},
     cache_size::Int, 
-    no_minkowski::Set{Vector{Int}})::Set{ZZMPolyRingElem}
+    no_minkowski::Set{Vector{ZZRingElem}})::Set{ZZMPolyRingElem}
     """
     This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
     results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
@@ -440,7 +441,7 @@ function compute_monomials(
     # we already computed the highest_weight result in a prior recursion step
     if haskey(calc_highest_weight, highest_weight) 
         return calc_highest_weight[highest_weight]
-    elseif highest_weight == [0 for i in 1:lie_algebra.rank] # we mathematically know the solution
+    elseif highest_weight == [ZZ(0) for i in 1:lie_algebra.rank] # we mathematically know the solution
         return Set(ZZx(1))
     end 
 
@@ -448,7 +449,8 @@ function compute_monomials(
     # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
     # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
     # the recursion.
-    gap_dim = GAP.Globals.DimensionOfHighestWeightModule(lie_algebra.lie_algebra_gap, GAP.Obj(highest_weight)) # fundamental weights
+    highest_weight_int = convert(Vector{Int}, highest_weight)
+    gap_dim = GAP.Globals.DimensionOfHighestWeightModule(lie_algebra.lie_algebra_gap, GAP.Obj(highest_weight_int)) # fundamental weights
     if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
         push!(no_minkowski, highest_weight)
         set_mon = add_by_hand(lie_algebra, birational_sequence, ZZx, highest_weight, 
@@ -510,7 +512,7 @@ julia> BasisLieHighestWeight.is_fundamental([0, 1, 1])
 false
 ```
 """
-function is_fundamental(highest_weight::Vector{Int})::Bool
+function is_fundamental(highest_weight::Vector{ZZRingElem})::Bool
     one = false
     for i in highest_weight
         if i > 0
@@ -524,7 +526,7 @@ function is_fundamental(highest_weight::Vector{Int})::Bool
     return one
 end
 
-function compute_sub_weights(highest_weight::Vector{Int})::Vector{Vector{Int}}
+function compute_sub_weights(highest_weight::Vector{ZZRingElem})::Vector{Vector{ZZRingElem}}
     """
     returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
     """
@@ -545,12 +547,12 @@ end
 function add_known_monomials!(
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing, 
-    weight_w::Vector{Int},
-    set_mon_in_weightspace::Dict{Vector{Int64}, 
+    weight_w::Vector{ZZRingElem},
+    set_mon_in_weightspace::Dict{Vector{ZZRingElem}, 
     Set{ZZMPolyRingElem}},
     matrices_of_operators::Vector{SMat{ZZRingElem}},
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
-    space::Dict{Vector{Int64}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
+    space::Dict{Vector{ZZRingElem}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
     v0::SRow{ZZRingElem}, 
     cache_size::Int)
     """
@@ -583,11 +585,10 @@ function add_new_monomials!(
     matrices_of_operators::Vector{SMat{ZZRingElem}},
     monomial_order_lt::Function,
     dim_weightspace::Int,
-    weight_w::Vector{Int},
-    set_mon_in_weightspace::Dict{Vector{Int64}, Set{ZZMPolyRingElem}}, 
+    weight_w::Vector{ZZRingElem},
+    set_mon_in_weightspace::Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}}, 
     calc_monomials::Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}},
-    space::Dict{Vector{Int64}, 
-    Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
+    space::Dict{Vector{ZZRingElem}, Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
     v0::SRow{ZZRingElem}, 
     cache_size::Int,
     set_mon::Set{ZZMPolyRingElem})
@@ -601,7 +602,7 @@ function add_new_monomials!(
     
     # get monomials that are in the weightspace, sorted by monomial_order_lt
     poss_mon_in_weightspace = convert_lattice_points_to_monomials(ZZx, get_lattice_points_of_weightspace(
-        birational_sequence.weights_eps, w_to_eps(lie_algebra.lie_type, lie_algebra.rank, weight_w), lie_algebra.lie_type))
+        birational_sequence.weights_eps, w_to_eps(lie_algebra.lie_type, lie_algebra.rank, convert(Vector{QQFieldElem}, weight_w)), lie_algebra.lie_type))
     poss_mon_in_weightspace = sort(poss_mon_in_weightspace, lt=monomial_order_lt)
 
     # check which monomials should get added to the basis
@@ -648,7 +649,7 @@ function add_by_hand(
     lie_algebra::LieAlgebraStructure,
     birational_sequence::BirationalSequence,
     ZZx::ZZMPolyRing,
-    highest_weight::Vector{Int},
+    highest_weight::Vector{ZZRingElem},
     monomial_order_lt::Function,
     gap_dim::Int, 
     set_mon::Set{ZZMPolyRingElem},
@@ -665,16 +666,16 @@ function add_by_hand(
     # initialization
     # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
     matrices_of_operators = tensorMatricesForOperators(lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators)    
-    space = Dict(0*birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
+    space = Dict(ZZ(0)*birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
     v0 = sparse_row(ZZ, [(1,1)])  # starting vector v
     # saves the calculated vectors to decrease necessary matrix multiplicatons
-    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, 0 * birational_sequence.weights_w[1])) 
+    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, ZZ(0) * birational_sequence.weights_w[1])) 
     push!(set_mon, ZZx(1))
     # required monomials of each weightspace
     weightspaces = get_dim_weightspace(lie_algebra, highest_weight)
 
     # sort the monomials from the minkowski-sum by their weightspaces
-    set_mon_in_weightspace = Dict{Vector{Int}, Set{ZZMPolyRingElem}}()
+    set_mon_in_weightspace = Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}}()
     for (weight_w, _) in weightspaces
         set_mon_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
     end
@@ -684,7 +685,7 @@ function add_by_hand(
     end
 
     # only inspect weightspaces with missing monomials
-    weights_with_full_weightspace = Set{Vector{Int}}()
+    weights_with_full_weightspace = Set{Vector{ZZRingElem}}()
     for (weight_w, dim_weightspace) in weightspaces
         if (length(set_mon_in_weightspace[weight_w]) == dim_weightspace)
             push!(weights_with_full_weightspace, weight_w)

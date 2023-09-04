@@ -1,4 +1,4 @@
-function w_to_eps(type::String, rank::Int, weight_w::Vector{Int})::Vector{Int}
+function w_to_eps(type::String, rank::Int, weight_w::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight in rootsystem w_i to eps_i
     """
@@ -9,19 +9,19 @@ function w_to_eps(type::String, rank::Int, weight_w::Vector{Int})::Vector{Int}
     end
 end
 
-function eps_to_w(type::String, rank::Int, weight_eps::Vector{Int})::Vector{Int}
+function eps_to_w(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight in rootsystem eps_i to w_i
     """
     if type in ["A", "B", "C", "D", "E", "F", "G"]
         # return round.(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
-        return nearly_round(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
+        return alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps))
     else
         println("Type needs to be one of A-D")
     end
 end
 
-function alpha_to_eps(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps(type::String, rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight_alpha in rootsystem alpha_i to eps_i
     """
@@ -40,7 +40,7 @@ function alpha_to_eps(type::String, rank::Int, weight_alpha::Vector{Int})::Vecto
     end
 end
 
-function eps_to_alpha(type::String, rank::Int, weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight_eps in rootsystem eps_i to alpha_i
     """
@@ -59,61 +59,41 @@ function eps_to_alpha(type::String, rank::Int, weight_eps::Vector{Int})::Vector{
     end
 end
 
-#function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
-#    C = get_CartanMatrix(type, rank)
-#    return [i for i in C*weight_w]
-#end
-
-#function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
-#    C_inv = get_inverse_CartanMatrix(type, rank)
-    # println("C_inv: ", C_inv)
-#    return [i for i in C_inv*weight_alpha]
-#end
-
-function w_to_alpha(type, rank, weight_w::Vector{Int})::Vector{Int}
+function w_to_alpha(type, rank, weight_w::Vector{QQFieldElem})::Vector{QQFieldElem}
     C = get_inverse_CartanMatrix(type, rank)
-    return [nearly_round(i) for i in C*weight_w]
+    return [i for i in C*weight_w]
 end
 
-function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_w(type::String, rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     C_inv = get_CartanMatrix(type, rank)
-    return [nearly_round(i) for i in C_inv*weight_alpha]
+    return [i for i in C_inv*weight_alpha]
 end
 
-function nearly_round(x; tol=1e-8)
-    diff = abs(x - round(x))
-    if diff < tol
-        return round(Int, x)
-    else
-        throw(ErrorException("Not correctly rounded"))
-    end
-end
-
-function get_CartanMatrix(type::String, rank::Int)
+function get_CartanMatrix(type::String, rank::Int)::Matrix{QQFieldElem}
     L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     R = GAP.Globals.RootSystem(L)
-    C = Matrix{Int}(GAP.Globals.CartanMatrix(R))
+    C = Matrix{QQFieldElem}(GAP.Globals.CartanMatrix(R))
     # println("C: ", C)
     return C
 end
 
-function get_inverse_CartanMatrix(type::String, rank::Int)
+function get_inverse_CartanMatrix(type::String, rank::Int)::Matrix{QQFieldElem}
     return inv(get_CartanMatrix(type, rank))
 end
 
-function alpha_to_eps_BCD(type::String, rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_BCD(type::String, rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for B-D
     """
-    weight_eps = [0.0 for i in 1:rank]
-    for i in 1:(rank-1)
+    weight_eps = [QQ(0) for i in 1:rank]
+    for i in 1:(rank - 1)
         weight_eps[i] += weight_alpha[i]
         weight_eps[i+1] -= weight_alpha[i]
     end
     if type == "B"
         weight_eps[rank] += weight_alpha[rank]
     elseif type == "C"
-        weight_eps[rank] += 2*weight_alpha[rank]
+        weight_eps[rank] += QQ(2)*weight_alpha[rank]
     elseif type == "D"
         weight_eps[rank - 1] += weight_alpha[rank]
         weight_eps[rank] += weight_alpha[rank]
@@ -121,12 +101,12 @@ function alpha_to_eps_BCD(type::String, rank::Int, weight_alpha::Vector{Int})::V
     return weight_eps
 end
 
-function eps_to_alpha_BCD(type::String, rank::Int, weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_BCD(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for B-D
     """
-    weight_alpha = [0.0 for i in 1:rank]
-    for i in 1:(rank-2)
+    weight_alpha = [QQ(0) for i in 1:rank]
+    for i in 1:(rank - 2)
         weight_alpha[i] = weight_eps[i]
         weight_eps[i+1] += weight_eps[i]
     end
@@ -135,15 +115,15 @@ function eps_to_alpha_BCD(type::String, rank::Int, weight_eps::Vector{Int})::Vec
         weight_alpha[rank] += weight_eps[rank-1] + weight_eps[rank]
     elseif type == "C"
         weight_alpha[rank - 1] = weight_eps[rank - 1]
-        weight_alpha[rank] += 0.5*weight_eps[rank - 1] + 0.5*weight_eps[rank] # requires eps to be always even
+        weight_alpha[rank] += QQ(1, 2)*weight_eps[rank - 1] + QQ(1, 2)*weight_eps[rank]
     elseif type == "D"
-        weight_alpha[rank - 1] += (weight_eps[rank - 1] - weight_eps[rank])/2
-        weight_alpha[rank] += (weight_eps[rank - 1] + weight_eps[rank])/2
+        weight_alpha[rank - 1] += (weight_eps[rank - 1] - QQ(1, 2)*weight_eps[rank])
+        weight_alpha[rank] += (weight_eps[rank - 1] + QQ(1, 2)*weight_eps[rank])
     end
     return weight_alpha
 end
 
-function alpha_to_eps_E(rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_E(rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for E
     """
@@ -169,11 +149,11 @@ function eps_to_alpha_E(rank::Int, weight_eps)
     end
 end
 
-function alpha_to_eps_E6(weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_E6(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for E6, potentially wrong order or roots (1-2-3-5-6, 3-4)
     """
-    weight_eps = [0.0 for i in 1:6]
+    weight_eps = [QQ(0) for i in 1:6]
     for i in 1:4
         weight_eps[i] += weight_alpha[i]
         weight_eps[i + 1] += - weight_alpha[i]
@@ -181,17 +161,17 @@ function alpha_to_eps_E6(weight_alpha::Vector{Int})::Vector{Int}
     weight_eps[4] += weight_alpha[5]
     weight_eps[5] += weight_alpha[5]
     for i in 1:5
-        weight_eps[i] += -0.5*weight_alpha[6]
+        weight_eps[i] += QQ(-1, 2)*weight_alpha[6]
     end
-    weight_eps[6] += 0.5*sqrt(3)*weight_alpha[6]
+    weight_eps[6] += QQ(1, 2)*sqrt(3)*weight_alpha[6]
     return eps
 end
 
-function eps_to_alpha_E6(weight_eps)
+function eps_to_alpha_E6(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem} # TODO sqrt
     """
     for E6
     """
-    weight_alpha = [0.0 for i in 1:6]
+    weight_alpha = [QQ(0) for i in 1:6]
     for j in 1:3
         for i in 1:j
             weight_alpha[j] += weight_eps[i]
@@ -209,11 +189,11 @@ function eps_to_alpha_E6(weight_eps)
     return weight_alpha
 end
 
-function alpha_to_eps_E7(weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_E7(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem} # TODO sqrt
     """
     for E7, potentially wrong order of roots (1-2-3-4-6-7, 4-5)
     """
-    weight_eps = [0.0 for i in 1:7]
+    weight_eps = [QQ(0) for i in 1:7]
     for i in 1:5
         weight_eps[i] += weight_alpha[i]
         weight_eps[i + 1] += - weight_alpha[i]
@@ -221,17 +201,17 @@ function alpha_to_eps_E7(weight_alpha::Vector{Int})::Vector{Int}
     weight_eps[5] += weight_alpha[6]
     weight_eps[6] += weight_alpha[6]
     for i in 1:6
-        weight_eps[i] += -0.5*weight_alpha[7]
+        weight_eps[i] += QQ(-1, 2)*weight_alpha[7]
     end
     weight_eps[7] += 0.5*sqrt(2)*weight_alpha[7]
     return weight_eps
 end
 
-function eps_to_alpha_E7(weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_E7(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem} # TODO sqrt
     """
     for E7
     """
-    weight_alpha = [0.0 for i in 1:7]
+    weight_alpha = [QQ(0) for i in 1:7]
     for j in 1:4
         for i in 1:j
             weight_alpha[j] += weight_eps[i]
@@ -248,7 +228,7 @@ function eps_to_alpha_E7(weight_eps::Vector{Int})::Vector{Int}
     return weight_alpha
 end
 
-function alpha_to_eps_E8(weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_E8(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for E8
     """
@@ -265,11 +245,11 @@ function alpha_to_eps_E8(weight_alpha::Vector{Int})::Vector{Int}
     return weight_eps
 end
 
-function eps_to_alpha_E8(weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_E8(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for E8
     """
-    weight_alpha = [0.0 for i in 1:8]
+    weight_alpha = [QQ(0) for i in 1:8]
     for j in 1:5
         for i in 1:j
             weight_alpha[j] += weight_eps[i]
@@ -277,76 +257,76 @@ function eps_to_alpha_E8(weight_eps::Vector{Int})::Vector{Int}
         weight_alpha[j] += -j*weight_eps[8]
     end
     for i in 1:6
-        weight_alpha[6] += 0.5*weight_eps[i]
-        weight_alpha[7] += 0.5*weight_eps[i]
+        weight_alpha[6] += QQ(1, 2)*weight_eps[i]
+        weight_alpha[7] += QQ(1, 2)*weight_eps[i]
     end
-    weight_alpha[6] += -0.5*weight_eps[7] - 2.5*weight_eps[8]
-    weight_alpha[7] += 0.5*weight_eps[7] - 3.5*weight_eps[8]
-    weight_alpha[8] = -2*weight_eps[8]
+    weight_alpha[6] += QQ(-1, 2)*weight_eps[7] - QQ(5, 2)*weight_eps[8]
+    weight_alpha[7] += QQ(1, 2)*weight_eps[7] - QQ(7, 2)*weight_eps[8]
+    weight_alpha[8] = QQ(-2)*weight_eps[8]
     return alpha
 end
 
-function alpha_to_eps_F(weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_F(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for F
     """
-    weight_eps = [0.0 for i in 1:4]
-    weight_eps[1] = weight_alpha[1] - 0.5*weight_alpha[4]
-    weight_eps[2] = - weight_alpha[1] + weight_alpha[2] - 0.5*weight_alpha[4]
-    weight_eps[3] = - weight_alpha[2] + weight_alpha[3] - 0.5*weight_alpha[4]
-    weight_eps[4] = - 0.5*weight_alpha[4]
+    weight_eps = [QQ(0) for i in 1:4]
+    weight_eps[1] = weight_alpha[1] - QQ(1, 2)*weight_alpha[4]
+    weight_eps[2] = - weight_alpha[1] + weight_alpha[2] - QQ(1, 2)*weight_alpha[4]
+    weight_eps[3] = - weight_alpha[2] + weight_alpha[3] - QQ(1, 2)*weight_alpha[4]
+    weight_eps[4] = - QQ(1, 2)*weight_alpha[4]
     return weight_eps
 end
 
-function eps_to_alpha_F(weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_F(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for F
     """
-    weight_alpha = [0 for i in 1:4]
+    weight_alpha = [QQ(0) for i in 1:4]
     weight_alpha[1] = weight_eps[1] - weight_eps[4]
-    weight_alpha[2] = weight_eps[1] + weight_eps[2] - 2*weight_eps[4]
-    weight_alpha[3] = weight_eps[1] + weight_eps[2] + weight_eps[3] - 3*weight_eps[4]
-    weight_alpha[4] = -2*weight_eps[4]
+    weight_alpha[2] = weight_eps[1] + weight_eps[2] - QQ(2)*weight_eps[4]
+    weight_alpha[3] = weight_eps[1] + weight_eps[2] + weight_eps[3] - QQ(3)*weight_eps[4]
+    weight_alpha[4] = QQ(-2)*weight_eps[4]
     return weight_alpha
 end
 
-function alpha_to_eps_G(weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_G(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for G_2
     """
-    weight_eps = [0.0 for i in 1:3]
+    weight_eps = [QQ(0) for i in 1:3]
     weight_eps[1] = weight_alpha[1] - weight_alpha[2]
-    weight_eps[2] = - weight_alpha[1] + 2*weight_alpha[2]
+    weight_eps[2] = - weight_alpha[1] + QQ(2)*weight_alpha[2]
     weight_eps[3] = - weight_alpha[2]
     choose_representant_eps(weight_eps)
     return weight_eps
 end
 
-function eps_to_alpha_G(weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_G(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for G_2
     """
-    weight_alpha = [0.0 for i in 1:2]
+    weight_alpha = [QQ(0) for i in 1:2]
     if length(weight_eps) >= 3
         weight_eps .-= weight_eps[3]
     end
     weight_alpha[1] = weight_eps[1]
-    weight_alpha[2] = (weight_eps[1] + weight_eps[2]) / 3
+    weight_alpha[2] = QQ(1, 3)*(weight_eps[1] + weight_eps[2])
     return weight_alpha
 end
 
-function choose_representant_eps(weight_eps::Vector{Int})
+function choose_representant_eps(weight_eps::Vector{QQFieldElem})
     # choose representant eps_1 + ... + eps_m = 0
     if any(<(0), weight_eps) # non negative
         weight_eps .-= min(weight_eps ...)
     end
 end
 
-function alpha_to_eps_A(rank::Int, weight_alpha::Vector{Int})::Vector{Int}
+function alpha_to_eps_A(rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for A
     """
-    weight_eps = [0 for i in 1:(rank + 1)]
+    weight_eps = [QQ(0) for i in 1:(rank + 1)]
     for i in 1:rank
         weight_eps[i] += weight_alpha[i]
         weight_eps[i + 1] -= weight_alpha[i]
@@ -355,22 +335,22 @@ function alpha_to_eps_A(rank::Int, weight_alpha::Vector{Int})::Vector{Int}
     return weight_eps
 end
 
-function eps_to_alpha_A(rank::Int, weight_eps::Vector{Int})::Vector{Int}
+function eps_to_alpha_A(rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for A
     """
     if length(weight_eps) == rank
-        append!(weight_eps, 0)
+        append!(weight_eps, QQ(0))
     end
-    weight_alpha = [0.0 for i in 1:(rank + 1)]
+    weight_alpha = [QQ(0) for i in 1:(rank + 1)]
     for i in 1:(rank + 1)
         for j in 1:i
             weight_alpha[i] += weight_eps[j]
         end
     end
-    m = weight_alpha[rank + 1] / (rank + 1)
+    m = weight_alpha[rank + 1]*QQ(1, rank + 1)
     for i in 1:rank
-        weight_alpha[i] -= i*m
+        weight_alpha[i] -= QQ(i)*m
     end
     pop!(weight_alpha)
     return weight_alpha

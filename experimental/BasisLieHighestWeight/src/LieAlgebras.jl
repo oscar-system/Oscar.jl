@@ -20,12 +20,13 @@ function multiply_scalar(A::SMat{T}, d) where T
     return A
 end
 
-function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int}, 
+function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, 
                               operators::GAP.Obj)::Vector{SMat{ZZRingElem}}
     """
     used to create tensorMatricesForOperators
     """
-    M = GAP.Globals.HighestWeightModule(lie_algebra, GAP.julia_to_gap(highest_weight))
+    highest_weight_int = convert(Vector{Int}, highest_weight)
+    M = GAP.Globals.HighestWeightModule(lie_algebra, GAP.julia_to_gap(highest_weight_int))
     matrices_of_operators = GAP.Globals.List(operators, o -> GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))
     matrices_of_operators = gapReshape.(GAP.gap_to_julia(matrices_of_operators))
     denominators = map(y->denominator(y[2]), union(union(matrices_of_operators...)...))
@@ -35,7 +36,7 @@ function matricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int},
 end
 
 
-function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{Int}}
+function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators::GAP.Obj)::Vector{Vector{ZZRingElem}}
     """
     Calculates the weight weights[i] in w_i for each operator operators[i]
     """
@@ -73,6 +74,6 @@ function weights_for_operators(lie_algebra::GAP.Obj, cartan::GAP.Obj, operators:
     end
 
     return [
-        [asVec(h*v)[nzi(v)] / asVec(v)[nzi(v)] for h in cartan] for v in operators
+        [ZZ(QQ(asVec(h*v)[nzi(v)], asVec(v)[nzi(v)])) for h in cartan] for v in operators
     ]
 end

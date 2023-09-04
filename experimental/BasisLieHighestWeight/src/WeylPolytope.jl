@@ -1,13 +1,14 @@
 
 
-function orbit_weylgroup(lie_algebra::LieAlgebraStructure, weight_vector_w::Vector{Int})
+function orbit_weylgroup(lie_algebra::LieAlgebraStructure, weight_vector_w::Vector{ZZRingElem})
     """
     operates weyl-group of type type and rank rank on vector weight_vector and returns list of vectors in orbit
     input and output weights in terms of w_i
     """
     # initialization
     weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap))
-    orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(weight_vector_w))
+    weight_vector_w_int = convert(Vector{Int}, weight_vector_w)
+    orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(weight_vector_w_int))
     vertices = []
     
     # operate with the weylgroup on weight_vector
@@ -24,8 +25,8 @@ end
 
 function get_dim_weightspace(
     lie_algebra::LieAlgebraStructure, 
-    highest_weight::Vector{Int}
-    )::Dict{Vector{Int}, Int}
+    highest_weight::Vector{ZZRingElem}
+    )::Dict{Vector{ZZRingElem}, Int}
     """
     Calculates dictionary with weights as keys and dimension of corresponding weightspace as value. GAP computes the 
     dimension for all positive weights. The dimension is constant on orbits of the weylgroup, and we can therefore 
@@ -33,11 +34,12 @@ function get_dim_weightspace(
     """
     # calculate dimension for dominant weights with GAP
     root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
-    result = GAP.Globals.DominantCharacter(root_system, GAP.Obj(highest_weight))
+    highest_weight_int = convert(Vector{Int}, highest_weight)
+    result = GAP.Globals.DominantCharacter(root_system, GAP.Obj(highest_weight_int))
     dominant_weights_w = [map(Int, item) for item in result[1]]
     dominant_weights_dim = map(Int, result[2])                                                                      
-    dominant_weights_w = convert(Vector{Vector{Int}}, dominant_weights_w)
-    weightspaces = Dict{Vector{Int}, Int}() 
+    dominant_weights_w = convert(Vector{Vector{ZZRingElem}}, dominant_weights_w)
+    weightspaces = Dict{Vector{ZZRingElem}, Int}() 
 
     # calculate dimension for the rest by checking which positive weights lies in the orbit.
     for i in 1:length(dominant_weights_w)
@@ -58,7 +60,25 @@ function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
               for lattice_point in lattice_points_weightspace]
 end
 
-function get_lattice_points_of_weightspace(weights_eps, weight_eps, lie_type)
+function scale_weights_to_integers(weights_eps::Vector{Vector{QQFieldElem}}, weight_eps::Vector{QQFieldElem})
+    # Extract all denominators from both structures
+    denominators = [denominator(r) for w in weights_eps for r in w]
+    append!(denominators, [denominator(r) for r in weight_eps])
+    
+    # Compute the LCM of all the denominators
+    lcm_denominator = lcm(denominators...)
+
+    # Scale the elements of weights_eps and weight_eps
+    scaled_weights_eps = [[Int(lcm_denominator * r) for r in w] for w in weights_eps]
+    scaled_weight_eps = [Int(lcm_denominator * r) for r in weight_eps]
+
+    return scaled_weights_eps, scaled_weight_eps
+end
+
+function get_lattice_points_of_weightspace(
+    weights_eps::Vector{Vector{QQFieldElem}}, 
+    weight_eps::Vector{QQFieldElem},
+    lie_type::String)
     """
     calculates all lattice points in a given weightspace for a lie algebra of type type
     input:
@@ -67,10 +87,12 @@ function get_lattice_points_of_weightspace(weights_eps, weight_eps, lie_type)
 
     output: all lattice points with weight weight
     """
+    # Rescale to integers
+    scaled_weights_eps, scaled_weight_eps = scale_weights_to_integers(weights_eps, weight_eps)
     if lie_type in ["A", "G"]
-        return get_lattice_points_of_weightspace_A_G_n(weights_eps, weight_eps)
+        return get_lattice_points_of_weightspace_A_G_n(scaled_weights_eps, scaled_weight_eps)
     else
-        return get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
+        return get_lattice_points_of_weightspace_Xn(scaled_weights_eps, scaled_weight_eps)
     end
 end
 

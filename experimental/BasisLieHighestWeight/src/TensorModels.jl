@@ -38,7 +38,7 @@ tensorProducts(As, Bs) = (AB->tensorProduct(AB[1], AB[2])).(zip(As, Bs))
 tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n-1), A)
 tensorPowers(As, n) = (A->tensorPower(A, n)).(As)
 
-function tensorMatricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{Int}, 
+function tensorMatricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, 
                                     operators::GAP.Obj)::Vector{SMat{ZZRingElem}}
     """
     Calculates the matrices g_i corresponding to the operator ops[i].
@@ -48,7 +48,7 @@ function tensorMatricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector
         if highest_weight[i] <= 0
             continue
         end
-        wi = Int.(1:length(highest_weight) .== i) # i-th fundamental weight
+        wi = convert(Vector{ZZRingElem}, Int.(1:length(highest_weight) .== i)) # i-th fundamental weight
         _matrices_of_operators = matricesForOperators(lie_algebra, wi, operators)
         _matrices_of_operators = tensorPowers(_matrices_of_operators, highest_weight[i])
         matrices_of_operators = matrices_of_operators == [] ? _matrices_of_operators : 
