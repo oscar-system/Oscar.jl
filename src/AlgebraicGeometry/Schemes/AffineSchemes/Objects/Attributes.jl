@@ -391,12 +391,10 @@ dim(X::AbsSpec)
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  println("QuoLoc PowersOfElement")
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}})
-  println("QuoLoc ComplementOfPrimeIdeal")
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   # Spec (R / I)_P
   R = OO(X)
   P = prime_ideal(inverted_set(R))
@@ -409,13 +407,11 @@ end
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  println("Loc PowersOfElement")
   # zariski open subset of A^n
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}})
-  println("Loc ComplementOfPrimeIdeal")
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   P = prime_ideal(inverted_set(OO(X)))
   return codim(P)
 end

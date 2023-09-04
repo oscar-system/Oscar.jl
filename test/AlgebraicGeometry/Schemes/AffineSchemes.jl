@@ -77,9 +77,13 @@
   @test !issubset(A3, X)
   @test issubset(A3,A3)
   @test issubset(intersect(A3,A3), A3)
-  
-  # Tests for dimension when localizing with respect to either a prime
-  # ideal or powers of an element
+end
+
+# Tests for dimension when localizing with respect to either a prime
+# ideal or powers of an element
+@testset "affine schemes" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  A3 = Spec(R)
   @test dim(A3) == 3
   @test dim(U) == 3
   @test dim(X) == 2
@@ -94,6 +98,7 @@
   @test dim(A3_localized_along_line) == 2
   @test dim(standard_spec(A3_localized_along_line)) == 2
 end
+
 
 @testset "smoothness tests" begin
   R, (x,y,z) = QQ["x", "y", "z"]

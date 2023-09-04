@@ -332,6 +332,14 @@ mutable struct MPolyComplementOfKPointIdeal{
   end
 end
 
+# the name matches MPolyComplementOfPrimeIdeal
+function prime_ideal(S::MPolyComplementOfKPointIdeal) 
+  R = ambient_ring(S)
+  x = gens(R)
+  n = ngens(R)
+  return ideal(R, [x[i]-S.a[i] for i in 1:n])
+end
+
 @doc raw"""  
     complement_of_point_ideal(R::MPolyRing, a::Vector)
 
@@ -355,13 +363,13 @@ Complement
 complement_of_point_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdeal(R, a)
 
 @doc raw"""
-    complement_of_prime_ideal(P::MPolyIdeal; check::Bool=false)
+    complement_of_prime_ideal(P::MPolyIdeal; check::Bool=true)
 
 Given a prime ideal ``P`` of a polynomial ring ``R``, say,
 return the multiplicatively closed subset ``R\setminus P.``
 
 !!! note
-    If  `check` is set to `true`, the function checks whether ``P`` is indeed a prime ideal. 
+    Since  `check` is set to `true`, the function checks whether ``P`` is indeed a prime ideal. 
 
     This may take some time.
 
