@@ -99,6 +99,12 @@ end
   A3_localized_along_line = Spec(Localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(standard_spec(A3_localized_along_line)) == 2
+  
+  S = complement_of_point_ideal(R, [1, 1, 1])
+  I = ideal(R, [x-1, y-1])*ideal(R, z)
+  L, _ = localization(R, S)
+  W, _ = quo(L, L(I))
+  @test dim(Spec(W)) == 1
 end
 
 @testset "dimensions of affine schemes over the integers" begin
@@ -127,6 +133,12 @@ end
   S = complement_of_prime_ideal(Q)
   Z = Spec(R, S)
   @test dim(Z) == 4
+
+  S = complement_of_point_ideal(R, [1, 1, 1])
+  I = ideal(R, [x-1, y-1])*ideal(R, z)
+  L, _ = localization(R, S)
+  W, _ = quo(L, L(I))
+  @test dim(Spec(W)) == 1
 end
 
 
