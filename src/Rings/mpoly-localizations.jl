@@ -336,7 +336,9 @@ end
 # A function with this name exists with a method for 
 # MPolyComplementOfPrimeIdeal. In order to treat them in 
 # parallel, we introduce the analogous method here. 
-function prime_ideal(S::MPolyComplementOfKPointIdeal) 
+prime_ideal(S::MPolyComplementOfKPointIdeal) = maximal_ideal(S)
+
+function maximal_ideal(S::MPolyComplementOfKPointIdeal) 
   if !isdefined(S, :m)
     R = ambient_ring(S)
     x = gens(R)
