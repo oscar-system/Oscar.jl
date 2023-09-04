@@ -336,21 +336,29 @@ end
 # A function with this name exists with a method for 
 # MPolyComplementOfPrimeIdeal. In order to treat them in 
 # parallel, we introduce the analogous method here. 
-prime_ideal(S::MPolyComplementOfKPointIdeal) = maximal_ideal(S)
-
-function maximal_ideal(S::MPolyComplementOfKPointIdeal) 
+function prime_ideal(S::MPolyComplementOfKPointIdeal) 
+  kk = coefficient_ring(ambient_ring(S))
+  # TODO: Test whether kk is an integral domain
   if !isdefined(S, :m)
     R = ambient_ring(S)
     x = gens(R)
     n = ngens(R)
     m = ideal(R, [x[i]-a for (i, a) in enumerate(point_coordinates(S))])
     set_attribute!(m, :is_prime=>true)
-    set_attribute!(m, :is_maximal=>true)
-    set_attribute!(m, :dim=>0)
+    set_attribute!(m, :is_maximal=>iszero(dim(kk)))
+    set_attribute!(m, :dim=>dim(coefficient_ring(ambient_ring(S))))
     S.m = m
   end
   return S.m
 end
+
+function is_prime(P::Hecke.ZZIdl) 
+  return is_prime(first(gens(P)))
+end
+
+dim(kk::Field) = 0
+
+maximal_ideal(S::MPolyComplementOfKPointIdeal{<:Field}) = prime_ideal(S)
 
 @doc raw"""  
     complement_of_point_ideal(R::MPolyRing, a::Vector)
