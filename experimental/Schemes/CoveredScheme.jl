@@ -510,8 +510,8 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
       ideal_sheaf::IdealSheaf=IdealSheaf(Y, f),
       check::Bool=true
     ) where {
-             DomainType<:CoveredScheme,
-             CodomainType<:CoveredScheme,
+             DomainType<:AbsCoveredScheme,
+             CodomainType<:AbsCoveredScheme,
              MorphismType<:ClosedEmbedding,
              BaseMorType
             }
