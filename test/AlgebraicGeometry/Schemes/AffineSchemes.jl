@@ -81,9 +81,11 @@ end
 
 # Tests for dimension when localizing with respect to either a prime
 # ideal or powers of an element
-@testset "affine schemes" begin
+@testset "dimensions of affine schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   A3 = Spec(R)
+  X = subscheme(A3, x*y)
+  U = hypersurface_complement(A3, z)
   @test dim(A3) == 3
   @test dim(U) == 3
   @test dim(X) == 2
@@ -97,6 +99,34 @@ end
   A3_localized_along_line = Spec(Localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(standard_spec(A3_localized_along_line)) == 2
+end
+
+@testset "dimensions of affine schemes over the integers" begin
+  R, (x,y,z) = ZZ["x", "y", "z"]
+  A3 = Spec(R)
+  X = subscheme(A3, x*y)
+  U = hypersurface_complement(A3, z)
+  @test dim(A3) == 4
+  @test dim(U) == 4
+  @test codim(A3) == 0
+  @test codim(X) == 1
+  disjoint_plane_and_line = subscheme(A3, [x*(x - 1), x*y])
+  line = hypersurface_complement(disjoint_plane_and_line, x)
+  plane = hypersurface_complement(disjoint_plane_and_line, y)
+  @test dim(line) == 2
+  @test dim(plane) == 3
+  A3_localized_along_line = Spec(Localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
+  @test dim(A3_localized_along_line) == 2
+  @test dim(standard_spec(A3_localized_along_line)) == 2
+  P = ideal(R, R(5))
+  @test is_prime(P)
+  S = complement_of_prime_ideal(P)
+  Y = Spec(R, S)
+  @test dim(Y) == 1
+  Q = ideal(R, R.([7, x, y, z]))
+  S = complement_of_prime_ideal(Q)
+  Z = Spec(R, S)
+  @test dim(Z) == 4
 end
 
 
