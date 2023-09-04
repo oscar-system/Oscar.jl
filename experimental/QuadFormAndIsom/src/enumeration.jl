@@ -371,7 +371,7 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
 end
 
 # given a cyclotomic field (as cm extension) E/K, return all
-# the possible signatures dictionnaries of any hermitian lattice over
+# the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
 
 function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)
@@ -779,12 +779,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
   end
 
   d = valuation(n, p)
-  if n != p^d
-    _, e, q = is_prime_power_with_data(divexact(n, p^d))
-  else
-    q = 1
-    e = 0
-  end
+  _, e, q = is_prime_power_with_data(divexact(n, p^d))
 
   reps = ZZLatWithIsom[]
 

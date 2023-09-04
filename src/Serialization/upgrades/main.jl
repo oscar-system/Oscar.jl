@@ -66,6 +66,7 @@ sort!(upgrade_scripts; by=version)
 
 ################################################################################
 # Loading with upgrade checks on dict
+const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
@@ -83,6 +84,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
       upgraded_dict = upgrade_script(s, upgraded_dict)
     end
   end
-  upgraded_dict[:_ns] = oscarSerializationVersion
+  upgraded_dict[:_ns] = oscar_serialization_version
   return upgraded_dict
 end

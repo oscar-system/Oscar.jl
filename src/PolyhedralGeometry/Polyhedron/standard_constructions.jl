@@ -1643,7 +1643,7 @@ julia> vertices(c)
 """
 function goldfarb_cube(d::Int, e::Number, g::Number)
   m = 8 * sizeof(Int) - 2
-  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req 1 <= d <= m "dimension out of range (1,..," * string(m) * ")"
   @req e < 1//2 "e < 1/2"
   @req g <= e / 4 "g <= e/4"
   return polyhedron(Polymake.polytope.goldfarb(d, e, g))
@@ -1679,7 +1679,7 @@ julia> vertices(c)
 """
 function goldfarb_sit_cube(d::Int, eps::Number, delta::Number)
   m = 8 * sizeof(Int) - 2
-  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req 1 <= d <= m "dimension out of range (1,..," * string(m) * ")"
   @req eps < 1//2 "eps < 1/2"
   @req delta <= 1//2 "delta <= 1/2"
   return polyhedron(Polymake.polytope.goldfarb_sit(d, eps, delta))
@@ -1770,7 +1770,7 @@ x₁ ≦ 1
 """
 function klee_minty_cube(d::Int, e::Number)
   m = 8 * sizeof(Int) - 2
-  @req 1 <= d <= m "dimension ot of range (1,..," * string(m) * ")"
+  @req 1 <= d <= m "dimension out of range (1,..," * string(m) * ")"
   @req e < 1 / 2 "e < 1/2 required"
   return goldfarb_cube(d, e, 0)
 end

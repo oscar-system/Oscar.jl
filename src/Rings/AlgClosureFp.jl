@@ -90,6 +90,18 @@ function ext_of_degree(A::AlgClosure, d::Int)
   if haskey(A.fld, d)
     return A.fld[d]
   end
+
+  #see if the subfield lattice already has the field...
+  for x = values(A.fld)
+    degree(x) % d == 0 || continue
+    for (deg, mK) = Nemo.subfields(x)
+      if d == deg
+        A.fld[d] = K = domain(mK[1])
+        return K
+      end
+    end
+  end
+    
   k = base_ring(A)
   if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
     K = GF(Int(characteristic(k)), d, cached = false)
@@ -279,7 +291,7 @@ end
     algebraic_closure(F::FinField)
 
 Let `F` be a prime field of order `p`.
-Return a field `K` that is the union of finite fields of oder `p^d`,
+Return a field `K` that is the union of finite fields of order `p^d`,
 for all positive integers `d`.
 The degree `d` extension of `F` can be obtained as `ext_of_degree(K, d)`.
 

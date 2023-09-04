@@ -2,12 +2,12 @@
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
-  data_basic(s, string(x))
+  save_data_basic(s, x)
 end
 
 ################################################################################
 # Bool
-@registerSerializationType(Bool)
+@register_serialization_type Bool 
 
 function load_object(s::DeserializerState, ::Type{Bool}, str::String)
   if str == "true"
@@ -23,7 +23,7 @@ end
 
 ################################################################################
 # ZZRingElem
-@registerSerializationType(ZZRingElem)
+@register_serialization_type ZZRingElem
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem}, str::String)
   return ZZRingElem(str)
@@ -38,7 +38,7 @@ end
 
 ################################################################################
 # QQFieldElem
-@registerSerializationType(QQFieldElem)
+@register_serialization_type QQFieldElem
 
 function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
@@ -58,23 +58,23 @@ end
 
 ################################################################################
 # Number
-@registerSerializationType(Int8)
-@registerSerializationType(Int16)
-@registerSerializationType(Int32)
-@registerSerializationType(Int64, false, "Base.Int")
-@registerSerializationType(Int128)
+@register_serialization_type Int8
+@register_serialization_type Int16
+@register_serialization_type Int32
+@register_serialization_type Int64 "Base.Int"
+@register_serialization_type Int128
 
-@registerSerializationType(UInt8)
-@registerSerializationType(UInt16)
-@registerSerializationType(UInt32)
-@registerSerializationType(UInt64)
-@registerSerializationType(UInt128)
+@register_serialization_type UInt8
+@register_serialization_type UInt16
+@register_serialization_type UInt32
+@register_serialization_type UInt64
+@register_serialization_type UInt128
 
-@registerSerializationType(BigInt)
+@register_serialization_type BigInt
 
-@registerSerializationType(Float16)
-@registerSerializationType(Float32)
-@registerSerializationType(Float64)
+@register_serialization_type Float16
+@register_serialization_type Float32
+@register_serialization_type Float64
 
 function load_object(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
   return parse(T, str)
@@ -82,7 +82,7 @@ end
 
 ################################################################################
 # Strings
-@registerSerializationType(String)
+@register_serialization_type String
 
 function load_object(s::DeserializerState, ::Type{String}, str::String)
   return str
@@ -90,7 +90,7 @@ end
 
 ################################################################################
 # Symbol
-@registerSerializationType(Symbol)
+@register_serialization_type Symbol
 
 function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
   return Symbol(str)

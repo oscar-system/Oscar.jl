@@ -92,7 +92,7 @@ end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
   if get(io, :supercompact, false)
-    print(io, type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
+    print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
     print(
@@ -113,11 +113,11 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
   elseif type == :special_orthogonal
     return "Special orthogonal Lie algebra of degree $n"
   else
-    return "Linear Lie algebra ⊆ gl_$n"
+    return "Linear Lie algebra with $(n)x$(n) matrices"
   end
 end
 
-function type_to_compact_string(type::Symbol, n::Int)
+function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
   if type == :general_linear
     return "gl_$n"
   elseif type == :special_linear
@@ -218,6 +218,27 @@ function lie_algebra(
   n = parent_L.n
   s = map(AbstractAlgebra.obj_to_string, basis)
   return lie_algebra(R, n, matrix_repr.(basis), s; check)
+end
+
+@doc raw"""
+    abelian_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Ring, n::Int) -> AbstractLieAlgebra{elem_type(R)}
+
+Return the abelian Lie algebra of dimension `n` over the ring `R`.
+The first argument can be optionally provided to specify the type of the returned
+Lie algebra.
+"""
+function abelian_lie_algebra(R::Ring, n::Int)
+  return abelian_lie_algebra(LinearLieAlgebra, R, n)
+end
+
+function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:LinearLieAlgebra}
+  basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
+  s = ["x_$(i)" for i in 1:n]
+  L = lie_algebra(R, n, basis, s; check=false)
+  set_attribute!(L, :is_abelian => true)
+  return L
 end
 
 @doc raw"""

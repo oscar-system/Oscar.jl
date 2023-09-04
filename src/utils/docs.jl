@@ -111,9 +111,23 @@ function open_doc()
     end
 end
 
+function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
+  build_dir = normpath(Oscar.oscardir, "docs", "build")
+  cmd = """
+        using Pkg;
+        Pkg.activate(temp = true);
+        Pkg.add("LiveServer");
+        using LiveServer;
+        LiveServer.serve(dir = "$build_dir", launch_browser = $open_browser, port = $port);
+        """
+  live_server_process = run(`$(Base.julia_cmd()) -e $cmd`, wait = false)
+  atexit(_ -> kill(live_server_process))
+  @info "Starting server with PID $(getpid(live_server_process)) listening on 127.0.0.1:$port"
+  return nothing
+end
 
 @doc raw"""
-    build_doc(; doctest=false, strict=false, open_browser=true)
+    build_doc(; doctest=false, strict=false, open_browser=true, start_server=false)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -136,7 +150,16 @@ doctesting error will always make makedocs throw an error in this mode".
 To prevent the opening of the browser at the end, set the optional parameter
 `open_browser` to `false`.
 
-When working on the manual the `Revise` package can significantly sped
+Alternatively, one can use the optional parameter `start_server` to start a web
+server in the build directory which is accessible via `127.0.0.1:8000`. If both
+`start_server` and `open_browser` are `true`, the browser will show this page.
+The server keeps running in the background until the `julia` session is
+terminated, so the proposed usage for this option is to run
+`build_doc(start_server = true)` for the first build and
+`build_doc(open_browser = false)` for following builds and only refresh the
+browser tab.
+
+When working on the manual the `Revise` package can significantly speed
 up running `build_doc`. First, install `Revise` in the following way:
 ```
 using Pkg ; Pkg.add("Revise")
@@ -145,10 +168,10 @@ Second, restart Julia and load `Revise` before Oscar:
 ```
 using Revise, Oscar;
 ```
-The first run of `build_doc` will take the usual few minutes, subsequently runs
+The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
-function build_doc(; doctest=false, strict=false, open_browser=true)
+function build_doc(; doctest::Union{Symbol, Bool} = false, strict::Bool = false, open_browser::Bool = true, start_server::Bool = false)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
   versionwarn = 
 "The Julia reference version for the doctests is 1.7 or later, but you are using
@@ -162,7 +185,9 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
-  if open_browser
+  if start_server
+    start_doc_preview_server(open_browser = open_browser)
+  elseif open_browser
     open_doc()
   end
   if doctest != false && !versioncheck

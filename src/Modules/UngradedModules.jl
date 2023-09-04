@@ -4965,7 +4965,7 @@ function show_morphism(f::ModuleFPHom)
 end
 
 @doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
 say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
@@ -4998,8 +4998,8 @@ end
 @doc raw"""
     hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
 
-Given modules `M`, `N` which are products with the same number of factors,  
-say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^r N_j$, and given a matrix 
+Given modules `M` and `N` which are products with `r` respective `s` factors,  
+say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
@@ -8934,13 +8934,13 @@ end
     vector_space_basis(M::SubquoModule, d::Int)
 
 Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
-Then the command returns a monomial basis of the kk-vectorspace corresponding to the
+Then the command returns a monomial basis of the ``k``-vectorspace corresponding to the
 degree ``d`` slice of ``M``, where the degree of each generator of ``R`` is counted as one and
 the one of each generator of the ambient free module of ``M`` as zero.
 
     vector_space_basis(M::SubquoModule)
 
-If ``M`` happens to be finite-dimensional as a ``kk``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
 
 # Examples:
 ```jldoctest

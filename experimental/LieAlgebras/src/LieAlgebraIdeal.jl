@@ -19,12 +19,13 @@
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     else
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
-      todo = copy(gens)
-      while !isempty(todo)
-        g = pop!(todo)
+      gens = unique(g for g in gens if !iszero(g))
+      left = copy(gens)
+      while !isempty(left)
+        g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for b in basis(L)
-          push!(todo, b * g)
+          push!(left, b * g)
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
@@ -117,7 +118,7 @@ function Base.show(io::IO, I::LieAlgebraIdeal)
   if get(io, :supercompact, false)
     print(io, LowercaseOff(), "Lie algebra ideal")
   else
-    print(io, LowercaseOff(), "Lie algebra ideal over ", Lowercase())
+    print(io, LowercaseOff(), "Lie algebra ideal of dimension $(dim(I)) over ", Lowercase())
     print(IOContext(io, :supercompact => true), base_lie_algebra(I))
   end
 end
@@ -190,6 +191,13 @@ function bracket(
   return ideal(base_lie_algebra(I1), [x * y for x in gens(I1) for y in gens(I2)])
 end
 
+function bracket(
+  L::LieAlgebra{C}, I::LieAlgebraIdeal{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req L === base_lie_algebra(I) "Incompatible Lie algebras."
+  return bracket(ideal(L), I)
+end
+
 ###############################################################################
 #
 #   Important ideals and subalgebras
@@ -233,10 +241,14 @@ end
 @doc raw"""
     lie_algebra(I::LieAlgebraIdeal) -> LieAlgebra
 
-Return `I` as a Lie algebra.
+Return `I` as a Lie algebra `LI`, together with an embedding `LI -> L`,
+where `L` is the Lie algebra where `I` lives in.
 """
 function lie_algebra(I::LieAlgebraIdeal)
-  return lie_algebra(basis(I))
+  LI = lie_algebra(basis(I))
+  L = base_lie_algebra(I)
+  emb = hom(LI, L, basis(I))
+  return LI, emb
 end
 
 @doc raw"""

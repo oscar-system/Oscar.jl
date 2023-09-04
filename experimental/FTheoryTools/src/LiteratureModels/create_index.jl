@@ -14,7 +14,7 @@
 #        -paper title
 #    * model location within paper
 #        -section number that introduces model
-#        -equation number tht introduces model
+#        -equation number that introduces model
 #        -page number that introduces model (in arXiv version of paper, currently)
 
 

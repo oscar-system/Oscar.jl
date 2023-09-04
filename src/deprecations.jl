@@ -52,8 +52,8 @@ end
 
 function NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
     Base.depwarn("'NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)' is deprecated, use"*
-    "'normal_toric_variety(PF::PolyhedralFan; set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(PF; set_attributes = set_attributes)
+    "'normal_toric_variety(PF::PolyhedralFan)' instead.", :NormalToricVariety)
+    normal_toric_variety(PF)
 end
 
 function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)

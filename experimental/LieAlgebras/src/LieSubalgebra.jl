@@ -19,12 +19,13 @@
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     else
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
-      todo = copy(gens)
-      while !isempty(todo)
-        g = pop!(todo)
+      gens = unique(g for g in gens if !iszero(g))
+      left = copy(gens)
+      while !isempty(left)
+        g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for i in 1:nrows(basis_matrix)
-          push!(todo, g * L(basis_matrix[i, :]))
+          push!(left, g * L(basis_matrix[i, :]))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
@@ -116,7 +117,7 @@ function Base.show(io::IO, S::LieSubalgebra)
   if get(io, :supercompact, false)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
-    print(io, LowercaseOff(), "Lie subalgebra of ", Lowercase())
+    print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
     print(IOContext(io, :supercompact => true), base_lie_algebra(S))
   end
 end
@@ -180,6 +181,13 @@ function bracket(
 ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(S1) === base_lie_algebra(S2) "Incompatible Lie algebras."
   return ideal(base_lie_algebra(S1), [x * y for x in gens(S1) for y in gens(S2)])
+end
+
+function bracket(
+  L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
+) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  @req L === base_lie_algebra(S) "Incompatible Lie algebras."
+  return bracket(ideal(L), S)
 end
 
 ###############################################################################
@@ -254,10 +262,14 @@ end
 @doc raw"""
     lie_algebra(S::LieSubalgebra) -> LieAlgebra
 
-Return `S` as a Lie algebra.
+Return `S` as a Lie algebra `LS`, together with an embedding `LS -> L`,
+where `L` is the Lie algebra where `S` lives in.
 """
 function lie_algebra(S::LieSubalgebra)
-  return lie_algebra(basis(S)) #, embedding_hom   # TODO
+  LS = lie_algebra(basis(S))
+  L = base_lie_algebra(S)
+  emb = hom(LS, L, basis(S))
+  return LS, emb
 end
 
 ###############################################################################

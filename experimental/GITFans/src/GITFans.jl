@@ -461,11 +461,11 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         current_cone_list = cones_from_bitlist(orbit_list, current_hash)
         intersected_cone = intersect(current_cone_list)
         ic_facets = -linear_inequality_matrix(facets(intersected_cone))
-        facet_points = [T[relative_interior_point(f)...] for f in faces(intersected_cone, dim(intersected_cone)-1)]
+        facet_points = [T[relative_interior_point(f)...] for f in facets(Cone, intersected_cone)]
 
         neighbor_hashes = []
         for i in 1:length(facet_points)
-          !any(f->facet_points[i] in f, faces(q_cone, dim(q_cone)-1)) || continue
+          !any(f->facet_points[i] in f, facets(Cone, q_cone)) || continue
           push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i, :]...])))
         end
 

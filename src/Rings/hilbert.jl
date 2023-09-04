@@ -855,7 +855,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
           push!(NotBM_mixed, colon(t,PivotPP))
         end
       end
-      # At this poiint we have 3 disjoint lists of PPs:
+      # At this point we have 3 disjoint lists of PPs:
       #    BM (big multiples),
       #    NotBM_coprime,
       #    NotBM_mixed

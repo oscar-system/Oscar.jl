@@ -6,7 +6,7 @@
         sub(
           L, [basis(L, 1), basis(L, 2), basis(L, 3), basis(L, 5), basis(L, 6), basis(L, 9)]
         ),
-      )
+      )[1]
       n = ideal(b, [basis(b, 2), basis(b, 3), basis(b, 5)])
 
       let L = b, I = n
@@ -16,6 +16,12 @@
         @test length(basis(I)) == dim(I)
         @test all(in(I), gens(I))
         @test all(in(I), basis(I))
+
+        LI, emb = lie_algebra(I)
+        @test dim(LI) == dim(I)
+        @test domain(emb) == LI
+        @test codomain(emb) == L
+        @test image(emb) == sub(L, I)
       end
 
       @test dim(b) == 6
