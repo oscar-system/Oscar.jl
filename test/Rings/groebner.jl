@@ -26,6 +26,10 @@
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
+    f = x+y^3
+    g = x
+    @test reduce(f, [g], ordering=degrevlex(R)) == x+y^3
+    @test reduce(f, [g], ordering=degrevlex(R), complete_reduction=true) == y^3
     f = x*y^3-y^4
 	F = [x*y^2-x,x^3-2*x*y^2]
 	q, r = reduce_with_quotients(f, F)
