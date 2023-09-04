@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lattice with isometry · Oscar.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li><li><a class="tocitem" href="../../../Fields/algebraic_closure_fp/">Algebraic closure of finite prime fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../NumberTheory/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li></ul></li><li><a class="tocitem" href="../../../CommutativeAlgebra/homological_algebra/">Homological Algebra</a></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-10" type="checkbox"/><label class="tocitem" for="menuitem-9-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveringsAndGlueings/">Coverings</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemeMorphisms/">Morphisms of covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ProjectiveSchemes/">Projective schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes/">Morphisms of projective schemes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Algebraic Sets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet/">Affine Algebraic Sets</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet/">Projective Algebraic Sets</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Algebraic Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/AffineVariety/">Affine Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety/">Projective Varieties</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Rational Points</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/RationalPoints/Affine/">Affine</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/RationalPoints/Projective/">Projective</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricSchemes/">Introduction</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/TropicalGeometry/curve/">Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-8" type="checkbox"/><label class="tocitem" for="menuitem-11-8"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/para_rational_curves/">Rational Parametrizations of Rational Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-9" type="checkbox"/><label class="tocitem" for="menuitem-11-9"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/K3Surfaces/">Automorphism Groups of  K3 surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/SurfacesP4/">Nongeneral Type Surfaces in <span>$\mathbb P^4$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-10" type="checkbox"/><label class="tocitem" for="menuitem-11-10"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Miscellaneous/miscellaneous/">Some Special Ideals</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-12-2" type="checkbox"/><label class="tocitem" for="menuitem-12-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li><li><a class="tocitem" href="../../../Combinatorics/partitions/">Partitions</a></li><li><a class="tocitem" href="../../../Combinatorics/tableaux/">Tableaux</a></li><li><a class="tocitem" href="../../../Combinatorics/schur_polynomials/">Schur polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-17" type="checkbox"/><label class="tocitem" for="menuitem-17"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/printing_details/">Details on printing in Oscar</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/gap_integration/">GAP Integration</a></li><li><input class="collapse-toggle" id="menuitem-17-9" type="checkbox"/><label class="tocitem" for="menuitem-17-9"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-18" type="checkbox" checked/><label class="tocitem" for="menuitem-18"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Adding new projects to experimental</a></li><li><input class="collapse-toggle" id="menuitem-18-2" type="checkbox"/><label class="tocitem" for="menuitem-18-2"><span class="docs-label">F-Theory Tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../FTheoryTools/introduction/">Welcome to FTheoryTools</a></li><li><a class="tocitem" href="../../FTheoryTools/weierstrass/">Weierstrass models</a></li><li><a class="tocitem" href="../../FTheoryTools/tate/">Global Tate models</a></li><li><a class="tocitem" href="../../FTheoryTools/hypersurface/">Hypersurface models</a></li><li><a class="tocitem" href="../../FTheoryTools/literature/">Literature constructions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-18-3" type="checkbox"/><label class="tocitem" for="menuitem-18-3"><span class="docs-label">Lie Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LieAlgebras/introduction/">Introduction</a></li><li><a class="tocitem" href="../../LieAlgebras/lie_algebras/">Lie algebras</a></li><li><a class="tocitem" href="../../LieAlgebras/ideals_and_subalgebras/">Ideals and Lie subalgebras</a></li><li><a class="tocitem" href="../../LieAlgebras/lie_algebra_homs/">Lie algebra homomorphisms</a></li><li><a class="tocitem" href="../../LieAlgebras/modules/">Lie algebra modules</a></li><li><a class="tocitem" href="../../LieAlgebras/module_homs/">Lie algebra module homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-18-4" type="checkbox"/><label class="tocitem" for="menuitem-18-4"><span class="docs-label">Linear Quotients</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearQuotients/introduction/">Introduction</a></li><li><a class="tocitem" href="../../LinearQuotients/linear_quotients/">Construction and basic functionality</a></li><li><a class="tocitem" href="../../LinearQuotients/cox_rings/">Cox rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-18-5" type="checkbox" checked/><label class="tocitem" for="menuitem-18-5"><span class="docs-label">Quadratic forms and isometries</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../introduction/">Quadratic forms and isometries</a></li><li><a class="tocitem" href="../spacewithisom/">Quadratic space with isometry</a></li><li class="is-active"><a class="tocitem" href>Lattice with isometry</a><ul class="internal"><li><a class="tocitem" href="#Constructor"><span>Constructor</span></a></li><li><a class="tocitem" href="#Attributes-and-first-operations"><span>Attributes and first operations</span></a></li><li><a class="tocitem" href="#Type-for-finite-order-isometries"><span>Type for finite order isometries</span></a></li><li><a class="tocitem" href="#Hermitian-structure-and-trace-equivalence"><span>Hermitian structure and trace equivalence</span></a></li><li><a class="tocitem" href="#Discriminant-group"><span>Discriminant group</span></a></li><li><a class="tocitem" href="#Kernel-sublattices"><span>Kernel sublattices</span></a></li><li><a class="tocitem" href="#Signatures"><span>Signatures</span></a></li><li><a class="tocitem" href="#Equality"><span>Equality</span></a></li></ul></li><li><a class="tocitem" href="../enumeration/">Enumeration of isometries</a></li><li><a class="tocitem" href="../primembed/">Primitive embeddings in even lattices</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-18-6" type="checkbox"/><label class="tocitem" for="menuitem-18-6"><span class="docs-label">Standard Finite Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StandardFiniteFields/introduction/">-</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-18-7" type="checkbox"/><label class="tocitem" for="menuitem-18-7"><span class="docs-label">Orthogonal discriminants</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../OrthogonalDiscriminants/introduction/">Introduction</a></li><li><a class="tocitem" href="../../OrthogonalDiscriminants/access/">Access to precomputed OD data</a></li><li><a class="tocitem" href="../../OrthogonalDiscriminants/misc/">Miscellaneous functions</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Experimental</a></li><li><a class="is-disabled">Quadratic forms and isometries</a></li><li class="is-active"><a href>Lattice with isometry</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lattice with isometry</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/experimental/QuadFormAndIsom/docs/src/latwithisom.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Lattice-with-isometry"><a class="docs-heading-anchor" href="#Lattice-with-isometry">Lattice with isometry</a><a id="Lattice-with-isometry-1"></a><a class="docs-heading-anchor-permalink" href="#Lattice-with-isometry" title="Permalink"></a></h1><p>We call <em>lattice with isometry</em> any pair <span>$(L, f)$</span> consisting of an integer lattice <span>$L$</span> together with an isometry <span>$f \in O(L)$</span>. We refer to the section about integer lattices of the documentation for new users.</p><p>In Oscar, such a pair is encoded in the type called <code>ZZLatWithIsom</code>:</p><article class="docstring"><header><a class="docstring-binding" id="ZZLatWithIsom" href="#ZZLatWithIsom"><code>ZZLatWithIsom</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">ZZLatWithIsom</code></pre><p>A container type for pairs <code>(L, f)</code> consisting on an integer lattice <code>L</code> of type <code>ZZLat</code> and an isometry <code>f</code> given as a <code>QQMatrix</code> representing the action on a given basis of <code>L</code>.</p><p>We store the ambient space <code>V</code> of <code>L</code> together with an isometry <code>f_ambient</code> inducing <code>f</code> on <code>L</code> seen as a pair <span>$(V, f_ambient)$</span> of type <code>QuadSpaceWithIsom</code>. We moreover store the order <code>n</code> of <code>f</code>, which can be finite or infinite.</p><p>To construct an object of type <code>ZZLatWithIsom</code>, see the following examples:</p><p><strong>Examples</strong></p><p>One first way to construct such object, is by entering directly the lattice with an isometry. The isometry can be a honnest isometry of the lattice, or it can be an isometry of the ambient space preserving the lattice. Depending on this choice, one should enter the appropriate boolean value <code>ambient_representation</code>. This direct construction is done through the constructors <a href="#integer_lattice_with_isometry-Tuple{ZZLat, QQMatrix}"><code>integer_lattice_with_isometry</code></a>.</p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:E, 6);
+
+julia&gt; f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
+                             -1 -2 -2 -2 -1 -1;                                                
+                              0  1  0  0  0  0;      
+                              1  0  0  0  0  0;
+                             -1 -1 -1  0  0 -1;
+                              0  0  1  1  0  1]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f, ambient_representation = false)
+Integer lattice of rank 6 and degree 6
+  with isometry of finite order 8
+  given by
+  [ 1    2    3    2    1    1]
+  [-1   -2   -2   -2   -1   -1]
+  [ 0    1    0    0    0    0]
+  [ 1    0    0    0    0    0]
+  [-1   -1   -1    0    0   -1]
+  [ 0    0    1    1    0    1]
+
+julia&gt; B = matrix(QQ,1,6, [1   2   3   1   -1   3]);
+
+julia&gt; I = lattice_in_same_ambient_space(L, B); # This is the invariant sublattice L^f
+
+julia&gt; If = integer_lattice_with_isometry(I, ambient_isometry(Lf))
+Integer lattice of rank 1 and degree 6
+  with isometry of finite order 1
+  given by
+  [1]
+
+julia&gt; integer_lattice_with_isometry(I, neg=true)
+Integer lattice of rank 1 and degree 6
+  with isometry of finite order 2
+  given by
+  [-1]</code></pre><p>Another way to construct such objects is to see them as sub-objects of their ambient space, of type <code>QuadSpaceWithIsom</code>. Through the constructors <code>lattice</code> and <code>lattice_in_same_ambient_space</code>, one can then construct lattices with isometry for free, in a given space, as long as the module they define is preserved by the fixed isometry of the ambient space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = matrix(QQ, 6, 6 , [ 3 1 -1 1 0 0;
+                               1 3  1 1 1 1;
+                              -1 1  3 0 0 1;
+                               1 1  0 4 2 2;
+                               0 1  0 2 4 2;
+                               0 1  1 2 2 4]);
+
+julia&gt; V = quadratic_space(QQ, G);
+
+julia&gt; f = matrix(QQ, 6, 6, [ 1 0  0 0 0  0
+                              0 0 -1 0 0  0
+                             -1 1 -1 0 0  0
+                              0 0  0 1 0 -1
+                              0 0  0 0 0 -1
+                              0 0  0 0 1 -1]);
+
+julia&gt; Vf = quadratic_space_with_isometry(V, f);
+
+julia&gt; Lf = lattice(Vf)
+Integer lattice of rank 6 and degree 6
+  with isometry of finite order 3
+  given by
+  [ 1   0    0   0   0    0]
+  [ 0   0   -1   0   0    0]
+  [-1   1   -1   0   0    0]
+  [ 0   0    0   1   0   -1]
+  [ 0   0    0   0   0   -1]
+  [ 0   0    0   0   1   -1]
+
+julia&gt; B = matrix(QQ, 4, 6, [1 0 3 0 0 0;
+                             0 1 1 0 0 0;
+                             0 0 0 0 1 0;
+                             0 0 0 0 0 1]);
+
+julia&gt; Cf = lattice(Vf, B)  # coinvariant sublattice L_f
+Integer lattice of rank 4 and degree 6
+  with isometry of finite order 3
+  given by
+  [-2   3   0    0]
+  [-1   1   0    0]
+  [ 0   0   0   -1]
+  [ 0   0   1   -1]
+
+julia&gt; Cf2 = lattice_in_same_ambient_space(Lf, B)
+Integer lattice of rank 4 and degree 6
+  with isometry of finite order 3
+  given by
+  [-2   3   0    0]
+  [-1   1   0    0]
+  [ 0   0   0   -1]
+  [ 0   0   1   -1]
+
+julia&gt; Cf == Cf2
+true</code></pre><p>The last equality of the last example shows why we care about &quot;ambient context&quot;: the two pairs of lattice with isometry <code>Cf</code> and <code>Cf2</code> are basically the same mathematical objects. Indeed, they lie in the same space, defines the same module and their respective isometries are induced by the same isometry of the ambient space. As for regular <code>ZZLat</code>, as soon as the lattices are in the same ambient space, we can compare them as <span>$\mathbb Z$</span>-modules, endowed with an isometry.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/types.jl#L59-L189">source</a></section></article><p>and it is seen as a quadruple <span>$(Vf, L, f, n)$</span> where <span>$Vf = (V, f_a)$</span> consists of the ambient rational quadratic space <span>$V$</span> of <span>$L$</span> and an isometry <span>$f_a$</span> of <span>$V$</span> preserving <span>$L$</span> and inducing <span>$f$</span> on <span>$L$</span>. The integer <span>$n$</span> is the order of <span>$f$</span>, which is a divisor of the order of the isometry <span>$f_a\in O(V)$</span>.</p><p>Given a lattice with isometry <span>$(L, f)$</span>, we provide the following accessors to the elements of the previously described quadruple:</p><article class="docstring"><header><a class="docstring-binding" id="ambient_isometry-Tuple{ZZLatWithIsom}" href="#ambient_isometry-Tuple{ZZLatWithIsom}"><code>ambient_isometry</code></a> — <span class="docstring-category">Method</span></header><section><div><p>ambient_isometry(Lf::ZZLatWithIsom) -&gt; QQMatrix</p><p>Given a lattice with isometry <span>$(L, f)$</span>, return an isometry of the ambient space of <code>L</code> inducing <code>f</code> on <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; ambient_isometry(Lf)
+[-1    0    0    0    0]
+[ 0   -1    0    0    0]
+[ 0    0   -1    0    0]
+[ 0    0    0   -1    0]
+[ 0    0    0    0   -1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L78-L97">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ambient_space-Tuple{ZZLatWithIsom}" href="#ambient_space-Tuple{ZZLatWithIsom}"><code>ambient_space</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ambient_space(Lf::ZZLatWithIsom) -&gt; QuadSpaceWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the pair <span>$(V, g)$</span> where <code>V</code> is the ambient quadratic space of <code>L</code> and <code>g</code> is an isometry of <code>V</code> inducing <code>f</code> on <code>L</code>.</p><p>Note that <code>g</code> might not be unique and we fix such a global isometry together with <code>V</code> into a container type <code>QuadSpaceWithIsom</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; Vf = ambient_space(Lf)
+Quadratic space of dimension 5
+  with isometry of finite order 2
+  given by
+  [-1    0    0    0    0]
+  [ 0   -1    0    0    0]
+  [ 0    0   -1    0    0]
+  [ 0    0    0   -1    0]
+  [ 0    0    0    0   -1]
+
+julia&gt; typeof(Vf)
+QuadSpaceWithIsom</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L46-L75">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="isometry-Tuple{ZZLatWithIsom}" href="#isometry-Tuple{ZZLatWithIsom}"><code>isometry</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isometry(Lf::ZZLatWithIsom) -&gt; QQMatrix</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the underlying isometry <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; isometry(Lf)
+[-1    0    0    0    0]
+[ 0   -1    0    0    0]
+[ 0    0   -1    0    0]
+[ 0    0    0   -1    0]
+[ 0    0    0    0   -1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L25-L43">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="lattice-Tuple{ZZLatWithIsom}" href="#lattice-Tuple{ZZLatWithIsom}"><code>lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lattice(Lf::ZZLatWithIsom) -&gt; ZZLat</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; lattice(Lf) === L
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L8-L22">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="order_of_isometry-Tuple{ZZLatWithIsom}" href="#order_of_isometry-Tuple{ZZLatWithIsom}"><code>order_of_isometry</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">order_of_isometry(Lf::ZZLatWithIsom) -&gt; IntExt</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the order of the underlying isometry <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; order_of_isometry(Lf) == 2
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L100-L115">source</a></section></article><p>Note that for some computations, it is more convenient to work either with the isometry of the lattice itself, or with the fixed isometry of the ambient quadratic space inducing it on the lattice.</p><h2 id="Constructor"><a class="docs-heading-anchor" href="#Constructor">Constructor</a><a id="Constructor-1"></a><a class="docs-heading-anchor-permalink" href="#Constructor" title="Permalink"></a></h2><p>We provide two ways to construct a pair <span>$Lf = (L,f)$</span> consisting of an integer lattice endowed with an isometry. One way to construct an object of type <code>ZZLatWithIsom</code> is through the methods <code>integer_lattice_with_isometry</code>. These two methods do not require as input an ambient quadratic space with isometry.</p><article class="docstring"><header><a class="docstring-binding" id="integer_lattice_with_isometry-Tuple{ZZLat, QQMatrix}" href="#integer_lattice_with_isometry-Tuple{ZZLat, QQMatrix}"><code>integer_lattice_with_isometry</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
+                                            ambient_representation = true)
+			                                                             -&gt; ZZLatWithIsom</code></pre><p>Given a <span>$\mathbb Z$</span>-lattice <code>L</code> and a matrix <code>f</code>, if <code>f</code> defines an isometry of <code>L</code> of order <code>n</code>, return the corresponding lattice with isometry pair <span>$(L, f)$</span>.</p><p>If <code>ambient_representation</code> is set to true, <code>f</code> is consider as an isometry of the ambient space of <code>L</code> and the induced isometry on <code>L</code> is automatically computed. Otherwise, an isometry of the ambient space of <code>L</code> is constructed, setting the identity on the complement of the rational span of <code>L</code> if it is not of full rank.</p><p><strong>Examples</strong></p><p>The way we construct the lattice can have an influence on the isometry of the ambient space we store. Indeed, if one mentions an isometry of the lattice, this isometry will be extended by the identity on the orthogonal complement of the rational span of the lattice. In the following example, <code>Lf</code> and <code>Lf2</code> are the same object, but the isometry of their ambient space stored are different (one has order 2, the other one is the identity).</p><pre><code class="language-julia-repl hljs">julia&gt; B = matrix(QQ, 3, 5, [1 0 0 0 0;
+                             0 0 1 0 1;
+                             0 0 0 1 0]);
+
+julia&gt; G = matrix(QQ, 5, 5, [ 2 -1  0  0  0;
+                             -1  2 -1  0  0;
+                              0 -1  2 -1  0;
+                              0  0 -1  2 -1;
+                              0  0  0 -1  2]);
+
+julia&gt; L = integer_lattice(B; gram = G);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia&gt; ambient_isometry(Lf)
+[ 1    0    0    0    0]
+[-1   -1   -1   -1   -1]
+[ 0    0    0    0    1]
+[ 0    0    0    1    0]
+[ 0    0    1    0    0]
+
+julia&gt; Lf2 = integer_lattice_with_isometry(L, isometry(Lf); ambient_representation=false)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia&gt; ambient_isometry(Lf2)
+[1   0   0   0   0]
+[0   1   0   0   0]
+[0   0   1   0   0]
+[0   0   0   1   0]
+[0   0   0   0   1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L511-L582">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="integer_lattice_with_isometry-Tuple{ZZLat}" href="#integer_lattice_with_isometry-Tuple{ZZLat}"><code>integer_lattice_with_isometry</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">integer_lattice_with_isometry(L::ZZLat; neg::Bool = false) -&gt; ZZLatWithIsom</code></pre><p>Given a <span>$\mathbb Z$</span>-lattice <code>L</code> return the lattice with isometry pair <span>$(L, f)$</span>, where <code>f</code> corresponds to the identity mapping of <code>L</code>.</p><p>If <code>neg</code> is set to <code>true</code>, then the isometry <code>f</code> is negative the identity of <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [-1    0    0    0    0]
+  [ 0   -1    0    0    0]
+  [ 0    0   -1    0    0]
+  [ 0    0    0   -1    0]
+  [ 0    0    0    0   -1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L620-L642">source</a></section></article><p>By default, the first constructor will always check whether the matrix defines an isometry of the lattice, or its ambient space. We recommend not to disable this parameter to avoid any further issues. Note that as in the case of quadratic spaces with isometry, both isometries of integer lattices of <em>finite order</em> and <em>infinite order</em> are supported.</p><p>Another way of constructing such lattices with isometry is by fixing an ambient quadratic space with isometry, of type <code>QuadSpaceWithIsom</code>, and specifying a basis for an integral lattice in that space. If this lattice is preserved by the fixed isometry of the quadratic space considered, then we endow it with the induced action.</p><article class="docstring"><header><a class="docstring-binding" id="lattice-Tuple{QuadSpaceWithIsom}" href="#lattice-Tuple{QuadSpaceWithIsom}"><code>lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lattice(Vf::QuadSpaceWithIsom) -&gt; ZZLatWithIsom</code></pre><p>Given a quadratic space with isometry <span>$(V, f)$</span>, return the full rank lattice <code>L</code> in <code>V</code> with basis the standard basis, together with the induced action of <code>f</code> on <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; V = quadratic_space(QQ, QQ[2 -1; -1 2])
+Quadratic space of dimension 2
+  over rational field
+with gram matrix
+[ 2   -1]
+[-1    2]
+
+julia&gt; f = matrix(QQ, 2, 2, [1 1; 0 -1])
+[1    1]
+[0   -1]
+
+julia&gt; Vf = quadratic_space_with_isometry(V, f)
+Quadratic space of dimension 2
+  with isometry of finite order 2
+  given by
+  [1    1]
+  [0   -1]
+
+julia&gt; Lf = lattice(Vf)
+Integer lattice of rank 2 and degree 2
+  with isometry of finite order 2
+  given by
+  [1    1]
+  [0   -1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L652-L686">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="lattice-Tuple{QuadSpaceWithIsom, MatElem{&lt;:Union{Integer, QQFieldElem, ZZRingElem, Rational}}}" href="#lattice-Tuple{QuadSpaceWithIsom, MatElem{&lt;:Union{Integer, QQFieldElem, ZZRingElem, Rational}}}"><code>lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lattice(Vf::QuadSpaceWithIsom, B::MatElem{&lt;:RationalUnion};
+                               isbasis::Bool = true, check::Bool = true)
+                                                          -&gt; ZZLatWithIsom</code></pre><p>Given a quadratic space with isometry <span>$(V, f)$</span> and a matrix <code>B</code> generating a lattice <code>L</code> in <code>V</code>, if <code>L</code> is preserved under the action of <code>f</code>, return the lattice with isometry <span>$(L, f_L)$</span> where <span>$f_L$</span> is induced by the action of <code>f</code> on <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; V = quadratic_space(QQ, QQ[ 2 -1  0  0  0;
+                                  -1  2 -1  0  0;
+                                   0 -1  2 -1  0;
+                                   0  0 -1  2 -1;
+                                   0  0  0 -1  2]);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Vf = quadratic_space_with_isometry(V, f);
+
+julia&gt; B = matrix(QQ,3,5,[1 0 0 0 0;
+                          0 0 1 0 1;
+                          0 0 0 1 0])
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+
+julia&gt; lattice(Vf, B)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L689-L730">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="lattice_in_same_ambient_space-Tuple{ZZLatWithIsom, MatElem}" href="#lattice_in_same_ambient_space-Tuple{ZZLatWithIsom, MatElem}"><code>lattice_in_same_ambient_space</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lattice_in_same_ambient_space(L::ZZLatWithIsom, B::MatElem;
+                                                check::Bool = true)
+                                                        -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> and a matrix <code>B</code> whose rows define a free system of vectors in the ambient space <code>V</code> of <code>L</code>, if the lattice <code>M</code> in <code>V</code> defined by <code>B</code> is preserved under the fixed isometry <code>g</code> of <code>V</code> inducing <code>f</code> on <code>L</code>, return the lattice with isometry pair <span>$(M, f_M)$</span> where <span>$f_M$</span> is induced by the action of <code>g</code> on <code>M</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; B = matrix(QQ,3,5,[1 0 0 0 0;
+                          0 0 1 0 1;
+                          0 0 0 1 0])
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+
+julia&gt; I = lattice_in_same_ambient_space(Lf, B)
+Integer lattice of rank 3 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0]
+  [0   1   0]
+  [0   0   1]
+
+julia&gt; ambient_space(I) === ambient_space(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L739-L780">source</a></section></article><h2 id="Attributes-and-first-operations"><a class="docs-heading-anchor" href="#Attributes-and-first-operations">Attributes and first operations</a><a id="Attributes-and-first-operations-1"></a><a class="docs-heading-anchor-permalink" href="#Attributes-and-first-operations" title="Permalink"></a></h2><p>Given a lattice with isometry <span>$Lf := (L, f)$</span>, one can have access most of the attributes of <span>$L$</span> and <span>$f$</span> by calling the similar function for the pair. For instance, in order to know the genus of <span>$L$</span>, one can simply call <code>genus(Lf)</code>. Here is a list of what are the current accessible attributes:</p><article class="docstring"><header><a class="docstring-binding" id="basis_matrix-Tuple{ZZLatWithIsom}" href="#basis_matrix-Tuple{ZZLatWithIsom}"><code>basis_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">basis_matrix(Lf::ZZLatWithIsom) -&gt; QQMatrix</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the basis matrix of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ,5,5,[ 1  0  0  0  0;
+                          -1 -1 -1 -1 -1;
+                           0  0  0  0  1;
+                           0  0  0  1  0;
+                           0  0  1  0  0])
+[ 1    0    0    0    0]
+[-1   -1   -1   -1   -1]
+[ 0    0    0    0    1]
+[ 0    0    0    1    0]
+[ 0    0    1    0    0]
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; invariant_lattice(Lf);
+
+julia&gt; I = invariant_lattice(Lf);
+
+julia&gt; basis_matrix(I)
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L200-L232">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="characteristic_polynomial-Tuple{ZZLatWithIsom}" href="#characteristic_polynomial-Tuple{ZZLatWithIsom}"><code>characteristic_polynomial</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">characteristic_polynomial(Lf::ZZLatWithIsom) -&gt; QQPolyRingElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the characteristic polynomial of the underlying isometry <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; factor(characteristic_polynomial(Lf))
+1 * (x + 1)^5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L142-L157">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="degree-Tuple{ZZLatWithIsom}" href="#degree-Tuple{ZZLatWithIsom}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(Lf::ZZLatWithIsom) -&gt; Int</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the degree of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; degree(Lf)
+5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L433-L448">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="det-Tuple{ZZLatWithIsom}" href="#det-Tuple{ZZLatWithIsom}"><code>det</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">det(Lf::ZZLatWithIsom) -&gt; QQFieldElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the determinant of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; det(Lf)
+6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L286-L301">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="discriminant-Tuple{ZZLatWithIsom}" href="#discriminant-Tuple{ZZLatWithIsom}"><code>discriminant</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">discriminant(Lf::ZZLatWithIsom) -&gt; QQFieldElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the discriminant of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; discriminant(Lf) == det(Lf) == 6
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L469-L484">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="genus-Tuple{ZZLatWithIsom}" href="#genus-Tuple{ZZLatWithIsom}"><code>genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">genus(Lf::ZZLatWithIsom) -&gt; ZZGenus</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the genus of the underlying  lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; genus(Lf)
+Genus symbol for integer lattices
+Signatures: (5, 0, 0)
+Local symbols:
+  Local genus symbol at 2: 1^-4 2^1_7
+  Local genus symbol at 3: 1^-4 3^1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L178-L197">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="gram_matrix-Tuple{ZZLatWithIsom}" href="#gram_matrix-Tuple{ZZLatWithIsom}"><code>gram_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">gram_matrix(Lf::ZZLatWithIsom) -&gt; QQMatrix</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the gram matrix of the underlying lattice <code>L</code> with respect to its basis matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; gram_matrix(Lf)
+[ 2   -1    0    0    0]
+[-1    2   -1    0    0]
+[ 0   -1    2   -1    0]
+[ 0    0   -1    2   -1]
+[ 0    0    0   -1    2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L235-L254">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_definite-Tuple{ZZLatWithIsom}" href="#is_definite-Tuple{ZZLatWithIsom}"><code>is_definite</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_definite(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the underlying lattice <code>L</code> is definite.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; is_definite(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L376-L391">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_even-Tuple{ZZLatWithIsom}" href="#is_even-Tuple{ZZLatWithIsom}"><code>is_even</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_even(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the underlying lattice <code>L</code> is even.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; is_even(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L451-L466">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_integral-Tuple{ZZLatWithIsom}" href="#is_integral-Tuple{ZZLatWithIsom}"><code>is_integral</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_integral(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the underlying lattice <code>L</code> is integral.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; is_integral(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L415-L430">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_positive_definite-Tuple{ZZLatWithIsom}" href="#is_positive_definite-Tuple{ZZLatWithIsom}"><code>is_positive_definite</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_positive_definite(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the underlying lattice <code>L</code> is positive definite.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; is_positive_definite(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L340-L355">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_negative_definite-Tuple{ZZLatWithIsom}" href="#is_negative_definite-Tuple{ZZLatWithIsom}"><code>is_negative_definite</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_negative_definite(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the underlying lattice <code>L</code> is negative definite.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; is_negative_definite(Lf)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L358-L373">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="minimum-Tuple{ZZLatWithIsom}" href="#minimum-Tuple{ZZLatWithIsom}"><code>minimum</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimum(Lf::ZZLatWithIsom) -&gt; QQFieldElem</code></pre><p>Given a positive definite lattice with isometry <span>$(L, f)$</span>, return the minimum of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; minimum(Lf)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L394-L409">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="minimal_polynomial-Tuple{ZZLatWithIsom}" href="#minimal_polynomial-Tuple{ZZLatWithIsom}"><code>minimal_polynomial</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minimal_polynomial(Lf::ZZLatWithIsom) -&gt; QQPolyRingElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the minimal polynomial of the underlying isometry <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; minimal_polynomial(Lf)
+x + 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L160-L175">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="norm-Tuple{ZZLatWithIsom}" href="#norm-Tuple{ZZLatWithIsom}"><code>norm</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">norm(Lf::ZZLatWithIsom) -&gt; QQFieldElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the norm of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; norm(Lf)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L322-L337">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rank-Tuple{ZZLatWithIsom}" href="#rank-Tuple{ZZLatWithIsom}"><code>rank</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rank(Lf::ZZLatWithIsom) -&gt; Integer</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the rank of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L; neg=true);
+
+julia&gt; rank(Lf)
+5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L124-L139">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rational_span-Tuple{ZZLatWithIsom}" href="#rational_span-Tuple{ZZLatWithIsom}"><code>rational_span</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rational_span(Lf::ZZLatWithIsom) -&gt; QuadSpaceWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the rational span <span>$L \otimes \mathbb{Q}$</span> of the underlying lattice <code>L</code> together with the underlying isometry of <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; Vf = rational_span(Lf)
+Quadratic space of dimension 5
+  with isometry of finite order 1
+  given by
+  [1   0   0   0   0]
+  [0   1   0   0   0]
+  [0   0   1   0   0]
+  [0   0   0   1   0]
+  [0   0   0   0   1]
+
+julia&gt; typeof(Vf)
+QuadSpaceWithIsom</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L257-L283">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="scale-Tuple{ZZLatWithIsom}" href="#scale-Tuple{ZZLatWithIsom}"><code>scale</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">scale(Lf::ZZLatWithIsom) -&gt; QQFieldElem</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the scale of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; scale(Lf)
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L304-L319">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="signature_tuple-Tuple{ZZLatWithIsom}" href="#signature_tuple-Tuple{ZZLatWithIsom}"><code>signature_tuple</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">signature_tuple(Lf::ZZLatWithIsom) -&gt; Tuple{Int, Int, Int}</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the signature tuple of the underlying lattice <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; Lf = integer_lattice_with_isometry(L);
+
+julia&gt; signature_tuple(Lf)
+(5, 0, 0)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L487-L502">source</a></section></article><p>Similarly, some basic operations on <span>$\mathbb Z$</span>-lattices are available for lattices with isometry.</p><article class="docstring"><header><a class="docstring-binding" id="^-Tuple{ZZLatWithIsom, Int64}" href="#^-Tuple{ZZLatWithIsom, Int64}"><code>^</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">^(Lf::ZZLatWithIsom, n::Int) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> and an integer <span>$n$</span>, return the pair <span>$(L, f^n)$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lf^0
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 1
+  given by
+  [1   0   0   0   0]
+  [0   1   0   0   0]
+  [0   0   1   0   0]
+  [0   0   0   1   0]
+  [0   0   0   0   1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L850-L886">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="biproduct-Tuple{Vector{ZZLatWithIsom}}" href="#biproduct-Tuple{Vector{ZZLatWithIsom}}"><code>biproduct</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">biproduct(x::Vector{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                  Vector{AbstractSpaceMor},
+                                                  Vector{AbstractSpaceMor}
+biproduct(x::Vararg{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                  Vector{AbstractSpaceMor},
+                                                  Vector{AbstractSpaceMor}</code></pre><p>Given a collection of lattices with isometries <span>$(L_1, f_1), \ldots, (L_n, f_n)$</span>, return the lattice with isometry <span>$(L, f)$</span> together with the injections <span>$L_i \to L$</span> and the projections <span>$L \to L_i$</span>, where <code>L</code> is the biproduct <span>$L := L_1 \oplus \ldots \oplus L_n$</span> and <code>f</code> is the isometry of <code>L</code> induced by the diagonal actions of the <span>$f_i$</span>&#39;s.</p><p>For objects of type <code>ZZLatWithIsom</code>, finite direct sums and finite direct products agree and they are therefore called biproducts. If one wants to obtain <span>$(L, f)$</span> as a direct sum with the injections <span>$L_i \to L$</span>, one should call <code>direct_sum(x)</code>. If one wants to obtain <span>$(L, f)$</span> as a direct product with the projections <span>$L \to L_i$</span>, one should call <code>direct_product(x)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia&gt; Lh, inj, proj = biproduct(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10, Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10], AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5, Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5])
+
+julia&gt; Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]
+
+julia&gt; matrix(compose(inj[1], proj[1]))
+[1   0   0   0   0]
+[0   1   0   0   0]
+[0   0   1   0   0]
+[0   0   0   1   0]
+[0   0   0   0   1]
+
+julia&gt; matrix(compose(inj[1], proj[2]))
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]
+[0   0   0   0   0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1177-L1290">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="direct_product-Tuple{Vector{ZZLatWithIsom}}" href="#direct_product-Tuple{Vector{ZZLatWithIsom}}"><code>direct_product</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">direct_product(x::Vector{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                   Vector{AbstractSpaceMor}
+direct_product(x::Vararg{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                   Vector{AbstractSpaceMor}</code></pre><p>Given a collection of lattices with isometries <span>$(L_1, f_1), \ldots, (L_n, f_n)$</span>, return the lattice with isometry <span>$(L, f)$</span> together with the projections <span>$L \to L_i$</span>, where <code>L</code> is the direct product <span>$L := L_1 \times \ldots \times L_n$</span> and <code>f</code> is the isometry of <code>L</code> induced by the diagonal actions of the <span>$f_i$</span>&#39;s.</p><p>For objects of type <code>ZZLatWithIsom</code>, finite direct sums and finite direct products agree and they are therefore called biproducts. If one wants to obtain <span>$(L, f)$</span> as a direct sum with the injections <span>$L_i \to L$</span>, one should call <code>direct_sum(x)</code>. If one wants to obtain <span>$(L, f)$</span> as a biproduct with the injections <span>$L_i \to L$</span> and the projections <span>$L \to L_i$</span>, one should call <code>biproduct(x)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia&gt; Lh, proj = direct_product(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5, Map with following data
+Domain:
+=======
+Quadratic space of dimension 10
+Codomain:
+=========
+Quadratic space of dimension 5])
+
+julia&gt; Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1084-L1168">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="direct_sum-Tuple{Vector{ZZLatWithIsom}}" href="#direct_sum-Tuple{Vector{ZZLatWithIsom}}"><code>direct_sum</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">direct_sum(x::Vector{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                   Vector{AbstractSpaceMor}
+direct_sum(x::Vararg{ZZLatWithIsom}) -&gt; ZZLatWithIsom,
+                                                   Vector{AbstractSpaceMor}</code></pre><p>Given a collection of lattices with isometries <span>$(L_1, f_1), \ldots, (L_n, f_n)$</span>, return the lattice with isometry <span>$(L, f)$</span> together with the injections <span>$L_i \to L$</span>, where <code>L</code> is the direct sum <span>$L := L_1 \oplus \ldots \oplus L_n$</span> and <code>f</code> is the isometry of <code>L</code> induced by the diagonal actions of the <span>$f_i$</span>&#39;s.</p><p>For objects of type <code>ZZLatWithIsom</code>, finite direct sums and finite direct products agree and they are therefore called biproducts. If one wants to obtain <span>$(L, f)$</span> as a direct product with the projections <span>$L \to L_i$</span>, one should call <code>direct_product(x)</code>. If one wants to obtain <span>$(L, f)$</span> as a biproduct with the injections <span>$L_i \to L$</span> and the projections <span>$L \to L_i$</span>, one should call <code>biproduct(x)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; g = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lg = integer_lattice_with_isometry(L, g)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia&gt; Lh, inj = direct_sum(Lf, Lg)
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10, Map with following data
+Domain:
+=======
+Quadratic space of dimension 5
+Codomain:
+=========
+Quadratic space of dimension 10])
+
+julia&gt; Lh
+Integer lattice of rank 10 and degree 10
+  with isometry of finite order 10
+  given by
+  [ 1    0    0    0    0   0    0    0    0    0]
+  [-1   -1   -1   -1   -1   0    0    0    0    0]
+  [ 0    0    0    0    1   0    0    0    0    0]
+  [ 0    0    0    1    0   0    0    0    0    0]
+  [ 0    0    1    0    0   0    0    0    0    0]
+  [ 0    0    0    0    0   1    1    1    1    1]
+  [ 0    0    0    0    0   0   -1   -1   -1   -1]
+  [ 0    0    0    0    0   0    1    0    0    0]
+  [ 0    0    0    0    0   0    0    1    0    0]
+  [ 0    0    0    0    0   0    0    0    1    0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L991-L1075">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="dual-Tuple{ZZLatWithIsom}" href="#dual-Tuple{ZZLatWithIsom}"><code>dual</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dual(Lf::ZZLatWithIsom) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> inside the space <span>$(V, \Phi)$</span>, such that <code>f</code> is induced by an isometry <code>g</code> of <span>$(V, \Phi)$</span>, return the lattice with isometry <span>$(L^{\vee}, h)$</span> where <span>$L^{\vee}$</span> is the dual of <code>L</code> in <span>$(V, \Phi)$</span> and <code>h</code> is induced by <code>g</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lfv = dual(Lf)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [1   -1   0   0   0]
+  [0   -1   0   0   0]
+  [0   -1   0   0   1]
+  [0   -1   0   1   0]
+  [0   -1   1   0   0]
+
+julia&gt; ambient_space(Lfv) == ambient_space(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L891-L932">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="lll-Tuple{ZZLatWithIsom}" href="#lll-Tuple{ZZLatWithIsom}"><code>lll</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lll(Lf::ZZLatWithIsom) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the same lattice with isometry with a different basis matrix for <code>L</code>  obtained by performing an LLL-reduction on the associated gram matrix of <code>L</code>.</p><p>Note that matrix representing the action of <code>f</code> on <code>L</code> changes but the global action on the ambient space of <code>L</code> stays the same.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lf2 = lll(Lf)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1    0    0    0   -1]
+  [-1    0    0   -1    0]
+  [-1    0   -1    0    0]
+  [-1   -1    0    0    0]
+
+julia&gt; ambient_space(Lf2) == ambient_space(Lf)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L938-L981">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="rescale-Tuple{ZZLatWithIsom, Union{Integer, QQFieldElem, ZZRingElem, Rational}}" href="#rescale-Tuple{ZZLatWithIsom, Union{Integer, QQFieldElem, ZZRingElem, Rational}}"><code>rescale</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rescale(Lf::ZZLatWithIsom, a::RationalUnion) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> and a rational number <code>a</code>, return the lattice with isometry <span>$(L(a), f)$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5)
+Integer lattice of rank 5 and degree 5
+with gram matrix
+[ 2   -1    0    0    0]
+[-1    2   -1    0    0]
+[ 0   -1    2   -1    0]
+[ 0    0   -1    2   -1]
+[ 0    0    0   -1    2]
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; Lf2 = rescale(Lf, 1//2)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 2
+  given by
+  [ 1    0    0    0    0]
+  [-1   -1   -1   -1   -1]
+  [ 0    0    0    0    1]
+  [ 0    0    0    1    0]
+  [ 0    0    1    0    0]
+
+julia&gt; lattice(Lf2)
+Integer lattice of rank 5 and degree 5
+with gram matrix
+[    1   -1//2       0       0       0]
+[-1//2       1   -1//2       0       0]
+[    0   -1//2       1   -1//2       0]
+[    0       0   -1//2       1   -1//2]
+[    0       0       0   -1//2       1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L793-L845">source</a></section></article><h2 id="Type-for-finite-order-isometries"><a class="docs-heading-anchor" href="#Type-for-finite-order-isometries">Type for finite order isometries</a><a id="Type-for-finite-order-isometries-1"></a><a class="docs-heading-anchor-permalink" href="#Type-for-finite-order-isometries" title="Permalink"></a></h2><p>Given a lattice with isometry <span>$Lf := (L, f)$</span> where <span>$f$</span> is of finite order <span>$n$</span>, one can compute the <em>type</em> of <span>$Lf$</span>, which can be seen as an equivalent of the <em>genus</em> used to classified single lattices.</p><article class="docstring"><header><a class="docstring-binding" id="type-Tuple{ZZLatWithIsom}" href="#type-Tuple{ZZLatWithIsom}"><code>type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">type(Lf::ZZLatWithIsom)
+                  -&gt; Dict{Int, Tuple{ &lt;: Union{ZZGenus, HermGenus}, ZZGenus}}</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> with <code>f</code> of finite order <code>n</code>, return the type of <span>$(L, f)$</span>.</p><p>In this context, the type is defined as follows: for each divisor <code>k</code> of <code>n</code>, the <code>k</code>-type of <span>$(L, f)$</span> is the tuple <span>$(H_k, A_K)$</span> consisting of the genus <span>$H_k$</span> of the lattice <span>$\ker(\Phi_k(f))$</span> viewed as a hermitian <span>$\mathbb{Z}[\zeta_k]$</span>- lattice (so a <span>$\mathbb{Z}$</span>-lattice for k= 1, 2) and of the genus <span>$A_k$</span> of the <span>$\mathbb{Z}$</span>-lattice <span>$\ker(f^k-1)$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; t = type(Lf);
+
+julia&gt; genus(invariant_lattice(Lf)) == t[1][1]
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1934-L1964">source</a></section></article><p>Since determining whether two pairs of lattices with isometry are isomorphic is a challenging task, one can perform a coarser comparison by looking at the type. This set of data keeps track of some local and global invariants of the pair <span>$(L, f)$</span> with respect to the action of <span>$f$</span> on <span>$L$</span>.</p><article class="docstring"><header><a class="docstring-binding" id="is_of_type-Tuple{ZZLatWithIsom, Dict}" href="#is_of_type-Tuple{ZZLatWithIsom, Dict}"><code>is_of_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_of_type(Lf::ZZLatWithIsom, t::Dict) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether <span>$(L, f)$</span> is of type <code>t</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; t = type(Lf);
+
+julia&gt; is_of_type(Lf, t)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1985-L2007">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_of_same_type-Tuple{ZZLatWithIsom, ZZLatWithIsom}" href="#is_of_same_type-Tuple{ZZLatWithIsom, ZZLatWithIsom}"><code>is_of_same_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_of_same_type(Lf::ZZLatWithIsom, Mg::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given two lattices with isometry <span>$(L, f)$</span> and <span>$(M, g)$</span>, return whether they are of the same type.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; M = coinvariant_lattice(Lf);
+
+julia&gt; is_of_same_type(Lf, M)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L2025-L2048">source</a></section></article><p>Finally, if the minimal polynomial of <span>$f$</span> is irreducible, then we say that the pair <span>$(L, f)$</span> is of <em>hermitian type</em>. The type of a lattice with isometry of hermitian type is called <em>hermitian</em> (note that the type is only defined for finite order isometries).</p><p>These namings follow from the fact that, by the trace equivalence, one can associate to the pair <span>$(L, f)$</span> a hermitian lattice over the equation order of <span>$f$</span>, if it is maximal in the associated number field <span>$\mathbb{Q}[f]$</span>.</p><article class="docstring"><header><a class="docstring-binding" id="is_of_hermitian_type-Tuple{ZZLatWithIsom}" href="#is_of_hermitian_type-Tuple{ZZLatWithIsom}"><code>is_of_hermitian_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_of_hermitian_type(Lf::ZZLatWithIsom) -&gt; Bool</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return whether the minimal polynomial of the underlying isometry <code>f</code> is irreducible.</p><p>Note that if <span>$(L, f)$</span> is of hermitian type with <code>f</code> of minimal polynomial <span>$\chi$</span>, then <code>L</code> can be seen as a hermitian lattice over the order <span>$\mathbb{Z}[\chi]$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f)
+Integer lattice of rank 5 and degree 5
+  with isometry of finite order 5
+  given by
+  [1    1    1    1    1]
+  [0   -1   -1   -1   -1]
+  [0    1    0    0    0]
+  [0    0    1    0    0]
+  [0    0    0    1    0]
+
+julia&gt; is_of_hermitian_type(Lf)
+false
+
+julia&gt; is_of_hermitian_type(coinvariant_lattice(Lf))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1321-L1356">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="is_hermitian-Tuple{Dict}" href="#is_hermitian-Tuple{Dict}"><code>is_hermitian</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_hermitian(t::Dict) -&gt; Bool</code></pre><p>Given a type <code>t</code> of lattices with isometry, return whether <code>t</code> is hermitian, i.e. whether it defines the type of a hermitian lattice with isometry.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; M = coinvariant_lattice(Lf);
+
+julia&gt; is_hermitian(type(Lf))
+false
+
+julia&gt; is_hermitian(type(M))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L2056-L2082">source</a></section></article><h2 id="Hermitian-structure-and-trace-equivalence"><a class="docs-heading-anchor" href="#Hermitian-structure-and-trace-equivalence">Hermitian structure and trace equivalence</a><a id="Hermitian-structure-and-trace-equivalence-1"></a><a class="docs-heading-anchor-permalink" href="#Hermitian-structure-and-trace-equivalence" title="Permalink"></a></h2><p>As mentioned in the previous section, to a lattice with isometry <span>$Lf := (L, f)$</span> such that the minimal polynomial of <span>$f$</span> is irreducible, one can associate a hermitian lattice <span>$\mathfrak{L}$</span> over the equation order of <span>$f$</span>, if it is maximal, for which <span>$Lf$</span> is the associated trace lattice. Hecke provides the tools to perform the trace equivalence for lattices with isometry of hermitian type.</p><article class="docstring"><header><a class="docstring-binding" id="hermitian_structure-Tuple{ZZLatWithIsom}" href="#hermitian_structure-Tuple{ZZLatWithIsom}"><code>hermitian_structure</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hermitian_structure(Lf::ZZLatWithIsom) -&gt; HermLat</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> such that the minimal polynomial of the underlying isometry <code>f</code> is irreducible, return the hermitian structure of the underlying lattice <code>L</code> over the equation order of the minimal polynomial of <code>f</code>.</p><p>If it exists, the hermitian structure is stored. For now, we only cover the case where the equation order is maximal (which is always the case when the order is finite, for instance, since the minimal polynomial is cyclotomic).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; M = coinvariant_lattice(Lf)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+
+julia&gt; H = hermitian_structure(M)
+Hermitian lattice of rank 1 and degree 1
+  over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
+  with pseudo-basis 
+  (1, 1//1 * &lt;1, 1&gt;)
+  (z_5, 1//1 * &lt;1, 1&gt;)
+
+julia&gt; res = get_attribute(M, :transfer_data)
+Map of change of scalars
+  from quadratic space of dimension 4
+  to hermitian space of dimension 1
+
+julia&gt; M2, f2 = trace_lattice_with_isometry(H, res)
+(Integer lattice of rank 4 and degree 4, [-1 -1 -1 -1; 1 0 0 0; 0 1 0 0; 0 0 1 0])
+
+julia&gt; genus(M) == genus(M2) # One class in this genus, so they are isometric
+true
+
+julia&gt; f2 == isometry(M)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1362-L1416">source</a></section></article><h2 id="Discriminant-group"><a class="docs-heading-anchor" href="#Discriminant-group">Discriminant group</a><a id="Discriminant-group-1"></a><a class="docs-heading-anchor-permalink" href="#Discriminant-group" title="Permalink"></a></h2><p>Given an integral lattice with isometry <span>$Lf := (L, f)$</span>, if one denotes by <span>$D_L$</span> the discriminant group of <span>$L$</span>, there exists a natural map <span>$\pi\colon O(L) \to O(D_L)$</span> sending any isometry to its induced action on the discriminant group of <span>$L$</span>. In general, this map is neither injective nor surjective. If we denote by <span>$D_f := \pi(f)$</span> then <span>$\pi$</span> induces a map between centralizers <span>$O(L, f)\to O(D_L, D_f)$</span>. Again, this induced map is in general neither injective nor surjective, and we denote its image by <span>$G_{L,f}$</span>.</p><article class="docstring"><header><a class="docstring-binding" id="discriminant_group-Tuple{ZZLatWithIsom}" href="#discriminant_group-Tuple{ZZLatWithIsom}"><code>discriminant_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">discriminant_group(Lf::ZZLatWithIsom) -&gt; TorQuadModule, AutomorphismGroupElem</code></pre><p>Given an integral lattice with isometry <span>$(L, f)$</span>, return the discriminant group <code>q</code> of the underlying lattice <code>L</code> as well as this image of the underlying isometry <code>f</code> inside <span>$O(q)$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; qL, qf = discriminant_group(Lf)
+(Finite quadratic module: Z/6 -&gt; Q/2Z, [1])
+
+julia&gt; qL
+Finite quadratic module
+  over integer ring
+Abelian group: Z/6
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form: 
+[5//6]
+
+julia&gt; qf
+Isometry of Finite quadratic module: Z/6 -&gt; Q/2Z defined by 
+[1]
+
+julia&gt; f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; discriminant_group(Lf)[2]
+Isometry of Finite quadratic module: Z/6 -&gt; Q/2Z defined by 
+[5]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1433-L1480">source</a></section></article><p>For simple cases as for definite lattices, <span>$f$</span> being plus-or-minus the identity or if the rank of <span>$L$</span> is equal to the totient of the order of <span>$f$</span> (in the finite case), <span>$G_{L,f}$</span> can be easily computed. The only other case which can be currently handled is for lattices with isometry of hermitian type following the <em>hermitian Miranda-Morisson theory</em> from <a href="../../../references/#BH23">Simon Brandhorst, Tommy Hofmann (2023)</a>. This has been implemented in this project and it can be indirectly used through the general following method:</p><article class="docstring"><header><a class="docstring-binding" id="image_centralizer_in_Oq-Tuple{ZZLatWithIsom}" href="#image_centralizer_in_Oq-Tuple{ZZLatWithIsom}"><code>image_centralizer_in_Oq</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">image_centralizer_in_Oq(Lf::ZZLatWithIsom) -&gt; AutomorphismGroup{TorQuadModule},
+                                              GAPGroupHomomorphism</code></pre><p>Given an integral lattice with isometry <span>$(L, f)$</span>, return the image <span>$G_L$</span> in <span>$O(q_L, \bar{f})$</span> of the centralizer <span>$O(L, f)$</span> of <code>f</code> in <span>$O(L)$</span>. Here <span>$q_L$</span> denotes the discriminant group of <code>L</code> and <span>$\bar{f}$</span> is the isometry of <span>$q_L$</span> induced by <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,2);
+
+julia&gt; f = matrix(QQ, 2, 2, [1 1; 0 -1]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; G, _ = image_centralizer_in_Oq(Lf)
+(Group of isometries of Finite quadratic module: Z/3 -&gt; Q/2Z generated by 2 elements, Group homomorphism from
+Group of isometries of Finite quadratic module: Z/3 -&gt; Q/2Z generated by 2 elements
+to
+Group of isometries of Finite quadratic module: Z/3 -&gt; Q/2Z generated by 1 elements)
+
+julia&gt; order(G)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1491-L1517">source</a></section></article><p>For an implementation of the regular Miranda-Morisson theory, we refer to the function <code>image_in_Oq</code> which actually computes the image of <span>$\pi$</span> in both the definite and the indefinite case.</p><p>We will see later in the section about enumeration of lattices with isometry that one can compute <span>$G_{L,f}$</span> in some particular cases arising from equivariant primitive embeddings of lattices with isometries.</p><h2 id="Kernel-sublattices"><a class="docs-heading-anchor" href="#Kernel-sublattices">Kernel sublattices</a><a id="Kernel-sublattices-1"></a><a class="docs-heading-anchor-permalink" href="#Kernel-sublattices" title="Permalink"></a></h2><p>As for single integer lattices, it is possible to compute kernel sublattices of some <span>$\mathbb{Z}$</span>-module homomorphisms. We provide here the possibility to compute <span>$\ker(p(f))$</span> as a sublattice of <span>$L$</span> equipped with the induced action of <span>$f$</span>, where <span>$p$</span> is a polynomial with rational coefficients.</p><article class="docstring"><header><a class="docstring-binding" id="kernel_lattice-Tuple{ZZLatWithIsom, Union{QQPolyRingElem, ZZPolyRingElem}}" href="#kernel_lattice-Tuple{ZZLatWithIsom, Union{QQPolyRingElem, ZZPolyRingElem}}"><code>kernel_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">kernel_lattice(Lf::ZZLatWithIsom, p::Union{fmpz_poly, QQPolyRingElem})
+                                                     -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> and a polynomial <code>p</code> with rational coefficients, return the sublattice <span>$M := \ker(p(f))$</span> of the underlying lattice <code>L</code> with isometry <code>f</code>, together with the restriction <span>$f_{\mid M}$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; Zx,x = ZZ[&quot;x&quot;]
+(Univariate polynomial ring in x over ZZ, x)
+
+julia&gt; mf = minimal_polynomial(Lf)
+x^5 - 1
+
+julia&gt; factor(mf)
+1 * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
+
+julia&gt; kernel_lattice(Lf, x-1)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]
+
+julia&gt; kernel_lattice(Lf, cyclotomic_polynomial(5))
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1634-L1678">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="kernel_lattice-Tuple{ZZLatWithIsom, Integer}" href="#kernel_lattice-Tuple{ZZLatWithIsom, Integer}"><code>kernel_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">kernel_lattice(Lf::ZZLatWithIsom, l::Integer) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> and an integer <code>l</code>, return the kernel lattice of <span>$(L, f)$</span> associated to the <code>l</code>-th cyclotomic polynomial.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; kernel_lattice(Lf, 5)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]
+
+julia&gt; kernel_lattice(Lf, 1)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1693-L1726">source</a></section></article><p>Note that such sublattices are by definition primitive in <span>$L$</span> since <span>$L$</span> is non-degenerate. As particular kernel sublattices of <span>$L$</span>, one can also compute the so-called <em>invariant</em> and <em>coinvariant</em> lattices of <span>$(L, f)$</span>:</p><article class="docstring"><header><a class="docstring-binding" id="coinvariant_lattice-Tuple{ZZLatWithIsom}" href="#coinvariant_lattice-Tuple{ZZLatWithIsom}"><code>coinvariant_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">coinvariant_lattice(Lf::ZZLatWithIsom) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the coinvariant lattice <span>$L_f$</span> of <span>$(L, f)$</span> together with the restriction of <code>f</code> to <span>$L_f$</span>.</p><p>The coinvariant lattice <span>$L_f$</span> of <span>$(L, f)$</span> is the orthogonal complement in <code>L</code> of the invariant lattice <span>$L_f$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; coinvariant_lattice(Lf)
+Integer lattice of rank 4 and degree 5
+  with isometry of finite order 5
+  given by
+  [-1   -1   -1   -1]
+  [ 1    0    0    0]
+  [ 0    1    0    0]
+  [ 0    0    1    0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1788-L1818">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="invariant_lattice-Tuple{ZZLatWithIsom}" href="#invariant_lattice-Tuple{ZZLatWithIsom}"><code>invariant_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">invariant_lattice(Lf::ZZLatWithIsom) -&gt; ZZLatWithIsom</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span>, return the invariant lattice <span>$L^f$</span> of <span>$(L, f)$</span> together with the restriction of <code>f</code> to <span>$L^f$</span> (which is the identity in this case).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; invariant_lattice(Lf)
+Integer lattice of rank 1 and degree 5
+  with isometry of finite order 1
+  given by
+  [1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1733-L1758">source</a></section></article><p>Similarly, we provide the possibility to compute invariant and coinvariant sublattices given an orthogonal representation <code>G</code> in matrix form of a finite group on a given lattice <code>L</code>:</p><article class="docstring"><header><a class="docstring-binding" id="coinvariant_lattice-Tuple{ZZLat, MatrixGroup}" href="#coinvariant_lattice-Tuple{ZZLat, MatrixGroup}"><code>coinvariant_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">coinvariant_lattice(L::ZZLat, G::MatrixGroup;
+                              ambient_representation::Bool = true)
+                                                    -&gt; ZZLat, MatrixGroup</code></pre><p>Given an integer lattice <code>L</code> and a group <code>G</code> of isometries of <code>L</code> in matrix, return the coinvariant sublattice <span>$L_G$</span> of <code>L</code>, together with the subgroup <code>H</code> of isometries of <span>$L_G$</span> induced by the action of <span>$G$</span>.</p><p>If <code>ambient_representation</code> is set to true, the isometries in <code>G</code> and <code>H</code> are seen as isometries of the ambient quadratic space of <code>L</code> preserving <code>L</code>. Otherwise, they are considered as honnest isometries of <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,2);
+
+julia&gt; G = isometry_group(L);
+
+julia&gt; L2, G2 = coinvariant_lattice(L, G)
+(Integer lattice of rank 2 and degree 2, Matrix group of degree 2 over Rational field)
+
+julia&gt; L == L2
+true
+
+julia&gt; G == G2
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1831-L1859">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="invariant_lattice-Tuple{ZZLat, MatrixGroup}" href="#invariant_lattice-Tuple{ZZLat, MatrixGroup}"><code>invariant_lattice</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">invariant_lattice(L::ZZLat, G::MatrixGroup;
+                            ambient_representation::Bool = true) -&gt; ZZLat</code></pre><p>Given an integer lattice <code>L</code> and a group <code>G</code> of isometries of <code>L</code> in matrix, return the invariant sublattice <span>$L^G$</span> of <code>L</code>.</p><p>If <code>ambient_representation</code> is set to true, the isometries in <code>G</code> are seen as isometries of the ambient quadratic space of <code>L</code> preserving <code>L</code>. Otherwise, they are considered as honnest isometries of <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,2);
+
+julia&gt; G = isometry_group(L);
+
+julia&gt; invariant_lattice(L, G)
+Integer lattice of rank 0 and degree 2
+with gram matrix
+0 by 0 empty matrix</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1761-L1783">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="invariant_coinvariant_pair-Tuple{ZZLat, MatrixGroup}" href="#invariant_coinvariant_pair-Tuple{ZZLat, MatrixGroup}"><code>invariant_coinvariant_pair</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup;
+                                     ambient_representation::Bool = true)
+                                               -&gt; ZZLat, ZZLat, MatrixGroup</code></pre><p>Given an integer lattice <code>L</code> and a group <code>G</code> of isometries of <code>L</code> in matrix, return the invariant sublattice <span>$L^G$</span> of <code>L</code> and its coinvariant sublattice <span>$L_G$</span> together with the subgroup <code>H</code> of isometries of <span>$L_G$</span> induced by the action of <span>$G$</span>.</p><p>If <code>ambient_representation</code> is set to true, the isometries in <code>G</code> and <code>H</code> are seen as isometries of the ambient quadratic space of <code>L</code> preserving <code>L</code>. Otherwise, they are considered as honnest isometries of <code>L</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,2);
+
+julia&gt; G = isometry_group(L);
+
+julia&gt; Gsub, _ = sub(G, [gens(G)[end]]);
+
+julia&gt; F, C, G2 = invariant_coinvariant_pair(L, Gsub)
+(Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, Matrix group of degree 2 over Rational field)
+
+julia&gt; F
+Integer lattice of rank 1 and degree 2
+with gram matrix
+[2]
+
+julia&gt; C
+Integer lattice of rank 1 and degree 2
+with gram matrix
+[6]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1876-L1911">source</a></section></article><h2 id="Signatures"><a class="docs-heading-anchor" href="#Signatures">Signatures</a><a id="Signatures-1"></a><a class="docs-heading-anchor-permalink" href="#Signatures" title="Permalink"></a></h2><p>We conclude this introduction about standard functionalities for lattices with isometry by introducing a last invariant for lattices with finite isometry of hermitian type <span>$(L, f)$</span>, called the <em>signatures</em>. These signatures are are intrinsequely connected to the local archimedean invariants of the hermitian structure associated to <span>$(L, f)$</span> via the trace equivalence.</p><article class="docstring"><header><a class="docstring-binding" id="signatures-Tuple{ZZLatWithIsom}" href="#signatures-Tuple{ZZLatWithIsom}"><code>signatures</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">signatures(Lf::ZZLatWithIsom) -&gt; Dict{Int, Tuple{Int, Int}}</code></pre><p>Given a lattice with isometry <span>$(L, f)$</span> where the minimal polynomial of <code>f</code> is irreducible cyclotomic, return the signatures of <span>$(L, f)$</span>.</p><p>In this context, if we denote <span>$z$</span> a primitive <code>n</code>-th root of unity, where <code>n</code> is the order of <code>f</code>, then for each <span>$1 \leq i \leq n/2$</span> such that <span>$(i, n) = 1$</span>, the <span>$i$</span>-th signature of <span>$(L, f)$</span> is given by the signatures of the real quadratic form <span>$\ker(f + f^{-1} - z^i - z^{-i})$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; L = root_lattice(:A,5);
+
+julia&gt; f = matrix(QQ, 5, 5, [1  1  1  1  1;
+                             0 -1 -1 -1 -1;
+                             0  1  0  0  0;
+                             0  0  1  0  0;
+                             0  0  0  1  0]);
+
+julia&gt; Lf = integer_lattice_with_isometry(L, f);
+
+julia&gt; M = coinvariant_lattice(Lf);
+
+julia&gt; signatures(M)
+Dict{Integer, Tuple{Int64, Int64}} with 2 entries:
+  2 =&gt; (2, 0)
+  1 =&gt; (2, 0)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a3f13d44476c2b84da82d1455168b883516a00b8/experimental/QuadFormAndIsom/src/lattices_with_isometry.jl#L1573-L1603">source</a></section></article><h2 id="Equality"><a class="docs-heading-anchor" href="#Equality">Equality</a><a id="Equality-1"></a><a class="docs-heading-anchor-permalink" href="#Equality" title="Permalink"></a></h2><p>We choose as a convention that two pairs <span>$(L, f)$</span> and <span>$(L&#39;, f&#39;)$</span> of integer lattices with isometries are <em>equal</em> if their ambient quadratic space with isometry of type <code>QuadSpaceWithIsom</code> are equal, and if the underlying lattices <span>$L$</span> and <span>$L&#39;$</span> are equal as <span>$\mathbb Z$</span>-modules in the common ambient quadratic space.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../spacewithisom/">« Quadratic space with isometry</a><a class="docs-footer-nextpage" href="../enumeration/">Enumeration of isometries »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Monday 4 September 2023 16:56">Monday 4 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
