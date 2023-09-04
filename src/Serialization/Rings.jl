@@ -102,6 +102,7 @@ end
 @register_serialization_type PolyRing uses_id
 @register_serialization_type MPolyRing uses_id
 @register_serialization_type UniversalPolyRing uses_id
+@register_serialization_type MPolyDecRing uses_id
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
@@ -123,15 +124,17 @@ function load_object(s::DeserializerState,
     poly_ring = UniversalPolynomialRing(base_ring, cached=false)
     gens(poly_ring, symbols)
     return poly_ring
+  elseif T <: MPolyDecRing
+    # the order in the symbols reflects the grading
+    return graded_polynomial_ring(base_ring, symbols)
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
     return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
   end
-  
   return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
 
 ################################################################################
-#  Polynomial Ring Types
+#  Polynomial Ring Elem Types
 @register_serialization_type MPolyRingElem uses_params
 @register_serialization_type UniversalPolyRingElem uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params

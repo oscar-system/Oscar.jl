@@ -29,6 +29,19 @@ t = global_tate_model(base; completeness_check = false)
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
+
+  mktempdir() do path
+    test_save_load_roundtrip(path, t) do loaded
+      @test tate_polynomial(loaded) == tate_polynomial(t)
+      @test tate_section_a1(t) == tate_section_a1(loaded)
+      @test tate_section_a2(t) == tate_section_a2(loaded)
+      @test tate_section_a3(t) == tate_section_a3(loaded)
+      @test tate_section_a4(t) == tate_section_a4(loaded)
+      @test tate_section_a6(t) == tate_section_a6(loaded)
+      @test base_space(t) == base_space(loaded)
+      @test ambient_space(t) == ambient_space(loaded)
+    end
+  end
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
