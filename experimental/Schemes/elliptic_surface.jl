@@ -1068,13 +1068,15 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)
+  _, pr = relatively_minimal_model(X)
+  u_up = pullback(pr)(u)
 
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   # transform to a quartic y'^2 = q(x)
   if iszero(P[3])  #  P = O
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case1)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case1)
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
 #   function phi_func(x)
 #     y = phi1(x)
@@ -1088,7 +1090,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 #   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   elseif iszero(2*P) # P is a 2-torsion section
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case3)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case3)
     #eqn1, phi1 = _conversion_case_3(X, u)
     (x2, y2) = gens(parent(eqn1))
 
@@ -1100,7 +1102,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
     phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case2)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case2)
     #eqn1, phi1 = _conversion_case_2(X, u)
     (x2, y2) = gens(parent(eqn1))
     
@@ -1538,6 +1540,7 @@ end
 function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFieldElem; 
     case::Symbol=:case1, names=[:x, :y, :t]
   )
+  @req variety(parent(u)) === X "function field element must live on the first argument"
   @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
   R = ambient_coordinate_ring(U)
@@ -1558,7 +1561,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 # kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
   R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
 
-  f_loc = first(gens(modulus(OO(U))))
+  f_loc = numerator(first(gens(modulus(OO(U)))))
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
   a = a_invars(E)
 
