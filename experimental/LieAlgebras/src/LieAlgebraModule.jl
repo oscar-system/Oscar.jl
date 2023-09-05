@@ -1020,7 +1020,6 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     :type => :exterior_power,
     :power => k,
     :base_module => V,
-    :ind_map => ind_map, # deprecated
     :exterior_pure_function => pure,
     :exterior_pure_preimage_function => inv_pure,
     :embedding_tensor_power => T,
@@ -1139,7 +1138,6 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     :type => :symmetric_power,
     :power => k,
     :base_module => V,
-    :ind_map => ind_map, #deprecated
     :symmetric_pure_function => pure,
     :symmetric_pure_preimage_function => inv_pure,
     :embedding_tensor_power => T,
@@ -1234,7 +1232,6 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     :type => :tensor_power,
     :power => k,
     :base_module => V,
-    :ind_map => ind_map, # deprecated
     :tensor_pure_function => pure,
     :tensor_pure_preimage_function => inv_pure,
   )
