@@ -42,7 +42,7 @@ It describes a free abelian group of rank `n`.
 # Examples
 ```jldoctest
 julia> G = pc_group(collector(2))
-Pcp-group with orders [ 0, 0 ]
+Pc group of infinite order
 
 julia> is_abelian(G)
 true
@@ -340,7 +340,7 @@ julia> Oscar.set_relative_orders!(c, [2, 3])
 julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
 
 julia> gg = pc_group(c)
-<pc group of size 6 with 2 generators>
+Pc group of order 6
 
 julia> describe(gg)
 "S3"

@@ -1933,7 +1933,7 @@ extension of the p-adics.
 julia> K, a = cyclotomic_field(5);
 
 julia> G, C = galois_group(K)
-(Group([ (1,4,2,3), (1,2)(3,4) ]), Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
+(Permutation group of degree 4 and order 4, Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
 
 julia> describe(G)
 "C4"
@@ -2392,7 +2392,7 @@ julia> galois_quotient(C, 6)
  Number field of degree 6 over QQ
 
 julia> galois_group(ans[1])
-(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Permutation group of degree 6 and order 6, Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true

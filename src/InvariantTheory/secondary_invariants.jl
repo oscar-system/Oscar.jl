@@ -415,7 +415,7 @@ julia> RS2 = invariant_ring(S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
 
 julia> semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:

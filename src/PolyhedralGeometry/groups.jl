@@ -62,13 +62,13 @@ julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
 Polyhedron in ambient dimension 2
 
 julia> G = combinatorial_symmetries(quad)
-Group([ (2,4), (1,2)(3,4) ])
+Permutation group of degree 4
 
 julia> order(G)
 8
 
 julia> G = linear_symmetries(quad)
-Group([ (2,4) ])
+Permutation group of degree 4
 
 julia> order(G)
 2
@@ -92,7 +92,7 @@ julia> c = cube(3)
 Polyhedron in ambient dimension 3
 
 julia> G = linear_symmetries(c)
-Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
+Permutation group of degree 8
 
 julia> order(G)
 48
@@ -105,7 +105,7 @@ julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
 Polyhedron in ambient dimension 2
 
 julia> G = linear_symmetries(quad)
-Group([ (2,4) ])
+Permutation group of degree 4
 
 julia> order(G)
 2

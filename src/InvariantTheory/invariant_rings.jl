@@ -63,15 +63,15 @@ julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring of
-Sym( [ 1 .. 3 ] )
+  Permutation group of degree 3 and order 6
 with generators
-PermGroupElem[(1,2,3), (1,2)]
+  PermGroupElem[(1,2,3), (1,2)]
 
 julia> coefficient_ring(IRp)
 Rational field
@@ -94,10 +94,11 @@ invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
 
 function Base.show(io::IO, IR::InvRing)
-  print(io, "Invariant ring of\n")
-  print(io, group(IR), "\n")
-  print(io, "with generators\n")
-  print(io, action(IR))
+  io = pretty(io)
+  println(io, "Invariant ring of")
+  println(io, Indent(), group(IR), Dedent())
+  println(io, "with generators")
+  print(io, Indent(), action(IR))
 end
 
 # Return a map performing the right action of M on the ring R
@@ -185,13 +186,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over K
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
@@ -217,13 +219,14 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Finite field of characteristic 3
+Matrix group of degree 3
+  over finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Finite field of characteristic 3
+  Matrix group of degree 3 over GF(3)
 with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -337,7 +340,7 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -386,13 +389,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over K
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> basis(IR, 6)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -407,13 +411,14 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Finite field of characteristic 3
+Matrix group of degree 3
+  over finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Finite field of characteristic 3
+  Matrix group of degree 3 over GF(3)
 with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
 2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
@@ -599,7 +604,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)

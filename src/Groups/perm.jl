@@ -119,7 +119,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym( [ 1 .. 6 ] )
+Permutation group of degree 6 and order 720
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -227,7 +227,7 @@ julia> x=cperm(G,[1,2,3]);
 julia> y=cperm(A,[1,2,3]);
 
 julia> z=cperm([1,2,3]); parent(z)
-Sym( [ 1 .. 3 ] )
+Permutation group of degree 3 and order 6
 
 julia> x==y
 true
@@ -251,13 +251,13 @@ true
 
 ```jldoctest
 julia> G=symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 120
 
 julia> x = cperm(G,[[1,2],[3,4]])
 (1,2)(3,4)
 
 julia> parent(x)
-Sym( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 120
 ```
 
 Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
@@ -697,7 +697,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym( [ 1 .. 8 ] )
+Permutation group of degree 8 and order 40320
 
 julia> y = cperm([1,2,3],[4,5],[6,7,8])
 (1,2,3)(4,5)(6,7,8)
@@ -754,7 +754,7 @@ julia> gens = @perm 14 [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym( [ 1 .. 14 ] )
+Permutation group of degree 14 and order 87178291200
 ```
 """
 macro perm(n,gens)
@@ -784,7 +784,7 @@ elements in `perms`.
 julia> x = cperm([1,2,3], [4,5]);  y = cperm([1,4]);
 
 julia> permutation_group(5, [x, y])
-Group([ (1,2,3)(4,5), (1,4) ])
+Permutation group of degree 5
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
@@ -800,7 +800,7 @@ given by permutations in cycle notation.
 # Examples
 ```jldoctest
 julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
-Group([ (1,2), (1,2,3)(4,5) ])
+Permutation group of degree 7
 
 julia> degree(g)
 7

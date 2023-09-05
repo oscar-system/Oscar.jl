@@ -861,7 +861,7 @@ julia> M = uniform_matroid(2, 4)
 Matroid of rank 2 on 4 elements
 
 julia> automorphism_group(M)
-Group([ (3,4), (1,2), (2,3) ])
+Permutation group of degree 4
 ```
 """
 function automorphism_group(m::Matroid) 
