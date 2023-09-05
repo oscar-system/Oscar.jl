@@ -224,7 +224,6 @@ still sense to speak of fully reduced remainders. However, even if we start from
     the above notation and the division algorithms extend naturally to $K[x]^p$ and $K[x]_>^p$, respectively.
 	
 The OSCAR functions discussed below compute standard representations and polynomial weak standard representations, respectively.
-In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
