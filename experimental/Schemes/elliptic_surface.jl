@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -57,7 +57,7 @@ Set generators for the Mordell-Weil lattice of ``X`` or at least of a sublattice
 This invalidates previous computations depending on the generators of the
 mordell weil lattice such as the `algebraic_lattice`. Use with care.
 """
-function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllCrvPt})
+function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllCrvPt})
   @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
   X.MWL = mwl_basis
   # clear old computations
@@ -1458,7 +1458,6 @@ elliptic surface as well as the coordinate transformation.
 function elliptic_surface(g::MPolyElem, P::Vector{<:RingElem})
   R = parent(g)
   (x, y) = gens(R)
-  @show base_ring
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
   E2 = elliptic_curve(g2, x, y);
@@ -1641,23 +1640,23 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
+  # We verify the assumptions made on p. 44 of
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface"
+  # for the first case considered there.
+  @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
+  a = numerator.(a)
+  @assert iszero(a[1]) "local equation does not have the correct form"
+  @assert degree(a[2]) <= 4 "local equation does not have the correct form"
+  @assert iszero(a[3]) "local equation does not have the correct form"
+  @assert degree(a[4]) <= 8 "local equation does not have the correct form"
+  @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
+  # reduce fraction
+  u_frac = R_to_kkt_frac_XY(numerator(u_loc))//R_to_kkt_frac_XY(denominator(u_loc))
+  u_num = numerator(u_frac)
+  u_den = denominator(u_frac)
   if case == :case1
-    @show "case 1"
     # D = 2O
-    # We verify the assumptions made on p. 44 of 
-    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # for the first case considered there.
-    @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
-    a = numerator.(a)
-    @assert iszero(a[1]) "local equation does not have the correct form"
-    @assert degree(a[2]) <= 4 "local equation does not have the correct form"
-    @assert iszero(a[3]) "local equation does not have the correct form"
-    @assert degree(a[4]) <= 8 "local equation does not have the correct form"
-    @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
-
-    u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
-    u_poly = R_to_kkt_frac_XY(numerator(u_loc))*inv(R_to_kkt_frac_XY(denominator(u_loc))) # Will throw if the latter is not a unit
-
+    u_poly = u_num*inv(u_den) # Will throw if the latter is not a unit
     # Extract a(t) and b(t) as in the notation of the paper
     a_t = my_const(coeff(u_poly, [xx, yy], [0, 0]))
     b_t = my_const(coeff(u_poly, [xx, yy], [1, 0]))
@@ -1669,20 +1668,6 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     return numerator(f_trans), phi
   elseif case == :case2
     # D = O + P
-    # We verify the assumptions made on p. 44 of 
-    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # for the first case considered there.
-    @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
-    a = numerator.(a)
-    @assert iszero(a[1]) "local equation does not have the correct form"
-    @assert degree(a[2]) <= 4 "local equation does not have the correct form"
-    @assert iszero(a[3]) "local equation does not have the correct form"
-    @assert degree(a[4]) <= 8 "local equation does not have the correct form"
-    @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
-
-    u_frac = R_to_kkt_frac_XY(numerator(u_loc))//R_to_kkt_frac_XY(denominator(u_loc))
-    u_num = numerator(u_frac)
-    u_den = denominator(u_frac)
     @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
     @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
 
@@ -1718,25 +1703,8 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     return eqn1, phi
   elseif case == :case3
     # D = O + T
-    # We verify the assumptions made on p. 44 of 
-    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # for the first case considered there.
-    @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
-    a = numerator.(a)
-    @assert iszero(a[1]) "local equation does not have the correct form"
-    @assert degree(a[2]) <= 4 "local equation does not have the correct form"
-    @assert iszero(a[3]) "local equation does not have the correct form"
-    @assert degree(a[4]) <= 8 "local equation does not have the correct form"
-    @assert iszero(a[5]) "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
 
-    #u_poly = R_to_kkt_frac_XY(numerator(u_loc))//(R_to_kkt_frac_XY(denominator(u_loc)))::AbstractAlgebra.Generic.Frac
-    #u_num = numerator(u_poly)
-    #u_den = denominator(u_poly)
-    u_num = R_to_kkt_frac_XY(numerator(u_loc))
-    u_den = R_to_kkt_frac_XY(denominator(u_loc))
-    u_frac = u_num//u_den
-    @assert denominator(u_frac) == xx "elliptic parameter was not brought to the correct form"
-    u_num = numerator(u_frac)
+    @assert u_den == xx "elliptic parameter was not brought to the correct form"
     @assert degree(u_num, 1) <= 1 && degree(u_num, 2) <= 1 "numerator does not have the correct degrees"
     a_t = my_const(coeff(u_num, [xx, yy], [1, 0]))
     b_t = my_const(coeff(u_num, [xx, yy], [0, 1]))
