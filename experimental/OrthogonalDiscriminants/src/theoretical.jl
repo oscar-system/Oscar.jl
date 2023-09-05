@@ -95,7 +95,7 @@ function od_from_eigenvalues(chi::GAPGroupClassFunction)
 
       # Reduce the representative `od` mod obvious squares
       # in the character field.
-      od = reduce_mod_squares(F, od)
+      od = reduce_mod_squares(od)
 
       # Embed this value into the alg. closure.
       od = emb(od)
@@ -160,7 +160,7 @@ function od_for_specht_module(chi::GAPGroupClassFunction)
 
   # Now we know that `chi` belongs to Sym(n) or extends to Sym(n)
   gramdet = gram_determinant_specht_module(partition(para))
-  res = 1
+  res = ZZRingElem(1)
   for pair in gramdet
     if is_odd(pair[2])
       res = res * pair[1]

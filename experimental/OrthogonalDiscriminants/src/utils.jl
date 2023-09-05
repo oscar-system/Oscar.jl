@@ -17,18 +17,12 @@ julia> Oscar.OrthogonalDiscriminants.order_omega_mod_N(4, 5, 60)
 function order_omega_mod_N(d::IntegerUnion, q::IntegerUnion, N::IntegerUnion)
   @req is_even(d) "d must be even"
   m = div(d, 2)
-  exp = 0
-  while mod(N, q) == 0
-    exp = exp + 1
-    N = div(N, q)
-  end
+  exp, N = remove(N, q)
   facts = collect(factor(q))
   p = facts[1][1]
   if mod(N, p) == 0
     exp = exp + 1
-    while mod(N, p) == 0
-      N = div(N, p)
-    end
+    _, N = remove(N, p)
   end
   if m*(m-1) < exp
     # A group of order `N` does not embed in any candidate.
@@ -57,9 +51,10 @@ end
 
 
 @doc raw"""
-    reduce_mod_squares(F::AnticNumberField, val::nf_elem)
+    reduce_mod_squares(val::nf_elem)
 
-Return an element of `F` that is equal to `val` modulo squares in `F`.
+Return an element of `F = parent(val)` that is equal to `val`
+modulo squares in `F`.
 
 If `val` describes an integer then the result corresponds to the
 squarefree part of this integer.
@@ -69,25 +64,25 @@ Otherwise the coefficients of the result have a squarefree g.c.d.
 ```jldoctest
 julia> F, z = cyclotomic_field(4);
 
-julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, 4*z^0)
+julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(4*z^0)
 1
 
-julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, -8*z^0)
+julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(-8*z^0)
 -2
 ```
 """
-function reduce_mod_squares(F::AnticNumberField, val::nf_elem)
-  @req parent(val) === F "val must have parent F"
+function reduce_mod_squares(val::nf_elem)
   is_zero(val) && return val
   d = denominator(val)
   if ! isone(d)
     val = val * d^2
   end
   if is_integer(val)
-    val = ZZ(val)
-    sgn = sign(val)
-    good = filter(x -> is_odd(x[2]), collect(factor(val)))
-    return F(prod([x[1] for x in good], init = sgn))
+    intval = ZZ(val)
+    sgn = sign(intval)
+    good = [x[1] for x in collect(factor(intval)) if is_odd(x[2])]
+    F = parent(val)
+    return F(prod(good, init = sgn))
   end
   # Just get rid of the square part of the gcd of the coefficients.
   c = map(numerator, coefficients(val))
@@ -99,5 +94,5 @@ function reduce_mod_squares(F::AnticNumberField, val::nf_elem)
       s = s * p^(e-1)
     end
   end
-  return F(c // s)
+  return val//s
 end

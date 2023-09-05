@@ -12,9 +12,9 @@ end
 @testset "reduce_mod_squares" begin
   F, z = cyclotomic_field(7)
   for val in [F(0), F(1), -F(5), 1 + 2*z + z^5]
-    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, val) == val
-    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, 12 * val) == 3 * val
-    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, 27 * val) == 3 * val
-    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(F, val // 12) == 3 * val
+    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(val) == val
+    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(12 * val) == 3 * val
+    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(27 * val) == 3 * val
+    @test Oscar.OrthogonalDiscriminants.reduce_mod_squares(val // 12) == 3 * val
   end
 end
