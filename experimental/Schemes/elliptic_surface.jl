@@ -50,6 +50,26 @@ end
 base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
 
 @doc raw"""
+    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllCrvPt})
+
+Set generators for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
+
+This invalidates previous computations depending on the generators of the
+mordell weil lattice such as the `algebraic_lattice`. Use with care.
+"""
+function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllCrvPt})
+  @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
+  X.MWL = mwl_basis
+  # clear old computations
+  if has_attribute(X, :algebraic_lattice)
+    deleteat!(X.__attrs, :algebraic_lattice)
+  end
+  if has_attribute(X, :mordell_weil_lattice)
+    deleteat!(X.__attrs, :mordell_weil_lattice)
+  end
+end
+
+@doc raw"""
     elliptic_surface(generic_fiber::EllCrv, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
@@ -1427,6 +1447,31 @@ function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRin
   return g2, phi2
 end
 
+
+@doc raw"""
+    elliptic_surface(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
+degree at most ``4`` to Weierstrass form and return the corresponding
+elliptic surface as well as the coordinate transformation.
+"""
+function elliptic_surface(g::MPolyElem, P::Vector{<:RingElem})
+  R = parent(g)
+  (x, y) = gens(R)
+  @show base_ring
+  P = base_ring(R).(P)
+  g2, phi2 = transform_to_weierstrass(g, x, y, P);
+  E2 = elliptic_curve(g2, x, y);
+  t2 = gen(base_field(E2));
+  Y2 = elliptic_surface(E2, 2)
+
+  W = weierstrass_chart(Y2)
+  RW = ambient_coordinate_ring(W); FRW = fraction_field(RW);
+  (x, y, t) = gens(RW) # Output of phi2 lives in (k(t))(x, y), so we need to convert
+  psi = hom(base_ring(codomain(phi2)), FRW, f->evaluate(f, t), FRW.([x,y])); # a helper function
+  psi_ext = extend_domain_to_fraction_field(psi)
+  return Y2, phi2 * psi_ext
+end
 
 @doc raw"""
     transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
