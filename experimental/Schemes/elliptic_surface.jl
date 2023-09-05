@@ -476,7 +476,7 @@ function weierstrass_contraction(X::EllipticSurface)
   inc_Y0 = inc_S
 
 
-  ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
+  ambient_exceptionals = EffectiveCartierDivisor[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
   projectionsX = BlowupMorphism[]
   projectionsY = AbsCoveredSchemeMorphism[]
@@ -527,7 +527,7 @@ function weierstrass_contraction(X::EllipticSurface)
 
     @vprint :EllipticSurface 2 "computing strict transforms\n"
     # compute the exceptional divisors
-    ambient_exceptionals = [strict_transform(pr_X1, e) for e in ambient_exceptionals]
+    ambient_exceptionals = EffectiveCartierDivisor[strict_transform(pr_X1, e) for e in ambient_exceptionals]
     # move the divisors coming originally from S up to the next chart
     push!(ambient_exceptionals, E1)
 
