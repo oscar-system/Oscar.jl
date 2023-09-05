@@ -66,8 +66,8 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, dict::Dic
                                    NormalToricVariety,
                                    MPolyDecRing,
                                    MPolyDecRing})
-  section_polys = load_object(s, Vector, dict[:section_polys], params[3])
-  p = load_object(s, MPolyDecRingElem, dict[:tate_polynomial], params[4])
+  p = load_object(s, MPolyDecRingElem, dict[:tate_polynomial], params[3])
+  section_polys = load_object(s, Vector, dict[:section_polys], params[4])
 
   model = GlobalTateModel(section_polys..., p, params[1], params[2])
 
