@@ -21,6 +21,7 @@ include("FunctionField.jl")
 include("AbelianClosure.jl")
 
 include("AlgClosureFp.jl")
+include("Laurent.jl")
 
 include("MPolyAnyMap/MPolyRing.jl")
 include("MPolyAnyMap/MPolyQuo.jl")
