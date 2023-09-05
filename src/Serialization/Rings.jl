@@ -52,7 +52,7 @@ function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion},
 end
 
 # fix for series and ideal cases
-function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, Laurent.LaurentMPolyIdeal}},
+function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, LaurentMPolyIdeal}},
                      terms::Dict{Symbol, Any}, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
   parents = get_parents(parent_ring)
   return load_object(s, T, terms, parents)
@@ -253,8 +253,8 @@ end
 # Polynomial Ideals
 
 @register_serialization_type MPolyIdeal uses_params
-@register_serialization_type Laurent.LaurentMPolyIdeal uses_params
-const IdealUnionType = Union{MPolyIdeal, Laurent.LaurentMPolyIdeal, FreeAssAlgIdeal}
+@register_serialization_type LaurentMPolyIdeal uses_params
+const IdealUnionType = Union{MPolyIdeal, LaurentMPolyIdeal, FreeAssAlgIdeal}
 
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   save_data_dict(s) do

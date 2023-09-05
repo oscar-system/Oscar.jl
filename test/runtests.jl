@@ -122,17 +122,6 @@ testlist = [
 
   "NumberTheory/nmbthy.jl",
   "NumberTheory/galthy.jl",
-
-# Will automatically include all experimental packages following our
-# guidelines.
-
-  "../experimental/runtests.jl",
-
-  "Experimental/gmodule.jl",
-  "Experimental/ModStdQt.jl",
-  "Experimental/ModStdNF.jl",
-  "Experimental/MatrixGroups.jl",
-  "Experimental/ExteriorAlgebra.jl",
   
   "Rings/ReesAlgebra.jl",
 
@@ -147,6 +136,18 @@ testlist = [
   "TropicalGeometry/runtests.jl",
 
   "Serialization/runtests.jl",
+
+  # Will automatically include all experimental packages following our
+# guidelines.
+
+  "../experimental/runtests.jl",
+
+  "Experimental/gmodule.jl",
+  "Experimental/ModStdQt.jl",
+  "Experimental/ModStdNF.jl",
+  "Experimental/MatrixGroups.jl",
+  "Experimental/ExteriorAlgebra.jl",
+
 
   "Data/runtests.jl",
 
