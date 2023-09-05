@@ -169,13 +169,9 @@ function generators(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     for elem in gbasis
         b = mixed_ring_xy()
         for monomial in monomials(elem)
-            for j in 1:n 
-                if divides(monomial, gens(mixed_ring_xy)[n+j])[1]
-                    @goto lab
-                end
+            if (exponent_vector(monomial,1)[n+1:2n] == [0 for i in 1:n])
+                b += monomial
             end
-            b += monomial 
-            @label lab
         end
         b != 0 && Base.push!(ev_gbasis, b)
     end
