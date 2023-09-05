@@ -482,10 +482,10 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Ring
   V = parent(v)
   return V(
     sum(
-      cx[i] * _matrix(v) * transpose(transformation_matrix(V, i)) for
+      cx[i] * _matrix(v) * transformation_matrix(V, i) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
       init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
-    ), # equivalent to (x * v^T)^T, since we work with row vectors
+    ),
   )
 end
 
@@ -603,7 +603,7 @@ Construct the the Lie algebra module over `L` of dimension `dimV` given by
 `transformation_matrices` and with basis element names `s`.
 
 * `transformation_matrices`: The action of the $i$-th basis element of `L`
-  on some element $v$ of the constructed module is given by left multiplication 
+  on some element $v$ of the constructed module is given by right multiplication 
   of the matrix `transformation_matrices[i]` to the coefficient vector of $v$.
 * `s`: A vector of basis element names. This is 
   `[Symbol("v_$i") for i in 1:dimV]` by default.
@@ -650,7 +650,7 @@ function abstract_module(
 
   transformation_matrices = [zero_matrix(coefficient_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV
-    transformation_matrices[i][:, j] = transpose(dense_row(struct_consts[i, j], dimV))
+    transformation_matrices[i][j, :] = dense_row(struct_consts[i, j], dimV)
   end
 
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
@@ -706,6 +706,11 @@ Construct the standard module of the linear Lie algebra `L`.
 If `L` is a Lie subalgebra of $\mathfrak{gl}_n(R)$, then the standard module
 is $R^n$ with the action of $L$ given by left multiplication.
 
+!!! note
+    This uses the left action of $L$, and converts that to internally use the equivalent
+    right action.
+
+
 # Examples
 ```jldoctest
 julia> L = special_linear_lie_algebra(QQ, 3);
@@ -718,7 +723,7 @@ over special linear Lie algebra of degree 3 over QQ
 """
 function standard_module(L::LinearLieAlgebra)
   dim_std_V = L.n
-  transformation_matrices = matrix_repr_basis(L)
+  transformation_matrices = transpose.(matrix_repr_basis(L))
   s = [Symbol("v_$(i)") for i in 1:dim_std_V]
   std_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
     L, dim_std_V, transformation_matrices, s; check=false
@@ -960,15 +965,15 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   ind_map = collect(combinations(1:dim(V), k))
 
   T = tensor_power(V, k)
-  E_to_T_mat = zero_matrix(coefficient_ring(V), dim(T), dim_E)
-  T_to_E_mat = zero_matrix(coefficient_ring(V), dim_E, dim(T))
+  E_to_T_mat = zero_matrix(coefficient_ring(V), dim_E, dim(T))
+  T_to_E_mat = zero_matrix(coefficient_ring(V), dim(T), dim_E)
   for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
     j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)))
-    E_to_T_mat[j, i] = sgn//factorial(k)
-    T_to_E_mat[i, j] = sgn
+    E_to_T_mat[i, j] = sgn//factorial(k)
+    T_to_E_mat[j, i] = sgn
   end
   transformation_matrices = map(1:dim(L)) do i
-    T_to_E_mat * transformation_matrix(T, i) * E_to_T_mat
+    E_to_T_mat * transformation_matrix(T, i) * T_to_E_mat
   end
 
   s = if k == 0
@@ -983,8 +988,8 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
 
-  E_to_T = hom(E, T, transpose(E_to_T_mat); check=false)
-  T_to_E = hom(T, E, transpose(T_to_E_mat); check=false)
+  E_to_T = hom(E, T, E_to_T_mat; check=false)
+  T_to_E = hom(T, E, T_to_E_mat; check=false)
 
   function pure(as::LieAlgebraModuleElem{C}...)
     @req length(as) == k "Length of vector does not match."
@@ -1057,15 +1062,15 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   ind_map = collect(multicombinations(1:dim(V), k))
 
   T = tensor_power(V, k)
-  S_to_T_mat = zero_matrix(coefficient_ring(V), dim(T), dim_S)
-  T_to_S_mat = zero_matrix(coefficient_ring(V), dim_S, dim(T))
+  S_to_T_mat = zero_matrix(coefficient_ring(V), dim_S, dim(T))
+  T_to_S_mat = zero_matrix(coefficient_ring(V), dim(T), dim_S)
   for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
     j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)))
-    S_to_T_mat[j, i] += 1//factorial(k)
-    T_to_S_mat[i, j] = 1
+    S_to_T_mat[i, j] += 1//factorial(k)
+    T_to_S_mat[j, i] = 1
   end
   transformation_matrices = map(1:dim(L)) do i
-    T_to_S_mat * transformation_matrix(T, i) * S_to_T_mat
+    S_to_T_mat * transformation_matrix(T, i) * T_to_S_mat
   end
 
   s = if k == 0
@@ -1100,8 +1105,8 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
 
   S = LieAlgebraModule{C}(L, dim_S, transformation_matrices, s; check=false)
 
-  S_to_T = hom(S, T, transpose(S_to_T_mat); check=false)
-  T_to_S = hom(T, S, transpose(T_to_S_mat); check=false)
+  S_to_T = hom(S, T, S_to_T_mat; check=false)
+  T_to_S = hom(T, S, T_to_S_mat; check=false)
 
   function pure(as::LieAlgebraModuleElem{C}...)
     @req length(as) == k "Length of vector does not match."
