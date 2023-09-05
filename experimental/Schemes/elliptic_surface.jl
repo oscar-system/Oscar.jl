@@ -1597,6 +1597,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   if case == :case1
+    @show "case 1"
     # D = 2O
     # We verify the assumptions made on p. 44 of 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
@@ -1634,29 +1635,23 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     @assert degree(a[4]) <= 8 "local equation does not have the correct form"
     @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
 
-    u_num = R_to_kkt_frac_XY(numerator(u_loc))
-    u_den = R_to_kkt_frac_XY(denominator(u_loc))
+    u_frac = R_to_kkt_frac_XY(numerator(u_loc))//R_to_kkt_frac_XY(denominator(u_loc))
+    u_num = numerator(u_frac)
+    u_den = denominator(u_frac)
     @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
     @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
 
-    tmp = my_const(coeff(u_num, [xx, yy], [0, 1]))
-    y0 = my_const(coeff(u_num, [xx, yy], [0, 0]))
-    y0 = divexact(y0, tmp)
-    tmp = my_const(coeff(u_den, [xx, yy], [1, 0]))
-    x0 = -my_const(coeff(u_den, [xx, yy], [0, 0]))
-    x0 = divexact(x0, tmp)
-
     # We expect a form as on p. 44, l. -4
-    u_frac = u_num//u_den
-    @assert denominator(u_frac) == xx - x0 "fraction was not brought into the correct form"
-    u_num = numerator(u_frac)
-    @assert degree(u_num, 1) == 0 && degree(u_num, 2) <= 1 "numerator is not in the correct form"
-    b_t = my_const(coeff(u_num, [xx, yy], [0, 1]))
-    tmp = u_num - b_t * (yy + y0)
-    success, tmp = divides(tmp, xx - x0)
-    @assert success "numerator is not in the correct form"
-    a_t = my_const(coeff(tmp, [xx, yy], [0, 0]))
+    denom_unit = my_const(coeff(u_den, [xx, yy], [1, 0]))
+    x0 = -inv(denom_unit)*my_const(coeff(u_den, [xx, yy], [0, 0]))
+    b_t = inv(denom_unit)*my_const(coeff(u_num, [xx, yy], [0, 1]))
+    u_num = u_num - denom_unit * b_t * yy
+    a_t = inv(denom_unit)*my_const(coeff(u_num, [xx, yy], [1, 0]))
+    u_num = u_num - denom_unit * a_t * (xx - x0)
+    @assert is_constant(u_num) "numerator is not in the correct form"
+    y0 = my_const(coeff(u_num, [xx, yy], [0, 0])) * inv(denom_unit * b_t)
 
+    @assert a_t + b_t*(yy + y0)//(xx - x0) == u_frac "decomposition failed"
     # We have 
     #
     #   y ↦ (u - a_t) * (x - x₀) / b_t - y₀ = (t₂ - a_t(x₂)) * (y₂ - x₀(x₂)) / b_t(x₂) - y₀(x₂)
@@ -1668,7 +1663,12 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
     # p. 45, l. 1 we expect the following cancellation to be possible:
-    success, eqn1 = divides(eqn1, y2 - evaluate(numerator(x0), x2)*inv(evaluate(denominator(x0), x2)))
+    divisor_num = evaluate(numerator(x0), x2)
+    divisor_den = evaluate(denominator(x0), x2)
+    divisor = divisor_den * y2 - divisor_num
+    success, eqn1 = divides(eqn1, divisor) # This division must only be possible in the ring K(x2)[y2].
+                                           # Hence, multiplying by the denominator `divisor_den` is 
+                                           # merely an educated guess.
     @assert success "division failed"
     return eqn1, phi
   elseif case == :case3
