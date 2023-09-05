@@ -45,7 +45,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - name: "Build package"
-        uses: julia-actions/julia-buildpkg@latest
+        uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
@@ -95,7 +95,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - name: "Build package"
-        uses: julia-actions/julia-buildpkg@latest
+        uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
