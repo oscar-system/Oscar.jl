@@ -72,8 +72,8 @@
     ff = QQFieldElem[9, 4, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 0, 0, 0, -1]
     @test det(algebraic_lattice(X)[3])==-1183
     @test length(Oscar.mordell_weil_torsion(X)) == 0 # no torsion points
-    u = elliptic_parameter(X, ff)
-    two_neighbor_step(X, ff)
+    # u = elliptic_parameter(X, ff)
+    g, phi = two_neighbor_step(X, ff)
   end
 end
 
