@@ -128,7 +128,7 @@ ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType
 
 
 # this constructs the zero ideal sheaf
-function IdealSheaf(X::CoveredScheme) 
+function IdealSheaf(X::AbsCoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(C)
@@ -188,20 +188,26 @@ of `ClosedEmbedding`s; return the ideal sheaf describing the images
 of the local morphisms.
 """
 function IdealSheaf(Y::AbsCoveredScheme, 
-    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding};
+    check::Bool=true
   )
   maps = morphisms(phi)
   V = [codomain(ff) for ff in values(maps)]
   dict = IdDict{AbsSpec, Ideal}()
-  for U in affine_charts(Y)
-    if U in V
-      i = findall(x->(codomain(x) == U), maps)
-      dict[U] = image_ideal(maps[first(i)])
-    else
-      dict[U] = ideal(OO(U), one(OO(U)))
-    end
+  V = unique!(V)
+  for W in V
+    i = findall(x->(codomain(x) == W), maps)
+    dict[W] = image_ideal(maps[first(i)])
   end
-  return IdealSheaf(Y, dict) # TODO: set check=false?
+#  for U in affine_charts(Y)
+#    if U in V
+#      i = findall(x->(codomain(x) == U), maps)
+#      dict[U] = image_ideal(maps[first(i)])
+#    else
+#      dict[U] = ideal(OO(U), one(OO(U)))
+#    end
+#  end
+  return IdealSheaf(Y, dict, check=check)
 end
 
     
@@ -272,8 +278,9 @@ Replaces the set of generators of the ideal sheaf by a minimal
 set of random linear combinations in every affine patch. 
 """
 function simplify!(I::IdealSheaf)
+  new_ideal_dict = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(default_covering(space(I)))
-    Oscar.object_cache(underlying_presheaf(I))[U] = ideal(OO(U), small_generating_set(I(U)))
+    new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
     #=
     n = ngens(I(U)) 
     n == 0 && continue
@@ -292,6 +299,8 @@ function simplify!(I::IdealSheaf)
     Oscar.object_cache(underlying_presheaf(I))[U] = K 
     =#
   end
+  I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
+  #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
 end
 

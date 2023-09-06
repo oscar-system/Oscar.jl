@@ -294,7 +294,7 @@ function interreduce(G::Vector{<:MPolyElem}, ord::MonomialOrdering)
           by=g->leading_monomial(g,ordering=ord),
           lt=(f,g)->(cmp(ord,f,g)<0))
     for i in 2:length(G)
-        G[i] = reduce(G[i],G[1:i-1],ordering=ord)
+        G[i] = reduce(G[i],G[1:i-1],ordering=ord,complete_reduction=true)
     end
     return G
 end
@@ -312,7 +312,7 @@ function groebner_lift(Hnew::Vector{<:MPolyElem},
                        G::Vector{<:MPolyElem},
                        ordG::MonomialOrdering)
     # lift to groebner basis
-    Gnew = Hnew - reduce(Hnew,G,ordering=ordG)
+    Gnew = Hnew - reduce(Hnew,G,ordering=ordG,complete_reduction=true)
     # interreduce to make reduced
     Gnew = interreduce(Gnew,ordH)
     return Gnew

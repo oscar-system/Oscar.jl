@@ -3,12 +3,12 @@
 # Interface for AbsCoveredSchemeMorphism                               #
 ########################################################################
 ### essential getters 
-function domain(f::AbsCoveredSchemeMorphism)::CoveredScheme
-  return domain(underlying_morphism(f))
+function domain(f::AbsCoveredSchemeMorphism{T}) where {T<:AbsCoveredScheme}
+  return domain(underlying_morphism(f))::T
 end
 
-function codomain(f::AbsCoveredSchemeMorphism)::CoveredScheme
-  return codomain(underlying_morphism(f))
+function codomain(f::AbsCoveredSchemeMorphism{<:Any, T}) where {T<:AbsCoveredScheme}
+  return codomain(underlying_morphism(f))::T
 end
 
 @doc raw"""
