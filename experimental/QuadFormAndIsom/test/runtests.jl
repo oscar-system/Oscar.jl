@@ -77,6 +77,12 @@ end
   Lf = integer_lattice_with_isometry(L; neg = true)
   @test order_of_isometry(Lf) == -1
 
+  mktempdir() do path
+    test_save_load_roundtrip(path, Lf) do loaded
+      @test Lf == loaded
+    end
+  end
+  
   L = @inferred integer_lattice_with_isometry(A3)
   @test length(unique([L, L, L])) == 1
   @test ambient_space(L) isa QuadSpaceWithIsom
@@ -133,6 +139,12 @@ end
   L = integer_lattice(B; gram = G);
   f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
+
+  mktempdir() do path
+    test_save_load_roundtrip(path, Lf) do loaded
+      @test Lf == loaded
+    end
+  end
 
   GLf, _ = @inferred image_centralizer_in_Oq(Lf)
   @test order(GLf) == 600

@@ -1,7 +1,6 @@
 ############################################################
 # QuadSpace
 @register_serialization_type Hecke.QuadSpace uses_params
-@register_serialization_type ZZLat
 
 function save_type_params(s::SerializerState, V::Hecke.QuadSpace)
   save_data_dict(s) do
@@ -29,8 +28,10 @@ function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace},
   return quadratic_space(F, gram)
 end
 
-# We should move this somewhere else at some point, maybe when there is a section
-# on modules
+############################################################
+# ZZLat
+@register_serialization_type ZZLat
+
 function save_object(s::SerializerState, L::ZZLat)
   save_data_dict(s) do
     save_typed_object(s, basis_matrix(L), :basis)

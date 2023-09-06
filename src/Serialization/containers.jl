@@ -179,10 +179,14 @@ function save_object(s::SerializerState, mat::Matrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<:Matrix},
-                                 entries::Vector, params::Type)
+                     entries::Vector, params::Type)
+  if isempty(entries)
+    return zero_matrix(parent_type(params)(), 0, 0)
+  end
   m = reduce(vcat, [
     permutedims(load_object(s, Vector, v, params)) for v in entries
       ])
+
   return Matrix{params}(m)
 end
 
