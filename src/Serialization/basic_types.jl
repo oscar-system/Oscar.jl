@@ -95,3 +95,4 @@ end
 function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
   return Symbol(str)
 end
+

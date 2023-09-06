@@ -17,19 +17,13 @@
       V = quadratic_space(F, F[a;])
 
       test_save_load_roundtrip(path, V) do loaded
-        F1 = base_ring(loaded)
-        iso = hom(F1,F,gen(F))
-        @test gram_matrix(V) == map_entries(iso,gram_matrix(loaded))
+        @test gram_matrix(V) == gram_matrix(loaded)
       end
       R, x = polynomial_ring(F, "x")
       FF, b =extension_field(x^2 - a)
       VFF = quadratic_space(FF,FF[b;])
       test_save_load_roundtrip(path, VFF) do loaded
-        FF1 = base_ring(loaded)
-        F1 = base_field(FF1)
-        isoF = hom(F1,F,gen(F))
-        isoFF = hom(FF1,FF,isoF,gen(FF))
-        @test gram_matrix(VFF) == map_entries(isoFF,gram_matrix(loaded))
+        @test gram_matrix(VFF) == gram_matrix(loaded)
       end
     end
   end
