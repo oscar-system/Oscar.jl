@@ -17,7 +17,7 @@
   (4*t^4 + 5*t^3 + 5*t^2 + 6*t + 13,  9*t^6 + 21*t^5 + 17*t^4 + 12*t^2 + 3*t + 6)]]
   S = elliptic_surface(E, 2, mwl_basis)
   weierstrass_model(S)
-  relatively_minimal_model(S)
+  weierstrass_contraction(S)
 
   E = EllipticCurve(kP1, [0,0,0,1,t^10])
   X = elliptic_surface(E, 2)
@@ -52,7 +52,7 @@
   Qtf = fraction_field(Qt)
   E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
-  relatively_minimal_model(X3)
+  weierstrass_contraction(X3)
   trivial_lattice(X3)
   =#
 
@@ -72,7 +72,8 @@
     ff = QQFieldElem[9, 4, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 0, 0, 0, -1]
     @test det(algebraic_lattice(X)[3])==-1183
     @test length(Oscar.mordell_weil_torsion(X)) == 0 # no torsion points
-    elliptic_parameter(X, ff)
+    # u = elliptic_parameter(X, ff)
+    g, phi = two_neighbor_step(X, ff)
   end
 end
 
@@ -104,3 +105,32 @@ end
   @test f_trans == x^3 + (-3//8*t^8 + 49//128)//t^16*x^2 + 7//8//t^8*x*y + (-1//4*t^24 + 9//256*t^16 - 147//2048*t^8 + 2401//65536)//t^32*x - y^2 + (5//16*t^16 - 21//128*t^8 + 343//2048)//t^24*y
 end
 
+
+#=
+# These tests are disabled, because they take too long. But one can run them if in doubt.
+@testset "two neighbor steps" begin
+  K = GF(7)
+  Kt, t = polynomial_ring(K, :t)
+  Ktf = fraction_field(Kt)
+  E = EllipticCurve(Ktf, [0, -t^3, 0, t^3, 0])
+  P = E([t^3, t^3])
+  X2 = elliptic_surface(E, 2, [P]);
+  KX2 = function_field(X2)
+  U = weierstrass_chart(X2)
+  (xx, yy, tt) = ambient_coordinates(U)
+  u4 = KX2(yy, xx*tt)
+  u5 = KX2(yy + tt^3, xx*tt - tt^4)
+  u6 = KX2(yy + tt^3, xx - tt^3)
+  fibers_in_X2 = [QQ.(vec(collect(i))) for i in [
+                                                 [4   2   0   0   0   0   0   0   0   -4   -4   -8   -7   -6   -5   -4   -3   -2   -1   0],
+                                                 [1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0],
+                                                 [5   2   -2   -3   -4   -3   -2   -1   -2   -5   -4   -8   -7   -6   -5   -4   -3   -2   -1   0],
+                                                 [4   2   -2   -4   -6   -9//2   -3   -3//2   -7//2   -3   -5//2   -5   -9//2   -4   -7//2   -3   -5//2   -2   -3//2   0],
+                                                 [2   1   -1   -2   -3   -2   -1   0   -2   -1   -1   -2   -2   -2   -2   -2   -2   -1   0   1],
+                                                 [2   1   0   0   0   0   0   0   0   -2   -2   -4   -4   -4   -4   -3   -2   -1   0   1]
+                                                ]]
+  g4,_ = two_neighbor_step(X2, fibers_in_X2[4])  # this should be the 2-torsion case
+  g5,_ = two_neighbor_step(X2, fibers_in_X2[5])  # the non-torsion case
+  g6,_ = two_neighbor_step(X2, fibers_in_X2[6])  # the non-torsion case
+end
+=#
