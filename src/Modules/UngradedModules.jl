@@ -6465,7 +6465,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     res = Singular.mres(gbpres, length)
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
-    res = Singular.mres(gbpres, length)
+    res = Singular.nres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
