@@ -1589,7 +1589,6 @@ Currently only the group is returned
 """
 function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   (inj, mq), (H, q) = dimension_shift(C)
->>>>>>> ade00afad7 (re-arrange dim shift)
 
 #  return q, mq, inj, H
   #possibly, to get 3-chains: 
@@ -1612,11 +1611,7 @@ end
 function is_right_G_module(C::GModule)
   #tests if the action is right-linear 
   G = C.G
-<<<<<<< HEAD
   return all(action(C, g)*action(C, h) == action(C, g*h) for g in gens(G), h in gens(G))
-=======
-  return all(action(C, g)*action(C, h) == action(C, g*h) for g = gens(G) for h = gens(G))
->>>>>>> ade00afad7 (re-arrange dim shift)
 end
 
 function is_left_G_module(C::GModule)
