@@ -51,3 +51,24 @@ using Test
   end
   
 end
+
+@testset "conversion of toric morphisms to morphisms of covered schemes" begin
+  IP2 = projective_space(NormalToricVariety, 2)
+  set_coordinate_names(IP2, ["x", "y", "z"])
+  bl = blow_up(IP2, [1, 1])
+  X = domain(bl)
+  bl_cov = covering_morphism(bl)
+  S = cox_ring(IP2)
+  (x, y, z) = gens(S)
+  I = IdealSheaf(IP2, ideal(S, [z*(x-y)]))
+  @test scheme(I) === IP2
+  @test length(Oscar.maximal_associated_points(I)) == 2
+  g = underlying_morphism(bl)
+  pb_I = pullback(g, I)
+  @test length(Oscar.maximal_associated_points(pb_I)) == 3
+
+  J = IdealSheaf(IP2, ideal(S, [x, y]))
+  @test dim(J) == 0
+  pb_J = pullback(g, J)
+  @test dim(pb_J) == 1
+end
