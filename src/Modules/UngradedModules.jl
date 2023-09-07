@@ -6442,7 +6442,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
