@@ -6371,7 +6371,8 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, `algorithm` only allows the option `:fres`.
+At the moment, `algorithm` options `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
 
 # Examples
 ```jldoctest
@@ -6460,6 +6461,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     error("LaScala's method is not yet available in Oscar.")
     gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
   elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
+  elseif algorithm == :nres
     gbpres = singular_kernel_entry
     res = Singular.mres(gbpres, length)
   else
