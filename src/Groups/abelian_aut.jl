@@ -377,7 +377,7 @@ By default, the function checks whether `i` is injective and whether `i`
 is a torsion quadratic module morphism. One can disable these checks
 by setting `check = false`.
 """
-function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool = true)
+function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
 
   if check
     @req is_injective(i) "i must be an injection"
