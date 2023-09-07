@@ -1,87 +1,84 @@
 import Oscar.gens, AbstractAlgebra.direct_sum
 
 mutable struct InvariantRing
-    field::Union{NumField, QQField}
-    poly_ring::MPolyRing #CHECK
+    field::QQField
+    poly_ring::MPolyDecRing #grade
     group::Tuple{Symbol,Int64}
-    group_equations::Union{Vector{QQMPolyRingElem},Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}} 
+    group_equations::MPolyRingElem
     group_rep:: T where T <: AbstractAlgebra.Generic.MatSpaceElem
-    generators::Vector{MPolyRingElem}
+    generators::Vector{MPolyDecRingElem}
 
     function InvariantRing(sym::Symbol, rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
         #sym != SL && return nothing
         z = new()
-        R = parent(rep_mat[1,1]) 
-        z.field = base_ring(R)
-        (typeof(z.field) <: NumField || typeof(z.field) == QQField) || @error("Field should be rational or number field")
+        R = bas_ring(rep_mat)
+        base_ring(R) == QQ || @error("must be rational field")
+        z.field = QQ
         m = Int(sqrt(ngens(R)))
         n = ncols(rep_mat)
-        z.poly_ring, _ = PolynomialRing(z.field, "X" => 1:n)
+        z.poly_ring, _ = grade(PolynomialRing(z.field, "X" => 1:n)[1])
         z.group = (sym, m)
         M = matrix(R,1,m,gens(R)[1:m])
         for i in 1:m-1 
             M = vcat(M, matrix(R,1,m,gens(R)[(i)*m+1:(i+1)*m]))
         end
         det_ = det(M)
-        z.group_equations = [det_ - 1]
+        z.group_equations = det_ - 1
         z.group_rep = rep_mat
         z.generators = inv_generators(rep_mat, z.poly_ring, det_)
         return z
     end
     
     # degree
-    function InvariantRing(sym::Symbol, m::Int64, field::Field, sym_deg::Int64)
+    function InvariantRing(sym::Symbol, m::Int64, sym_deg::Int64)
         #sym != SL && return nothing
         z = new()
-        z.field = field
-        #need to check if this is a NumField
-        z.group_rep = rep_mat_(m, field, sym_deg)
+        z.field = QQ
+        z.group_rep = rep_mat_(m, sym_deg)
         n = ncols(z.group_rep)
-        z.poly_ring, __ = PolynomialRing(z.field, "X" => 1:n)
+        z.poly_ring, __ = grade(PolynomialRing(z.field, "X" => 1:n)[1])
         z.group = (sym, m)
-        group_poly_ring, Z = PolynomialRing(field, "Z"=>(1:m,1:m))
+        group_poly_ring, Z = PolynomialRing(QQ, "Z"=>(1:m,1:m))
         M = matrix(group_poly_ring,m,m,[Z[i,j] for i in 1:m, j in 1:m])
         det_ = det(M)
-        z.group_equations = [det_ - 1]
+        z.group_equations = det_ - 1
         z.generators = inv_generators(z.group_rep, z.poly_ring, det_)
         return z
     end
     
     #direct sum
-    function InvariantRing(sym::Symbol, m::Int64, field::Field, v::Vector{Int64}, sum::Bool = true)
+    function InvariantRing(sym::Symbol, m::Int64, v::Vector{Int64}, sum::Bool = true)
         #sym != SL && return nothing
         z = new()
-        z.field = field
-        #need to check if this is a NumField
-        z.group_rep = rep_mat_(m, field, v, sum)  
+        z.field = QQ 
+        z.group_rep = rep_mat_(m, v, sum)  
         n = ncols(z.group_rep)
-        z.poly_ring, __ = PolynomialRing(z.field, "X" => 1:n)
+        z.poly_ring, __ = grade(PolynomialRing(z.field, "X" => 1:n)[1])
         z.group = (sym, m)
-        group_poly_ring, Z = PolynomialRing(field, "Z"=>(1:m,1:m))
+        group_poly_ring, Z = PolynomialRing(QQ, "Z"=>(1:m,1:m))
         M = matrix(group_poly_ring,m,m,[Z[i,j] for i in 1:m, j in 1:m])
         det_ = det(M)
-        z.group_equations = [det_ - 1]
+        z.group_equations = det_ - 1
         z.generators = inv_generators(z.group_rep, z.poly_ring, det_)
         return z
     end
     
-    function InvariantRing(sym::Symbol, m::Int64, field::Field, sym_deg::Int64, prod::Int64)
+    function InvariantRing(sym::Symbol, m::Int64, sym_deg::Int64, prod::Int64)
         #sym != SL && return nothing
         z = new()
-        z.field = field
-        #need to check if this is a NumField
-        rep_mat_ = rep_mat_(m, field, sym_deg)
+        z.field = QQ
+        rep_mat_ = rep_mat_(m, sym_deg)
         for i in 0:prod-1
             rep_mat_ = kroenecker_product(rep_mat_,rep_mat_)
         end
         z.group_rep = rep_mat_
         n = ncols(z.group_rep)
-        z.poly_ring, __ = PolynomialRing(z.field, "X" => 1:n)
+        z.poly_ring, __ = grade(PolynomialRing(z.field, "X" => 1:n)[1])
         z.group = (sym, m)
-        group_poly_ring, Z = PolynomialRing(field, "Z"=>(1:m,1:m))
+        group_poly_ring, Z = PolynomialRing(QQ, "Z"=>(1:m,1:m))
         M = matrix(group_poly_ring,m,m,[Z[i,j] for i in 1:m, j in 1:m])
         det_ = det(M)
-        z.group_equations = [det_ - 1]
+        z.group_equations = det_ - 1
         z.generators = inv_generators(z.group_rep, z.poly_ring, det_)
         return z
     end
@@ -89,6 +86,23 @@ end
 
 function gens(R::InvariantRing)
     return R.generators
+end
+
+
+function Base.show(io::IO, R::InvariantRing) #TODO compact printing
+    #if get(io, :supercompact, false)
+        print(io, "Invariant Ring of", "\n")
+        show(io, R.poly_ring)
+        print(io, "under group action of ", R.group[1], R.group[2], "\n", "\n")
+        print(io, "Generated by ", "\n")
+    for i in 1:length(R.generators)
+        show(io, R.generators[i])
+        print(io, "\n")
+    end
+    #else
+     #   print(io, "Invariant Ring under ")
+      #  show(io, R.group[1], R.group[2])
+    #end
 end
 
 #tested
@@ -105,32 +119,9 @@ function image_ideal(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     #rep_mat in the new ring
     new_rep_map = matrix(mixed_ring_xy,n,n,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
     new_vars = new_rep_map*[x[i] for i in 1:n]
-    ideal_vect = [y[i] - new_vars[i] for i in 1:n]
+    ideal_vect = [y[i] - new_vars[i] for i in 1:n] #check here TODO
     Base.push!(ideal_vect,det(M1) - 1)
     return (ideal(mixed_ring_xy, ideal_vect), new_rep_map)
-end
-
-
-#tested
-#don't need this
-function image_in_map(X::Union{MPolyRingElem,AbstractAlgebra.Generic.MPoly}, f::Oscar.MPolyAnyMap)
-    #x in f.domain || error
-    answer = f.codomain()
-    mons = collect(monomials(X))
-    coeffs = collect(coefficients(X))
-    for i in 1:length(mons)
-        Factorisation = factorise(mons[i])
-        y = f.codomain(1)
-        for i in 1:length(Factorisation)
-            if Factorisation[i][2] != 0
-                for j in 1:Factorisation[i][2]
-                    y = y*f.img_gens[i]
-                end
-            end
-        end
-        answer += coeffs[i]y
-    end
-    return answer
 end
 
 #tested
@@ -153,7 +144,6 @@ function proj_of_image_ideal(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpa
     m = Int(sqrt(ngens(mixed_ring_xy) - 2*n))
     #use parallelised groebner bases here. This is the bottleneck!
     return (groebner_basis(eliminate(W[1], gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])), W[2])
-    #return (eliminate(W[1], gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)]))
 end
 
 
@@ -175,7 +165,13 @@ function generators(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
         end
         b != 0 && Base.push!(ev_gbasis, b)
     end
-    return ev_gbasis, new_rep_mat
+    mixed_ring_graded, (x,y,zz) = grade(mixed_ring_xy)
+    mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
+    ev_gbasis_new = [mapp(ev_gbasis[i]) for i in 1:length(ev_gbasis)]
+    new_rep_mat_ = matrix(mixed_ring_graded,n,n,[mapp(new_rep_mat[i,j]) for i in 1:n, j in 1:n])
+    @show ev_gbasis_new 
+    @show minimal_generating_set(ideal(ev_gbasis_new))
+    return ev_gbasis_new, new_rep_mat_
 end
 
 #now we have to perform reynolds operation. This will happen in mixed_ring_xy. 
@@ -197,34 +193,14 @@ function inv_generators(rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceEle
     new_gens_wrong_ring = [reynolds__(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
     img_genss = vcat(gens(ringg), zeros(ringg, n+m^2))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
-    new_gens = Vector{MPolyRingElem}(undef,0)
+    new_gens = Vector{MPolyDecRingElem}(undef,0)
     for elemm in new_gens_wrong_ring
         Base.push!(new_gens, mixed_to_ring(elemm))
     end
-    return new_gens
+    #return new_gens
+    return reduce_gens_(new_gens)
 end
 
-#don't need this
-function image_in_action_ring(X::MPolyRingElem, map::Oscar.MPolyAnyMap)
-    #X in f.domain || error
-    n = ngens(f.domain)
-    answer = parent(X)()
-    mons = collect(monomials(X))
-    coeffs = collect(coefficients(X))
-    for i in 1:length(mons)
-        Factorisation = factorise(mons[i])
-        y = f.codomain(1)
-        for i in 1:length(Factorisation)
-            if Factorisation[i][2] != 0
-                for j in 1:Factorisation[i][2]
-                    y = y*f.img_gens[i+n]
-                end
-            end
-        end
-        answer += coeffs[i]*y
-    end
-    return answer
-end
 
 function mu_star(new_rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     mixed_ring_xy = parent(new_rep_mat[1,1])
@@ -238,7 +214,7 @@ function mu_star(new_rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
     return D
 end
 
-function reynolds__(elem::MPolyRingElem, new_rep_mat::T where T<:AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyRingElem, m)
+function reynolds__(elem::MPolyDecRingElem, new_rep_mat::T where T<:AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyDecRingElem, m)
     D = mu_star(new_rep_mat)
     mixed_ring_xy = parent(elem)
     sum = mixed_ring_xy()
@@ -269,7 +245,7 @@ function reynolds__(elem::MPolyRingElem, new_rep_mat::T where T<:AbstractAlgebra
     return numerator(num//den)
 end
 
-function needed_degree(elem::MPolyElem, m::Int64)
+function needed_degree(elem::MPolyDecRingElem, m::Int64)
     R = parent(elem)
     n = numerator((ngens(R) - m^2)//2)
     extra_ring, zzz = PolynomialRing(base_ring(R), "zzz"=>1:m^2)
@@ -278,7 +254,7 @@ function needed_degree(elem::MPolyElem, m::Int64)
 end
 
 #works
-function omegap(p::Int64, det_::MPolyRingElem, f::MPolyRingElem)
+function omegap(p::Int64, det_::MPolyDecRingElem, f::MPolyDecRingElem)
     parent(det_) == parent(f) || error("Omega process ring error")
     action_ring = parent(det_)
     detp = (det_)^p
@@ -301,13 +277,23 @@ function omegap(p::Int64, det_::MPolyRingElem, f::MPolyRingElem)
     return h
 end
 
+function reduce_gens_(v::Vector{MPolyDecRingElem})
+    new_gens_ = [v[1]]
+    for i in 1:length(v)-1
+        if !(v[i+1] in ideal(v[1:i]))
+            Base.push!(new_gens_, v[i+1])
+        end
+    end
+    return new_gens_
+end
+
 ###############
 
 #for the second constructor function of InvariantRing
 
-function rep_mat_(m::Int64, field::Field, sym_deg::Int64)
+function rep_mat_(m::Int64, sym_deg::Int64)
     n = binomial(m + sym_deg - 1, m - 1)
-    mixed_ring, t, z, a = PolynomialRing(field, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
+    mixed_ring, t, z, a = PolynomialRing(QQ, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
     group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
     vars = [t[i] for i in 1:m]
     new_vars = vars*group_mat
@@ -335,7 +321,7 @@ function rep_mat_(m::Int64, field::Field, sym_deg::Int64)
         end
     end
     #we have to return mat in a different ring! 
-    group_ring, Z = PolynomialRing(field, "Z"=>(1:m, 1:m))
+    group_ring, Z = PolynomialRing(QQ, "Z"=>(1:m, 1:m))
     mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
     Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
     return Mat            
@@ -366,24 +352,13 @@ function degree_basis(R::MPolyRing,m::Int64, t::Int64)
 end
 
 
-
-function Base.show(io::IO, R::InvariantRing)
-    print(io, "Invariant Rinf of", "\n")
-    print(io, R.poly_ring, "\n")
-    print(io, "under group action of ", R.group[1], R.group[2], "\n")
-    print(io, "represented as ", "\n")
-    print(io, R.group_rep, "\n")
-    print(io, "Generated by ", "\n")
-    print(io, R.generators)
-end
-
 #############################
 #DIRECT SUM
 #############################
 
-function rep_mat_(m::Int64, field::Field, v::Vector{Int64}, dir_sum::Bool)
+function rep_mat_(m::Int64, v::Vector{Int64}, dir_sum::Bool)
     n = num_of_as(m,v)
-    mixed_ring, t, z, a = PolynomialRing(field, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
+    mixed_ring, t, z, a = PolynomialRing(QQ, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
     group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
     vars = [t[i] for i in 1:m]
     new_vars = vars*group_mat
@@ -424,7 +399,7 @@ function rep_mat_(m::Int64, field::Field, v::Vector{Int64}, dir_sum::Bool)
         end
     end
     #we have to return mat in a different ring! 
-    group_ring, Z = PolynomialRing(field, "Z"=>(1:m, 1:m))
+    group_ring, Z = PolynomialRing(QQ, "Z"=>(1:m, 1:m))
     mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
     Mat = matrix(group_ring, nrows(big_matrix), nrows(big_matrix), [mapp(big_matrix[i,j]) for i in 1:nrows(big_matrix), j in 1:nrows(big_matrix)])
     return Mat 
