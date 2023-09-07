@@ -190,30 +190,23 @@ end
 @attr CoveringMorphism function covering_morphism(f::ToricMorphism)
   # TODO: If f is a blowdown morphism, we can simplify 
   # the matchings of cones below.
-  lattice_map = grid_morphism(f)
   X = domain(f)
   Y = codomain(f)
 
-  # Find a mapping of cones 
+  # Find the image cones
   codomain_cones = maximal_cones(Y)
   domain_cones = maximal_cones(X)
-  A = matrix(lattice_map)
+  A = matrix(grid_morphism(f))
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
-  ConeType = typeof(first(codomain_cones))
-  cone_dict = Dict{Integer, Tuple{Integer, ConeType}}()
-  for (i, c) in enumerate(domain_cones)
-    k = findfirst(x-> is_subset(image_cones[i], x), codomain_cones)
-    cone_dict[i] = (k, codomain_cones[k])
-  end
 
   # construct the corresponding morphism of rings
   morphism_dict = IdDict{AbsSpec, AbsSpecMor}()
   domain_cov = default_covering(X) # ordering of the patches must be the same as `maximal_cones`
   codomain_cov = default_covering(Y)
-  for (i, c1) in enumerate(domain_cones)
+  for i in 1:n_maximal_cones(X)
     U = domain_cov[i] # The corresponding chart in the domain
-    k, c2 = cone_dict[i]
-    V = codomain_cov[k] # The chart in the codomain whose cone contains the image of c1
+    k = findfirst(x-> is_subset(image_cones[i], x), codomain_cones)
+    V = codomain_cov[k] # The chart in the codomain whose cone contains the image of the cone of U
 
     wc1 = weight_cone(U)
     hb_U = hilbert_basis(wc1) # corresponds to the variables of OO(U)
