@@ -6436,7 +6436,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Start with presentation =#
   pm = presentation(M)
-  maps = [map(pm, j) for j in Hecke.map_range(pm)]
+  maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
@@ -6459,6 +6459,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
     gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
+  elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -6467,23 +6470,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
-  codom = codomain(maps[1])
-
-  if is_graded(codom)
-    rk    = Singular.ngens(gbpres)
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = graded_map(codom, SM.matrix)
-    dom = domain(ff)
-  else
-    dom   = free_module(br, Singular.ngens(gbpres))
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = hom(dom, codom, SM.matrix)
-  end
-
-  maps[1] = ff
-
   br_name = AbstractAlgebra.find_name(base_ring(M))
   if br_name === nothing
     br_name = "R"
@@ -6491,10 +6477,10 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  j   = 2
+  j   = 1
   while j <= Singular.length(res)
-    if is_graded(dom)
-      codom = dom
+    if is_graded(M)
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
@@ -6504,7 +6490,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       insert!(maps, 1, ff)
       j += 1
     else
-      codom = dom
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
