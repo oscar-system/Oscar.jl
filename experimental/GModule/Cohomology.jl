@@ -343,8 +343,8 @@ function Oscar.quo(C::GModule{<:Any, <:Generic.FreeModule}, mDC::Generic.ModuleH
   return S, mq
 end
 
-function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen})
-  q, mq = Oscar.quo(C.M, image(mDC)[1])
+function Oscar.quo(C::GModule, mDC::Map{GrpAbFinGen, GrpAbFinGen}, add_to_lattice::Bool = true)
+  q, mq = Oscar.quo(C.M, image(mDC)[1], add_to_lattice)
   S = GModule(C.G, [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.ac])
   if isdefined(C, :iac)
     S.iac = [GrpAbFinGenMap(pseudo_inv(mq)*x*mq) for x = C.iac]
@@ -1005,6 +1005,11 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
   return w
 end
 
+function H_two_maps(C::GModule; force_rws::Bool = false, redo::Bool = false)
+  H_two(C; force_rws, redo)
+  return get_attribute(C, :H_two_maps)
+end
+
 #= Hulpke-Dietrich:
 UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
@@ -1486,20 +1491,19 @@ iszero(a) || (@show g, h, k, a ; return false)
 end
 
 """
-Computes H^3 via dimension-shifting:
-There is a short exact sequence
-  1 -> A -> Hom(Z[G], A) -> B -> 1 
-thus
-  H^3(G, A) = H^2(C, B)
-as Hom(Z[G], A) is induced hence has trivial cohomology.
-Currently only the group is returned
+Compute
+  0 -> C -I-> hom(Z[G], C) -q-> B -> 0
+To allow "dimension shifting": H^(n+1)(G, C) - H^n(G, q)
+returns (I, q), (hom(Z[G], C), B)
 """
-function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
+function dimension_shift(C::GModule)
   G = C.G
   if isa(C.M, GrpAbFinGen)
     zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(GrpAbFinGen, G, ZZ)
+    Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
     zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")
   end
@@ -1512,7 +1516,80 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   #the augmentation map on the (canonical) generators is 1
   inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [c for g = gens(zg.M)])) for c = gens(C.M)])
   @assert is_G_hom(C, H, inj)
-  q, mq = quo(H, image(inj)[2])
+  B, q = quo(H, image(inj)[2])
+
+  return (inj, q), (H, B)
+
+  #would be nice, but looses the G-operation.
+  #XXX: we don't have homs for GModules
+  #   : sice we also don't have elements
+  #   : do we need elements for homs?
+  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i = gens(Z)])
+  Z2 = hom(q.M, Z, [zero(Z) for x = gens(q.M)])
+  return cochain_complex([Z1, inj, mq, Z2])
+end
+
+function fixed_module(H::GModule)
+  K = H.M
+  id = hom(K, K, gens(K))
+  mK = hom(K, K, gens(K))
+  for x = H.ac
+    k = intersect(K, kernel(x-id)[1])
+    fl, mk = is_sub_with_data(k, K)
+    K = k
+    mK = mk*mK
+  end
+  return gmodule(H.G, [GrpAbFinGenMap(mK*g*pseudo_inv(mK)) for g = H.ac]), mK
+end
+
+function dimension_shift_left(C::GModule)
+  G = C.G
+  if isa(C.M, GrpAbFinGen)
+    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(GrpAbFinGen, G, ZZ)
+    Z = Hecke.zero_obj(zg.M)
+  elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
+    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    Z = free_module(base_ring(C), 0)
+  else
+    error("unsupported module")
+  end
+  @assert is_consistent(zg)
+  H, mH = tensor_product(zg, C)
+  @assert is_consistent(H)
+  #XXX broken from here onwards
+  pro = hom(H.M, C.M, [pseudo_inv(mH)(x)[2] for x = gens(H.M)])
+  @assert is_G_hom(H, C, pro)
+  k, mk = kernel(pro)
+  if isa(C.M, GrpAbFinGen)
+    K = gmodule(C.G, [GrpAbFinGenMap(mk*g*pseudo_inv(mk)) for g = H.ac])
+  else
+    K = gmodule(C.G, [mk*g*pseudo_inv(mk) for g = H.ac])
+  end
+
+  return (mk, pro), (K, H)
+
+  #would be nice, but looses the G-operation.
+  #XXX: we don't have homs for GModules
+  #   : sice we also don't have elements
+  #   : do we need elements for homs?
+  Z1 = hom(Z, C.M, elem_type(C.M)[zero(C.M) for i = gens(Z)])
+  Z2 = hom(q.M, Z, [zero(Z) for x = gens(q.M)])
+  return cochain_complex([Z1, inj, mq, Z2])
+end
+
+
+"""
+Computes H^3 via dimension-shifting:
+There is a short exact sequence
+  1 -> A -> Hom(Z[G], A) -> B -> 1 
+thus
+  H^3(G, A) = H^2(G, B)
+as Hom(Z[G], A) is induced hence has trivial cohomology.
+Currently only the group is returned
+"""
+function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
+  (inj, mq), (H, q) = dimension_shift(C)
+>>>>>>> ade00afad7 (re-arrange dim shift)
 
 #  return q, mq, inj, H
   #possibly, to get 3-chains: 
@@ -1520,13 +1597,26 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   # preimage mq 2 chain in H
   # differential 3 chain in H
   # preimage inj 3 chain in C
-  return H_two(q)[1]
+  H, mH, _ = H_two(q)
+  function chain(a)
+    @assert parent(a) == H
+    c = mH(a)
+    d = map_entries(pseudo_inv(mq), c, parent = H)
+    e = differential(d)
+    f = map_entries(pseudo_inv(inj), e, parent = C)
+  end
+  #preimage under the differential is hard...
+  return H, chain
 end
 
 function is_right_G_module(C::GModule)
   #tests if the action is right-linear 
   G = C.G
+<<<<<<< HEAD
   return all(action(C, g)*action(C, h) == action(C, g*h) for g in gens(G), h in gens(G))
+=======
+  return all(action(C, g)*action(C, h) == action(C, g*h) for g = gens(G) for h = gens(G))
+>>>>>>> ade00afad7 (re-arrange dim shift)
 end
 
 function is_left_G_module(C::GModule)
@@ -1539,7 +1629,7 @@ end
 For a gmodule `C` compute the `i`-th cohomology group
 where `i` can be `0`, `1` or `2`. (or `3` ...)
 Together with the abstract module, a map is provided that will 
-  produce explicit cochains.
+produce explicit cochains.
 """
 function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
   #should also allow modules...
