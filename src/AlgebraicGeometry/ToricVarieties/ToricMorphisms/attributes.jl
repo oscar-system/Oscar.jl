@@ -184,9 +184,52 @@ Abelian group with structure: Z^2
     return domain_preinverse * morphism_on_cartier_divisors * codomain_projection
 end
 
+
 ########################################################################
 # Functionality for the associated CoveredSchemeMorphism               #
 ########################################################################
+
+@doc raw"""
+    covering_morphism(f::ToricMorphism)
+
+For a given toric morphism `tm`, we can compute the corresponding
+morphism of covered schemes. The following demonstrates this for the
+blow-down morphism of a blow-up of the projective space.
+
+# Examples
+```jldoctest
+julia> IP2 = projective_space(NormalToricVariety, 2)
+Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> bl = blow_up(IP2, [1, 1]);
+
+julia> cov_bl = covering_morphism(bl);
+
+julia> domain(cov_bl)
+Covering
+  described by patches
+    1: normal, affine toric variety
+    2: normal, affine toric variety
+    3: normal, affine toric variety
+    4: normal, affine toric variety
+  in the coordinate(s)
+    1: [x_1_1, x_2_1]
+    2: [x_1_2, x_2_2]
+    3: [x_1_3, x_2_3]
+    4: [x_1_4, x_2_4]
+
+julia> codomain(cov_bl)
+Covering
+  described by patches
+    1: normal, affine toric variety
+    2: normal, affine toric variety
+    3: normal, affine toric variety
+  in the coordinate(s)
+    1: [x_1_1, x_2_1]
+    2: [x_1_2, x_2_2]
+    3: [x_1_3, x_2_3]
+```
+"""
 @attr CoveringMorphism function covering_morphism(f::ToricMorphism)
   # TODO: If f is a blowdown morphism, we can simplify 
   # the matchings of cones below.
