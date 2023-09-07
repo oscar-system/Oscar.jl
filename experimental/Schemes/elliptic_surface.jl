@@ -123,15 +123,22 @@ generic_fiber(S::EllipticSurface) = S.E
 @doc raw"""
     weierstrass_chart(X::EllipticSurface)
 
-Return the weierstrass chart of ``X``.
-
-This returns a chart of ``U`` of ``X`` with affine coordinates ``(x,y,t)``. The  chart ``U`` is constructed as an open subset of
-the vanishing locus of
-``y^2 + a_1(t) xy + a_3y= x^3 + a_2 x^2 + a_4 x + a_6``
-minus the reducible singular fibers.
-
+Return the Weierstrass chart of ``X`` on its `weierstrass_model`.
 """
-weierstrass_chart(X::EllipticSurface) = X[1][1]
+weierstrass_chart(X::EllipticSurface) = weierstrass_model(X)[1][1][1]
+
+@doc raw"""
+    weierstrass_chart_on_minimal_model(X::EllipticSurface)
+
+Return an affine chart ``U`` of ``X`` which is isomorphic to the `weierstrass_chart` 
+of ``X`` on its `weierstrass_model`, but with all singular fibers removed.
+
+More precisely, the affine coordinates of ``U`` are ``(x,y,t)`` and the chart is 
+constructed as the vanishing locus of
+``y^2 + a_1(t) xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6``
+minus the reducible singular fibers.
+"""
+weierstrass_chart_on_minimal_model(X::EllipticSurface) = X[1][1]
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -574,6 +581,8 @@ function weierstrass_contraction(X::EllipticSurface)
   # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
   last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+
   push!(projectionsY, last_pr_wrap)
   Y.ambient_blowups = projectionsX
 
@@ -1049,8 +1058,9 @@ The linear system is represented in terms of the Weierstrass coordinates.
 """
 function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
   euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
-  FS = function_field(weierstrass_model(X)[1])
-  U = weierstrass_chart(X)
+  #FS = function_field(weierstrass_model(X)[1])
+  FS = function_field(X)
+  U = weierstrass_chart_on_minimal_model(X)
   (x,y,t) = ambient_coordinates(U)
 
   sections = elem_type(FS)[]
@@ -1108,15 +1118,19 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
   D1, D, P, l, c = horizontal_decomposition(X, F)
   u = _elliptic_parameter(X, D1, D, P, l, c)
+  @assert scheme(parent(u)) === X
   pr = weierstrass_contraction(X)
-  u_up = pullback(pr)(u)
+  WX, _ = weierstrass_model(X)
+  # The following is a cheating version of the command u = pushforward(pr)(u)
+  u = function_field(WX)(u[weierstrass_chart_on_minimal_model(X)])
+  @assert scheme(parent(u)) === weierstrass_model(X)[1]
 
   # Helper function
   my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   # transform to a quartic y'^2 = q(x)
   if iszero(P[3])  #  P = O
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case1)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case1)
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
 #   function phi_func(x)
 #     y = phi1(x)
@@ -1130,7 +1144,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 #   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   elseif iszero(2*P) # P is a 2-torsion section
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case3)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case3)
     #eqn1, phi1 = _conversion_case_3(X, u)
     (x2, y2) = gens(parent(eqn1))
 
@@ -1142,7 +1156,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
     phi = compose(phi1, extend_domain_to_fraction_field(phi2))
   else  # P has infinite order
-    eqn1, phi1 = _elliptic_parameter_conversion(X, u_up, case=:case2)
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case2)
     #eqn1, phi1 = _conversion_case_2(X, u)
     (x2, y2) = gens(parent(eqn1))
     
@@ -1217,7 +1231,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   l = F2[1] # number of fibers that we need
   # find the fiber components meeting O necessary
   F3 = F2
-  (_,_,t) = ambient_coordinates(weierstrass_chart(X))
+  (_,_,t) = ambient_coordinates(weierstrass_chart_on_minimal_model(X))
   c = t^0
   for (pt, rt, fiber, comp, gram) in reducible_fibers(X)
     Fib0 = comp[1]
@@ -1289,9 +1303,9 @@ Typically ``D`` is the output of `horizontal_decomposition`.
 function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllCrvPt, l::Int, c)
   S, piS = weierstrass_model(X);
   piX = weierstrass_contraction(X)
-  c = function_field(S)(c)
+  c = function_field(X)(c)
   L = [i*c for i in linear_system(X, P, l)];
-  LonX = linear_system(pullback(piX).(L), D1, check=false);
+  LonX = linear_system(L, D1, check=false);
 
   LsubF, Tmat = subsystem(LonX, D);
 
@@ -1604,7 +1618,7 @@ end
 function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFieldElem; 
     case::Symbol=:case1, names=[:x, :y, :t]
   )
-  @req variety(parent(u)) === X "function field element must live on the first argument"
+  @req variety(parent(u)) === weierstrass_model(X)[1] "function field element must live on the weierstrass model of the first argument"
   @req length(names) == 3 "need 3 variable names x, y, t"
   U = weierstrass_chart(X)
   R = ambient_coordinate_ring(U)
@@ -1625,7 +1639,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 # kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
   R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
 
-  f_loc = numerator(first(gens(modulus(OO(U)))))
+  f_loc = first(gens(modulus(OO(U))))
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
   a = a_invars(E)
 
