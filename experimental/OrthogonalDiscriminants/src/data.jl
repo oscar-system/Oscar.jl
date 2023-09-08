@@ -89,11 +89,28 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
 end
 
 
-function comment_matches(str)
-  error("dummy function")
+# Return the character described by `d`.
+function character_of_entry(d::Dict)
+  @req haskey(d, :groupname) "the dictionary has no :groupname"
+  tbl = character_table(d[:groupname])
+  @req haskey(d, :characteristic) "the dictionary has no :characteristic"
+  p = d[:characteristic]
+  if p != 0
+    tbl = mod(tbl, p)
+  end
+  @req haskey(d, :charpos) "the dictionary has no :charpos"
+  return tbl[d[:charpos]]
 end
 
 
+# Return `true` if `str` occurs as an entry in `d[:comment]`
+function comment_matches(d::Dict, str::String)
+  @req haskey(d, :comment) "the dictionary has no :comment"
+  return str in d[:comment]
+end
+
+
+# Compare two character fields, by comparing their embeddings.
 function is_equal_field(emb1, emb2)
   dom1 = domain(emb1)
   dom2 = domain(emb2)
