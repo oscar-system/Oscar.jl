@@ -546,7 +546,6 @@ include("Polymake/polymake_to_oscar.jl")
 include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
-include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
