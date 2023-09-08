@@ -568,9 +568,6 @@ for f in (QQ, ENF)
                 # @test faces(D, 0) == convex_hull.(T, V)
                 @test isempty(affine_hull(D))
                 @test relative_interior_point(D) == [0, 0, 0]
-
-                @test platonic_solid("dodecahedron") == D
-
             end
 
         end

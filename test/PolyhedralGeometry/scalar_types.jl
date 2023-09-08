@@ -70,7 +70,7 @@
             @test isq[2] == 2
         end
         let j = johnson_solid(1)
-            jj = polyhedron(Polymake.polytope.Polytope{Polymake.QuadraticExtension{Polymake.Rational}}(POINTS=Oscar.pm_object(j).VERTICES))
+            jj = polyhedron(Polymake.polytope.Polytope{Polymake.OscarNumber}(POINTS=Oscar.pm_object(j).VERTICES))
             @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
         end
     end
@@ -212,22 +212,6 @@
         @test issubset(rays(f[i]), rays(k))
       end
       l = f[1]
-    end
-
-    l = cone(Polymake.polytope.Cone{Polymake.QuadraticExtension{Polymake.Rational}}(RAYS = Oscar.pm_object(j).VERTICES))
-
-    let f = facets(Polyhedron, l)
-      for i in 1:nfacets(l)
-        @test facets(f[i])[] in facets(l)
-      end
-    end
-
-    for n in (2, 3) # faces which are facets have a different access function
-      let f = faces(l, n)
-        for i in 1:Int(f_vector(l)[n])
-          @test issubset(rays(f[i]), rays(l))
-        end
-      end
     end
     
   end

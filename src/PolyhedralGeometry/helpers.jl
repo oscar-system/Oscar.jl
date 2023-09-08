@@ -498,9 +498,34 @@ function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldE
     throw(ArgumentError("BigObject does not contain information about a parent Field"))
 end
 
+function _detect_wrapped_type_and_field(p::Polymake.BigObject)
+  # we only want to check existing properties
+  f = x -> Polymake.exists(p, string(x))
+  propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
+  i = findfirst(f, propnames)
+  # find first OscarNumber wrapping a FieldElem
+  while !isnothing(i)
+    prop = getproperty(p, propnames[i])
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa FieldElem
+        f = parent(on)
+        T = elem_type(f)
+        return (T, f)
+      end
+    end
+    i = findnext(f, propnames, i + 1)
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
+end
+
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
-    T = detect_scalar_type(U, p)
+  T = detect_scalar_type(U, p)
+  if isnothing(T)
+    return _detect_wrapped_type_and_field(p)
+  else
     return (T, _detect_default_field(T, p))
+  end
 end
 
 # promotion helpers
