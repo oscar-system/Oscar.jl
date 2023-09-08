@@ -4,8 +4,8 @@ mutable struct MatroidRealizationSpace
     defining_ideal::Union{Ideal, NumFieldOrdIdl, Nothing}
     inequations::Union{Vector{Oscar.RingElem},Nothing}
     ambient_ring::Union{Oscar.MPolyRing, Ring, Nothing}
-    representation_matrix::Union{Oscar.MatElem,Nothing}
-    representable::Bool
+    realization_matrix::Union{Oscar.MatElem,Nothing}
+    realizable::Bool
     F::AbstractAlgebra.Ring
     char::Union{Int,Nothing}
     q::Union{Int,Nothing}
@@ -13,20 +13,20 @@ mutable struct MatroidRealizationSpace
 end
 
 function Base.show(io::IO, RS::MatroidRealizationSpace)
-    if !RS.representable
+    if !RS.realizable
         if RS.char == nothing && RS.q == nothing && RS.F == ZZ
-            print(io, "The matroid is not representable.")
+            print(io, "The matroid is not realizable.")
         else
-            print(io, "The matroid is not representable over the specified field or characteristic.")
+            print(io, "The matroid is not realizable over the specified field or characteristic.")
         end
     else
         if RS.one_realization
-            println(io, "One representation is given by")
+            println(io, "One realization is given by")
         else
-            println(io, "The representations are parametrized by")
+            println(io, "The realizations are parametrized by")
         end
         # println isn't ideal as it prints the matrix as one big line
-        display(RS.representation_matrix)
+        display(RS.realization_matrix)
         println(io, "in the ", RS.ambient_ring)
         I = RS.defining_ideal
         if (typeof(I) <: NumFieldOrdIdl && I.gen != ZZ(0)) || (typeof(I) <: Ideal && !iszero(I))
@@ -51,22 +51,22 @@ function MatroidRealizationSpace(I::Union{Ideal, NumFieldOrdIdl, Nothing},
 end
 
 @doc raw"""
-is_representable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
+is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
-* If char = nothing, then this function determines whether the matroid is representable over some field. 
+* If char = nothing, then this function determines whether the matroid is realizable over some field.
   
-* If char = 0,then this function determines whether the matroid is representable over some field of 
+* If char = 0,then this function determines whether the matroid is realizable over some field of
     characteristic 0.
   
-* If char = p is prime, this function determines whether the matroid is representable over some field 
-    of characteristic p. 
+* If char = p is prime, this function determines whether the matroid is realizable
+    of characteristic p.
   
-* if char = p and q is a power of p, this function determines whether the matroid is representable over the 
+* if char = p and q is a power of p, this function determines whether the matroid is realizable over the
     finite field ``GF(q)}``.
 """
-function is_representable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
+function is_realizable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
     RS = realization_space(M, char=char, q=q)
-    return RS.representable
+    return RS.realizable
 end
 
 
@@ -99,13 +99,13 @@ function ambient_ring(RS::MatroidRealizationSpace)
 end
 
 @doc raw"""
-representation_matrix(RS::MatroidRealizationSpace)
+realization_matrix(RS::MatroidRealizationSpace)
 
 A matrix with entries in ambient_ring(RS) whose columns, when filled in with values satisfying equalities
 from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid. 
 """
-function representation_matrix(RS::MatroidRealizationSpace)
-    return RS.representation_matrix
+function realization_matrix(RS::MatroidRealizationSpace)
+    return RS.realization_matrix
 end
 
 function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
@@ -167,7 +167,7 @@ end
 
 
 # Given a matroid M with a basis B, this functions computes for a i in groundset(M)\B a circuit in B \cup i.
-# This is a function used in the construction of the matrix underlying the representation space computation. 
+# This is a function used in the construction of the matrix underlying the realization space computation.
 function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     remaining_elts = setdiff(matroid_groundset(M),B)
     fund_circs = Vector{Vector{Int}}()
@@ -179,15 +179,15 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
 
 
 @doc raw"""
-    realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, 
+    realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing,
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false,
     char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::MatroidRealizationSpace
         
-    This function returns the data for the coordinate ring of the matroid realization space of the matroid M 
+    This function returns the data for the coordinate ring of the matroid realization space of the matroid M
     as a `MatroidRealizationSpace`. This function has several optional parameters.
     
-    * `B` is a basis of M that specifies which columns of `representation_matrix(M)` form the identity matrix.
-      The default is `nothing`, in which case the basis is chosen for you. 
+    * `B` is a basis of M that specifies which columns of `realization_matrix(M)` form the identity matrix.
+      The default is `nothing`, in which case the basis is chosen for you.
     
     * `F` is a coefficient ring for the realization space. The default is `ZZ`.
       Other options are `QQ` or `GF(p)` for some prime p.
@@ -195,7 +195,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     * `char` specifies the characteristic of the coefficient ring, and is used to determine if the matroid
       is realizable over a field of this characteristic. The default is `nothing`.
     
-    * `q` is an integer, and when char = p, this input is used to determine whether the matroid 
+    * `q` is an integer, and when char = p, this input is used to determine whether the matroid
       is realizable over the finite field ``GF(p^{q})``. The default is `nothing`.
 
     * `reduce` determines whether a reduced realization space is returned which means that the equations
@@ -209,7 +209,7 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
 julia> M = fano_matroid();
 
 julia> RS = realization_space(M)
-The representations are parametrized by
+The realizations are parametrized by
 [0   1   1   1   1   0   0]
 [1   0   1   1   0   1   0]
 [1   0   1   0   1   0   1]
@@ -218,7 +218,7 @@ within the vanishing set of the ideal
 2ZZ
 
 julia> realization_space(non_fano_matroid())
-The representations are parametrized by
+The realizations are parametrized by
 [1   1   0   0   1   1   0]
 [0   1   1   1   1   0   0]
 [0   1   1   0   0   1   1]
@@ -227,7 +227,7 @@ avoiding the zero loci of the polynomials
 RingElem[2]
 
 julia> realization_space(pappus_matroid(),char=0)
-The representations are parametrized by
+The realizations are parametrized by
 [1   0   1   0   x2   x2                 x2^2    1    0]
 [0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
 [0   0   0   1   x2   x1                x1*x2   x1   x2]
@@ -236,7 +236,7 @@ avoiding the zero loci of the polynomials
 RingElem[x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2]
 
 julia> realization_space(uniform_matroid(3,6))
-The representations are parametrized by
+The realizations are parametrized by
 [1   0   0   1    1    1]
 [0   1   0   1   x1   x3]
 [0   0   1   1   x2   x4]
@@ -247,7 +247,7 @@ RingElem[x1*x4 - x2*x3, x2 - x4, x1 - x3, x1*x4 - x1 - x2*x3 + x2 + x3 - x4, x3 
 ```
 """
 function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, reduce::Bool=true,
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, simplify::Bool=true,
     char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::MatroidRealizationSpace
 
     if char!=nothing && !isprime(char) && char!=0
@@ -310,7 +310,7 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
                 # determinant nonzero but set not a basis
                 push!( eqs, col_det )
             elseif col in Bs 
-                #determinant zero but set is a basis, i.e. M is not representable
+                #determinant zero but set is a basis, i.e. M is not realizable
                 return MatroidRealizationSpace(F, char, q)
             else
                 continue
@@ -360,13 +360,13 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
     
     RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, F, char, q)
 
-    if reduce
+    if simplify
         RS = reduce_realization_space(RS)
     end
 
-    representable = RS.representable && !(isone(RS.defining_ideal))
+    realizable = RS.realizable && !(isone(RS.defining_ideal))
 
-    !representable && return MatroidRealizationSpace(F, char, q)
+    !realizable && return MatroidRealizationSpace(F, char, q)
 
     return RS
 end
@@ -420,14 +420,14 @@ end
     This function tries to find one realization in the matroid realization space of the matroid `M`.
     The output is again a `MatroidRealizationSpace`. 
 
-    If the matroid is only representable over an extension of the prime field the extension field is specified
+    If the matroid is only realizable over an extension of the prime field the extension field is specified
     as a splitting field of an irreducible polynomial. Every root of this polynomial gives an equivalent
     realization of the matroid. 
 
     This function has several optional parameters. Note that one must input either the characteristic or a specific
     field of definition for the realization. 
     
-    * `B` is a basis of M that specifies which columns of `representation_matrix(M)` form the identity matrix.
+    * `B` is a basis of M that specifies which columns of `realization_matrix(M)` form the identity matrix.
       The default is `nothing`, in which case the basis is chosen for you. 
     
     * `F` is a coefficient ring for the realization space. The default is `ZZ`.
@@ -448,14 +448,14 @@ end
 # Examples
 ```jldoctest
 julia> realization(pappus_matroid(), char=0)
-One representation is given by
+One realization is given by
 [1   0   1   0   2   2   4   1   0]
 [0   1   1   0   1   1   1   1   1]
 [0   0   0   1   2   3   6   3   2]
 in the Rational Field
 
 julia> realization(pappus_matroid(), q=4)
-One representation is given by
+One realization is given by
 [1   0   1   0        1        1    1        1    0]
 [0   1   1   0   x1 + 1   x1 + 1   x1        1    1]
 [0   0   0   1        1       x1   x1   x1 + 1   x1]
@@ -464,7 +464,7 @@ within the vanishing set of the ideal
 ideal(x1^2 + x1 + 1)
 
 julia> realization(uniform_matroid(3,6), char=5)
-One representation is given by
+One realization is given by
 [1   0   0   1   1   1]
 [0   1   0   1   4   3]
 [0   0   1   1   3   2]
@@ -473,10 +473,10 @@ in the Galois field with characteristic 5
 ```
 """
 function realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, reduce::Bool=true,
+    F::AbstractAlgebra.Ring = ZZ, saturate::Bool=false, simplify::Bool=true,
     char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
-    RS = realization_space(M,B=B,F=F,saturate=saturate,reduce=reduce,char=char,q=q)
+    RS = realization_space(M,B=B,F=F,saturate=saturate,simplify=simplify,char=char,q=q)
 
     return realization(RS)
 end
@@ -494,7 +494,7 @@ function realization(RS::MatroidRealizationSpace)
         error("A field or characteristic must be specified")
     end
 
-    !RS.representable && return RS
+    !RS.realizable && return RS
 
     # If the ambient ring is not a polynomial ring we can reduce we stop
     R = RS.ambient_ring
@@ -515,7 +515,7 @@ function realization(RS::MatroidRealizationSpace)
     ineqsnew = RS.inequations
 
     counter = 0
-    base=7
+    base = 7
     if RS.char != nothing && RS.char > 0
         base = RS.char
     end
@@ -541,14 +541,14 @@ function realization(RS::MatroidRealizationSpace)
     end
     counter == upperbound && d != 0 && return RS
 
-    RSnew = MatroidRealizationSpace(Inew, ineqsnew, R, RS.representation_matrix, RS.F, RS.char, RS.q)
+    RSnew = MatroidRealizationSpace(Inew, ineqsnew, R, RS.realization_matrix, RS.F, RS.char, RS.q)
     RSnew = reduce_realization_space(RSnew)
     ineqsnew = RSnew.inequations
     if length(ineqsnew) > 0
         Inew = RSnew.defining_ideal
         Rnew = RSnew.ambient_ring
         ineqsnew = filter(p ->!isone(ideal(groebner_basis(Inew+ideal(Rnew,p)))),ineqsnew)
-        RSnew = MatroidRealizationSpace(Inew, ineqsnew, Rnew, RSnew.representation_matrix, RSnew.F, RSnew.char, RSnew.q)
+        RSnew = MatroidRealizationSpace(Inew, ineqsnew, Rnew, RSnew.realization_matrix, RSnew.F, RSnew.char, RSnew.q)
     end
 
     RSnew.one_realization = true
@@ -646,7 +646,7 @@ end
 
 function small_reduce(MRS::MatroidRealizationSpace) 
     
-    !MRS.representable && return MRS    
+    !MRS.realizable && return MRS
     phi = small_reduce_full_rec(gens(MRS.defining_ideal))
     new_ring = codomain(phi)
     new_ideal = phi(MRS.defining_ideal)
@@ -659,7 +659,7 @@ function small_reduce(MRS::MatroidRealizationSpace)
         new_ideal = ideal(new_ideal_gens)
     end
 
-    new_mat = phi.(collect(MRS.representation_matrix))
+    new_mat = phi.(collect(MRS.realization_matrix))
     new_mat = matrix(new_ring, new_mat)
     new_ineq = unique!(filter(x->!is_unit(x), phi.(MRS.inequations)))
     new_ineq = gens_2_factors(new_ineq)
@@ -789,7 +789,7 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
     R = MRS.ambient_ring
     FR = FractionField(R)
     xs = gens(R)
-    X = MRS.representation_matrix
+    X = MRS.realization_matrix
     nr, nc = size(X)
     
     Ivars = ideal_vars(Igens);
@@ -844,7 +844,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     R = MRS.ambient_ring
     xs = gens(R)
     cR = coefficient_ring(R)
-    X = MRS.representation_matrix
+    X = MRS.realization_matrix
     nr, nc = size(X)
     Igens = gens(MRS.defining_ideal)
     Sgens = MRS.inequations
