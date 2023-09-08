@@ -17,8 +17,10 @@ import Oscar.Partition
 import Oscar.partition
 
 # The following code can be loaded at compile time.
+include("utils.jl")
 include("data.jl")
 include("gram_det.jl")
+include("theoretical.jl")
 include("exports.jl")
 
 end # module
