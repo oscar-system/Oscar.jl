@@ -410,6 +410,7 @@ export decoration
 export default_covering
 export default_ordering
 export defines_automorphism
+export defining_ideal
 export deglex
 export degree
 export degrees_of_generators
@@ -641,6 +642,7 @@ export induce
 export induced_cyclic
 export induced_ring_ordering
 export induce_shift
+export inequations
 export initial
 export inneighbors
 export inner_automorphism
@@ -785,6 +787,7 @@ export is_quadratic_form
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
+export is_realizable
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -917,6 +920,7 @@ export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_norma
 export maximal_polyhedra
 export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
+export min_revlex_basis_encoding
 export min_weights
 export minimal_block_reps
 export minimal_denominators
@@ -1131,6 +1135,9 @@ export rays
 export rays_modulo_lineality
 export real_projective_plane
 export real_solutions
+export realization
+export realization_matrix
+export realization_space
 export recession_cone
 export reduce
 export reduce_fraction
@@ -1370,16 +1377,3 @@ export witt_index
 export wreath_product
 export write_as_full
 export write_as_linear_combination
-
-export realization_space
-export reduce_realization_space
-export min_revlex_basis_encoding
-export is_representable
-export defining_ideal
-export inequations
-export ambient_ring
-export representation_matrix
-export combinatorially_reduced_realization_matrix
-export realization_space_matrix
-export MatroidRealizationSpace
-export realization
