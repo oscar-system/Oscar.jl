@@ -131,8 +131,8 @@ mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} 
     # Sanity check whether the multiplicatively closed set S is compatible with the 
     # given rings
     MultSetType <: AbsMultSet{ZZRing, ZZRingElem} || error(
-	"The type of the multiplicatively closed set is not compatible with the type of the ring"
-	)
+        "The type of the multiplicatively closed set is not compatible with the type of the ring"
+        )
     return new{MultSetType}(S)
   end
 end

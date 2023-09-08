@@ -2407,9 +2407,9 @@ function  truncate(I::MPolyIdeal, d::Int)
        if degree(Int, V[i]) < d
           if degree(Int, V[i]) > s
              s = degree(Int, V[i])
-	     B = monomial_basis(R, d-s)
-	  end
-	     append!(RES, B .*V[i])
+             B = monomial_basis(R, d-s)
+          end
+          append!(RES, B .*V[i])
        else
            push!(RES, V[i])
        end

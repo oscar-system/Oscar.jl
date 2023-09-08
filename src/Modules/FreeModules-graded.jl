@@ -681,7 +681,7 @@ function syzygie_module(F::BiModArray; sub = 0)
   if sub !== 0
     G = sub
   else
-  	[F[Val(:O), i] for i = 1:length(F.O)]
+    [F[Val(:O), i] for i = 1:length(F.O)]
     z = grading_group(base_ring(F.F))[0]
     G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end

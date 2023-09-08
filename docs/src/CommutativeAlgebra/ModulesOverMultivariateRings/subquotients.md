@@ -36,16 +36,16 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 !!! note
     Recall from the section on free modules that by a free $R$-module we mean a free
     module of type $R^p$ , where we think of $R^p$ as a free module with a given
-	basis, namely the basis of standard unit vectors. Accordingly, elements of free modules
-	are represented by coordinate vectors, and homomorphisms between free modules by
-	matrices. Here, by convention, vectors are row vectors, and matrices operate by
-	multiplication on the right.
+    basis, namely the basis of standard unit vectors. Accordingly, elements of free modules
+    are represented by coordinate vectors, and homomorphisms between free modules by
+    matrices. Here, by convention, vectors are row vectors, and matrices operate by
+    multiplication on the right.
 
 !!! note
     Over a graded ring $R$, we work with graded free modules $R^s$, $R^p$, $R^t$ and graded
     homomorphisms $a$, $b$. As a consequence, every module involved in the construction of
-	the subquotient defined by $a$ and $b$ carries an induced grading. In particular, the
-	subquotient itself carries an induced grading.
+    the subquotient defined by $a$ and $b$ carries an induced grading. In particular, the
+    subquotient itself carries an induced grading.
 
 ## Types
 
@@ -57,8 +57,8 @@ they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSu
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
     constructions in commutative algebra. The `SubquoModule` type is designed so that it allows
-	for the caching of such maps when executing functions. The `tensor_product`
-	function discussed in this section provides an example.
+    for the caching of such maps when executing functions. The `tensor_product`
+    function discussed in this section provides an example.
 
 ## Constructors
 

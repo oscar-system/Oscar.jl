@@ -120,7 +120,7 @@ function compose(G::Glueing, H::Glueing)
   return Glueing(X, Z, 
              compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
              compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
-	     )
+         )
 end
 
 @doc raw"""

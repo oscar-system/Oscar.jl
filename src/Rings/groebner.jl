@@ -31,21 +31,21 @@ degrevlex([x, y])
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
-	if !isempty(I.gb)
-		for G in values(I.gb)
-			need_global || return G
-			is_global(G.ord) || continue
-			complete_reduction || return G
-			if !G.isReduced
-				I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
-				return I.gb[G.ord]
-			end
-		end
-	end
-	ord = default_ordering(base_ring(I))
-	(need_global <= is_global(ord)) || error("Monomial ordering must be global.")
-	I.gb[ord] = groebner_assure(I, ord, complete_reduction)
-	return I.gb[ord]
+  if !isempty(I.gb)
+    for G in values(I.gb)
+      need_global || return G
+      is_global(G.ord) || continue
+      complete_reduction || return G
+      if !G.isReduced
+        I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
+        return I.gb[G.ord]
+      end
+    end
+  end
+  ord = default_ordering(base_ring(I))
+  (need_global <= is_global(ord)) || error("Monomial ordering must be global.")
+  I.gb[ord] = groebner_assure(I, ord, complete_reduction)
+  return I.gb[ord]
 end
 
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -85,7 +85,7 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-	# incorrect one
+  # incorrect one
   singular_assure(B, ordering)
   R = B.Sx
   I  = Singular.Ideal(R, gens(B.S)...)
@@ -95,12 +95,12 @@ function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, compl
   #gensSord = singular_generators(B, ordering)
   #i = Singular.std(gensSord, complete_reduction = complete_reduction)
   #BA = IdealGens(B.Ox, i, complete_reduction)
-	BA.isGB = true
-	BA.ord = ordering
-	if isdefined(BA, :S)
-	   BA.S.isGB  = true
-	end
-	return BA
+  BA.isGB = true
+  BA.ord = ordering
+  if isdefined(BA, :S)
+     BA.S.isGB  = true
+  end
+  return BA
 end
 
 # standard basis for non-global orderings #############################
@@ -282,7 +282,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc raw"""
-	groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
+    groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -408,11 +408,11 @@ true
 ```
 """
 function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-	complete_reduction && @assert is_global(ordering)
-	G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
-	G.isGB = true
-	I.gb[ordering]  = G
-	return G, m
+  complete_reduction && @assert is_global(ordering)
+  G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+  G.isGB = true
+  I.gb[ordering]  = G
+  return G, m
 end
 
 @doc raw"""
@@ -446,7 +446,7 @@ true
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
     is_global(ordering) || error("Ordering must be global")
-	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
+    return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
 end
 
 # syzygies #######################################################
@@ -584,7 +584,7 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
 end
 
 @doc raw"""
-	reduce(I::IdealGens, J::IdealGens; 
+    reduce(I::IdealGens, J::IdealGens; 
           ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
 Return a `Vector` whose elements are the underlying elements of `I`
@@ -622,21 +622,21 @@ julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
 ```
 """
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
-	@assert base_ring(J) == base_ring(I)
+  @assert base_ring(J) == base_ring(I)
   Is = singular_generators(I, ordering)
   Js = singular_generators(J, ordering)
   res = reduce(Is, Js, complete_reduction=complete_reduction)
-	return [J.gens.Ox(x) for x = gens(res)]
+  return [J.gens.Ox(x) for x = gens(res)]
 end
 
 @doc raw"""
-	reduce(g::T, F::Vector{T}; 
+    reduce(g::T, F::Vector{T}; 
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
-	reduce(G::Vector{T}, F::Vector{T};
+    reduce(G::Vector{T}, F::Vector{T};
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, a remainder as above.
@@ -677,29 +677,29 @@ x^5 - x^3 + y^6 + z^6
 
 """
 function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f)), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(f) == parent(F[1])
-	R = parent(f)
-	I = IdealGens(R, [f], ordering)
-	J = IdealGens(R, F, ordering)
-	redv = reduce(I, J, ordering=ordering, complete_reduction=complete_reduction)
-	return redv[1]
+  @assert parent(f) == parent(F[1])
+  R = parent(f)
+  I = IdealGens(R, [f], ordering)
+  J = IdealGens(R, F, ordering)
+  redv = reduce(I, J, ordering=ordering, complete_reduction=complete_reduction)
+  return redv[1]
 end
 
 function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(F[1]) == parent(G[1])
-	R = parent(F[1])
-	I = IdealGens(R, F, ordering)
-	J = IdealGens(R, G, ordering)
-	return reduce(I, J, ordering=ordering, complete_reduction=complete_reduction)
+  @assert parent(F[1]) == parent(G[1])
+  R = parent(F[1])
+  I = IdealGens(R, F, ordering)
+  J = IdealGens(R, G, ordering)
+  return reduce(I, J, ordering=ordering, complete_reduction=complete_reduction)
 end
 
 @doc raw"""
-	reduce_with_quotients_and_unit(g::T, F::Vector{T};
+    reduce_with_quotients_and_unit(g::T, F::Vector{T};
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 Return the unit, the quotients and the remainder in a weak standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
-	reduce_with_quotients_and_unit(G::Vector{T}, F::Vector{T};
+    reduce_with_quotients_and_unit(G::Vector{T}, F::Vector{T};
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients, and a remainder as above.
@@ -747,20 +747,20 @@ true
 ```
 """
 function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(f) == parent(F[1])
-	R = parent(f)
-	I = IdealGens(R, [f], ordering)
-	J = IdealGens(R, F, ordering)
-	u, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
-	return u, q, r[1]
+  @assert parent(f) == parent(F[1])
+  R = parent(f)
+  I = IdealGens(R, [f], ordering)
+  J = IdealGens(R, F, ordering)
+  u, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
+  return u, q, r[1]
 end
 
 function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(F[1]) == parent(G[1])
-	R = parent(F[1])
-	I = IdealGens(R, F, ordering)
-	J = IdealGens(R, G, ordering)
-	return _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
+  @assert parent(F[1]) == parent(G[1])
+  R = parent(F[1])
+  I = IdealGens(R, F, ordering)
+  J = IdealGens(R, G, ordering)
+  return _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
 end
 
 @doc raw"""
@@ -813,7 +813,7 @@ true
 ```
 """
 function reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
-	return _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
+  return _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
 end
 
 
@@ -875,13 +875,13 @@ function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrd
 end
 
 @doc raw"""
-	reduce_with_quotients(g::T, F::Vector{T}; 
+    reduce_with_quotients(g::T, F::Vector{T}; 
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 If `ordering` is global, return the quotients and the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the quotients and the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
-	reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
+    reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
            ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where T <: MPolyRingElem
 
 Return a `Vector` which contains, for each element `g` of `G`, quotients and a remainder as above.
@@ -913,29 +913,29 @@ true
 ```
 """
 function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(f) == parent(F[1])
-	R = parent(f)
-	I = IdealGens(R, [f], ordering)
-	J = IdealGens(R, F, ordering)
-	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
-	return q, r[1]
+  @assert parent(f) == parent(F[1])
+  R = parent(f)
+  I = IdealGens(R, [f], ordering)
+  J = IdealGens(R, F, ordering)
+  _, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
+  return q, r[1]
 end
 
 function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
-	@assert parent(F[1]) == parent(G[1])
-	R = parent(F[1])
-	I = IdealGens(R, F, ordering)
-	J = IdealGens(R, G, ordering)
-	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
-	return q, r
+  @assert parent(F[1]) == parent(G[1])
+  R = parent(F[1])
+  I = IdealGens(R, F, ordering)
+  J = IdealGens(R, G, ordering)
+  _, q, r = _reduce_with_quotients_and_unit(I, J, ordering, complete_reduction)
+  return q, r
 end
 
 function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = complete_reduction)
-	@assert base_ring(J) == base_ring(I)
-	sI = singular_generators(I, ordering)
+  @assert base_ring(J) == base_ring(I)
+  sI = singular_generators(I, ordering)
   sJ = singular_generators(J, ordering)
   res = Singular.divrem(sI, sJ, complete_reduction=complete_reduction)
-	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
+  return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
 @doc raw"""
@@ -1032,26 +1032,26 @@ true
 ```
 """
 function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
-	if F.isGB && F.ord == ordering
-		return true
-	else
-		# Try to reduce all possible s-polynomials, i.e. Buchberger's criterion
-		R = base_ring(F)
-		for i in 1:length(F)
-			lt_i = leading_term(F[i], ordering=ordering)
-			for j in i+1:length(F)
-				lt_j = leading_term(F[j], ordering=ordering)
-				lcm_ij  = lcm(lt_i, lt_j)
-				sp_ij = div(lcm_ij, lt_i) * F[i] - div(lcm_ij, lt_j) * F[j]
-				if reduce(IdealGens([sp_ij], ordering), F, ordering=ordering) != [R(0)]
-					return false
-				end
-			end
-		end
-		F.isGB = true
-		F.ord = ordering
-		return true
-	end
+  if F.isGB && F.ord == ordering
+    return true
+  else
+    # Try to reduce all possible s-polynomials, i.e. Buchberger's criterion
+    R = base_ring(F)
+    for i in 1:length(F)
+      lt_i = leading_term(F[i], ordering=ordering)
+      for j in i+1:length(F)
+        lt_j = leading_term(F[j], ordering=ordering)
+        lcm_ij  = lcm(lt_i, lt_j)
+        sp_ij = div(lcm_ij, lt_i) * F[i] - div(lcm_ij, lt_j) * F[j]
+        if reduce(IdealGens([sp_ij], ordering), F, ordering=ordering) != [R(0)]
+          return false
+        end
+      end
+    end
+    F.isGB = true
+    F.ord = ordering
+    return true
+  end
 end
 
 @doc raw"""
@@ -1083,8 +1083,8 @@ true
 ```
 """
 function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(F)))
-    is_global(ordering) || error("Ordering must be global")
-	return is_standard_basis(F, ordering=ordering)
+  is_global(ordering) || error("Ordering must be global")
+  return is_standard_basis(F, ordering=ordering)
 end
 
 @doc raw"""
@@ -1130,13 +1130,13 @@ lex([x1, x2, x3, x4])
 ```
 """
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
-	(G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
-	singular_assure(G)
-	Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
-	SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
+  (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
+  singular_assure(G)
+  Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
+  SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
-	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
-	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
+  ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
+  return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
 end
 
 @doc raw"""
@@ -1180,18 +1180,18 @@ julia> leading_coefficient(G[8])
 ```
 """
 function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
-	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
-	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
-	if !haskey(I.gb, start_ordering)
-		standard_basis(I, ordering=start_ordering, complete_reduction=true)
-	elseif I.gb[start_ordering].isReduced == false
-		I.gb[start_ordering] = _compute_standard_basis(I.gb[start_ordering], start_ordering, true)
-	end
+  isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+  (is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
+  haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+  if !haskey(I.gb, start_ordering)
+    standard_basis(I, ordering=start_ordering, complete_reduction=true)
+  elseif I.gb[start_ordering].isReduced == false
+    I.gb[start_ordering] = _compute_standard_basis(I.gb[start_ordering], start_ordering, true)
+  end
 
-	I.gb[destination_ordering] = _fglm(I.gb[start_ordering], destination_ordering)
+  I.gb[destination_ordering] = _fglm(I.gb[start_ordering], destination_ordering)
 
-	return I.gb[destination_ordering]
+  return I.gb[destination_ordering]
 end
 
 @doc raw"""
@@ -1235,14 +1235,14 @@ degrevlex([x, y])
 ```
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
-	destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
-	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
-	is_global(destination_ordering) || error("Destination ordering must be global.")
-	G = groebner_assure(I, true, true)
-	start_ordering = G.ord
-	dim(I) == 0 || error("Dimension of ideal must be zero.")
-	I.gb[destination_ordering] = _fglm(G, destination_ordering)
+  destination_ordering::MonomialOrdering)
+  isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+  haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+  is_global(destination_ordering) || error("Destination ordering must be global.")
+  G = groebner_assure(I, true, true)
+  start_ordering = G.ord
+  dim(I) == 0 || error("Dimension of ideal must be zero.")
+  I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
 
 @doc raw"""

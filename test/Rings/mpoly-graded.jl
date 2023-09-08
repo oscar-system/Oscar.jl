@@ -151,7 +151,7 @@ end
         dim_test = dims[RR]
 
         if base_ring(R) isa AbstractAlgebra.Field
-	  if is_free(grading_group(RR))
+          if is_free(grading_group(RR))
              grp_elem = d_Elem
              H = homogeneous_component(RR, grp_elem)
              @test Oscar.has_relshp(H[1], RR) !== nothing
@@ -160,7 +160,7 @@ end
                @test (H[2].g)(RR(g)) == g
              end
              @test dim(H[1]) == dim_test #
-	  end
+          end
         end
         #H_quo = homogeneous_component(R_quo, grp_elem)
         #Oscar.has_relshp(H_quo[1], R_quo) !== nothing

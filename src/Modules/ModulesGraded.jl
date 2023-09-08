@@ -2232,15 +2232,15 @@ function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
   s = dmin
   B = monomial_basis(R, d-s)
   for i = 1:length(V)
-       if degree(Int, V[i]) < d
-          if degree(Int, V[i]) > s
-             s = degree(Int, V[i])
-	     B = monomial_basis(R, d-s)
-	  end
-	     append!(RES, [x*V[i] for x in B])
-       else
-           push!(RES, V[i])
-       end
+    if degree(Int, V[i]) < d
+      if degree(Int, V[i]) > s
+        s = degree(Int, V[i])
+        B = monomial_basis(R, d-s)
+      end
+      append!(RES, [x*V[i] for x in B])
+    else
+      push!(RES, V[i])
+    end
   end
   return sub(I, RES, task) 
 end

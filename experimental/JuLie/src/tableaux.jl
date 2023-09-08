@@ -364,7 +364,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
 
     m=0
     while m >= 0
-      if m == weight[n]		 #jump to next recursive step
+      if m == weight[n]   # jump to next recursive step
         rec_sst!(n+1)
         tab[tracker_row[m]][sub_s[tracker_row[m]]] = 0
         i = tracker_row[m] + 1
@@ -387,7 +387,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
           sub_s[i-1] -= 1
         end
 
-      elseif j<=s[i] && (i==1 || (j<=sub_s[i-1] && n>tab[i-1][j]))	#add an entry
+      elseif j<=s[i] && (i==1 || (j<=sub_s[i-1] && n>tab[i-1][j]))  #add an entry
         m += 1
         tab[i][j] = n
         sub_s[i] += 1
@@ -400,9 +400,9 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
           j = sub_s[i] + 1
         end
       end
-    end	#while
+    end #while
 
-  end	#rec_sst!()
+  end #rec_sst!()
 
   rec_sst!(1)
   return tabs

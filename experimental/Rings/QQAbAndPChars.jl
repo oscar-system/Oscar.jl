@@ -13,10 +13,10 @@ import Oscar: IJuliaMime
 mutable struct PartialCharacter{T}
   #A has generators of the lattice in rows
   A::ZZMatrix
-	#images of the generators are saved in b
+  #images of the generators are saved in b
   b::Vector{T}
-	#Delta are the indices of the cellular variables of the associated ideal
-	#(the partial character is a partial character on Z^Delta)
+  #Delta are the indices of the cellular variables of the associated ideal
+  #(the partial character is a partial character on Z^Delta)
   D::Set{Int64}
   function PartialCharacter{T}() where T 
     return new{T}()
@@ -67,27 +67,27 @@ function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where T <: F
     return true
   end
   if !have_same_domain(P, Q)
-  	return false
+    return false
   end
   #now test if the values taken on the generators of the lattices are equal
-	for i = 1:nrows(P.A)
-		TestVec = view(P.A, i:i, 1:Nemo.ncols(P.A))
-		if P(TestVec) != Q(TestVec)
-			return false
-		end
-	end
+  for i = 1:nrows(P.A)
+    TestVec = view(P.A, i:i, 1:Nemo.ncols(P.A))
+    if P(TestVec) != Q(TestVec)
+      return false
+    end
+  end
   return true
 end
 
 function saturations(L::PartialCharacter{QQAbElem{T}}) where T
-	#computes all saturations of the partial character L
+  #computes all saturations of the partial character L
   res = PartialCharacter{QQAbElem{T}}[]
 
   #first handle case where the domain of the partial character is the zero lattice
   #in this case return L
   if iszero(L.A)
-		push!(res, L)
-		return res
+    push!(res, L)
+    return res
   end
 
   #now not trivial case
@@ -97,7 +97,7 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
   #so, saturation is i' * H // d
   S = divexact(transpose(i)*L.A, d)
 
-	B = Vector{Vector{QQAbElem{T}}}()
+  B = Vector{Vector{QQAbElem{T}}}()
   for k = 1:nrows(H)
     c = i[1, k]
     for j = 2:ncols(H)
@@ -107,7 +107,7 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
       end
     end
     mu = evaluate(FacElem(Dict(Tuple{QQAbElem{T}, ZZRingElem}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
-		mu1 = roots(mu, Int(div(d, c)))
+    mu1 = roots(mu, Int(div(d, c)))
     push!(B,  mu1)
   end
   it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in B])
@@ -117,18 +117,18 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
   end
   
   for k = 1:length(vT)
-		#check if PChar(S,vT[k],L.D) puts on the right value on the lattice generators of L
-		Pnew = partial_character(S, vT[k], L.D)
-		flag = true	#flag if value on lattice generators is right
-		for i = 1:Nemo.nrows(L.A)
-			if Pnew(sub(L.A, i:i ,1:Nemo.ncols(L.A))) != L.b[i]
-				flag = false
-				println("found wrong saturation (for information), we delete it")
-			end
-		end
-		if flag
-			push!(res, Pnew)
-		end
+    #check if PChar(S,vT[k],L.D) puts on the right value on the lattice generators of L
+    Pnew = partial_character(S, vT[k], L.D)
+    flag = true   #flag if value on lattice generators is right
+    for i = 1:Nemo.nrows(L.A)
+      if Pnew(sub(L.A, i:i ,1:Nemo.ncols(L.A))) != L.b[i]
+        flag = false
+        println("found wrong saturation (for information), we delete it")
+      end
+    end
+    if flag
+      push!(res, Pnew)
+    end
   end
   return res
 end

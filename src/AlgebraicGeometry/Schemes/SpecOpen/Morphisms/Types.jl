@@ -43,10 +43,10 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
         codomain(f[i]) === Y || error("codomain is not compatible")
       end
       for i in 1:n-1
-	for j in i+1:n
-	  A = intersect(domain(f[i]), domain(f[j]))
-	  restrict(f[i], A, Y) == restrict(f[j], A, Y) || error("maps don't glue")
-	end
+        for j in i+1:n
+          A = intersect(domain(f[i]), domain(f[j]))
+          restrict(f[i], A, Y) == restrict(f[j], A, Y) || error("maps don't glue")
+        end
       end
       for g in f
         is_empty(subscheme(domain(g), pullback(g).(complement_equations(V)))) || error("image is not contained in the codomain")

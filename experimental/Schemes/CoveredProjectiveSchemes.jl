@@ -593,7 +593,7 @@ end
 #    At, embeddingAt, T =  _add_variables(R,[:t])
 #    t = T[1]
 #
-#    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+#    #@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
 #    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
 #
 #    Imod = modulus(A)
@@ -1021,35 +1021,35 @@ end
 
 
 # function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-	#(IOw: Exc Div ^\infty)
-	
+#(IOw: Exc Div ^\infty)
+
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
-#	while true
+#
+#        while true
 #          Inew = quotient(Iold, Excdiv)
 #          Iold == Inew && break
 #          Iold = Inew
-#	end
+#        end
 #        return gens(Iold)
 #end
 #
 #
 #
 #function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-#	#IOw
-#	
+#        #IOw
+#
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #        return gens(Iold)
 #end
@@ -1058,43 +1058,43 @@ end
 #### NOT TESTED YET
 #function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #
-#	while true
-#		Inew = quotient(Iold, Excdiv)
-#		!(Iold == Excdiv * Inew) && break
-#		Iold = Inew 
-#	end
-#	return gens(Iold)
-#	#(IOw : Exc Div ^k), k maximal
+#        while true
+#           Inew = quotient(Iold, Excdiv)
+#           !(Iold == Excdiv * Inew) && break
+#           Iold = Inew 
+#        end
+#        return gens(Iold)
+#        #(IOw : Exc Div ^k), k maximal
 #end
 #
 #### NOT TESTED YET
 #function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
-#	#(IOw : Exc Div ^i)
+#        #(IOw : Exc Div ^i)
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
 #
-#	for j in 1:i
-#		Inew = quotient(Iold,Excdiv)
-#		Inew == 1 && break
-#		Iold = Inew
-#	end
-#	
-#	return gens(Iold)
+#
+#        for j in 1:i
+#          Inew = quotient(Iold,Excdiv)
+#          Inew == 1 && break
+#          Iold = Inew
+#        end
+#
+#        return gens(Iold)
 #
 #end
 #
