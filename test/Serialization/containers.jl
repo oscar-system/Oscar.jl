@@ -1,5 +1,22 @@
 @testset "Serialization.Containers" begin
   mktempdir() do path
+    @testset "Empty Containers" begin
+      v = Int[]
+      test_save_load_roundtrip(path, v) do loaded
+        v == loaded
+      end
+
+      t = Tuple{Vector{Int}, Vector{Int}}([v, [0]])
+      test_save_load_roundtrip(path, t) do loaded
+        @test t == loaded
+      end
+
+      nt = (a = v, b = t)
+      test_save_load_roundtrip(path, nt) do loaded
+        @test nt == loaded
+      end
+    end
+    
     @testset "Vector{LinearProgram}" begin
       c = cube(3)
       LP0 = linear_program(c, [2,2,-3])
