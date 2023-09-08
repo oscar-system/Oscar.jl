@@ -84,7 +84,19 @@ mutable struct InvariantRing
     end
 end
 
+function invariant_ring(sym::Symbol, rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
+    return InvariantRing(sym::Symbol, rep_mat::T where T <:AbstractAlgebra.Generic.MatSpaceElem)
+end
+
+function invariant_ring(sym::Symbol, m::Int64, sym_deg::Int64)
+    return InvariantRing(sym::Symbol, m::Int64, sym_deg::Int64)
+end
+
 function gens(R::InvariantRing)
+    return R.generators
+end
+
+function fundamental_invariants(R::InvariantRing)
     return R.generators
 end
 
