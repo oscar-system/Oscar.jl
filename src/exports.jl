@@ -1375,6 +1375,7 @@ export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
+export total_space
 export transform
 export transition_graph
 export transitive_group
