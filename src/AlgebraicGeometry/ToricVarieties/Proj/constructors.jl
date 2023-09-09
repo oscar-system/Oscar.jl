@@ -33,7 +33,7 @@ function proj(E::ToricDivisor...)
 end
 
 function proj()
-  @req false "The direct sum is empty."
+  error("The direct sum is empty")
 end
 
 function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
@@ -140,5 +140,5 @@ function total_space(E::ToricDivisor...)
 end
 
 function total_space()
-  @req false "The direct sum is empty."
+  error("The direct sum is empty")
 end

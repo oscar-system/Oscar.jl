@@ -1,3 +1,6 @@
+using Oscar
+using Test
+
 @testset "Projectivization of direct sum of line bundles on toric space (set_attributes = $set_attributes)" for set_attributes in [true, false]
   P1 = projective_space(NormalToricVariety, 1; set_attributes)
   @testset "Test of the Hirzebruch surfaces from 0 to 10" begin
