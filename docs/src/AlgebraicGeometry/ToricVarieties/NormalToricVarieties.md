@@ -97,6 +97,7 @@ blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coor
 blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
 proj(E::ToricLineBundle...)
+total_space(E::ToricLineBundle...)
 ```
 
 
