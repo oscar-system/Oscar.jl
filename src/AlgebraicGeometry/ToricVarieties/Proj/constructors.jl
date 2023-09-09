@@ -44,8 +44,12 @@ function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{Tor
 
   @req all(i -> toric_variety(E[i]) == v, eachindex(E)) "The divisors are defined on different toric varieties."
 
-  PF_Pr = normal_fan(simplex(length(E) - 1))
-  l = rays(PF_Pr)
+  if is_proj
+    PF_fiber = normal_fan(simplex(length(E) - 1))
+  else
+    PF_fiber = polyhedral_fan(positive_hull(identity_matrix(ZZ, length(E))))
+  end
+  l = rays(PF_fiber)
 
   modified_ray_gens = Dict{RayVector{QQFieldElem}, RayVector{QQFieldElem}}()
 
@@ -63,8 +67,8 @@ function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{Tor
 
   for a in 1:n_maximal_cones(v)
     first = [row(ray_indices(maximal_cones(v)), a)...]
-    for b in eachindex(E)
-      second = [row(ray_indices(maximal_cones(PF_Pr)), b)...] .+ nrays(v)
+    for b in 1:n_maximal_cones(PF_fiber)
+      second = [row(ray_indices(maximal_cones(PF_fiber)), b)...] .+ nrays(v)
       new_maximal_cones[index] = vcat(first, second)
       index += 1
     end
@@ -128,13 +132,13 @@ julia> degree(canonical_bundle(Y))
 ```
 """
 function total_space(E::ToricLineBundle...)
-	return _proj_and_total_space(false, [E...])
+  return _proj_and_total_space(false, [E...])
 end
 
 function total_space(E::ToricDivisor...)
-	return _proj_and_total_space(false, [E...])
+  return _proj_and_total_space(false, [E...])
 end
 
 function total_space()
-	@req false "The direct sum is empty."
+  @req false "The direct sum is empty."
 end
