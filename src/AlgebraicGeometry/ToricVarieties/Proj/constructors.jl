@@ -25,22 +25,22 @@ Normal toric variety
 ```
 """
 function proj(E::ToricLineBundle...)
-  return _proj([E...])
+  return _proj_and_total_space(true, [E...])
 end
 
 function proj(E::ToricDivisor...)
-  return _proj([E...])
+  return _proj_and_total_space(true, [E...])
 end
 
 function proj()
-	@req false "The direct sum is empty."
+  @req false "The direct sum is empty."
 end
 
-function _proj(E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
+function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
 
   v = toric_variety(E[1])
 
-  length(E) == 1 && return v
+  is_proj && length(E) == 1 && return v
 
   @req all(i -> toric_variety(E[i]) == v, eachindex(E)) "The divisors are defined on different toric varieties."
 
@@ -53,12 +53,12 @@ function _proj(E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
     pol_sigma = polarize(sigma)
     for ray in rays(sigma)
       ray in keys(modified_ray_gens) && continue
-      modified_ray_gens[ray] = vcat(ray, -sum(i -> dot(_m_sigma(sigma, pol_sigma, E[i]), ray) * l[i], eachindex(E)))
+      modified_ray_gens[ray] = vcat(ray, sum(i -> dot(_m_sigma(sigma, pol_sigma, E[i]), ray) * l[i], eachindex(E)))
     end
     length(keys(modified_ray_gens)) == nrays(v) && break
   end
 
-  new_maximal_cones = Vector{Vector{Int64}}(undef, n_maximal_cones(v) * length(E))
+  new_maximal_cones = Vector{Vector{Int64}}(undef, n_maximal_cones(v) * n_maximal_cones(PF_fiber))
   index = 1
 
   for a in 1:n_maximal_cones(v)
@@ -93,4 +93,48 @@ function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Uni
   end
 
   return ans
+end
+
+@doc raw"""
+    total_space(E::ToricLineBundle...)
+
+This function computes the total space of a direct sum of line bundles or divisors.
+Please see [OM78](@cite) for more background information.
+
+# Examples
+Let us construct the toric Calabi-Yau varieties given by the total space of ``\mathcal{O}_{\mathbb{P}^1}(2)\oplus\mathcal{O}_{\mathbb{P}^1}(-4))`` and ``\omega_{\mathbb{P}^2}``.
+```jldoctest
+julia> P1 = projective_space(NormalToricVariety, 1);
+
+julia> L1 = toric_line_bundle(P1, [2]);
+
+julia> L2 = toric_line_bundle(P1, [-4]);
+
+julia> X = total_space(L1, L2)
+Normal toric variety
+
+julia> degree(canonical_bundle(X))
+0
+
+julia> P2 = projective_space(NormalToricVariety, 2);
+
+julia> D = canonical_divisor(P2);
+
+julia> Y = total_space(D)
+Normal toric variety
+
+julia> degree(canonical_bundle(Y))
+0
+```
+"""
+function total_space(E::ToricLineBundle...)
+	return _proj_and_total_space(false, [E...])
+end
+
+function total_space(E::ToricDivisor...)
+	return _proj_and_total_space(false, [E...])
+end
+
+function total_space()
+	@req false "The direct sum is empty."
 end

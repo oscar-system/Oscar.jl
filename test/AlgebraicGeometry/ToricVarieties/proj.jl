@@ -40,7 +40,7 @@
   D1 = toric_divisor(P1, [-1,0])
   F1 = proj(D0, D1)
   X1_F1 = proj(toric_divisor(F1, [1,1,0,0]), toric_divisor(F1, [1,1,0,0]))
-  l1_F1 = toric_line_bundle(F1, [1,1])
+  l1_F1 = toric_line_bundle(F1, [0,1])
   X2_F1 = proj(toric_line_bundle(F1, [0,0]), l1_F1)
   @testset "Test of some Fano projective bundles of dimension 3 over F1" begin
     @test rank(picard_group(X1_F1)) == 3
@@ -72,4 +72,52 @@
     @test integrate(cohomology_class(anticanonical_divisor(X3_P1xP1))^dim(X3_P1xP1)) == 52
   end
   
+end
+
+@testset "Total space of direct sum of line bundles on toric space (set_attributes = $set_attributes)" for set_attributes in [true, false]
+
+	@testset "Test that some vb on P1 are Calabi-Yau" begin
+		P1 = projective_space(NormalToricVariety, 1; set_attributes)
+		for a in 0:5
+			for b in 0:5
+				la = toric_line_bundle(P1, [a])
+				lb = toric_line_bundle(P1, [-b])
+				X = total_space(la, lb)
+				@test is_smooth(X) == true
+				@test !is_fano(X)
+				@test !is_complete(X)
+				@test rank(picard_group(X)) == 1
+				@test dim(X) == 3
+				@test (degree(canonical_bundle(X)) == 0) == (a - b == -2)
+			end
+		end
+	end
+
+	@testset "Test that omega_S is Calabi-Yau for any S smooth surface" begin
+		@testset "S is Hirzebruch" begin
+			for a in 0:10
+				S = hirzebruch_surface(NormalToricVariety, a; set_attributes)
+				X = total_space(canonical_bundle(S))
+				@test is_smooth(X) == true
+				@test !is_fano(X)
+        @test !is_complete(X)
+				@test rank(picard_group(X)) == rank(picard_group(S))
+				@test dim(X) == 3
+				@test degree(canonical_bundle(X)) == 0
+			end
+		end
+
+		@testset "S is del Pezzo" begin
+			for a in 0:3
+				S = del_pezzo_surface(NormalToricVariety, a; set_attributes)
+				X = total_space(canonical_divisor(S))
+				@test is_smooth(X) == true
+				@test !is_fano(X)
+				@test rank(picard_group(X)) == rank(picard_group(S))
+				@test dim(X) == 3
+				@test degree(canonical_bundle(X)) == 0
+			end
+		end
+	end
+
 end
