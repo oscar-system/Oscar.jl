@@ -1089,7 +1089,7 @@ function Oscar.completion(I::IdelParent, P::NfAbsOrdIdl)
 
   J = components(I.M)[p+1]
   if mKp.P == P #easy case
-    return Kp, mKp, mGp, mUp,  pro * canonical_projection(J, 1) ,  canonical_injection(J, 1)*inj
+    return Kp, mKp, mGp, mUp, pro * canonical_projection(J, 1), canonical_injection(J, 1)*inj
   end
 
   prm = get_attribute(J, :induce)[2]
