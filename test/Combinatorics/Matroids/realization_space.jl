@@ -30,9 +30,9 @@
 	
     end
     
-    B1 = find_good_basis_heuristically(M1)
-    B2 = find_good_basis_heuristically(M2)
-    B3 = find_good_basis_heuristically(M3)
+    B1 = Oscar.find_good_basis_heuristically(M1)
+    B2 = Oscar.find_good_basis_heuristically(M2)
+    B3 = Oscar.find_good_basis_heuristically(M3)
     
     @testset "find_good_basis_heuristically" begin
         @test B1 == [2,6,7]
@@ -44,23 +44,74 @@
     f = 2*(x^2+y)^2*(x+y*z)^4
     
     @testset "poly_2_factors" begin
-        @test poly_2_factors(f) == [x^2+y, x+y*z]
+        @test Oscar.poly_2_factors(f) == [x^2+y, x+y*z]
     end
 
     Sgens = [2*(x^2+y)^2*(x+y*z)^4, 3*x^2*(x+y*z)^5] 
 
     @testset "gens_2_factors" begin
-        @test gens_2_factors(Sgens) == [x^2+y, x+y*z, x]
+        @test Oscar.gens_2_factors(Sgens) == [x^2+y, x+y*z, x]
     end
     
     I = ideal(R, [x^2*(y+z), y^3*(y+z), z*(y+z)])
     Sgens = [x,y,z]
     
     @testset "stepwise_saturation" begin
-        @test stepwise_saturation(I,Sgens) == ideal(R, [y+z])
+        @test Oscar.stepwise_saturation(I,Sgens) == ideal(R, [y+z])
     end
     
+    Igens = [y^3-x^2+1, x^2*y-z^3+6]
+    Sgens = [x,y,z]
+
+    @testset "find_solution_v" begin
+        @test Oscar.find_solution_v(y, Igens, Sgens, R) == (z^3-6)//x^2
+    end
     
+    phi = Oscar.sub_map(y, (z^3-6)//x^2, R, [x,y,z])
+    
+    @testset "sub_map" begin
+        @test phi.([x,y,z]) == [x,(z^3-6)//x^2,z]
+    end
+    
+    t = (z^3-6)//x^2
+    f = y^3-x^2+1
+    
+    @testset "sub_v" begin
+        @test Oscar.sub_v(y, t, f, R, [x,y,z]) == (z^3-6)^3 + x^6*(-x^2 + 1)
+    end
+    
+    f = x*y^2*z^3*(x^2+y-x*z^3)
+    Sgens = [x,y,z]
+    
+    @testset "clean" begin
+        @test Oscar.clean(f, R, Sgens) == x^2+y-x*z^3
+    end
+    
+    Igens = [x+y, x^2]
+    
+    @testset "ideal_vars" begin
+        @test Oscar.ideal_vars(Igens) == [x,y]
+    end
+        
+    newSgens = Oscar.n_new_Sgens(y,t,[y^3-x^2+1, y+x^3 ],R,[x,y,z])
+    
+    @testset "n_new_Sgens" begin
+        @test newSgens == [x^8 - x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^5 + z^3 - 6]
+    end
+    
+    @testset "n_new_Igens" begin
+        @test Oscar.n_new_Igens(y,t,[y^3-x-2, y+z^3], newSgens ,R,[x,y,z]) == [x^7 + 2*x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^2*z^3 + z^3 - 6]
+    end
+    
+    X = matrix(FractionField(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
+
+    @testset "matrix_clear_den_in_col" begin
+        @test Oscar.matrix_clear_den_in_col(X, 2) == matrix(FractionField(R), [x//(z-1) y*z z; -y+1 x^2+x 2*x*y]) 
+    end
+
+    @testset "matrix_clear_den" begin
+        @test Oscar.matrix_clear_den(X) == matrix(FractionField(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
+    end
      
     
 end
