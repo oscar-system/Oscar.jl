@@ -191,8 +191,10 @@
     j = johnson_solid(2)
 
     let f = facets(Polyhedron, j)
+      fj = normal_vector.(facets(j))
+      fj = [fj; -fj]
       for i in 1:nfacets(j)
-        @test facets(f[i])[] in facets(j)
+        @test normal_vector(affine_hull(f[i])[]) in fj
       end
       @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedElem{nf_elem}}, Vector{EmbeddedElem{nf_elem}}}}
       g = halfspace_matrix_pair(f)
