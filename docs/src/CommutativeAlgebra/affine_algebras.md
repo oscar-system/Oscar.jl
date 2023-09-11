@@ -19,10 +19,10 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
-	basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-	to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
-	OSCAR). Once computed, the Gröbner basis is cached for later reuse.
-	
+    basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
+    to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
+    OSCAR). Once computed, the Gröbner basis is cached for later reuse.
+
 !!! note
     Recall that Gröbner basis methods are implemented for multivariate polynomial rings over fields (exact fields supported by
     OSCAR) and, where not indicated otherwise, for multivariate polynomial rings over the integers.
@@ -30,22 +30,22 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
-	with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
-	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
-	reduced representatives. 
+    with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
+    Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
+    reduced representatives.
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
     (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous).
     Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly.
-	This applies, in particular, to the functions [`is_graded`](@ref),  [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
-	[`is_zm_graded`](@ref), and [`is_positively_graded`](@ref) which will not be discussed again here. 
+    This applies, in particular, to the functions [`is_graded`](@ref),  [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+    [`is_zm_graded`](@ref), and [`is_positively_graded`](@ref) which will not be discussed again here.
 
 ## Types
 
 The OSCAR type for quotients of  multivariate polynomial rings is of parametrized form `MPolyQuoRing{T}`,
 with elements of type `MPolyQuoRingElem{T}`. Here, `T` is the element type of the polynomial ring.
-    
+
 ## Constructors
 
 ```@docs
@@ -173,7 +173,7 @@ is_homogeneous(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 ### Data associated to Elements of Affine Algebras
 
-Given an element `f` of an affine algebra `A`, 
+Given an element `f` of an affine algebra `A`,
 
 - `parent(f)` refers to `A`.
 
@@ -339,7 +339,7 @@ refer to `R` and `S`, respectively. Given ring homomorphisms `F` : `R` $\to$ `S`
 The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
 the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
 `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in what follows.
-       
+
 ### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
@@ -583,7 +583,7 @@ well-defined *Hilbert function* of $A$,
 
 $H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
 
-The *Hilbert series* of $A$ is the generating function 
+The *Hilbert series* of $A$ is the generating function
 
 $H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
 
@@ -597,7 +597,7 @@ By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is th
 ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
 equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
 Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
-the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem 
+the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem
 of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)).
 The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expanded`,
 `hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
@@ -626,7 +626,7 @@ $H_A(t)=\sum_{d\geq 0} H(A, d) t^d\in\mathbb Z[[t]].$
 
 The Hilbert series can be written as a rational function $p(t)/q(t)$, with denominator
 
-$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$ 
+$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$
 
 In the standard $\mathbb Z$-graded case, where the weights on the variables are all 1, the Hilbert function is of polynomial nature: There exists
  a unique polynomial $P_A(t)\in\mathbb{Q}[t]$, the *Hilbert polynomial*, which satisfies $H(M,d)=P_M(d)$

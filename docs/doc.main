@@ -129,16 +129,16 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
      ],
      "CommutativeAlgebra/homological_algebra.md",
      
      "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
-	"CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
+        "CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
      ],
      "Miscellaneous" => [
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",

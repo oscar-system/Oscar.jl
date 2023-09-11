@@ -29,7 +29,7 @@ $K[x]_>:= K[x][U^{-1}] = \left\{ \frac{f}{u} \:\bigg|\: f \in K[x], \, u\in U_>\
 
 Then $K[x]\subseteq K[x]_>\subseteq K[x]_{\langle x \rangle},$ where $K[x]_{\langle x \rangle}$
 is the localization of $K[x] $ at the maximal ideal $\langle x \rangle .$ Moreover,
- 
+
 - ``K[x] = K[x]_>`` iff $>$ is global, and
 
 - ``K[x]_> = K[x]_{\langle x \rangle}`` iff $>$ is local.
@@ -43,15 +43,15 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
 !!! note
     Given a monomial ordering $>$ on a free $K[x]$-module $F = K[x]^p$ with basis $e_1, \dots, e_p$,
     the above notation extends naturally to elements of  $K[x]^p$ and $K[x]_>^p$, respectively. There is one particularity:
-	Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
+    Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
 ## Default Orderings
 
 !!! note
     The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
     Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-	positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
-	`default_ordering` is `default_ordering(R)*lex(gens(F))`.
+    positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
+    `default_ordering` is `default_ordering(R)*lex(gens(F))`.
 
 Here are some illustrating OSCAR examples:
 
@@ -222,22 +222,22 @@ still sense to speak of fully reduced remainders. However, even if we start from
 !!! note
     Given a monomial ordering $>$ on a free $K[x]$-module $F = K[x]^p$ with basis $e_1, \dots, e_p$,
     the above notation and the division algorithms extend naturally to $K[x]^p$ and $K[x]_>^p$, respectively.
-	
+
 The OSCAR functions discussed below compute standard representations and polynomial weak standard representations, respectively.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
+    ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ```@docs
 reduce_with_quotients(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
+    ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
-		  
+      
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
+    ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
 
 ## Computing Gröbner/Standard Bases
@@ -279,26 +279,26 @@ computed basis can be retrieved by using the `elements` function or its alias `g
 
 ```@docs
 groebner_basis(I::MPolyIdeal;
-	ord::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+    ord::MonomialOrdering = default_ordering(base_ring(I)),
+    complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 ```
 ```@docs
 standard_basis(I::MPolyIdeal;
-	ord::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+    ord::MonomialOrdering = default_ordering(base_ring(I)),
+    complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 ```
-	
+
 ### Gröbner Bases with transformation matrix
 
 ```@docs
 groebner_basis_with_transformation_matrix(I::MPolyIdeal;
-	ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool=false)
+    ordering::MonomialOrdering = default_ordering(base_ring(I)),
+    complete_reduction::Bool=false)
 ```
 ```@docs
 standard_basis_with_transformation_matrix(I::MPolyIdeal;
-	ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool=false)
+    ordering::MonomialOrdering = default_ordering(base_ring(I)),
+    complete_reduction::Bool=false)
 ```
 
 ### Gröbner Basis Conversion Algorithms
@@ -357,8 +357,8 @@ chosen prime number rather than for $I$ itself.
 !!! note
     If appropriate weights and/or the Hilbert function with respect to appropriate weights
     are already known to the user, this information can be entered when calling the Hilbert
-	driven Gröbner basis algorithm as follows:
-    
+    driven Gröbner basis algorithm as follows:
+
 ```@docs
 groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     destination_ordering::MonomialOrdering,
@@ -366,7 +366,7 @@ groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
     hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
 ```
-	
+
 ### Faugère's F4 Algorithm
 
 !!! warning "Expert function for computing Gröbner bases"

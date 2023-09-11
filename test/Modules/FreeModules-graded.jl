@@ -179,7 +179,7 @@ end
           Hom_SubQuoElems[3] = gens(SubQuos[3])
           Hom_SubQuoElems[1] = gens(SubQuos[1])
         end
-					        
+
         @test _eq(sub(F, Hom_SubQuoElems[1]), sub(SubQuos[1], Hom_SubQuoElems[1]))
         @test _eq(sub(F, SubQuos[1]), SubQuos[1])
         @test _eq(quo(F, Hom_SubQuoElems[2]), quo(SubQuos[2], Hom_SubQuoElems[2]))
@@ -246,13 +246,13 @@ end
         for t in [:none, :prod, :sum]
           direct_product(SubQuos[4], SubQuos[4], task = t)
         end
-			        
+
         #if i == 1
         #  @test ngens(direct_product(tensor_product(SubQuos[1], SubQuos[2]), tensor_product(SubQuos[1], SubQuos[3]))) == ngens(tensor_product(SubQuos[1], direct_product(SubQuos[2], SubQuos[3])))
         #  @test ngens(direct_product(tensor_product(F, F), tensor_product(F, F))[1]) == ngens(tensor_product(F, direct_product(F, F)[1]))
         #  tensor_product(SubQuos[1], SubQuos[3], task = :map)
-	      #end
-			        
+        #end
+
         f = SQHoms[3]
         k = kernel(f)
         @test iszero(k[2](gen(k[1], 1)))
@@ -303,7 +303,7 @@ end
             @test _eq(kernel(gm + gm)[1], kernel(gm)[1])
           end
         end
-			        
+
         if R isa AbstractAlgebra.Field
           g = hom_keys[rand(1:6)]
           Ob = [F, SubQuos[3], I]

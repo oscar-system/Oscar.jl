@@ -206,7 +206,7 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
   function indexOfVarN(I::Singular.sideal, n::Int64)
      m = 1
      while div( Singular.leading_term(I[m]),
-		Singular.gen(I.base_ring, n)^(Singular.total_degree(leading_term(I[m])))) == 0
+                Singular.gen(I.base_ring, n)^(Singular.total_degree(leading_term(I[m])))) == 0
        m+=1;
      end
      return m
