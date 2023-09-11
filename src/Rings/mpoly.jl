@@ -29,8 +29,8 @@ end
 # (:x), (:x, :y), (:x, :y, :z)
 # (:x1, :x2, ...)
 function _variables_for_singular(n::Int)
-	n > 3 && return _make_strings("x#" => 1:n)
-	return [ :x, :y, :z ][1:n]
+  n > 3 && return _make_strings("x#" => 1:n)
+  return [ :x, :y, :z ][1:n]
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
@@ -226,7 +226,7 @@ mutable struct IdealGens{S}
     r.gens = BiPolyArray(Ox, O)
     r.ord = ordering
     r.isGB = isGB
-	r.isReduced = isReduced
+    r.isReduced = isReduced
     r.keep_ordering = keep_ordering
     return r
   end
@@ -248,8 +248,8 @@ mutable struct IdealGens{S}
       else
           r = new{elem_type(T)}()
       end
-      r.gens		= BiPolyArray(Ox, S)
-      r.isGB		= S.isGB
+      r.gens = BiPolyArray(Ox, S)
+      r.isGB = S.isGB
       r.isReduced = isReduced
       if T <: Union{MPolyRing, MPolyRingLoc}
           r.ord = monomial_ordering(Ox, ordering(base_ring(S)))

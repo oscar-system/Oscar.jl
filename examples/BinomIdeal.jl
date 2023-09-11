@@ -51,32 +51,32 @@ function saturate(I::Singular.sideal,J::Singular.sideal)
 	#output: array with two entries: the first is the saturation of I with respect to J
 	#the second is an integer k for which I:J^k=I:J^(k+1)=I:J^\infty
 
-	check_parent(I,J)
-	flag=true
-	k=0
-	If=I
-	Iff=I
-	while flag
-		Iff = Singular.quotient(If, J)
-		if isSubset(Iff,If)==true
-			flag =false
-			return [If,k]
-		else
-			k=k+1
-		end
-		If=Iff
-	end
+  check_parent(I,J)
+  flag=true
+  k=0
+  If=I
+  Iff=I
+  while flag
+    Iff = Singular.quotient(If, J)
+    if isSubset(Iff,If)==true
+      flag =false
+      return [If,k]
+    else
+      k=k+1
+    end
+    If=Iff
+  end
 end
 function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
 function isBinomial(f::Singular.spoly)
-	#check if the input polynomial is a binomial
-	if Singular.length(f)<=2
-		return(true)
-	else
-		return(false)
-	end
+  #check if the input polynomial is a binomial
+  if Singular.length(f)<=2
+    return(true)
+  else
+    return(false)
+  end
 end
 function is_binomial(I::MPolyIdeal)
   singular_assure(I)

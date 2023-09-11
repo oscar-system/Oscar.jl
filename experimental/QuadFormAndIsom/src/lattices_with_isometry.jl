@@ -511,7 +511,7 @@ signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))
 @doc raw"""
     integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true,
                                                 ambient_representation = true)
-				                                                             -> ZZLatWithIsom
+                                                             -> ZZLatWithIsom
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
 of `L` of order `n`, return the corresponding lattice with isometry pair $(L, f)$.

@@ -567,8 +567,8 @@ function Base.in(
     tmp_result = false
     for s in U
       if fac[1] in s 
-	tmp_result = true
-	break
+        tmp_result = true
+        break
       end
     end
     tmp_result || return false
@@ -912,8 +912,8 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
     push!(new_sets, S)
     for V in sets(U)
       if issubset(S, V) 
-	pop!(new_sets)
-	break
+        pop!(new_sets)
+        break
       end
     end
   end
@@ -922,8 +922,8 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
     push!(new_sets, V)
     for U in new_sets[1:n]
       if issubset(V, U) 
-	pop!(new_sets)
-	break
+        pop!(new_sets)
+        break
       end
     end
   end
@@ -1289,7 +1289,7 @@ mutable struct MPolyLocRingElem{
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     base_ring(parent(f)) == base_ring(W) || error(
-	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
+      "the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
     @check begin
       if !iszero(f) && !is_unit(denominator(f))
@@ -2607,7 +2607,7 @@ quintuple ``(A, I, d, ϕ, θ)`` consisting of
 """
 function as_affine_algebra(
     L::MPolyLocRing{BRT, BRET, RT, RET, 
-			     MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
+               MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
     inverse_name::VarName=:_0
   ) where {BRT, BRET, RT, RET}
   R = base_ring(L)

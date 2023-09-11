@@ -34,8 +34,8 @@ defined by ideal(x^3 + y^3 + z^3)
 ```
 """
 @attributes mutable struct ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}
-  A::CoeffRingType	# the base ring
-  r::Int	# the relative dimension
+  A::CoeffRingType  # the base ring
+  r::Int        # the relative dimension
   S::RingType   # A[s₀,…,sᵣ]/I
 
   # fields used for caching

@@ -382,10 +382,10 @@ function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
        b = one(parent(t))
        for i in QQ(1):QQ(n-1)
            b = b * (t+i)
-        end
+       end
        b = b/QQ(factorial(n-1))
-       return b	   
-     end
+       return b
+   end
    H = HilbertData(A.I)
    return hilbert_polynomial(H)
 end
@@ -736,7 +736,7 @@ G
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
-  @req is_positively_graded(A) "ring must be positively graded"
+   @req is_positively_graded(A) "ring must be positively graded"
    (p, q), (H, iso) = multi_hilbert_series(A, algorithm=algorithm)
    f = p//evaluate(q)
    p = numerator(f)
@@ -746,18 +746,18 @@ function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerS
 end
 
 function _monomial_ideal_membership(m::MPolyRingElem, I::MPolyIdeal)
-   ### for potential use in multi_hilbert_function
-   ### I is supposed to be given by monomial generators, ordered by
-   ### increasing (total) degree, m is supposed to be a monomial
-        for i = 1:ngens(I)
-	     if total_degree(gen(I, i))>total_degree(m)
-	        break
-	     end
-	     if minimum(exponent_vector(m, 1)-exponent_vector(gen(I, i), 1))>=0
-	         return true
-             end
-        end
-	return false
+  ### for potential use in multi_hilbert_function
+  ### I is supposed to be given by monomial generators, ordered by
+  ### increasing (total) degree, m is supposed to be a monomial
+  for i = 1:ngens(I)
+    if total_degree(gen(I, i))>total_degree(m)
+      break
+    end
+    if minimum(exponent_vector(m, 1)-exponent_vector(gen(I, i), 1))>=0
+      return true
+    end
+  end
+  return false
 end
 
 @doc raw"""
@@ -830,15 +830,15 @@ function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
        return 0
     end
 
-LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
+    LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
     
     cc = 0
     for i in 1:length(L)
         if !(L[i] in LI)
-	    cc = cc+1
-         end
+            cc = cc+1
+        end
     end
     return cc
 end

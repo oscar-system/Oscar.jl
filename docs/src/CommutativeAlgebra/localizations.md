@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar 
+CurrentModule = Oscar
 DocTestSetup = quote
   using Oscar
 end
@@ -37,7 +37,7 @@ multiplicatively closed subsets of quotients.
 !!! note
     Most functions described here rely on the computation of standard bases. Recall that OSCAR
     supports standard bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and
-	for multivariate polynomial rings over the integers.	
+    for multivariate polynomial rings over the integers.
 
 ## Types
 
@@ -51,7 +51,7 @@ For multiplicatively closed subsets of multivariate polynomial rings, there are 
 
 The general abstract type for localizations of rings is `AbsLocalizedRing`. For localizations of multivariate
 polynomial rings, there is the concrete subtype `MPolyLocRing`. For localizations of quotients of
-multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRing`. 
+multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRing`.
 
 
 ## Constructors
@@ -88,7 +88,7 @@ localization(R::MPolyRing, U::AbsMPolyMultSet)
 ```@docs
 localization(RQ::MPolyQuoRing, U::AbsMPolyMultSet)
 ```
-	
+
 ## Data associated to Localized Rings
 
 If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multiplicatively closed subset
@@ -168,7 +168,7 @@ For elements of localizations of quotients of multivariate polynomial rings, the
 
 If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multiplicatively closed subset
 `U` of `R`, then elements of `Rloc` are created as (fractions of) images of elements of `R` under
-the localization map or by coercing (pairs of) elements of `R` into fractions. 
+the localization map or by coercing (pairs of) elements of `R` into fractions.
 
 If `RQ` is a quotient of a multivariate polynomial ring `R`, `p` : `R` ``\to`` `RQ` is the projection map, `U`  is a
 multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at `p(U)`, then elements of
@@ -271,7 +271,7 @@ x^2/y^2
 ### Data Associated to Elements of Localized Rings
 
 If `Rloc` is a localization of a multivariate polynomial ring `R`, and `f` is an element of `Rloc`, internally
-represented by a pair `(r, u)` of elements of `R`, then 
+represented by a pair `(r, u)` of elements of `R`, then
 - `parent(f)` refers to `Rloc`,
 - `numerator(f)` to `r`, and
 - `denominator(f)` to `u`.
@@ -405,7 +405,7 @@ restricted_map(PHI::MPolyLocalizedRingHom)
 ```
 
 ## Ideals in Localized Rings
-	  
+
 ### Types
 
 The general abstract type for ideals in localized rings is `AbsLocalizedIdeal`. For ideals in  localizations of multivariate polynomial rings,
@@ -459,7 +459,7 @@ Similarly, if `I` is an ideal of a localized quotient of a multivariate polynomi
 
 If `I`,  `J` are ideals of a localized multivariate polynomial ring  `Rloc`, then
 
-- `I^k` refers to the `k`-th  power of `I`, 
+- `I^k` refers to the `k`-th  power of `I`,
 - `I+J`, `I*J`,  and `intersect(I, J)` to the sum, product, and intersection of `I` and  `J`, and
 - `quotient(I, J)` as well as `I:J` to the ideal quotient of `I` by `J`.
 
