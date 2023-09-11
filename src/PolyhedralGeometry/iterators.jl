@@ -57,7 +57,7 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     Base.:*(k::scalar_types_extended, po::$T) = k .* po
 
-    Base.:*(A::MatElem, v::$T) = A * v.p
+    Base.:*(A::MatElem, v::$T) = A * transpose(v.p)
     
   end
 end
