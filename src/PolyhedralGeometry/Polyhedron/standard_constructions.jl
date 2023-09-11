@@ -2207,11 +2207,7 @@ The following produces first the standard cube in $3$ dimensions, and then
 a bipyramid over the convex hull of the unit vectors. 
 ```jldoctest
 julia> G = Graph{Undirected}(3)
-Graph{Undirected}(pm::graph::Graph<pm::graph::Undirected>
-{}
-{}
-{}
-)
+Undirected graph with 3 nodes and no edges
 
 julia> S = stable_set_polytope(G)
 Polyhedron in ambient dimension 3
