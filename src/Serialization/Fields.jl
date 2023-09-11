@@ -230,7 +230,9 @@ function load_object(s::DeserializerState,
                      dict::Dict{Symbol, Any})
   def_pols = load_typed_object(s, dict[:def_pols])
   vars = map(Symbol, dict[:vars])
-  K, _ = number_field(Array(def_pols), vars, cached=false)
+  # fix since numberfield doesn't accept PolyRingElem vectors
+  array_pols = Array{typeof(def_pols[1]), 1}(def_pols)
+  K, _ = number_field(array_pols, vars, cached=false)
   return K
 end
 

@@ -50,20 +50,21 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: Vector},
                      v::Vector, params::Type)
-  loaded_v = [load_object(s, params, x) for x in v]
+  loaded_v = params[load_object(s, params, x) for x in v]
   return loaded_v
 end
 
+# handles nested Vectors
 function load_object(s::DeserializerState, ::Type{<: Vector},
                                  v::Vector, params::Tuple)
   T = params[1]
-  return [load_object(s, T, x, params[2]) for x in v]
+  return T[load_object(s, T, x, params[2]) for x in v]
 end
 
 function load_object(s::DeserializerState, ::Type{<: Vector},
                      v::Vector, params::Ring)
   T = elem_type(params)
-  return [load_object(s, T, x, params) for x in v]
+  return T[load_object(s, T, x, params) for x in v]
 end
 
 ################################################################################
@@ -104,6 +105,26 @@ function save_object(s::SerializerState, obj::Tuple)
   save_data_array(s) do 
     for entry in obj
       save_object(s, entry)
+    end
+  end
+end
+
+function get_nested_type(params::Vector)
+  if params[2] isa Type
+    return params[1]{params[2]}
+  end
+  nested_type = get_nested_type(params[2])
+  return params[1]{nested_type}
+end
+
+function get_tuple_type(params::Vector)
+  type_vector = Type[]
+
+  for t in params
+    if t isa Type
+      push!(type_vector, t)
+    else
+      push!(type_vector, get_nested_type(t))
     end
   end
 end
