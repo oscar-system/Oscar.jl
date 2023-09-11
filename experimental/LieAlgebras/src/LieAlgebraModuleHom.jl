@@ -473,20 +473,41 @@ function hom_tensor(
 end
 
 @doc raw"""
-    hom_tensor(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+    hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
 
-Given modules `V` and `W` which are tensor powers with the same exponent,
-say $V = T^k V'$, $W = T^k W'$, and given a homomorphism $h : V' \to W'$, return
-$h \otimes \cdots \otimes h$.
+Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
+say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
+$S^k h: V \to W$ (analogous for other types of powers).
 """
-function hom_tensor(
+function hom_power(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:RingElement}
-  @req is_tensor_power(V) "First module must be a tensor power"
-  @req is_tensor_power(W) "Second module must be a tensor power"
+  if is_exterior_power(V)
+    @req is_exterior_power(W) "First module is an exterior power, but second module is not"
+    type = :ext
+  elseif is_symmetric_power(V)
+    @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
+    type = :sym
+  elseif is_tensor_power(V)
+    @req is_tensor_power(W) "First module is a tensor power, but second module is not"
+    type = :tensor
+  else
+    throw(ArgumentError("First module must be a power module"))
+  end
   @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
   @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
 
+  TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
+  TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
+
   mat = reduce(kronecker_product, [matrix(h) for _ in 1:get_attribute(V, :power)])
-  return hom(V, W, mat; check=false)
+  TV_to_TW = hom(TV, TW, mat; check=false)
+
+  if type == :tensor
+    return TV_to_TW
+  else
+    V_to_TV = get_attribute(V, :embedding_tensor_power_embedding)
+    TW_to_W = get_attribute(W, :embedding_tensor_power_projection)
+    return V_to_TV * TV_to_TW * TW_to_W
+  end
 end

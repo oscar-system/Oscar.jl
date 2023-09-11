@@ -85,6 +85,7 @@ export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
 export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power
@@ -145,6 +146,7 @@ export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
 export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power
