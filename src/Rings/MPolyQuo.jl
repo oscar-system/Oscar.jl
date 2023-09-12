@@ -101,6 +101,53 @@ function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
   return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
 
+########################################################################
+# Representatives of elements in quotient rings and normal forms 
+#
+# Elements [a] ∈ P/I in quotients of polynomial rings 
+# P = 𝕜[x₁,…,xₙ] by ideals I = ⟨f₁,…,fᵣ⟩ admit unique representatives 
+# a ∈ P whenever a normal form algorithm exists for the polynomial 
+# ring P. This is really a question about the ring of coefficients 𝕜. 
+#
+# In general, we can not expect a normal form algorithm to exist and, 
+# in particular, that it is implemented in Singular. However, we wish 
+# to use Singular as a default backend and this also drives the design 
+# of the quotient rings to begin with. 
+#
+# To make sure that the data structure for quotient rings can 
+# nevertheless also accomodate more exotic coefficient rings we 
+# provide the following functionality to decide the existence and use 
+# of a singular backend depending on the type.
+########################################################################
+
+is_coefficient_type_with_singular_normal_form(a::Any) = is_coefficient_type_with_singular_normal_form(typeof(a))
+
+# By default we can not expect that there is a singular backend
+is_coefficient_type_with_singular_normal_form(::Type{T}) where {T} = false
+
+# There might be rings for which groebner basis algorithms exist only 
+# for global orderings, so we make a refinement here
+is_coefficient_type_with_groebner_basis_algorithm_in_singular(a::Any) = is_coefficient_type_with_groebner_basis_algorithm_in_singular(typeof(a))
+
+function is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T}
+  is_coefficient_type_with_singular_normal_form(T) && return true
+  return false
+end
+
+# For polynomial rings over fields we expect singular to be able to handle the case
+is_coefficient_type_with_singular_normal_form(::Type{T}) where {T<:FieldElem} = true
+is_coefficient_type_with_singular_normal_form(::Type{T}) where {T<:Field} = true
+
+# Singular can also handle groebner bases over the integers
+is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T<:ZZRingElem} = true
+is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T<:ZZRing} = true
+
+# This list can (and should) be extended by eventual new types which 
+# are supposed to make use of the Singular backend.
+# In particular, this decides whether a reasonable Hash function for 
+# elements in the quotient ring exists.
+
+
 ##############################################################################
 #
 # Quotient ring ideals
@@ -733,48 +780,37 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
-  f.simplified && return f
-  R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
-  G  = singular_origin_groebner_basis(R)
-  g  = f.f
-  f.f = OR(reduce(SR(g), G))
-  f.simplified = true
-  return f::elem_type(R)
-end
-
-# Extra method for quotients of graded rings. 
-# TODO: Could this be simplified if the type-parameter signature of decorated rings 
-# was consistent with the one for polynomial rings? I.e. if the first type parameter 
-# was the one for the coefficient rings and not the one for the underlying polynomial ring?
-function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
-  f.simplified && return f
-  R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
-  G  = singular_origin_groebner_basis(R)
-  g  = f.f
-  f.f = OR(reduce(SR(g), G))
-  f.simplified = true
-  return f::elem_type(R)
-end
-
-# The above methods for `simplify` assume that there is a singular backend which 
-# can be used. However, we are using (graded) quotient rings also with coefficient 
-# rings R which can not be translated to Singular; for instance when R is again 
-# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
-# Still in many of those cases, we can use `RingFlattening` to bind a computational 
-# backend. In particular, this allows us to do ideal_membership tests; see 
-# the file `flattenings.jl` for details. 
-#
-# The generic method below is a compromise in the sense that `simplify` does not reduce 
-# a given element to a unique representative as would be the case in a groebner basis reduction, 
-# but it nevertheless reduces the element to zero in case its representative is 
-# contained in the modulus. This allows for both, the use of `RingFlattening`s and 
-# the potential speedup of `iszero` tests. 
 function simplify(f::MPolyQuoRingElem)
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+
+  # The following bracket is for the default assumption
+  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
+    f.simplified && return f
+    R  = parent(f)
+    OR = oscar_origin_ring(R)
+    SR = singular_origin_ring(R)
+    G  = singular_origin_groebner_basis(R)
+    g  = f.f
+    f.f = OR(reduce(SR(g), G))
+    f.simplified = true
+    return f::elem_type(R)
+  end
+
+  # The above block for `simplify` assume that there is a singular backend which 
+  # can be used. However, we are using (graded) quotient rings also with coefficient 
+  # rings R which can not be translated to Singular; for instance when R is again 
+  # a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+  # Still in many of those cases, we can use `RingFlattening` to bind a computational 
+  # backend. In particular, this allows us to do ideal_membership tests; see 
+  # the file `flattenings.jl` for details. 
+  #
+  # The generic block below is a compromise in the sense that `simplify` does not reduce 
+  # a given element to a unique representative as would be the case in a groebner basis reduction, 
+  # but it nevertheless reduces the element to zero in case its representative is 
+  # contained in the modulus. This allows for both, the use of `RingFlattening`s and 
+  # the potential speedup of `iszero` tests. 
   f.simplified && return f
   if f.f in modulus(parent(f))
     f.f = zero(f.f)
@@ -782,7 +818,6 @@ function simplify(f::MPolyQuoRingElem)
   f.simplified = true
   return f::elem_type(parent(f))
 end
-
 
 @doc raw"""
     ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
@@ -807,9 +842,20 @@ true
 """
 function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   check_parent(f, g)
-  simplify(f)
-  simplify(g)
-  return f.f == g.f
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+
+  # The following bracket is for the default assumption
+  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
+    f.f == g.f && return true
+    hash(f) == hash(g) && return true # calls simplify already
+    return f.f == g.f
+  end
+
+  # By default we refer to the generic ideal membership routine which 
+  # might be implemented by other means, for instance via a `RingFlattening`.
+  return f.f - g.f in modulus(Q)
 end
 
 @doc raw"""
@@ -1320,8 +1366,17 @@ function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 end
 
 function hash(w::MPolyQuoRingElem, u::UInt)
-  simplify(w)
-  return hash(w.f, u)
+  Q = parent(w)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+
+  # The following bracket is for the default assumption
+  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
+    simplify(w)
+    return hash(w.f, u)
+  end
+
+  error("hash function not implemented due to lack of unique representatives")
 end
 
 ################################################################
