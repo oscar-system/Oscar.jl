@@ -1480,6 +1480,12 @@ mutable struct sheafCohTable
   values::Matrix{Int}
 end
 
+function Base.getindex(st::sheafCohTable, ind...)
+  row_ind = ind[1] + 1
+  col_ind = ind[2] - first(st.twist_range) + 1
+  return st.values[row_ind, col_ind]
+end
+
 function Base.show(io::IO, table::sheafCohTable)
   chi = [any(v -> v == -1, col) ? -1 : sum(col) for col in eachcol(table.values)]
   # pad every value in the table to this length
