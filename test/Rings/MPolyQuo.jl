@@ -267,3 +267,38 @@ end
   Q = MPolyQuo(R, I, o)
   @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end
+
+@testset "representatives and hashing" begin
+  R1, (x1, y1) = QQ["x", "y"]
+  R2, (x2, y2) = ZZ["x", "y"]
+  R3, (x3, y3) = GF(7)["x", "y"]
+
+  Q1, p1 = quo(R1, ideal(R1, [x1-3]))
+  Q2, p2 = quo(R2, ideal(R2, [x2-3]))
+  Q3, p3 = quo(R3, ideal(R3, [x3-3]))
+
+
+  @test hash(p1(x1)) == hash(Q1(3))
+  @test hash(p2(x2)) == hash(Q2(3))
+  @test hash(p3(x3)) == hash(Q3(3))
+
+  @test simplify(p1(x1)).f == Q1(3).f
+  @test simplify(p2(x2)).f == Q2(3).f
+  @test simplify(p3(x3)).f == Q3(3).f
+
+  # A case that uses the RingFlattening and does not have a singular backend:
+  P, (u, v) = Q3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+end
