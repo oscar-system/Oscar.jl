@@ -1283,6 +1283,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
+export sheafCoh_BGG_regul
 export short_right_transversal
 export shortest_path_dijkstra
 export show_morphism
