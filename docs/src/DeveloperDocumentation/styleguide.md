@@ -77,6 +77,15 @@ Here is a summary of the naming convention followed in OSCAR:
 Please check if your editor can be configured to honor our `.editorconfig`
 file, see <https://editorconfig.org> for more information about this.
 
+### JuliaFormatter
+
+There is a `.JuliaFormatter.toml` in our git repository. To format your files,
+first add `JuliaFormatter.jl` in Julia and then use
+```
+using JuliaFormatter
+format_file("path/to/file/file.jl")
+```
+
 ### Unicode
 
 As most modern programming languages, Julia allows the use of Unicode, e.g.,

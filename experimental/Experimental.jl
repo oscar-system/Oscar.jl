@@ -16,10 +16,9 @@ const oldexppkgs = [
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "ToricSchemes",
-  "FTheoryTools",
   "JuLie",
   "IntersectionTheory",
+  "OrthogonalDiscriminants",  # needs code from JuLie
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -56,7 +55,6 @@ include("Schemes/IdealSheaves.jl")
 include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
-include("Schemes/RationalMap.jl")
 
 include("Matrix/matrix.jl")
 include("Schemes/SimplifiedSpec.jl")
@@ -67,5 +65,6 @@ include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
 include("Schemes/duValSing.jl")
 include("Schemes/elliptic_surface.jl")
+include("Schemes/MorphismFromRationalFunctions.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

@@ -6,7 +6,7 @@
                                                     LeftSpecType,
                                                     RightSpecType, 
                                                     Scheme, Scheme,
-                                                    Hecke.Map, Hecke.Map
+                                                    Map, Map
                                                    }
 
   X::LeftSpecType

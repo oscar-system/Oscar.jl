@@ -82,5 +82,7 @@ include("AlgebraicCycles/special_attributes.jl")
 
 include("ToricMorphisms/constructors.jl")
 include("ToricMorphisms/attributes.jl")
-include("ToricMorphisms/special_attributes.jl")
+include("ToricMorphisms/standard_constructions.jl")
 
+include("Proj/constructors.jl")
+include("ToricSchemes/attributes.jl")

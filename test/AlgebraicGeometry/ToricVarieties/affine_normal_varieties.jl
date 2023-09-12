@@ -26,6 +26,8 @@
         @test elementary_divisors(class_group(antv)) == [ 2 ]
         @test ngens(cox_ring(antv)) == 2
         @test length(torusinvariant_prime_divisors(antv)) == 2
+        @test gorenstein_index(antv) == 1
+        @test picard_index(antv) == 2
     end
     
     @testset "Cast to affine" begin

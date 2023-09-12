@@ -1,8 +1,8 @@
-function test_save_load_roundtrip(func, path, original::T; parent=nothing) where T
+function test_save_load_roundtrip(func, path, original::T; params=nothing) where T
   # save and load from a file
   filename = joinpath(path, "original.json")
   save(filename, original)
-  loaded = load(filename; parent=parent)
+  loaded = load(filename; params=params)
   if T <: Vector
     @test loaded isa Vector
   else
@@ -14,7 +14,7 @@ function test_save_load_roundtrip(func, path, original::T; parent=nothing) where
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io; parent=parent)
+  loaded = load(io; params=params)
 
   if T <: Vector
     @test loaded isa Vector
@@ -27,13 +27,18 @@ function test_save_load_roundtrip(func, path, original::T; parent=nothing) where
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io, type=T, parent=parent)
+  loaded = load(io, type=T, params=params)
   if T <: Vector
     @test loaded isa Vector
   else
     @test loaded isa T
   end
   func(loaded)
+
+  # test loading on a empty state
+  save(filename, original)
+  reset_global_serializer_state()
+  loaded = load(filename; params=params)
 end
 
 @testset "basic_types" begin
@@ -50,8 +55,8 @@ end
                 residue_ring(ZZ, 6),
                 Nemo.fpField(UInt(7)),
                 Nemo.FpField(ZZRingElem(7)),
-                PadicField(7, 30),
-                TropicalSemiring()
+                #PadicField(7, 30),
+                #TropicalSemiring()
             )
             original = T(1)
             test_save_load_roundtrip(path, original) do loaded

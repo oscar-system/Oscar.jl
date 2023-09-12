@@ -93,7 +93,14 @@ end
 Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
+
 weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
+
+@attr AbsSpec function weierstrass_chart_on_minimal_model(S::EllipticSurface)
+  # make sure the minimal model is known
+  relatively_minimal_model(S)
+  return get_attribute(S, :weierstrass_chart_on_minimal_model)
+end
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -255,9 +262,9 @@ end
 @doc raw"""
     weierstrass_model(X::EllipticSurface) -> CoveredScheme, CoveredClosedEmbedding
 
-Return the weierstrass model ``S`` of ``X`` and the inclusion
+Return the Weierstrass model ``S`` of ``X`` and the inclusion
 
-\[S \subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})\]
+$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})$$
 """
 function weierstrass_model(X::EllipticSurface)
   if isdefined(X, :Weierstrassmodel)
@@ -330,29 +337,36 @@ function _separate_singularities!(X::EllipticSurface)
   # to make sure that there is only a single singular point in each chart
   refined_charts = AbsSpec[]
   U = P[1][1]  # the weierstrass_chart
-  IsingU = I_sing_P(U)
-  dec_info = []
+  IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
     push!(refined_charts, U)
+    set_attribute!(U, :is_smooth => true)
+    # we want one smooth weierstrass chart
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => U)
   else
     # there is at most one singularity in every fiber
     # project the singular locus to an affine chart of P1
     disc = gens(eliminate(IsingU, coordinates(U)[1:2]))[1]
+    # The t-coordinates of the reducible fibers
     redfib = [f[1] for f in factor(disc)]
+    # One chart with all reducible fibers taken out
+    UU = PrincipalOpenSubset(U, redfib)
+    set_attribute!(UU, :is_smooth => true)
+    set_attribute!(X, :weierstrass_chart_on_minimal_model => UU)
+    push!(refined_charts, UU)
     if length(redfib)==1
-      push!(refined_charts, U)
+      # We need to recreate U as a PrincipalOpenSubset of itself here 
+      # in order to maintain the correct tree-structure for refinements.
+      # In any Covering no patch is allowed to be an ancestor of another. 
+      push!(refined_charts, PrincipalOpenSubset(U, one(OO(U))))
     else
       for i in 1:length(redfib)
+        # We take out all but the i-th singular fiber
         r = copy(redfib)
         g = r[i]
         deleteat!(r, i)
         Uref = PrincipalOpenSubset(U, r)
         push!(refined_charts, Uref)
-        if i>1
-          push!(dec_info, Uref=> RingElem[g])
-        else
-         push!(dec_info, Uref=> RingElem[])
-        end
       end
     end
   end
@@ -433,7 +447,7 @@ Return the relatively minimal model $X \to C$ and the contraction
 $\Psi \colon X \to S$ to its Weierstrass model $S$.
 """
 function relatively_minimal_model(E::EllipticSurface)
-  if isdefined(E, :blowups)
+  if isdefined(E, :blowup)
     return E.Y, E.blowup
   end
   S, inc_S = weierstrass_model(E)
@@ -452,7 +466,7 @@ function relatively_minimal_model(E::EllipticSurface)
 
   ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
-  projectionsX = BlowupMorphism{typeof(X0)}[]
+  projectionsX = BlowupMorphism[]
   projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
@@ -491,6 +505,10 @@ function relatively_minimal_model(E::EllipticSurface)
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1]) # radical to have small number of generators
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    # Set the attribute so that the strict_transform does some extra work
+    isomorphism_on_open_subset(pr_X1)
+
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
     E1 = exceptional_divisor(pr_X1)
@@ -511,18 +529,22 @@ function relatively_minimal_model(E::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
   end
   E.Y = Y0
   E.blowups = projectionsY
   E.ambient_blowups = projectionsX
   E.ambient_exceptionals = ambient_exceptionals
-  piY = reduce(*, reverse(projectionsY))
+  #piY = reduce(*, reverse(projectionsY))
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   E.blowup = piY
   E.inc_Y = inc_Y0
 
-  set_attribute!(Y0, :is_irreducible=>true)
-  set_attribute!(Y0, :is_reduced=>true)
-  set_attribute!(Y0, :is_integral=>true)
   return Y0, piY
 end
 
@@ -1021,26 +1043,28 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   P0_div = section(X, P0)
   @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the trivial lattice
+  F1 = F - p0  # should be contained in the QQ-trivial-lattice
   F2 = F1
-  tmp = F1
-  if all(denominator(i)==1 for i in F1)
+  if all(isone(denominator(i)) for i in F1)
     # no torsion
     P = P0
     P_div = P0_div
   else
-    for (T, tor) in tors
-      if all(denominator(i)==1 for i in F1-tor)
+    found = false
+    for (i,(T, tor)) in enumerate(tors)
+      d = F2-vec(tor)
+      if all(isone(denominator(i)) for i in d)
+        found = true
+        T0 = mordell_weil_torsion(X)[i]
+        P = P0 + T0
         break
-        flag = true
-        P = P0 - T
-        F2 = F1 - tor
-        tmp = tor
       end
     end
-    @assert flag
+    @assert found
     P_div = section(X, P)
-    @assert basis_representation(X, P_div) == tmp
+    p = basis_representation(X, P_div)
+    F2 = F1 - p
+    @assert all( isone(denominator(i)) for i in F2)
   end
   D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
@@ -1176,3 +1200,190 @@ function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, <:MPolyQuoLocRing
                                               <:MPolyQuoRingElem, <:MPolyLocRingElem}})
   return f
 end
+
+########################################################################
+# Internal functionality for Weierstrass transformation 
+########################################################################
+
+
+@doc raw"""
+    _normalize_hyperelliptic_curve(g::MPolyRingElem, parent=nothing)
+
+Transform ``a(x)y^2 + b(x)y - h(x)`` in ``K(t)[x,y]`` to ``y'^2 - h(x')``
+"""
+function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
+  R = Oscar.parent(g)
+  @assert ngens(R) == 2 "polynomial must be bivariate"
+  F = fraction_field(R)
+  kt = coefficient_ring(R)
+  (x, y) = gens(R)
+
+  # Prepare the output ring
+  if parent===nothing
+    R1, (x1, y1) = R, gens(R)
+  else
+    R1 = parent
+    @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
+    (x1, y1) = gens(R1)
+  end
+
+  # Get the coefficients of g as a univariate polynomial in y
+  ktx, X = polynomial_ring(kt, :X, cached=false)
+  ktxy, Y = polynomial_ring(ktx, :y, cached=false)
+
+  # Maps to transform to univariate polynomials in y
+  split_map_R = hom(R, ktxy, [ktxy(X), Y])
+  split_map_R1 = hom(R1, ktxy, [ktxy(X), Y])
+  G = split_map_R(g)
+  @assert degree(G) == 2 "polynomial must be of degree 2 in its second variable"
+
+  #complete the square
+  h, b, a = collect(coefficients(G))
+  h = -h
+  u = unit(factor(a))
+  a = inv(u)*a
+  b = inv(u)*b
+  success, sqa = is_square_with_sqrt(a)
+  @assert success "leading coefficient as univariate polynomial in the second variable must be a square"
+
+  F1 = fraction_field(R1)
+  psi = hom(R1, F, F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]))
+  conv = MapFromFunc(ktx, R1, f->evaluate(f, x1))
+  (a1, b1, sqa1) = conv.([a, b, sqa])
+  phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
+  phiF = MapFromFunc(F, F1, x-> phi(numerator(x))//phi(denominator(x)))
+  # the inverse map if wanted
+  # psiF = MapFromFunc(F1, F, x-> psi(numerator(x))//psi(denominator(x)))
+  # @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+
+  # absorb squares into y1
+  g1 = numerator(phi(g))
+  G1 = split_map_R1(g1)
+  ff = factor(first(coefficients(G1)))
+  c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
+  #d = sqrt(my_coeff(g1, y1, 2))
+  d = last(coefficients(split_map_R1(g1)))
+  success, d = is_square_with_sqrt(d)
+  @assert success "leading coefficient must be a square"
+
+  phi1 = hom(R1, F1, [F1(x1), F1(evaluate(c, x1), evaluate(d, x1))*y1])
+  phiF1 = MapFromFunc(F1, F1, x-> phi1(numerator(x))//phi1(denominator(x)))
+  phi2 = compose(phi, phiF1)
+  g2 = numerator(phi1(g1))
+  #c = my_coeff(g2, y1, 2)
+  c = last(coefficients(split_map_R1(g2)))
+  g2 = divexact(g2, evaluate(c, x1))
+  return g2, phi2
+end
+
+
+@doc raw"""
+    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
+to Weierstrass form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
+`fraction_field` of `parent(g)` and `f` is the transform. The input `P` must be a rational point 
+on the curve defined by `g`, i.e. `g(P) == 0`.
+"""
+function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+  R = parent(g)
+  @assert ngens(R) == 2 "input polynomial must be bivariate"
+  @assert x in gens(R) "second argument must be a variable of the parent of the first"
+  @assert y in gens(R) "third argument must be a variable of the parent of the first"
+
+  kk = coefficient_ring(R)
+  kkx, X = polynomial_ring(kk, :x, cached=false)
+  kkxy, Y = polynomial_ring(kkx, :y, cached=false)
+
+  imgs = [kkxy(X), Y]
+  if x == R[2] && y == R[1]
+    imgs = reverse(imgs)
+  end
+  split_map = hom(R, kkxy, imgs)
+
+  G = split_map(g)
+  @assert degree(G) == 2 "input polynomial must be of degree 2 in y"
+  @assert all(h->degree(h)<=4, coefficients(G)) "input polynomial must be of degree <= 4 in x"
+  @assert iszero(coefficients(G)[1]) "coefficient of linear term in y must be zero"
+  @assert isone(coefficients(G)[2]) "leading coefficient in y must be one"
+
+  length(P) == 2 || error("need precisely two point coordinates")
+  (px, py) = P
+  #    assert g.subs({x:px,y:py})==0
+  @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
+  gx = -evaluate(g, [X + px, zero(X)])
+  coeff_gx = collect(coefficients(gx))
+  A = coeff(gx, 4)
+  B = coeff(gx, 3)
+  C = coeff(gx, 2)
+  D = coeff(gx, 1)
+  E = coeff(gx, 0)
+  #E, D, C, B, A = coeff_gx
+  if !iszero(E)
+    b = py
+    a4, a3, a2, a1, a0 = A,B,C,D,E
+    A = b
+    B = a1//(2*b)
+    C = (4*a2*b^2-a1^2)//(8*b^3)
+    D = -2*b
+
+    x1 = x//y
+    y1 = (A*y^2+B*x*y+C*x^2+D*x^3)//y^2
+    x1 = x1+px
+
+    # TODO: The following are needed for the inverse. To be added eventually.
+    # x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+    # y2 = x2//x
+    # x2 = evaluate(x2, [x-px, y])
+    # y2 = evaluate(y2, [x-px, y])
+
+    # @assert x == evaluate(x1, [x2, y2])
+    # @assert y == evaluate(y1, [x2, y2])
+  else
+    # TODO compute the inverse transformation (x2,y2)
+    x1 = 1//x
+    y1 = y//x^2
+    g1 = numerator(evaluate(g, [x1, y1]))
+    c = coeff(g1, [x], [3])
+    x1 = evaluate(x1, [-x//c, y//c])
+    y1 = evaluate(y1, [-x//c, y//c])
+    x1 = x1+px
+    #@assert x == evaluate(x1, [x2, y2])
+    #@assert y == evaluate(y1, [x2, y2])
+  end
+  F = fraction_field(R)
+  @assert F === parent(x1) "something is wrong with caching of fraction fields"
+  # TODO: eventually add the inverse.
+  trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  f_trans = trans(F(g))
+  fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
+  isone(length(fac)) || error("transform to weierstrass form did not succeed")
+
+  # normalize the output
+  result = first(fac)
+  result = inv(first(coefficients(coeff(result, gens(parent(result)), [3, 0]))))*result
+
+  return result, trans
+end
+
+function _is_in_weierstrass_form(f::MPolyElem)
+  R = parent(f)
+  @req ngens(R) == 2 "polynomial must be bivariate"
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  (x, y) = gens(R)
+  f = -inv(my_const(coeff(f, [x, y], [0, 2]))) * f
+  isone(-coeff(f, [x, y], [0, 2])) || return false
+  isone(coeff(f, [x, y], [3, 0])) || return false
+  
+  a6 = coeff(f, [x,y], [0,0])
+  a4 = coeff(f, [x,y], [1,0])
+  a2 = coeff(f, [x,y], [2,0])
+  a3 = -coeff(f, [x,y], [0,1])
+  a1 = -coeff(f, [x,y], [1,1])
+  a_invars = [my_const(i) for i in [a1,a2,a3,a4,a6]]
+  (a1,a2,a3,a4,a6) = a_invars
+  return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
+end
+

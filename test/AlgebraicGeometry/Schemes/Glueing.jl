@@ -142,14 +142,14 @@ end
   pr = blow_up(II)
   X = domain(pr)
 
-  for G in values(glueings(oscar.simplified_covering(X)))
+  for G in values(glueings(Oscar.simplified_covering(X)))
     @test !isdefined(G, :G)
     glueing_domains(G)
     @test !isdefined(G, :G)
     @test isdefined(G, :glueing_domains)
   end
 
-  for G in values(glueings(oscar.simplified_covering(X)))
+  for G in values(glueings(Oscar.simplified_covering(X)))
     @test !isdefined(G, :G)
     underlying_glueing(G)
     @test isdefined(G, :G)

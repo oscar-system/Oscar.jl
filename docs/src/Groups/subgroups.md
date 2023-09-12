@@ -70,8 +70,8 @@ complement_system
 ```@docs
 is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
-representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 centralizer(G::GAPGroup, x::GAPGroupElem)
 centralizer(G::T, H::T) where T <: GAPGroup
 normalizer(G::GAPGroup, x::GAPGroupElem)

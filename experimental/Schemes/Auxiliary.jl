@@ -372,3 +372,6 @@ function inherit_glueings!(ref::Covering, orig::Covering)
   return ref
 end
 
+### Generic pullback and pushforward for composite maps
+pushforward(f::Generic.CompositeMap, a::Any) = pushforward(map2(f), pushforward(map1(f), a))
+pullback(f::Generic.CompositeMap, a::Any) = pullback(map1(f), pullback(map2(f), a))

@@ -285,3 +285,34 @@ end
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end
+
+@testset "IdealGens" begin
+   R, (x0, x1, x2) = PolynomialRing(QQ, ["x0", "x1", "x2"])
+   I = ideal([x0*x1,x2])
+   g = generating_system(I)
+   @test elements(g) == [x0*x1, x2]
+   @test g.isGB == false
+   @test isdefined(g, :ord) == false
+   h = set_ordering(g, degrevlex(gens(R)))
+   @test h != g
+   @test ordering(h) == degrevlex(gens(R))
+   h1 = Oscar.IdealGens(base_ring(g), gens(g))
+   Oscar.set_ordering!(h1, lex(R))
+   @test ordering(h1) == lex(gens(R))
+end
+
+@testset "NonSimpleField" begin
+  Qt, t = QQ["t"];
+  K, (a1,a2) = number_field([t^2 - 2, t^2 - 3], "a");
+  R, (x,y) = polynomial_ring(K,["x","y"]);
+  I = ideal(R, [x^2-a1])
+
+  #just to see it working...
+  radical(I)
+  primary_decomposition(I)
+  minimal_primes(I)
+  equidimensional_hull(I)
+  equidimensional_hull_radical(I)
+  equidimensional_decomposition_weak(I)
+end
+

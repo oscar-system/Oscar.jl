@@ -57,6 +57,7 @@
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
+     "Fields/algebraic_closure_fp.md",
   ],
 
   "Linear Algebra" => [
@@ -131,8 +132,9 @@
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra.md",
      ],
+     "CommutativeAlgebra/homological_algebra.md",
+     
      "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
@@ -162,6 +164,7 @@
         "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
+        "AlgebraicGeometry/Schemes/CoveredSchemeMorphisms.md",
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
      ],
@@ -172,6 +175,10 @@
      "Algebraic Varieties" => [
         "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
         "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
+     ],
+     "Rational Points" => [
+        "AlgebraicGeometry/RationalPoints/Affine.md",
+        "AlgebraicGeometry/RationalPoints/Projective.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
@@ -185,6 +192,7 @@
         "AlgebraicGeometry/ToricVarieties/Subvarieties.md",
         "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
+        "AlgebraicGeometry/ToricVarieties/ToricSchemes.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",

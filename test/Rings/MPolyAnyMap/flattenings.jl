@@ -40,7 +40,7 @@
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(S.(gens(R)))
 
   f = hom(S, S, gens(S))
-  @test Oscar.flatten(f) isa Hecke.Map
+  @test Oscar.flatten(f) isa Map
   K = kernel(f) 
   @test zero(S) in K 
  

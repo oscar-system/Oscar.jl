@@ -35,13 +35,13 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Scheme of a toric variety
+Normal toric variety
 
 julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
 
 julia> I = ideal([x,y,w]);
 
-julia> v2 = blow_up(underlying_toric_variety(v),I)
+julia> v2 = domain(blow_up(v, I))
 Normal toric variety
 
 julia> cox_ring(v2)
@@ -253,7 +253,6 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  
   return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
 end
 
@@ -270,6 +269,5 @@ function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Currently, only literature models over arbitrary bases are supported"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  
   return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
 end

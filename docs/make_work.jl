@@ -6,6 +6,8 @@ module BuildDoc
 
 using Documenter, DocumenterCitations
 
+include("documenter_helpers.jl")
+
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
 #   Hecke.Order - Method

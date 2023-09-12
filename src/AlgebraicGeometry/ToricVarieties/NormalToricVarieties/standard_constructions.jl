@@ -286,7 +286,7 @@ end
 ############################
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -311,7 +311,7 @@ julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
 julia> I = ideal([x2,x3])
 ideal(x2, x3)
 
-julia> bP3 = blow_up(P3, I)
+julia> bP3 = domain(blow_up(P3, I))
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -323,7 +323,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
@@ -335,11 +335,12 @@ end
 
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
-lattice Z^d, with d the dimension of the fan.
+lattice Z^d, with d the dimension of the fan. This function returns the
+corresponding blowdown morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional divisor. As third optional argument one can supply
@@ -350,7 +351,10 @@ a custom variable name.
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> bP3 = blow_up(P3, [0, 1, 1])
+julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+A toric morphism
+
+julia> bP3 = domain(blow_down_morphism)
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -362,31 +366,18 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(v, new_ray)
-    new_variety = normal_toric_variety(new_fan)
-    new_rays = rays(new_fan)
-    old_rays = rays(v)
-    old_vars = string.(symbols(cox_ring(v)))
-    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, length(new_rays))
-    for i in 1:length(new_rays)
-        j = findfirst(==(new_rays[i]), old_rays)
-        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-    end
-    if set_attributes
-      set_attribute!(new_variety, :coordinate_names, new_vars)
-    end
-    return new_variety
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+  return _blow_up(v, star_subdivision(v, new_ray); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
 
 @doc raw"""
-    blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 
 Blow up the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
+This function returns the corresponding blowdown morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional divisor. As third optional argument one can supply
@@ -397,7 +388,10 @@ a custom variable name.
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
-julia> bP3 = blow_up(P3, 5)
+julia> blow_down_morphism = blow_up(P3, 5)
+A toric morphism
+
+julia> bP3 = domain(blow_down_morphism)
 Normal toric variety
 
 julia> cox_ring(bP3)
@@ -409,39 +403,44 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
-    new_fan = star_subdivision(polyhedral_fan(v), n)
-    new_variety = normal_toric_variety(new_fan)
-    new_rays = rays(new_fan)
-    old_rays = rays(v)
-    old_vars = string.(symbols(cox_ring(v)))
-    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, length(new_rays))
-    for i in 1:length(new_rays)
-        j = findfirst(==(new_rays[i]), old_rays)
-        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-    end
-    if set_attributes
-      set_attribute!(new_variety, :coordinate_names, new_vars)
-    end
-    return new_variety
+function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+  return _blow_up(v, star_subdivision(v, n); coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
 
 
 
+function _blow_up(v::NormalToricVarietyType, new_fan::PolyhedralFan{QQFieldElem}; coordinate_name::String = "e", set_attributes::Bool = true)
+  new_variety = normal_toric_variety(new_fan)
+  new_rays = rays(new_fan)
+  old_rays = rays(v)
+  old_vars = string.(symbols(cox_ring(v)))
+  @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
+  new_vars = Vector{String}(undef, length(new_rays))
+  for i in 1:length(new_rays)
+      j = findfirst(==(new_rays[i]), old_rays)
+      new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+  end
+  if set_attributes
+    set_attribute!(new_variety, :coordinate_names, new_vars)
+  end
+  dim = ambient_dim(polyhedral_fan(v))
+  return toric_morphism(new_variety, identity_matrix(ZZ, dim), v; check=false)
+end
+
+
 
 @doc raw"""
-    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+    Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 By default, we prepend an "x" to all homogeneous coordinate names of the first factor
 `v` and a "y" to all homogeneous coordinate names of the second factor `w`. This default
 can be overwritten by invoking `set_coordinate_names` after creating the variety
-(cf. [`set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})`](@ref)).
+(cf. [`set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})`](@ref)).
 
 *Important*: Recall that the coordinate names can only be changed as long as the toric
-variety in question is not finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
+variety in question is not finalized (cf. [`is_finalized(v::NormalToricVarietyType)`](@ref)).
 
 Crucially, the order of the homogeneous coordinates is not shuffled. To be more
 specific, assume that `v` has ``n_1`` and `w` has ``n_2`` homogeneous coordinates. Then
@@ -483,10 +482,53 @@ Multivariate polynomial ring in 6 variables over QQ graded by
   y3 -> [0 1]
 ```
 """
-function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety; set_attributes::Bool = true)
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
     product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w))
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
+end
+
+
+
+@doc raw"""
+    normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+
+Returns a toric variety that was obtained from a fine regular
+star triangulation of the lattice points of the polyhedron P.
+This is particularly useful when the lattice points of the
+polyhedron in question admit many triangulations.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+Polyhedron in ambient dimension 3
+
+julia> v = normal_toric_variety_from_star_triangulation(P)
+Normal toric variety
+```
+"""
+function normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+  # Find position of origin in the lattices points of the polyhedron P
+  pts = matrix(ZZ, lattice_points(P))
+  zero = [0 for i in 1:ambient_dim(P)]
+  indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+  @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
+
+  # Change order of lattice points s.t. zero is the first point
+  tmp = pts[1,:]
+  pts[1,:] = pts[indices[1],:]
+  pts[indices[1],:] = tmp
+
+  # Find one triangulation and turn it into the maximal cones of the toric variety in question. Note that:
+  # (a) needs to be converted to incidence matrix
+  # (b) one has to remove origin from list of indices (as removed above)
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
+
+  # Rays are all but the zero vector at the first position of pts
+  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+
+  # construct the variety
+  return normal_toric_variety(integral_rays, max_cones; non_redundant = true)
 end
 
 
@@ -546,27 +588,63 @@ end
 
 
 @doc raw"""
+  normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+
+This function returns one toric variety with the desired
+GLSM charges. This can be particularly useful provided that
+there are many such toric varieties.
+
+# Examples
+```jldoctest
+julia> charges = [[1, 1, 1]]
+1-element Vector{Vector{Int64}}:
+ [1, 1, 1]
+
+julia> normal_toric_variety_from_glsm(charges)
+Normal toric variety
+```
+
+For convenience, we also support:
+- normal_toric_variety_from_glsm(charges::Vector{Vector{Int}})
+- normal_toric_variety_from_glsm(charges::Vector{Vector{ZZRingElem}})
+"""
+function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+
+  # find the ray generators
+  G1 = free_abelian_group(ncols(charges))
+  G2 = free_abelian_group(nrows(charges))
+  map = hom(G1, G2, transpose(charges))
+  ker = kernel(map)
+  embedding = snf(ker[1])[2] * ker[2]
+  integral_rays = transpose(embedding.map)
+
+  # identify the points to be triangulated
+  pts = matrix(ZZ, zeros(nrows(integral_rays)+1, ncols(integral_rays)))
+  pts[2:end, :] = integral_rays
+
+  # construct varieties
+  triang = _find_full_star_triangulation(pts)
+  max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in triang])
+  variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
+
+  # set the attributes and return the variety
+  if set_attributes
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
+    set_attribute!(variety, :class_group, G2)
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
+  end
+  return variety
+end
+normal_toric_variety_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_variety_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
+
+
+
+@doc raw"""
     normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 
-Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
-originally sparked interest in the physics community in toric varieties.
-On a mathematical level, this establishes a construction of toric
-varieties for  which a Z^n grading of the Cox ring is provided. See
-for example [FJR17](@cite), which describes this as GIT
-construction [CLS11](@cite).
-
-Explicitly, given the grading of the Cox ring, the map from
-the group of torus invariant Weil divisors to the class group
-is known. Under the assumption that the variety in question
-has no torus factor, we can then identify the map from the
-lattice to the group of torus invariant Weil divisors as the
-kernel of the map from the torus invariant Weil divisor to the
-class group. The latter is a map between free Abelian groups, i.e.
-is provided by an integer valued matrix. The rows of this matrix
-are nothing but the ray generators of the fan of the toric variety.
-It then remains to triangulate these rays, hence in general for
-a GLSM the toric variety is only unique up to fine regular
-star triangulations.
+This function returns all toric variety with the desired
+GLSM charges. This computation may take a long time if
+there are many such toric varieties.
 
 # Examples
 ```jldoctest
@@ -597,11 +675,11 @@ For convenience, we also support:
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
 function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
-    
+
     # find the ray generators
-    source = free_abelian_group(ncols(charges))
-    range = free_abelian_group(nrows(charges))
-    map = hom(source, range, transpose(charges))
+    G1 = free_abelian_group(ncols(charges))
+    G2 = free_abelian_group(nrows(charges))
+    map = hom(G1, G2, transpose(charges))
     ker = kernel(map)
     embedding = snf(ker[1])[2] * ker[2]
     rays = transpose(embedding.map)
@@ -620,12 +698,9 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
     
     # set the map from Div_T -> Cl to the desired matrix
-    for v in varieties
-      G1 = free_abelian_group(ncols(charges))
-      G2 = free_abelian_group(nrows(charges))
-      grading_of_cox_ring = hom(G1, G2, transpose(charges))
-      if set_attributes
-        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, grading_of_cox_ring)
+    if set_attributes
+      for v in varieties
+        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
         set_attribute!(v, :class_group, G2)
         set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
       end
@@ -635,6 +710,3 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Boo
     return varieties
 end
 normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
-
-
-

@@ -25,7 +25,7 @@ julia> toric_variety(c) == f2
 true
 ```
 """
-@attr AbstractNormalToricVariety toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
+@attr NormalToricVarietyType toric_variety(c::ClosedSubvarietyOfToricVariety) = c.toric_variety
 
 
 @doc raw"""

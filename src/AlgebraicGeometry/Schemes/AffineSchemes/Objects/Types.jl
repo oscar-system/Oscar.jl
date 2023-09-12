@@ -16,15 +16,15 @@
 # (1) Abstract affine schemes
 ###########################################
 
-@doc raw"""
-    AbsSpec{BaseRingType, RingType<:Ring}
-
-An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over
-a ring ``𝕜`` of type `BaseRingType`.
-"""
-abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
-
-
+#@doc raw"""
+#    AbsSpec{BaseRingType, RingType<:Ring}
+#
+#An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over
+#a ring ``𝕜`` of type `BaseRingType`.
+#"""
+#abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
+#
+# Moved to src/forward_declarations.jl
 
 ############################################
 # (2) Basic concrete type for affine schemes

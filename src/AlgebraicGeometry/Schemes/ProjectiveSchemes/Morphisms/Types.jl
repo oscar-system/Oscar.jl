@@ -26,7 +26,7 @@ space over the same ring with the identity on the base.
 @attributes mutable struct ProjectiveSchemeMor{
     DomainType<:AbsProjectiveScheme,
     CodomainType<:AbsProjectiveScheme,
-    PullbackType<:Hecke.Map,
+    PullbackType<:Map,
     BaseMorType
   } <: SchemeMor{DomainType, CodomainType,
                  ProjectiveSchemeMor,
@@ -35,7 +35,7 @@ space over the same ring with the identity on the base.
   domain::DomainType
   codomain::CodomainType
   pullback::PullbackType
-  base_ring_morphism::Hecke.Map
+  base_ring_morphism::Map
 
   #fields for caching
   map_on_base_schemes::SchemeMor
