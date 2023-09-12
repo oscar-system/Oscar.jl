@@ -66,13 +66,13 @@ julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 julia> S, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 
 julia> F = hom(A, S, [s, s^2, s^3])
-Map with following data
-Domain:
-=======
-A
-Codomain:
-=========
-Multivariate polynomial ring in 2 variables over QQ
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal with 2 generators
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> s
+  y -> s^2
+  z -> s^3
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)

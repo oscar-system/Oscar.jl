@@ -357,13 +357,14 @@ julia> C1, (s,t) = graded_polynomial_ring(QQ, ["s", "t"]);
 julia> V1 = [s^3, s^2*t, s*t^2, t^3];
 
 julia> para = hom(D1, C1, V1)
-Map with following data
-Domain:
-=======
-Graded multivariate polynomial ring in 4 variables over QQ
-Codomain:
-=========
-Graded multivariate polynomial ring in 2 variables over QQ
+Ring homomorphism
+  from graded multivariate polynomial ring in 4 variables over QQ
+  to graded multivariate polynomial ring in 2 variables over QQ
+defined by
+  w -> s^3
+  x -> s^2*t
+  y -> s*t^2
+  z -> t^3
 
 julia> twistedCubic = kernel(para)
 ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
@@ -375,13 +376,13 @@ julia> D2, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"]);
 julia> V2 = [p2(w-y), p2(x), p2(z)];
 
 julia> proj = hom(D2, C2, V2)
-Map with following data
-Domain:
-=======
-Graded multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 3 generators
+Ring homomorphism
+  from graded multivariate polynomial ring in 3 variables over QQ
+  to quotient of multivariate polynomial ring by ideal with 3 generators
+defined by
+  a -> w - y
+  b -> x
+  c -> z
 
 julia> nodalCubic = kernel(proj)
 ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)
@@ -396,13 +397,13 @@ julia> C3, x = polynomial_ring(QQ, "x" => 1:3);
 julia> V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 
 julia> F3 = hom(D3, C3, V3)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Multivariate polynomial ring in 3 variables over QQ
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to multivariate polynomial ring in 3 variables over QQ
+defined by
+  y[1] -> x[1]*x[2]
+  y[2] -> x[1]*x[3]
+  y[3] -> x[2]*x[3]
 
 julia> sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
 ideal(x[1]^3 + x[2]^3 + x[3]^3 - 1)
@@ -434,13 +435,13 @@ julia> C, p = quo(S, ideal(S, [c-b^3]));
 julia> V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 
 julia> F = hom(D, C, V)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 1 generator
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to quotient of multivariate polynomial ring by ideal with 1 generator
+defined by
+  x -> 2*a + c^2
+  y -> -a^2 + 7*b
+  z -> c^2
 
 julia> is_surjective(F)
 true
@@ -462,13 +463,13 @@ julia> C, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 julia> V = [s*t, t, s^2];
 
 julia> paraWhitneyUmbrella = hom(R, C, V)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Multivariate polynomial ring in 2 variables over QQ
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> s*t
+  y -> t
+  z -> s^2
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
@@ -517,22 +518,22 @@ julia> L[1]
  -5*y + z
 
 julia> L[2]
-Map with following data
-Domain:
-=======
-Quotient of multivariate polynomial ring by ideal with 2 generators
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 2 generators
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal with 2 generators
+  to quotient of multivariate polynomial ring by ideal with 2 generators
+defined by
+  x -> x
+  y -> 2*x + y
+  z -> 10*x + 5*y + z
 
 julia> L[3]
-Map with following data
-Domain:
-=======
-Quotient of multivariate polynomial ring by ideal with 2 generators
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 2 generators
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal with 2 generators
+  to quotient of multivariate polynomial ring by ideal with 2 generators
+defined by
+  x -> x
+  y -> -2*x + y
+  z -> -5*y + z
 
 ```
 ## Normalization

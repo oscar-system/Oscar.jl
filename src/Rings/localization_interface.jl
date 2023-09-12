@@ -173,13 +173,13 @@ Localization
   at complement of prime ideal(x)
 
 julia> iota
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+defined by
+  x -> x
+  y -> y
+  z -> z
 ```
 """
 function Localization(S::AbsMultSet)
