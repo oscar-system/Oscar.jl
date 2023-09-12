@@ -154,35 +154,10 @@ HasSingularNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRingElem}) = HasSingularGroebnerAlgorithm()
 HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRing}) = HasSingularGroebnerAlgorithm()
 
-### Deprecated code below
-
-is_coefficient_type_with_singular_normal_form(a::Any) = is_coefficient_type_with_singular_normal_form(typeof(a))
-
-# By default we can not expect that there is a singular backend
-is_coefficient_type_with_singular_normal_form(::Type{T}) where {T} = false
-
-# There might be rings for which groebner basis algorithms exist only 
-# for global orderings, so we make a refinement here
-is_coefficient_type_with_groebner_basis_algorithm_in_singular(a::Any) = is_coefficient_type_with_groebner_basis_algorithm_in_singular(typeof(a))
-
-function is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T}
-  is_coefficient_type_with_singular_normal_form(T) && return true
-  return false
-end
-
-# For polynomial rings over fields we expect singular to be able to handle the case
-is_coefficient_type_with_singular_normal_form(::Type{T}) where {T<:FieldElem} = true
-is_coefficient_type_with_singular_normal_form(::Type{T}) where {T<:Field} = true
-
-# Singular can also handle groebner bases over the integers
-is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T<:ZZRingElem} = true
-is_coefficient_type_with_groebner_basis_algorithm_in_singular(::Type{T}) where {T<:ZZRing} = true
-
 # This list can (and should) be extended by eventual new types which 
 # are supposed to make use of the Singular backend.
 # In particular, this decides whether a reasonable Hash function for 
 # elements in the quotient ring exists.
-
 
 ##############################################################################
 #
