@@ -301,4 +301,11 @@ end
   b = pP(u) # Only in case the element is zero, the representative is changed
   simplify(b)
   @test iszero(b.f)
+
+  @test Oscar.HasSingularNormalFormTrait(ZZ) isa Oscar.HasNoSingularNormalForm
+  @test Oscar.HasSingularNormalFormTrait(QQ) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(ZZ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(QQ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasSingularNormalFormTrait(R1) isa Oscar.HasNoSingularNormalForm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(R1) isa Oscar.HasNoSingularGroebnerAlgorithm
 end

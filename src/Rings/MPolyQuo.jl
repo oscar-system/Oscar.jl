@@ -136,7 +136,7 @@ struct HasNoSingularGroebnerAlgorithm <: HasSingularGroebnerAlgorithmTrait end
 
 # By default we do not expect the Singular backend to handle the case
 HasSingularNormalFormTrait(a::Any) = HasSingularNormalFormTrait(typeof(a))
-HasSingularNormalFormTrait(::Type) = HasNoSingularNormalForm()
+HasSingularNormalFormTrait(::Type{T}) where {T} = HasNoSingularNormalForm()
 
 # Same for the Groebner bases. But if a normal form algorithm exists, then 
 # this works, too.
@@ -151,8 +151,8 @@ HasSingularNormalFormTrait(::Type{<:FieldElem}) = HasSingularNormalForm()
 HasSingularNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 
 # For polynomial rings over the integers we only allow global orderings
-HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRingElem}) = HasSingularGroebnerAlgorithm()
-HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRing}) = HasSingularGroebnerAlgorithm()
+HasSingularGroebnerAlgorithmTrait(::Type{ZZRingElem}) = HasSingularGroebnerAlgorithm()
+HasSingularGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
 
 # This list can (and should) be extended by eventual new types which 
 # are supposed to make use of the Singular backend.
