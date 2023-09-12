@@ -863,7 +863,8 @@ end
 
 function _is_equal(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   f.f == g.f && return true
-  hash(f) == hash(g) && return true # calls simplify already
+  simplify(f)
+  simplify(g)
   return f.f == g.f
 end
 
