@@ -870,7 +870,7 @@ end
 # By default we refer to the generic ideal membership routine which 
 # might be implemented by other means, for instance via a `RingFlattening`.
 function _is_equal(::HasNoSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
-  return f.f - g.f in modulus(Q)
+  return f.f - g.f in modulus(parent(f))
 end
 
 @doc raw"""
