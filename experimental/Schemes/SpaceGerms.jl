@@ -732,10 +732,15 @@ end
 ### basic functionality for space germs
 
 ##############################################################################
-# note: ==, intersect are inherited from Spec
-#       intersect with explicit fallback to Spec and change of return type
+# note: ==, issubset are basically inherited from Spec
+#       intersect uses explicit fallback to Spec and adjusted return types
+#       union uses explicit fallback and adjusted return types
 ##############################################################################
+@doc raw"""
+    issubset(X::AbsSpaceGerm,Y::AbsSpaceGerm)
 
+Returns whether `X` is a subset of `Y` as space germs
+"""
 function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -766,12 +771,23 @@ end
 ## note: intersection of hypersurfaces is hardly ever a hypersurface
 ##       intersection of complete intersections need not be complete intersection
 ##       hence return type always SpaceGerm
+@doc raw"""
+    intersect(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
+
+Returns the intersection of `X` and `Y`, provided they are germs at the same point.
+"""
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   Z = intersect(underlying_scheme(X),underlying_scheme(Y))
   return SpaceGerm(Z)
 end
 
+@doc raw"""
+    union(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
+    union(X::HypersurfaceGerm, Y:: HypersurfaceGerm) --> HypersurfaceGerm
+
+Returns the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
+"""
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("not subgerms of a common space germ")
@@ -801,20 +817,32 @@ end
 
 # We want the singular locus of an `AbsSpaceGerm` to be a `SpaceGerm` again and
 # not a plain `Spec`.
+@doc raw"""
+   singular_locus(X::AbsSpaceGerm)  --> SpaceGerm, ClosedEmbedding
+
+Returns the space germ (Y,p) for a given germ (X,p) and the closed embedding of (Y,p) into (X,p), where Y is the singular locus of X.
+"""
 function singular_locus(X::AbsSpaceGerm)
   S, inc = singular_locus(underlying_scheme(X))
   Sgerm = SpaceGerm(S)
   return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
 
-## note: subgerm of hypersurfaces and complete intersections are simply space germs
+## note: subgerms of hypersurface and complete intersection germs are simply space germs
+@doc raw"""
+    subgerm(X::AbsSpaceGerm, I::Ideal) --> SpaceGerm
+
+Returns the space germ (Y,p) of (X,p) defined by the ideal I in the local ring of X at p
+
+!!! note: (Y,p) is of type SpaceGerm, even if (X,p) is a HypersurfaceGerm or a CompleteIntersectionGerm.
+"""
 function subgerm(X::AbsSpaceGerm, I::Ideal)
   base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
   Y = subscheme(underlying_scheme(X), I)
   return SpaceGerm(Y)
 end
 
-@attr Bool function is_isolated(X::AbsSpaceGerm)
+@attr Bool function is_isolated_singularity(X::AbsSpaceGerm)
   dim(singular_locus(X)[1]) < 1 || return false
   return true
 end
