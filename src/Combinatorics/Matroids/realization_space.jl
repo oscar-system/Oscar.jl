@@ -5,7 +5,7 @@ mutable struct MatroidRealizationSpace
     inequations::Union{Vector{Oscar.RingElem},Nothing}
     ambient_ring::Union{Oscar.MPolyRing, Ring, Nothing}
     realization_matrix::Union{Oscar.MatElem,Nothing}
-    realizable::Bool
+    realizable::Union{Bool,Nothing} # Nothing if we're not sure yet if M is realizable.
     F::AbstractAlgebra.Ring
     char::Union{Int,Nothing}
     q::Union{Int,Nothing}
@@ -13,7 +13,7 @@ mutable struct MatroidRealizationSpace
 end
 
 function Base.show(io::IO, RS::MatroidRealizationSpace)
-    if !RS.realizable
+    if RS.realizable == false
         if RS.char == nothing && RS.q == nothing && RS.F == ZZ
             print(io, "The matroid is not realizable.")
         else
@@ -47,7 +47,7 @@ function MatroidRealizationSpace(I::Union{Ideal, NumFieldOrdIdl, Nothing},
     ineqs::Union{Vector{<:Oscar.RingElem},Nothing},
     R::Union{Oscar.MPolyRing, Ring, Nothing}, mat::Union{Oscar.MatElem,Nothing},
     F::AbstractAlgebra.Ring, char::Union{Int,Nothing}, q::Union{Int,Nothing})
-    return MatroidRealizationSpace(I, ineqs, R, mat, true, F, char, q, false)
+    return MatroidRealizationSpace(I, ineqs, R, mat, nothing, F, char, q, false)
 end
 
 @doc raw"""
@@ -66,6 +66,31 @@ is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing
 """
 function is_realizable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
     RS = realization_space(M, char=char, q=q)
+    return is_realizable(RS)
+end
+
+function is_realizable(RS::MatroidRealizationSpace)
+    !isnothing(RS.realizable) && return RS.realizable
+
+    if !(typeof(RS.ambient_ring) <: MPolyRing)
+        RS.realizable = true
+        return RS.realizable
+    end
+
+    for p in minimal_primes(RS.defining_ideal)
+        component_non_trivial = true
+        for f in RS.inequations
+            if f in p
+                component_non_trivial = false
+                break
+            end
+            if component_non_trivial
+                RS.realizable = true
+                return RS.realizable
+            end
+        end
+    end
+    RS.realizable = false
     return RS.realizable
 end
 
@@ -293,7 +318,9 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
 
     #need to catch the corner-case if there are no variables at all
     if !(typeof(polyR) <: MPolyRing)
-        return MatroidRealizationSpace(ideal(polyR,0), ineqs, polyR, mat, F, char, q)
+        RS = MatroidRealizationSpace(ideal(polyR,0), ineqs, polyR, mat, F, char, q)
+        RS.realizable = true
+        return RS
     end
     
     for col in subsets(Vector(1:n),rk)
@@ -334,6 +361,7 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
 
     def_ideal = ideal(polyR,eqs)
     def_ideal = ideal(groebner_basis(def_ideal))
+    isone(def_ideal) && return MatroidRealizationSpace(F, char, q)
 
     # Unclear if we should use this. Can be too slow in some cases.
     #=
@@ -346,17 +374,13 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
     =#
 
     ineqs = gens_2_factors(ineqs)
-    
-    if saturate
-        def_ideal = stepwise_saturation(def_ideal,ineqs)
-    else
-        for i in 1:length(ineqs)
-            if count(k -> k!=0, degrees(ineqs[i])) < 3 && sum(degrees(ineqs[i])) < 3
-                def_ideal = saturation(def_ideal, ideal([ineqs[i]]))
-            end
+    # Only saturate easy inequations as it's too slow otherwise.
+    for i in 1:length(ineqs)
+        if count(k -> k!=0, degrees(ineqs[i])) < 3 && sum(degrees(ineqs[i])) < 3
+            def_ideal = saturation(def_ideal, ideal([ineqs[i]]))
         end
-        def_ideal = ideal(groebner_basis(def_ideal))
     end
+    isone(def_ideal) && return MatroidRealizationSpace(F, char, q)
     
     RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, F, char, q)
 
@@ -364,9 +388,11 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
         RS = reduce_realization_space(RS)
     end
 
-    realizable = RS.realizable && !(isone(RS.defining_ideal))
-
-    !realizable && return MatroidRealizationSpace(F, char, q)
+    if saturate
+        RS.defining_ideal = stepwise_saturation(def_ideal,ineqs)
+        isone(RS.defining_ideal) && return MatroidRealizationSpace(F, char, q)
+        RS.realizable = true
+    end
 
     return RS
 end
@@ -494,7 +520,9 @@ function realization(RS::MatroidRealizationSpace)
         error("A field or characteristic must be specified")
     end
 
-    !RS.realizable && return RS
+    if RS.realizable == false
+        return RS
+    end
 
     # If the ambient ring is not a polynomial ring we can reduce we stop
     R = RS.ambient_ring
