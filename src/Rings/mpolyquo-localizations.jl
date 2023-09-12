@@ -221,11 +221,10 @@ function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
 end
 
 function Base.show(io::IO, L::MPolyQuoLocRing)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Localized quotient of multivariate polynomial ring")
   else
-    io = pretty(IOContext(io, :supercompact=>true))
+    io = IOContext(pretty(io), :supercompact=>true)
     print(io, "Localization of ")
     print(io, Lowercase(), underlying_quotient(L))
     print(io, " at ", Lowercase(), inverted_set(L))
@@ -1145,21 +1144,20 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
-  R = base_ring(domain(phi))
-  psi = restricted_map(phi)
   if get(io, :supercompact, false)
     print(io, "Ring homomorphism")
   else
-    io = IOContext(io, :supercompact=>true)
+    R = base_ring(domain(phi))
+    psi = restricted_map(phi)
     io = pretty(io)
-    print(io, "hom: ")
-    print(IOContext(io, :supercompact=>true), domain(phi))
+    io = IOContext(io, :supercompact=>true)
+    print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
     else
       print(io, " -> ")
     end
-    print(IOContext(io, :supercompact=>true), codomain(phi))
+    print(io, codomain(phi))
   end
 end
 
@@ -1767,7 +1765,7 @@ end
 ### printing
 function Base.show(io::IO,::MIME"text/plain", I::MPolyQuoLocalizedIdeal)
   n = ngens(I)
-  io = pretty(IOContext(io,:supercompact=>true))
+  io = IOContext(pretty(io), :supercompact=>true)
   println(io, "Ideal")
   println(io, Indent(), "of ", Lowercase(), base_ring(I))
   if n > 0
