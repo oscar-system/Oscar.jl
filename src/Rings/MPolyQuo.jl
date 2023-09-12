@@ -120,6 +120,42 @@ end
 # of a singular backend depending on the type.
 ########################################################################
 
+# The trait of the coefficient ring and its elements to decide on 
+# whether or not we do have a singular backend for groebner basis 
+# computations
+abstract type HasSingularGroebnerAlgorithmTrait end
+abstract type HasSingularNormalFormTrait <: HasSingularGroebnerAlgorithmTrait end
+
+# A normal form algorithm (for possibly non-global orderings) requires 
+# strictly more, so we make it a subcase.
+struct HasSingularNormalForm <: HasSingularNormalFormTrait end
+struct HasNoSingularNormalForm <: HasSingularNormalFormTrait end
+
+struct HasSingularGroebnerAlgorithm <: HasSingularGroebnerAlgorithmTrait end
+struct HasNoSingularGroebnerAlgorithm <: HasSingularGroebnerAlgorithmTrait end
+
+# By default we do not expect the Singular backend to handle the case
+HasSingularNormalFormTrait(a::Any) = HasSingularNormalFormTrait(typeof(a))
+HasSingularNormalFormTrait(::Type) = HasNoSingularNormalForm()
+
+# Same for the Groebner bases. But if a normal form algorithm exists, then 
+# this works, too.
+HasSingularGroebnerAlgorithmTrait(a::Any) = HasSingularGroebnerAlgorithmTrait(typeof(a))
+function HasSingularGroebnerAlgorithmTrait(::Type{T}) where {T}
+  HasSingularNormalFormTrait(T) isa HasSingularNormalForm && return HasSingularGroebnerAlgorithm()
+  return HasNoSingularGroebnerAlgorithm()
+end
+
+# For polynomial rings over fields we expect Singular to handle the case
+HasSingularNormalFormTrait(::Type{<:FieldElem}) = HasSingularNormalForm()
+HasSingularNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
+
+# For polynomial rings over the integers we only allow global orderings
+HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRingElem}) = HasSingularGroebnerAlgorithm()
+HasSingularGroebnerAlgorithmTrait(::Type{<:ZZRing}) = HasSingularGroebnerAlgorithm()
+
+### Deprecated code below
+
 is_coefficient_type_with_singular_normal_form(a::Any) = is_coefficient_type_with_singular_normal_form(typeof(a))
 
 # By default we can not expect that there is a singular backend
@@ -784,33 +820,35 @@ function simplify(f::MPolyQuoRingElem)
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
+  return _simplify(HasSingularGroebnerAlgorithmTrait(kk), f)
+end
 
-  # The following bracket is for the default assumption
-  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
-    f.simplified && return f
-    R  = parent(f)
-    OR = oscar_origin_ring(R)
-    SR = singular_origin_ring(R)
-    G  = singular_origin_groebner_basis(R)
-    g  = f.f
-    f.f = OR(reduce(SR(g), G))
-    f.simplified = true
-    return f::elem_type(R)
-  end
+function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
+  f.simplified && return f
+  R  = parent(f)
+  OR = oscar_origin_ring(R)
+  SR = singular_origin_ring(R)
+  G  = singular_origin_groebner_basis(R)
+  g  = f.f
+  f.f = OR(reduce(SR(g), G))
+  f.simplified = true
+  return f::elem_type(R)
+end
 
-  # The above block for `simplify` assume that there is a singular backend which 
-  # can be used. However, we are using (graded) quotient rings also with coefficient 
-  # rings R which can not be translated to Singular; for instance when R is again 
-  # a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
-  # Still in many of those cases, we can use `RingFlattening` to bind a computational 
-  # backend. In particular, this allows us to do ideal_membership tests; see 
-  # the file `flattenings.jl` for details. 
-  #
-  # The generic block below is a compromise in the sense that `simplify` does not reduce 
-  # a given element to a unique representative as would be the case in a groebner basis reduction, 
-  # but it nevertheless reduces the element to zero in case its representative is 
-  # contained in the modulus. This allows for both, the use of `RingFlattening`s and 
-  # the potential speedup of `iszero` tests. 
+# The above method for `simplify` assume that there is a singular backend which 
+# can be used. However, we are using (graded) quotient rings also with coefficient 
+# rings R which can not be translated to Singular; for instance when R is again 
+# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# Still in many of those cases, we can use `RingFlattening` to bind a computational 
+# backend. In particular, this allows us to do ideal_membership tests; see 
+# the file `flattenings.jl` for details. 
+#
+# The generic method below is a compromise in the sense that `simplify` does not reduce 
+# a given element to a unique representative as would be the case in a groebner basis reduction, 
+# but it nevertheless reduces the element to zero in case its representative is 
+# contained in the modulus. This allows for both, the use of `RingFlattening`s and 
+# the potential speedup of `iszero` tests. 
+function _simplify(::HasNoSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   if f.f in modulus(parent(f))
     f.f = zero(f.f)
@@ -845,16 +883,18 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
+  return _is_equal(HasSingularGroebnerAlgorithmTrait(kk), f, g)
+end
 
-  # The following bracket is for the default assumption
-  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
-    f.f == g.f && return true
-    hash(f) == hash(g) && return true # calls simplify already
-    return f.f == g.f
-  end
+function _is_equal(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  f.f == g.f && return true
+  hash(f) == hash(g) && return true # calls simplify already
+  return f.f == g.f
+end
 
-  # By default we refer to the generic ideal membership routine which 
-  # might be implemented by other means, for instance via a `RingFlattening`.
+# By default we refer to the generic ideal membership routine which 
+# might be implemented by other means, for instance via a `RingFlattening`.
+function _is_equal(::HasNoSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   return f.f - g.f in modulus(Q)
 end
 
@@ -1369,13 +1409,15 @@ function hash(w::MPolyQuoRingElem, u::UInt)
   Q = parent(w)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
+  return _hash(HasSingularGroebnerAlgorithmTrait(kk), w, u)
+end
 
-  # The following bracket is for the default assumption
-  if is_coefficient_type_with_groebner_basis_algorithm_in_singular(kk)
-    simplify(w)
-    return hash(w.f, u)
-  end
+function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
+  simplify(w)
+  return hash(w.f, u)
+end
 
+function _hash(::HasNoSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
   error("hash function not implemented due to lack of unique representatives")
 end
 
