@@ -303,9 +303,15 @@ end
   @test iszero(b.f)
 
   @test Oscar.HasSingularNormalFormTrait(ZZ) isa Oscar.HasNoSingularNormalForm
+  @test Oscar.HasSingularNormalFormTrait(zero(ZZ)) isa Oscar.HasNoSingularNormalForm
   @test Oscar.HasSingularNormalFormTrait(QQ) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasSingularNormalFormTrait(zero(QQ)) isa Oscar.HasSingularNormalForm
   @test Oscar.HasSingularGroebnerAlgorithmTrait(ZZ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(ZZ)) isa Oscar.HasSingularGroebnerAlgorithm
   @test Oscar.HasSingularGroebnerAlgorithmTrait(QQ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(QQ)) isa Oscar.HasSingularGroebnerAlgorithm
   @test Oscar.HasSingularNormalFormTrait(R1) isa Oscar.HasNoSingularNormalForm
+  @test Oscar.HasSingularNormalFormTrait(one(R1)) isa Oscar.HasNoSingularNormalForm
   @test Oscar.HasSingularGroebnerAlgorithmTrait(R1) isa Oscar.HasNoSingularGroebnerAlgorithm
+  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasNoSingularGroebnerAlgorithm
 end
