@@ -213,3 +213,5 @@ end
 function Base.show(io::IO, tm::ToricMorphism)
     join(io, "A toric morphism")
 end
+
+Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)
