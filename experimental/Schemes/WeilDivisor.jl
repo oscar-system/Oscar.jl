@@ -671,3 +671,61 @@ function order_on_divisor(
   return order_on_divisor(f, I, check=false)
 end
 
+########################################################################
+# Implement the interface for AbsAlgebraicCycle and WeilDivisor for    
+# ToricDivisor
+#
+# Because of the inclusion order of the files, this has to be postponed
+# until here.
+########################################################################
+
+scheme(td::ToricDivisor) = toric_variety(td)
+
+### Construct the Weil divisor associated to `td`.
+@attr WeilDivisor function underlying_cycle(td::ToricDivisor)
+  X = scheme(td)
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+    ideal_dict[U] = ideal(OO(U), one(OO(U)))
+  end
+  II = IdealSheaf(X, ideal_dict, check=true) # TODO: Set to false
+  wd = WeilDivisor(X, ZZ, IdDict{IdealSheaf, ZZRingElem}(II => zero(ZZ)))
+  return wd
+end
+
+# Compute the ideal sheaves of the rays of `fan(X)` according to the 
+# "orbit-cone-correspondence", Theorem 3.2.6 in Cox-Little-Schenk.
+#
+# We would like to use Equation (3.2.7) from page 121 for this.
+#@attr Vector{<:IdealSheaf} function _ideal_sheaves_of_rays(X::NormalToricVariety)
+function _ideal_sheaves_of_rays(X::NormalToricVariety)
+  Sigma1 = rays(fan(X))
+  result = Vector{IdealSheaf}()
+  for tau in Sigma1
+    @show tau
+    tau_mat = _to_ZZ_mat(tau)
+    @show tau_mat
+    n = ncols(tau_mat)
+    #tau_perp = solve_mixed(ZZMatrix, tau_mat, zero_matrix(ZZ, 1, 1), identity_matrix(ZZ, n))
+    tau_perp = solve(transpose(tau_mat), zero_matrix(ZZ, 1, 1))
+    @show tau_perp
+    for U in affine_charts(X)
+      sigma = cone(U)
+      @show rays(sigma)
+      sigma_dual = weight_cone(U)
+      @show rays(sigma_dual)
+    end
+  end
+end
+
+function _to_ZZ_mat(tau::RayVector{QQFieldElem})
+  @assert all(x->isone(denominator(x)), tau) "denominators of the ray generators must be trivial"
+  tau_int = collect(numerator.(tau))
+  n = length(tau_int)
+  result = zero_matrix(ZZ, 1, n)
+  for i in 1:n
+    result[1, i] = tau_int[i]
+  end
+  return result 
+end
+

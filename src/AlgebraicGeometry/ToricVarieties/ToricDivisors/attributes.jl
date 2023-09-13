@@ -80,3 +80,10 @@ Normal toric variety
 ```
 """
 toric_variety(td::ToricDivisor) = td.toric_variety
+
+########################################################################
+# Implement the interface for AbsAlgebraicCycle and Divisors           
+#
+# Implementation still experimental; see 
+# experimental/Schemes/WeilDivisor.jl.
+########################################################################
