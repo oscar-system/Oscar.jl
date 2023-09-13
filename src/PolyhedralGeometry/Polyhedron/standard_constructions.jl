@@ -2312,3 +2312,56 @@ function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
     Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A, 1))
   )
 end
+
+@doc raw"""
+    vertex_figure(P::Polyhedron, n::Int; cutoff::Rational=1/2)
+
+Construct the vertex figure of the vertex `n` of a polyhedron. The vertex figure is dual to a facet of the dual polytope. 
+
+# Optional Arguments
+-`cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
+Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
+Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\fraction{1}{2}$. 
+-`no_coordinates::Bool`: Skip the coordinates computation, producing a pure combinatorial description. 
+-`no_labels::Bool`: Do not copy `VERTEX_LABELS` from the underlying `pm_object` of the original polytope (`true`), 
+default: do copy them (`false`). 
+
+#Example
+To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
+```jldoctest
+julia> T = vertex_figure(cube(3), 8) 
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 0]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> T = vertex_figure(cube(3), 8, cutoff = 1/4)
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 1//2]
+ [1, 1//2, 1]
+ [1//2, 1, 1]
+```
+
+"""
+function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing, no_coordinates=nothing, no_labels=nothing) where {T<:scalar_types}
+  (n<=0 || n > nvertices(P)) && throw(ArgumentError("vertex_figure: There is no vertex "*string(n)*" in this polyhedron"))
+  opts = Dict{Symbol,Any}()
+  if !isnothing(cutoff)
+    (cutoff <= 0 || cutoff >=1) && throw(ArgumentError("vertex_figure: cutoff factor must be within (0,1)"))
+    !isnothing(no_coordinates) && throw(ArgumentError("vertex_figure: cannot specify cutoff and no_coordinates options simultaneously"))
+    opts[:cutoff] = convert(Number, cutoff)
+  end
+  if !isnothing(no_coordinates)
+    opts[:no_coordinates] = convert(Bool, no_coordinates)
+  end
+  if !isnothing(no_labels)
+    opts[:no_labels] = convert(Bool, no_labels)
+  end
+  return Polyhedron{T}(Polymake.polytope.vertex_figure(pm_object(P),n-1; opts...))
+end

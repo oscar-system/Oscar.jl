@@ -329,6 +329,9 @@ julia> lineality_dim(C1)
 """
 lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 
+function facet_degrees(C::Cone)
+  return Vector{Int}(pm_object(C).FACET_DEGREES)
+end
 
 
 ###############################################################################

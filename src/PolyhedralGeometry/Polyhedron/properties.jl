@@ -731,6 +731,68 @@ julia> codim(P)
 """
 codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 
+@doc raw"""
+    facet_sizes(P::Polyhedron{T})
+
+Number of vertices in each facet. 
+
+#Example
+```jldoctest
+julia> p = johnson_solid(3) 
+Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+
+julia> facet_sizes(p) 
+8-element Vector{Int64}:
+ 3
+ 4
+ 3
+ 3
+ 4
+ 6
+ 3
+ 4
+```
+"""
+function facet_sizes(P::Polyhedron{T}) where T<:scalar_types
+  is_bounded(P) && return Vector{Int}(pm_object(P).FACET_SIZES) #shortcut, rest of the code works as well
+  im = IncidenceMatrix(pm_object(P).VERTICES_IN_FACETS) #incidence matrix with pm info with oscar indices
+  nrows = size(im)[1]
+  #get the vertices that are really vertices
+  ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE)) #indices of vertices that are really rays (or higher dimensional faces)
+  #get the facets that are really facets
+  i = _facet_at_infinity(pm_object(P))
+  rows = Vector{Int}(1:nrows)
+  i <= nrows && deleteat!(rows,i) #the face at infinity is not always a facet, so does not always need to be removed
+  #sum the vertices in facets that are really vertices in facets
+  return [length(Base.setdiff(row(im,i), ff)) for i in 1:length(rows)]
+end
+
+@doc raw"""
+    vertex_sizes(P::Polyhedron{T})
+    
+Number of incident facets for each vertex
+
+#Example
+```jldoctest
+julia> vertex_sizes(bipyramid(simplex(2)))
+5-element Vector{Int64}:
+ 4
+ 4
+ 4
+ 3
+ 3
+```
+"""
+function vertex_sizes(P::Polyhedron{T}) where T<:scalar_types
+  res = Vector{Int}(pm_object(P).VERTEX_SIZES)
+  fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)] #indices of vertices that are really rays (or higher dimensional faces)
+#   ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE)) 
+#   vf = Base.setdiff(Set(1:pm_object(P).N_VERTICES),ff)
+# I don't think the set version is beneficiary here, bc the nvertices come as a vector and we want a vector back, so i still use symdiff
+  vertices = symdiff(Vector{Int}(1:pm_object(P).N_VERTICES),fai)
+  return keepat!(res,vertices)
+end
+
 ###############################################################################
 ## Points properties
 ###############################################################################

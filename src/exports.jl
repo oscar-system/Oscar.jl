@@ -510,8 +510,10 @@ export exterior_power
 export f_vector
 export face_fan
 export faces
+export facet_degrees
 export facet_indices
 export facet_points
+export facet_sizes
 export facets
 export factor_of_direct_product
 export factorisations
@@ -1442,7 +1444,9 @@ export vector_matrix
 export vector_space_basis
 export vector_space_dimension
 export vertex_and_ray_indices
+export vertex_figure
 export vertex_indices
+export vertex_sizes
 export vertexindices
 export vertical_connectivity
 export vertices
