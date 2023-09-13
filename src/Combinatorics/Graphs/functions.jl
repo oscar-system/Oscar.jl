@@ -52,16 +52,12 @@ julia> G = ZZ[0 0; 1 0]
 [1   0]
 
 julia> graph_from_adjacency_matrix(Directed, G)
-Graph{Directed}(pm::graph::Graph<pm::graph::Directed>
-{}
-{0}
-)
+Directed graph with 2 nodes and the following edges:
+(2, 1)
 
 julia> graph_from_adjacency_matrix(Undirected, G)
-Graph{Undirected}(pm::graph::Graph<pm::graph::Undirected>
-{1}
-{0}
-)
+Undirected graph with 2 nodes and the following edges:
+(2, 1)
 
 ```
 """
@@ -1051,3 +1047,31 @@ Polyhedron in ambient dimension 6
 ```
 """
 fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))
+
+
+################################################################################
+################################################################################
+##  Printing
+################################################################################
+################################################################################
+_to_string(::Type{Polymake.Directed}) = "Directed"
+_to_string(::Type{Polymake.Undirected}) = "Undirected"
+
+function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+  if nedges(G) > 0
+    println(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and the following edges:")  # at least one new line is needed
+    for e in edges(G)
+      print(io, "($(src(e)), $(dst(e)))")
+    end
+  else
+    print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and no edges")
+  end
+end
+
+function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+  if get(io, :supercompact, false)
+    print(io, "$(_to_string(T)) graph")
+  else
+    print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
+  end
+end
