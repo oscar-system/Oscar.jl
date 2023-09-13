@@ -181,7 +181,7 @@ Return `min` if `T` is the min tropical semiring,
 return `max` if `T` is the max tropical semiring.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"\(generic function with [0-9]+ methods\)"
 julia> T = TropicalSemiring(min)
 Tropical semiring (min)
 
