@@ -843,6 +843,11 @@ function subgerm(X::AbsSpaceGerm, I::Ideal)
   return SpaceGerm(Y)
 end
 
+@doc raw"""
+    is_isolated_singularity(X::AbsSpaceGerm)
+
+Returns whether `(X,p)` has at most an isolated singularity.
+"""
 @attr Bool function is_isolated_singularity(X::AbsSpaceGerm)
   dim(singular_locus(X)[1]) < 1 || return false
   return true
@@ -853,7 +858,11 @@ end
 # milnor_number for ICIS
 # -- beyond this we do no longer have a bouquet of spheres of same dimension
 ##############################################################################
+@doc raw"""
+    milnor_algebra(X::HypersurfaceGerm)
 
+Returns the local Milnor algebra of `(X,p)` at p
+"""
 function milnor_algebra(X::HypersurfaceGerm)
   R = localized_ring(OO(X))
   ## milnor number independent of choice of representative
@@ -863,6 +872,12 @@ function milnor_algebra(X::HypersurfaceGerm)
   return quo(R,I)[1]
 end
 
+@doc raw"""
+    milnor_number(X::HypersurfaceGerm)
+    milnor_number(X::CompleteIntersectionGerm)
+
+Returns the local Milnor number of `(X,p)` at p
+"""
 function milnor_number(X::HypersurfaceGerm)
   return vector_space_dimension(milnor_algebra(X))
 end
@@ -903,6 +918,7 @@ function milnor_number(X::CompleteIntersectionGerm)
   return -dims
 end
 
+## internal helper for the summands in the Le-Greuel formula -- local case
 function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   R = parent(f)
   R == base_ring(L) || error("base_rings do not match")
@@ -931,6 +947,11 @@ function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   return vector_space_dimension(LJ)
 end
 
+@doc raw"""
+    milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
+
+Returns the global milnor algebra of the affine hypersurface `X`. If `X` is not a hypersurface, an error occurs.
+"""
 function milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
   ngens(modulus(OO(X))) == 1 || error("not a hypersurface (or unnecessary generators in specified generating set)")
@@ -939,6 +960,11 @@ function milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
   return quo(R,I)[1]
 end
 
+@doc raw"""
+    milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
+
+Returns the global milnor number of the affine hypersurface or complete intersection `X`. If `X` is neither of the two, an error occurs.
+"""
 function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
   v = gens(modulus(OO(X)))
@@ -972,6 +998,7 @@ function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
   return -dims
 end
 
+## internal helper for the summands in the Le-Greuel formula -- global case 
 function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
   R = parent(f)
   all(a-> parent(a) == R,v) || error("base rings do not match")
