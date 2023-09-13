@@ -1095,9 +1095,6 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GMo
   end
 end
 
-#T this belongs to Nemo and should be moved there
-Oscar.nbits(a::QQFieldElem) = nbits(numerator(a)) + nbits(denominator(a))
-
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}
   @assert base_ring(C) == base_ring(D)
 
