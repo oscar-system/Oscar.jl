@@ -391,7 +391,6 @@ function SpaceGerm(X::AbsSpec, I::Ideal)
   return SpaceGerm(X,a)
 end
 
-#=
 @doc raw"""
     SpaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     SpaceGerm(p::AbsAffineRationalPoint)
@@ -408,7 +407,6 @@ function SpaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return SpaceGerm(X,coordinates(p))
 end
-=#
 
 @doc raw"""
     HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
@@ -463,7 +461,6 @@ function HypersurfaceGerm(X::AbsSpec, I::Ideal)
   return HypersurfaceGerm(X,a)
 end
 
-#=
 @doc raw"""
     HypersurfaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     HypersurfaceGerm(p::AbsAffineRationalPoint)
@@ -480,7 +477,6 @@ function HypersurfaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return HypersurfaceGerm(X,coordinates(p))
 end
-=#
 
 @doc raw"""
     CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
@@ -527,7 +523,6 @@ function ComleteIntersectionGerm(X::AbsSpec, I::Ideal)
   return CompleteIntersectionGerm(X,a)
 end
 
-#=
 @doc raw"""
     CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
@@ -544,7 +539,6 @@ function CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return CompleteIntersectionGerm(X,coordinates(p))
 end
-=#
 
 @doc raw"""
     germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
@@ -576,7 +570,7 @@ end
 germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
               I::Union{Ideal,Vector}) = germ_at_point(Spec(A),I)
 
-#=@doc raw"""
+@doc raw"""
     germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
     germ_at_point(p::AbsAffineRationalPoint)
 
@@ -593,7 +587,6 @@ function germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return germ_at_point(X,coordinates(p))
 end
-=#
 
 @doc raw"""
     hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
@@ -627,7 +620,7 @@ end
 hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
                   I::Union{Ideal,Vector}) = hypersurface_germ(Spec(A),I)
 
-#=@doc raw"""
+@doc raw"""
     hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
     hypersurface_germ(p::AbsAffineRationalPoint)
 
@@ -645,7 +638,6 @@ function hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return hypersurface_germ(X,coordinates(p))
 end
-=#
 
 function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
   Y = CompleteIntersectionGerm(X,I)
@@ -656,7 +648,7 @@ end
 complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
                   I::Union{Ideal,Vector}) = complete_intersection_germ(Spec(A),I)
 
-#=@doc raw"""
+@doc raw"""
     complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
     complete_intersection_germ(p::AbsAffineRationalPoint)
 
@@ -674,7 +666,6 @@ function hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return hypersurface_germ(X,coordinates(p))
 end
-=#
 
 #########################################################################################
 ## for convenience of users thinking in terms of local rings
