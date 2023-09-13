@@ -17,7 +17,7 @@ include("../src/NewMonomial.jl")
     setindex!(B, sparse_row(ZZ, [2], [ZZ(2)]), 2)
     matrices_of_operators = [A, B]
     v0 =  sparse_row(ZZ, [1], [1])::SRow{ZZRingElem} # [1, 0]
-    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, [0, 0])) 
+    calc_monomials = Dict{ZZMPolyRingElem, Tuple{SRow{ZZRingElem}, Vector{Int}}}(ZZx(1) => (v0, [0, 0]))
 
     mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])::SRow{ZZRingElem}
 

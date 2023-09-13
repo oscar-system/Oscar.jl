@@ -103,7 +103,7 @@ function demazure_operators_summary(
 end
 
 function demazure_operator_monom_sum(
-    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}, 
+    ZZ_x::AbstractAlgebra.Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing},
     beta::Int, 
     e_lambda::ZZMPolyRingElem, 
     e_mu::ZZMPolyRingElem

@@ -84,17 +84,13 @@ end
     end
     @testset "Check dimension" begin
         @testset "Monomial order $monomial_order" for monomial_order in ("lex", "revlex", "degrevlex")
-            # the functionality longest-word was temporarily removed because it required coxeter groups from 
-            # https://github.com/jmichel7/Gapjm.jl
-            #@testset "Operators $ops" for ops in ("regular", "longest-word") 
             check_dimension('A', 3, [1,1,1], monomial_order)
-                #check_dimension('B', 3, [2,1,0], monomial_order, ops)
-                #check_dimension('C', 3, [1,1,1], monomial_order, ops)
-                #check_dimension('D', 4, [3,0,1,1], monomial_order, ops)
-                #check_dimension('F', 4, [2,0,1,0], monomial_order, ops)
-                #check_dimension('G', 2, [1,0], monomial_order, ops)
-                #check_dimension('G', 2, [2,2], monomial_order, ops)
-            #end
+            #check_dimension('B', 3, [2,1,0], monomial_order)
+            #check_dimension('C', 3, [1,1,1], monomial_order)
+            #check_dimension('D', 4, [3,0,1,1], monomial_order)
+            #check_dimension('F', 4, [2,0,1,0], monomial_order)
+            #check_dimension('G', 2, [1,0], monomial_order)
+            #check_dimension('G', 2, [2,2], monomial_order)
         end
     end
 end
