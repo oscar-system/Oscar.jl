@@ -168,7 +168,7 @@ defined by
 julia> cartier_divisor(E)
 Cartier divisor
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 defined by the formal sum of
   1 * sheaf of ideals
 ```

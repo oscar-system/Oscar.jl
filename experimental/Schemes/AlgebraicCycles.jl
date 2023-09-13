@@ -191,7 +191,7 @@ julia> R = ZZ;
 julia> algebraic_cycle(Ycov, R)
 Zero algebraic cycle
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 ```
 """
 algebraic_cycle(X::AbsCoveredScheme, R::Ring) = AlgebraicCycle(X, R)
@@ -229,7 +229,7 @@ julia> R = ZZ;
 julia> algebraic_cycle(II, R)
 Effective algebraic cycle
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
 
@@ -270,7 +270,7 @@ julia> R = ZZ;
 julia> algebraic_cycle(II, R)
 Effective algebraic cycle
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
 ```
