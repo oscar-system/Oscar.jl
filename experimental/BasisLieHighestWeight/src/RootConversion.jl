@@ -335,12 +335,13 @@ function alpha_to_eps_A(rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQ
     return weight_eps
 end
 
-function eps_to_alpha_A(rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
+function eps_to_alpha_A(rank::Int, weight_eps_original::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for A
     """
+    weight_eps = copy(weight_eps_original) # Original weight should not get modified
     if length(weight_eps) == rank
-        append!(weight_eps, QQ(0))
+        push!(weight_eps, QQ(0))
     end
     weight_alpha = [QQ(0) for i in 1:(rank + 1)]
     for i in 1:(rank + 1)
