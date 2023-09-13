@@ -92,9 +92,6 @@ normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
 ### Further Constructions
 
 ```@docs
-blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
-blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
 Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
 proj(E::ToricLineBundle...)
 total_space(E::ToricLineBundle...)

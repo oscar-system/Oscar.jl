@@ -84,5 +84,8 @@ include("ToricMorphisms/constructors.jl")
 include("ToricMorphisms/attributes.jl")
 include("ToricMorphisms/standard_constructions.jl")
 
+include("Blowups/constructors.jl")
+
+
 include("Proj/constructors.jl")
 include("ToricSchemes/attributes.jl")

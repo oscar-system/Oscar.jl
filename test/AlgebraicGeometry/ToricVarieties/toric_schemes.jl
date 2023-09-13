@@ -21,6 +21,7 @@ using Test
   end
   
   IP1 = projective_space(NormalToricVariety, 1; set_attributes = set_attributes)
+  set_coordinate_names(IP1, ["x", "y"])
   Y = IP1*IP1
   
   @testset "Product of projective spaces" begin
@@ -29,6 +30,7 @@ using Test
   end
 
   IP2 = projective_space(NormalToricVariety, 2; set_attributes = set_attributes)
+  set_coordinate_names(IP2, ["x", "y", "z"])
   X, iso = Oscar.forget_toric_structure(IP2)
 
   @testset "Forget toric structure" begin
@@ -49,5 +51,5 @@ using Test
     I = ideal(S, gens(S)[2:3])
     II = IdealSheaf(IP3, I)
   end
-  
+
 end

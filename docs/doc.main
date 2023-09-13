@@ -193,6 +193,7 @@
         "AlgebraicGeometry/ToricVarieties/AlgebraicCycles.md",
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
         "AlgebraicGeometry/ToricVarieties/ToricSchemes.md",
+        "AlgebraicGeometry/ToricVarieties/Blowups.md",
      ],
      "Tropical Geometry" => [
         "AlgebraicGeometry/TropicalGeometry/intro.md",
