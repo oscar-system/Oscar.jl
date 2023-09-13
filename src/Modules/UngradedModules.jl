@@ -6215,11 +6215,13 @@ end
 @doc raw"""
     free_resolution(F::FreeMod)
 
-Return a free resolution of `F`.
+Return a free resolution of `F`. The `length` and `algorithm`
+keywords are here only for compatibility reasons with the other `free_resolution`
+methods and have no effect on the computation.
 
 # Examples
 """
-function free_resolution(F::FreeMod)
+function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
   res = presentation(F)
   set_attribute!(res, :show => free_show, :free_res => F)
   return FreeResolution(res)
@@ -6371,7 +6373,7 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, `algorithm` options `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
 minimal free resolutions are returned.
 
 # Examples
@@ -6426,9 +6428,8 @@ R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-    ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres
-  )
+                         ordering::ModuleOrdering = default_ordering(M),
+                         length::Int=0, algorithm::Symbol=:fres)
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -6632,35 +6633,45 @@ function ideal_to_module(I::MPolyIdeal)
 end
 
 @doc raw"""
-    free_resolution(I::MPolyIdeal)
+    free_resolution(I::MPolyIdeal; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `I`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(I::MPolyIdeal)
+function free_resolution(I::MPolyIdeal;
+                         length::Int=0, algorithm::Symbol=:fres)
   S = ideal_as_module(I)
   n = Hecke.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
   end
-  return free_resolution(S)
+  return free_resolution(S, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
-    free_resolution(Q::MPolyQuoRing)
+    free_resolution(Q::MPolyQuoRing; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `Q`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(Q::MPolyQuoRing)
+function free_resolution(Q::MPolyQuoRing;
+                         length::Int=0, algorithm::Symbol=:fres)
   q = quotient_ring_as_module(Q)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
   end
-  return free_resolution(q)
+  return free_resolution(q, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
