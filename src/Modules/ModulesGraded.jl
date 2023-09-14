@@ -1583,7 +1583,7 @@ function sheafCoh_BGG_regul(M::ModuleFP{T},
   end
   sing_mod = singular_generators(ModuleGens(cokern_gens))
 
-  weights = [d[1] for d in degrees_of_generators(free_mod)]
+  weights = [Int(d[1]) for d in degrees_of_generators(free_mod)]
 
   values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
                                                    l, h, reg,
