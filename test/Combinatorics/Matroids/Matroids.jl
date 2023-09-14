@@ -343,5 +343,6 @@
     @testset "matroid automorphism" begin
         M = uniform_matroid(3, 5)
         @test order(automorphism_group(M)) == 120
+        @test automorphism_group(uniform_matroid(0, 2)) == symmetric_group(2)
     end
 end
