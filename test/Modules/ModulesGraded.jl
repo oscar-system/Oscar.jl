@@ -1150,17 +1150,17 @@ end
   @test tbl[2, 0] == 1
   @test iszero(tbl[2, -2])
 
-  F = free_module(R, 1)
+  F = free_module(S, 1)
   @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
 
   R, x = polynomial_ring(QQ, "x" => 1:4)
   S, _ = grade(R, [1,2,3,4])
-  F = graded_free_module(R, 1)
+  F = graded_free_module(S, 1)
   @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
 
   R, x = polynomial_ring(QQ, "x" => 1:5)
   S, _ = grade(R)
-  F = graded_free_module(R, 1)
+  F = graded_free_module(S, 1)
   tbl = sheaf_cohomology_bgg(F, -7, 2)
   a = tbl.values
   b = transpose(a) * a
