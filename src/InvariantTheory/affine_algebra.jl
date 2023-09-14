@@ -66,13 +66,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
-(Quotient of multivariate polynomial ring by ideal with 1 generator, Map with following data
-Domain:
-=======
-Quotient of multivariate polynomial ring by ideal with 1 generator
-Codomain:
-=========
-Graded multivariate polynomial ring in 3 variables over cyclotomic field of order 3)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
 function affine_algebra(IR::InvRing; algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)

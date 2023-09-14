@@ -135,13 +135,13 @@ Spectrum
     by ideal(x1)
 
 julia> pullback(inclusion_morphism(X, Y))
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 1 generator
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to quotient of multivariate polynomial ring by ideal with 1 generator
+defined by
+  x1 -> 0
+  x2 -> x2
+  x3 -> x3
 ```
 """
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
