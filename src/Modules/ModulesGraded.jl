@@ -1560,6 +1560,23 @@ julia> tbl[0, -6]
 
 julia> tbl[2, 0]
 1
+
+julia> R, x = polynomial_ring(QQ, "x" => (1:5, ));
+
+julia> R, x = grade(R);
+
+julia> F = graded_free_module(R, 1);
+
+julia> sheaf_cohomology_bgg(F, -7, 2)
+       -7  -6  -5  -4  -3  -2  -1   0   1   2
+---------------------------------------------
+0:     15   5   1   -   -   -   *   *   *   *
+1:      *   -   -   -   -   -   -   *   *   *
+2:      *   *   -   -   -   -   -   -   *   *
+3:      *   *   *   -   -   -   -   -   -   *
+4:      *   *   *   *   -   -   -   1   5  15
+---------------------------------------------
+chi:    *   *   *   *   -   -   *   *   *   *
 """
 function sheaf_cohomology_bgg(M::ModuleFP{T},
                               l::Int,
@@ -1567,6 +1584,7 @@ function sheaf_cohomology_bgg(M::ModuleFP{T},
 
 
   free_mod = ambient_free_module(M)
+  @assert is_graded(M) "Module must be graded."
   @assert is_standard_graded(free_mod) "Only supported for the standard grading of polynomials."
 
   reg=Int(cm_regularity(M))
