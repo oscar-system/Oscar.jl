@@ -150,7 +150,7 @@ end
 function _face_cone(::Type{Cone{T}}, C::Cone{T}, i::Base.Integer; f_dim::Int = 0) where T<:scalar_types
   R = pm_object(C).RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(C), f_dim)[i])), :]
   L = pm_object(C).LINEALITY_SPACE
-  PT = _scalar_type_to_polymake(T, eltype(R))
+  PT = _scalar_type_to_polymake(T)
   return Cone{T}(Polymake.polytope.Cone{PT}(RAYS = R, LINEALITY_SPACE = L), coefficient_field(C))
 end
 
@@ -462,8 +462,6 @@ _incidencematrix(::Val{_facet_cone}) = _ray_indices
 facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
 facets(::Type{<:Halfspace}, C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
-
-facets(::Type{<:AffineHalfspace}, C::Cone{T}) where T<:scalar_types = facets(AffineHalfspace{T}, C)
 
 facets(::Type{Cone}, C::Cone{T}) where T<:scalar_types = facets(Cone{T}, C)
 
