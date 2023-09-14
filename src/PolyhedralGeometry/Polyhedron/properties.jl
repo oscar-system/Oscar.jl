@@ -754,16 +754,14 @@ julia> facet_sizes(p)
 ```
 """
 function facet_sizes(P::Polyhedron{T}) where T<:scalar_types
-  is_bounded(P) && return Vector{Int}(pm_object(P).FACET_SIZES) #shortcut, rest of the code works as well
-  im = IncidenceMatrix(pm_object(P).VERTICES_IN_FACETS) #incidence matrix with pm info with oscar indices
+  is_bounded(P) && return Vector{Int}(pm_object(P).FACET_SIZES)
+  im = IncidenceMatrix(pm_object(P).VERTICES_IN_FACETS)
   nrows = size(im)[1]
-  #get the vertices that are really vertices
-  ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE)) #indices of vertices that are really rays (or higher dimensional faces)
-  #get the facets that are really facets
+  #get the vertices that are really vertices and the facets that are really facets
+  ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE))
   i = _facet_at_infinity(pm_object(P))
   rows = Vector{Int}(1:nrows)
   i <= nrows && deleteat!(rows,i) #the face at infinity is not always a facet, so does not always need to be removed
-  #sum the vertices in facets that are really vertices in facets
   return [length(Base.setdiff(row(im,i), ff)) for i in 1:length(rows)]
 end
 
@@ -785,10 +783,7 @@ julia> vertex_sizes(bipyramid(simplex(2)))
 """
 function vertex_sizes(P::Polyhedron{T}) where T<:scalar_types
   res = Vector{Int}(pm_object(P).VERTEX_SIZES)
-  fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)] #indices of vertices that are really rays (or higher dimensional faces)
-#   ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE)) 
-#   vf = Base.setdiff(Set(1:pm_object(P).N_VERTICES),ff)
-# I don't think the set version is beneficiary here, bc the nvertices come as a vector and we want a vector back, so i still use symdiff
+  fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)]
   vertices = symdiff(Vector{Int}(1:pm_object(P).N_VERTICES),fai)
   return keepat!(res,vertices)
 end

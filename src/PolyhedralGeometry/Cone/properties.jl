@@ -369,6 +369,8 @@ end
 
 Ray degrees of the cone. If the cone has lineality, the output is empty since
 there are no rays that are also faces. 
+Note the corresponding `polymake` property is called `VERTEX_DEGREES` and behaves 
+differently if the cone has lineality.
 
 #Examples
 ```jldoctest
