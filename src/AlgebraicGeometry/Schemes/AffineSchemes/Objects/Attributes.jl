@@ -378,7 +378,7 @@ julia> dim(X)
 julia> Y = affine_space(ZZ, 2)
 Spectrum
   of multivariate polynomial ring in 2 variables x1, x2
-    over integer Ring
+    over integer ring
 
 julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3

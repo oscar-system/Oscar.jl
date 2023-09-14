@@ -59,7 +59,7 @@ defined by
   x -> y
   y -> x
 with map on coefficients
-#1
+  #1
 
 julia> F(a * y)
 (a + 1)*x
@@ -77,13 +77,7 @@ defined by
   x -> x^2
   y -> y^2
 with map on coefficients
-  Map with following data
-    Domain:
-    =======
-    Qi
-  Codomain:
-    =========
-    Qi
+  Map: imaginary quadratic field defined by x^2 + 1 -> imaginary quadratic field defined by x^2 + 1
 
 julia> G(x+i*y)
 x^2 - sqrt(-1)*y^2

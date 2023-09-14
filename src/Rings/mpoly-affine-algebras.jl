@@ -497,11 +497,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -526,13 +523,9 @@ julia> H
 GrpAb: Z
 
 julia> iso
-Map with following data
-Domain:
-=======
-H
-Codomain:
-=========
-G
+Map: GrpAb: Z -> (General) abelian group with relation matrix
+[1 -1]
+with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series(
@@ -697,11 +690,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -726,13 +716,9 @@ julia> H[2][1]
 GrpAb: Z
 
 julia> H[2][2]
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z
-Codomain:
-=========
-G
+Map: GrpAb: Z -> (General) abelian group with relation matrix
+[1 -1]
+with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)

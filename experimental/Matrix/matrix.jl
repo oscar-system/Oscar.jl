@@ -24,7 +24,7 @@ Compute the JuliaMatrixRep of `m` in GAP.
 julia> m = matrix(ZZ, [0 1 ; -1 0]);
 
 julia> Oscar._wrap_for_gap(m)
-GAP: <matrix object of dimensions 2x2 over Integer Ring>
+GAP: <matrix object of dimensions 2x2 over Integer ring>
 ```
 """
 _wrap_for_gap(m::MatrixElem) = GAP.Globals.MakeJuliaMatrixRep(m)
