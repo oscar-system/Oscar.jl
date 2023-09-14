@@ -129,11 +129,6 @@ function op(f::Function, a::AlgClosureElem, b::AlgClosureElem)
   return f(k(ad), k(bd))
 end
 
-#T the following belongs to Nemo and should be moved there
-function Oscar.embed(k::Nemo.fpField, K::fqPolyRepField)
-  @assert characteristic(K) == characteristic(k)
-end
-
 +(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(+, a, b), parent(a))
 -(a::AlgClosureElem, b::AlgClosureElem) = AlgClosureElem(op(-, a, b), parent(a))
 #TODO: do we really want to support different types here? (implies different parents)

@@ -1043,19 +1043,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    0    1    0]
 
 julia> Lh, inj = direct_sum(Lf, Lg)
-(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 5
-Codomain:
-=========
-Quadratic space of dimension 10, Map with following data
-Domain:
-=======
-Quadratic space of dimension 5
-Codomain:
-=========
-Quadratic space of dimension 10])
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
 Integer lattice of rank 10 and degree 10
@@ -1136,19 +1124,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    0    1    0]
 
 julia> Lh, proj = direct_product(Lf, Lg)
-(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 10
-Codomain:
-=========
-Quadratic space of dimension 5, Map with following data
-Domain:
-=======
-Quadratic space of dimension 10
-Codomain:
-=========
-Quadratic space of dimension 5])
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
 Integer lattice of rank 10 and degree 10
@@ -1232,31 +1208,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    0    1    0]
 
 julia> Lh, inj, proj = biproduct(Lf, Lg)
-(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 5
-Codomain:
-=========
-Quadratic space of dimension 10, Map with following data
-Domain:
-=======
-Quadratic space of dimension 5
-Codomain:
-=========
-Quadratic space of dimension 10], AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 10
-Codomain:
-=========
-Quadratic space of dimension 5, Map with following data
-Domain:
-=======
-Quadratic space of dimension 10
-Codomain:
-=========
-Quadratic space of dimension 5])
+(Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
 Integer lattice of rank 10 and degree 10

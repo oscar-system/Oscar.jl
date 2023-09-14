@@ -45,7 +45,7 @@ julia> I = ideal(R,[-x1+x3+x4,-x2+x3+x5,-x1+x2+x6])
 ideal(-x1 + x3 + x4, -x2 + x3 + x5, -x1 + x2 + x6)
 
 julia> val = TropicalSemiringMap(ZZ)
-The trivial valuation on Integer Ring
+The trivial valuation on Integer ring
 
 julia> TropicalLinearSpace(I,val)
 TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 6, #undef)

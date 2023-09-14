@@ -138,7 +138,7 @@ julia> II = IdealSheaf(Y, I);
 julia> weil_divisor(II)
 Effective weil divisor
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
 ```
