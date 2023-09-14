@@ -1,168 +1,170 @@
-# Setup for coefficient rings
-R, x = polynomial_ring(QQ, "x")
-q = x^2 + 3//4
-L, (e, f) = number_field([x^2 + 5, x^3 - 6])
-K, a = number_field(q)
-Ky, y = K["y"]
-Tow, b = number_field(y^2 + 1, "b")
-NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
-Qu, u = RationalFunctionField(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
-Fin, d = FiniteField(t^2 + t + 1)
-Frac = fraction_field(R)
-P7 = PadicField(7, 30)
-T = TropicalSemiring()
-F, o  = Hecke.Nemo._FiniteField(4)
-Fs, s = F["s"]
-FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
+let
+  # Setup for coefficient rings
+  R, x = polynomial_ring(QQ, "x")
+  q = x^2 + 3//4
+  L, (e, f) = number_field([x^2 + 5, x^3 - 6])
+  K, a = number_field(q)
+  Ky, y = K["y"]
+  Tow, b = number_field(y^2 + 1, "b")
+  NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
+  Qu, u = RationalFunctionField(QQ, "u")
+  Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
+  Fin, d = FiniteField(t^2 + t + 1)
+  Frac = fraction_field(R)
+  P7 = PadicField(7, 30)
+  T = TropicalSemiring()
+  F, o  = Hecke.Nemo._FiniteField(4)
+  Fs, s = F["s"]
+  FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
 
-cases = [
-  (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
-  (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
-  (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
-  (L, e, f, "Non Simple Extension"),
-  (K, a, a + 1, "Simple Extension"),
-  (Tow, a^2 * b, a + b, "Tower Extension"),
-  (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
-  (Fin, d, 1, "Finite Field"),
-  (Qu, u, 1 // u, "RationalFunctionField"),
-  (Frac, 1 // x, x^2, "Fraction Field"),
-  (T, T(1), T(3)^2, "Tropical Semiring"),
-  (FF, FF(1), r, "Default Finite Field"),
-  (P7, 7 + 3*7^2, 7^5, "Padic Field"),
-]
+  cases = [
+    (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
+    (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
+    (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
+    (L, e, f, "Non Simple Extension"),
+    (K, a, a + 1, "Simple Extension"),
+    (Tow, a^2 * b, a + b, "Tower Extension"),
+    (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
+    (Fin, d, 1, "Finite Field"),
+    (Qu, u, 1 // u, "RationalFunctionField"),
+    (Frac, 1 // x, x^2, "Fraction Field"),
+    (T, T(1), T(3)^2, "Tropical Semiring"),
+    (FF, FF(1), r, "Default Finite Field"),
+    (P7, 7 + 3*7^2, 7^5, "Padic Field"),
+  ]
 
 
-@testset "Serialization.Polynomials.and.Series" begin
-  mktempdir() do path
-    for case in cases
-      @testset "Univariate Polynomial over $(case[4])" begin
-        R, z = polynomial_ring(case[1], "z")
-        p = z^2 + case[2] * z + case[3]
-        test_save_load_roundtrip(path, p) do loaded
-          @test loaded == p
-        end
+  @testset "Serialization.Polynomials.and.Series" begin
+    mktempdir() do path
+      for case in cases
+        @testset "Univariate Polynomial over $(case[4])" begin
+          R, z = polynomial_ring(case[1], "z")
+          p = z^2 + case[2] * z + case[3]
+          test_save_load_roundtrip(path, p) do loaded
+            @test loaded == p
+          end
 
-        @testset "Load with params" begin
-          test_save_load_roundtrip(path, p; params=R) do loaded
-            @test loaded == z^2 + case[2] * z + case[3]
+          @testset "Load with params" begin
+            test_save_load_roundtrip(path, p; params=R) do loaded
+              @test loaded == z^2 + case[2] * z + case[3]
+            end
           end
         end
-      end
-      
-      @testset "Multivariate Polynomial over $(case[4])"  begin 
-        R, (z, w) = polynomial_ring(case[1], ["z", "w"])
-        p = z^2 + case[2] * z * w + case[3] * w^3
-        test_save_load_roundtrip(path, p) do loaded
-          @test loaded == z^2 + case[2] * z * w + case[3] * w^3
-        end
-
-        @testset "Load with params" begin
-          test_save_load_roundtrip(path, p; params=R) do loaded
+        
+        @testset "Multivariate Polynomial over $(case[4])"  begin 
+          R, (z, w) = polynomial_ring(case[1], ["z", "w"])
+          p = z^2 + case[2] * z * w + case[3] * w^3
+          test_save_load_roundtrip(path, p) do loaded
             @test loaded == z^2 + case[2] * z * w + case[3] * w^3
           end
-        end
 
-        if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
-          @testset "MPoly Ideals over $(case[4])" begin
-            q = w^2 + z
-            i = Oscar.ideal(R, [p, q])
-            test_save_load_roundtrip(path, i) do loaded_i
-              S = parent(loaded_i[1])
-              h = hom(R, S, gens(S))
-              @test h(i) == loaded_i
-            end
-
-            S = parent(i[1])
-            test_save_load_roundtrip(path, i; params=S) do loaded_i
-              @test i == loaded_i
+          @testset "Load with params" begin
+            test_save_load_roundtrip(path, p; params=R) do loaded
+              @test loaded == z^2 + case[2] * z * w + case[3] * w^3
             end
           end
-        end
-      end
 
-      @testset "Universal Polynomial over $(case[4])" begin
-        R = UniversalPolynomialRing(case[1])
-        z, w = gens(R, ["z", "w"])
-        p = z^2 + case[2] * z * w + case[3] * w^3
-        test_save_load_roundtrip(path, p) do loaded
-          test_p = z^2 + case[2] * z * w + case[3] * w^3
-          @test loaded.p == test_p.p
-        end
+          if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
+            @testset "MPoly Ideals over $(case[4])" begin
+              q = w^2 + z
+              i = Oscar.ideal(R, [p, q])
+              test_save_load_roundtrip(path, i) do loaded_i
+                S = parent(loaded_i[1])
+                h = hom(R, S, gens(S))
+                @test h(i) == loaded_i
+              end
 
-        @testset "Load with params" begin
-          test_save_load_roundtrip(path, p; params=R) do loaded
-            @test p == loaded
-          end
-        end
-      end
-
-      # Tropical Semirings currently can't have formal power series
-      filter!(case-> case[4] != "Tropical Semiring", cases)
-
-      @testset "Multivariate Laurent Polynomial over $(case[4])" begin
-        R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
-        p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
-        test_save_load_roundtrip(path, p) do loaded
-          @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
-        end
-
-        @testset "Load with params" begin
-          test_save_load_roundtrip(path, p; params=R) do loaded
-            @test p == loaded
-          end
-        end
-
-        if R isa AbstractAlgebra.Generic.LaurentMPolyWrapRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
-          @testset "Laurent MPoly Ideals over $(case[4])" begin
-            q = w^2 + z
-            i = Oscar.ideal(R, [p, q])
-            test_save_load_roundtrip(path, i) do loaded_i
-              S = parent(gens(loaded_i)[1])
-              h = hom(R, S, gens(S))
-              @test gens(i) == gens(loaded_i)
-            end
-
-            S = parent(gens(i)[1])
-            test_save_load_roundtrip(path, i; params=S) do loaded_i
-              @test gens(i) == gens(loaded_i)
+              S = parent(i[1])
+              test_save_load_roundtrip(path, i; params=S) do loaded_i
+                @test i == loaded_i
+              end
             end
           end
         end
-      end
 
-      @testset "Series" begin
-        @testset "Power Series over $(case[4])" begin
-          rel_R, rel_z = power_series_ring(case[1], 10, "z")
-          rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3
-          test_save_load_roundtrip(path, rel_p) do loaded
-            @test rel_p == loaded
-          end
-
-          test_save_load_roundtrip(path, rel_p; params=rel_R) do loaded
-            @test rel_p == loaded
-          end
-
-          abs_R, abs_z = power_series_ring(case[1], 10, "z"; model=:capped_absolute)
-          abs_p = abs_z^2 + case[2] * abs_z + case[3]
-          test_save_load_roundtrip(path, abs_p) do loaded
-            @test abs_p == loaded
-          end
-
-          test_save_load_roundtrip(path, abs_p; params=abs_R) do loaded
-            @test abs_p == loaded
-          end
-        end
-
-        @testset "Laurent Series over $(case[4])" begin
-          L, z = laurent_series_ring(case[1], 10, "z")
-          p = z^(-1) + case[2] * z + case[3] * z^2
+        @testset "Universal Polynomial over $(case[4])" begin
+          R = UniversalPolynomialRing(case[1])
+          z, w = gens(R, ["z", "w"])
+          p = z^2 + case[2] * z * w + case[3] * w^3
           test_save_load_roundtrip(path, p) do loaded
-            @test p == loaded
+            test_p = z^2 + case[2] * z * w + case[3] * w^3
+            @test loaded.p == test_p.p
           end
 
-          test_save_load_roundtrip(path, p; params=L) do loaded
-            @test p == loaded
+          @testset "Load with params" begin
+            test_save_load_roundtrip(path, p; params=R) do loaded
+              @test p == loaded
+            end
+          end
+        end
+
+        # Tropical Semirings currently can't have formal power series
+        filter!(case-> case[4] != "Tropical Semiring", cases)
+
+        @testset "Multivariate Laurent Polynomial over $(case[4])" begin
+          R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
+          p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
+          test_save_load_roundtrip(path, p) do loaded
+            @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
+          end
+
+          @testset "Load with params" begin
+            test_save_load_roundtrip(path, p; params=R) do loaded
+              @test p == loaded
+            end
+          end
+
+          if R isa AbstractAlgebra.Generic.LaurentMPolyWrapRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
+            @testset "Laurent MPoly Ideals over $(case[4])" begin
+              q = w^2 + z
+              i = Oscar.ideal(R, [p, q])
+              test_save_load_roundtrip(path, i) do loaded_i
+                S = parent(gens(loaded_i)[1])
+                h = hom(R, S, gens(S))
+                @test gens(i) == gens(loaded_i)
+              end
+
+              S = parent(gens(i)[1])
+              test_save_load_roundtrip(path, i; params=S) do loaded_i
+                @test gens(i) == gens(loaded_i)
+              end
+            end
+          end
+        end
+
+        @testset "Series" begin
+          @testset "Power Series over $(case[4])" begin
+            rel_R, rel_z = power_series_ring(case[1], 10, "z")
+            rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3
+            test_save_load_roundtrip(path, rel_p) do loaded
+              @test rel_p == loaded
+            end
+
+            test_save_load_roundtrip(path, rel_p; params=rel_R) do loaded
+              @test rel_p == loaded
+            end
+
+            abs_R, abs_z = power_series_ring(case[1], 10, "z"; model=:capped_absolute)
+            abs_p = abs_z^2 + case[2] * abs_z + case[3]
+            test_save_load_roundtrip(path, abs_p) do loaded
+              @test abs_p == loaded
+            end
+
+            test_save_load_roundtrip(path, abs_p; params=abs_R) do loaded
+              @test abs_p == loaded
+            end
+          end
+
+          @testset "Laurent Series over $(case[4])" begin
+            L, z = laurent_series_ring(case[1], 10, "z")
+            p = z^(-1) + case[2] * z + case[3] * z^2
+            test_save_load_roundtrip(path, p) do loaded
+              @test p == loaded
+            end
+
+            test_save_load_roundtrip(path, p; params=L) do loaded
+              @test p == loaded
+            end
           end
         end
       end

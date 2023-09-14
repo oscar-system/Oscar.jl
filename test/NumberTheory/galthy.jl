@@ -32,43 +32,45 @@
   @test is_isomorphic(G, Gs)
 end
 
-import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
-naive_is_giant(G::PermGroup) = is_natural_alternating_group(G) || is_natural_symmetric_group(G)
+let
+  import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
+  naive_is_giant(G::PermGroup) = is_natural_alternating_group(G) || is_natural_symmetric_group(G)
 
-# compute the cycle types of a bunch of random elements of a permutation group
-# the number of samples we take was made up on the spot and has no deeper scientific significance.
-sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for i in 1:(5*degree(G)+10))
+  # compute the cycle types of a bunch of random elements of a permutation group
+  # the number of samples we take was made up on the spot and has no deeper scientific significance.
+  sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for i in 1:(5*degree(G)+10))
 
-@testset "Cycle types" begin
+  @testset "Cycle types" begin
 
-  # fetch the groups only once, to benefit from caching the result of conjugacy_classes
-  grps = [all_transitive_groups(degree => n) for n in 1:20]
+    # fetch the groups only once, to benefit from caching the result of conjugacy_classes
+    grps = [all_transitive_groups(degree => n) for n in 1:20]
 
-  @testset "primitive_by_shape (exact) in degree $n" for n in 1:11
-    @test all(G -> is_primitive(G) == primitive_by_shape(cycle_structures(G),n), grps[n] )
+    @testset "primitive_by_shape (exact) in degree $n" for n in 1:11
+      @test all(G -> is_primitive(G) == primitive_by_shape(cycle_structures(G),n), grps[n] )
+    end
+
+    # additional tests but without computing conjugacy classes (slows down the tests too much);
+    # note that we only check the implication, as there are cases in degree 15 and above
+    # where primitive_by_shape fails to detect primitivity
+    @testset "primitive_by_shape (randomized) in degree $n" for n in 12:length(grps)
+      # If primitive_by_shape returns true then is_primitive must return true. If
+      # primitive_by_shape returns false then we can't say anything, as we just
+      # might have sampled bad elements.
+      # In other words, we test for the implication `primitive_by_shape => is_primitive`.
+      @test all(G -> !primitive_by_shape(sample_cycle_structures(G),n) || is_primitive(G), grps[n] )
+    end
+
+    @testset "an_sn_by_shape (exact) in degree $n" for n in 1:11
+      @test all(G -> naive_is_giant(G) == an_sn_by_shape(cycle_structures(G),n), grps[n] )
+    end
+
+    @testset "an_sn_by_shape (randomized) in degree $n" for n in 12:length(grps)
+      # If an_sn_by_shape returns true then naive_is_giant must return true. If
+      # an_sn_by_shape returns false then we can't say anything, as we just
+      # might have sampled bad elements.
+      # In other words, we test for the implication `an_sn_by_shape => naive_is_giant`.
+      @test all(G -> !an_sn_by_shape(sample_cycle_structures(G),n) || naive_is_giant(G), grps[n] )
+    end
+
   end
-
-  # additional tests but without computing conjugacy classes (slows down the tests too much);
-  # note that we only check the implication, as there are cases in degree 15 and above
-  # where primitive_by_shape fails to detect primitivity
-  @testset "primitive_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    # If primitive_by_shape returns true then is_primitive must return true. If
-    # primitive_by_shape returns false then we can't say anything, as we just
-    # might have sampled bad elements.
-    # In other words, we test for the implication `primitive_by_shape => is_primitive`.
-    @test all(G -> !primitive_by_shape(sample_cycle_structures(G),n) || is_primitive(G), grps[n] )
-  end
-
-  @testset "an_sn_by_shape (exact) in degree $n" for n in 1:11
-    @test all(G -> naive_is_giant(G) == an_sn_by_shape(cycle_structures(G),n), grps[n] )
-  end
-
-  @testset "an_sn_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    # If an_sn_by_shape returns true then naive_is_giant must return true. If
-    # an_sn_by_shape returns false then we can't say anything, as we just
-    # might have sampled bad elements.
-    # In other words, we test for the implication `an_sn_by_shape => naive_is_giant`.
-    @test all(G -> !an_sn_by_shape(sample_cycle_structures(G),n) || naive_is_giant(G), grps[n] )
-  end
-
 end

@@ -9,91 +9,91 @@
    end
 end
 
-n = 6
-@testset "Homomorphism in Sym($n)" begin
-   G = symmetric_group(n)
-   x = G(vcat(2:n-1, [1]))
+let n = 6
+   @testset "Homomorphism in Sym($n)" begin
+      G = symmetric_group(n)
+      x = G(vcat(2:n-1, [1]))
 
-   g = hom(G, G, gens(G), [y^x for y in gens(G)])
-   @test g == hom(G, G, gens(G), [y^x for y in gens(G)], check = false)
-   @test g == hom(G, G, [y^x for y in gens(G)])
-   @test g == hom(G, G, [y^x for y in gens(G)], check = false)
-   @test typeof(g) == Oscar.GAPGroupHomomorphism{PermGroup, PermGroup}
-   @test domain(g) == G
-   @test codomain(g) == G
-   @test image(g)[1] == G
-   @test g(one(G)) == one(G)
-   @test g(x)==x
-   @test Set([y for y in centralizer(G,x)[1]]) == Set([y for y in G if g(y)==y])
-   z = rand(G)
-   @test g(z) == z^x
-   @test is_injective(g)
-   @test is_surjective(g)
-   @test is_invertible(g)
-   @test is_bijective(g)
-   og = order(g)
-   @test og isa Integer
-   @test og == order(x)
-   @test g^og == id_hom(G)
-   @test g^(og+1) == g
-   @test g^(1-og) == g
+      g = hom(G, G, gens(G), [y^x for y in gens(G)])
+      @test g == hom(G, G, gens(G), [y^x for y in gens(G)], check = false)
+      @test g == hom(G, G, [y^x for y in gens(G)])
+      @test g == hom(G, G, [y^x for y in gens(G)], check = false)
+      @test typeof(g) == Oscar.GAPGroupHomomorphism{PermGroup, PermGroup}
+      @test domain(g) == G
+      @test codomain(g) == G
+      @test image(g)[1] == G
+      @test g(one(G)) == one(G)
+      @test g(x)==x
+      @test Set([y for y in centralizer(G,x)[1]]) == Set([y for y in G if g(y)==y])
+      z = rand(G)
+      @test g(z) == z^x
+      @test is_injective(g)
+      @test is_surjective(g)
+      @test is_invertible(g)
+      @test is_bijective(g)
+      og = order(g)
+      @test og isa Integer
+      @test og == order(x)
+      @test g^og == id_hom(G)
+      @test g^(og+1) == g
+      @test g^(1-og) == g
 
-   @test !is_isomorphic(symmetric_group(4), symmetric_group(3))
+      @test !is_isomorphic(symmetric_group(4), symmetric_group(3))
 
-   A = alternating_group(n)
-   x = cperm(G,[1,2,3])
-   f = hom(G,G,y -> y^x)
-   @test typeof(restrict_homomorphism(f,A)) == Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
-   fa = restrict_homomorphism(f,A)
-   @test domain(fa)==A
-   @test codomain(fa)==G
-   @test fa(A[1])==f(A[1])
-   @test_throws AssertionError restrict_homomorphism(fa, G)
-end
+      A = alternating_group(n)
+      x = cperm(G,[1,2,3])
+      f = hom(G,G,y -> y^x)
+      @test typeof(restrict_homomorphism(f,A)) == Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
+      fa = restrict_homomorphism(f,A)
+      @test domain(fa)==A
+      @test codomain(fa)==G
+      @test fa(A[1])==f(A[1])
+      @test_throws AssertionError restrict_homomorphism(fa, G)
+   end
 
-@testset "Operations on homomorphism in Sym($n)" begin
-   G = symmetric_group(n)
-   x = cperm(G,[1,2,3])
-   Hx,fx = sub(G,[x])
+   @testset "Operations on homomorphism in Sym($n)" begin
+      G = symmetric_group(n)
+      x = cperm(G,[1,2,3])
+      Hx,fx = sub(G,[x])
 
-   @test is_injective(fx)
-   @test !is_surjective(fx)
-   @test fx(Hx[1])==x
-   @test image(fx)[1] == Hx
-   @test image(fx)[2] == fx
+      @test is_injective(fx)
+      @test !is_surjective(fx)
+      @test fx(Hx[1])==x
+      @test image(fx)[1] == Hx
+      @test image(fx)[2] == fx
 
-   y = cperm(G,[1,3,4])
-   z = cperm(G,[1,2,5])
-   Hy,fy = sub(G,[y])
-   Hz,fz = sub(G,[z])
-   f = hom(Hx,Hy,gens(Hx),gens(Hy))
-   g = hom(Hy,Hz,gens(Hy),gens(Hz))
-   @test is_bijective(f)
-   @test domain(f)==Hx
-   @test codomain(f)==Hy
-   @test image(f)[1]==Hy
-   @test image(f)[2]==id_hom(Hy)
-   @test f(x)==y
-   @test inv(f)==f^-1
-   @test domain(f^-1)==codomain(f)
-   @test codomain(f^-1)==domain(f)
-   @test image(f^-1)[1]==Hx
-   @test image(f^-1)[2]==id_hom(Hx)
-   @test (f^-1)(y)==x
-   @test g(f(x))==z
-   @test (f*g)(x)==z
-   @test (f*g)^-1 == g^-1*f^-1
-   @test_throws AssertionError g*f
-   ty = trivial_morphism(Hy,Hy)
-   @test f*ty==trivial_morphism(Hx,Hy)
-   @test ty*g==trivial_morphism(Hy,Hz)
-   @test f*trivial_morphism(Hy,Hz) == trivial_morphism(Hx,Hz)
-   @test trivial_morphism(Hz,Hy)*f^-1 == trivial_morphism(Hz,Hx)
-   @test order(kernel(f)[1])==1
-   @test kernel(ty)[1] == Hy
-   @test kernel(ty)[2] == id_hom(Hy)
-   @test kernel(f*ty)[1]==Hx
-   
+      y = cperm(G,[1,3,4])
+      z = cperm(G,[1,2,5])
+      Hy,fy = sub(G,[y])
+      Hz,fz = sub(G,[z])
+      f = hom(Hx,Hy,gens(Hx),gens(Hy))
+      g = hom(Hy,Hz,gens(Hy),gens(Hz))
+      @test is_bijective(f)
+      @test domain(f)==Hx
+      @test codomain(f)==Hy
+      @test image(f)[1]==Hy
+      @test image(f)[2]==id_hom(Hy)
+      @test f(x)==y
+      @test inv(f)==f^-1
+      @test domain(f^-1)==codomain(f)
+      @test codomain(f^-1)==domain(f)
+      @test image(f^-1)[1]==Hx
+      @test image(f^-1)[2]==id_hom(Hx)
+      @test (f^-1)(y)==x
+      @test g(f(x))==z
+      @test (f*g)(x)==z
+      @test (f*g)^-1 == g^-1*f^-1
+      @test_throws AssertionError g*f
+      ty = trivial_morphism(Hy,Hy)
+      @test f*ty==trivial_morphism(Hx,Hy)
+      @test ty*g==trivial_morphism(Hy,Hz)
+      @test f*trivial_morphism(Hy,Hz) == trivial_morphism(Hx,Hz)
+      @test trivial_morphism(Hz,Hy)*f^-1 == trivial_morphism(Hz,Hx)
+      @test order(kernel(f)[1])==1
+      @test kernel(ty)[1] == Hy
+      @test kernel(ty)[2] == id_hom(Hy)
+      @test kernel(f*ty)[1]==Hx
+   end
 end
 
 @testset "quo for FPGroup" begin

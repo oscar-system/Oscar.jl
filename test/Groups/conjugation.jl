@@ -116,41 +116,43 @@
 
 end
 
-function TestConjCentr(G,x)
-   Cx = centralizer(G,x)[1]
-   cc = conjugacy_class(G,x)
-   @test index(G,Cx)==length(cc)
-   T=right_transversal(G,Cx)
-   @testset for y in cc
-       @test count(t -> y==x^t, T) == 1
+let
+   function TestConjCentr(G,x)
+      Cx = centralizer(G,x)[1]
+      cc = conjugacy_class(G,x)
+      @test index(G,Cx)==length(cc)
+      T=right_transversal(G,Cx)
+      @testset for y in cc
+         @test count(t -> y==x^t, T) == 1
+      end
+      
+      cs = conjugacy_class(G,Cx)
+      Nx = normalizer(G,Cx)[1]
+      @test index(G,Nx)==length(cs)
+      T=right_transversal(G,Nx)
+      # Set([Cx^t for t in T]) == Set(collect(cs)) does not work
+      @testset for H in collect(cs)
+         @test sum([H==Cx^t for t in T])==1
+      end
    end
-   
-   cs = conjugacy_class(G,Cx)
-   Nx = normalizer(G,Cx)[1]
-   @test index(G,Nx)==length(cs)
-   T=right_transversal(G,Nx)
-   # Set([Cx^t for t in T]) == Set(collect(cs)) does not work
-   @testset for H in collect(cs)
-       @test sum([H==Cx^t for t in T])==1
+
+   @testset "Conjugation and centralizers" begin
+      G = symmetric_group(6)
+      x = cperm(G,[1,2,3,4])
+      TestConjCentr(G,x)
+
+      G = GL(3,3)
+      x = G[2]
+      TestConjCentr(G,x)
+
+      G = GL(3, Nemo._GF(3, 1))
+      x = G[2]
+      TestConjCentr(G,x)
+
+      G = special_unitary_group(2,3)
+      x = G[1]
+      TestConjCentr(G,x)
    end
-end
-
-@testset "Conjugation and centralizers" begin
-   G = symmetric_group(6)
-   x = cperm(G,[1,2,3,4])
-   TestConjCentr(G,x)
-
-   G = GL(3,3)
-   x = G[2]
-   TestConjCentr(G,x)
-
-   G = GL(3, Nemo._GF(3, 1))
-   x = G[2]
-   TestConjCentr(G,x)
-
-   G = special_unitary_group(2,3)
-   x = G[1]
-   TestConjCentr(G,x)
 end
 
 @testset "Conjugation in matrix group (different from GL and SL)" begin
