@@ -1267,13 +1267,12 @@ Quotient
   by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
-Map with following data
-Domain:
-=======
-A
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 4 generators
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal with 1 generator
+  to quotient of multivariate polynomial ring by ideal with 4 generators
+defined by
+  x -> x
+  y -> y
 
 julia> LL[1][3]
 (y, ideal(x, y))

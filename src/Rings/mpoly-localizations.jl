@@ -1168,13 +1168,13 @@ Localization
   at complement of prime ideal(x)
 
 julia> iota
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+defined by
+  x -> x
+  y -> y
+  z -> z
 ```
 """ localization(R::MPolyRing, U::AbsMPolyMultSet)
 
@@ -2877,22 +2877,20 @@ julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]));
 julia> PSI = hom(TL, RQL, RQL.([x]));
 
 julia> phi = restricted_map(PHI)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+defined by
+  x -> t
+  y -> t^2
+  z -> t^3
 
 julia> psi = restricted_map(PSI)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 1 variable over QQ
-Codomain:
-=========
-Localization of quotient of multivariate polynomial ring at complement of maximal ideal
+Ring homomorphism
+  from multivariate polynomial ring in 1 variable over QQ
+  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+defined by
+  t -> x
 ```
 """
 restricted_map(PHI::MPolyLocalizedRingHom) = PHI.res

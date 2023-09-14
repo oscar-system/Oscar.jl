@@ -155,13 +155,11 @@ julia> is_bijective(F)
 true
 
 julia> G = inverse(F)
-Map with following data
-Domain:
-=======
-Multivariate polynomial ring in 1 variable over QQ
-Codomain:
-=========
-D
+Ring homomorphism
+  from multivariate polynomial ring in 1 variable over QQ
+  to quotient of multivariate polynomial ring by ideal with 2 generators
+defined by
+  t -> x
 
 julia> G(t)
 x
