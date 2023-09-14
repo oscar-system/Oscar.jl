@@ -497,11 +497,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -697,11 +694,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
