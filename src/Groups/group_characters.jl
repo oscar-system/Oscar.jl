@@ -864,12 +864,8 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     # Fetch the Orthogonal Discriminants if applicable.
     # (This is possible only if the OD database is available.)
     OD = get(io, :OD, false)::Bool
-    if OD && hasproperty(GAP.Globals, :OrthogonalDiscriminants)
-      ODs = [replace(x -> isnothing(x) ? "" : string(x),
-                     Vector{Any}(GAPWrap.OrthogonalDiscriminants(gaptbl)))]
-      for i in (length(ODs[1])+1):n
-        push!(ODs[1], "")
-      end
+    if OD
+      ODs = [orthogonal_discriminants(tbl)]
       ODlabel = ["OD"]
       push!(emptycor, "")
     else

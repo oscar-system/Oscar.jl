@@ -234,7 +234,6 @@ GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
-GAP.@wrap OrthogonalDiscriminants(x::GapObj)::GapObj
 GAP.@wrap Pcgs(x::GapObj)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj
 GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
