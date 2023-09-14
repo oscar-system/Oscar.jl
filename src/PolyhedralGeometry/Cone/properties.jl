@@ -329,10 +329,71 @@ julia> lineality_dim(C1)
 """
 lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 
+@doc raw"""
+    facet_degrees(C::Cone)
+
+Facet degrees of the cone. The degree of a facet is the number of adjacent facets. 
+In particular a general $2$-dimensional cone has two facets (rays) that meet at the origin. 
+
+#Example
+Produce the facet degrees of a cone over a square and a cone over a square pyramid. 
+```jldoctest
+julia> c = positive_hull([1 1 0; 1 -1 0; 1 0 1; 1 0 -1])
+Polyhedral cone in ambient dimension 3
+
+julia> facet_degrees(c)
+4-element Vector{Int64}:
+ 2
+ 2
+ 2
+ 2
+
+ julia> c = positive_hull([1 0 1 0; 1 0 -1 0; 1 0 0 1; 1 0 0 -1; 1 1 0 0])
+Polyhedral cone in ambient dimension 4
+
+julia> facet_degrees(c)
+5-element Vector{Int64}:
+ 4
+ 3
+ 3
+ 3
+ 3
+```
+"""
 function facet_degrees(C::Cone)
-  return Vector{Int}(pm_object(C).FACET_DEGREES)
+    return Vector{Int}(Polymake.polytope.facet_degrees(pm_object(C)))
 end
 
+@doc raw"""
+    ray_degrees(C::Cone)
+
+Ray degrees of the cone. If the cone has lineality, the output is empty since
+there are no rays that are also faces. 
+
+#Examples
+```jldoctest
+julia> c = cone_from_inequalities([-1 0 0; 0 -1 0])
+Polyhedral cone in ambient dimension 3
+
+julia> ray_degrees(c)
+Int64[]
+
+julia> c = positive_hull([1 0 1 0; 1 0 -1 0; 1 0 0 1; 1 0 0 -1; 1 1 0 0])
+Polyhedral cone in ambient dimension 4
+
+julia> ray_degrees(c) 
+5-element Vector{Int64}:
+ 3
+ 3
+ 3
+ 3
+ 4
+```
+"""
+function ray_degrees(C::Cone)
+    pm_object(C).LINEALITY_DIM > 0 && return Vector{Int}()
+    return Vector{Int}(Polymake.polytope.vertex_degrees(pm_object(C)))
+end
 
 ###############################################################################
 ## Boolean properties

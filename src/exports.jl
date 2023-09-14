@@ -1211,6 +1211,7 @@ export rational_equivalence_class
 export rational_point_coordinates
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
+export ray_degrees
 export ray_indices
 export ray_vector
 export rays
