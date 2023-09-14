@@ -348,7 +348,7 @@ julia> facet_degrees(c)
  2
  2
 
- julia> c = positive_hull([1 0 1 0; 1 0 -1 0; 1 0 0 1; 1 0 0 -1; 1 1 0 0])
+julia> c = positive_hull([1 0 1 0; 1 0 -1 0; 1 0 0 1; 1 0 0 -1; 1 1 0 0])
 Polyhedral cone in ambient dimension 4
 
 julia> facet_degrees(c)
