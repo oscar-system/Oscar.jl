@@ -416,11 +416,14 @@ end
 
 @doc raw"""
     hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+    hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
 
 Given modules `V` and `W` which are direct sums with `r` respective `s` summands,  
 say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix 
 `hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
 $V \to W$ with $ij$-components $h_{ij}$.
+
+If `hs` is a vector, then it is interpreted as a diagonal matrix.
 """
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
@@ -446,6 +449,19 @@ function hom_direct_sum(
     )
   end
   return hom(V, W, map(map_basis, basis(V)); check=false)
+end
+
+function hom_direct_sum(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
+) where {C<:RingElement}
+  @req is_direct_sum(V) "First module must be a direct sum"
+  @req is_direct_sum(W) "Second module must be a direct sum"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+  @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
+  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+
+  return hom(V, W, diagonal_matrix(matrix.(hs)); check=false)
 end
 
 @doc raw"""
