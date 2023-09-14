@@ -104,7 +104,7 @@ end
   Base.cumulative_compile_timing(true)
 end
 
-println("Making test list")
+@everywhere include("init_tests.jl")
 
 testlist = [
   
