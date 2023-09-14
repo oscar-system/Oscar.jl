@@ -373,6 +373,16 @@ function (V::LieAlgebraModule{C})(
   end
 end
 
+function (V::LieAlgebraModule{C})(
+  a::Tuple{T,Vararg{T}}
+) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+  return V(collect(a))
+end
+
+function (V::LieAlgebraModule{C})(_::Tuple{}) where {C<:RingElement}
+  return V(LieAlgebraModuleElem{C}[])
+end
+
 ###############################################################################
 #
 #   Arithmetic operations
@@ -968,7 +978,7 @@ function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   E_to_T_mat = zero_matrix(coefficient_ring(V), dim_E, dim(T))
   T_to_E_mat = zero_matrix(coefficient_ring(V), dim(T), dim_E)
   for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)))
+    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
     E_to_T_mat[i, j] = sgn//factorial(k)
     T_to_E_mat[j, i] = sgn
   end
@@ -1065,7 +1075,7 @@ function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
   S_to_T_mat = zero_matrix(coefficient_ring(V), dim_S, dim(T))
   T_to_S_mat = zero_matrix(coefficient_ring(V), dim(T), dim_S)
   for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)))
+    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
     S_to_T_mat[i, j] += 1//factorial(k)
     T_to_S_mat[j, i] = 1
   end
