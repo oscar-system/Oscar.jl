@@ -104,7 +104,7 @@ end
   Base.cumulative_compile_timing(true)
 end
 
-@everywhere include("init_tests.jl")
+@everywhere include("Serialization/init_tests.jl")
 
 testlist = [
   
