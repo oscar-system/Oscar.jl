@@ -1584,6 +1584,7 @@ function sheaf_cohomology_bgg(M::ModuleFP{T},
 
 
   free_mod = ambient_free_module(M)
+  @assert is_graded(M) "Module must be graded."
   @assert is_standard_graded(free_mod) "Only supported for the standard grading of polynomials."
 
   reg=Int(cm_regularity(M))
