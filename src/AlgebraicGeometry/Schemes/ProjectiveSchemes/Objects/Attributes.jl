@@ -270,13 +270,7 @@ Projective space of dimension 2
 with homogeneous coordinates [x, y, z]
 
 julia> affine_cone(P)
-(Spec of quotient of multivariate polynomial ring, Map with following data
-Domain:
-=======
-S
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 1 generator)
+(Spec of quotient of multivariate polynomial ring, Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 ```
 """
 affine_cone(P::AbsProjectiveScheme)

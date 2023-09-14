@@ -85,13 +85,7 @@ julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]
 
 julia> grid_morphism = hom(character_lattice(domain), character_lattice(codomain), mapping_matrix)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z
-Codomain:
-=========
-Abelian group with structure: Z^2
+Map: GrpAb: Z -> GrpAb: Z^2
 
 julia> toric_morphism(domain, grid_morphism, codomain)
 A toric morphism
