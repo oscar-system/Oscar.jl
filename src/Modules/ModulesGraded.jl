@@ -1470,6 +1470,153 @@ function Base.show(io::IO, b::BettiTable)
 end
 
 
+###############################################################################
+# data structure for table as in
+# https://www.singular.uni-kl.de/Manual/4-3-1/sing_1827.htm#SEC1908
+###############################################################################
+
+mutable struct sheafCohTable
+  twist_range::UnitRange{Int}
+  values::Matrix{Int}
+end
+
+function Base.getindex(st::sheafCohTable, ind...)
+  row_ind = ind[1] + 1
+  col_ind = ind[2] - first(st.twist_range) + 1
+  return st.values[row_ind, col_ind]
+end
+
+function Base.show(io::IO, table::sheafCohTable)
+  chi = [any(v -> v == -1, col) ? -1 : sum(col) for col in eachcol(table.values)]
+  # pad every value in the table to this length
+  val_space_length = max(maximum(_ndigits, table.values), maximum(_ndigits, chi))
+  nrows = size(table.values, 1)
+
+  # rows to print
+  print_rows = [[_shcoh_string_rep(v, val_space_length) for v in row]
+                for row in eachrow(table.values)]
+  chi_print =  [_shcoh_string_rep(v, val_space_length) for v in chi]
+
+  # row labels
+  row_label_length = max(_ndigits(nrows - 1), 3) + 2
+  for i in 1:nrows
+    pushfirst!(print_rows[i], rpad("$(i-1): ", row_label_length, " "))
+  end
+  pushfirst!(chi_print, rpad("chi: ", row_label_length, " "))  
+
+  # header
+  header = [lpad(v, val_space_length, " ") for v in table.twist_range]
+  pushfirst!(header, rpad(" ", row_label_length, " "))
+
+  println(io, prod(header))
+  size_row = sum(length, first(print_rows))
+  println(io, repeat("-", size_row))
+  for rw in print_rows
+    println(io, prod(rw))
+  end
+  println(io, repeat("-", size_row))
+  println(io, prod(chi_print))
+end
+
+@doc raw"""
+    function sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+
+Compute the cohomology of twists of of the coherent sheaf on projective
+space associated to `M`. The range of twists is between `l` and `h`.
+In the displayed result, '-' refers to a zero enty and '*' refers to a
+negative entry (= dimension not yet determined). To determine all values
+in the desired range between `l` and `h` use `sheafCoh_BGG_regul(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
+The values of the returned table can be accessed by indexing it
+with a cohomological index and a value between `l` and `h` as shown
+in the example below.
+
+
+julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+
+julia> S, _= grade(R);
+
+julia> I = ideal(S, gens(S))
+ideal(x[1], x[2], x[3], x[4])
+
+julia> FI = free_resolution(I)
+Free resolution of I
+S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
+0         1         2         3         4
+
+julia> M = cokernel(map(FI, 2));
+
+julia> tbl = sheaf_cohomology_bgg(M, -6, 2)
+       -6  -5  -4  -3  -2  -1   0   1   2
+-----------------------------------------
+0:     70  36  15   4   -   -   -   -   *
+1:      *   -   -   -   -   -   -   -   -
+2:      *   *   -   -   -   -   1   -   -
+3:      *   *   *   -   -   -   -   -   6
+-----------------------------------------
+chi:    *   *   *   4   -   -   1   -   *
+
+julia> tbl[0, -6]
+70
+
+julia> tbl[2, 0]
+1
+
+julia> R, x = polynomial_ring(QQ, "x" => (1:5, ));
+
+julia> R, x = grade(R);
+
+julia> F = graded_free_module(R, 1);
+
+julia> sheaf_cohomology_bgg(F, -7, 2)
+       -7  -6  -5  -4  -3  -2  -1   0   1   2
+---------------------------------------------
+0:     15   5   1   -   -   -   *   *   *   *
+1:      *   -   -   -   -   -   -   *   *   *
+2:      *   *   -   -   -   -   -   -   *   *
+3:      *   *   *   -   -   -   -   -   -   *
+4:      *   *   *   *   -   -   -   1   5  15
+---------------------------------------------
+chi:    *   *   *   *   -   -   *   *   *   *
+"""
+function sheaf_cohomology_bgg(M::ModuleFP{T},
+                              l::Int,
+                              h::Int) where {T <: MPolyDecRingElem}
+
+
+  free_mod = ambient_free_module(M)
+  @assert is_graded(M) "Module must be graded."
+  @assert is_standard_graded(free_mod) "Only supported for the standard grading of polynomials."
+
+  reg=Int(cm_regularity(M))
+  # get a cokernel presentation of M
+  p = presentation(M)
+  cokern_repr = image(map(p, 1))[1]
+  cokern_gens = ambient_representatives_generators(cokern_repr)
+  if isempty(cokern_gens)
+    cokern_gens = [zero(ambient_free_module(cokern_repr))]
+  end
+  sing_mod = singular_generators(ModuleGens(cokern_gens))
+
+  weights = [Int(d[1]) for d in degrees_of_generators(free_mod)]
+
+  values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
+                                                   l, h, reg,
+                                                   weights)
+  return sheafCohTable(l:h, values)
+end
+
+# helper functions
+function _shcoh_string_rep(val::Int, padlength::Int)
+  iszero(val) && return lpad("-", padlength, " ")
+  val == -1 && return lpad("*", padlength, " ")
+  return lpad(val, padlength, " ")
+end
+
+function _ndigits(val::Int)
+  iszero(val) && return 3
+  val == -1 && return 3
+  return Int(floor(log10(val))) + 3
+end
 
 ##################################
 ### Tests on graded modules

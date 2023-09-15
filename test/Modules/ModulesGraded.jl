@@ -1138,3 +1138,31 @@ end
   A, _ = quo(R, I)
   @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
 end
+
+@testset "sheaf cohomology" begin
+  R, x = polynomial_ring(QQ, "x" => 1:4)
+  S, _ = grade(R)
+  I = ideal(S, gens(S))
+  FI = free_resolution(I)
+  M = cokernel(map(FI, 2))
+  tbl = sheaf_cohomology_bgg(M, -6, 2)
+  @test tbl[0, -6] == 70
+  @test tbl[2, 0] == 1
+  @test iszero(tbl[2, -2])
+
+  F = free_module(S, 1)
+  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+
+  R, x = polynomial_ring(QQ, "x" => 1:4)
+  S, _ = grade(R, [1,2,3,4])
+  F = graded_free_module(S, 1)
+  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+
+  R, x = polynomial_ring(QQ, "x" => 1:5)
+  S, _ = grade(R)
+  F = graded_free_module(S, 1)
+  tbl = sheaf_cohomology_bgg(F, -7, 2)
+  a = tbl.values
+  b = transpose(a) * a
+  @test is_symmetric(b)
+end
