@@ -123,36 +123,44 @@ end
 # The trait of the coefficient ring and its elements to decide on 
 # whether or not we do have a singular backend for groebner basis 
 # computations
-abstract type HasSingularGroebnerAlgorithmTrait end
-abstract type HasSingularNormalFormTrait <: HasSingularGroebnerAlgorithmTrait end
+abstract type HasGroebnerAlgorithmTrait end
+abstract type HasNormalFormTrait <: HasGroebnerAlgorithmTrait end
 
 # A normal form algorithm (for possibly non-global orderings) requires 
 # strictly more, so we make it a subcase.
-struct HasSingularNormalForm <: HasSingularNormalFormTrait end
-struct HasNoSingularNormalForm <: HasSingularNormalFormTrait end
+struct HasSingularNormalForm <: HasNormalFormTrait end
+struct HasNoNormalForm <: HasNormalFormTrait end
 
-struct HasSingularGroebnerAlgorithm <: HasSingularGroebnerAlgorithmTrait end
-struct HasNoSingularGroebnerAlgorithm <: HasSingularGroebnerAlgorithmTrait end
+struct HasSingularGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
+struct HasRingFlattening <: HasGroebnerAlgorithmTrait end
+struct HasNoGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
 
 # By default we do not expect the Singular backend to handle the case
-HasSingularNormalFormTrait(a::Any) = HasSingularNormalFormTrait(typeof(a))
-HasSingularNormalFormTrait(::Type{T}) where {T} = HasNoSingularNormalForm()
+HasNormalFormTrait(a::Ring) = HasNormalFormTrait(typeof(a))
+HasNormalFormTrait(a::RingElem) = HasNormalFormTrait(parent_type(a))
+HasNormalFormTrait(::Type{T}) where {T <: RingElem} = HasNormalFormTrait(parent_type(T))
+HasNormalFormTrait(::Type{T}) where {T} = HasNoNormalForm()
 
 # Same for the Groebner bases. But if a normal form algorithm exists, then 
 # this works, too.
-HasSingularGroebnerAlgorithmTrait(a::Any) = HasSingularGroebnerAlgorithmTrait(typeof(a))
-function HasSingularGroebnerAlgorithmTrait(::Type{T}) where {T}
-  HasSingularNormalFormTrait(T) isa HasSingularNormalForm && return HasSingularGroebnerAlgorithm()
-  return HasNoSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(a::Ring) = HasGroebnerAlgorithmTrait(typeof(a))
+HasGroebnerAlgorithmTrait(a::RingElem) = HasGroebnerAlgorithmTrait(parent_type(a))
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: RingElem} = HasGroebnerAlgorithmTrait(parent_type(T))
+
+function HasGroebnerAlgorithmTrait(::Type{T}) where {T}
+  HasNormalFormTrait(T) isa HasSingularNormalForm && return HasSingularGroebnerAlgorithm()
+  return HasNoGroebnerAlgorithm()
 end
 
 # For polynomial rings over fields we expect Singular to handle the case
-HasSingularNormalFormTrait(::Type{<:FieldElem}) = HasSingularNormalForm()
-HasSingularNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
+HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 
 # For polynomial rings over the integers we only allow global orderings
-HasSingularGroebnerAlgorithmTrait(::Type{ZZRingElem}) = HasSingularGroebnerAlgorithm()
-HasSingularGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
+
+# In some cases it is useful to know that we can do a RingFlattening 
+# and carry out certain operations in the de-nested ring
+# These declarations happen in the file src/Rings/MPolyMap/flattenings.jl
 
 # This list can (and should) be extended by eventual new types which 
 # are supposed to make use of the Singular backend.
@@ -795,7 +803,7 @@ function simplify(f::MPolyQuoRingElem)
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
-  return _simplify(HasSingularGroebnerAlgorithmTrait(kk), f)
+  return _simplify(HasGroebnerAlgorithmTrait(kk), f)
 end
 
 function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
@@ -823,13 +831,17 @@ end
 # but it nevertheless reduces the element to zero in case its representative is 
 # contained in the modulus. This allows for both, the use of `RingFlattening`s and 
 # the potential speedup of `iszero` tests. 
-function _simplify(::HasNoSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
+function _simplify(::HasRingFlattening, f::MPolyQuoRingElem)
   f.simplified && return f
   if f.f in modulus(parent(f))
     f.f = zero(f.f)
   end
   f.simplified = true
   return f::elem_type(parent(f))
+end
+
+function _simplify(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem)
+  error("no groebner backend available for simplification")
 end
 
 @doc raw"""
@@ -858,7 +870,7 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
-  return _is_equal(HasSingularGroebnerAlgorithmTrait(kk), f, g)
+  return _is_equal(HasGroebnerAlgorithmTrait(kk), f, g)
 end
 
 function _is_equal(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
@@ -870,8 +882,12 @@ end
 
 # By default we refer to the generic ideal membership routine which 
 # might be implemented by other means, for instance via a `RingFlattening`.
-function _is_equal(::HasNoSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+function _is_equal(::HasRingFlattening, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   return f.f - g.f in modulus(parent(f))
+end
+
+function _is_equal(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  error("no groebner backend available for elements of type $(typeof(f))")
 end
 
 @doc raw"""
@@ -1385,7 +1401,7 @@ function hash(w::MPolyQuoRingElem, u::UInt)
   Q = parent(w)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
-  return _hash(HasSingularGroebnerAlgorithmTrait(kk), w, u)
+  return _hash(HasGroebnerAlgorithmTrait(kk), w, u)
 end
 
 function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
@@ -1393,7 +1409,11 @@ function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
   return hash(w.f, u)
 end
 
-function _hash(::HasNoSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
+function _hash(::HasRingFlattening, w::MPolyQuoRingElem, u::UInt)
+  error("hash function not implemented due to lack of unique representatives")
+end
+
+function _hash(::HasNoGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
   error("hash function not implemented due to lack of unique representatives")
 end
 

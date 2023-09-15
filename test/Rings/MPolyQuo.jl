@@ -302,16 +302,63 @@ end
   simplify(b)
   @test iszero(b.f)
 
-  @test Oscar.HasSingularNormalFormTrait(ZZ) isa Oscar.HasNoSingularNormalForm
-  @test Oscar.HasSingularNormalFormTrait(zero(ZZ)) isa Oscar.HasNoSingularNormalForm
-  @test Oscar.HasSingularNormalFormTrait(QQ) isa Oscar.HasSingularNormalForm
-  @test Oscar.HasSingularNormalFormTrait(zero(QQ)) isa Oscar.HasSingularNormalForm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(ZZ) isa Oscar.HasSingularGroebnerAlgorithm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(ZZ)) isa Oscar.HasSingularGroebnerAlgorithm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(QQ) isa Oscar.HasSingularGroebnerAlgorithm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(QQ)) isa Oscar.HasSingularGroebnerAlgorithm
-  @test Oscar.HasSingularNormalFormTrait(R1) isa Oscar.HasNoSingularNormalForm
-  @test Oscar.HasSingularNormalFormTrait(one(R1)) isa Oscar.HasNoSingularNormalForm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(R1) isa Oscar.HasNoSingularGroebnerAlgorithm
-  @test Oscar.HasSingularGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasNoSingularGroebnerAlgorithm
+  P, (u, v) = R3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+
+  L3, _ = localization(R3, powers_of_element(y3))
+  P, (u, v) = L3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+
+  W3, _ = localization(Q3, powers_of_element(y3))
+  P, (u, v) = W3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+  
+  @test Oscar.HasNormalFormTrait(ZZ) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(zero(ZZ)) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(QQ) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasNormalFormTrait(zero(QQ)) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasGroebnerAlgorithmTrait(ZZ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(one(ZZ)) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(QQ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(one(QQ)) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasNormalFormTrait(R1) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(one(R1)) isa Oscar.HasNoNormalForm
+  @test Oscar.HasGroebnerAlgorithmTrait(R1) isa Oscar.HasRingFlattening
+  @test Oscar.HasGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasRingFlattening
 end
