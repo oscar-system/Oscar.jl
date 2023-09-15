@@ -243,6 +243,7 @@ export anticanonical_divisor
 export anticanonical_divisor_class
 export approximate_class_fusion
 export archimedean_solid
+export are_algebraically_independent
 export as_dictionary
 export as_gset
 export as_perm_group

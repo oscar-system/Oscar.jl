@@ -1058,6 +1058,50 @@ end
 
 ################################################################################
 #
+#  Algebraic Independence
+#
+################################################################################
+
+@doc raw"""
+    are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+
+Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring, 
+return `(true, ideal(0))` if the elements of `V` are algebraically independent over `K`. Return, `false`
+together with the ideal of `K`-algebra relations, otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> V = [x, y, x^2+y^3]
+3-element Vector{QQMPolyRingElem}:
+ x
+ y
+ x^2 + y^3
+
+julia> are_algebraically_independent(V)
+(false, ideal(t1^2 + t2^3 - t3))
+
+julia> A, p = quo(R, [x*y]);
+
+julia> are_algebraically_independent([p(x), p(y)])
+(false, ideal(t1*t2))
+
+```
+"""
+function are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  @req !isempty(V) "Input vector must not be empty"
+  R = parent(V[1])
+  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
+  @req all(x -> parent(x) === R, V) "The elements must have the same parent"
+  S, _ = polynomial_ring(coefficient_ring(R), length(V), "t"; cached = false)
+  phi = hom(S, R, V)
+  I = kernel(phi)
+  return iszero(I), I
+end
+
+################################################################################
+#
 #  Minimalizing a set of subalgebra generators in graded case
 #
 ################################################################################
