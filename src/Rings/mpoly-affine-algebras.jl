@@ -16,7 +16,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> dim(A)
-1the
+1
 ```
 """
 function dim(A::MPolyQuoRing) 
