@@ -121,8 +121,14 @@ end
 function Base.show(io::IO, S::MPolyPowersOfElement)
   io = pretty(io)
   # no need for supercompact printing
-  print(io, "Products of ")
-  print(io, ItemQuantity(length(denominators(S)), "element"))
+  if get(io, :supercompact, false)
+    print(io, "Products of ")
+    print(io, ItemQuantity(length(denominators(S)), "element"))
+  else
+    print(io, "Products of (")
+    join(io, denominators(S), ",")
+    print(io, ")")
+  end
 end
 
 ### generation of random elements 

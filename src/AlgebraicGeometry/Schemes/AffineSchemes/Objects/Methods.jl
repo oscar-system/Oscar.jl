@@ -45,20 +45,32 @@ function Base.show(io::IO, X::AbsSpec)
   if has_attribute(X, :name)
     print(io, name(X))
   elseif get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine scheme over ")
     K = base_ring(X)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(IOContext(io, :supercompact => true), Lowercase(), K)
   else
     print(io, "Spec of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), OO(X))
+    print(io, Lowercase(), OO(X))
   end
 end
+
+function Base.show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+  print(io, "V(")
+  I = modulus(OO(X))
+  join(io, gens(I), ", ")
+  print(io, ")")
+end
+
+function Base.show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  print(io,"V(")
+  I = modulus(OO(X))
+  S = inverted_set(OO(X))
+  join(io, gens(I), ", ")
+  print(io, raw") \ V(", denominators(S)[1], ")")
+end
+
 
 ########################################################
 # (3) Check for zero divisors in rings
