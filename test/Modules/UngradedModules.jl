@@ -251,6 +251,14 @@ end
   end
   hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
   @test chain_range(hom_hom_resolution) == chain_range(free_res)
+
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  F = free_module(R, 2)
+  C, isom = present_as_cokernel(F, :cache_morphism)
+  @test ambient_free_module(C) == F
+  @test relations(C) == [zero(F)]
+  @test domain(isom) == F
+  @test codomain(isom) == C
 end
 
 @testset "Ext, Tor" begin
