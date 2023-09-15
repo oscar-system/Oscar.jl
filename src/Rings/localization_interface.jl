@@ -396,7 +396,9 @@ characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
 function Base.show(io::IO, ::MIME"text/plain", W::AbsLocalizedRing)
   io = pretty(io)
   println(io, "Localization", Indent())
-  println(io, "of ", Lowercase(), base_ring(W))
+  print(io, "of ", Lowercase())
+  show(io, MIME("text/plain"), base_ring(W))
+  println(io)
   print(io, "at ")
   print(io, Lowercase(), inverted_set(W))
   print(io, Dedent())
@@ -409,7 +411,7 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   else
     print(io, "Localization of ", Lowercase(), base_ring(W))
     print(io, " at ")
-    print(pretty(IOContext(io, :supercompact =>true)), Lowercase(), inverted_set(W))
+    print(io, Lowercase(), inverted_set(W))
   end
 end
 
