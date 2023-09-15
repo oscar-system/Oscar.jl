@@ -4470,6 +4470,7 @@ end
 
 function present_as_cokernel(F::FreeMod, task::Symbol = :none)
   presentation_module, inverse_isomorphism = quo(F, [zero(F)])
+  isomorphism = hom(presentation_module, F, gens(F))
 
   if task == :none
     return presentation_module
