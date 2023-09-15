@@ -284,6 +284,7 @@ end
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
     on_indeterminates(f::MPolyRingElem, p::PermGroupElem)
+    on_indeterminates(f::FreeAssAlgElem, p::PermGroupElem)
     on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
     on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
     on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S
@@ -294,7 +295,7 @@ If `p` is a `PermGroupElem` then it acts via permuting the indeterminates,
 if `p` is a `MatrixGroupElem` then it acts via evaluating `f` at the
 vector obtained by multiplying `p` with the (column) vector of indeterminates.
 
-For `MPolyRingElem` and `MPolyIdeal` objects,
+For `MPolyRingElem`, `FreeAssAlgElem`, and `MPolyIdeal` objects,
 one can also call `^` instead of `on_indeterminates`.
 
 # Examples
@@ -348,6 +349,17 @@ function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   return finish(g)
 end
 
+function on_indeterminates(f::FreeAssAlgElem{T}, s::PermGroupElem) where T
+  G = parent(s)
+  S = parent(f)
+  @assert ngens(S) == degree(G)
+
+  e = exponent_words(f)
+  c = Vector{T}(collect(coefficients(f)))
+  es = [on_tuples(x, s) for x in e]
+  return S(c, es)
+end
+
 function on_indeterminates(f::GapObj, p::MatrixGroupElem)
   # We assume that we act on the indeterminates with numbers 1, ..., nrows(p).
   # (Note that `f` does not know about a polynomial ring to which it belongs.)
@@ -378,6 +390,8 @@ function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
 end
 
 ^(f::MPolyRingElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+^(f::FreeAssAlgElem, p::PermGroupElem) = on_indeterminates(f, p)
 
 ^(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 
