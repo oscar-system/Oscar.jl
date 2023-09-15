@@ -97,6 +97,7 @@ GAP.@wrap Indeterminate(x::GapObj)::GapObj
 GAP.@wrap Indeterminate(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
 GAP.@wrap IndeterminatesOfPolynomialRing(x::GapObj)::GapObj
+GAP.@wrap Indicator(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap Indicator(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedClassFunction(x::GapObj, y::GapObj)::GapObj

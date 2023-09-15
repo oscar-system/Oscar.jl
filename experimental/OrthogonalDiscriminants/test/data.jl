@@ -30,17 +30,17 @@
   deg_1 = all_od_infos(degree => 1);
   deg_other = all_od_infos(degree => (x -> x > 1));
   @test length(all_entries) == length(deg_1) + length(deg_other)
-  @test deg1 == all_od_infos(degree => [1]);
+  @test deg_1 == all_od_infos(degree => [1]);
 end
 
 @testset "orthogonal_discriminant(s)" begin
-  for name in ["A5", "A6", "J1"]
+  for name in ["S4", "A5", "A6", "J1"]
     t = character_table(name)
     vals = orthogonal_discriminants(t)
     @test vals == [orthogonal_discriminant(chi) for chi in t]
     @test length(vals) == length(t)
     @test vals[1] == ""
-    for p in [i for (i, e) in collect(factor(order(t)))]
+    for p in vcat([i for (i, e) in collect(factor(order(t)))], [101])
       modt = mod(t, p)
       vals = orthogonal_discriminants(modt)
       @test vals == [orthogonal_discriminant(chi) for chi in modt]

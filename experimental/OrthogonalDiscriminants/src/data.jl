@@ -111,8 +111,8 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
         for l in data
           res[l[2]] = l[4]
         end
+        return res
       end
-      return res
     end
   end
 

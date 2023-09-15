@@ -2338,8 +2338,19 @@ julia> println([indicator(chi) for chi in tbl])
 ```
 """
 function indicator(chi::GAPGroupClassFunction, n::Int = 2)
-    ind = GAPWrap.Indicator(GAPTable(chi.table), GapObj([chi.values]), n)
-    return ind[1]::Int
+    tbl = chi.table
+    if characteristic(tbl) == 0
+      # The indicator can be computed for any character.
+      ind = GAPWrap.Indicator(GAPTable(chi.table), GapObj([chi.values]), n)
+      return ind[1]::Int
+    else
+      # The indicator is defined only for `n = 2` and irreducible characters.
+      @req n == 2 "defined for Brauer characters only for n = 2"
+      chipos = findfirst(isequal(chi), tbl)
+      @req chipos != nothing "defined only for irreducible Brauer characters"
+      ind = GAPWrap.Indicator(GAPTable(tbl), n)
+      return ind[chipos]::Int
+    end
 end
 
 @doc raw"""
