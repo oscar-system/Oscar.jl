@@ -1,8 +1,7 @@
-# This file is dedicated for code that needs to be run on every worker before
-# running the tests. This is useful for test-code that is called from multiple files
-# that may run on different workers.
+# This code is needed for multiple test files that may end up on different workers.
+# Thus, this needs to be conditionally included in each of these test files.
 
-function test_save_load_roundtrip(func, path, original::T; params=nothing) where T
+function test_save_load_roundtrip(func, path, original::T; params=nothing) where {T}
   # save and load from a file
   filename = joinpath(path, "original.json")
   save(filename, original)
@@ -31,7 +30,7 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io, type=T, params=params)
+  loaded = load(io; type=T, params=params)
   if T <: Vector
     @test loaded isa Vector
   else

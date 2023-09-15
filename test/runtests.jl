@@ -104,8 +104,6 @@ end
   Base.cumulative_compile_timing(true)
 end
 
-@everywhere include("Serialization/init_tests.jl")
-
 testlist = [
   
   "Aqua.jl",
