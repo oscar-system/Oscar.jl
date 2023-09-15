@@ -1094,7 +1094,7 @@ function are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingE
   R = parent(V[1])
   @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
   @req all(x -> parent(x) === R, V) "The elements must have the same parent"
-  S, _ = polynomial_ring(coefficient_ring(R), length(V), "t")
+  S, _ = polynomial_ring(coefficient_ring(R), length(V), "t"; cached = false)
   phi = hom(S, R, V)
   I = kernel(phi)
   bo = true
