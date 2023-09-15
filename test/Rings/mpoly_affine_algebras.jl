@@ -133,5 +133,7 @@ end
 @testset "are_algebraically_independent" begin
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   V = [x, y]
-  @test is_zero(are_algebraically_independent(V)[2])
+  fl, I = are_algebraically_independent(V)
+  @test fl
+  @test is_zero(I)
 end
