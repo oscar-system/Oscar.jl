@@ -1097,11 +1097,7 @@ function are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingE
   S, _ = polynomial_ring(coefficient_ring(R), length(V), "t"; cached = false)
   phi = hom(S, R, V)
   I = kernel(phi)
-  bo = true
-  if !iszero(I)
-    bo = false
-  end
-  return bo, kernel(phi)
+  return iszero(I), I
 end
 
 ################################################################################
