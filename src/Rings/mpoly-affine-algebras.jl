@@ -1082,7 +1082,7 @@ julia> V = [x, y, x^2+y^3]
 julia> are_algebraically_independent(V)
 (false, ideal(t1^2 + t2^3 - t3))
 
-julia> A, p = quo(R, [x*y])
+julia> A, p = quo(R, [x*y]);
 
 julia> are_algebraically_independent([p(x), p(y)])
 (false, ideal(t1*t2))
