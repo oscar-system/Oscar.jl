@@ -841,8 +841,12 @@ function _simplify(::HasRingFlattening, f::MPolyQuoRingElem)
   return f::elem_type(parent(f))
 end
 
+# Having the simplify method do nothing still allows for arithmetic to operate 
+# (simplify is automatically called for multiplications), but further functionality 
+# like equality and hashing will throw an error.
 function _simplify(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem)
-    error("no groebner backend available for simplification; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
+  return f
+  # error("no groebner backend available for simplification; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
 end
 
 @doc raw"""
