@@ -4468,6 +4468,22 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   return presentation_module, isomorphism
 end
 
+function present_as_cokernel(F::FreeMod, task::Symbol = :none)
+  presentation_module, inverse_isomorphism = quo(F, [zero(F)])
+
+  if task == :none
+    return presentation_module
+  end
+
+  if task == :cache_morphism
+    register_morphism!(isomorphism)
+    register_morphism!(inverse_isomorphism)
+  end
+  task == :only_morphism && return isomorphism
+  
+  return presentation_module, isomorphism
+end
+
 @doc raw"""
     is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
 
