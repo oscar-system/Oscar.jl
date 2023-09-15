@@ -157,6 +157,7 @@ HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 
 # For polynomial rings over the integers we only allow global orderings
 HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
 
 # In some cases it is useful to know that we can do a RingFlattening 
 # and carry out certain operations in the de-nested ring
@@ -841,7 +842,7 @@ function _simplify(::HasRingFlattening, f::MPolyQuoRingElem)
 end
 
 function _simplify(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem)
-  error("no groebner backend available for simplification")
+    error("no groebner backend available for simplification; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
 end
 
 @doc raw"""
@@ -887,7 +888,7 @@ function _is_equal(::HasRingFlattening, f::MPolyQuoRingElem{T}, g::MPolyQuoRingE
 end
 
 function _is_equal(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
-  error("no groebner backend available for elements of type $(typeof(f))")
+  error("no groebner backend available for equality check; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
 end
 
 @doc raw"""
@@ -1410,11 +1411,11 @@ function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
 end
 
 function _hash(::HasRingFlattening, w::MPolyQuoRingElem, u::UInt)
-  error("hash function not implemented due to lack of unique representatives")
+  error("hash function not implemented due to lack of unique representatives; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(w)))))`")
 end
 
 function _hash(::HasNoGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
-  error("hash function not implemented due to lack of unique representatives")
+  error("hash function not implemented due to lack of unique representatives; you can specify a groebner backend by implementing the `HasGroebnerBackendTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(w)))))`")
 end
 
 ################################################################
