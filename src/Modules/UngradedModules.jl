@@ -4468,9 +4468,48 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   return presentation_module, isomorphism
 end
 
+@doc raw"""
+    present_as_cokernel(F::FreeMod, task::Symbol = :none)
+
+Represent `F` as the quotient `C` of itself with no relations. This method exists for compatibility reasons with `present_as_cokernel(M::SubQuoModule, task::Symbol = :none)`. 
+
+Additionally,
+
+- return an isomorphism `F` $\to$ `C` if `task = :with_morphism`,
+- return and cache an isomorphism `F` $\to$ `C` if `task = :cache_morphism`,
+- do none of the above if `task = :none` (default).
+
+If `task = :only_morphism`, return only an isomorphism.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> present_as_cokernel(F)
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+
+julia> present_as_cokernel(F, :only_morphism)
+Map with following data
+Domain:
+=======
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+```
+"""
 function present_as_cokernel(F::FreeMod, task::Symbol = :none)
-  presentation_module, inverse_isomorphism = quo(F, [zero(F)])
-  isomorphism = hom(presentation_module, F, gens(F))
+  presentation_module, isomorphism = quo(F, [zero(F)])
+  inverse_isomorphism = hom(presentation_module, F, gens(F))
 
   if task == :none
     return presentation_module
