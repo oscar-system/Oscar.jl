@@ -352,8 +352,7 @@ for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     M = Symbol(f)
     @eval begin
         function $M(::Val{_empty_access}, P::PolyhedralObjectUnion; homogenized=false)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(pm_object(P))))
-            typename = scalar_regexp[1]
+            typename = Polymake.bigobject_eltype(pm_object(P))
             T = typename == "OscarNumber" ? Polymake.OscarNumber : _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized)
         end
