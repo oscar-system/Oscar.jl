@@ -156,9 +156,9 @@ julia> II = IdealSheaf(Y, I);
 julia> E = effective_cartier_divisor(II)
 Effective cartier divisor
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
     1: ideal(-(y//x)^2*(z//x) + 1)
@@ -222,9 +222,9 @@ julia> II = IdealSheaf(Y, I);
 julia> effective_cartier_divisor(II)
 Effective cartier divisor
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
     1: ideal(-(y//x)^2*(z//x) + 1)

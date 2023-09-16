@@ -533,7 +533,8 @@ julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
 
 julia> coordinate_ring_of_torus(p2)
 Quotient
-  of multivariate polynomial ring in 4 variables over QQ
+  of multivariate polynomial ring in 4 variables y1, y2, y1_, y2_
+    over rational field
   by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """

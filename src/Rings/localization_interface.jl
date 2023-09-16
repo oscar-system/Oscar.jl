@@ -169,13 +169,14 @@ julia> Rloc, iota = Localization(R, U);
 
 julia> Rloc
 Localization
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
   at complement of prime ideal(x)
 
 julia> iota
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x)
 defined by
   x -> x
   y -> y

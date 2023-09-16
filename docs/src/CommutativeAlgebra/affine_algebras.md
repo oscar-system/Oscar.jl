@@ -228,7 +228,8 @@ ideal(x - y, z^4)
 
 julia> base_ring(a)
 Quotient
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
   by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
@@ -378,7 +379,7 @@ julia> V2 = [p2(w-y), p2(x), p2(z)];
 julia> proj = hom(D2, C2, V2)
 Ring homomorphism
   from graded multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal with 3 generators
+  to quotient of multivariate polynomial ring by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 defined by
   a -> w - y
   b -> x
@@ -437,7 +438,7 @@ julia> V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 julia> F = hom(D, C, V)
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal with 1 generator
+  to quotient of multivariate polynomial ring by ideal(-b^3 + c)
 defined by
   x -> 2*a + c^2
   y -> -a^2 + 7*b
@@ -519,8 +520,8 @@ julia> L[1]
 
 julia> L[2]
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal with 2 generators
-  to quotient of multivariate polynomial ring by ideal with 2 generators
+  from quotient of multivariate polynomial ring by ideal(x*y, x*z)
+  to quotient of multivariate polynomial ring by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
 defined by
   x -> x
   y -> 2*x + y
@@ -528,8 +529,8 @@ defined by
 
 julia> L[3]
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal with 2 generators
-  to quotient of multivariate polynomial ring by ideal with 2 generators
+  from quotient of multivariate polynomial ring by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+  to quotient of multivariate polynomial ring by ideal(x*y, x*z)
 defined by
   x -> x
   y -> -2*x + y

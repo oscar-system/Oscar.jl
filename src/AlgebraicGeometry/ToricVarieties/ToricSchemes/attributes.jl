@@ -17,7 +17,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> forget_toric_structure(antv)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> Normal, affine toric variety)
+(V(0), Morphism: V(0) -> Normal, affine toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
@@ -110,7 +110,8 @@ Normal, affine toric variety
 julia> underlying_scheme(antv)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x1, x2
+      over rational field
     by ideal(0)
 ```
 """

@@ -301,7 +301,10 @@ julia> RQL, iota = localization(RQ, U);
 
 julia> RQL
 Localization
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over number field of degree 2 over QQ
+    by ideal(2*x^2 - y^3, 2*x^2 - y^5)
   at complement of prime ideal(y - 1, x - a)
 
 julia> iota

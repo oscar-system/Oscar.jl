@@ -80,7 +80,7 @@ julia> I = ideal(R, [x^2, y^3])
 ideal(x^2, y^3)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map from
 R to A defined by a julia-function with inverse)
 
 julia> L = monomial_basis(A)
@@ -135,7 +135,7 @@ julia> I = ideal(R, [x^2])
 ideal(x^2)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+(Quotient of multivariate polynomial ring by ideal(x^2), Map from
 R to A defined by a julia-function with inverse)
 
 julia> L = monomial_basis(A, 3)
@@ -1249,13 +1249,14 @@ julia> size(LL)
 
 julia> LL[1][1]
 Quotient
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables T(1), x, y
+    over rational field
   by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal with 1 generator
-  to quotient of multivariate polynomial ring by ideal with 4 generators
+  from quotient of multivariate polynomial ring by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+  to quotient of multivariate polynomial ring by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 defined by
   x -> x
   y -> y

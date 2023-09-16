@@ -77,7 +77,8 @@ julia> (x, y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> X == ambient_space(Y)
@@ -86,7 +87,8 @@ true
 julia> Z = subscheme(Y, y)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x, y)
 
 julia> ambient_space(Z) == X
@@ -95,8 +97,11 @@ true
 julia> V = hypersurface_complement(Y, y)
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
-    at products of 1 element
+    of quotient
+      of multivariate polynomial ring in 2 variables x, y
+        over rational field
+      by ideal(x)
+    at products of (y)
 
 julia> ambient_space(V) == X
 true
@@ -126,7 +131,8 @@ julia> RmodI, quotient_map = quo(P, I);
 julia> Y = Spec(RmodI)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> ambient_space(Y) == X
@@ -139,7 +145,8 @@ julia> RmodJ, quotient_map2 = quo(RmodI, J);
 julia> Z = Spec(RmodJ)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x, y)
 
 julia> ambient_space(Z) == X
@@ -155,8 +162,11 @@ julia> URmodI, _ = localization(RmodI, U);
 julia> V = Spec(URmodI)
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
-    at products of 1 element
+    of quotient
+      of multivariate polynomial ring in 2 variables x, y
+        over rational field
+      by ideal(x)
+    at products of (y)
 
 julia> ambient_space(V) == X
 true
@@ -214,12 +224,13 @@ julia> (x, y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> inc = ambient_embedding(Y)
 Morphism
-  from [x, y]  spec of quotient of multivariate polynomial ring
+  from [x, y]  V(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
   x -> 0
@@ -252,7 +263,8 @@ julia> (x,y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> ambient_coordinate_ring(Y)
@@ -283,7 +295,8 @@ julia> (x,y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> coordinates(X) == ambient_coordinates(Y)
@@ -319,7 +332,8 @@ julia> (x, y) = coordinates(X)
 julia> Y = subscheme(X, [x])
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x)
 
 julia> (xY, yY) = coordinates(Y)
@@ -454,7 +468,8 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
     by ideal(x1)
 
 julia> codim(Y)
@@ -524,7 +539,8 @@ ideal(x^2 - 2*x*y + y^2)
 julia> X = Spec(R,J)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x^2 - 2*x*y + y^2)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
@@ -535,14 +551,17 @@ Complement
 julia> Y = Spec(R,J,U)
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
+    of quotient
+      of multivariate polynomial ring in 2 variables x, y
+        over rational field
+      by ideal(x^2 - 2*x*y + y^2)
     at complement of maximal ideal of point (0, 0)
 
 julia> reduced_scheme(X)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring)
+(V(x^2 - 2*x*y + y^2, x - y), Morphism: V(x^2 - 2*x*y + y^2, x - y) -> V(x^2 - 2*x*y + y^2))
 
 julia> reduced_scheme(Y)
-(Spec of localized quotient of multivariate polynomial ring, Morphism: spec of localized quotient of multivariate polynomial ring -> spec of localized quotient of multivariate polynomial ring)
+(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Morphism: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
 
 ```
 """
@@ -617,14 +636,15 @@ Spectrum
 julia> X = Spec(R,I)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^2 - y^2 + z^2)
 
 julia> singular_locus(A3)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of multivariate polynomial ring)
+(V(1), Morphism: V(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring)
+(V(x^2 - y^2 + z^2, z, y, x), Morphism: V(x^2 - y^2 + z^2, z, y, x) -> V(x^2 - y^2 + z^2))
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
 Complement
@@ -634,11 +654,14 @@ Complement
 julia> Y = Spec(R,I,U)
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal(x^2 - y^2 + z^2)
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> singular_locus(Y)
-(Spec of localized quotient of multivariate polynomial ring, Morphism: spec of localized quotient of multivariate polynomial ring -> spec of localized quotient of multivariate polynomial ring)
+(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Morphism: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
 
 ```
 """
@@ -692,14 +715,15 @@ ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 julia> X = Spec(R,I)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> singular_locus_reduced(X)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring)
+(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), Morphism: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
 
 julia> singular_locus(X)
-(Spec of quotient of multivariate polynomial ring, Morphism: spec of quotient of multivariate polynomial ring -> spec of quotient of multivariate polynomial ring)
+(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), Morphism: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
 
 ```
 """
@@ -815,7 +839,8 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, ideal(R, [x1*x2]))
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
     by ideal(x1*x2)
 
 julia> I = Oscar.ambient_closure_ideal(Y)
