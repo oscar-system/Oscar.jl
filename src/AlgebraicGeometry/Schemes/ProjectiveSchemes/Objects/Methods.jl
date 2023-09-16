@@ -217,9 +217,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
-    3: spec of multivariate polynomial ring
+    1: affine 4-space
+    2: affine 4-space
+    3: affine 4-space
   in the coordinate(s)
     1: [(x1//x0), (x2//x0), u, v]
     2: [(x0//x1), (x2//x1), u, v]

@@ -47,29 +47,50 @@ function Base.show(io::IO, X::AbsSpec)
   elseif get(io, :supercompact, false)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine scheme over ")
-    K = base_ring(X)
-    print(IOContext(io, :supercompact => true), Lowercase(), K)
+    print(io, "Empty scheme")
   else
-    print(io, "Spec of ")
-    print(io, Lowercase(), OO(X))
+    _show(io, X)
   end
 end
 
-function Base.show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
-  print(io, "V(")
+function _show(io::IO, X::AbsSpec)
+  print(io, LowercaseOff(), "Spec of ")
+  print(io, Lowercase(), OO(X))
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
+  io = pretty(io)
+  print(io, "affine ",ngens(OO(X)),"-space")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
   I = modulus(OO(X))
   join(io, gens(I), ", ")
   print(io, ")")
 end
 
-function Base.show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
-  print(io,"V(")
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
   I = modulus(OO(X))
   S = inverted_set(OO(X))
   join(io, gens(I), ", ")
-  print(io, raw") \ V(", denominators(S)[1], ")")
+  print(io, raw") \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
 end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "AA^", ngens(OO(X)))
+  S = inverted_set(OO(X))
+  print(io, raw" \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
+
 
 
 ########################################################

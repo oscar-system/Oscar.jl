@@ -39,7 +39,10 @@ defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
-  of graded multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables over QQ graded by
+    x -> [1]
+    y -> [1]
+    z -> [1]
   by ideal(x + y)
 ```
 """
@@ -102,7 +105,10 @@ defined by ideal(x + y)
 
 julia> homogeneous_coordinate_ring(X)
 Quotient
-  of graded multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables over QQ graded by
+    x -> [1]
+    y -> [1]
+    z -> [1]
   by ideal(x + y)
 
 julia> ambient_coordinate_ring(X) === S
@@ -189,9 +195,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
-    3: spec of multivariate polynomial ring
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -230,7 +236,7 @@ julia> S, _ = grade(Q["x", "y", "z"][1]);
 
 julia> P = projective_scheme(S)
 Projective space of dimension 2
-  over quotient of multivariate polynomial ring by ideal with 1 generator
+  over quotient of multivariate polynomial ring by ideal(u^2 + v^2)
 with homogeneous coordinates [x, y, z]
 
 julia> defining_ideal(P)
@@ -266,11 +272,11 @@ julia> S, _ = grade(Q["x", "y", "z"][1]);
 
 julia> P = projective_scheme(S)
 Projective space of dimension 2
-  over quotient of multivariate polynomial ring by ideal with 1 generator
+  over quotient of multivariate polynomial ring by ideal(u^2 + v^2)
 with homogeneous coordinates [x, y, z]
 
 julia> affine_cone(P)
-(Spec of quotient of multivariate polynomial ring, Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(V(u^2 + v^2), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 ```
 """
 affine_cone(P::AbsProjectiveScheme)
@@ -389,7 +395,7 @@ julia> S, _ = grade(Q["x", "y", "z"][1]);
 
 julia> P = projective_scheme(S)
 Projective space of dimension 2
-  over quotient of multivariate polynomial ring by ideal with 1 generator
+  over quotient of multivariate polynomial ring by ideal(u^2 + v^2)
 with homogeneous coordinates [x, y, z]
 
 julia> homogeneous_coordinates_on_affine_cone(P)

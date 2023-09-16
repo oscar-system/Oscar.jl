@@ -25,7 +25,8 @@ Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric va
 
 julia> chow_ring(P2)
 Quotient
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x1, x2, x3
+    over rational field
   by ideal(x1 - x3, x2 - x3, x1*x2*x3)
 
 julia> (x1, x2, x3) = gens(chow_ring(P2))
