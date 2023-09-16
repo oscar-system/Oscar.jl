@@ -532,7 +532,7 @@ for f in (QQ, ENF)
                         if S == Pair{Matrix{T}, T}
                             @test facets(S, D) == [Pair(A[i], b[i]) for i in 1:12]
                         elseif S == Polyhedron{T}
-                            # @test facets(S, D) == [polyhedron(R, A[i], b[i]) for i in 1:12]
+                            @test nvertices.(facets(S, D)) == repeat([5], 12)
                         else
                             @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
                         end
@@ -565,7 +565,7 @@ for f in (QQ, ENF)
                 @test isempty(rays(D))
                 @test lineality_dim(D) == 0
                 @test isempty(lineality_space(D))
-                # @test faces(D, 0) == convex_hull.(T, V)
+                @test faces(D, 0) == convex_hull.(T, V)
                 @test isempty(affine_hull(D))
                 @test relative_interior_point(D) == [0, 0, 0]
             end

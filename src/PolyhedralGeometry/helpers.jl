@@ -381,8 +381,9 @@ _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 const scalar_types = Union{FieldElem, Float64}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
-                                ("Float", Float64)])
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("Float", Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
 
@@ -480,32 +481,27 @@ _detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ
 _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.Floats{Float64}()
 
 function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
-    # we only want to check existing properties
-    f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
-    i = findfirst(f, propnames)
-    # find first OscarNumber wrapping a FieldElem
-    while !isnothing(i)
-        prop = getproperty(p, propnames[i])
-        for el in prop
-            on = Polymake.unwrap(el)
-            if on isa T
-                return parent(on)
-            end
-        end
-        i = findnext(f, propnames, i + 1)
+  # we only want to check existing properties
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
+  # find first OscarNumber wrapping a FieldElem
+  for pn in propnames
+    prop = getproperty(p, pn)
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa T
+        return parent(on)
+      end
     end
-    throw(ArgumentError("BigObject does not contain information about a parent Field"))
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
 end
 
 function _detect_wrapped_type_and_field(p::Polymake.BigObject)
   # we only want to check existing properties
-  f = x -> Polymake.exists(p, string(x))
-  propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
-  i = findfirst(f, propnames)
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
   # find first OscarNumber wrapping a FieldElem
-  while !isnothing(i)
-    prop = getproperty(p, propnames[i])
+  for pn in propnames
+    prop = getproperty(p, pn)
     for el in prop
       on = Polymake.unwrap(el)
       if on isa FieldElem
@@ -514,7 +510,6 @@ function _detect_wrapped_type_and_field(p::Polymake.BigObject)
         return (T, f)
       end
     end
-    i = findnext(f, propnames, i + 1)
   end
   throw(ArgumentError("BigObject does not contain information about a parent Field"))
 end

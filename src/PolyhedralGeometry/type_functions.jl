@@ -4,8 +4,7 @@
 
 
 function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints, PolyhedralComplex}
-    scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(p)))
-    typename = scalar_regexp[1]
+    typename = Polymake.bigobject_eltype(p)
     return typename == "OscarNumber" ? nothing : scalar_type_to_oscar[typename]
 end
 

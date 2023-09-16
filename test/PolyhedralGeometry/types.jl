@@ -65,8 +65,6 @@
 
           @test *(g(3), A) == 3 * a
 
-          # @test [A; B] == [a; b]
-
         end
 
       end
