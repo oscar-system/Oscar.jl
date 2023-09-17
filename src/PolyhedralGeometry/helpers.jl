@@ -485,7 +485,7 @@ function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldE
   propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
   # find first OscarNumber wrapping a FieldElem
   for pn in propnames
-    prop = getproperty(p, pn)
+    prop = getproperty(p, convert(String, pn))
     for el in prop
       on = Polymake.unwrap(el)
       if on isa T
@@ -501,7 +501,7 @@ function _detect_wrapped_type_and_field(p::Polymake.BigObject)
   propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
   # find first OscarNumber wrapping a FieldElem
   for pn in propnames
-    prop = getproperty(p, pn)
+    prop = getproperty(p, convert(String, pn))
     for el in prop
       on = Polymake.unwrap(el)
       if on isa FieldElem
