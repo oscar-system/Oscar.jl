@@ -2593,7 +2593,7 @@ convert `d` into an element `g` of the grading group of the ring and proceed as 
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
-julia> I =  ideal(R, [zero(R)])
+julia> I = ideal(R, [zero(R)])
 ideal(0)
 
 julia> M = quotient_ring_as_module(I)
