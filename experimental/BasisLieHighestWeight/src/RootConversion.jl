@@ -90,7 +90,7 @@ function alpha_to_eps_BCD(type::String, rank::Int, weight_alpha::Vector{QQFieldE
     for B-D
     """
     # weight_eps = [QQ(0) for i in 1:rank] # TODO This is the old one, check which is the correct length
-    weight_eps = [QQ(0) for i in 1:(rank+1)] 
+    weight_eps = [QQ(0) for i in 1:rank] 
     for i in 1:(rank - 1)
         weight_eps[i] += weight_alpha[i]
         weight_eps[i+1] -= weight_alpha[i]
