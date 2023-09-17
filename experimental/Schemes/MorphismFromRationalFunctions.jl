@@ -12,8 +12,8 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
+    1: affine 1-space
+    2: affine 1-space
   in the coordinate(s)
     1: [(t//s)]
     2: [(s//t)]
@@ -23,9 +23,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
-    3: spec of multivariate polynomial ring
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -50,8 +50,8 @@ julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
 Morphism
-  from [(t//s)]          spec of localized ring
-  to   [(x//z), (y//z)]  spec of multivariate polynomial ring
+  from [(t//s)]          AA^1 \ V()
+  to   [(x//z), (y//z)]  affine 2-space
 given by the pullback function
   (x//z) -> (t//s)^2
   (y//z) -> (t//s)

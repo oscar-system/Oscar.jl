@@ -37,14 +37,14 @@ ideal(x, y, z)
 julia> bl = blow_up(A3, I)
 Blow up
   of scheme over QQ covered with 1 patch
-    1b: [x, y, z]   spec of multivariate polynomial ring
+    1b: [x, y, z]   affine 3-space
   in sheaf of ideals with restriction
     1b: ideal(x, y, z)
 with domain
   scheme over QQ covered with 3 patches
-    1a: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
-    2a: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
-    3a: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+    1a: [(s1//s0), (s2//s0), x]   V(0, 0, 0)
+    2a: [(s0//s1), (s2//s1), y]   V(0, 0, 0)
+    3a: [(s0//s2), (s1//s2), z]   V(0, 0, 0)
 and exceptional divisor
   effective cartier divisor defined by
     sheaf of ideals with restrictions
@@ -55,9 +55,9 @@ and exceptional divisor
 julia> E = exceptional_divisor(bl)
 Effective cartier divisor
   on scheme over QQ covered with 3 patches
-    1: [(s1//s0), (s2//s0), x]   spec of quotient of multivariate polynomial ring
-    2: [(s0//s1), (s2//s1), y]   spec of quotient of multivariate polynomial ring
-    3: [(s0//s2), (s1//s2), z]   spec of quotient of multivariate polynomial ring
+    1: [(s1//s0), (s2//s0), x]   V(0, 0, 0)
+    2: [(s0//s1), (s2//s1), y]   V(0, 0, 0)
+    3: [(s0//s2), (s1//s2), z]   V(0, 0, 0)
 defined by
   sheaf of ideals with restrictions
     1: ideal(x)
@@ -67,7 +67,7 @@ defined by
 julia> Z = center(bl)
 Sheaf of ideals
   on scheme over QQ covered with 1 patch
-    1: [x, y, z]   spec of multivariate polynomial ring
+    1: [x, y, z]   affine 3-space
 with restriction
   1: ideal(x, y, z)
 ```

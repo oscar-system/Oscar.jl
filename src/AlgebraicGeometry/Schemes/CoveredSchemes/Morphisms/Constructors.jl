@@ -24,9 +24,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V((y//x), 1)
+    2: V(1, (x//y))
+    3: V((y//z), (x//z))
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -35,13 +35,13 @@ with default covering
 julia> identity_map(Xcov)
 Morphism
   from scheme over QQ covered with 3 patches
-    1a: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2a: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3a: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1a: [(y//x), (z//x)]   V((y//x), 1)
+    2a: [(x//y), (z//y)]   V(1, (x//y))
+    3a: [(x//z), (y//z)]   V((y//z), (x//z))
   to   scheme over QQ covered with 3 patches
-    1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1b: [(y//x), (z//x)]   V((y//x), 1)
+    2b: [(x//y), (z//y)]   V(1, (x//y))
+    3b: [(x//z), (y//z)]   V((y//z), (x//z))
 given by the pullback functions
   1a -> 1b
     (y//x) -> 0

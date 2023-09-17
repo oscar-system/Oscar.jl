@@ -40,7 +40,7 @@ Multiplicative subset
   given by the products of [x]
 
 julia> (powers_of_element(x),)
-(Products of 1 element,)
+(Products of (x),)
 
 ```
 """
@@ -121,8 +121,14 @@ end
 function Base.show(io::IO, S::MPolyPowersOfElement)
   io = pretty(io)
   # no need for supercompact printing
-  print(io, "Products of ")
-  print(io, ItemQuantity(length(denominators(S)), "element"))
+  if get(io, :supercompact, false)
+    print(io, "Products of ")
+    print(io, ItemQuantity(length(denominators(S)), "element"))
+  else
+    print(io, "Products of (")
+    join(io, denominators(S), ",")
+    print(io, ")")
+  end
 end
 
 ### generation of random elements 
@@ -513,7 +519,7 @@ julia> T = powers_of_element(x);
 julia> ST = MPolyProductOfMultSets(R, [S, T])
 Product of the multiplicative sets
   complement of maximal ideal of point (1, 2)
-  products of 1 element
+  products of (x)
 
 julia> (ST,)
 (Product of the multiplicative subsets [complement of maximal ideal, products of 1 element],)
@@ -893,7 +899,7 @@ Multiplicative subset
 julia> S = product(T, U)
 Product of the multiplicative sets
   complement of maximal ideal of point (0, 0, 0)
-  products of 1 element
+  products of (x)
 ```
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
@@ -1164,13 +1170,14 @@ julia> Rloc, iota = localization(R, U);
 
 julia> Rloc
 Localization
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
   at complement of prime ideal(x)
 
 julia> iota
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x)
 defined by
   x -> x
   y -> y
@@ -2157,7 +2164,8 @@ Complement
 
 julia> L = MPolyLocRing(R, U)
 Localization
-  of multivariate polynomial ring in 2 variables over QQ
+  of multivariate polynomial ring in 2 variables x, y
+    over rational field
   at complement of prime ideal(x, y^2 + 1)
 
 julia> J = ideal(L,[y*(x^2+(y^2+1)^2)])
@@ -2304,7 +2312,8 @@ julia> S = complement_of_point_ideal(R,[1,2]);
 
 julia> SinvR = localization(R,S)[1]
 Localization
-  of multivariate polynomial ring in 2 variables over QQ
+  of multivariate polynomial ring in 2 variables x, y
+    over rational field
   at complement of maximal ideal of point (1, 2)
 
 julia> I = ideal(SinvR, gens(SinvR))
@@ -2711,7 +2720,7 @@ julia> TL, _ =  localization(T, UT);
 
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
-  from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+  from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
   to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
@@ -2818,7 +2827,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]))
 Ring homomorphism
   from localization of quotient of multivariate polynomial ring at complement of maximal ideal
-  to   localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+  to   localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
 defined by
   x -> t
   y -> t^2
@@ -2826,7 +2835,7 @@ defined by
 
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
-  from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+  from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
   to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
@@ -2879,7 +2888,7 @@ julia> PSI = hom(TL, RQL, RQL.([x]));
 julia> phi = restricted_map(PHI)
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal
+  to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
 defined by
   x -> t
   y -> t^2

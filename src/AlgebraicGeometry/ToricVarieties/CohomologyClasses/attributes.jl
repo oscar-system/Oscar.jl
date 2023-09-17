@@ -139,7 +139,8 @@ ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> R_quo = quo(R, sr_and_linear_relation_ideal)[1]
 Quotient
-  of multivariate polynomial ring in 5 variables over QQ
+  of multivariate polynomial ring in 5 variables x1, x2, x3, x4, x5
+    over rational field
   by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> polynomial(R_quo, cc)
