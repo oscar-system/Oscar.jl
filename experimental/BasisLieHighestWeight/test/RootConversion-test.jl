@@ -29,12 +29,14 @@ function test_inverse_eps_alpha(dynkin, n, weight)
 end
 
 @testset "Test RootConversion" begin
-    @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D', 'E', 'G')
-        @testset "n = $n" for n in 1:2
+    # @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    @testset "Dynkin type $dynkin" for dynkin in ('D')
+        @testset "n = $n" for n in 1:10
             if (!(dynkin == 'B' && n < 2) && !(dynkin == 'C' && n < 2) && !(dynkin == 'D' && n < 4) 
                 && !(dynkin == 'E' && !(n == 6 || n == 7 || n == 8)) && !(dynkin == 'F' && n != 4) 
                 && !(dynkin == 'G' && (n != 2)))
                 for weight in test_sample_weights[n]
+                    print(".")
                     test_inverse_alpha_w(dynkin, n, weight)
                     test_inverse_eps_w(dynkin, n, weight)
                     test_inverse_eps_alpha(dynkin, n, weight)

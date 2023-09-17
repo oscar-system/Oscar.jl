@@ -1,7 +1,8 @@
-function w_to_eps(type::String, rank::Int, weight_w::Vector{QQFieldElem})::Vector{QQFieldElem}
+function w_to_eps(type::String, rank::Int, weight_w_input::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight in rootsystem w_i to eps_i
     """
+    weight_w = copy(weight_w_input)
     if type in ["A", "B", "C", "D", "E", "F", "G"]
         return alpha_to_eps(type, rank, w_to_alpha(type, rank, weight_w))
     else
@@ -9,10 +10,11 @@ function w_to_eps(type::String, rank::Int, weight_w::Vector{QQFieldElem})::Vecto
     end
 end
 
-function eps_to_w(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
+function eps_to_w(type::String, rank::Int, weight_eps_input::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight in rootsystem eps_i to w_i
     """
+    weight_eps = copy(weight_eps_input)
     if type in ["A", "B", "C", "D", "E", "F", "G"]
         # return round.(alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps)))
         return alpha_to_w(type, rank, eps_to_alpha(type, rank, weight_eps))
@@ -21,10 +23,11 @@ function eps_to_w(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vec
     end
 end
 
-function alpha_to_eps(type::String, rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
+function alpha_to_eps(type::String, rank::Int, weight_alpha_input::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight_alpha in rootsystem alpha_i to eps_i
     """
+    weight_alpha = copy(weight_alpha_input)
     if type == "A"
         return alpha_to_eps_A(rank, weight_alpha)
     elseif type in ["B", "C", "D"]
@@ -40,10 +43,11 @@ function alpha_to_eps(type::String, rank::Int, weight_alpha::Vector{QQFieldElem}
     end
 end
 
-function eps_to_alpha(type::String, rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
+function eps_to_alpha(type::String, rank::Int, weight_eps_input::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     converts weight_eps in rootsystem eps_i to alpha_i
     """
+    weight_eps = copy(weight_eps_input)
     if type == "A"
         return eps_to_alpha_A(rank, weight_eps)
     elseif type in ["B", "C", "D"]
@@ -85,7 +89,8 @@ function alpha_to_eps_BCD(type::String, rank::Int, weight_alpha::Vector{QQFieldE
     """
     for B-D
     """
-    weight_eps = [QQ(0) for i in 1:rank]
+    # weight_eps = [QQ(0) for i in 1:rank] # TODO This is the old one, check which is the correct length
+    weight_eps = [QQ(0) for i in 1:(rank+1)] 
     for i in 1:(rank - 1)
         weight_eps[i] += weight_alpha[i]
         weight_eps[i+1] -= weight_alpha[i]
@@ -117,8 +122,8 @@ function eps_to_alpha_BCD(type::String, rank::Int, weight_eps::Vector{QQFieldEle
         weight_alpha[rank - 1] = weight_eps[rank - 1]
         weight_alpha[rank] += QQ(1, 2)*weight_eps[rank - 1] + QQ(1, 2)*weight_eps[rank]
     elseif type == "D"
-        weight_alpha[rank - 1] += (weight_eps[rank - 1] - QQ(1, 2)*weight_eps[rank])
-        weight_alpha[rank] += (weight_eps[rank - 1] + QQ(1, 2)*weight_eps[rank])
+        weight_alpha[rank] = QQ(1, 2)*(weight_eps[rank - 1] + weight_eps[rank])
+        weight_alpha[rank - 1] = weight_eps[rank - 1] - weight_alpha[rank]
     end
     return weight_alpha
 end
@@ -335,11 +340,10 @@ function alpha_to_eps_A(rank::Int, weight_alpha::Vector{QQFieldElem})::Vector{QQ
     return weight_eps
 end
 
-function eps_to_alpha_A(rank::Int, weight_eps_original::Vector{QQFieldElem})::Vector{QQFieldElem}
+function eps_to_alpha_A(rank::Int, weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for A
     """
-    weight_eps = copy(weight_eps_original) # Original weight should not get modified
     if length(weight_eps) == rank
         push!(weight_eps, QQ(0))
     end
