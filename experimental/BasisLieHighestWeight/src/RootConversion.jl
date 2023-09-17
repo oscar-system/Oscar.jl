@@ -237,7 +237,7 @@ function alpha_to_eps_E8(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     """
     for E8
     """
-    weight_eps = [0.0 for i in 1:8]
+    weight_eps = [QQ(0) for i in 1:8]
     for i in 1:6
         weight_eps[i] += weight_alpha[i]
         weight_eps[i+1] += - weight_alpha[i]
@@ -245,7 +245,7 @@ function alpha_to_eps_E8(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
     weight_eps[6] += weight_alpha[7]
     weight_eps[7] += weight_alpha[7]
     for i in 1:8
-        weight_eps[i] += -0.5*weight_alpha[8]
+        weight_eps[i] += QQ(-1,2)*weight_alpha[8]
     end
     return weight_eps
 end
@@ -259,7 +259,7 @@ function eps_to_alpha_E8(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
         for i in 1:j
             weight_alpha[j] += weight_eps[i]
         end
-        weight_alpha[j] += -j*weight_eps[8]
+        weight_alpha[j] += QQ(-j, 1)*weight_eps[8]
     end
     for i in 1:6
         weight_alpha[6] += QQ(1, 2)*weight_eps[i]
@@ -268,7 +268,7 @@ function eps_to_alpha_E8(weight_eps::Vector{QQFieldElem})::Vector{QQFieldElem}
     weight_alpha[6] += QQ(-1, 2)*weight_eps[7] - QQ(5, 2)*weight_eps[8]
     weight_alpha[7] += QQ(1, 2)*weight_eps[7] - QQ(7, 2)*weight_eps[8]
     weight_alpha[8] = QQ(-2)*weight_eps[8]
-    return alpha
+    return weight_alpha
 end
 
 function alpha_to_eps_F(weight_alpha::Vector{QQFieldElem})::Vector{QQFieldElem}
