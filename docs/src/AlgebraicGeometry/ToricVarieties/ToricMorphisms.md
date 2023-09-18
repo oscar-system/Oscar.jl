@@ -49,6 +49,7 @@ morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
 morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 morphism_on_class_group(tm::ToricMorphism)
 morphism_on_picard_group(tm::ToricMorphism)
+covering_morphism(f::ToricMorphism)
 ```
 
 ### Special attributes of toric varieties
