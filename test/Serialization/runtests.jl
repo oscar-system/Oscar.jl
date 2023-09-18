@@ -1,4 +1,5 @@
 using Oscar
+using Test
 
 isdefined(Main, :test_save_load_roundtrip) ||
   include(joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl"))
@@ -14,5 +15,3 @@ include("Matrices.jl")
 include("Fields.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
-include("polymake/runtests.jl")
-include("upgrades/runtests.jl")

@@ -1,4 +1,5 @@
 using Oscar
+using Test
 
 include("SimplicialComplexes.jl")
 include("Matroids/Matroids.jl")
