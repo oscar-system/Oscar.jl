@@ -1,4 +1,3 @@
-using Distributed
 ################################################################################
 # Description of the saving and loading mechanisms
 #
@@ -377,11 +376,16 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       serialize_with_id(T::Type{<:$ex}) = $uses_id
       serialize_with_params(T::Type{<:$ex}) = $uses_params
 
-      function serialize(s::AbstractSerializer, obj::T) where T <: $ex
-        serialize_type(s, T)
-        save(s.io, obj)
+      # only extend serialize on non std julia types
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple})
+        function serialize(s::AbstractSerializer, obj::T) where T <: $ex
+          serialize_type(s, T)
+          save(s.io, obj; serializer_type=IPCSerializer)
+        end
+        function deserialize(s::AbstractSerializer, ::Type{<:$ex})
+          load(s.io; serializer_type=IPCSerializer)
+        end
       end
-      deserialize(s::AbstractSerializer, ::Type{<:$ex}) = load(s.io)
 
     end)
 end
@@ -481,15 +485,18 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
         global_serializer_state.id_to_obj[ref] = obj
       end
       save_object(s, string(ref), :id)
+      
     end
     
     # this should be handled by serializers in a later commit / PR
-    !isempty(s.refs) && save_data_dict(s, refs_key) do
-      for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        s.key = Symbol(id)
-        save_data_dict(s) do
-          save_typed_object(s, ref_obj)
+    if !isempty(s.refs) && serializer_type == JSONSerializer
+      save_data_dict(s, refs_key) do
+        for id in s.refs
+          ref_obj = global_serializer_state.id_to_obj[id]
+          s.key = Symbol(id)
+          save_data_dict(s) do
+            save_typed_object(s, ref_obj)
+          end
         end
       end
     end
@@ -567,8 +574,9 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::Any = nothing, type::Any = nothing)
-  state = deserializer_open(io)
+function load(io::IO; params::Any = nothing, type::Any = nothing,
+              serializer_type=JSONSerializer)
+  s = state(deserializer_open(io, serializer_type))
 
   # this should be moved to the serializer at some point
   jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
@@ -591,7 +599,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
 
   # add refs to state for referencing during recursion
   if haskey(jsondict, refs_key)
-    merge!(state.refs, jsondict[refs_key])
+    merge!(s.refs, jsondict[refs_key])
   end
 
   if type !== nothing
@@ -606,14 +614,19 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
 
     if serialize_with_params(type)
       if isnothing(params) 
-        params = load_type_params(state, type, jsondict[type_key][:params])
+        params = load_type_params(s, type, jsondict[type_key][:params])
       end
-      return load_object(state, type, jsondict[:data], params)
+      loaded = load_object(s, type, jsondict[:data], params)
     end
     Base.issingletontype(type) && return type()
-    return load_object(state, type, jsondict[:data])
+    loaded =  load_object(s, type, jsondict[:data])
   end
-  return load_typed_object(state, jsondict; override_params=params)
+  loaded =  load_typed_object(s, jsondict; override_params=params)
+
+  if haskey(jsondict, :id)
+    global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+  end
+  return loaded
 end
 
 function load(filename::String; params::Any = nothing, type::Any = nothing)

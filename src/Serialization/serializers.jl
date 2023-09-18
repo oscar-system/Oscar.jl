@@ -49,11 +49,11 @@ end
 abstract type OscarSerializer end
 
 struct JSONSerializer <: OscarSerializer
-  state::SerializerState
+  state::S where S <: Union{SerializerState, DeserializerState}
 end
 
 struct IPCSerializer <: OscarSerializer
-  state::SerializerState
+  state::S where S <: Union{SerializerState, DeserializerState}
 end
 
 state(s::OscarSerializer) = s.state
@@ -67,9 +67,9 @@ function serializer_close(s::SerializerState)
   finish_writing(s)
 end
 
-function deserializer_open(io::IO)
+function deserializer_open(io::IO, T::Type{<: OscarSerializer})
   # should eventually take io
-  return DeserializerState()
+  return T(DeserializerState())
 end
 
 function serialize_dict(f::Function, s::SerializerState)
