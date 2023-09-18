@@ -866,5 +866,11 @@ Group([ (3,4), (1,2), (2,3) ])
 """
 function automorphism_group(m::Matroid) 
   @req length(m) > 0 "The matroid should not be empty."
-  rank(m) < 1 ? automorphism_group(dual_matroid(m)) : automorphism_group(IncidenceMatrix(bases(m));action=:on_cols)
+  I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
+  resize!(I, nrows(I), length(m))
+  return automorphism_group(I;action=:on_cols)
 end
+
+
+
+
