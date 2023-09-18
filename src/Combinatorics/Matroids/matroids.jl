@@ -864,4 +864,9 @@ julia> automorphism_group(M)
 Group([ (3,4), (1,2), (2,3) ])
 ```
 """
-automorphism_group(m::Matroid) = automorphism_group(IncidenceMatrix(bases(m));action=:on_cols)
+function automorphism_group(m::Matroid) 
+  @req length(m) > 0 "The matroid should not be empty."
+  I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
+  resize!(I, nrows(I), length(m))
+  return automorphism_group(I; action=:on_cols)
+end
