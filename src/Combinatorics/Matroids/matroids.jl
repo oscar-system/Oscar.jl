@@ -868,9 +868,5 @@ function automorphism_group(m::Matroid)
   @req length(m) > 0 "The matroid should not be empty."
   I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
   resize!(I, nrows(I), length(m))
-  return automorphism_group(I;action=:on_cols)
+  return automorphism_group(I; action=:on_cols)
 end
-
-
-
-
