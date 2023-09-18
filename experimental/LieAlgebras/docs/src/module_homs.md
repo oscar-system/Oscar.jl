@@ -20,6 +20,7 @@ or a $\dim V_1 \times \dim V_2$ matrix.
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleElem{C}}; check::Bool=true) where {C<:RingElement}
 hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::MatElem{C}; check::Bool=true) where {C<:RingElement}
 identity_map(::LieAlgebraModule)
+zero_map(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
 ```
 
 ## Functions
@@ -47,4 +48,17 @@ compose(::LieAlgebraModuleHom{T1,T2}, ::LieAlgebraModuleHom{T2,T3}) where {T1<:L
 ```@docs
 is_isomorphism(::LieAlgebraModuleHom)
 inv(::LieAlgebraModuleHom)
+```
+
+### Hom constructions
+Lie algebra module homomorphisms support `+` and `-` if they have the same domain and codomain.
+
+```@docs
+canonical_injections(::LieAlgebraModule)
+canonical_injection(::LieAlgebraModule, ::Int)
+canonical_projections(::LieAlgebraModule)
+canonical_projection(::LieAlgebraModule, ::Int)
+hom_direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Matrix{<:LieAlgebraModuleHom}) where {C<:RingElement}
+hom_tensor(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleHom}) where {C<:RingElement}
+hom_power(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::LieAlgebraModuleHom) where {C<:RingElement}
 ```
