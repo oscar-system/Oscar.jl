@@ -104,8 +104,6 @@ end
   Base.cumulative_compile_timing(true)
 end
 
-println("Making test list")
-
 testlist = [
   
   "Aqua.jl",
