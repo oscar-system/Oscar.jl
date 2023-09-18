@@ -510,19 +510,7 @@ Quadratic space of dimension 2
   [0   -1]
 
 julia> Vf3, inj = direct_sum(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 2
-Codomain:
-=========
-Quadratic space of dimension 4, Map with following data
-Domain:
-=======
-Quadratic space of dimension 2
-Codomain:
-=========
-Quadratic space of dimension 4])
+(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Vf3
 Quadratic space of dimension 4
@@ -605,19 +593,7 @@ Quadratic space of dimension 2
   [0   -1]
 
 julia> Vf3, proj = direct_product(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 4
-Codomain:
-=========
-Quadratic space of dimension 2, Map with following data
-Domain:
-=======
-Quadratic space of dimension 4
-Codomain:
-=========
-Quadratic space of dimension 2])
+(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Vf3
 Quadratic space of dimension 4
@@ -701,31 +677,7 @@ Quadratic space of dimension 2
   [0   -1]
 
 julia> Vf3, inj, proj = biproduct(Vf1, Vf2)
-(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 2
-Codomain:
-=========
-Quadratic space of dimension 4, Map with following data
-Domain:
-=======
-Quadratic space of dimension 2
-Codomain:
-=========
-Quadratic space of dimension 4], AbstractSpaceMor[Map with following data
-Domain:
-=======
-Quadratic space of dimension 4
-Codomain:
-=========
-Quadratic space of dimension 2, Map with following data
-Domain:
-=======
-Quadratic space of dimension 4
-Codomain:
-=========
-Quadratic space of dimension 2])
+(Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Vf3
 Quadratic space of dimension 4

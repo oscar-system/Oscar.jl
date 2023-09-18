@@ -20,12 +20,13 @@ end
 Solve $Ax = b$ under $Cx >= d$, assumes a finite solution set.
 
 The output type may be specified in the variable `as`:
-- `ZZMatrix` (default) a matrix with integers is returned.
-- `SubObjectIterator{PointVector{ZZRingElem}}` an iterator over integer points is returned.
+- `ZZMatrix` (default) a matrix with integers is returned. The solutions are
+  the (transposed) rows of the output.
+- `SubObjectIterator{PointVector{ZZRingElem}}` an iterator over integer points
+  is returned.
 
 # Examples
 Find all $(x_1, x_2)\in\mathbb{Z}^2$ such that $x_1+x_2=7$, $x_1\ge 2$, and $x_2\ge 3$.
-The solutions are the rows of the output.
 Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 1]);
@@ -48,8 +49,15 @@ ZZMatrix
 julia> typeof(solve_mixed(ZZMatrix, A, b, C, d))
 ZZMatrix
 
-julia> typeof(solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d))
+julia> it = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C);
+
+julia> typeof(it)
 SubObjectIterator{PointVector{ZZRingElem}}
+
+julia> for x in it
+       print(A*x," ")
+       end
+ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] 
 ```
 """
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T} = solve_mixed(T, A, b, C, d)
@@ -62,12 +70,13 @@ solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) = solve_mixed(ZZ
 Solve $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
 
 The output type may be specified in the variable `as`:
-- `ZZMatrix` (default) a matrix with integers is returned.
-- `SubObjectIterator{PointVector{ZZRingElem}}` an iterator over integer points is returned.
+- `ZZMatrix` (default) a matrix with integers is returned. The solutions are
+  the (transposed) rows of the output.
+- `SubObjectIterator{PointVector{ZZRingElem}}` an iterator over integer points
+  is returned.
 
 # Examples
 Find all $(x_1, x_2)\in\mathbb{Z}^2_{\ge 0}$ such that $x_1+x_2=3$.
-The solutions are the rows of the output.
 Note that the output can be permuted, hence we sort it.
 ```jldoctest
 julia> A = ZZMatrix([1 1]);
@@ -89,8 +98,15 @@ ZZMatrix
 julia> typeof(solve_mixed(ZZMatrix, A, b, C))
 ZZMatrix
 
-julia> typeof(solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C))
+julia> it = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C);
+
+julia> typeof(it)
 SubObjectIterator{PointVector{ZZRingElem}}
+
+julia> for x in it
+       print(A*x," ")
+       end
+ZZRingElem[3] ZZRingElem[3] ZZRingElem[3] ZZRingElem[3] 
 ```
 """
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))

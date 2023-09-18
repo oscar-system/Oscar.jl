@@ -16,8 +16,11 @@ julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 
 julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
 Localization
-  of quotient of multivariate polynomial ring by ideal with 4 generators
-  at products of 28 elements
+  of quotient
+    of multivariate polynomial ring in 9 variables x[1, 1], x[2, 1], x[1, 2], x[3, 2]..., x[3, 4]
+      over finite field of characteristic 2
+    by ideal(x[2, 3]*x[3, 4] + x[3, 3]*x[2, 4], x[1, 2]*x[3, 4] + x[3, 2]*x[1, 4], x[1, 1]*x[2, 4] + x[2, 1]*x[1, 4], x[1, 1]*x[3, 2]*x[2, 3] + x[2, 1]*x[1, 2]*x[3, 3])
+  at products of (x[3, 3]*x[1, 4],x[1, 1]*x[2, 3]*x[3, 4] + x[1, 1]*x[3, 3]*x[2, 4] + x[2, 1]*x[3, 3]*x[1, 4],x[2, 3]*x[1, 4],x[1, 2]*x[2, 3]*x[3, 4] + x[1, 2]*x[3, 3]*x[2, 4] + x[3, 2]*x[2, 3]*x[1, 4],x[3, 2]*x[2, 4],x[1, 1]*x[3, 2]*x[2, 4] + x[2, 1]*x[1, 2]*x[3, 4] + x[2, 1]*x[3, 2]*x[1, 4],x[1, 2]*x[2, 4],x[2, 4],x[1, 4],x[2, 1]*x[3, 4],x[1, 1]*x[3, 4],x[3, 4],x[3, 2]*x[2, 3],x[1, 2]*x[3, 3],x[1, 2]*x[2, 3],x[2, 3],x[1, 1]*x[2, 3],x[2, 1]*x[3, 3],x[1, 1]*x[3, 3],x[3, 3],x[1, 2],x[2, 1]*x[1, 2],x[2, 1]*x[3, 2],x[1, 1]*x[3, 2],x[3, 2],x[2, 1],x[1, 1],1)
 ```
 """
 function matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType,  F::AbstractAlgebra.Ring = ZZ)
@@ -65,8 +68,11 @@ julia> X # The coordinate matrix.
 
 julia> W # The coordinate ring of the stratum.
 Localization
-  of quotient of multivariate polynomial ring by ideal with 4 generators
-  at products of 9 elements
+  of quotient
+    of multivariate polynomial ring in 3 variables x[1, 1], x[1, 2], x[2, 3]
+      over finite field of characteristic 2
+    by ideal(x[2, 3] + 1, x[1, 2] + 1, x[1, 1] + 1, x[1, 1]*x[2, 3] + x[1, 2])
+  at products of (1,x[1, 1]*x[2, 3] + x[1, 1] + 1,x[2, 3],x[1, 2]*x[2, 3] + x[1, 2] + x[2, 3],x[1, 1] + x[1, 2] + 1,x[1, 2],x[1, 1],x[1, 2]*x[2, 3],x[1, 1]*x[2, 3])
 ```
 """
 function matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)

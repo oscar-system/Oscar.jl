@@ -533,7 +533,8 @@ julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
 
 julia> coordinate_ring_of_torus(p2)
 Quotient
-  of multivariate polynomial ring in 4 variables over QQ
+  of multivariate polynomial ring in 4 variables y1, y2, y1_, y2_
+    over rational field
   by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
@@ -648,13 +649,7 @@ Return the map from the character lattice to the group of principal divisors of 
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_character_lattice_to_torusinvariant_weil_divisor_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z^2
-Codomain:
-=========
-Abelian group with structure: Z^3
+Map: GrpAb: Z^2 -> GrpAb: Z^3
 ```
 """
 @attr GrpAbFinGenMap function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
@@ -717,13 +712,7 @@ Return the map from the group of Weil divisors to the class of group of a normal
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_torusinvariant_weil_divisor_group_to_class_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z^3
-Codomain:
-=========
-Abelian group with structure: Z
+Map: GrpAb: Z^3 -> GrpAb: Z
 ```
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -745,13 +734,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z^3
-Codomain:
-=========
-Abelian group with structure: Z^3
+Map: GrpAb: Z^3 -> GrpAb: Z^3
 ```
 """
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
@@ -845,13 +828,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_class_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z^3
-Codomain:
-=========
-Abelian group with structure: Z
+Map: GrpAb: Z^3 -> GrpAb: Z
 ```
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -876,13 +853,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_picard_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z^3
-Codomain:
-=========
-Abelian group with structure: Z
+Map: GrpAb: Z^3 -> GrpAb: Z
 ```
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::NormalToricVarietyType)
@@ -925,13 +896,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_picard_group_to_class_group(p2)
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z
-Codomain:
-=========
-Abelian group with structure: Z
+Map: GrpAb: Z -> GrpAb: Z
 ```
 """
 @attr GrpAbFinGenMap function map_from_picard_group_to_class_group(v::NormalToricVarietyType)

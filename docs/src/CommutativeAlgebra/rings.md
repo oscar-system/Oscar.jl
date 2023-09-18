@@ -190,7 +190,7 @@ Fraction field
 
 ```jldoctest
 julia> ZZ
-Integer Ring
+Integer ring
 
 ```
 

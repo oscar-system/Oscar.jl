@@ -717,10 +717,10 @@ with homogeneous coordinates [s0, s1, s2, s3]
 julia> twisting_sheaf(P, 4)
 Coherent sheaf of modules
   on scheme over QQ covered with 4 patches
-    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
-    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
-    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
-    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+    1: [(s1//s0), (s2//s0), (s3//s0)]   affine 3-space
+    2: [(s0//s1), (s2//s1), (s3//s1)]   affine 3-space
+    3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
+    4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
   1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
   2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
@@ -778,10 +778,10 @@ with homogeneous coordinates [s0, s1, s2, s3]
 julia> tautological_bundle(P)
 Coherent sheaf of modules
   on scheme over QQ covered with 4 patches
-    1: [(s1//s0), (s2//s0), (s3//s0)]   spec of multivariate polynomial ring
-    2: [(s0//s1), (s2//s1), (s3//s1)]   spec of multivariate polynomial ring
-    3: [(s0//s2), (s1//s2), (s3//s2)]   spec of multivariate polynomial ring
-    4: [(s0//s3), (s1//s3), (s2//s3)]   spec of multivariate polynomial ring
+    1: [(s1//s0), (s2//s0), (s3//s0)]   affine 3-space
+    2: [(s0//s1), (s2//s1), (s3//s1)]   affine 3-space
+    3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
+    4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
   1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
   2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ

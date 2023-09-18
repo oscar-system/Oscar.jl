@@ -50,7 +50,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -1769,7 +1769,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -4458,6 +4458,62 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   isomorphism = hom(presentation_module, SQ, Vector{elem_type(SQ)}([g(x) for x in gens(R_b)]))
   inverse_isomorphism = hom(SQ, presentation_module, Vector{elem_type(presentation_module)}([presentation_module[i] for i=1:ngens(SQ)]))
   isomorphism.inverse_isomorphism = inverse_isomorphism
+
+  if task == :cache_morphism
+    register_morphism!(isomorphism)
+    register_morphism!(inverse_isomorphism)
+  end
+  task == :only_morphism && return isomorphism
+  
+  return presentation_module, isomorphism
+end
+
+@doc raw"""
+    present_as_cokernel(F::FreeMod, task::Symbol = :none)
+
+Represent `F` as the quotient `C` of itself with no relations. This method exists for compatibility reasons with `present_as_cokernel(M::SubQuoModule, task::Symbol = :none)`. 
+
+Additionally,
+
+- return an isomorphism `F` $\to$ `C` if `task = :with_morphism`,
+- return and cache an isomorphism `F` $\to$ `C` if `task = :cache_morphism`,
+- do none of the above if `task = :none` (default).
+
+If `task = :only_morphism`, return only an isomorphism.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> present_as_cokernel(F)
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+
+julia> present_as_cokernel(F, :only_morphism)
+Map with following data
+Domain:
+=======
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+```
+"""
+function present_as_cokernel(F::FreeMod, task::Symbol = :none)
+  presentation_module, isomorphism = quo(F, [zero(F)])
+  inverse_isomorphism = hom(presentation_module, F, gens(F))
+
+  if task == :none
+    return presentation_module
+  end
 
   if task == :cache_morphism
     register_morphism!(isomorphism)

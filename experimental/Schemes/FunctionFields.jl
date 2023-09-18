@@ -49,9 +49,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V(-(y//x)^2*(z//x) + 1)
+    2: V((x//y)^3 - (z//y))
+    3: V((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -60,18 +60,18 @@ with default covering
 julia> K = function_field(Ycov)
 Field of rational functions
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 represented by
   patch 1: fraction field of multivariate polynomial ring
 
 julia> one(K)
 Rational function
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 represented by
   patch 1: 1
 ```

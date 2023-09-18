@@ -303,7 +303,8 @@ x/y
 
 julia> parent(f)
 Localization
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
   at complement of prime ideal(x)
 
 julia> g = iota(y)/iota(z)
@@ -348,7 +349,10 @@ x
 
 julia> parent(f)
 Localization
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over number field of degree 2 over QQ
+    by ideal(2*x^2 - y^3, 2*x^2 - y^5)
   at complement of prime ideal(y - 1, x - a)
 
 julia> g = f/phi(y)
