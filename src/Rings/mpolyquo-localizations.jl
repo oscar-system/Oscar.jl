@@ -1874,13 +1874,6 @@ end
   return dim(pre_image_ideal(I))
 end
 
-dim(R::MPolyQuoLocRing) = dim(modulus(R))
-dim(R::AbsLocalizedRing{<:Any, <:Any,
-    <:MPolyComplementOfKPointIdeal{<:Field,<:Any,<:Any,<:Any}}) = nvars(base_ring(R))
-
-dim(R::AbsLocalizedRing{<:Any, <:Any,
-    <:MPolyPowersOfElement{<:Field,<:Any,<:Any,<:Any}}) = nvars(base_ring(R))
-
 #############################################################################
 ## compatibility functions to allow user to not care about which type of
 ## MPolyAnyIdeal they are handling
