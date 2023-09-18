@@ -57,7 +57,7 @@ SubObjectIterator{PointVector{ZZRingElem}}
 julia> for x in it
        print(A*x," ")
        end
-ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] ZZRingElem[7] 
+[7] [7] [7] [7] [7] [7] [7] [7] 
 ```
 """
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T} = solve_mixed(T, A, b, C, d)
@@ -106,7 +106,7 @@ SubObjectIterator{PointVector{ZZRingElem}}
 julia> for x in it
        print(A*x," ")
        end
-ZZRingElem[3] ZZRingElem[3] ZZRingElem[3] ZZRingElem[3] 
+[3] [3] [3] [3] 
 ```
 """
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
