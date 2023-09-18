@@ -1,3 +1,6 @@
+using Oscar
+using Test
+
 include("integer.jl")
 include("rational.jl")
 include("mpoly.jl")
@@ -34,3 +37,5 @@ include("FreeAssAlgIdeal.jl")
 
 include("binomial-ideals.jl")
 include("hilbert.jl")
+
+include("ReesAlgebra.jl")
