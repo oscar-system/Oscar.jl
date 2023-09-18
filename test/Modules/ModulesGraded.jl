@@ -1166,3 +1166,13 @@ end
   b = transpose(a) * a
   @test is_symmetric(b)
 end
+
+@testset "twist" begin
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1 0; 0 1]);
+  I = ideal(R, [x, y])
+  M = quotient_ring_as_module(I)
+  N = twist(M, [1, 2])
+  @test Int(degree(gen(N, 1))[1]) == -1
+  @test Int(degree(gen(N, 1))[2]) == -2
+end
+

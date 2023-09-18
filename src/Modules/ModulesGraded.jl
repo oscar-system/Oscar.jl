@@ -2567,3 +2567,89 @@ function ideal_as_module(I::MPolyIdeal)
   e1 = F[1]
   return sub(F, [x * e1 for x = gens(I)], :module)
 end
+
+
+
+##########################################################################
+##### Twists
+##########################################################################
+
+@doc raw"""
+    twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+
+Return the twisted module `M(g)`.
+
+    twist(M::ModuleFP{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
+
+Given a module `M` over a $\mathbb Z^m$-graded polynomial ring and a vector `W` of $m$ integers, 
+convert `W` into an element `g` of the grading group of the ring and proceed as above.
+
+    twist(M::ModuleFP{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
+
+Given a module `M` over a $\mathbb Z$-graded polynomial ring and an integer `d`, 
+convert `d` into an element `g` of the grading group of the ring and proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [zero(R)])
+ideal(0)
+
+julia> M = quotient_ring_as_module(I)
+Graded submodule of R^1
+1 -> e[1]
+represented as subquotient with no relations
+
+julia> degree(gen(M, 1))
+[0]
+
+julia> N = twist(M, 2)
+Graded submodule of R^1
+1 -> e[1]
+represented as subquotient with no relations
+
+julia> degree(gen(N, 1))
+[-2]
+
+```
+"""
+function twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+ error("Not implemented for the given type")
+end
+
+function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+ R = base_ring(M)
+ @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
+ F = ambient_free_module(M)
+ FN = twist(F, g)
+ GN = free_module(R, ngens(M))
+ HN = free_module(R, length(relations(M)))
+ a = hom(GN, F, ambient_representatives_generators(M))
+ b = hom(HN, F, relations(M))
+ A = matrix(a)
+ B = matrix(b)
+ N = subquotient(FN, A, B)
+ return N
+end
+
+function twist(F::FreeMod{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+ R = base_ring(F)
+ @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
+ W = [x-g for x in F.d]
+ G = graded_free_module(R, rank(F))
+ G.d = W
+ return G
+end
+
+function twist(M::ModuleFP{T}, W::Vector{<:IntegerUnion}) where {T<:MPolyDecRingElem}
+  R = base_ring(M)
+  @assert is_zm_graded(R)
+  return twist(M, grading_group(R)(W))
+end
+
+function twist(M::ModuleFP{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
+  R = base_ring(M)
+  @assert is_z_graded(R)
+  return twist(M, grading_group(R)([d]))
+end
