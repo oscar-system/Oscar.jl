@@ -10,7 +10,7 @@ CurrentModule = Oscar
 An *abstract tropical curve* is a finite, loopless, multigraph.
 It is defined by an incidence matrix with vertices as columns and edges as rows.
 
-A *divisor* on an abstract tropical curve is a formal linear combination of the vertices with integer coefficients. The degree of a divisor is the sum of its coefficients. A divisor is effective if all its coefficients are nonnegative.
+A *divisor* on an abstract tropical curve is a formal linear combination of the vertices with integer coefficients. The degree of a divisor is the sum of its coefficients. A divisor is effective if all its coefficients are non-negative.
 
 For more definitions on the theory of divisors and linear sisyems on abstract tropical curve, we refer to [BN07](@cite).
 
