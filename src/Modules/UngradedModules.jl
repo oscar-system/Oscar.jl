@@ -6271,11 +6271,13 @@ end
 @doc raw"""
     free_resolution(F::FreeMod)
 
-Return a free resolution of `F`.
+Return a free resolution of `F`. The `length` and `algorithm`
+keywords are here only for compatibility reasons with the other `free_resolution`
+methods and have no effect on the computation.
 
 # Examples
 """
-function free_resolution(F::FreeMod)
+function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
   res = presentation(F)
   set_attribute!(res, :show => free_show, :free_res => F)
   return FreeResolution(res)
@@ -6427,7 +6429,8 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, `algorithm` only allows the option `:fres`.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
 
 # Examples
 ```jldoctest
@@ -6481,9 +6484,8 @@ R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-    ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres
-  )
+                         ordering::ModuleOrdering = default_ordering(M),
+                         length::Int=0, algorithm::Symbol=:fres)
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -6492,13 +6494,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Start with presentation =#
   pm = presentation(M)
-  maps = [map(pm, j) for j in Hecke.map_range(pm)]
+  maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -6515,6 +6517,12 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
     gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
+  elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
+  elseif algorithm == :nres
+    gbpres = singular_kernel_entry
+    res = Singular.nres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -6523,23 +6531,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
-  codom = codomain(maps[1])
-
-  if is_graded(codom)
-    rk    = Singular.ngens(gbpres)
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = graded_map(codom, SM.matrix)
-    dom = domain(ff)
-  else
-    dom   = free_module(br, Singular.ngens(gbpres))
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = hom(dom, codom, SM.matrix)
-  end
-
-  maps[1] = ff
-
   br_name = AbstractAlgebra.find_name(base_ring(M))
   if br_name === nothing
     br_name = "R"
@@ -6547,10 +6538,10 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  j   = 2
+  j   = 1
   while j <= Singular.length(res)
-    if is_graded(dom)
-      codom = dom
+    if is_graded(M)
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
@@ -6560,7 +6551,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       insert!(maps, 1, ff)
       j += 1
     else
-      codom = dom
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
@@ -6698,35 +6689,45 @@ function ideal_to_module(I::MPolyIdeal)
 end
 
 @doc raw"""
-    free_resolution(I::MPolyIdeal)
+    free_resolution(I::MPolyIdeal; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `I`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(I::MPolyIdeal)
+function free_resolution(I::MPolyIdeal;
+                         length::Int=0, algorithm::Symbol=:fres)
   S = ideal_as_module(I)
   n = Hecke.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
   end
-  return free_resolution(S)
+  return free_resolution(S, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
-    free_resolution(Q::MPolyQuoRing)
+    free_resolution(Q::MPolyQuoRing; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `Q`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(Q::MPolyQuoRing)
+function free_resolution(Q::MPolyQuoRing;
+                         length::Int=0, algorithm::Symbol=:fres)
   q = quotient_ring_as_module(Q)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
   end
-  return free_resolution(q)
+  return free_resolution(q, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
