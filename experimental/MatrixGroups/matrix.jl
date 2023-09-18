@@ -10,7 +10,7 @@ export _wrap_for_gap
 # Initialize GAP function, i.e. GAP reads the file matrix.g
 #
 function __init__()
-    GAP.Globals.Reread(GAP.GapObj(joinpath(Oscar.oscardir, "experimental", "Matrix", "matrix.g")))
+    GAP.Globals.Read(GAP.GapObj(joinpath(@__DIR__, "matrix.g")))
 end
 
 ################################################################################
