@@ -702,7 +702,7 @@ end
 
 @testset "direct product" begin
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-
+  
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
 
@@ -753,13 +753,13 @@ end
   @test ngens(prod_M) == ngens(M1) + ngens(M2)
 
   for g in gens(prod_N)
-    @test g == sum([Hecke.canonical_injection(prod_N,i)(Hecke.canonical_projection(prod_N,i)(g)) for i=1:2])
+    @test g == sum([canonical_injection(prod_N,i)(canonical_projection(prod_N,i)(g)) for i=1:2])
   end
   for g in gens(N1)
-    @test g == Hecke.canonical_projection(prod_N,1)(Hecke.canonical_injection(prod_N,1)(g))
+    @test g == canonical_projection(prod_N,1)(canonical_injection(prod_N,1)(g))
   end
   for g in gens(N2)
-    @test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
+    @test g == canonical_projection(prod_N,2)(canonical_injection(prod_N,2)(g))
   end
 
   # testing hom_product
@@ -777,12 +777,12 @@ end
 
   phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
   for g in gens(M1)
-    @test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
-    @test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
+    @test M1_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[1](g)))
+    @test M1_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[1](g)))
   end
   for g in gens(M2)
-    @test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
-    @test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
+    @test M2_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[2](g)))
+    @test M2_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[2](g)))
   end
 
   # testing mixed typed modules
