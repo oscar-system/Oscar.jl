@@ -42,6 +42,7 @@ function __init_group_libraries()
     _add_bool_attr(_group_filter_attrs, k, v)
   end
 
+  _group_filter_attrs[exponent] = (_IntOrIntVec, GAP.Globals.Exponent, nothing)
   _group_filter_attrs[order] = (_IntOrIntVec, GAP.Globals.Size, nothing)
   _group_filter_attrs[number_conjugacy_classes] = (_IntOrIntVec, GAP.Globals.NrConjugacyClasses, nothing)
 
