@@ -639,6 +639,27 @@ function hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
   return hypersurface_germ(X,coordinates(p))
 end
 
+@doc raw"""
+    complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
+    complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
+    complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
+              I::Union{Ideal,Vector})
+    complete_intersection_germ(A::LocalRing, I::Union{Ideal,Vector})
+
+Returns a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphism of spectra arising from the given representative `X` or the given `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
+equivalent ways:
+- by its coordinates `a` in the ambient_space of `X` or
+- by a maximal ideal `I`in the coordinate ring of `X` or
+- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by the maximal ideal of the local ring `A`
+
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+
+!!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
+
+```jldoctest
+```
+"""
 function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
   Y = CompleteIntersectionGerm(X,I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
@@ -660,11 +681,11 @@ Returns a complete intersection germ `(X,p)` and the corresponding inclusion mor
 ```jldoctest
 ```
 """
-hypersurface_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
+complete_intersection_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
 
-function hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
+function complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
-  return hypersurface_germ(X,coordinates(p))
+  return complete_intersection_germ(X,coordinates(p))
 end
 
 #########################################################################################
