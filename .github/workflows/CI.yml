@@ -117,12 +117,13 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia --project=docs --depwarn=error --color=yes -e'
-            using Documenter
-            include("docs/documenter_helpers.jl")
-            using Oscar
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-            doctest(Oscar)'
+          julia ${{ matrix.julia-version == '1.9' && '--code-coverage' || '' }} \
+            --project=docs --depwarn=error --color=yes -e'
+              using Documenter
+              include("docs/documenter_helpers.jl")
+              using Oscar
+              DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
+              doctest(Oscar)'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.9'
         uses: julia-actions/julia-processcoverage@v1

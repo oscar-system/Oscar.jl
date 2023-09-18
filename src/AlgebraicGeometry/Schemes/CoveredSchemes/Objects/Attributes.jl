@@ -28,9 +28,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
-    3: spec of multivariate polynomial ring
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -68,9 +68,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V((s1//s0) - (s2//s0)^2)
+    2: V((s0//s1) - (s2//s1)^2)
+    3: V((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -79,9 +79,9 @@ with default covering
 julia> default_covering(Xcov)
 Covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V((s1//s0) - (s2//s0)^2)
+    2: V((s0//s1) - (s2//s1)^2)
+    3: V((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -123,9 +123,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V((s1//s0) - (s2//s0)^2)
+    2: V((s0//s1) - (s2//s1)^2)
+    3: V((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -133,9 +133,9 @@ with default covering
 
 julia> affine_charts(Xcov)
 3-element Vector{AbsSpec}:
- Spec of quotient of multivariate polynomial ring
- Spec of quotient of multivariate polynomial ring
- Spec of quotient of multivariate polynomial ring
+ V((s1//s0) - (s2//s0)^2)
+ V((s0//s1) - (s2//s1)^2)
+ V((s0//s2)*(s1//s2) - 1)
 
 ```
 """
@@ -223,9 +223,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V(-(y//x)^2*(z//x) + 1)
+    2: V((x//y)^3 - (z//y))
+    3: V((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -239,18 +239,18 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
+    1: V((x//z)^3 - (y//z)^2, (y//z), (x//z))
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
 julia> s
 Morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to   scheme over QQ covered with 3 patches
-    1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 given by the pullback function
   1a -> 3b
     (x//z) -> 0

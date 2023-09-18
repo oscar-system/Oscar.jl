@@ -77,6 +77,10 @@ end
   Lf = integer_lattice_with_isometry(L; neg = true)
   @test order_of_isometry(Lf) == -1
 
+  isdefined(Main, :test_save_load_roundtrip) || include(
+    joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl")
+  )
+
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
       @test Lf == loaded

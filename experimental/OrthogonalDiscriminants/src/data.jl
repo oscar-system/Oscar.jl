@@ -16,6 +16,13 @@ end
 @doc raw"""
     orthogonal_discriminant(chi::Oscar.GAPGroupClassFunction)
 
+Return a string that describes the orthogonal discriminant of `chi`:
+- `"?"` if the value is unknown,
+- one of `"O+"`, `"O-"` in positive characteristic,
+- something that can be evaluated with [`atlas_irrationality`](@ref)
+  in characteristic `0`, and
+- `""` if `chi is not irreducible, not orthogonal, or has odd degree.
+
 # Examples
 ```jldoctest
 julia> t = character_table("A6");
@@ -32,29 +39,47 @@ julia> orthogonal_discriminant(t2[4])
 function orthogonal_discriminant(chi::Oscar.GAPGroupClassFunction)
   tbl = chi.table
   pos = findfirst(x -> x === chi, tbl)
-  pos === nothing && return nothing
+  pos === nothing && return ""
   p = characteristic(tbl)
   if p == 0
     id = identifier(tbl)
   else
     id = identifier(ordinary_table(tbl))
   end
-  haskey(OD_simple_names, id) || return nothing
-  simp = OD_simple_names[id]
-  data = OD_data[simp]
-  data = data[id]
-  p = string(p)
-  haskey(data, p) || return nothing
-  data = data[p]
-  for l in data
-    l[2] == pos && return l[3]
+  if haskey(OD_simple_names, id)
+    simp = OD_simple_names[id]
+    data = OD_data[simp]
+    data = data[id]
+    p = string(p)
+    if haskey(data, p)
+      data = data[p]
+      for l in data
+        l[2] == pos && return l[4]
+      end
+      return ""
+    else
+      (indicator(chi) == 1 && is_even(numerator(degree(chi)))) || return ""
+      return "?"
+    end
   end
-  return nothing
+
+  # `tbl` is outside the scope of the database.
+  (indicator(chi) == 1 && is_even(numerator(degree(chi)))) || return ""
+  return "?"
 end
 
 
 @doc raw"""
     orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
+
+Return a vector of strings that describe the orthogonal discriminants of
+the orthogonal irreducible characters of `tbl` of even degree.
+
+The length of this vector is the number of irreducible characters of `tbl`,
+the $i$-th entry is an empty string if the $i$-th character is not orthogonal
+or has odd degree,
+and the $i$-th entry is equal to `"?"` if the orthogonal discriminant is
+unknown.
 
 # Examples
 ```jldoctest
@@ -74,16 +99,28 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
   else
     id = identifier(ordinary_table(tbl))
   end
-  haskey(OD_simple_names, id) || return nothing
-  simp = OD_simple_names[id]
-  data = OD_data[simp]
-  data = data[id]
-  p = string(p)
-  haskey(data, p) || return nothing
-  data = data[p]
   res = fill("", number_conjugacy_classes(tbl))
-  for l in data
-    res[l[2]] = l[3]
+  if haskey(OD_simple_names, id)
+    simp = OD_simple_names[id]
+    data = OD_data[simp]
+    if haskey(data, id)
+      data = data[id]
+      p = string(p)
+      if haskey(data, p)
+        data = data[p]
+        for l in data
+          res[l[2]] = l[4]
+        end
+        return res
+      end
+    end
+  end
+
+  # `tbl` is outside the scope of the database.
+  for i in 1:length(tbl)
+    if indicator(tbl[i]) == 1 && is_even(numerator(degree(tbl[i])))
+      res[i] = "?"
+    end
   end
   return res
 end
@@ -145,6 +182,9 @@ function __init_OD()
   _OD_filter_attrs[character_field] =
     (Union{Map, Vector{Map}, Function},
     character_field, nothing)
+  _OD_filter_attrs[degree] =
+    (Union{Oscar._IntOrIntVec, Function},
+    degree, nothing)
   _OD_filter_attrs[identifier] =
     (Union{String, Vector{String}, Function},
     identifier, nothing)
@@ -194,7 +234,8 @@ function _od_info(groupname, p, v)
            :characteristic => p,
            :charname => v[1],
            :charpos => v[2],
-           :valuestring => v[3],
+           :degree => v[3],
+           :valuestring => v[4],
            :comment => v[end])
 end
 
@@ -222,6 +263,10 @@ The following conditions are supported.
   (finite fields if the characteristic is positive, and subfields of
   cyclotomic fields in characteristic zero) have the given map(s) as
   embeddings into the algebraic closure or abelian closure, respectively,
+
+- `degree`, with value a positive integer,
+  meaning entries only for characters whose character field has the given
+  degree over its prime field,
 
 - `identifier`, with value a string denoting the name of an Atlas group,
   or a vector of such strings,
@@ -399,9 +444,23 @@ function all_od_infos(L...)
         end
         good_dim || continue
 
+        good_degree = true
+        if haskey(conditions, degree)
+          d = entry[3]
+          deg = conditions[degree]
+          if deg isa Function
+            (!deg(d)) && (good_degree = false)
+          elseif deg isa IntegerUnion
+            (deg != d) && (good_degree = false)
+          elseif !(d in deg)
+            good_degree = false
+          end
+        end
+        good_degree || continue
+
         good_od = true
         if haskey(conditions, Oscar.OrthogonalDiscriminants.orthogonal_discriminant)
-          od = entry[3]
+          od = entry[4]
           orthogonal_discriminant = conditions[Oscar.OrthogonalDiscriminants.orthogonal_discriminant]
           if orthogonal_discriminant isa Function
             (!orthogonal_discriminant(od)) && (good_od = false)

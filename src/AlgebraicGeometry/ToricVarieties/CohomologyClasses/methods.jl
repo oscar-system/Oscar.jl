@@ -73,7 +73,12 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 
 julia> cohomology_ring(X)
 Quotient
-  of graded multivariate polynomial ring in 5 variables over QQ
+  of multivariate polynomial ring in 5 variables over QQ graded by
+    x1 -> [1]
+    x2 -> [1]
+    x3 -> [1]
+    x4 -> [1]
+    x5 -> [1]
   by ideal(x1 - x2 - 2*x5, x3 - x5, x4 - x5, x1*x2, x3*x4*x5)
 
 julia> integrate(cohomology_class(anticanonical_divisor(X))^3)

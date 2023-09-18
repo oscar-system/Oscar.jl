@@ -80,7 +80,7 @@ julia> I = ideal(R, [x^2, y^3])
 ideal(x^2, y^3)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map from
 R to A defined by a julia-function with inverse)
 
 julia> L = monomial_basis(A)
@@ -135,7 +135,7 @@ julia> I = ideal(R, [x^2])
 ideal(x^2)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
+(Quotient of multivariate polynomial ring by ideal(x^2), Map from
 R to A defined by a julia-function with inverse)
 
 julia> L = monomial_basis(A, 3)
@@ -497,11 +497,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -526,13 +523,9 @@ julia> H
 GrpAb: Z
 
 julia> iso
-Map with following data
-Domain:
-=======
-H
-Codomain:
-=========
-G
+Map: GrpAb: Z -> (General) abelian group with relation matrix
+[1 -1]
+with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series(
@@ -697,11 +690,8 @@ julia> H[2][1]
 GrpAb: Z^2
 
 julia> H[2][2]
-Identity map with
-
-Domain:
-=======
-GrpAb: Z^2
+Identity map
+  of GrpAb: Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -726,13 +716,9 @@ julia> H[2][1]
 GrpAb: Z
 
 julia> H[2][2]
-Map with following data
-Domain:
-=======
-Abelian group with structure: Z
-Codomain:
-=========
-G
+Map: GrpAb: Z -> (General) abelian group with relation matrix
+[1 -1]
+with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
@@ -1072,6 +1058,50 @@ end
 
 ################################################################################
 #
+#  Algebraic Independence
+#
+################################################################################
+
+@doc raw"""
+    are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+
+Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring, 
+return `(true, ideal(0))` if the elements of `V` are algebraically independent over `K`. Return, `false`
+together with the ideal of `K`-algebra relations, otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> V = [x, y, x^2+y^3]
+3-element Vector{QQMPolyRingElem}:
+ x
+ y
+ x^2 + y^3
+
+julia> are_algebraically_independent(V)
+(false, ideal(t1^2 + t2^3 - t3))
+
+julia> A, p = quo(R, [x*y]);
+
+julia> are_algebraically_independent([p(x), p(y)])
+(false, ideal(t1*t2))
+
+```
+"""
+function are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+  @req !isempty(V) "Input vector must not be empty"
+  R = parent(V[1])
+  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
+  @req all(x -> parent(x) === R, V) "The elements must have the same parent"
+  S, _ = polynomial_ring(coefficient_ring(R), length(V), "t"; cached = false)
+  phi = hom(S, R, V)
+  I = kernel(phi)
+  return iszero(I), I
+end
+
+################################################################################
+#
 #  Minimalizing a set of subalgebra generators in graded case
 #
 ################################################################################
@@ -1263,17 +1293,17 @@ julia> size(LL)
 
 julia> LL[1][1]
 Quotient
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables T(1), x, y
+    over rational field
   by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
-Map with following data
-Domain:
-=======
-A
-Codomain:
-=========
-Quotient of multivariate polynomial ring by ideal with 4 generators
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+  to quotient of multivariate polynomial ring by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
+defined by
+  x -> x
+  y -> y
 
 julia> LL[1][3]
 (y, ideal(x, y))

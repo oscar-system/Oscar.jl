@@ -129,3 +129,11 @@ end
     @test V[i] == rels[i](V2...)
   end
 end
+
+@testset "are_algebraically_independent" begin
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  V = [x, y]
+  fl, I = are_algebraically_independent(V)
+  @test fl
+  @test is_zero(I)
+end

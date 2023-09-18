@@ -80,10 +80,39 @@ _images(f::MPolyAnyMap) = f.img_gens
 #  String I/O
 #
 ################################################################################
+function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
+  io = pretty(io)
+  println(io, "Ring homomorphism")  # at least one new line is needed
+  println(io, Indent(),  "from ", Lowercase(), domain(f))
+  println(io, "to ", Lowercase(), codomain(f))
+  println(io, Dedent(), "defined by", Indent())
+  R = domain(f)
+  g = gens(R)
+  for i in 1:(ngens(R)-1)
+    println(io, g[i], " -> ", f(g[i]))
+  end
+  print(io, g[end], " -> ", f(g[end]), Dedent())
+  # the last print statement must not add a new line
+  phi = coefficient_map(f)
+  if !(phi isa Nothing)
+    println(io)
+    println(io, "with map on coefficients")
+    print(io, Indent(), phi, Dedent())
+  end
+end
 
-# There is some default printing for maps.
-# We might want to hijack this if we want to indicate whether there is
-# a non-trivial coefficient ring map.
+function Base.show(io::IO, f::MPolyAnyMap)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Ring homomorphism")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "Hom: ")
+    print(IOContext(io, :supercompact => true), Lowercase(), domain(f), " -> ")
+    print(IOContext(io, :supercompact => true), Lowercase(), codomain(f))
+  end
+end
 
 ################################################################################
 #

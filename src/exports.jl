@@ -243,6 +243,7 @@ export anticanonical_divisor
 export anticanonical_divisor_class
 export approximate_class_fusion
 export archimedean_solid
+export are_algebraically_independent
 export as_dictionary
 export as_gset
 export as_perm_group
@@ -1283,6 +1284,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
+export sheaf_cohomology_bgg
 export short_right_transversal
 export shortest_path_dijkstra
 export show_morphism
@@ -1395,6 +1397,7 @@ export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
+export twist
 export two_neighbor_step
 export two_sided_ideal
 export underlying_glueing
