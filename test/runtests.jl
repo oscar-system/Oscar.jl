@@ -36,6 +36,7 @@ end
 @everywhere using Test
 @everywhere using Oscar
 @everywhere Oscar.set_seed!($seed)
+@everywhere Oscar.randseed!($seed)
 
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest
