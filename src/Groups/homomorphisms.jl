@@ -567,12 +567,11 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        exponents = diagonal(rels(A))
        A2 = A
        A2_to_A = identity_map(A)
-       A_to_A2 = identity_map(A)
      else
        exponents = elementary_divisors(A)
        A2, A2_to_A = snf(A)
-       A_to_A2 = inv(A2_to_A)
      end
+     A_to_A2 = inv(A2_to_A)
      # the isomorphic gap group
      G = abelian_group(T, exponents)
      # `GAPWrap.GeneratorsOfGroup(G.X)` consists of independent elements
@@ -590,7 +589,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
                length(exponents)
        o = one(G).X
-       newGgens = []
+       newGgens = Vector{GapObj}()
        pos = 1
        for i in 1:length(exponents)
          if exponents[i] == 1
