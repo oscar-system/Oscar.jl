@@ -1258,8 +1258,6 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
-  @show I.gb
-  @show singular_groebner_generators(I, false, true)
   I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
 end
