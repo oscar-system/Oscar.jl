@@ -624,7 +624,10 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
   @req is_prime(p) "p must be a prime number"
   @req b in [0, 1] "b must be an integer equal to 0 or 1"
 
-  ok, e, q = is_prime_power_with_data(order_of_isometry(Lf))
+  ord = order_of_isometry(Lf)
+  @req ord isa Int "Order of isometry must be finite"
+
+  ok, e, q = is_prime_power_with_data(ord)
 
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"

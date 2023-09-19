@@ -322,7 +322,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
   T = discriminant_group(L)
   Oq = orthogonal_group(T)
   S = prime_divisors(2 * order(domain(Oq)))
-  A, diagonal, proj,inj,det_hom = _det_spin_group(S, infinity=false)
+  A, diagonal, _, inj, det_hom = _det_spin_group(S, infinity=false)
 
   # \Sigma^\#(L)
   # This is the the image of K under `(det, spin)` where `K` is the kernel

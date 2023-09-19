@@ -25,7 +25,6 @@
 function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
   n = ncols(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
   ind, val = Hecke._block_indices_vals(G, p)
   # add a virtual even block at the end
   push!(ind, n+1)
@@ -57,7 +56,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
       end
     end
     for h in gensk
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i1:i2-1, i1:i2-1] = Ek + p^a*h*Gk_inv
       push!(gens, g)
     end
@@ -65,7 +64,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
   # generators below the block diagonal.
   for i in 1:n
     for j in 1:i
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i,j] = p^a
       flag = true
       for k in 1:(length(ind)-1)
@@ -184,15 +183,14 @@ function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
     # but we obtain several possible lifts
     gens_1 = _gens_af(G[1:end-2,1:end-2], 2)
     gens_1 = [diagonal_matrix(g, identity_matrix(R, 2)) for g in gens_1]
-    E = identity_matrix(R, r)
     for i in 1:r-2
-      g = deepcopy(E)
+      g = identity_matrix(R, r)
       g[i, r-1] = 1
       g[i, r] = 1
       g[r-1:end, 1:r-1] = transpose(g[1:r-1, r-1:end]) * G[1:r-1, 1:r-1]
       push!(gens_1, g)
     end
-    g = deepcopy(E)
+    g = identity_matrix(R, r)
     g[end-1:end, end-1:end] = matrix(R, 2, 2, [0, 1, 1, 0])
     push!(gens_1, g)
   else
@@ -443,7 +441,6 @@ end
 function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
   n = ncols(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
   indices, valuations = Hecke._block_indices_vals(G, p)
   push!(indices, n+1)
   gens1 = typeof(G)[]
@@ -453,7 +450,7 @@ function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
     Gi = divexact(G[i1:i2, i1:i2], R(p)^valuations[k])
     gens_homog = _orthogonal_grp_gens_odd(Gi, p)
     for f in gens_homog
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i1:i2, i1:i2] = f
       push!(gens1, g)
     end
@@ -461,7 +458,7 @@ function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
   # generators below the block diagonal.
   for i in 1:n
     for j in 1:i-1
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i,j] = 1
       flag = true
       for k in 1:(length(indices)-1)
@@ -494,7 +491,6 @@ end
 function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
     n = ncols(G)
     R = base_ring(G)
-    E = identity_matrix(R, n)
     p = ZZ(2)
     ind0, val0 = Hecke._block_indices_vals(G, 2)
     par0 = Int[]
@@ -548,13 +544,13 @@ function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
         end
 
         for h in gens_k
-            g = deepcopy(E)
+            g = identity_matrix(R, n)
             g[i1:i3,i1:i3] = h
             push!(gens, g)
         end
     end
     # a change in convention
-    trafo = deepcopy(E)
+    trafo = identity_matrix(R, n)
     for k in 2:length(ind)-1
         if par[k] == 1 && mod(ind[k][2]-ind[k][1],2) == 1
            i = ind[k][2]
@@ -585,11 +581,10 @@ function _gens_pair(G::Union{ZZModMatrix, zzModMatrix}, k, on_second)
   G1 = G[1:k,1:k]  # 2^1 - modular
   G1inv = inv(divexact(G1, 2))
   G2 = G[k+1:end,k+1:end]  # 2^0 - modular
-  E = identity_matrix(R, n)
   if on_second
     for f in _orthogonal_gens_bilinear(G2)
       a = diagonal(divexact(f*G2*transpose(f)-G2, 2))
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[k+1:end, k+1:end] = f
       g[k+1:end, k] = a
       push!(gen, g)
@@ -597,7 +592,7 @@ function _gens_pair(G::Union{ZZModMatrix, zzModMatrix}, k, on_second)
   else
     for f in _orthogonal_gens_bilinear(divexact(G1, 2))
       a = [divexact(x,2) for x in diagonal(f*G1*transpose(f) - G1)]
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[1:k,1:k] = f
       g[1:k,end] = a
       g[k+1:end,1:k] = - G2 * transpose(divexact(g[1:k,k+1:end],2)) * transpose(inv(f)) * G1inv
@@ -614,7 +609,6 @@ end
 function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
   n = nrows(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
   gens = typeof(G)[]
   e = n - 1
   if parity[3]==1 && mod(n - i2, 2)==0
@@ -622,7 +616,7 @@ function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
   end
   for i in i2+1:n
     for j in 1:i2
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       if parity == [0,0,0] || parity == [1,0,0]
         g[i,j] = 1
       elseif parity == [0,0,1]
