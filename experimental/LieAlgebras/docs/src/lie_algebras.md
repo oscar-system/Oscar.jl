@@ -29,6 +29,7 @@ symbols(::LieAlgebra)
 ## Special functions for `LinearLieAlgebra`s
 
 ```@docs
+coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:RingElement}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:RingElement}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:RingElement}
 matrix_repr(::LinearLieAlgebraElem{C}) where {C<:RingElement}
@@ -44,13 +45,6 @@ and fails otherwise.
 `(L::LieAlgebra{C})(v)` constructs the element of `L` with coefficient vector `v`.
 `v` can be of type `Vector{C}`, `Vector{Int}`, `SRow{C}`,
 or `MatElem{C}` (of size $1 \times \dim(L)$).
-
-If `L` is a `LinearLieAlgebra` of `dim(L) > 1`, the call
-`(L::LinearLieAlgebra{C})(m::MatElem{C})` returns the Lie algebra element whose
-matrix representation corresponds to `m`.
-This requires `m` to be a square matrix of size `n > 1` (the dimension of `L`), and
-to lie in the Lie algebra `L` (i.e. to be in the span of `basis(L)`).
-The case of `m` being a $1 \times \dim(L)$ matrix still works as explained above.
 
 
 ## Arithmetics

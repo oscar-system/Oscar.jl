@@ -11,6 +11,14 @@
   end
 
   @testset "conformance tests" begin
+    @testset "0-dim Lie algebra /QQ" begin
+      L = lie_algebra(QQ, Matrix{SRow{QQFieldElem}}(undef, 0, 0), Symbol[])
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "sl_2(QQ) using structure constants" begin
       L = lie_algebra(QQ, sl2_struct_consts(QQ), ["e", "f", "h"])
       lie_algebra_conformance_test(

@@ -78,6 +78,7 @@ export base_module
 export base_modules
 export bracket
 export coefficient_vector
+export coerce_to_lie_algebra_elem
 export combinations
 export derived_algebra
 export exterior_power
@@ -140,6 +141,7 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export coerce_to_lie_algebra_elem
 export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
