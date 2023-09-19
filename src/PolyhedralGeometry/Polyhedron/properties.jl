@@ -1246,6 +1246,9 @@ function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_t
 end
 
 
+_cmp_string(::Val{:lte}) = is_unicode_allowed() ? "≦" : "<="
+_cmp_string(::Val{:eq}) = "="
+
 @doc raw"""
     print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
 
@@ -1272,37 +1275,39 @@ x₁ ≦ 2
 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::String = "≦")
-    for i in 1:length(b)
-        terms = Vector{String}(undef, size(A)[2])
-        first = true
-        for j in 1:size(A)[2]
-            if iszero(A[i, j])
-                terms[j] = ""
-            else
-                if isone(A[i, j]) || isone(-A[i, j])
-                    terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
-                        string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
-                else
-                    terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
-                end
-                first = false
-            end
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::Symbol = :lte)
+  zero_char = is_unicode_allowed() ? '₀' : '0'
+  us_ascii = is_unicode_allowed() ? "" : "_"
+  for i in 1:length(b)
+    terms = Vector{String}(undef, size(A)[2])
+    first = true
+    for j in 1:size(A)[2]
+      if iszero(A[i, j])
+        terms[j] = ""
+      else
+        if isone(A[i, j]) || isone(-A[i, j])
+          terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , us_ascii, reverse([zero_char + d for d in digits(j)])...) :
+            string(isone(A[i, j]) ? " + x" : " - x", us_ascii, reverse([zero_char + d for d in digits(j)])...)
+        else
+          terms[j] = first ? string(_constraint_string(A[i, j]), "*x", us_ascii, reverse([zero_char + d for d in digits(j)])...) :
+            string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", us_ascii, reverse([zero_char + d for d in digits(j)])...)
         end
-        if first
-            if b[i] >= 0 && !trivial
-                continue
-            end
-            terms[1] = "0"
-        end
-        println(io, string(numbered ? string(i, ": ") : "", terms..., " ", cmp, " ", b[i]))
+        first = false
+      end
     end
+    if first
+      if b[i] >= 0 && !trivial
+        continue
+      end
+      terms[1] = "0"
+    end
+    println(io, string(numbered ? string(i, ": ") : "", terms..., " ", _cmp_string(Val(cmp)), " ", b[i]))
+  end
 end
 
 _constraint_string(x::Any) = string(x)
-
-_constraint_string(x::nf_elem) = string("(", x, ")")
+_constraint_string(x::QQFieldElem) = string(x)
+_constraint_string(x::FieldElem) = string("(", x, ")")
 
 @doc raw"""
     print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
@@ -1328,11 +1333,11 @@ print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, 
 
 print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = :eq)
 
 print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
 
-print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = "=")
+print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = :eq)
 
 function Base.show(io::IO, H::Halfspace)
     n = length(normal_vector(H))
@@ -1388,9 +1393,9 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
             print_constraints(H; io = io)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = "=")
+            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = :eq)
             println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = "=")
+            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = :eq)
         end
     end
 end
