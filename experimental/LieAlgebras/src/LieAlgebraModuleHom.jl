@@ -484,7 +484,11 @@ function hom_tensor(
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
-  mat = reduce(kronecker_product, [matrix(hi) for hi in hs])
+  mat = reduce(
+    kronecker_product,
+    [matrix(hi) for hi in hs];
+    init=identity_matrix(coefficient_ring(W), 1),
+  )
   return hom(V, W, mat; check=false)
 end
 
@@ -516,7 +520,11 @@ function hom_power(
   TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
   TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
 
-  mat = reduce(kronecker_product, [matrix(h) for _ in 1:get_attribute(V, :power)])
+  mat = reduce(
+    kronecker_product,
+    [matrix(h) for _ in 1:get_attribute(V, :power)];
+    init=identity_matrix(coefficient_ring(W), 1),
+  )
   TV_to_TW = hom(TV, TW, mat; check=false)
 
   if type == :tensor

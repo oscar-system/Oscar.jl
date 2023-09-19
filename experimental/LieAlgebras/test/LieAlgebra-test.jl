@@ -30,7 +30,7 @@ function lie_algebra_conformance_test(
 
     @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
     @test all(i -> coeff(x, i) == x[i], 1:dim(L))
-    @test sum(x[i] * basis(L, i) for i in 1:dim(L)) == x
+    @test sum(x[i] * basis(L, i) for i in 1:dim(L); init=zero(L)) == x
 
     @test x == x
     @test deepcopy(x) == x
