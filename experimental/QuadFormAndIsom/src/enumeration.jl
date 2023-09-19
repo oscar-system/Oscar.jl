@@ -565,7 +565,7 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion; 
   atp = admissible_triples(Lf, p; pA, pB)
   @vprintln :ZZLatWithIsom 1 "$(length(atp)) admissible triple(s)"
   while !is_empty(atp)
-    A, B = popfirst!(atp)
+    A, B = pop!(atp)
     LB = integer_lattice_with_isometry(representative(B))
     RB = representatives_of_hermitian_type(LB, p*q^e)
     is_empty(RB) && continue
