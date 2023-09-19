@@ -50,7 +50,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -1769,7 +1769,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -4469,6 +4469,62 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
 end
 
 @doc raw"""
+    present_as_cokernel(F::FreeMod, task::Symbol = :none)
+
+Represent `F` as the quotient `C` of itself with no relations. This method exists for compatibility reasons with `present_as_cokernel(M::SubQuoModule, task::Symbol = :none)`. 
+
+Additionally,
+
+- return an isomorphism `F` $\to$ `C` if `task = :with_morphism`,
+- return and cache an isomorphism `F` $\to$ `C` if `task = :cache_morphism`,
+- do none of the above if `task = :none` (default).
+
+If `task = :only_morphism`, return only an isomorphism.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> present_as_cokernel(F)
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+
+julia> present_as_cokernel(F, :only_morphism)
+Map with following data
+Domain:
+=======
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+```
+"""
+function present_as_cokernel(F::FreeMod, task::Symbol = :none)
+  presentation_module, isomorphism = quo(F, [zero(F)])
+  inverse_isomorphism = hom(presentation_module, F, gens(F))
+
+  if task == :none
+    return presentation_module
+  end
+
+  if task == :cache_morphism
+    register_morphism!(isomorphism)
+    register_morphism!(inverse_isomorphism)
+  end
+  task == :only_morphism && return isomorphism
+  
+  return presentation_module, isomorphism
+end
+
+@doc raw"""
     is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
 
 If $M = N$ (mathematically, but with (possibly) different generating systems), return $\phi : M \to N$ 
@@ -5011,7 +5067,7 @@ function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
   @assert length(tM) == size(A, 1) && length(tN) == size(A, 2)
   @assert all(ij -> domain(A[ij[1],ij[2]]) === tM[ij[1]] && codomain(A[ij[1],ij[2]]) === tN[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
-  return hom(M,N,Vector{elem_type(N)}([sum([Hecke.canonical_injection(N,j)(sum([A[i,j](Hecke.canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
+  return hom(M,N,Vector{elem_type(N)}([sum([canonical_injection(N,j)(sum([A[i,j](canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
 end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
@@ -6215,11 +6271,13 @@ end
 @doc raw"""
     free_resolution(F::FreeMod)
 
-Return a free resolution of `F`.
+Return a free resolution of `F`. The `length` and `algorithm`
+keywords are here only for compatibility reasons with the other `free_resolution`
+methods and have no effect on the computation.
 
 # Examples
 """
-function free_resolution(F::FreeMod)
+function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
   res = presentation(F)
   set_attribute!(res, :show => free_show, :free_res => F)
   return FreeResolution(res)
@@ -6371,7 +6429,8 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-At the moment, `algorithm` only allows the option `:fres`.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
 
 # Examples
 ```jldoctest
@@ -6425,9 +6484,8 @@ R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-    ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres
-  )
+                         ordering::ModuleOrdering = default_ordering(M),
+                         length::Int=0, algorithm::Symbol=:fres)
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -6436,13 +6494,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Start with presentation =#
   pm = presentation(M)
-  maps = [map(pm, j) for j in Hecke.map_range(pm)]
+  maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -6459,6 +6517,12 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
     gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
+  elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
+  elseif algorithm == :nres
+    gbpres = singular_kernel_entry
+    res = Singular.nres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -6467,23 +6531,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
-  codom = codomain(maps[1])
-
-  if is_graded(codom)
-    rk    = Singular.ngens(gbpres)
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = graded_map(codom, SM.matrix)
-    dom = domain(ff)
-  else
-    dom   = free_module(br, Singular.ngens(gbpres))
-    SM    = SubModuleOfFreeModule(codom, gbpres)
-    generator_matrix(SM)
-    ff = hom(dom, codom, SM.matrix)
-  end
-
-  maps[1] = ff
-
   br_name = AbstractAlgebra.find_name(base_ring(M))
   if br_name === nothing
     br_name = "R"
@@ -6491,10 +6538,10 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  j   = 2
+  j   = 1
   while j <= Singular.length(res)
-    if is_graded(dom)
-      codom = dom
+    if is_graded(M)
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
@@ -6504,7 +6551,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       insert!(maps, 1, ff)
       j += 1
     else
-      codom = dom
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
@@ -6642,35 +6689,45 @@ function ideal_to_module(I::MPolyIdeal)
 end
 
 @doc raw"""
-    free_resolution(I::MPolyIdeal)
+    free_resolution(I::MPolyIdeal; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `I`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(I::MPolyIdeal)
+function free_resolution(I::MPolyIdeal;
+                         length::Int=0, algorithm::Symbol=:fres)
   S = ideal_as_module(I)
   n = Hecke.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
   end
-  return free_resolution(S)
+  return free_resolution(S, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
-    free_resolution(Q::MPolyQuoRing)
+    free_resolution(Q::MPolyQuoRing; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `Q`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(Q::MPolyQuoRing)
+function free_resolution(Q::MPolyQuoRing;
+                         length::Int=0, algorithm::Symbol=:fres)
   q = quotient_ring_as_module(Q)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
   end
-  return free_resolution(q)
+  return free_resolution(q, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
@@ -7242,45 +7299,64 @@ end
 
 ⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
+@doc raw"""
+    canonical_injections(G::ModuleFP)
+
+Return the canonical injections from all components into $G$
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_injections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_injection(G, i) for i in 1:length(H)]
+end
 
 @doc raw"""
-    Hecke.canonical_injection(G::ModuleFP, i::Int)
+    canonical_injection(G::ModuleFP, i::Int)
 
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_injection(G::ModuleFP, i::Int)
+function canonical_injection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   injection_dictionary = get_attribute(G, :injection_morphisms)
   if haskey(injection_dictionary, i)
     return injection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1)
-  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l = 1:ngens(H[i])]))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]))
   injection_dictionary[i] = emb
   return emb
 end
 
 @doc raw"""
-    Hecke.canonical_projection(G::ModuleFP, i::Int)
+    canonical_projections(G::ModuleFP)
+
+Return the canonical projections from $G$ to all components
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_projections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_projection(G, i) for i in 1:length(H)]
+end
+
+@doc raw"""
+    canonical_projection(G::ModuleFP, i::Int)
 
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_projection(G::ModuleFP, i::Int)
+function canonical_projection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   projection_dictionary = get_attribute(G, :projection_morphisms)
   if haskey(projection_dictionary, i)
     return projection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)])))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
+  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])))
   projection_dictionary[i] = pro
   return pro
 end

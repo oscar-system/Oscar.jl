@@ -37,9 +37,9 @@ with homogeneous coordinates [x, y, z]
 julia> IdealSheaf(Y, I)
 Sheaf of ideals
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
 with restrictions
   1: ideal(-(y//x)^2*(z//x) + 1)
   2: ideal((x//y)^3 - (z//y))

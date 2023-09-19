@@ -21,7 +21,7 @@ Spectrum
 
 julia> SpecOpen(A, I)
 Open subset
-  of spec of multivariate polynomial ring
+  of affine 3-space
 complement to V(x^3 - y^2*z)
 ```
 """
@@ -71,12 +71,13 @@ Spectrum
 julia> Y = Spec(P, I)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^3 - y^2*z)
 
 julia> complement(A, Y)
 Open subset
-  of spec of multivariate polynomial ring
+  of affine 3-space
 complement to V(x^3 - y^2*z)
 ```
 """
@@ -162,8 +163,8 @@ Morphism
   to   [x2, y2, z2]              complement to V(x2^2 - y2^2 + z2^2)
 defined by the map
   morphism
-    from [x2, y2, z2, x1, y1, z1]  spec of localized quotient of multivariate polynomial ring
-    to   [x2, y2, z2]              spec of multivariate polynomial ring
+    from [x2, y2, z2, x1, y1, z1]  V(x1^3 - y1^2*z1) \ V(x2^2 - y2^2 + z2^2)
+    to   [x2, y2, z2]              affine 3-space
   given by the pullback function
     x2 -> x2
     y2 -> y2
@@ -175,8 +176,8 @@ Morphism
   to   [x1, y1, z1]              complement to V(1)
 defined by the map
   morphism
-    from [x2, y2, z2, x1, y1, z1]  spec of localized quotient of multivariate polynomial ring
-    to   [x1, y1, z1]              spec of quotient of multivariate polynomial ring
+    from [x2, y2, z2, x1, y1, z1]  V(x1^3 - y1^2*z1) \ V(x2^2 - y2^2 + z2^2)
+    to   [x1, y1, z1]              V(x1^3 - y1^2*z1)
   given by the pullback function
     x1 -> x1
     y1 -> y1

@@ -7,11 +7,7 @@
     @test domain(h) == L1
     @test codomain(h) == L2
     @test matrix(h) == matrix(QQ, [0 1 0 0; 0 0 1 0; 1 0 0 -1])
-    for x1 in basis(L1)
-      for x2 in basis(L1)
-        @test h(x1 * x2) == h(x1) * h(x2)
-      end
-    end
+    @test is_welldefined(h)
   end
 
   @testset "Image and kernel" begin
@@ -35,6 +31,33 @@
     @test h(sub(L, [x2, x3, x4])) == sub(L, [x3])
     @test image(h, ideal(L, [x2, x3, x4])) == sub(L, [x3])
     @test h(ideal(L, [x2, x3, x4])) == sub(L, [x3])
+  end
+
+  @testset "Identity and zero map" begin
+    L1 = special_linear_lie_algebra(QQ, 3)
+    L2 = general_linear_lie_algebra(QQ, 3)
+
+    h = identity_map(L1)
+    @test domain(h) == L1
+    @test codomain(h) == L1
+    @test matrix(h) == identity_matrix(QQ, dim(L1))
+    @test is_welldefined(h)
+    for x in basis(L1)
+      @test h(x) == x
+    end
+    @test image(h) == sub(L1)
+    @test kernel(h) == ideal(L1, [zero(L1)])
+
+    h = zero_map(L1, L2)
+    @test domain(h) == L1
+    @test codomain(h) == L2
+    @test matrix(h) == zero_matrix(QQ, dim(L1), dim(L2))
+    @test is_welldefined(h)
+    for x in basis(L1)
+      @test h(x) == zero(L2)
+    end
+    @test image(h) == sub(L2, [zero(L2)])
+    @test kernel(h) == ideal(L1)
   end
 
   @testset "Composition" begin
@@ -76,6 +99,8 @@
 
     @test is_isomorphism(identity_map(L1))
     @test identity_map(L1) == inv(identity_map(L1))
+
+    @test !is_isomorphism(zero_map(L1))
   end
 
   @testset "Hum72, Exercise 2.10" begin

@@ -93,9 +93,8 @@ As most modern programming languages, Julia allows the use of Unicode, e.g.,
 to various groups of users and developers, the use of Unicode should be kept
 to a minimum. Here is a general principle:
 
-> Do not use Unicode characters inside functions. See below for the exception
-> concerning printing.
-
+> Do not use Unicode characters inside functions. See
+> [Unicode printing](@ref) for the exception concerning printing.
 
 ### Whitespace
 

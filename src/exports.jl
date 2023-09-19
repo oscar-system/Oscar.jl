@@ -1397,6 +1397,7 @@ export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
+export twist
 export two_neighbor_step
 export two_sided_ideal
 export underlying_glueing

@@ -30,9 +30,13 @@ t = global_tate_model(base; completeness_check = false)
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
 
+  isdefined(Main, :test_save_load_roundtrip) || include(
+    joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl")
+  )
+
   mktempdir() do path
     test_save_load_roundtrip(path, t) do loaded
-      @test tate_polynomial(loaded) == tate_polynomial(t)
+      @test tate_polynomial(t) == tate_polynomial(loaded)
       @test tate_section_a1(t) == tate_section_a1(loaded)
       @test tate_section_a2(t) == tate_section_a2(loaded)
       @test tate_section_a3(t) == tate_section_a3(loaded)

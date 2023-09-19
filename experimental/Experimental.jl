@@ -6,10 +6,10 @@ const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra",
   "GModule",
-  "Matrix",
+  "MatrixGroups",
   "ModStd",
   "Rings",
-  "Schemes"
+  "Schemes",
 ]
 # DEVELOPER OPTION:
 # The following lines ensure that ToricSchemes is loaded before FTheoryTools.
@@ -44,6 +44,8 @@ include("Rings.jl")
 include("ModStd.jl")
 include("GModule.jl")
 
+include("MatrixGroups/matrix.jl")
+
 include("Schemes/Types.jl")
 include("Schemes/SpecialTypes.jl")
 include("Schemes/CoveredScheme.jl")
@@ -56,7 +58,6 @@ include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
-include("Matrix/matrix.jl")
 include("Schemes/SimplifiedSpec.jl")
 include("Schemes/CoherentSheaves.jl")
 include("Schemes/LazyGlueing.jl")

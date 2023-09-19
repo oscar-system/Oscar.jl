@@ -2,11 +2,22 @@
 # 1: The Julia type for ToricMorphisms
 ####################################################
 
-@attributes mutable struct ToricMorphism
-    domain::NormalToricVarietyType
-    grid_morphism::GrpAbFinGenMap
-    codomain::NormalToricVarietyType
-    ToricMorphism(domain, grid_morphism, codomain) = new(domain, grid_morphism, codomain)
+@attributes mutable struct ToricMorphism{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 BaseMorphismType,
+                                 ToricMorphism
+                                }
+  domain::NormalToricVarietyType
+  grid_morphism::GrpAbFinGenMap
+  codomain::NormalToricVarietyType
+  function ToricMorphism(domain, grid_morphism, codomain)
+    result = new{typeof(domain), typeof(codomain), Nothing}(domain, grid_morphism, codomain)
+  end
 end
 
 
@@ -196,3 +207,5 @@ end
 function Base.show(io::IO, tm::ToricMorphism)
     join(io, "A toric morphism")
 end
+
+Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)

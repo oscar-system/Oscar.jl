@@ -96,3 +96,47 @@ function reduce_mod_squares(val::nf_elem)
   end
   return val//s
 end
+
+
+@doc raw"""
+    show_with_ODs(tbl::Oscar.GAPGroupCharacterTable)
+
+Show `tbl` with 2nd indicators, known ODs, and degrees of character fields.
+(See [`Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)`](@ref)
+for ways to modify what is shown.)
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> Oscar.OrthogonalDiscriminants.show_with_ODs(t)
+A5
+
+          2  2  2  .  .  .
+          3  1  .  1  .  .
+          5  1  .  .  1  1
+                          
+            1a 2a 3a 5a 5b
+         2P 1a 1a 3a 5b 5a
+         3P 1a 2a 1a 5b 5a
+         5P 1a 2a 3a 1a 1a
+    d OD  2               
+X_1 1     +  1  1  1  1  1
+X_2 2     +  3 -1  .  A A*
+X_3 2     +  3 -1  . A*  A
+X_4 1  5  +  4  .  1 -1 -1
+X_5 1     +  5  1 -1  .  .
+
+A = z_5^3 + z_5^2 + 1
+A* = -z_5^3 - z_5^2
+```
+"""
+function show_with_ODs(tbl::Oscar.GAPGroupCharacterTable, io::IO = stdout)
+   iob = IOBuffer()
+   show(IOContext(iob, :indicator => true,
+                       :OD => true,
+                       :character_field => true,
+                       :with_legend => true), MIME("text/plain"), tbl)
+   print(io, String(take!(iob)))
+   return
+end

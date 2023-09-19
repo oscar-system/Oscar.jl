@@ -4,6 +4,11 @@ using ..Oscar
 
 import Oscar: GAPWrap, IntegerUnion, MapHeader
 
+import Hecke:
+  canonical_injection, canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available
+export canonical_injection,
+  canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available
+
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
 
@@ -31,6 +36,7 @@ import ..Oscar:
   gen,
   gens,
   hom,
+  hom_tensor,
   identity_map,
   ideal,
   image,
@@ -41,6 +47,7 @@ import ..Oscar:
   is_perfect,
   is_simple,
   is_solvable,
+  is_welldefined,
   kernel,
   matrix,
   ngens,
@@ -50,6 +57,7 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  zero_map,
   ⊕,
   ⊗
 
@@ -76,6 +84,8 @@ export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power
@@ -135,6 +145,8 @@ export derived_algebra
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power
@@ -153,3 +165,6 @@ export symmetric_power
 export tensor_power
 export trivial_module
 export universal_enveloping_algebra
+
+export canonical_injection,
+  canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available

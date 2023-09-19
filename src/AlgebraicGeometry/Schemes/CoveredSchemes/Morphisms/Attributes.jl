@@ -31,9 +31,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V(-(y//x)^2*(z//x) + 1)
+    2: V((x//y)^3 - (z//y))
+    3: V((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -45,11 +45,11 @@ julia> I, s = singular_locus(Ycov)
 julia> covering_morphism(s)
 Morphism
   from covering with 1 patch
-    1a: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to   covering with 3 patches
-    1b: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2b: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3b: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 given by the pullback function
   1a -> 3b
     (x//z) -> 0
