@@ -2093,13 +2093,13 @@ function compatible_pairs(C::GModule)
   autG = automorphism_group(G)
   autM = automorphism_group(M)
 
-  T, emb, pro = direct_product(autM, autG, morphisms = true)
+  D, emb, pro = direct_product(autM, autG, morphisms = true)
 
   function action_on_chain(g::GAPGroupElem, c::CoChain{2, S, T}) where {S, T}
-    al = pro[1](C[2](g))
-    ga = pro[2](C[2](g))
-    d = Dict(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
-    return CoChain{2, S, T}(c.C, d)
+    al = pro[1](func(g)::elem_type(D))::elem_type(autM)
+    ga = pro[2](func(g)::elem_type(D))::elem_type(autG)
+    d = Dict{Tuple{S, S}, T}(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
+    return CoChain{2, S, T}(C, d)
   end
 
   h = hom(G, autM, [autM(x) for x = C.ac])
@@ -2107,8 +2107,8 @@ function compatible_pairs(C::GModule)
   ke = kernel(h)[1]
 
   if order(im) == 1
-    C = (T, x->x)
-    return T, action_on_chain
+    func = Base.identity
+    return D, action_on_chain
   end
 
   N, mN = normalizer(autM, im)
@@ -2116,13 +2116,12 @@ function compatible_pairs(C::GModule)
 
   NS, em, pr = direct_product(N, S, morphisms = true)
   #from Holt/ Eick, ... Handbook of Computational Group Theory, P319
-  C = stabilizer(NS, h, (x, y) -> hom(G, autM,
+  S, func = stabilizer(NS, h, (x, y) -> hom(G, autM,
             [inv(pr[1](y))*x(inv(pr[2](y))(g))*pr[1](y) for g = gens(G)]))
-
   #the more direct naive (and slow) approach...
-  #C = sub(T, [t for t in preimage(pro[1], N)[1] if all(ag -> action(C, pro[2](t)(ag[2]), ag[1]) == pro[1](t)(action(C, ag[2], inv(pro[1](t))(ag[1]))), Iterators.product(gens(M), gens(G)))])
+  #C = sub(D, [t for t in preimage(pro[1], N)[1] if all(ag -> action(C, pro[2](t)(ag[2]), ag[1]) == pro[1](t)(action(C, ag[2], inv(pro[1](t))(ag[1]))), Iterators.product(gens(M), gens(G)))])
 
-  return C[1], action_on_chain
+  return S, action_on_chain
 end
 
 function split_extension(C::GModule)
