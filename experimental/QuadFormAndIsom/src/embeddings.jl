@@ -1274,6 +1274,7 @@ function _glue_stabilizers(phi::TorQuadModuleMor,
                            OqAinOD::GAPGroupHomomorphism,
                            OqBinOD::GAPGroupHomomorphism,
                            graph::TorQuadModuleMor)
+  OD = codomain(OqAinOD)
   OqA = domain(OqAinOD)
   imA, _ = image(actA)
   kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]

@@ -42,7 +42,7 @@ Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
 function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadModule,GrpAbFinGen}
-  function img(x::S)
+  function img(x::AutomorphismGroupElem{S})
     return group_element(aut, x.X)
   end
   to_gap = get_attribute(aut, :to_gap)

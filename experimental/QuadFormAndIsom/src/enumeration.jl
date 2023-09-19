@@ -1,4 +1,4 @@
-##################################################################################
+#################################################################################
 #
 # This is an import to Oscar of the methods written following the paper [BH23] on
 # "Finite subgroups of automorphisms of K3 surfaces".
@@ -662,29 +662,32 @@ of $(L, f)$.
 
 Note that `e` can be 0, while `d` has to be positive.
 """
-function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion)
+function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
-  @req is_prime(p) "p must be a prime number"
-  @req is_finite(order_of_isometry(Lf)) "Isometry must be of finite order"
-
   n = order_of_isometry(Lf)
+
+  @req is_finite(n) "Isometry must be of finite order"
+
+  p = typeof(n)(_p)
+  @req is_prime(p) "p must be a prime number"
+
   pd = prime_divisors(n)
 
   @req 1 <= length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime divisors"
 
   if length(pd) == 2
     q = pd[1] == p ? pd[2] : pd[1]
-    d = valuation(n, p)
-    e = valuation(n, q)
+    d = valuation(n, p)::Int  # Weird ? Valuation is type stable and returns Int but it bugs here
+    e = valuation(n, q)::Int
   else
     q = one(n)
-    d = valuation(n, p)
-    e = 0
+    d = valuation(n, p)::Int
+    e = zero(n)
   end
 
   phi = minimal_polynomial(Lf)
-  chi = prod(cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e)
+  chi = prod(cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e; init = zero(phi))
 
   @req is_divisible_by(chi, phi) "Minimal polynomial is not of the correct form"
 

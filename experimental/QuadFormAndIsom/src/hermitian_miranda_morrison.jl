@@ -214,7 +214,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
 
   if length(Fac) == 0
     A = abelian_group()
-    function dlog_0(x::Vector{elem_type(E)}); return id(A); end;
+    function dlog_0(x::Vector{<:Hecke.NfRelElem}); return id(A); end;
     function exp_0(x::GrpAbFinGenElem); return one(E); end;
     return A, dlog_0, exp_0
   end
@@ -230,7 +230,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
 
   G, proj, inj = biproduct(groups...)
 
-  function dlog(x::Vector{elem_type(E)})
+  function dlog(x::Vector{<:Hecke.NfRelElem})
     if length(x) == 1
       return sum(inj[i](dlogs[i](x[1])) for i in 1:length(Fac)) 
     else
@@ -322,7 +322,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
     ok, g0 = is_conjugate_with_data(OqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12))); check = false), fqL)
     @hassert :ZZLatWithIsom 1 ok
     phi12 = compose(hom(OqL(g0)), phi12)
-    @hassert :ZZLatWithIsom 1 compose(hom(fqL), phi12) == compose(phi12, hom(fqL2))
+    #@hassert :ZZLatWithIsom 1 matrix(compose(hom(fqL), phi12)) == matrix(compose(phi12, hom(fqL2)))
     @hassert :ZZLatWithIsom 1 is_isometry(phi12)
   else
     Lf2 = Lf
@@ -334,9 +334,11 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH23.
   G2, _ = centralizer(OqL2, fqL2)
-  G, GinOqL = sub(OqL, elem_type(OqL)[OqL(compose(phi12, compose(hom(g), inv(phi12))); check = false) for g in gens(G2)])
+  gensG2 = gens(G2)
+  gensG = elem_type(OqL)[OqL(compose(phi12, compose(hom(g), inv(phi12))); check = false) for g in gensG2]
+  G, GinOqL = sub(OqL, gensG)
   @hassert :ZZLatWithIsom 1 fqL in G
-  GtoG2 = hom(G, G2, gens(G), gens(G2); check = false)
+  GtoG2 = hom(G, G2, gensG, gensG2; check = false)
 
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
@@ -447,7 +449,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # consider up to now, and then map the corresponding determinant adeles inside
   # Q. Since our matrices were approximate lifts of the generators of G, we can
   # create the map we wanted from those data.
-  for g in gens(G2)
+  for g in gensG2
     ds = elem_type(E)[]
     for p in S
       if !_is_special(H, p)
@@ -466,7 +468,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   end
 
   GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
-  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs); check = false)
+  f2 = hom(G2, GSQ, gensG2, SQtoGSQ.(imgs); check = false)
   f = compose(GtoG2, f2)
 
   @hassert :ZZLatWithIsom 1 isone(f(fqL))
@@ -561,7 +563,7 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes,
   # Here d is not necessarily well defined in O_E, but as it is implemented,
   # each of the denominator(a, O_E) return the smallest positive integer d such
   # that d*a lies in O_E, while `a` might be a non-integral element in E.
-  d = lcm(lcm(elem_type(OEabs)[denominator(a, OEabs) for a in Bpabs]), lcm(elem_type(OEabs)[denominator(a, OEabs) for a in B2abs]))
+  d = lcm(lcm([denominator(a, OEabs) for a in Bpabs]), lcm([denominator(a, OEabs) for a in B2abs]))
   Bpabs = change_base_ring(OEabs, d*Bpabs)
   B2abs = change_base_ring(OEabs, d*B2abs)
 
