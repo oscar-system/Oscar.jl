@@ -428,7 +428,7 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
     return Irad
   elseif elem_type(base_ring(R)) <: FieldElement
     J = Singular.LibPrimdec.radical(singular_polynomial_ring(I), singular_generators(I))
-  elseif singular_polynomial_ring(I) isa Singular.Integers
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
     J = Singular.LibPrimdecint.radicalZ(singular_polynomial_ring(I), singular_generators(I))
   else
     error("not implemented for base ring")
