@@ -4,11 +4,6 @@ using ..Oscar
 
 import Oscar: GAPWrap, IntegerUnion, MapHeader
 
-import Hecke:
-  canonical_injection, canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available
-export canonical_injection,
-  canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available
-
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
 
@@ -20,6 +15,10 @@ import ..Oscar:
   action,
   basis,
   basis_matrix,
+  canonical_injection,
+  canonical_injections,
+  canonical_projection,
+  canonical_projections,
   center,
   centralizer,
   coeff,
@@ -165,6 +164,3 @@ export symmetric_power
 export tensor_power
 export trivial_module
 export universal_enveloping_algebra
-
-export canonical_injection,
-  canonical_injections, canonical_projection, canonical_projections # Until https://github.com/thofma/Hecke.jl/pull/1196 is available
