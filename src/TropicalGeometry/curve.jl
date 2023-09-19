@@ -64,7 +64,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1]
  -1  0
   0  1
 
-julia> PC = PolyhedralComplex{QQFieldElem}(IM, VR)
+julia> PC = polyhedral_complex(QQFieldElem, IM, VR)
 Polyhedral complex in ambient dimension 2
 
 julia> TC = TropicalCurve(PC)
@@ -348,22 +348,22 @@ function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
     W = setdiff(S,vertex)
     @assert all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
     while !(isempty(W))
-	w0 = vertex
-	if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
-	    coeffdelta = zeros(Int, n)
-	    delta = DivisorOnTropicalCurve(tc,coeffdelta)
-	    for j in W
-	        delta = chip_firing_move(delta,j)
-	    end
-	    newcoeff = newcoeff + coefficients(delta)
-	else
-	    for w in W
-	        if newcoeff[w] < outdegree(tc,W,w)
-		    w0 = w
-		    break
-	        end
-	    end
-	    W = setdiff(W,w0)
+    w0 = vertex
+    if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
+        coeffdelta = zeros(Int, n)
+        delta = DivisorOnTropicalCurve(tc,coeffdelta)
+        for j in W
+            delta = chip_firing_move(delta,j)
+        end
+        newcoeff = newcoeff + coefficients(delta)
+    else
+        for w in W
+            if newcoeff[w] < outdegree(tc,W,w)
+                w0 = w
+                break
+            end
+        end
+        W = setdiff(W,w0)
         end
     end
     reduced = DivisorOnTropicalCurve(tc, newcoeff)

@@ -24,6 +24,11 @@ glueing_domains(PG::AbsProjectiveGlueing) = glueing_domains(underlying_glueing(P
 patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
 glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
 
 @doc raw"""
   LazyProjectiveGlueing(
@@ -167,6 +172,41 @@ mutable struct ProjectiveGlueing{
   end
 end
 
+function Base.show(io::IO, PG::LazyProjectiveGlueing)
+  if get(io, :supercompact, false)
+    print(io, "Projective glueing")
+  else
+    if isdefined(G, :underlying_glueing)
+      show(io, underlying_glueing(G))
+    else
+      print(io, "Glueing of projective patches (not yet computed)")
+    end
+  end
+end
+
+function Base.show(io::IO, PG::ProjectiveGlueing)
+  if get(io, :supercompact, false)
+    print(io, "Projective glueing")
+  else
+    print(io, "Glueing of projective patches")
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
+  io = pretty(io)
+  f = glueing_morphisms(PG)[1]
+  PX, PY = pacthes(PG)
+  PU, PV = glueing_domains(PG)
+  println(io, "Glueing")
+  println(io, Indent(), "of  ", Lowercase(), PX)
+  println(io, "and ", Lowercase(), PY)
+  println(io, Dedent(), "along the open subsets")
+  println(io, Indent(), Lowercase(), PU)
+  println(io, Lowercase(), PV)
+  print(io, Dedent(), "defined by ", Lowercase())
+  Oscar._show_semi_compact(io, f)
+end
+
 ### type getters
 #=
 TODO: Do we need these?
@@ -230,6 +270,69 @@ projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
 getindex(P::CoveredProjectiveScheme, U::AbsSpec) = (P.patches)[U]
 getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.glueings)[(U, V)]
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  n = length(projective_patches(CPS))
+  K = base_ring(base_scheme(CPS))
+  if get(io, :supercompact, false)
+    print(io, "Scheme")
+  else
+    if length(projective_patches(CPS)) == 0
+      print(io, "Empty covered projective scheme over ")
+    else
+      print(io, "Relative projective scheme over ")
+    end
+    print(io, Lowercase(), base_scheme(CPS))
+    if n != 0
+      print(io, " covered with $n projective patch")
+      n > 1 && print(io, "es")
+    end
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  pp = projective_patches(CPS)
+  n = length(pp)
+  println(io, "Relative projective scheme")
+  print(io, Indent(), "over ", Lowercase())
+  Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
+  println(io)
+  print(io, Dedent(), "covered with $n projective patch")
+  n > 1 && print(io, "es")
+  print(io, Indent())
+  l = ndigits(n)
+  for i in 1:n
+    li = ndigits(i)
+    println(io)
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), PU)
+  end
+  print(io, Dedent())
+end
+
+@doc raw"""
+    empty_covered_projective_scheme(R::T) where T <: Ring
+                                                  -> CoveredProjectiveScheme{T}
+
+Given a ring `R`, return the empty relative projective scheme over the
+empty covered scheme over `R`.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> empty_covered_projective_scheme(R)
+Relative projective scheme
+  over empty covered scheme over multivariate polynomial ring
+covered with 0 projective patch
+```
+"""
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   Y = empty_covered_scheme(R)
   C = default_covering(Y)
@@ -238,7 +341,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   pp = IdDict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = Dict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
   #tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
@@ -292,7 +395,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
 
@@ -343,7 +446,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     # Cache the isomorphism on the complement of the center
@@ -397,7 +500,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     W === codomain(p_res) || error("codomain not correct")
     ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
   end
-  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+  E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
   
@@ -490,7 +593,7 @@ end
 #    At, embeddingAt, T =  _add_variables(R,[:t])
 #    t = T[1]
 #
-#    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+#    #@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
 #    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
 #
 #    Imod = modulus(A)
@@ -639,8 +742,10 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
   # sᵢ the variables for the homogeneous ring over U
   # tⱼ the variables for the homogenesous ring over V
-  A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
-  B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+  #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+  A = [coordinates(OX(U, VU)(f), ideal(OO(VU), OX(V, VU).(gens(I(V))))) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+  #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+  B = [coordinates(OX(V, UV)(g), ideal(OO(UV), OX(U, UV).(gens(I(U))))) for g in gens(I(V))] # B[j][i] = bⱼᵢ
   SQVU = homogeneous_coordinate_ring(QVU)
   SPUV = homogeneous_coordinate_ring(PUV)
   # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
@@ -689,7 +794,7 @@ function blow_up(
     # Gather the information on the isomorphism on the complement
     p = covered_projection_to_base(local_blowups[U])
     isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
-    # manual merge becaus `merge` does not preserve IdDicts.
+    # manual merge because `merge` does not preserve IdDicts.
     for x in keys(isos_on_complement_of_center)
       comp_iso_dict[x] = isos_on_complement_of_center[x]
     end
@@ -916,35 +1021,35 @@ end
 
 
 # function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-	#(IOw: Exc Div ^\infty)
-	
+#(IOw: Exc Div ^\infty)
+
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
-#	while true
+#
+#        while true
 #          Inew = quotient(Iold, Excdiv)
 #          Iold == Inew && break
 #          Iold = Inew
-#	end
+#        end
 #        return gens(Iold)
 #end
 #
 #
 #
 #function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-#	#IOw
-#	
+#        #IOw
+#
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #        return gens(Iold)
 #end
@@ -953,43 +1058,43 @@ end
 #### NOT TESTED YET
 #function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #
-#	while true
-#		Inew = quotient(Iold, Excdiv)
-#		!(Iold == Excdiv * Inew) && break
-#		Iold = Inew 
-#	end
-#	return gens(Iold)
-#	#(IOw : Exc Div ^k), k maximal
+#        while true
+#           Inew = quotient(Iold, Excdiv)
+#           !(Iold == Excdiv * Inew) && break
+#           Iold = Inew 
+#        end
+#        return gens(Iold)
+#        #(IOw : Exc Div ^k), k maximal
 #end
 #
 #### NOT TESTED YET
 #function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
-#	#(IOw : Exc Div ^i)
+#        #(IOw : Exc Div ^i)
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
 #
-#	for j in 1:i
-#		Inew = quotient(Iold,Excdiv)
-#		Inew == 1 && break
-#		Iold = Inew
-#	end
-#	
-#	return gens(Iold)
+#
+#        for j in 1:i
+#          Inew = quotient(Iold,Excdiv)
+#          Inew == 1 && break
+#          Iold = Inew
+#        end
+#
+#        return gens(Iold)
 #
 #end
 #
@@ -1650,11 +1755,4 @@ end
 #end
 #
 #
-
-########################################################################
-# Printing                                                             #
-########################################################################
-function Base.show(io::IO, X::CoveredProjectiveScheme)
-  print(io, "relative projective scheme over $(base_scheme(X))")
-end
 

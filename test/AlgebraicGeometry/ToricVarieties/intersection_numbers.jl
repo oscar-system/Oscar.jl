@@ -1,13 +1,10 @@
-using Oscar
-using Test
-
 @testset "Topological intersection numbers (set_attributes = $set_attributes)" for set_attributes in [true, false]
     
-    antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]); set_attributes)
+    antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]))
     
-    antv2 = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]]; set_attributes)
+    antv2 = normal_toric_variety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]])
     
-    v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]]; set_attributes)
+    v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]])
     
     dP1 = del_pezzo_surface(NormalToricVariety, 1; set_attributes)
     c0 = cohomology_class(dP1, gens(cohomology_ring(dP1))[1])

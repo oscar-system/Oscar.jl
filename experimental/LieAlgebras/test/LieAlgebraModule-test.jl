@@ -19,8 +19,8 @@ function lie_algebra_module_conformance_test(
 
     @test parent(v) === V
 
-    @test base_ring(v) === base_ring(V)
-    @test elem_type(base_ring(V)) == C
+    @test coefficient_ring(v) === coefficient_ring(V)
+    @test elem_type(coefficient_ring(V)) == C
 
     @test base_lie_algebra(V) === L
 
@@ -44,14 +44,14 @@ function lie_algebra_module_conformance_test(
   end
 
   @testset "parent object call overload" begin
-    @test V() == zero(V) == V(zeros(base_ring(V), dim(V)))
+    @test V() == zero(V) == V(zeros(coefficient_ring(V), dim(V)))
 
     for _ in 1:num_random_tests
       coeffs = rand(-10:10, dim(V))
       v1 = V(coeffs)
-      v2 = V(base_ring(V).(coeffs))
-      v3 = V(matrix(base_ring(V), 1, dim(V), coeffs))
-      v4 = V(sparse_row(matrix(base_ring(V), 1, dim(V), coeffs)))
+      v2 = V(coefficient_ring(V).(coeffs))
+      v3 = V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
+      v4 = V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
       v5 = V(v1)
       @test v1 == v2
       @test v1 == v3
@@ -82,8 +82,8 @@ function lie_algebra_module_conformance_test(
 
       @test 2 * v == v + v
       @test v * 2 == v + v
-      @test base_ring(V)(2) * v == v + v
-      @test v * base_ring(V)(2) == v + v
+      @test coefficient_ring(V)(2) * v == v + v
+      @test v * coefficient_ring(V)(2) == v + v
     end
   end
 
@@ -324,26 +324,36 @@ end
     type_V = module_type_bools(V)
 
     for k in 1:3
-      pow_V = exterior_power(V, k)
+      E = exterior_power(V, k)
       @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
-      @test base_module(pow_V) === V
-      @test dim(pow_V) == binomial(dim(V), k)
-      @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+      @test base_module(E) === V
+      @test dim(E) == binomial(dim(V), k)
+      @test length(repr(E)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test module_type_bools(pow_V) == (false, false, false, false, true, false, false) # exterior_power
+      @test module_type_bools(E) == (false, false, false, false, true, false, false) # exterior_power
 
       if k == 1
         x = L(rand(-10:10, dim(L)))
         a = V(rand(-10:10, dim(V)))
-        @test pow_V([x * a]) == x * pow_V([a])
+        @test E([x * a]) == x * E([a])
       elseif k == 2
         a = V(rand(-10:10, dim(V)))
         b = V(rand(-10:10, dim(V)))
-        @test !iszero(pow_V([a, b]))
-        @test iszero(pow_V([a, b]) + pow_V([b, a]))
-        @test !iszero(pow_V([a, b]) - pow_V([b, a]))
-        @test iszero(pow_V([a, a]))
+        @test !iszero(E([a, b]))
+        @test iszero(E([a, b]) + E([b, a]))
+        @test !iszero(E([a, b]) - E([b, a]))
+        @test iszero(E([a, a]))
       end
+
+      T = get_attribute(E, :embedding_tensor_power)
+      E_to_T = get_attribute(E, :embedding_tensor_power_embedding)
+      T_to_E = get_attribute(E, :embedding_tensor_power_projection)
+      @test T == tensor_power(V, k)
+      @test domain(E_to_T) === E
+      @test codomain(E_to_T) === T
+      @test domain(T_to_E) === T
+      @test codomain(T_to_E) === E
+      @test compose(E_to_T, T_to_E) == identity_map(E)
     end
   end
 
@@ -353,37 +363,47 @@ end
     type_V = module_type_bools(V)
 
     for k in 1:3
-      pow_V = symmetric_power(V, k)
+      S = symmetric_power(V, k)
       @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
-      @test base_module(pow_V) === V
-      @test dim(pow_V) == binomial(dim(V) + k - 1, k)
-      @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+      @test base_module(S) === V
+      @test dim(S) == binomial(dim(V) + k - 1, k)
+      @test length(repr(S)) < 10^4 # outputs tend to be excessively long due to recursion
 
-      @test module_type_bools(pow_V) == (false, false, false, false, false, true, false) # symmetric_power
+      @test module_type_bools(S) == (false, false, false, false, false, true, false) # symmetric_power
 
       if k == 1
         x = L(rand(-10:10, dim(L)))
         a = V(rand(-10:10, dim(V)))
-        @test pow_V([x * a]) == x * pow_V([a])
+        @test S([x * a]) == x * S([a])
       elseif k == 2
         a = V(rand(-10:10, dim(V)))
         b = V(rand(-10:10, dim(V)))
-        @test !iszero(pow_V([a, b]))
-        @test !iszero(pow_V([a, b]) + pow_V([b, a]))
-        @test iszero(pow_V([a, b]) - pow_V([b, a]))
-        @test !iszero(pow_V([a, a]))
+        @test !iszero(S([a, b]))
+        @test !iszero(S([a, b]) + S([b, a]))
+        @test iszero(S([a, b]) - S([b, a]))
+        @test !iszero(S([a, a]))
       end
+
+      T = get_attribute(S, :embedding_tensor_power)
+      S_to_T = get_attribute(S, :embedding_tensor_power_embedding)
+      T_to_S = get_attribute(S, :embedding_tensor_power_projection)
+      @test T == tensor_power(V, k)
+      @test domain(S_to_T) === S
+      @test codomain(S_to_T) === T
+      @test domain(T_to_S) === T
+      @test codomain(T_to_S) === S
+      @test compose(S_to_T, T_to_S) == identity_map(S)
     end
   end
 
   @testset "tensor_power" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     V = standard_module(L)
-    type_V = module_type_bools(V)
+    T = module_type_bools(V)
 
     for k in 1:3
       pow_V = tensor_power(V, k)
-      @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+      @test T == module_type_bools(V) # construction of pow_V should not change type of V
       @test base_module(pow_V) === V
       @test dim(pow_V) == dim(V)^k
       @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
@@ -409,7 +429,7 @@ end
     function lie_algebra_module_struct_const(
       L::LieAlgebra{C}, V::LieAlgebraModule{C}
     ) where {C<:RingElement}
-      R = base_ring(L)
+      R = coefficient_ring(L)
       dimL = dim(L)
       dimV = dim(V)
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)

@@ -35,6 +35,7 @@ allow for easier integration elsewhere.
 Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
 dualgraph(p::Polyhedron)
 edgegraph(p::Polyhedron)
+graph_from_adjacency_matrix
 ```
 
 ### Modifying graphs
@@ -61,6 +62,8 @@ neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 shortest_path_dijkstra
+is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
+is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 ```
 
 ### Edges

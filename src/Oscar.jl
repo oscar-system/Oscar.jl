@@ -1,8 +1,8 @@
-@doc raw"""
+@doc """
 Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
-currently, mainly at the Technische Universität Kaiserslautern.
+mainly at the University of Kaiserslautern-Landau.
 
 Written in Julia, it combines the well established systems
  * [`Singular`](@ref Singular)
@@ -97,6 +97,9 @@ function __init__()
     add_verbose_scope(:EllipticSurface)
     add_assert_scope(:EllipticSurface)
 
+    add_verbose_scope(:MorphismFromRationalFunctions)
+    add_assert_scope(:MorphismFromRationalFunctions)
+
     add_verbose_scope(:Glueing)
     add_assert_scope(:Glueing)
 
@@ -112,12 +115,18 @@ function __init__()
     add_verbose_scope(:Blowup)
     add_assert_scope(:Blowup)
 
+    add_verbose_scope(:hilbert)
+    add_assert_scope(:hilbert)
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
     add_verbose_scope(:HypersurfaceModel)
+    add_verbose_scope(:FTheoryConstructorInformation)
     
     add_verbosity_scope(:LinearQuotients)
+
+    add_assertion_scope(:ZZLatWithIsom)
+    add_verbosity_scope(:ZZLatWithIsom)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -185,6 +194,7 @@ include("fallbacks.jl")
 
 
 include("Rings/Rings.jl")
+include("forward_declarations.jl")
 include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
@@ -197,11 +207,12 @@ include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
 
+include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs.jl")
+include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
@@ -217,6 +228,11 @@ include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
+# Serialization should always come at the end of Oscar source code
+# but before experimental, any experimental serialization should
+# be written inside the corresponding experimental code sub directory
+include("Serialization/main.jl")
+
 include("../experimental/Experimental.jl")
 
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
@@ -228,14 +244,10 @@ if is_dev
   include("../examples/PrimDec.jl")
 end
 
-include("Serialization/main.jl")
 
 include("aliases.jl")
 
 include("deprecations.jl")
-
-const global OSCAR = Oscar
-const global oscar = Oscar
 
 @doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see

@@ -10,11 +10,9 @@
   SQR::Singular.PolyRing # Singular quotient ring
   SQRGB::Singular.sideal # Singular Groebner basis defining quotient ring
 
-  #= ordering, gb assure =#
-  #= the current design decision is to fix the ordering to be default_ordering(R) =#
-  #= that is, the user is not allowed to change this with the outer constructor quo =#
   function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
-    @assert base_ring(I) === R
+    @req base_ring(I) === R "Base rings must be the same."
+    @req is_global(ordering) "Ordering must be global."
     r = new{elem_type(R)}()
     r.I = I
     r.ordering = ordering
@@ -22,15 +20,14 @@
   end
 end
 
-function groebner_assure(r::MPolyQuoRing)
+function groebner_basis(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
   ordering = r.ordering
-  groebner_assure(r.I, ordering)
+  groebner_basis(r.I, ordering=ordering)
   oscar_assure(r.I.gb[ordering])
-  singular_assure(r.I.gb[ordering])
-  SG = r.I.gb[ordering].gens.S
+  SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
@@ -39,7 +36,9 @@ end
 function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
    io = pretty(io)
    println(io, "Quotient")
-   println(io, Indent(), "of ", Lowercase(), base_ring(Q))
+   print(io, Indent(), "of ", Lowercase())
+   show(io, MIME("text/plain"), base_ring(Q))
+   println(io)
    print(io, "by ", modulus(Q))
    print(io, Dedent())
 end
@@ -52,8 +51,8 @@ function Base.show(io::IO, Q::MPolyQuoRing)
     # no nested printing
     print(io, "Quotient of multivariate polynomial ring")
   else
-    # nested printing allowed, preferably supercompact
-    print(io, "Quotient of multivariate polynomial ring by ideal with ", ItemQuantity(ngens(modulus(Q)), "generator"))
+    # nested printing allowed
+    print(io, "Quotient of multivariate polynomial ring by ", modulus(Q))
   end
 end
 
@@ -64,11 +63,12 @@ Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing) = singular_quotient_ring(Q)
+oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
+singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
@@ -172,7 +172,8 @@ ideal(x, y)
 
 julia> base_ring(a)
 Quotient
-  of multivariate polynomial ring in 3 variables over QQ
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
   by ideal(-x^2 + y, -x^3 + z)
 ```
 """
@@ -188,22 +189,18 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function singular_assure(a::MPolyQuoIdeal)
-  if isdefined(a.gens.gens, :S)
-    return a.gens.S
-  end
-  a.gens.Sx = singular_poly_ring(base_ring(a))
-  a.gens.S  = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
-end
-
-function groebner_assure(a::MPolyQuoIdeal)
+function groebner_basis(a::MPolyQuoIdeal)
   if !isdefined(a, :gb)
-    singular_assure(a)
-    a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
+    a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
   end
 end
 
+function singular_groebner_generators(a::MPolyQuoIdeal)
+  groebner_basis(a)
+
+  return a.gb.S
+end
 
 @doc raw"""
     gens(a::MPolyQuoIdeal)
@@ -216,7 +213,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map from
 Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
@@ -246,7 +243,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map from
 Multivariate polynomial ring in 3 variables over QQ to A defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
@@ -283,8 +280,7 @@ ideal(x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-  singular_assure(a)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens)^m)
 end
 
 @doc raw"""
@@ -310,9 +306,7 @@ ideal(x + y, x^2 + y^2)
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) + singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -338,9 +332,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) * singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -369,13 +361,10 @@ ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
-  singular_assure(a)
-  as = a.gens.S
   for g in b
     @req base_ring(g) == base_ring(a) "base rings must match"
-    singular_assure(g)
   end
-  as = Singular.intersection(as, [g.gens.S for g in b]...)
+  as = Singular.intersection(singular_generators(a.gens), [singular_generators(g.gens) for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
 end
 
@@ -411,10 +400,7 @@ ideal(y)
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(singular_generators(a.gens), singular_generators(b.gens)))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
@@ -472,8 +458,7 @@ true
 """
 @attr Bool function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
-  singular_assure(a)
-  return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_quotient_groebner_basis(R)))
 end
 
 @doc raw"""
@@ -629,8 +614,7 @@ julia> gens(a)
 function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
-  singular_assure(a)
-  red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
+  red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
@@ -663,10 +647,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  groebner_assure(b)
   SR = singular_poly_ring(base_ring(b))
-  as = simplify(a)
-  return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
+  return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
 end
 
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
@@ -698,9 +680,8 @@ true
 """
 function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  as = simplify(a)
-  groebner_assure(b)
-  return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
+  simplify(a)
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_groebner_generators(b)))
 end
 
 @doc raw"""
@@ -835,10 +816,11 @@ function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 end
 
 @doc raw"""
-    quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
-ring as well as the projection map `R` $\to$ `R/I`.
+ring as well as the projection map `R` $\to$ `R/I`. Computations inside `R/I` are
+done w.r.t. `ordering`.
 
     quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
 
@@ -852,7 +834,8 @@ julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> A
 Quotient
-  of multivariate polynomial ring in 2 variables over QQ
+  of multivariate polynomial ring in 2 variables x, y
+    over rational field
   by ideal(x^2 - y^3, x - y)
 
 julia> typeof(A)
@@ -875,15 +858,15 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(x^2*z - y^3, x - y), Map from
 S to B defined by a julia-function with inverse)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 ```
 """
-function quo(R::MPolyRing, I::MPolyIdeal)
-  q = MPolyQuoRing(R, I)
+function quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R))
+  q = MPolyQuoRing(R, I, ordering)
   function im(a::MPolyRingElem)
     parent(a) !== R && error("Element not in the domain of the map")
     return MPolyQuoRingElem(a, q)
@@ -891,15 +874,15 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
-function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
-  return quo(R, ideal(I))
+function quo(R::MPolyRing, I::Vector{<:MPolyRingElem}; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(I); ordering)
 end
 
-function quo(R::MPolyRing, f::MPolyRingElem...)
-  return quo(R, ideal(collect(f)))
+function quo(R::MPolyRing, f::MPolyRingElem...; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(collect(f)); ordering)
 end
 
 lift(a::MPolyQuoRingElem) = a.f
@@ -916,7 +899,7 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
 end
 
 function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
-  @req base_ring(parent(a)) === Q "parent missmatch"
+  @req base_ring(parent(a)) === Q "parent mismatch"
   return lift(a)
 end
 
@@ -992,7 +975,7 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::UnitRange)
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
@@ -1009,7 +992,7 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
+function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
   S = sparse_matrix(R)
   for g = 1:Singular.ngens(M)
     (g in V) || continue
@@ -1047,13 +1030,11 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   J = oscar_groebner_basis(Q)
 
   BS = IdealGens([a.f], keep_ordering = false)
-  singular_assure(BS)
 
   J = vcat(J, [b.f])
   BJ = IdealGens(J, keep_ordering = false)
-  singular_assure(BJ)
 
-  s, rest = Singular.lift(BJ.S, BS.S)
+  s, rest = Singular.lift(singular_generators(BJ), singular_generators(BS))
   if !iszero(rest)
     return false, a
   end
@@ -1081,11 +1062,10 @@ function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   gb_mod = gens(groebner_basis(mod, ordering=o))
   I = ideal(R, push!(gb_mod, lift(b)))
   # Make sure that the singular side of this ideal is filled with the correct ordering
-  singular_assure(I, o)
   # Get our hands on the actual singular ideal
-  Ising = I.gens.gens.S
+  Ising = singular_generators(I.gens, o)
   # ...and the ring
-  Rsing = I.gens.gens.Sx
+  Rsing = base_ring(Ising)
   a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
   u_sing, rem = Singular.lift(Ising, a_ideal)
   !iszero(rem) && return false, a
@@ -1139,7 +1119,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
     end
     return result
   end
-  return V, MapFromFunc(im, prim, V, Q)
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1187,14 +1167,14 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of multivariate polynomial ring by ideal with 2 generators, Map from
+(Quotient of multivariate polynomial ring by ideal(-x + y, -x^3 + z^3), Map from
 R to A defined by a julia-function with inverse)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
 julia> degree(f)
-graded by [4]
+[4]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1510,7 +1490,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
@@ -1545,8 +1525,7 @@ function dim(a::MPolyQuoIdeal)
   if a.dim > -1
     return a.dim
   end
-  groebner_assure(a)
-  a.dim = Singular.dimension(a.gb.S)
+  a.dim = Singular.dimension(singular_groebner_generators(a))
   return a.dim
 end
 
@@ -1611,12 +1590,10 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   if isdefined(I, :gb)
-    singular_assure(I.gb)
-    _, sing_min = Singular.mstd(I.gb.gens.S)
+    _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
     return filter(!iszero, (Q).(gens(sing_min)))
   else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
@@ -1659,8 +1636,7 @@ function small_generating_set(I::MPolyQuoIdeal)
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  singular_assure(I)
-  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
   if !isdefined(I, :gb)
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true

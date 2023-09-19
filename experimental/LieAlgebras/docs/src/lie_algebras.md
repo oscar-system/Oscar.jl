@@ -15,15 +15,15 @@ type has a corresponding element type.
 The type parameter `C` is the element type of the coefficient ring. 
 
 ```@docs
-zero(::LieAlgebra{C}) where {C<:RingElement}
-iszero(::LieAlgebraElem{C}) where {C<:RingElement}
-dim(::LieAlgebra{C}) where {C<:RingElement}
-basis(::LieAlgebra{C}) where {C<:RingElement}
-basis(::LieAlgebra{C}, ::Int) where {C<:RingElement}
-coefficients(::LieAlgebraElem{C}) where {C<:RingElement}
-coeff(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
-getindex(::LieAlgebraElem{C}, ::Int) where {C<:RingElement}
-symbols(::LieAlgebra{C}) where {C<:RingElement}
+zero(::LieAlgebra)
+iszero(::LieAlgebraElem)
+dim(::LieAlgebra)
+basis(::LieAlgebra)
+basis(::LieAlgebra, ::Int)
+coefficients(::LieAlgebraElem)
+coeff(::LieAlgebraElem, ::Int)
+getindex(::LieAlgebraElem, ::Int)
+symbols(::LieAlgebra)
 ```
 
 ## Special functions for `LinearLieAlgebra`s
@@ -59,6 +59,27 @@ The usual arithmetics, e.g. `+`, `-`, and `*`, are defined for `LieAlgebraElem`s
 !!! warning
     Please note that `*` refers to the Lie bracket and is thus not associative.
 
+## Properties
+
+```@docs
+is_abelian(L::LieAlgebra)
+is_nilpotent(L::LieAlgebra)
+is_perfect(L::LieAlgebra)
+is_simple(L::LieAlgebra)
+is_solvable(L::LieAlgebra)
+```
+
+## More functions
+
+```@docs
+center(L::LieAlgebra)
+centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
+centralizer(L::LieAlgebra, x::LieAlgebraElem)
+derived_algebra(L::LieAlgebra)
+derived_series(L::LieAlgebra)
+lower_central_series(L::LieAlgebra)
+```
+
 ## Lie algebra constructors
 
 ```@docs
@@ -68,6 +89,7 @@ lie_algebra
 ## Classical Lie algebras
 
 ```@docs
+abelian_lie_algebra(R::Ring, n::Int)
 general_linear_lie_algebra(R::Ring, n::Int)
 special_linear_lie_algebra(R::Ring, n::Int)
 special_orthogonal_lie_algebra(R::Ring, n::Int)

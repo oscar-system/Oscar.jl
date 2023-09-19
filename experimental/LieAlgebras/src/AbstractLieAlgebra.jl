@@ -20,6 +20,9 @@
       @req length(s) == dimL "Invalid number of basis element names."
       if check
         @req all(
+          r -> all(e -> parent(last(e)) === R, r), struct_consts
+        ) "Invalid structure constants."
+        @req all(
           iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
         ) "Not anti-symmetric."
         @req all(
@@ -61,11 +64,11 @@ parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:RingElement} =
 
 elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlgebraElem{C}
 
-parent(x::AbstractLieAlgebraElem{C}) where {C<:RingElement} = x.parent
+parent(x::AbstractLieAlgebraElem) = x.parent
 
-base_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
-dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
+dim(L::AbstractLieAlgebra) = L.dim
 
 ###############################################################################
 #
@@ -73,12 +76,25 @@ dim(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.dim
 #
 ###############################################################################
 
-function Base.show(io::IO, V::AbstractLieAlgebra{C}) where {C<:RingElement}
-  print(io, "AbstractLieAlgebra over ")
-  print(IOContext(io, :compact => true), base_ring(V))
+function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
+  io = pretty(io)
+  println(io, "Abstract Lie algebra")
+  println(io, Indent(), "of dimension $(dim(L))", Dedent())
+  print(io, "over ")
+  print(io, Lowercase(), coefficient_ring(L))
 end
 
-function symbols(L::AbstractLieAlgebra{C}) where {C<:RingElement}
+function Base.show(io::IO, L::AbstractLieAlgebra)
+  if get(io, :supercompact, false)
+    print(io, "Abstract Lie algebra")
+  else
+    io = pretty(io)
+    print(io, "Abstract Lie algebra over ", Lowercase())
+    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+  end
+end
+
+function symbols(L::AbstractLieAlgebra)
   return L.s
 end
 
@@ -110,12 +126,22 @@ end
 
 ###############################################################################
 #
+#   Properties
+#
+###############################################################################
+
+function is_abelian(L::AbstractLieAlgebra)
+  return all(e -> iszero(length(e)), L.struct_consts)
+end
+
+###############################################################################
+#
 #   Constructor
 #
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Ring, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Ring, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -138,6 +164,7 @@ function lie_algebra(
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
+  @req C == elem_type(R) "Invalid coefficient type."
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
 
@@ -175,7 +202,9 @@ julia> struct_consts[3, 2, 2] = QQ(-2);
 julia> struct_consts[2, 3, 2] = QQ(2);
 
 julia> sl2 = lie_algebra(QQ, struct_consts, ["e", "f", "h"])
-AbstractLieAlgebra over Rational field
+Abstract Lie algebra
+  of dimension 3
+over rational field
 
 julia> e, f, h = basis(sl2)
 3-element Vector{AbstractLieAlgebraElem{QQFieldElem}}:
@@ -200,6 +229,7 @@ function lie_algebra(
   cached::Bool=true,
   check::Bool=true,
 ) where {C<:RingElement}
+  @req C == elem_type(R) "Invalid coefficient type."
   struct_consts2 = Matrix{SRow{elem_type(R)}}(
     undef, size(struct_consts, 1), size(struct_consts, 2)
   )
@@ -210,6 +240,27 @@ function lie_algebra(
   end
 
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
+end
+
+function lie_algebra(
+  basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+) where {C<:RingElement}
+  parent_L = parent(basis[1])
+  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
+  R = coefficient_ring(parent_L)
+  basis_matrix = if length(basis) == 0
+    matrix(R, 0, dim(L), C[])
+  else
+    matrix(R, [coefficients(b) for b in basis])
+  end
+  struct_consts = Matrix{SRow{elem_type(R)}}(undef, length(basis), length(basis))
+  for (i, bi) in enumerate(basis), (j, bj) in enumerate(basis)
+    fl, row = can_solve_with_solution(basis_matrix, _matrix(bi * bj); side=:left)
+    @req fl "Not closed under the bracket."
+    struct_consts[i, j] = sparse_row(row)
+  end
+  s = map(AbstractAlgebra.obj_to_string, basis)
+  return lie_algebra(R, struct_consts, s; check)
 end
 
 @doc raw"""
@@ -233,4 +284,19 @@ function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
   )::AbstractLieAlgebra{elem_type(R)}
 
   return LO
+end
+
+function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:AbstractLieAlgebra}
+  basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
+  s = ["x_$(i)" for i in 1:n]
+  L = lie_algebra(R, n, basis, s; check=false)
+
+  struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
+  for i in axes(struct_consts, 1), j in axes(struct_consts, 2)
+    struct_consts[i, j] = sparse_row(R)
+  end
+
+  L = lie_algebra(R, struct_consts, s)
+  set_attribute!(L, :is_abelian => true)
+  return L
 end

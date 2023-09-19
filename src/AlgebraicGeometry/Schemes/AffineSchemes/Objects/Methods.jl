@@ -25,17 +25,70 @@ end
 ==(X::EmptyScheme, Y::AbsSpec) = (Y == X)
 
 
-
 ########################################################
 # (2) Display
 ########################################################
 
+# We show a detailed version of the coordinate ring since they are all the
+# details we can get.. Otherwise our detailed printing is quite poor and
+# "useless".
+function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
+  io = pretty(io)
+  println(io, "Spectrum")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, MIME"text/plain"(), OO(X))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, X::AbsSpec)
+  io = pretty(io)
   if has_attribute(X, :name)
     print(io, name(X))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Affine scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty scheme")
+  else
+    _show(io, X)
   end
-  print(io, "Spec of $(OO(X))")
+end
+
+function _show(io::IO, X::AbsSpec)
+  print(io, LowercaseOff(), "Spec of ")
+  print(io, Lowercase(), OO(X))
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
+  io = pretty(io)
+  print(io, "affine ",ngens(OO(X)),"-space")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  join(io, gens(I), ", ")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  S = inverted_set(OO(X))
+  join(io, gens(I), ", ")
+  print(io, raw") \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "AA^", ngens(OO(X)))
+  S = inverted_set(OO(X))
+  print(io, raw" \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
 end
 
 
@@ -54,8 +107,8 @@ in the coordinate ring of an affine scheme.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates [x1, x2, x3]
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:

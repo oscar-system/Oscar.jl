@@ -54,6 +54,12 @@ function ideal(g::Vector{T}) where {T <: MPolyRingElem}
   return ideal(parent(g[1]), g)
 end
 
+# Coerce an ungraded ideal in a graded ring
+function ideal(S::MPolyDecRing, I::MPolyIdeal)
+  @req base_ring(I) === forget_grading(S) "Rings do not coincide"
+  return ideal(S, [ S(f) for f in gens(I) ])
+end
+
 function is_graded(I::MPolyIdeal)
   return is_graded(Hecke.ring(I))
 end
@@ -276,6 +282,16 @@ function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   K, _ = Singular.saturation(I.gens.S, J.gens.S)
   return MPolyIdeal(base_ring(I), K)
 end
+
+# the following is corresponding to saturation2 from Singular
+# TODO: think about how to use use this properly/automatically
+function _saturation2(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+  singular_assure(I)
+  singular_assure(J)
+  K, _ = Singular.saturation2(I.gens.S, J.gens.S)
+  return MPolyIdeal(base_ring(I), K)
+end
+
 #######################################################
 @doc raw"""
     saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
@@ -419,7 +435,13 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 @attr T function radical(I::T) where {T <: MPolyIdeal}
   singular_assure(I)
   R = base_ring(I)
-  if elem_type(base_ring(R)) <: FieldElement
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    r = radical(map_coefficients(pseudo_inv(mA), I))
+    Irad = map_coefficients(mA, r, parent = R)
+    set_attribute!(Irad, :is_radical => true)
+    return Irad
+  elseif elem_type(base_ring(R)) <: FieldElement
     J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
   elseif base_ring(I.gens.Sx) isa Singular.Integers
     J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
@@ -429,6 +451,13 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
   Irad = ideal(R, J)
   set_attribute!(Irad, :is_radical => true)
   return Irad
+end
+
+function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
+  if parent === nothing
+    parent = Oscar.parent(map_coefficients(mp, gen(I, 1)))
+  end
+  return ideal(parent, [map_coefficients(mp, g, parent = parent) for g = gens(I)])
 end
 
 @doc raw"""
@@ -519,6 +548,14 @@ end
 
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    pd = primary_decomposition(map_coefficients(pseudo_inv(mA), I), algorithm = algorithm, cache = false)
+    if isempty(pd)
+      return Tuple{typeof(I), typeof(I)}[]
+    end
+    return Tuple{typeof(I), typeof(I)}[(map_coefficients(mA, x[1], parent = R), map_coefficients(mA, x[2], parent = R)) for x = pd]
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -731,6 +768,11 @@ julia> L = minimal_primes(I)
 """
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
+    return typeof(I)[map_coefficients(mA, x) for x = mp]
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -784,7 +826,13 @@ julia> L = equidimensional_decomposition_weak(I)
 """
 @attr function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
+  iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_weak(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
+  end
   singular_assure(I)
   l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
   V = [ideal(R, i) for i in l]
@@ -825,6 +873,11 @@ julia> L = equidimensional_decomposition_radical(I)
 @attr function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_radical(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x) for x = eq]
+  end
   singular_assure(I)
   l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
   V = [ideal(R, i) for i in l]
@@ -881,6 +934,11 @@ ideal(3)
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
   singular_assure(I)
   if elem_type(base_ring(R)) <: FieldElement
     i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
@@ -921,6 +979,11 @@ ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull_radical(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
   singular_assure(I)
   i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
   return ideal(R, i)
@@ -1248,7 +1311,13 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
+
+# Some fixes which were necessary for the above
+dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
+dim(R::ZZRing) = 1
+
 
 ################################################################################
 #
@@ -1366,66 +1435,9 @@ end
 
 ################################################################################
 #
-# Minimal generating set
+# Small generating set
 #
 ################################################################################
-
-@doc raw"""
-    minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
-
-Given a homogeneous ideal `I` in a graded multivariate polynomial ring
-over a field, return an array containing a minimal set of generators
-of `I`. If `I` is the zero ideal an empty list is returned.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
-
-julia> I = ideal(R, V)
-ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
-
-julia> minimal_generating_set(I)
-3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x
- z^2
- y^3
-
-julia> I = ideal(R, zero(R))
-ideal(0)
-
-julia> minimal_generating_set(I)
-MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
-```
-"""
-function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
-  # This only works / makes sense for homogeneous ideals. So far ideals in an
-  # MPolyDecRing are forced to be homogeneous though.
-
-  R = base_ring(I)
-
-  @assert is_graded(R)
-
-  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-
-  if !isempty(I.gb)
-    # make sure to not recompute a GB from scratch on the singular
-    # side if we have one
-    G = first(values(I.gb))
-    singular_assure(G, G.ord)
-    G.gens.S.isGB = true
-    _, sing_min = Singular.mstd(G.gens.S)
-    return filter(!iszero, (R).(gens(sing_min)))
-  else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
-    ring = I.gens.Ox
-    computed_gb = IdealGens(ring, sing_gb, true)
-    I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
-  end
-end
 
 @doc raw"""
     small_generating_set(I::MPolyIdeal)
@@ -1556,3 +1568,4 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     end
     return ideal(ring, converted_generators)
 end
+

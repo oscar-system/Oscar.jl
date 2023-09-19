@@ -17,6 +17,8 @@ construction of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_f(w);
@@ -33,6 +35,8 @@ construction of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_g(w);
@@ -52,6 +56,8 @@ Return the Weierstrass polynomial of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
@@ -89,10 +95,12 @@ Return the base space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> ambient_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0, -2, -3], [0, 0, 0, 0, 1, 0, -2, -3], [0, 0, 0, 0, 0, 1, -2, -3], [0, 1, 0, 0, 0, 0, -2, -3], [0, 0, 1, 0, 0, 0, -2, -3], [0, 0, 0, 1, 0, 0, -2, -3], [0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, -1, -3//2]]
+Normal toric variety
 ```
 """
 function ambient_space(w::WeierstrassModel)
@@ -108,10 +116,12 @@ Return the fiber ambient space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[-1, 1//3], [1, -1//2], [0, 1]]
+Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
 ```
 """
 fiber_ambient_space(w::WeierstrassModel) = w.fiber_ambient_space
@@ -139,6 +149,8 @@ which defines the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> calabi_yau_hypersurface(w)
@@ -146,9 +158,9 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: ToricCoveredScheme "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
   base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
-  return closed_subvariety_of_toric_variety(underlying_toric_variety(ambient_space(w)), [weierstrass_polynomial(w)])
+  return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
 end
 
 
@@ -170,13 +182,15 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> discriminant(w);
 ```
 """
 @attr MPolyRingElem function discriminant(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: ToricCoveredScheme "Discriminant of Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: NormalToricVariety "Discriminant of Weierstrass model is currently only supported for toric varieties/schemes as base space"
   return 4 * w.weierstrass_f^3 + 27 * w.weierstrass_g^2
 end
 
@@ -204,6 +218,8 @@ auxiliary base space.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> length(singular_loci(w))
@@ -211,7 +227,7 @@ julia> length(singular_loci(w))
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: ToricCoveredScheme "Singular loci of Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: NormalToricVariety "Singular loci of Weierstrass model is currently only supported for toric varieties/schemes as base space"
   
   B = irrelevant_ideal(base_space(w))
   

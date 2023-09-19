@@ -1326,7 +1326,7 @@ end
 
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-  return canonical_matrix(M) == canonical_matrix(N)
+   return M === N || canonical_matrix(M) == canonical_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)

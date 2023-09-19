@@ -6,6 +6,9 @@ import Random
 
 numprocs_str = get(ENV, "NUMPROCS", "1")
 
+oldWorkingDirectory = pwd()
+cd(joinpath(pkgdir(Oscar), "test"))
+
 if !isempty(ARGS)
   jargs = [arg for arg in ARGS if startswith(arg, "-j")]
   if !isempty(jargs)
@@ -101,50 +104,35 @@ end
   Base.cumulative_compile_timing(true)
 end
 
-println("Making test list")
-
-const testlist = [
+testlist = [
   "Aqua.jl",
-
   "printing.jl",
 
   "PolyhedralGeometry/runtests.jl",
   "Combinatorics/runtests.jl",
-
   "GAP/runtests.jl",
   "Groups/runtests.jl",
-
   "Rings/runtests.jl",
-
-  "NumberTheory/nmbthy.jl",
-  "NumberTheory/galthy.jl",
-
-# Will automatically include all experimental packages following our
-# guidelines.
-
-  "../experimental/runtests.jl",
-
-  "Experimental/gmodule.jl",
-  "Experimental/ModStdQt.jl",
-  "Experimental/ModStdNF.jl",
-  "Experimental/MatrixGroups.jl",
-  "Experimental/ExteriorAlgebra.jl",
-  
-  "Rings/ReesAlgebra.jl",
-
+  "NumberTheory/runtests.jl",
   "Modules/runtests.jl",
-
   "InvariantTheory/runtests.jl",
 
   "AlgebraicGeometry/Schemes/runtests.jl",
   "AlgebraicGeometry/ToricVarieties/runtests.jl",
-  "AlgebraicGeometry/Surfaces/K3Auto.jl",
+  "AlgebraicGeometry/Surfaces/runtests.jl",
 
   "TropicalGeometry/runtests.jl",
 
   "Serialization/runtests.jl",
+  "Serialization/polymake/runtests.jl",
+  "Serialization/upgrades/runtests.jl",
 
-  "StraightLinePrograms/runtests.jl"
+  # Automatically include tests of all experimental packages following our
+  # guidelines.
+  "../experimental/runtests.jl",
+
+  "Data/runtests.jl",
+  "StraightLinePrograms/runtests.jl",
 ]
 
 # if many workers, distribute tasks across them
@@ -167,3 +155,5 @@ if numprocs == 1
     print_stats(stdout; max=10)
   end
 end
+
+cd(oldWorkingDirectory)

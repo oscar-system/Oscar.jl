@@ -1,6 +1,6 @@
-AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
-AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
-AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
+const AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
+const AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
+const AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   iso = isomorphism(T, A)
@@ -377,7 +377,7 @@ By default, the function checks whether `i` is injective and whether `i`
 is a torsion quadratic module morphism. One can disable these checks
 by setting `check = false`.
 """
-function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool = true)
+function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
 
   if check
     @req is_injective(i) "i must be an injection"

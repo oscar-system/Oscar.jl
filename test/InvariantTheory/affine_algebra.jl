@@ -57,4 +57,84 @@
     A, = affine_algebra(RG, algo_rels = algo)
     @test is_zero(modulus(A))
   end
+
+  # Example of an invariant ring which is not Cohen--Macaulay, see Kemper,
+  # "Calculating invariant rings of finite groups over arbitrary fields",
+  # Example 10.
+  G = permutation_group(4, [ cperm([1, 2, 3, 4]) ])
+  RG = invariant_ring(GF(2), G)
+  A, AtoR = affine_algebra(RG, algo_rels = :groebner_basis)
+  @test [ AtoR(x) for x in gens(A) ] == fundamental_invariants(RG)
+  @test is_injective(AtoR)
+
+  RG = invariant_ring(GF(2), G)
+  A, AtoR = affine_algebra(RG, algo_rels = :linear_algebra)
+  @test [ AtoR(x) for x in gens(A) ] == fundamental_invariants(RG)
+  @test is_injective(AtoR)
+end
+
+@testset "Module syzygies" begin
+  G = permutation_group(4, [ cperm([1, 2, 3, 4]) ])
+  for K in [ QQ, GF(2), GF(3) ]
+    RG = invariant_ring(K, G)
+    p_invars = primary_invariants(RG)
+    s_invars = secondary_invariants(RG)
+
+    Q, QtoR, StoR = module_syzygies(RG)
+    @test ngens(base_ring(Q)) == length(p_invars)
+    @test ngens(Q) == length(s_invars)
+    S = domain(StoR)
+    @test S === base_ring(Q)
+    for i in 1:ngens(S)
+      @test StoR(gen(S, i)) == p_invars[i]
+    end
+    for i in 1:rank(Q.F)
+      @test QtoR(Q[i]) == s_invars[i]
+    end
+
+    if characteristic(K) != 2
+      # Non-modular case, so Q must be free
+      @test all(is_zero, relations(Q))
+    else
+      # For GF(2), this is an example of an invariant ring which is not
+      # Cohen--Macaulay, see Kemper, "Calculating invariant rings of finite
+      # groups over arbitrary fields", Example 10.
+      @test !all(is_zero, relations(Q))
+      for r in relations(Q)
+        @test is_zero(QtoR(r))
+      end
+    end
+  end
+
+  # Another example of a ring which is not Cohen--Macaulay,
+  # see DK15, Example 3.6.3.
+  for p in [ 2, 3, 5 ] # works for an arbitrary prime
+    K = GF(p)
+    M = matrix(K, 6, 6, [ 1 0 0 0 0 0 ;
+                          0 1 0 0 0 0 ;
+                          0 0 1 0 0 0 ;
+                          1 0 0 1 0 0 ;
+                          0 1 0 0 1 0 ;
+                          0 0 1 0 0 1 ])
+    RG = invariant_ring(matrix_group(M))
+    p_invars = primary_invariants(RG)
+    s_invars = secondary_invariants(RG)
+
+    Q, QtoR, StoR = module_syzygies(RG)
+    @test ngens(base_ring(Q)) == length(p_invars)
+    @test ngens(Q) == length(s_invars)
+    S = domain(StoR)
+    @test S === base_ring(Q)
+    for i in 1:ngens(S)
+      @test StoR(gen(S, i)) == p_invars[i]
+    end
+    for i in 1:rank(Q.F)
+      @test QtoR(Q[i]) == s_invars[i]
+    end
+
+    @test !all(is_zero, relations(Q))
+    for r in relations(Q)
+      @test is_zero(QtoR(r))
+    end
+  end
 end

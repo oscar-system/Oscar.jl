@@ -1,10 +1,14 @@
 @testset "MPolyQuoRing" begin
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-
   f = y^2+y+x^2
   C = ideal(R, [f])
-  Q, = quo(R, C)
 
+  @test_throws ArgumentError P, = quo(R, C; ordering=neglex(R))
+  P, = quo(R, C; ordering=lex(R))
+  @test P.ordering == lex(R)
+
+  Q, = quo(R, C)
+  @test Q.ordering == degrevlex(R)
   @test one(Q) == 1
   @test zero(Q) == 0
 
@@ -18,6 +22,20 @@
 
   @test xx^2 == xx * xx
   @test xx^0 == one(Q)
+
+  J = ideal(R, [x-y^2, x^2-y^3+1])
+  A, p = quo(R, J)
+  f = A(y^2-y^4)
+  @test simplify(f) == A(-x*y + x + 1)
+  A, p = quo(R, J; ordering=lex(R))
+  f = A(y^2-y^4)
+  @test simplify(f) == A(-y^3 + y^2 + 1)
+
+  A,p = quo(R, [x^3+y,y^2]; ordering=lex(R))
+  @test A.I == ideal(R, [x^3+y, y^2])
+
+  B,q = quo(R, x^3+y,y^2; ordering=lex(R))
+  @test A.I == B.I
 end
 
 @testset "MpolyQuo.manipulation" begin
@@ -162,7 +180,7 @@ end
   Al, _ = quo(Rl, Il)
   @test modulus(Rl) == ideal(Rl,[zero(Rl)])
   @test modulus(Al) == Il
-  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y^2+1,z]))
+  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
   Rl2,_ = Localization(R,U2)
   Il2 = Rl2(I)
   Al2,_ = quo(Rl2,Il2)
@@ -247,5 +265,5 @@ end
   I = ideal(R, 1-x*y)
   o = revlex([x, y])
   Q = MPolyQuo(R, I, o)
-  @test oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+  @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end

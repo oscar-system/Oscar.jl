@@ -67,11 +67,16 @@ many questions about a finite group can be answered by computations only with
 its characters.
 Thus it makes sense to deal also with character tables *without* an
 explicit labeling of the columns of the table by conjugacy classes of a group.
-For example, the character tables shown in
+For example, the character tables shown in the
 Atlas of Finite Groups [CCNPW85](@cite) and from the
 Atlas of Brauer Characters [JLPW95](@cite) are available in OSCAR.
-Such character tables can be fetched with `character_table`
-from the database, via their names.
+Such character tables can be fetched with
+[`character_table(id::String, p::Int = 0)`](@ref) from the database,
+via their names.
+Moreover, the library of character tables can be used similar to
+group libraries (see [Group libraries](@ref)) in the sense that
+[`all_character_table_names`](@ref) returns descriptions of all those
+available character tables that have certain properties.
 
 In OSCAR, a character table `t` is identified with the array of absolutely
 irreducible characters of ``G``, in the sense that `t[i]` yields the
@@ -81,12 +86,16 @@ of ``G`` (or the `j`-th conjugacy class of ``p``-regular elements
 in the case of Brauer tables).
 
 Ordinary and ``p``-modular Brauer tables in OSCAR are distinguished by
-the field `characteristic`; its value is `0` for ordinary tables and
-``p`` otherwise.
+their [`characteristic(tbl::GAPGroupCharacterTable)`](@ref);
+its value is `0` for ordinary tables and ``p`` otherwise.
 
 ```@docs
 GAPGroupCharacterTable
-character_table
+character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
+character_table(id::String, p::Int = 0)
+character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
+Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
+characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 all_character_table_names
 ```
@@ -101,16 +110,19 @@ indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
 is_irreducible(chi::GAPGroupClassFunction)
-schur_index
+schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
 det(chi::GAPGroupClassFunction)
 order(chi::GAPGroupClassFunction)
+order_field_of_definition(chi::GAPGroupClassFunction)
 ```
 
 ## Attributes of character tables
 
 ```@docs
 character_parameters
+class_names(tbl::GAPGroupCharacterTable)
 class_parameters
+conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
 identifier
 induced_cyclic(tbl::GAPGroupCharacterTable)
@@ -120,6 +132,7 @@ names_of_fusion_sources
 class_lengths
 orders_centralizers
 orders_class_representatives
+ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 ```
 
@@ -128,6 +141,8 @@ trivial_character(tbl::GAPGroupCharacterTable)
 ```@docs
 natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
+natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
 ```
 
@@ -191,6 +206,7 @@ class_multiplication_coefficient
 known_class_fusion
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
+approximate_class_fusion
 ```
 
 ## Character tables and normal subgroups
@@ -203,9 +219,12 @@ conjugacy classes of ``G`` that contain the elements of ``N``.
 
 ```@docs
 center(chi::GAPGroupClassFunction)
-class_positions_of_center
+class_positions_of_center(chi::GAPGroupCharacterTable)
+class_positions_of_center(chi::GAPGroupClassFunction)
+class_positions_of_derived_subgroup
 kernel(chi::GAPGroupClassFunction)
 class_positions_of_kernel
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
+class_positions_of_solvable_residuum
 ```

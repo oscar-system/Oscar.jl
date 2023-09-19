@@ -62,18 +62,8 @@ Completeness is an expensive check. Therefore, we provide an optional argument w
  `completeness_check = false` as last argument to the constructor. The following examples
  demonstrate this:
 ```@docs
-hypersurface_model(base::AbstractNormalToricVariety; completeness_check::Bool = true)
-hypersurface_model(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
-```
-
-### A toric scheme as base space
-
-For the same reasons as above, the toric base must be complete. Similar to toric varieties as
-bases, we can use the optional argument `completeness_check = false` to switch off the
-expensive completeness check. The following examples demonstrate this:
-```@docs
-hypersurface_model(base::ToricCoveredScheme; completeness_check::Bool = true)
-hypersurface_model(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
@@ -85,7 +75,7 @@ This functionality does not yet exist.
 This method constructs a hypersurface model over a base space, where
 this base space is not (fully) specified. We currently provide the following constructors:
 ```@docs
-hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
 ```
 
 ### Standard constructions
@@ -133,3 +123,34 @@ auxiliary ambient space or auxiliary hypersurface have been computed.
 To this end, one invokes `set_verbosity_level(:HypersurfaceModel, 1)`.
 More background information is available
 [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+
+### Attributes in toric settings
+
+If the base space of the hypersurface model is a toric space, then we
+also provide a special type for the Calabi-Yau hypersurface:
+```@docs
+calabi_yau_hypersurface(h::HypersurfaceModel)
+```
+
+### Attributes based on the corresponding global Tate and Weierstrass models
+
+Currently, we do not provide functionality to convert a hypersurface model
+into a Weierstrass or global Tate model. Still, for some constructions this might
+be known or detailed in the literature. If the user wishes, one can then associate
+a corresponding Weierstrass or global Tate model as follows:
+```@docs
+set_weierstrass_model(h::HypersurfaceModel, w::WeierstrassModel)
+set_global_tate_model(h::HypersurfaceModel, w::GlobalTateModel)
+```
+These models can then be accessed with the following functions:
+```@docs
+weierstrass_model(h::HypersurfaceModel)
+global_tate_model(h::HypersurfaceModel)
+```
+Provided that the corresponding Weierstrass model is known for a hypersurface
+model, the following functionality is available. It returns the attribute in question
+of the corresponding Weierstrass model.
+```@docs
+discriminant(h::HypersurfaceModel)
+singular_loci(h::HypersurfaceModel)
+```

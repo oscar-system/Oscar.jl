@@ -70,7 +70,6 @@ coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
 coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
 coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
-
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
 
@@ -88,9 +87,25 @@ end
 
 # provide non-camelcase methods
 @doc raw"""
-    weil_divisor(X::AbsCoveredScheme, R::Ring)
+    weil_divisor(X::AbsCoveredScheme, R::Ring) -> WeilDivisor
 
-See the documentation for `WeilDivisor`.
+Return the zero weil divisor on `X` with coefficients in the ring `R`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y);
+
+julia> weil_divisor(Ycov, QQ)
+Zero weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in rational field
+```
 """
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
@@ -104,6 +119,30 @@ function WeilDivisor(I::IdealSheaf; check::Bool=true)
   WeilDivisor(I, ZZ, check=check)
 end
 
+@doc raw"""
+    weil_divisor(I::IdealSheaf) -> WeilDivisor
+
+Given an ideal sheaf `I`, return the prime weil divisor $D = 1 ⋅ V(I)$ with
+coefficients in the integer ring.
+
+# Example
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P);
+
+julia> II = IdealSheaf(Y, I);
+
+julia> weil_divisor(II)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  1 * sheaf of ideals
+```
+"""
 weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
 function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
@@ -130,18 +169,106 @@ function irreducible_decomposition(D::WeilDivisor)
   return WeilDivisor(decomp, check=false)
 end
 
+# If we know something about the Weil divisor, we write it! Always good to have
+# relevant information for free
 function Base.show(io::IO, D::WeilDivisor)
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  prim = eff && get_attribute(D, :is_prime, false)
   if has_name(D)
     print(io, name(D))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Algebraic cycle")
+  # if the divisor is prime and the ideal sheaf has a name print that
+  elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
+    I = first(components(D))
+    I_name = get_attribute(I, :name)
+    print(io, Lowercase(), I_name)
+  elseif length(components(D)) == 0
+    print(io, "Zero weil divisor on ", Lowercase(),  X)
+  elseif eff
+    if prim
+      print(io, "Prime Weil divisor on ", Lowercase(), X)
+    else
+      print(io, "Effective Weil divisor on ", Lowercase(), X)
+    end
+  else
+    print(io, "Weil divisor on ", Lowercase(), X)
   end
-  if length(components(D)) == 0
-    print(io, "the zero Weil divisor on $(scheme(D))")
-    return
+end
+
+# Used in nested printing, where we assume that the associated scheme is already
+# printed in the nest - we keep track of the good covering `cov` to describe
+# everything consistently.
+function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  prim = eff && get_attribute(D, :is_prime, false)
+  if has_name(D)
+    print(io, name(D))
+  elseif length(components(D)) == 0
+    print(io, "Zero weil divisor on ", Lowercase())
+  elseif eff
+    if prim
+      print(io, "Prime weil divisor on ", Lowercase())
+    else
+      print(io, "Effective Weil divisor on ", Lowercase())
+    end
+  else
+    print(io, "Weil divisor on ", Lowercase())
   end
-  println(io, "Weil divisor on $(scheme(D)) given as the formal sum:")
-  comp = ["$(D[I]) ⋅ $(I)" for I in components(D)]
-  join(io, comp, " + ")
+  Oscar._show_semi_compact(io, X, cov)
+end
+
+# Take care of some offsets to make sure that the coefficients are all aligned
+# on the right.
+function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+  io = pretty(io)
+  X = scheme(D)
+  C = underlying_cycle(D)
+  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  prim = eff && get_attribute(D, :is_prime, false)
+  if length(components(C)) == 0
+    print(io, "Zero weil divisor")
+  else
+    if eff
+      if prim
+        print(io, "Prime weil divisor")
+      else
+        print(io, "Effective weil divisor")
+      end
+    else
+      print(io, "Weil divisor")
+    end
+  end
+  if has_name(D)
+    print(io, " ", name(D))
+  end
+  println(io)
+  print(io, Indent(), "on ", Lowercase())
+  show(io, X, cov)
+  println(io, Dedent())
+  print(io, "with coefficients in ", Lowercase(), coefficient_ring(C))
+  if length(components(C)) != 0
+    println(io)
+    print(io, Dedent(), "given as the formal sum of")
+    print(io, Indent())
+    co_str = String["$(C[I])" for I in components(C)]
+    k = max(length.(co_str)...)
+    for i in 1:length(components(C))
+      println(io)
+      I = components(C)[i]
+      kI = length(co_str[i])
+      print(io, " "^(k-kI)*"$(C[I]) * ")
+      print(io, Indent(), Lowercase())
+      show(io, I, false)
+      print(io, Dedent())
+    end
+  end
 end
 
 function +(D::T, E::T) where {T<:WeilDivisor}
@@ -173,7 +300,9 @@ end
 For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
 as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
 """
-function intersect(D::WeilDivisor, E::WeilDivisor)
+function intersect(D::WeilDivisor, E::WeilDivisor;
+    covering::Covering=default_covering(scheme(D))
+  )
   X = scheme(D)
   @assert dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
   X === scheme(E) || error("divisors do not live on the same scheme")
@@ -199,12 +328,34 @@ function intersect(D::WeilDivisor, E::WeilDivisor)
     a1 = D[c1]
     for c2 in components(E)
       a2 = E[c2]
-      I = c1 + c2
-      @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-      result = result + a1 * a2 * colength(I)
+      if c1 === c2
+        result = result + a1*a2*_self_intersection(c1)
+      else
+        I = c1 + c2
+        if dim(I) > 0
+          if c1 == c2
+            result = result + a1*a2*_self_intersection(c1)
+          else
+            error("self intersection unknown")
+          end
+        else
+          result = result + a1 * a2 * colength(I, covering=covering)
+        end
+      end
     end
   end
   return result
+end
+
+"""
+    _self_intersection(I::IdealSheaf) -> Integer
+
+For ``I`` a sheaf of pure codimension ``1`` on a surface,
+return the self-intersection of ``I`` viewed as a Weil-Divisor.
+"""
+function _self_intersection(I::IdealSheaf)
+  has_attribute(I, :_self_intersection) || error("self intersection unknown")
+  return get_attribute(I, :_self_intersection)::Int
 end
 
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
@@ -312,6 +463,40 @@ generated by rational functions ``f₁,…,fᵣ ∈ K(X)``.
   end
 end
 
+function Base.show(io::IO, L::LinearSystem)
+  io = pretty(io)
+  if get(io, :supercompact, true)
+    print(io, "Linear system")
+  else
+    print(io, "Linear system of ", Lowercase(), weil_divisor(L))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
+  io = pretty(io)
+  X = scheme(L)
+  cov = default_covering(X)
+  println(io, "Linear system")
+  print(io, Indent(), "of ", Lowercase())
+  Oscar._show_semi_compact(io, weil_divisor(L), cov)
+  gg = gens(L)
+  if length(gg) > 0
+    println(io)
+    print(io, Dedent(), "generated by")
+    print(io, Indent())
+    ll = String["$(representative(f))" for f in gg]
+    k = max(length.(ll)...)
+    offset = Int[k-length(s) for s in ll]
+    for i in 1:length(gg)
+      f = gg[i]
+      println(io)
+      print(io, Lowercase())
+      Oscar._show_semi_compact(io, f, cov, offset[i])
+    end
+    print(io, Dedent())
+  end
+end
+
 @doc raw"""
     linear_system(f::Vector, D::WeilDivisor; check::Bool=true)
 
@@ -356,6 +541,9 @@ function subsystem(L::LinearSystem, D::WeilDivisor)
   Lnew = L
   T = identity_matrix(base_ring(scheme(L)), ngens(L))
   for P in components(E)
+    if coeff(D,P) == coeff(E,P)
+      continue
+    end
     Lnew, Tnew = _subsystem(Lnew, P, -coeff(D,P))
     T = Tnew*T
   end
@@ -376,6 +564,9 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   # find one chart in which P is supported
   # TODO: There might be preferred choices for charts with
   # the least complexity.
+  if coeff(weil_divisor(L),P) == -n
+    return L, identity_matrix(ZZ, length(gens(L)))
+  end
   X = variety(L)
   X === space(P) || error("input incompatible")
   C = default_covering(X)
@@ -402,6 +593,7 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   RP, _ = Localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   K = function_field(X)
+
   denom_mult = order_on_divisor(K(common_denominator), P, check=false)
   #denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
@@ -431,7 +623,11 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   end
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
-  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P), check=false), K
+  W = weil_divisor(L)
+  PW = WeilDivisor(P, check=false)
+  k = coeff(W,P)
+  D = W + (min(-n,k)-k)*PW
+  return LinearSystem(new_gens, D, check=false), K[1:r,:]
 end
 
 function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)
@@ -440,14 +636,22 @@ function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)
   return subsystem(L, I, n)
 end
 
+# Prime Weil divisor are those written as 1*Sheaf of prime ideals
 @attr Bool function is_prime(D::WeilDivisor)
-  length(components(D)) == 0 && return true
+  length(components(D)) == 0 && return false # Cannot be prime if there are no components
+  # Two cases:
+  # - D is a sum of at least 2 disinct sheaf of prime ideals -> not prime
+  # - D is not, we then compute an irreducible decomposition as sum of distinct
+  # sheaf of prime ideals, with some coefficients, and we check whether this
+  # irreducible decomposition is prime
   if length(components(D))>1
-    all(I->isprime(I), components(D)) && return false
+    all(I -> is_prime(I), components(D)) && return false
     return is_prime(irreducible_decomposition(D))
   end
-  c = components(D)[1]
-  return coefficient_dict(D)[c] == 1
+  # If D = a*C, then D is prime if and only if C is prime and a == 1
+  C = components(D)[1]
+  !is_prime(C) && return false
+  return coefficient_dict(D)[C] == 1
 end
 
 is_irreducible(D::WeilDivisor) = is_prime(D)

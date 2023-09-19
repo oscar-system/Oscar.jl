@@ -34,7 +34,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> T, _ = grade(S)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+julia> C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia> PP = proj_space(QQ, 2)
@@ -44,7 +44,7 @@ julia> PP = proj_space(QQ, 2)
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
 
-julia> Oscar.is_smooth(C, P)
+julia> is_smooth(C, P)
 false
 ```
 """
@@ -80,13 +80,13 @@ julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
-julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+julia> C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
 (2 : -2 : 1)
 
-julia> Oscar.tangent(C, P)
+julia> tangent(C, P)
 Projective plane curve defined by -48*x - 48*y
 ```
 """
@@ -158,13 +158,13 @@ julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
-julia> C = Oscar.ProjPlaneCurve(T(x+y+z))
+julia> C = ProjPlaneCurve(T(x+y+z))
 Projective plane curve defined by x + y + z
 
-julia> D = Oscar.ProjPlaneCurve(T(z))
+julia> D = ProjPlaneCurve(T(z))
 Projective plane curve defined by z
 
-julia> Oscar.curve_intersect(PP[1], C, D)
+julia> curve_intersect(PP[1], C, D)
 2-element Vector{Vector{Any}}:
  []
  [(-1 : 1 : 0)]
@@ -328,7 +328,7 @@ end
 
 Return the multiplicity of `C` at `P`.
 """
-function multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function Oscar.multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   if P.v[3] != 0
      Fa = dehomogenization(C.eq, 3)
      Ca = AffinePlaneCurve(Fa)
@@ -457,7 +457,7 @@ julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> T, _ = grade(S)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+julia> C = ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
 
 julia> Oscar.PlaneCurveModule.arithmetic_genus(C)

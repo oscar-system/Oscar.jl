@@ -11,8 +11,8 @@ Check whether the affine scheme ``X`` is empty.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates [x1, x2, x3]
 
 julia> isempty(X)
 false
@@ -47,8 +47,8 @@ See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding mor
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -61,7 +61,11 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal(x1*x2)
 
 julia> is_subset(X, Y)
 false
@@ -298,8 +302,8 @@ Checks whether ``X`` is openly embedded in ``Y``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -312,13 +316,21 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal(x1*x2)
 
 julia> is_open_embedding(Y, X)
 false
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
+Spectrum
+  of localization
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    at products of (x1)
 
 julia> is_open_embedding(Z, X)
 true
@@ -366,8 +378,8 @@ Checks whether ``X`` is closed embedded in ``Y``.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
   over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
 Multivariate polynomial ring in 3 variables x1, x2, x3
@@ -380,13 +392,21 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal(x1*x2)
 
 julia> is_closed_embedding(Y, X)
 true
 
 julia> Z = hypersurface_complement(X, x1)
-Spec of Localization of multivariate polynomial ring in 3 variables over QQ at products of 1 element
+Spectrum
+  of localization
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    at products of (x1)
 
 julia> is_closed_embedding(Z, X)
 false
@@ -527,10 +547,18 @@ julia> J = ideal(R,[x-1,y-2])
 ideal(x - 1, y - 2)
 
 julia> X = Spec(R,I)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
+    by ideal(x - y)
 
 julia> Y = Spec(R,I*J)
-Spec of Quotient of multivariate polynomial ring by ideal with 2 generators
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
+    by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
 
 julia> is_equidimensional(X)
 true
@@ -619,13 +647,21 @@ julia> J = ideal(R,[x^2-y^2])
 ideal(x^2 - y^2)
 
 julia> X = Spec(R, I)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
+    by ideal(x - y^2)
 
 julia> is_smooth(X)
 true
 
 julia> Y = Spec(R, J)
-Spec of Quotient of multivariate polynomial ring by ideal with 1 generator
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
+    by ideal(x^2 - y^2)
 
 julia> is_smooth(Y)
 false
@@ -636,7 +672,13 @@ Complement
   in multivariate polynomial ring in 2 variables over QQ
 
 julia> Z = Spec(R, J, U)
-Spec of Localization of quotient of multivariate polynomial ring at complement of maximal ideal
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 2 variables x, y
+        over rational field
+      by ideal(x^2 - y^2)
+    at complement of maximal ideal of point (1, 1)
 
 julia> is_smooth(Z)
 true

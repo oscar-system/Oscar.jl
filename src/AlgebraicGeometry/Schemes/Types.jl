@@ -1,13 +1,18 @@
 
 
 ### Abstract type for arbitrary schemes ###############################
-@doc raw"""
-    Scheme{BaseRingType<:Ring} 
+#@doc raw"""
+#    Scheme{BaseRingType<:Ring} 
+#
+#A scheme over a ring ``𝕜`` of type `BaseRingType`.
+#"""
+#abstract type Scheme{BaseRingType} end
+#
+# Moved to src/forward_declarations.jl
 
-A scheme over a ring ``𝕜`` of type `BaseRingType`.
-"""
-abstract type Scheme{BaseRingType} end
-
+@attr Spec{S,S} function base_scheme(X::Scheme{S}) where {S<:Ring}
+  return Spec(base_ring(X))
+end
 
 ### Abstract type for morphisms of arbitrary schemes ##################
 @doc raw"""
@@ -25,12 +30,12 @@ abstract type SchemeMor{
                         CodomainType, 
                         MorphismType,
                         BaseMorType
-                       } <: Hecke.Map{
-                                      DomainType, 
-                                      CodomainType, 
-                                      SetMap, 
-                                      MorphismType
-                                     }
+                       } <: Map{
+                                DomainType,
+                                CodomainType,
+                                SetMap,
+                                MorphismType
+                                }
 end
 
 

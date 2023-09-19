@@ -131,8 +131,8 @@ mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{ZZRing, ZZRingElem}} 
     # Sanity check whether the multiplicatively closed set S is compatible with the 
     # given rings
     MultSetType <: AbsMultSet{ZZRing, ZZRingElem} || error(
-	"The type of the multiplicatively closed set is not compatible with the type of the ring"
-	)
+        "The type of the multiplicatively closed set is not compatible with the type of the ring"
+        )
     return new{MultSetType}(S)
   end
 end
@@ -144,17 +144,17 @@ inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extensions of the localization function
 function Localization(S::FmpzComplementOfPrimeIdeal) 
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 function Localization(S::FmpzComplementOfZeroIdeal)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 function Localization(S::FmpzPowersOfElement)
   L = FmpzLocalizedRing(S)
-  return L, MapFromFunc(x->L(x), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
 

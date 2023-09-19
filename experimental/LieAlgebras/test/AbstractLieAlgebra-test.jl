@@ -26,6 +26,14 @@
       )
     end
 
+    @testset "4-dim abelian Lie algebra /QQ" begin
+      L = abelian_lie_algebra(AbstractLieAlgebra, QQ, 4)
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "A_4(QQ)" begin
       L = lie_algebra(QQ, ('A', 4))
       lie_algebra_conformance_test(

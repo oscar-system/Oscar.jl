@@ -35,8 +35,13 @@ end
 end
 
 @testset "describe() for projective groups" begin
-   # TODO: PGL / projective_general_linear_group constructor is missing
-   # TODO: PSL / projective_general_linear_group constructor is missing
+   @test describe(projective_general_linear_group(2, 2)) == "S3"
+   @test describe(projective_general_linear_group(2, 7)) == "PSL(3,2) : C2"
+   @test describe(projective_general_linear_group(3, 2)) == "PSL(3,2)"
+
+   @test describe(projective_special_linear_group(2, 2)) == "S3"
+   @test describe(projective_special_linear_group(2, 7)) == "PSL(3,2)"
+   @test describe(projective_special_linear_group(3, 2)) == "PSL(3,2)"
 end
 
 @testset "describe() for free groups" begin

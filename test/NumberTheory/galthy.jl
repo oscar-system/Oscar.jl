@@ -8,7 +8,7 @@
   U = trivial_subgroup(G)[1]
   L = fixed_field(C, U)
   @test degree(L) == order(G)
-  @test length(roots(k.pol, L)) == 5
+  @test length(roots(L, k.pol)) == 5
 
   R, x = polynomial_ring(QQ, "x")
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
@@ -52,7 +52,11 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   # note that we only check the implication, as there are cases in degree 15 and above
   # where primitive_by_shape fails to detect primitivity
   @testset "primitive_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    @test all(G -> is_primitive(G) || !primitive_by_shape(sample_cycle_structures(G),n), grps[n] )
+    # If primitive_by_shape returns true then is_primitive must return true. If
+    # primitive_by_shape returns false then we can't say anything, as we just
+    # might have sampled bad elements.
+    # In other words, we test for the implication `primitive_by_shape => is_primitive`.
+    @test all(G -> !primitive_by_shape(sample_cycle_structures(G),n) || is_primitive(G), grps[n] )
   end
 
   @testset "an_sn_by_shape (exact) in degree $n" for n in 1:11
@@ -60,7 +64,11 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   end
 
   @testset "an_sn_by_shape (randomized) in degree $n" for n in 12:length(grps)
-    @test all(G -> naive_is_giant(G) == an_sn_by_shape(sample_cycle_structures(G),n), grps[n] )
+    # If an_sn_by_shape returns true then naive_is_giant must return true. If
+    # an_sn_by_shape returns false then we can't say anything, as we just
+    # might have sampled bad elements.
+    # In other words, we test for the implication `an_sn_by_shape => naive_is_giant`.
+    @test all(G -> !an_sn_by_shape(sample_cycle_structures(G),n) || naive_is_giant(G), grps[n] )
   end
 
 end

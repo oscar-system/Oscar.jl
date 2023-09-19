@@ -7,15 +7,17 @@ found in the [Developer Style Guide](@ref).
 
 ## Implementing show functions
 
-Here is the translation between `:detail`, `one line` and `:supercompact`.
+Here is the translation between `:detail`, `one line` and `:supercompact`,
+where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
 
 ```
-print(io, "text/plain", x)                 # detailed printing
-print(io, x)                               # one line printing
-print(IOContext(:supercompact => true), x) # supercompact printing
+show(io, MIME"text/plain"(), x)                # detailed printing
+print(io, x)                                   # one line printing
+print(IOContext(io, :supercompact => true), x) # supercompact printing
 ```
 
-For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
+For reference, string interpolation `"$(x)"` uses one line printing via `print(io, x)`,
+while on the REPL detailed printing is used to show top level objects.
 
 ### Mockup
 
@@ -173,7 +175,7 @@ end
 
 function Base.show(io::IO, b::B)
   io = AbstractAlgebra.pretty(io)
-  print(io, LowercaseOff(), "Hilbert thing")
+  print(io, AbstractAlgebra.LowercaseOff(), "Hilbert thing")
 end
 ```
 

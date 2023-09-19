@@ -96,6 +96,14 @@ function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   return IdealSheaf(X, ID, check=false)
 end
 
+function pullback(f::CompositeCoveredSchemeMorphism, C::EffectiveCartierDivisor)
+  result = C
+  for g in reverse(maps(f))
+    result = pullback(g, result)
+  end
+  return result
+end
+
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
@@ -180,7 +188,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   OOX = OO(X)
   OOY = OO(Y)
   # We need to do the following:
-  # The covering CC has patches Vⱼ in the codomain Y of f.
+  # The covering DD has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
   # the domain's covering for phi. 
   res_dict = IdDict{AbsSpec, AbsSpecMor}()
@@ -203,7 +211,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
         ff = SpecMor(UW, W_flat, 
-                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(gens(OO(V)))), check=false),
+                     hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(OOY(par, V).(gens(OO(par))))), check=false),
                      check=false
                     )
         f_res = compose(ff, inverse(iso_W_flat))
@@ -215,7 +223,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   inherit_glueings!(new_domain, domain(phi))
   _register!(new_domain, X)
 
-  psi = CoveringMorphism(new_domain, DD, res_dict, check=true)
+  psi = CoveringMorphism(new_domain, DD, res_dict, check=false)
   restriction_cache(f)[DD] = psi
   return psi
 end
@@ -372,3 +380,6 @@ function inherit_glueings!(ref::Covering, orig::Covering)
   return ref
 end
 
+### Generic pullback and pushforward for composite maps
+pushforward(f::Generic.CompositeMap, a::Any) = pushforward(map2(f), pushforward(map1(f), a))
+pullback(f::Generic.CompositeMap, a::Any) = pullback(map1(f), pullback(map2(f), a))

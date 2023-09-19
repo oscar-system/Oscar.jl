@@ -152,7 +152,7 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
-^(a::MatElem, b::ZZRingElem) = Hecke._generic_power(a, b)
+^(a::MatElem, b::ZZRingElem) = Nemo._generic_power(a, b)
 
 ########################################################################
 #
@@ -160,15 +160,15 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 #
 ########################################################################
 
-# TODO: not sure whether this definition of skew-symmetric is standard (for fields of characteristic 2)
+# TODO: Move to AbstractAlgebra
 """
-    is_skewsymmetric_matrix(B::MatElem{T}) where T <: Ring
+    is_alternating(B::MatElem)
 
-Return whether the matrix `B` is skew-symmetric,
+Return whether the form corresponding to the matrix `B` is alternating,
 i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
 Return `false` if `B` is not a square matrix.
 """
-function is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
+function is_alternating(B::MatElem)
    n = nrows(B)
    n==ncols(B) || return false
 
@@ -183,12 +183,12 @@ function is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 end
 
 """
-    is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+    is_hermitian(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
 Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
-function is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+function is_hermitian(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
    n==ncols(B) || return false
    e = degree(base_ring(B))

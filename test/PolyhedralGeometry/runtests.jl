@@ -1,6 +1,7 @@
-const pm = Polymake
-
 using Oscar
+using Test
+
+const pm = Polymake
 
 include("types.jl")
 include("iterators.jl")
@@ -15,3 +16,5 @@ include("extended.jl")
 include("timing.jl")
 include("solve_integrally.jl")
 include("lineality.jl")
+include("scalar_types.jl")
+include("triangulations.jl")

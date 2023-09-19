@@ -11,6 +11,14 @@
   end
 
   @testset "conformance tests" begin
+    @testset "4-dim abelian Lie algebra /QQ" begin
+      L = abelian_lie_algebra(LinearLieAlgebra, QQ, 4)
+      lie_algebra_conformance_test(
+        L, LinearLieAlgebra{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "gl_4(QQ)" begin
       L = general_linear_lie_algebra(QQ, 4)
       lie_algebra_conformance_test(
@@ -56,7 +64,7 @@
 
   @testset "so_n correctness regression" begin
     function lie_algebra_struct_const(L::LieAlgebra{C}) where {C<:RingElement}
-      R = base_ring(L)
+      R = coefficient_ring(L)
       dimL = dim(L)
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)
       for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))

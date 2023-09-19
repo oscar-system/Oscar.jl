@@ -2,23 +2,43 @@
 # 1: Construct auxiliary base space
 ################################################################
 
-function _auxiliary_base_space(variable_names::Vector{String}, d::Int)
-  ray_gens = [[if i==j 1 else 0 end for j in 1:length(variable_names)] for i in 1:length(variable_names)]
-  max_cones = Hecke.subsets(length(variable_names), d)
-  auxiliary_base_space = normal_toric_variety(ray_gens, max_cones)
-  set_coordinate_names(auxiliary_base_space, variable_names)
+
+function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int)
+
+  # We now try to guess one toric base space with the desired grading and maximal dimension
+  charges = matrix(ZZ, auxiliary_base_grading)
+  variety = normal_toric_variety_from_glsm(charges)
+  G1 = free_abelian_group(ncols(charges))
+  G2 = free_abelian_group(nrows(charges))
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(G1, G2, transpose(charges)))
+  set_attribute!(variety, :class_group, G2)
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
+  
+  # Check if dimensional requirement is met
+  @req dim(variety) >= d "Cannot construct an auxiliary base space of the desired dimension"
+  
+  # Construct one base space of desired dimension
+  auxiliary_base_space = variety
+  if dim(auxiliary_base_space) != d
+    integral_rays = matrix(ZZ, rays(variety))
+    new_max_cones = IncidenceMatrix(cones(variety, d))
+    auxiliary_base_space = normal_toric_variety(integral_rays, new_max_cones; non_redundant = true)
+  end
+
+  # Set attributes of this base space and return it
+  set_coordinate_names(auxiliary_base_space, auxiliary_base_variable_names)
+  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(G1, G2, transpose(charges)))
+  set_attribute!(auxiliary_base_space, :class_group, G2)
+  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
   return auxiliary_base_space
 end
+
 
 ################################################################
 # 2: Construct ambient space from given base
 ################################################################
 
-_ambient_space_from_base(base::ToricCoveredScheme) = _ambient_space_from_base(underlying_toric_variety(base))
-
-_ambient_space_from_base(base::ToricCoveredScheme, fiber_ambient_space::ToricCoveredScheme, D1::ToricDivisorClass, D2::ToricDivisorClass) = _ambient_space_from_base(underlying_toric_variety(base), underlying_toric_variety(fiber_ambient_space), D1, D2)
-
-function _ambient_space_from_base(base::AbstractNormalToricVariety)
+function _ambient_space_from_base(base::NormalToricVariety)
   fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
   D1 = 2 * anticanonical_divisor_class(base)
   D2 = 3 * anticanonical_divisor_class(base)
@@ -26,7 +46,7 @@ function _ambient_space_from_base(base::AbstractNormalToricVariety)
   return _ambient_space(base, fiber_ambient_space, D1, D2)
 end
 
-function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::AbstractNormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
+function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
   
   # Consistency checks
   @req ((toric_variety(D1) === base) && (toric_variety(D2) === base)) "The divisors must belong to the base space"
@@ -61,7 +81,7 @@ function _ambient_space(base::AbstractNormalToricVariety, fiber_ambient_space::A
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct the ambient space
-  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
+  ambient_space = normal_toric_variety(ambient_space_rays, ambient_space_max_cones; non_redundant = true)
   
   # Compute torusinvariant weil divisor group and the class group
   ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
@@ -102,62 +122,16 @@ end
 
 
 ################################################################
-# 3: Construct the Weierstrass/Tate ambient space
+# 3: Construct the Weierstrass polynomial
 ################################################################
 
-_tate_ambient_space_from_base(base::NormalToricVariety) = _weierstrass_ambient_space_from_base(base)
-
-_tate_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
-
-_weierstrass_ambient_space_from_base(base::ToricCoveredScheme) = _weierstrass_ambient_space_from_base(underlying_toric_variety(base))
-
-function _weierstrass_ambient_space_from_base(base::AbstractNormalToricVariety)
-  
-  # Extract information about the toric base
-  base_rays = matrix(ZZ, rays(base))
-  base_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
-  
-  # Construct the rays for the fibre ambient space
-  xray = [0 for i in 1:ncols(base_rays)+2]
-  yray = [0 for i in 1:ncols(base_rays)+2]
-  zray = [0 for i in 1:ncols(base_rays)+2]
-  xray[ncols(base_rays)+1] = 1
-  yray[ncols(base_rays)+2] = 1
-  zray[ncols(base_rays)+1] = -2
-  zray[ncols(base_rays)+2] = -3
-  
-  # Construct the rays of the toric ambient space
-  ambient_space_rays = hcat([r for r in base_rays], [-2 for i in 1:nrows(base_rays)], [-3 for i in 1:nrows(base_rays)])
-  ambient_space_rays = vcat(ambient_space_rays, transpose(xray), transpose(yray), transpose(zray))
-  
-  # Construct the incidence matrix for the maximal cones of the ambient space
-  ambient_space_max_cones = []
-  for i in 1:nrows(base_cones)
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [1 1 0])])
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [1 0 1])])
-    push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [0 1 1])])
-  end
-  ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
-  
-  # Construct and return the ambient space
-  ambient_space = normal_toric_variety(polyhedral_fan(ambient_space_rays, ambient_space_max_cones; non_redundant = true))
-  set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], ["x", "y", "z"]))
-  return ambient_space
-  
-end
-
-
-################################################################
-# 4: Construct the Weierstrass polynomial
-################################################################
-
-function _weierstrass_sections(base::AbstractNormalToricVariety)
+function _weierstrass_sections(base::NormalToricVariety)
   f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
   g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
   return [f, g]
 end
 
-function _weierstrass_polynomial(base::AbstractNormalToricVariety, S::MPolyRing)
+function _weierstrass_polynomial(base::NormalToricVariety, S::MPolyRing)
   (f, g) = _weierstrass_sections(base)
   return _weierstrass_polynomial(f, g, S)
 end
@@ -173,7 +147,7 @@ end
 # 4: Construct the Tate polynomial
 ################################################################
 
-function _tate_sections(base::AbstractNormalToricVariety)
+function _tate_sections(base::NormalToricVariety)
   a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))])
   a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
   a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
@@ -182,7 +156,7 @@ function _tate_sections(base::AbstractNormalToricVariety)
   return [a1, a2, a3, a4, a6]
 end
 
-function _tate_polynomial(base::AbstractNormalToricVariety, S::MPolyRing)
+function _tate_polynomial(base::NormalToricVariety, S::MPolyRing)
   (a1, a2, a3, a4, a6) = _tate_sections(base)
   return _tate_polynomial([a1, a2, a3, a4, a6], S)
 end
@@ -226,16 +200,8 @@ function sample_toric_variety()
           [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
           [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
           [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(polyhedral_fan(rays, cones))
+  return normal_toric_variety(rays, cones)
 end
-
-@doc raw"""
-    sample_toric_scheme()
-
-This method constructs a 3-dimensional toric variety, which we
-use for efficient testing of the provided functionality.
-"""
-sample_toric_scheme() = toric_covered_scheme(sample_toric_variety())
 
 
 ################################################################
@@ -382,3 +348,68 @@ function _blowup_global_sequence(id::MPolyIdeal{QQMPolyRingElem}, centers::Vecto
   return cur_strict_transform, exceptionals, crepant, cur_irr, cur_sri, cur_lin, cur_S, cur_S_gens, ring_map
 end
 _blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::MPolyIdeal{QQMPolyRingElem}; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
+
+
+###########################################################################
+# 9: Constructing a toric sample for models over not-fully specified spaces
+###########################################################################
+
+function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
+  base_space = _auxiliary_base_space(base_vars, base_grading, d)
+  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
+  D1 = [0 for i in 1:rank(class_group(base_space))]
+  D1[1] = 2
+  D1 = toric_divisor_class(base_space, D1)
+  D2 = [0 for i in 1:rank(class_group(base_space))]
+  D2[1] = 3
+  D2 = toric_divisor_class(base_space, D2)
+  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1, D2)
+  return [cox_ring(base_space), base_space, ambient_space]
+end
+
+
+function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+  base_space = _auxiliary_base_space(base_vars, base_grading, d)
+  D1_class = toric_divisor_class(base_space, D1)
+  D2_class = toric_divisor_class(base_space, D2)
+  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1_class, D2_class)
+  return [cox_ring(ambient_space), base_space, ambient_space]
+end
+
+
+###########################################################################
+# 10: Constructing a generic sample for models over not-fully specified spaces
+###########################################################################
+
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
+  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
+  ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
+  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
+  ambient_space_grading = zero_matrix(Int, nrows(base_grading)+1,ncols(base_grading)+3)
+  for i in 1:nrows(base_grading)
+    for j in 1:ncols(base_grading)
+      ambient_space_grading[i,j] = base_grading[i,j]
+    end
+  end
+  ambient_space_grading[1,ncols(base_grading)+1] = 2
+  ambient_space_grading[1,ncols(base_grading)+2] = 3
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 1] = 2
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 2] = 3
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 3] = 1
+  ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+2)
+  return [coordinate_ring(base_space), base_space, ambient_space]
+end
+
+
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
+  ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
+  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
+  w = Matrix{Int64}(vcat([k.coeff for k in cox_ring(fiber_ambient_space).d]))
+  z_block = zeros(Int64, ncols(w), ncols(base_grading))
+  D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
+  ambient_space_grading = [base_grading D_block; z_block w']
+  ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+dim(fiber_ambient_space))
+  return [coordinate_ring(ambient_space), base_space, ambient_space]
+end
