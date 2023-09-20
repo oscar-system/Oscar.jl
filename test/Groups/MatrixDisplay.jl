@@ -1,289 +1,530 @@
-@testset "labelled_matrix_formatted, text format" begin
-  m = 2; n = 2;  mat = Array{String}(undef, m, n);
-  for i in 1:m for j in 1:n mat[i,j] = string(i)*"/"*string(j); end; end
+using Documenter
 
-  io = IOBuffer();
+#
+# This module only exists to "host" a doctest used by the test suite.
+#
+module AuxDocTest_labelled_matrix_formatted
+@doc raw"""
+create the test matrix
 
-  # no labels
-  ioc = IOContext(io,
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "1/1 1/2\n2/1 2/2\n"
+```jldoctest labelled_matrix_formatted.test
+julia> using Oscar
 
-  # with header
-  ioc = IOContext(io,
-          :header => ["header", ""],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "header\n\n1/1 1/2\n2/1 2/2\n"
+julia> m = 2; n = 2;  mat = Array{String}(undef, m, n);
 
-  # with footer
-  ioc = IOContext(io,
-          :footer => ["footer"],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "1/1 1/2\n2/1 2/2\nfooter\n"
+julia> for i in 1:m for j in 1:n mat[i,j] = string(i)*"/"*string(j); end; end;
+```
 
-  # with row labels as vector
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "1: 1/1 1/2\n2: 2/1 2/2\n"
+text format
 
-  # with row labels as matrix
-  ioc = IOContext(io,
-          :labels_row => reshape([string(i)*":" for i in 1:m], m, 1),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "1: 1/1 1/2\n2: 2/1 2/2\n"
+no labels
 
-  # with too wide row labels
-  ioc = IOContext(io,
-          :labels_row => reshape(["_"^30*string(i)*":" for i in 1:m], m, 1),
-          :displaysize => (52, 30),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "(row label part is too wide for the screen)\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout), mat)
+1/1 1/2
+2/1 2/2
+```
 
-  # with column labels as vector
-  ioc = IOContext(io,
-          :labels_col => [string(j) for j in 1:n],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "  1   2\n1/1 1/2\n2/1 2/2\n"
+with header
 
-  # with column labels as matrix
-  ioc = IOContext(io,
-          :labels_col => reshape([string(j) for j in 1:n], 1, n),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "  1   2\n1/1 1/2\n2/1 2/2\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :header => ["header", ""]), mat)
+header
 
-  # with row and column labels
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "     1   2\n1: 1/1 1/2\n2: 2/1 2/2\n"
+1/1 1/2
+2/1 2/2
+```
 
-  # with row and column labels and corner as vector
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :corner => ["(i,j)"],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "(i,j)   1   2\n   1: 1/1 1/2\n   2: 2/1 2/2\n"
+with footer
 
-  # with row and column labels and corner as matrix
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :corner => reshape(["(i,j)"], 1, 1),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "(i,j)   1   2\n   1: 1/1 1/2\n   2: 2/1 2/2\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :footer => ["footer"]), mat)
+1/1 1/2
+2/1 2/2
+footer
+```
 
-  # with a too wide column
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => ["_"^30*string(j) for j in 1:n],
-          :corner => reshape(["(i,j)"], 1, 1),
-          :displaysize => (52, 30),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "(i,j) ______________________________1\n   1:                             1/1\n   2:                             2/1\n\n(i,j) ______________________________2\n   1:                             1/2\n   2:                             2/2\n"
+with row labels as vector
 
-  # with row separators but without column labels
-  ioc = IOContext(io,
-          :separators_row => [0, 1, 2],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "───────\n1/1 1/2\n───────\n2/1 2/2\n───────\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "-------\n1/1 1/2\n-------\n2/1 2/2\n-------\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m]), mat)
+1: 1/1 1/2
+2: 2/1 2/2
+```
 
-  # with row separators and column labels
-  ioc = IOContext(io,
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0,1,2],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "  1   2\n───────\n1/1 1/2\n───────\n2/1 2/2\n───────\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "  1   2\n-------\n1/1 1/2\n-------\n2/1 2/2\n-------\n"
+with row labels as matrix
 
-  # with column separators but without row labels
-  ioc = IOContext(io,
-          :separators_col => [0, 1, 2],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "│1/1│1/2│\n│2/1│2/2│\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "|1/1|1/2|\n|2/1|2/2|\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => reshape([string(i)*":" for i in 1:m], m, 1)), mat)
+1: 1/1 1/2
+2: 2/1 2/2
+```
 
-  # with column separators and row labels
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :separators_col => [0, 1, 2],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "1:│1/1│1/2│\n2:│2/1│2/2│\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "1:|1/1|1/2|\n2:|2/1|2/2|\n"
+with too wide row labels
 
-  # with row and column labels and separators
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0, 1, 2],
-          :separators_col => [0, 1, 2],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "  │  1│  2│\n──┼───┼───┼\n1:│1/1│1/2│\n──┼───┼───┼\n2:│2/1│2/2│\n──┼───┼───┼\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "  |  1|  2|\n--+---+---+\n1:|1/1|1/2|\n--+---+---+\n2:|2/1|2/2|\n--+---+---+\n"
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => reshape(["_"^30*string(i)*":" for i in 1:m], m, 1),
+         :displaysize => (52, 30)), mat)
+(row label part is too wide for the screen)
+```
 
-  # with row and column portions
-  ioc = IOContext(io,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0],
-          :separators_col => [0],
-          :portions_row => [1,1],
-          :portions_col => [1,1],
-        );
-  Oscar.with_unicode() do
-    labelled_matrix_formatted(ioc, mat)
-  end
-  @test String(take!(io)) == "  │  1\n──┼───\n1:│1/1\n\n  │  1\n──┼───\n2:│2/1\n\n  │  2\n──┼───\n1:│1/2\n\n  │  2\n──┼───\n2:│2/2\n"
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "  |  1\n--+---\n1:|1/1\n\n  |  1\n--+---\n2:|2/1\n\n  |  2\n--+---\n1:|1/2\n\n  |  2\n--+---\n2:|2/2\n"
+with column labels as vector
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_col => [string(j) for j in 1:n]), mat)
+  1   2
+1/1 1/2
+2/1 2/2
+```
+
+with column labels as matrix
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_col => reshape([string(j) for j in 1:n], 1, n)), mat)
+  1   2
+1/1 1/2
+2/1 2/2
+```
+
+with row and column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n]), mat)
+     1   2
+1: 1/1 1/2
+2: 2/1 2/2
+```
+
+with row and column labels and corner as vector
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :corner => ["(i,j)"]), mat)
+(i,j)   1   2
+   1: 1/1 1/2
+   2: 2/1 2/2
+```
+
+with row and column labels and corner as matrix
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :corner => reshape(["(i,j)"], 1, 1)), mat)
+(i,j)   1   2
+   1: 1/1 1/2
+   2: 2/1 2/2
+```
+
+with a too wide column
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => ["_"^30*string(j) for j in 1:n],
+         :corner => reshape(["(i,j)"], 1, 1),
+         :displaysize => (52, 30)), mat)
+(i,j) ______________________________1
+   1:                             1/1
+   2:                             2/1
+
+(i,j) ______________________________2
+   1:                             1/2
+   2:                             2/2
+```
+
+with row separators but without column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+           :separators_row => [0, 1, 2]), mat)
+       end
+───────
+1/1 1/2
+───────
+2/1 2/2
+───────
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :separators_row => [0, 1, 2]), mat)
+-------
+1/1 1/2
+-------
+2/1 2/2
+-------
+```
+
+with row separators and column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0,1,2]), mat)
+       end
+  1   2
+───────
+1/1 1/2
+───────
+2/1 2/2
+───────
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0,1,2]), mat)
+  1   2
+-------
+1/1 1/2
+-------
+2/1 2/2
+-------
+```
+
+with column separators but without row labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+         :separators_col => [0, 1, 2]), mat)
+       end
+│1/1│1/2│
+│2/1│2/2│
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :separators_col => [0, 1, 2]), mat)
+|1/1|1/2|
+|2/1|2/2|
+```
+
+with column separators and row labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :separators_col => [0, 1, 2]), mat)
+       end
+1:│1/1│1/2│
+2:│2/1│2/2│
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :separators_col => [0, 1, 2]), mat)
+1:|1/1|1/2|
+2:|2/1|2/2|
+```
+
+with row and column labels and separators
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0, 1, 2],
+         :separators_col => [0, 1, 2]), mat)
+       end
+  │  1│  2│
+──┼───┼───┼
+1:│1/1│1/2│
+──┼───┼───┼
+2:│2/1│2/2│
+──┼───┼───┼
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0, 1, 2],
+         :separators_col => [0, 1, 2]), mat)
+  |  1|  2|
+--+---+---+
+1:|1/1|1/2|
+--+---+---+
+2:|2/1|2/2|
+--+---+---+
+```
+
+with row and column portions
+
+```jldoctest labelled_matrix_formatted.test
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0],
+         :separators_col => [0],
+         :portions_row => [1,1],
+         :portions_col => [1,1]), mat)
+       end
+  │  1
+──┼───
+1:│1/1
+
+  │  1
+──┼───
+2:│2/1
+
+  │  2
+──┼───
+1:│1/2
+
+  │  2
+──┼───
+2:│2/2
+
+julia> labelled_matrix_formatted(IOContext(stdout,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0],
+         :separators_col => [0],
+         :portions_row => [1,1],
+         :portions_col => [1,1]), mat)
+  |  1
+--+---
+1:|1/1
+
+  |  1
+--+---
+2:|2/1
+
+  |  2
+--+---
+1:|1/2
+
+  |  2
+--+---
+2:|2/2
+```
+
+LaTeX format
+
+```jldoctest labelled_matrix_formatted.test
+julia> m = 2; n = 2;  mat = Array{String}(undef, m, n);
+
+julia> for i in 1:m for j in 1:n mat[i,j] = string(i)*"/"*string(j); end; end;
+```
+
+no labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true), mat)
+\begin{array}{rr}
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+```
+
+with header
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :header => ["header", ""]), mat)
+header
+
+\begin{array}{rr}
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+```
+
+with footer
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :footer => ["footer"]), mat)
+\begin{array}{rr}
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+
+\begin{array}{l}
+footer \\
+\end{array}
+```
+
+with row labels as vector
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => [string(i)*":" for i in 1:m]), mat)
+\begin{array}{rrr}
+1: & 1/1 & 1/2 \\
+2: & 2/1 & 2/2 \\
+\end{array}
+```
+
+with row labels as matrix
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => reshape([string(i)*":" for i in 1:m], m, 1)), mat)
+\begin{array}{rrr}
+1: & 1/1 & 1/2 \\
+2: & 2/1 & 2/2 \\
+\end{array}
+```
+
+with column labels as vector
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+        :labels_col => [string(j) for j in 1:n]), mat)
+\begin{array}{rr}
+1 & 2 \\
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+```
+
+with column labels as matrix
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_col => reshape([string(j) for j in 1:n], 1, n)), mat)
+\begin{array}{rr}
+1 & 2 \\
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+```
+
+with row and column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n]), mat)
+\begin{array}{rrr}
+ & 1 & 2 \\
+1: & 1/1 & 1/2 \\
+2: & 2/1 & 2/2 \\
+\end{array}
+```
+
+with row separators but without column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :separators_row => [0, 1, 2]), mat)
+\begin{array}{rr}
+\hline
+1/1 & 1/2 \\
+\hline
+2/1 & 2/2 \\
+\hline
+\end{array}
+```
+
+with row separators and column labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0,1,2]), mat)
+\begin{array}{rr}
+1 & 2 \\
+\hline
+1/1 & 1/2 \\
+\hline
+2/1 & 2/2 \\
+\hline
+\end{array}
+```
+
+with column separators but without row labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :separators_col => [0, 1, 2]), mat)
+\begin{array}{|r|r|}
+1/1 & 1/2 \\
+2/1 & 2/2 \\
+\end{array}
+```
+
+with column separators and row labels
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :separators_col => [0, 1, 2]), mat)
+\begin{array}{r|r|r|}
+1: & 1/1 & 1/2 \\
+2: & 2/1 & 2/2 \\
+\end{array}
+```
+
+with row and column labels and separators
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => [string(i)*":" for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0, 1, 2],
+         :separators_col => [0, 1, 2]), mat)
+\begin{array}{r|r|r|}
+ & 1 & 2 \\
+\hline
+1: & 1/1 & 1/2 \\
+\hline
+2: & 2/1 & 2/2 \\
+\hline
+\end{array}
+```
+
+with row and column portions
+
+```jldoctest labelled_matrix_formatted.test
+julia> labelled_matrix_formatted(IOContext(stdout, :TeX => true,
+         :labels_row => [string(i) for i in 1:m],
+         :labels_col => [string(j) for j in 1:n],
+         :separators_row => [0],
+         :separators_col => [0],
+         :portions_row => [1,1],
+         :portions_col => [1,1]), mat)
+\begin{array}{r|r}
+ & 1 \\
+\hline
+1 & 1/1 \\
+\end{array}
+
+\begin{array}{r|r}
+ & 1 \\
+\hline
+2 & 2/1 \\
+\end{array}
+
+\begin{array}{r|r}
+ & 2 \\
+\hline
+1 & 1/2 \\
+\end{array}
+
+\begin{array}{r|r}
+ & 2 \\
+\hline
+2 & 2/2 \\
+\end{array}
+```
+"""
+function dummy_placeholder end
+
 end
 
-@testset "labelled_matrix_formatted, LaTeX format" begin
-  m = 2; n = 2;  mat = Array{String}(undef, m, n);
-  for i in 1:m for j in 1:n mat[i,j] = string(i)*"/"*string(j); end; end
-
-  io = IOBuffer();
-
-  # no labels
-  ioc = IOContext(io, :TeX => true,
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with header
-  ioc = IOContext(io, :TeX => true,
-          :header => ["header", ""],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "header\n\n\\begin{array}{rr}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with footer
-  ioc = IOContext(io, :TeX => true,
-          :footer => ["footer"],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n\n\\begin{array}{l}\nfooter \\\\\n\\end{array}\n"
-
-  # with row labels as vector
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => [string(i)*":" for i in 1:m],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rrr}\n1: & 1/1 & 1/2 \\\\\n2: & 2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with row labels as matrix
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => reshape([string(i)*":" for i in 1:m], m, 1),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rrr}\n1: & 1/1 & 1/2 \\\\\n2: & 2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with column labels as vector
-  ioc = IOContext(io, :TeX => true,
-          :labels_col => [string(j) for j in 1:n],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1 & 2 \\\\\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with column labels as matrix
-  ioc = IOContext(io, :TeX => true,
-          :labels_col => reshape([string(j) for j in 1:n], 1, n),
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1 & 2 \\\\\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with row and column labels
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rrr}\n & 1 & 2 \\\\\n1: & 1/1 & 1/2 \\\\\n2: & 2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with row separators but without column labels
-  ioc = IOContext(io, :TeX => true,
-          :separators_row => [0, 1, 2],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n\\hline\n1/1 & 1/2 \\\\\n\\hline\n2/1 & 2/2 \\\\\n\\hline\n\\end{array}\n"
-
-  # with row separators and column labels
-  ioc = IOContext(io, :TeX => true,
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0,1,2],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{rr}\n1 & 2 \\\\\n\\hline\n1/1 & 1/2 \\\\\n\\hline\n2/1 & 2/2 \\\\\n\\hline\n\\end{array}\n"
-
-  # with column separators but without row labels
-  ioc = IOContext(io, :TeX => true,
-          :separators_col => [0, 1, 2],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{|r|r|}\n1/1 & 1/2 \\\\\n2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with column separators and row labels
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :separators_col => [0, 1, 2],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{r|r|r|}\n1: & 1/1 & 1/2 \\\\\n2: & 2/1 & 2/2 \\\\\n\\end{array}\n"
-
-  # with row and column labels and separators
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => [string(i)*":" for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0, 1, 2],
-          :separators_col => [0, 1, 2],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{r|r|r|}\n & 1 & 2 \\\\\n\\hline\n1: & 1/1 & 1/2 \\\\\n\\hline\n2: & 2/1 & 2/2 \\\\\n\\hline\n\\end{array}\n"
-
-  # with row and column portions
-  ioc = IOContext(io, :TeX => true,
-          :labels_row => [string(i) for i in 1:m],
-          :labels_col => [string(j) for j in 1:n],
-          :separators_row => [0],
-          :separators_col => [0],
-          :portions_row => [1,1],
-          :portions_col => [1,1],
-        );
-  labelled_matrix_formatted(ioc, mat)
-  @test String(take!(io)) == "\\begin{array}{r|r}\n & 1 \\\\\n\\hline\n1 & 1/1 \\\\\n\\end{array}\n\n\\begin{array}{r|r}\n & 1 \\\\\n\\hline\n2 & 2/1 \\\\\n\\end{array}\n\n\\begin{array}{r|r}\n & 2 \\\\\n\\hline\n1 & 1/2 \\\\\n\\end{array}\n\n\\begin{array}{r|r}\n & 2 \\\\\n\\hline\n2 & 2/2 \\\\\n\\end{array}\n"
+@testset "show and print formatted matrices" begin
+  doctest(nothing, [AuxDocTest_labelled_matrix_formatted])
+  #doctest(nothing, [AuxDocTest_labelled_matrix_formatted]; fix=true)
 end
