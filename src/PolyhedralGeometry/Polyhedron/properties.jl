@@ -1250,12 +1250,17 @@ _cmp_string(::Val{:lte}) = is_unicode_allowed() ? "≦" : "<="
 _cmp_string(::Val{:eq}) = "="
 
 @doc raw"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
+    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial = false, numbered = false, io = stdout, cmp = :lte)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Keyword Arguments
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+- `io::IO`: Target `IO` where the  constraints are printed to.
+- `cmp::Symbol`: Defines the string used for the comparison sign; supports `:lte` (less than or equal) and `:eq` (equal).
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 ```jldoctest
@@ -1310,12 +1315,16 @@ _constraint_string(x::QQFieldElem) = string(x)
 _constraint_string(x::FieldElem) = string("(", x, ")")
 
 @doc raw"""
-    print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
+    print_constraints(P::Polyhedron; trivial = false, numbered = false, io = stdout)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Keyword Arguments
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+- `io::IO`: Target `IO` where the  constraints are printed to.
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
