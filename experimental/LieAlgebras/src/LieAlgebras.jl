@@ -13,9 +13,9 @@ using AbstractAlgebra.PrettyPrinting
 import ..Oscar:
   _iso_oscar_gap,
   action,
-  base_ring,
   basis,
   basis_matrix,
+  base_ring,
   center,
   centralizer,
   coeff,
@@ -54,7 +54,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, inv, isone, issubset, iszero, one, parent, rand, setindex!, show, zero,  +, -, *, ^, ==, !=
+import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, show, zero, ==
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
@@ -66,7 +66,6 @@ export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
-
 export abelian_lie_algebra
 export abstract_module
 export adjoint_matrix

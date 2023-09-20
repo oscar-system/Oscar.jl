@@ -85,34 +85,6 @@ end
 #
 ###############################################################################
 @doc raw"""
-    root_system(S::Symbol, n::Int64) -> root_system
-    
-Return the root system of type `S` where `S` is a string consisting out of
-a letter `A`, `B`, `C`, `D`, `E`, `F`, `G` followed by an integer.
-For the exceptional root system, the integers are fixed, e.g. `G2`, `F4`, `E6`, ...
-"""
-function root_system(S::Symbol, n::Int64)
-  @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type, S needs to be a symbol in [:A, :B, :C, :D, :E, :F, :G]"
-  @req n > 0 "n needs to be a positive integer"
-  # S is a symbol detailing the type of the indecomposable root system 
-  # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
-  return RootSystem(S, n)
-end
-
-function Base.hash(R::RootSystem, h::UInt)
-  b = 0x9d96557cb5f07773 % UInt
-  h = hash(R.positive_roots, h)
-  h = hash(R.root_system_type, h)
-  h = hash(R.roots, h)
-  h = hash(R.simple_roots, h)
-  return xor(h, b)
-end
-###############################################################################
-#
-#   Constructor
-#
-###############################################################################
-@doc raw"""
   root_system(S::String) -> root_system
 Return the root system of type `S` where `S` is a string consisting out of
 a letter `A`, `B`, `C`, `D`, `E`, `F`, `G` followed by an integer.
@@ -122,8 +94,9 @@ function root_system(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
   # S is a symbol detailing the type of the indecomposable root system 
   # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
-  return RootSystem(S,n)
+  return RootSystem(S, n)
 end
+
 ###############################################################################
 #
 #   further functions

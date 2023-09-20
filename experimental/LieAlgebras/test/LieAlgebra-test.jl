@@ -26,6 +26,8 @@ function lie_algebra_conformance_test(
     @test dim(L) == length(basis(L))
     @test all(i -> basis(L, i) == basis(L)[i], 1:dim(L))
 
+    @test dim(L) == length(symbols(L))
+
     @test iszero(zero(L))
 
     @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
@@ -102,6 +104,7 @@ end
 
 include("AbstractLieAlgebra-test.jl")
 include("LinearLieAlgebra-test.jl")
+include("simple_lie_algebra-test.jl")
 
 @testset "LieAlgebras.LieAlgebra" begin
   @testset "universal_enveloping_algebra" begin

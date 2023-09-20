@@ -14,15 +14,15 @@
     s = [Symbol("e_$i") for i in 1:dimL]
     st = root_system_type(RS)
     #get the structure constants of the Lie algebra L 
-    #note that it is enoough to do this over Q, as we can later coerce the constants
+    #note that it is enough to do this over Q, as we can later coerce the constants
     #into the ring R
-    coeffs_iso = inv(Oscar.iso_oscar_gap(R))
+    coeffs_iso = inv(Oscar.iso_oscar_gap(QQ))
     LG = GAP.Globals.SimpleLieAlgebra(
       GAP.Obj(S), n, domain(coeffs_iso)
     )
     sc_table_G =
       (
-        entry -> (entry[1], Vector{elem_type(R)}(map(coeffs_iso, entry[2])))
+        entry -> (entry[1], Vector{elem_type(QQ)}(map(coeffs_iso, entry[2])))
       ).(
         Matrix{Tuple{Vector{Int},Vector{GAP.Obj}}}(
           (GAP.Globals.StructureConstantsTable(GAPWrap.Basis(LG)))[1:dimL]
