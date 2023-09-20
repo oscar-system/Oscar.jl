@@ -13,9 +13,9 @@
 # together with the embeddings O(A) \to O(D) and O(B) \to O(D)
 function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModule)
   D = A+B
-  AinD = hom(A, D, TorQuadModuleElem[D(lift(a)) for a in gens(A)])
-  BinD = hom(B, D, TorQuadModuleElem[D(lift(b)) for b in gens(B)])
-  @assert all(AinD(a)*BinD(b) == 0 for a in gens(A), b in gens(B))
+  AinD = hom(A, D, elem_type(D)[D(lift(a)) for a in gens(A)])
+  BinD = hom(B, D, elem_type(D)[D(lift(b)) for b in gens(B)])
+  @hassert :ZZLatWithIsom 1 all(AinD(a)*BinD(b) == 0 for a in gens(A), b in gens(B))
   OD = orthogonal_group(D)
   OA = orthogonal_group(A)
   OB = orthogonal_group(B)
@@ -25,7 +25,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   for f in gens(OA)
     imgf = data.(union!(AinD.(f.(gens(A))), BinD.(gens(B))))
     fab = hom(gene, imgf)
-    fD = OD(hom(D, D, fab.map))
+    fD = OD(hom(D, D, fab.map); check = false)
     push!(geneOAinOD, fD)
   end
 
@@ -33,7 +33,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   for f in gens(OB)
     imgf = data.(union!(AinD.(gens(A)), BinD.(f.(gens(B)))))
     fab = hom(gene, imgf)
-    fD = OD(hom(D, D, fab.map))
+    fD = OD(hom(D, D, fab.map); check = false)
     push!(geneOBinOD, fD)
   end
   OAtoOD = hom(OA, OD, geneOAinOD; check = false)
@@ -85,11 +85,11 @@ end
 # This object is defined in Algorithm 2 of [BH23], the glue kernel we aim to use
 # for gluing lattices in a p-admissible triples are actually submodules of these
 # V's.
-function _get_V(fq::TorQuadModuleMor, mu, p::IntegerUnion)
+function _get_V(fq::TorQuadModuleMor, mu::PolyRingElem, p::IntegerUnion)
   q = domain(fq)
   V, _ = primary_part(q, p)
   _, Vinq = sub(q, elem_type(q)[q(lift(divexact(order(g), p)*g)) for g in gens(V) if !(order(g)==1)])
-  fpV = restrict_endomorphism(fq, Vinq)
+  fpV = restrict_endomorphism(fq, Vinq; check = false)
   fpV = evaluate(mu, fpV)
   V, _ = kernel(fpV)
   Vinq = hom(V, q, elem_type(q)[q(lift(a)) for a in gens(V)])
@@ -98,7 +98,7 @@ function _get_V(fq::TorQuadModuleMor, mu, p::IntegerUnion)
 end
 
 # This is the rho function as defined in Definition 4.8 of BH23.
-function _rho_functor(q::TorQuadModule, p, l::Union{Integer, fmpz}; quad::Bool = (p == 2))
+function _rho_functor(q::TorQuadModule, p::IntegerUnion, l::IntegerUnion; quad::Bool = (p == 2))
   pq, pqtoq = primary_part(q, p)
   pq = rescale(pq, QQ(p)^(l-1))
   Nv = cover(pq)
@@ -127,12 +127,12 @@ end
 
 # A finite bilinear module over the 2-adic integers is even if all square are
 # zeros.
-function _is_even(T, p, l)
+function _is_even(T::TorQuadModule, p::IntegerUnion, l::IntegerUnion)
   B = gram_matrix_bilinear(_rho_functor(T, p, l; quad = false))
   return is_empty(B) || (all(is_zero, diagonal(B)) && all(is_integral, 2*B))
 end
 
-function _is_free(T, p, l)
+function _is_free(T::TorQuadModule, p::IntegerUnion, l::IntegerUnion)
   return _is_even(T, p, l-1) && _is_even(T, p, l+1)
 end
 
@@ -169,24 +169,24 @@ function _overlattice(gamma::TorQuadModuleMor,
     z = zero_matrix(QQ, 0, degree(A))
     glue = reduce(vcat, QQMatrix[matrix(QQ, 1, degree(A), g) for g in _glue]; init=z)
     glue = vcat(basis_matrix(A+B), glue)
-    glue = FakeFmpqMat(glue)
-    _B = hnf(glue)
-    _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+    Fakeglue = FakeFmpqMat(glue)
+    _FakeB = hnf(Fakeglue)
+    _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
     C = lattice(ambient_space(A), _B[end-rank(A)-rank(B)+1:end, :])
-    fC = block_diagonal_matrix([fA, fB])
+    fC = block_diagonal_matrix(QQMatrix[fA, fB])
     _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C))
     fC = _B*fC*inv(_B)
   else
     _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(domain(gamma))]
     z = zero_matrix(QQ, 0, degree(cover(D)))
     glue = reduce(vcat, QQMatrix[matrix(QQ, 1, degree(cover(D)), g) for g in _glue]; init=z)
-    glue = vcat(block_diagonal_matrix(basis_matrix.([A, B])), glue)
-    glue = FakeFmpqMat(glue)
-    _B = hnf(glue)
-    _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+    glue = vcat(block_diagonal_matrix(basis_matrix.(ZZLat[A, B])), glue)
+    Fakeglue = FakeFmpqMat(glue)
+    _FakeB = hnf(Fakeglue)
+    _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
     C = lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
-    fC = block_diagonal_matrix([fA, fB])
-    _B = solve_left(block_diagonal_matrix(basis_matrix.([A, B])), basis_matrix(C))
+    fC = block_diagonal_matrix(QQMatrix[fA, fB])
+    _B = solve_left(block_diagonal_matrix(basis_matrix.(ZZLat[A, B])), basis_matrix(C))
     fC = _B*fC*inv(_B)
   end
   @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
@@ -220,7 +220,7 @@ end
 
 function _on_subgroup_automorphic(T::TorQuadModule, g::AutomorphismGroupElem)
   q = domain(parent(g))
-  gene = TorQuadModuleElem[g(q(lift(t))) for t in gens(T)]
+  gene = elem_type(q)[g(q(lift(t))) for t in gens(T)]
   return sub(q, gene)[1]
 end
 
@@ -231,7 +231,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
   q = domain(O)
   N, _ = sub(q, i.(gens(domain(i))))
   stab, _ = stabilizer(O, N, _on_subgroup_automorphic)
-  return sub(O, O.([h.X for h in gens(stab)]))
+  return sub(O, elem_type(O)[O(h) for h in gens(stab)])
 end
 
 function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor,
@@ -248,7 +248,7 @@ function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor
     return res
   end
 
-  fV = f isa TorQuadModuleMor ? restrict_endomorphism(f, Vinq) : restrict_endomorphism(hom(f), Vinq)
+  fV = f isa TorQuadModuleMor ? restrict_endomorphism(f, Vinq; check = false) : restrict_endomorphism(hom(f), Vinq; check = false)
   if ord == -1
     subs = collect(stable_submodules(V, TorQuadModuleMor[fV]))
   else
@@ -294,7 +294,7 @@ function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMor, p::IntegerUnion)
 
   function _VptoV(v::ModuleElem{FpFieldElem})
     x = lift.(v.v)
-    return sum(TorQuadModuleElem[x[i]*V[i] for i in 1:ngens(V)])
+    return sum(x[i]*V[i] for i in 1:n)
   end
 
   VtoVp = Hecke.MapFromFunc(V, Vp, _VtoVp, _VptoV)
@@ -308,15 +308,15 @@ end
 # Almost duplicate of an existing function: we do not always want to compute
 # stabilizers but just some orbit representatives
 function _orbit_representatives(G::MatrixGroup{E}, k::Int, O::AutomorphismGroup{TorQuadModule}) where E <: FinFieldElem
-  F = G.ring
-  n = G.deg
+  F = base_ring(G)
+  n = degree(G)
   q = GAP.Obj(order(F))
   V = VectorSpace(F, n)
   orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^n, k))
-  orbs = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
-  orbs = [[[F(x) for x in v] for v in bas] for bas in orbs]
-  orbs = [sub(V, [V(v) for v in bas])[1] for bas in orbs]
-  return [(orbs[i], O) for i in 1:length(orbs)]
+  orbs1 = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
+  orbs2 = [[[F(x) for x in v] for v in bas] for bas in orbs1]::Vector{Vector{Vector{elem_type(F)}}}
+  orbs3 = [sub(V, [V(v) for v in bas])[1] for bas in orbs2]
+  return [(orbs3[i], O) for i in 1:length(orbs3)]
 end
 
 # Given an abelian group injection V \to q where the group structure on V is
@@ -366,7 +366,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
 
   # In theory, V should contain H0 := p^l*pq where pq is the p-primary part of q
   all(a -> has_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq)) || return res
-  H0, H0inq = sub(q, TorQuadModuleElem[q(lift((p^l)*a)) for a in gens(pq)])
+  H0, H0inq = sub(q, elem_type(q)[q(lift((p^l)*a)) for a in gens(pq)])
   @hassert :ZZLatWithIsom 1 is_invariant(f, H0inq)
 
   # H0 should be contained in the group we want. So either H0 is the only one
@@ -377,7 +377,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
     return res
   end
 
-  H0inV = hom(H0, V, TorQuadModuleElem[V(lift(a)) for a in gens(H0)])
+  H0inV = hom(H0, V, elem_type(V)[V(lift(a)) for a in gens(H0)])
   @hassert :ZZLatWithIsom 1 is_injective(H0inV)
 
   # Since V and H0 are elementary p-groups, they can be seen as finite
@@ -391,7 +391,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   dim(Qp) == 0 && return res
 
   # We descend G to V for computing stabilizers later on
-  GV, GtoGV = restrict_automorphism_group(G, Vinq)
+  GV, GtoGV = restrict_automorphism_group(G, Vinq; check = false)
   if compute_stab
     satV, j = kernel(GtoGV)
   end
@@ -421,20 +421,20 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
 
   for (orb, stab) in orb_and_stab
     i = orb.map
-    gene_orb = elem_type(Qp)[Qp(vec(collect(i(v).v))) for v in gens(domain(i))]
-    gene_orb = elem_type(Vp)[preimage(VptoQp, v) for v in gene_orb]
+    gene_orbQp = elem_type(Qp)[Qp(vec(collect(i(v).v))) for v in gens(domain(i))]
+    gene_orbVp = elem_type(Vp)[preimage(VptoQp, v) for v in gene_orbQp]
 
-    gene_orb = vcat(gene_orb, gene_H0p)
-    gene_orb = elem_type(V)[preimage(VtoVp, Vp(v)) for v in gene_orb]
-    gene_orb = elem_type(q)[image(Vinq, v) for v in gene_orb]
-    orbq, orbqinq = sub(q, gene_orb)
+    gene_orbVp = vcat(gene_orbVp, gene_H0p)
+    gene_orbV = elem_type(V)[preimage(VtoVp, Vp(v)) for v in gene_orbVp]
+    gene_orbq = elem_type(q)[image(Vinq, v) for v in gene_orbV]
+    orbq, orbqinq = sub(q, gene_orbq)
     @hassert :ZZLatWithIsom 1 order(orbq) == ord
     # We keep only f-stable subspaces
     is_invariant(f, orbqinq) || continue
 
     if compute_stab
-      stabq = AutomorphismGroupElem{TorQuadModule}[GtoMGp\(s) for s in gens(stab)]
-      stabq, _ = sub(G, union!(stabq, gens(satV)))
+      stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
+      stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
       # Stabilizers should preserve the actual subspaces, by definition. so if we
       # have lifted since properly, this should hold..
       @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
@@ -472,7 +472,7 @@ function _classes_automorphic_subgroups(q::TorQuadModule,
   # primary part of H.
   #
   # First, we cut q as an orthogonal direct sum of its primary parts
-  pds = sort(prime_divisors(order(q)))
+  pds = sort!(prime_divisors(order(q)))
   if compute_stab
     blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
     ni = Int[ngens(domain(blocks[1]))]
@@ -489,7 +489,8 @@ function _classes_automorphic_subgroups(q::TorQuadModule,
     blocks = TorQuadModuleMor[primary_part(q, p)[2] for p in pds]
     D, inj, proj = biproduct(domain.(blocks))
   end
-  _, phi = is_isometric_with_isometry(D, q)
+  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
+  @hassert :ZZLatWithIsom 1 is_isometry(phi)
 
   list_can = Vector{Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}}[]
   # We collect the possible subgroups for each primary part, with the stabilizer
@@ -498,8 +499,8 @@ function _classes_automorphic_subgroups(q::TorQuadModule,
     qpinq = blocks[i]
     qp = domain(qpinq)
     T, _ = primary_part(H, p)
-    Oqp = restrict_automorphism_group(O, qpinq)[1]
-    fqp = restrict_endomorphism(f, qpinq)
+    Oqp, _ = restrict_automorphism_group(O, qpinq; check = false)
+    fqp = restrict_endomorphism(f, qpinq; check = false)
     if is_elementary(T, p)
       _, j = _get_V(id_hom(qp), minimal_polynomial(identity_matrix(QQ, 1)), p)
       sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, order(T), fqp; compute_stab)
@@ -520,7 +521,7 @@ function _classes_automorphic_subgroups(q::TorQuadModule,
     embs = TorQuadModuleMor[l[1] for l in lis]
     embs = TorQuadModuleMor[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
     H2, _proj = direct_product(domain.(embs)...)
-    _, H2inq = sub(q, TorQuadModuleElem[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
+    _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
     if compute_stab
       stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
       genestab = ZZMatrix[]
@@ -600,11 +601,11 @@ function _isomorphism_classes_primitive_extensions(N::ZZLat,
     HM = domain(HMinqM)
     OHM = orthogonal_group(HM)
 
-    actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN)) for x in gens(stabN)])
-    actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM)) for x in gens(stabM)])
+    actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(stabN)])
+    actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(stabM)])
     imM, _ = image(actM)
 
-    stabNphi = AutomorphismGroupElem{TorQuadModule}[OHM(compose(inv(phi), compose(hom(actN(g)), phi))) for g in gens(stabN)]
+    stabNphi = elem_type(OHM)[OHM(compose(inv(phi), compose(hom(actN(g)), phi)); check = false) for g in gens(stabN)]
     stabNphi, _ = sub(OHM, stabNphi)
 
     if is_elementary_with_prime(HM)[1]
@@ -862,7 +863,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       # $M\perp L2 \subset T \subset Mv\perp L1$.
       #
       # The upshot is that both $(T\cap S)/(M\perp L2)$ and
-      # $(T\cap Sv)/(M\perpL2) lies in the embedding of $qM \to D$. Their
+      # $(T\cap Sv)/(M\perp L2) lies in the embedding of $qM \to D$. Their
       # quotient is isometric to the quotient of their preimage.
       # The quotient of their preimage is precisely the subgroup of `qM`
       # we look for.
@@ -961,8 +962,8 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   if g == 0
     # Needed to compute the image of the stabilizer of the isometry we construct
     # (in the orthogonal group of the discriminant group of the new lattice).
-    geneA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(OqA(a.X)) for a in gens(GA)]
-    geneB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(OqB(b.X)) for b in gens(GB)]
+    geneA = elem_type(OD)[OqAinOD(OqA(a.X)) for a in gens(GA)]
+    geneB = elem_type(OD)[OqBinOD(OqB(b.X)) for b in gens(GB)]
     union!(geneA, geneB)
 
     # We compute the overlattice in this context
@@ -974,7 +975,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
 
     qC2 = discriminant_group(C2)
     OqC2 = orthogonal_group(qC2)
-    phi2 = hom(qC2, D, TorQuadModuleElem[D(lift(x)) for x in gens(qC2)])
+    phi2 = hom(qC2, D, elem_type(D)[D(lift(x)) for x in gens(qC2)])
     @hassert :ZZLatWithIsom 1 is_isometry(phi2)
 
     # This is the new image of the stabilizer, just a direct product of
@@ -1029,35 +1030,23 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   for H1 in subsA, H2 in subsB
     ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
     !ok && continue
+
     SAinqA, stabA = H1
     SA = domain(SAinqA)
     SAinD = compose(SAinqA, qAinD)
     OSA = orthogonal_group(SA)
+    fSA = OSA(restrict_automorphism(fqA, SAinqA; check = false); check = false)
 
     SBinqB, stabB = H2
     SB = domain(SBinqB)
     SBinD = compose(SBinqB, qBinD)
     OSB = orthogonal_group(SB)
-    
+    fSB = OSB(restrict_automorphism(fqB, SBinqB; check = false); check = false)
+
     # we need a first admissible gluing. We know that such gluing exists because
     # we have an admissible triple as input and the glue kernels have been
     # chosen in such a way that their exist an admissible gluing between them.
-    phi = _find_admissible_gluing(SAinqA, SBinqB, phi, l, spec)
-
-    # we compute the image of the stabilizers in the respective OS* and we keep track
-    # of the elements of the stabilizers acting trivially in the respective S*
-    # (there are in the ker*).
-    actA = hom(stabA, OSA, elem_type(OSA)[OSA(restrict_automorphism(x, SAinqA)) for x in gens(stabA)])
-    imA, _ = image(actA)
-    kerA = AutomorphismGroupElem{TorQuadModule}[OqAinOD(x) for x in gens(kernel(actA)[1])]
-    push!(kerA, OqAinOD(one(OqA)))
-    fSA = OSA(restrict_automorphism(fqA, SAinqA))
-
-    actB = hom(stabB, OSB, elem_type(OSB)[OSB(restrict_automorphism(x, SBinqB)) for x in gens(stabB)])
-    imB, _ = image(actB)
-    kerB = AutomorphismGroupElem{TorQuadModule}[OqBinOD(x) for x in gens(kernel(actB)[1])]
-    push!(kerB, OqBinOD(one(OqB)))
-    fSB = OSB(restrict_automorphism(fqB, SBinqB))
+    phi = _find_admissible_gluing(SAinqA, SBinqB, phi, l, p, spec)
 
     # We want all isometries of SB which preserves p^l*q_B and such that they
     # define isometries of rho_{l+1}(B). If `spec == true`, then rho_{l+1}(B) is
@@ -1070,7 +1059,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     # phi might not "send" the restriction of fA to this of fB, but at least phi*fA*phi^-1
     # should be conjugate to fB inside O(SB, rho_l(qB)) for the gluing.
     # If not, we try the next potential pair.
-    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
+    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)); check = false)
     @hassert :ZZLatWithIsom 1 fSAinOSB in OSBrB  # Same as before, since phi is admissible, then the image of fSA should preserve rho_{l+1}(B)
     bool, g0 = is_conjugate_with_data(OSBrB, OSBrB(fSAinOSB), fSB)
     bool || continue
@@ -1078,13 +1067,22 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     # The new phi is "sending" the restriction of fA to this of fB
     # and it is still admissible. So we can glue SA and SB as wanted.
     phi = compose(phi, hom(OSB(g0)))
-    @hassert :ZZLatWithIsom OSBrB(compose(inv(phi), compose(hom(fSA), phi))) == fSB
+    @hassert :ZZLatWithIsom 1 OSBrB(compose(inv(phi), compose(hom(fSA), phi)); check = false) == fSB
+
+    # we compute the image of the stabilizers in the respective OS* and we keep track
+    # of the elements of the stabilizers acting trivially in the respective S*
+    # (there are in the ker*).
+    actA = hom(stabA, OSA, elem_type(OSA)[OSA(restrict_automorphism(x, SAinqA; check = false); check = false) for x in gens(stabA)])
+    imA, _ = image(actA)
+
+    actB = hom(stabB, OSB, elem_type(OSB)[OSB(restrict_automorphism(x, SBinqB; check = false); check = false) for x in gens(stabB)])
+    imB, _ = image(actB)
 
     # Now it is time to compute generators for O(SB, rho_l(qB), fB), and the induced
     # images of stabA|stabB for taking the double cosets next
     center, _ = centralizer(OSBrB, fSB)
     center, _ = sub(OSB, elem_type(OSB)[OSB(c) for c in gens(center)])
-    stabSAphi, _ = sub(OSB, elem_type(OSB)[OSB(compose(inv(phi), compose(hom(g), phi))) for g in gens(imA)])
+    stabSAphi, _ = sub(OSB, elem_type(OSB)[OSB(compose(inv(phi), compose(hom(g), phi)); check = false) for g in gens(imA)])
     stabSAphi, _ = intersect(center, stabSAphi)
     stabSB, _ = intersect(center, imB)
 
@@ -1108,29 +1106,13 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
       # This is the type requirement: somehow, we want `(C2, fC2)` to be a "q-th root" of `(C, fC)`.
       !is_of_type(C2fC2^q, type(C)) && continue
 
-      # By the theory of primitive extensions, the discriminant group qC2 of C2
-      # is equal to H^{perp}/H where H is the graph of phig in D = qA + qB. We need
-      # to treat both at the same time to compute the image of the centralizer
-      # O(C2, fC2) in O(qC2, fqC2) using GA and GB.
-      ext = domain(extinD)
-      perp, j = orthogonal_submodule(D, ext)
-      disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = modulus_bilinear_form(perp),
-                                                               modulus_qf = modulus_quadratic_form(perp))
+      disc, stab = _glue_stabilizers(phig, actA, actB, OqAinOD, OqBinOD, extinD)
+
       qC2 = discriminant_group(C2)
       OqC2 = orthogonal_group(qC2)
-      phi2 = hom(qC2, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qC2)])
+      phi2 = hom(qC2, disc, elem_type(disc)[disc(lift(x)) for x in gens(qC2)])
       @hassert :ZZLatWithIsom 1 is_isometry(phi2)              # In fact they are the same module so phi2, mathematically, is the identity.
 
-      # So now this new integer lattice with isometry `(C2, fC2)` is a good
-      # output. Just remain to compute GC2 in a smart way.
-      geneOSA =  AutomorphismGroupElem{TorQuadModule}[OSA(compose(phig, compose(hom(g1), inv(phig)))) for g1 in unique(gens(imB))]
-      im2_phi, _ = sub(OSA, geneOSA)
-      im3, _, _ = intersect(imA, im2_phi)
-      stab = AutomorphismGroupElem{TorQuadModule}[OqAinOD(actA\x) * OqBinOD(actB\(imB(compose(inv(phig), compose(hom(x), phig))))) for x in gens(im3)]
-      union!(stab, kerA)
-      union!(stab, kerB)
-      stab = TorQuadModuleMor[restrict_automorphism(g, j) for g in stab]
-      stab = TorQuadModuleMor[hom(disc, disc, [disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
       stab = sub(OqC2, elem_type(OqC2)[OqC2(compose(phi2, compose(g, inv(phi2))); check = false) for g in stab])
 
       # If we have done good things, the action of fC2 on qC2 should centralize
@@ -1189,10 +1171,10 @@ function _compute_double_stabilizer(SBinqB::TorQuadModuleMor, l::IntegerUnion, s
   OSB = orthogonal_group(SB)
   p = elementary_divisors(SB)[1]
   rB = _rho_functor(qB, p, l+1)
-  rBtoSB = hom(rB, SB, TorQuadModuleElem[SB(QQ(p^l)*lift(a)) for a in gens(rB)])
+  rBtoSB = hom(rB, SB, elem_type(SB)[SB(QQ(p^l)*lift(a)) for a in gens(rB)])
   HB, HBinSB = sub(SB, rBtoSB.(gens(rB)))
   OSBHB, _ = stabilizer(OSB, HBinSB)
-  OHB, OSBHBtoOHB = restrict_automorphism_group(OSBHB, HBinSB)
+  OHB, OSBHBtoOHB = restrict_automorphism_group(OSBHB, HBinSB; check = false)
   K, _ = kernel(OSBHBtoOHB)
   if spec
     OHBrB, _ = stabilizer(OHB, gram_matrix_quadratic(rB), _on_modular_matrix_quad)
@@ -1201,56 +1183,6 @@ function _compute_double_stabilizer(SBinqB::TorQuadModuleMor, l::IntegerUnion, s
   end
   OSBrB, _ = sub(OSB, union!(OSB.(gens((OSBHBtoOHB\(OHBrB))[1])), gens(K)))
   return OSBrB
-end
-
-
-###############################################################################
-#
-#  Isometries between finite bilinear modules
-#
-###############################################################################
-
-# Test whether an abelian group isomorphism respect the finite bilinear product
-# of its domain (of type `TorQuadModule`).
-function _is_isometry_bilinear(f::TorQuadModuleMor)
-  !is_bijective(f) && return false
-  for a in gens(domain(f))
-    for b in gens(domain(f))
-      if f(a)*f(b) != a*b
-        return false
-      end
-    end
-  end
-  return true
-end
-
-# Test whether an abelian group isomorphism defines an anti isometry of the
-# finite bilinear product defined on its domain (of type `TorQuadModule`)
-function _is_anti_isometry_bilinear(f::TorQuadModuleMor)
-  !is_bijective(f) && return false
-  for a in gens(domain(f))
-    for b in gens(domain(f))
-      if f(a)*f(b) != -a*b
-        return false
-      end
-    end
-  end
-  return true
-end
-
-# Compute an anti-isometry between the two finite bilinear modules r1 and r2.
-function _anti_isometry_bilinear(r1::TorQuadModule, r2::TorQuadModule)
-  @hassert :ZZLatWithIsom is_semi_regular(r1) === is_semi_regular(r2) === true
-  hz = hom(r1, r2, zero_matrix(ZZ, ngens(r1), ngens(r2)))
-  r2m = rescale(r2, -1)
-  r2tor2m = hom(r2, r2m, identity_matrix(ZZ, ngens(r2)))
-  r1N, r1tor1N = normal_form(r1)
-  r2mN, r2mtor2mN = normal_form(r2m)
-  gram_matrix_bilinear(r1N) == gram_matrix_bilinear(r2mN) || return false, hz
-  T = hom(r1N, r2mN, identity_matrix(ZZ, ngens(r1N)))
-  T = compose(r1tor1N, compose(T, compose(inv(r2mtor2mN), inv(r2tor2m))))
-  @hassert :ZZLatWithIsom _is_anti_isometry_bilinear(T)
-  return true, T
 end
 
 ###############################################################################
@@ -1267,49 +1199,105 @@ function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
                                  SBinqB::TorQuadModuleMor,
                                  phi::TorQuadModuleMor,
                                  l::IntegerUnion,
+                                 p::IntegerUnion,
                                  spec::Bool)
   SA = domain(SAinqA)
   SB = domain(SBinqB)
-  p = elementary_divisors(SA)[1]
   qA = codomain(SAinqA)
   qB = codomain(SBinqB)
-  pqA, pqAtoqA = primary_part(qA, p)
-  pqB, pqBtoqB = primary_part(qB, p)
-  rA = _rho_functor(qA, p, l+1)
-  rB = _rho_functor(qB, p, l+1)
-  rAtoSA = hom(rA, SA, TorQuadModuleElem[SA(QQ(p^l)*lift(a)) for a in gens(rA)])
-  HA, _ = sub(SA, rAtoSA.(gens(rA)))
-  rBtoSB = hom(rB, SB, TorQuadModuleElem[SB(QQ(p^l)*(lift(b))) for b in gens(rB)])
+  rA = _rho_functor(qA, p, l+1; quad = spec)
+  rB = _rho_functor(qB, p, l+1; quad = spec)
+  @hassert :ZZLatWithIsom modulus_quadratic_form(rA) == modulus_quadratic_form(rB)
+
+  rAtoSA = hom(rA, SA, elem_type(SA)[SA(QQ(p^l)*lift(a)) for a in gens(rA)])
+  HA, HAinSA = sub(SA, rAtoSA.(gens(rA)))
+  rAtoHA = hom(rA, HA, elem_type(HA)[HAinSA\(rAtoSA(a)) for a in gens(rA)])
+
+  rBtoSB = hom(rB, SB, elem_type(SB)[SB(QQ(p^l)*(lift(b))) for b in gens(rB)])
   HB, HBinSB = sub(SB, rBtoSB.(gens(rB)))
-  if spec
-    ok, phi_0 = is_anti_isometric_with_anti_isometry(rA, rB)
-    @hassert :ZZLatWithIsom 1 ok
-    @hassert :ZZLatWithIsom 1 is_anti_isometry(phi_0)
-  else
-    ok, phi_0 = _anti_isometry_bilinear(rA, rB)
-    @hassert :ZZLatWithIsom 1 ok
-    @hassert :ZZLatWithIsom 1 _is_anti_isometry_bilinear(phi_0)
-  end
-  phiHA, _ = sub(SB, TorQuadModuleElem[phi(SA(lift(a))) for a in gens(HA)])
+  rBtoHB = hom(rB, HB, elem_type(HB)[HBinSB\(rBtoSB(b)) for b in gens(rB)])
+
+  # We construct an abstract isometry between the rho functors: since they have
+  # the same modulus quadratic, either we see them as finite bilinear modules
+  # or both as finite quadratic modules depending on the value of spec
+  #
+  # Our goal would be to massage phi such that it maps HA to HB, and the
+  # restriction to rA and rB agrees with phi_0
+  ok, phi_0 = is_anti_isometric_with_anti_isometry(rA, rB)
+  @hassert :ZZLatWithIsom 1 ok
+  @hassert :ZZLatWithIsom 1 is_anti_isometry(phi_0)
+
+  # We first massage phi such that it maps HA to HB
+  phiHA, _ = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
-  g = one(OSB)
-  for f in OSB
-    g = f
-    if cover(_on_subgroup_automorphic(phiHA, g)) == cover(HB)
-      break
-    end
-  end
+  G = GSetByElements(OSB, _on_subgroup_automorphic, TorQuadModule[HB])
+  ok, g = representative_action(G, phiHA, HB)
+  @hassert :ZZLatWithIsom 1 ok
   phi_1 = compose(phi, hom(g))
+  @hassert :ZZLatWithIsom 1 sub(SB, elem_type(SB)[phi_1(SA(lift(a))) for a in gens(HA)])[1] == HB
+
+  # Now we look at the restriction to rA and rB, and we modify a bit phi_1 by an
+  # element of OSBHB, which in particular preserves rB, in order to make phig
+  # and phi_0 agree
+  phi_1_res = hom(HA, HB, elem_type(HB)[HBinSB\(phi_1(HAinSA(a))) for a in gens(HA)])
+  phi_0_res = compose(inv(rAtoHA), compose(phi_0, rBtoHB))
   OSBHB, _ = stabilizer(OSB, HBinSB)
-  g = one(OSBHB)
-  for f in OSBHB
-    g = f
-    phif = compose(phi_1, hom(f))
-    psi = hom(rA, rB, TorQuadModuleElem[rBtoSB\(phif(rAtoSA(a))) for a in gens(rA)])
-    if matrix(psi) == matrix(phi_0)
-      break
-    end
-  end
+  OHB, OSBHBtoOHB = restrict_automorphism_group(OSBHB, HBinSB; check = false)
+  g = OSBHBtoOHB\(OHB(compose(inv(phi_1_res), phi_0_res); check = false))
   phig = compose(phi_1, hom(g))
+  @hassert :ZZLatWithIsom 1 matrix(hom(rA, rB, elem_type(rB)[rBtoSB\(phig(rAtoSA(a))) for a in gens(rA)])) == matrix(phi_0)
+  @hassert :ZZLatWithIsom 1 sub(SB, elem_type(SB)[phig(SA(lift(a))) for a in gens(HA)])[1] == HB
   return phig
+end
+
+###############################################################################
+#
+#  Extend stabilizers along equivariant primitive extensions
+#
+###############################################################################
+
+# Given an equivariant gluing phi between stable anti-isometric subgroups SA and
+# SB of qA and qB respectively, we know that the image of the centralizer of the
+# given equivariant primitive extensions in `O(D)` is given as a certain
+# product.
+#
+# Here actA and actB are respectively the orthogonal representations of the
+# stabilizers of SA and SB on SA and SB respectively. Then an isometry of OD
+# centralizing the extensions and comes from a global isometry if and only if it
+# can be written `(a, b)` where a and b are respectively centralizing elements
+# of the isometries of the two sublattices which preserve the glue groups, i.e.
+# elements of the domain of actA and actB respectively. We need to take care of
+# the kernel of such maps though, and compose the generators of their images.
+function _glue_stabilizers(phi::TorQuadModuleMor,
+                           actA::GAPGroupHomomorphism,
+                           actB::GAPGroupHomomorphism,
+                           OqAinOD::GAPGroupHomomorphism,
+                           OqBinOD::GAPGroupHomomorphism,
+                           graph::TorQuadModuleMor)
+  OD = codomain(OqAinOD)
+  OqA = domain(OqAinOD)
+  imA, _ = image(actA)
+  kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]
+  push!(kerA, OqAinOD(one(OqA)))
+
+  OqB = domain(OqBinOD)
+  imB, _ = image(actB)
+  kerB = elem_type(OD)[OqBinOD(x) for x in gens(kernel(actB)[1])]
+  push!(kerB, OqBinOD(one(OqB)))
+
+  ext = domain(graph)
+  perp, j = orthogonal_submodule(codomain(graph), ext)
+  disc = torsion_quadratic_module(cover(perp), cover(ext); modulus = QQ(1), modulus_qf = QQ(2))
+
+  OSA = codomain(actA)
+  geneOSA =  elem_type(OSA)[OSA(compose(phi, compose(hom(g1), inv(phi))); check = false) for g1 in unique(gens(imB))]
+  im2_phi, _ = sub(OSA, geneOSA)
+  im3, _, _ = intersect(imA, im2_phi)
+  stab = elem_type(OD)[OqAinOD(actA\x) * OqBinOD(actB\(imB(compose(inv(phi), compose(hom(x), phi)); check = false))) for x in gens(im3)]
+  union!(stab, kerA)
+  union!(stab, kerB)
+  stab = TorQuadModuleMor[restrict_automorphism(g, j; check = false) for g in stab]
+  stab = TorQuadModuleMor[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
+
+  return disc, stab
 end
