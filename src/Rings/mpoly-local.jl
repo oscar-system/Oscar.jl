@@ -356,26 +356,26 @@ function singular_assure(I::IdealGensLoc)
   end
 end
 
+function singular_generators(I::MPolyIdealLoc)
+  singular_assure(I.gens)
+  return I.gens.S
+end
+
 ###############################################################################
 # Ideal arithmetic                                                            #
 ###############################################################################
 
 function Base.:*(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S * J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) * singular_generators(J))
 end
 
 function Base.:+(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S + J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) + singular_generators(J))
 end
 Base.:-(I::MPolyIdealLoc, J::MPolyIdealLoc) = I+J
 
 function Base.:^(I::MPolyIdealLoc, j::Int)
-  singular_assure(I)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S^j)
+  return MPolyIdealLoc(I.gens.Ox, (singular_generators(I))^j)
 end
 
 ###############################################################################
@@ -416,9 +416,7 @@ end
 ###############################################################################
 
 function Base.:(==)(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
+  return Singular.equal(singular_generators(I), singular_generators(J))
 end
 
 function dim(I::MPolyIdealLoc)
