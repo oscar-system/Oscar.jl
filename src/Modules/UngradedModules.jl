@@ -6355,7 +6355,7 @@ function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
 end
 
-function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorithm::Symbol=:fres)
+function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 # assuming a free res is a chain_complex, then it will be
 # M_1 -> M_0 -> S -> 0
 #the range is 1:-1:-2 or so
@@ -6364,6 +6364,11 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
 # - extending lift is repeated pushfirst
 # - the idx is only used to see how many maps are missing
 
+  algorithm = get_attribute(cc, :algorithm)
+  if algorithm == nothing
+    algorithm = :fres
+    set_attribute!(cc, :algorithm, :fres)
+  end
   r = Hecke.map_range(cc)
   if idx < last(r)
     error("extending past the final zero not supported")
@@ -6576,6 +6581,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
   set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :algorithm, algorithm)
 
   return FreeResolution(cc)
 end
