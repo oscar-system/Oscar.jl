@@ -34,8 +34,8 @@ vector, but if it does, it is called `regular`.
 
 
 ```@docs
-subdivision_of_points(::Type{T}, Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
-subdivision_of_points(::Type{T}, Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector) where T<:scalar_types
+subdivision_of_points(::Oscar.scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+subdivision_of_points(::Oscar.scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
 ```
 
 From a subdivision of points one can construct the
@@ -50,6 +50,6 @@ is_regular(SOP::SubdivisionOfPoints)
 maximal_cells
 min_weights
 n_maximal_cells(SOP::SubdivisionOfPoints)
-points(SOP::SubdivisionOfPoints)
+points(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 secondary_cone
 ```

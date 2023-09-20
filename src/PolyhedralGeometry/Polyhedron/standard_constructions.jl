@@ -206,14 +206,14 @@ julia> normalized_volume(C)
 120
 ```
 """
-function cube(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+function cube(f::scalar_type_or_field, d::Int)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d), parent_field
   )
 end
 cube(d::Int) = cube(QQFieldElem, d)
-function cube(f::Union{Type{T},Field}, d::Int, l, u) where {T<:scalar_types}
+function cube(f::scalar_type_or_field, d::Int, l, u)
   parent_field, scalar_type = _determine_parent_and_scalar(f, l, u)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field
@@ -622,14 +622,14 @@ julia> facets(t)
 x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-function simplex(f::Union{Type{T},Field}, d::Int, n) where {T<:scalar_types}
+function simplex(f::scalar_type_or_field, d::Int, n)
   parent_field, scalar_type = _determine_parent_and_scalar(f, n)
   return Polyhedron{scalar_type}(
     Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
   )
 end
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
-function simplex(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+function simplex(f::scalar_type_or_field, d::Int)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field
@@ -678,14 +678,14 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-function cross_polytope(f::Union{Type{T},Field}, d::Int64, n) where {T<:scalar_types}
+function cross_polytope(f::scalar_type_or_field, d::Int64, n)
   parent_field, scalar_type = _determine_parent_and_scalar(f, n)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
   )
 end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-function cross_polytope(f::Union{Type{T},Field}, d::Int64) where {T<:scalar_types}
+function cross_polytope(f::scalar_type_or_field, d::Int64)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field

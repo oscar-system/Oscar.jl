@@ -30,8 +30,11 @@ polyhedron(A) = polyhedron(QQFieldElem, A)
 Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`. Scalar type and parent field will be detected automatically. To improve type stability and performance, please use [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref) instead, where possible.
 """
 function polyhedron(p::Polymake.BigObject)
-    T, f = _detect_scalar_and_field(Polyhedron, p)
-    return Polyhedron{T}(p, f)
+  T, f = _detect_scalar_and_field(Polyhedron, p)
+  if T == EmbeddedElem{nf_elem} && Hecke.isquadratic_type(number_field(f))[1] && Polymake.bigobject_eltype(p) == "QuadraticExtension"
+    p = _polyhedron_qe_to_on(p, f)
+  end 
+  return Polyhedron{T}(p, f)
 end
 
 @doc raw"""
@@ -57,17 +60,17 @@ julia> polyhedron(A,b)
 Polyhedron in ambient dimension 2
 ```
 """
-polyhedron(f::Union{Type{T}, Field}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = polyhedron(f, (A, b))
+polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, (A, b); non_redundant = non_redundant)
 
-polyhedron(f::Union{Type{T}, Field}, A::AbstractVector, b::Any) where T<:scalar_types = polyhedron(f, ([A], [b]))
+polyhedron(f::scalar_type_or_field, A::AbstractVector, b::Any; non_redundant::Bool = false) = polyhedron(f, ([A], [b]); non_redundant = non_redundant)
 
-polyhedron(f::Union{Type{T}, Field}, A::AbstractVector, b::AbstractVector) where T<:scalar_types = polyhedron(f, ([A], b))
+polyhedron(f::scalar_type_or_field, A::AbstractVector, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, ([A], b); non_redundant = non_redundant)
 
-polyhedron(f::Union{Type{T}, Field}, A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = polyhedron(f, (A, [b]))
+polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::Any; non_redundant::Bool = false) = polyhedron(f, (A, [b]); non_redundant = non_redundant)
 
-polyhedron(f::Union{Type{T}, Field}, A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = polyhedron(f, (A, b))
+polyhedron(f::scalar_type_or_field, A::AbstractVector{<:AbstractVector}, b::AbstractVector; non_redundant::Bool = false) = polyhedron(f, (A, b); non_redundant = non_redundant)
 
-polyhedron(f::Union{Type{T}, Field}, A::AnyVecOrMat, b::Any) where T<:scalar_types = polyhedron(f, A, [b])
+polyhedron(f::scalar_type_or_field, A::AnyVecOrMat, b::Any; non_redundant::Bool = false) = polyhedron(f, A, [b]; non_redundant = non_redundant)
 
 @doc raw"""
     polyhedron(::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
@@ -106,17 +109,21 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-function polyhedron(f::Union{Type{T}, Field}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing; parent_field::Union{Nothing, Field} = nothing) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
-    if isnothing(I) || _isempty_halfspace(I)
-        EM = affine_matrix_for_polymake(E)
-        IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
-    else
-        IM = -affine_matrix_for_polymake(I)
-        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
-    end
+function polyhedron(f::scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing; non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
+  if isnothing(I) || _isempty_halfspace(I)
+    EM = affine_matrix_for_polymake(E)
+    IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
+  else
+    IM = -affine_matrix_for_polymake(I)
+    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+  end
 
+  if non_redundant
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(FACETS = remove_zero_rows(IM), AFFINE_HULL = remove_zero_rows(EM)), parent_field)
+  else
     return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)), parent_field)
+  end
 end
 
 """
@@ -126,14 +133,9 @@ Get the underlying polymake `Polytope`.
 """
 pm_object(P::Polyhedron) = P.pm_polytope
 
-function ==(P0::Polyhedron, P1::Polyhedron)
-    # TODO: Remove the following 3 lines, see #758
-    for pair in Iterators.product([P0, P1], ["RAYS", "FACETS"])
-        Polymake.give(pm_object(pair[1]),pair[2])
-    end
+function ==(P0::Polyhedron{T}, P1::Polyhedron{T}) where T<:scalar_types
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
-
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc raw"""
@@ -198,20 +200,20 @@ julia> XA = convex_hull(V, R, L)
 Polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(f::Union{Type{T}, Field}, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, V, R, L)
-    # Rays and Points are homogenized and combined and
-    # Lineality is homogenized
-    points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
-    lineality = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points,2)) : homogenized_matrix(L, 0)
+function convex_hull(f::scalar_type_or_field, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, V, R, L)
+  # Rays and Points are homogenized and combined and
+  # Lineality is homogenized
+  points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
+  lineality = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points,2)) : homogenized_matrix(L, 0)
 
-    # These matrices are in the right format for polymake.
-    # given non_redundant can avoid unnecessary redundancy checks
-    if non_redundant
-        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(VERTICES = points, LINEALITY_SPACE = lineality), parent_field)
-    else
-        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)), parent_field)
-    end
+  # These matrices are in the right format for polymake.
+  # given non_redundant can avoid unnecessary redundancy checks
+  if non_redundant
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(VERTICES = points, LINEALITY_SPACE = lineality), parent_field)
+  else
+    return Polyhedron{scalar_type}(Polymake.polytope.Polytope{_scalar_type_to_polymake(scalar_type)}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)), parent_field)
+  end
 end
 
 convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(QQFieldElem, V, R, L; non_redundant=non_redundant)

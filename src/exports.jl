@@ -1120,6 +1120,7 @@ export pitman_stanley_polytope
 export platonic_solid
 export point_coordinates
 export point_matrix
+export point_vector
 export points
 export pol_elementary_divisors
 export polarize
@@ -1195,6 +1196,7 @@ export rational_equivalence_class
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
 export ray_indices
+export ray_vector
 export rays
 export rays_modulo_lineality
 export real_projective_plane

@@ -381,10 +381,13 @@ _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 const scalar_types = Union{FieldElem, Float64}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
-                                ("Float", Float64)])
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("Float", Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
+
+const scalar_type_or_field = Union{Type{<:scalar_types}, Field}
 
 _scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
 _scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
@@ -433,7 +436,7 @@ function _find_parent_field(::Type{T}, x::AbstractArray) where T <: scalar_types
     return QQ
 end
 
-_determine_parent_and_scalar(f::Field, x...) = (f, elem_type(f))
+_determine_parent_and_scalar(f::Union{Field, ZZRing}, x...) = (f, elem_type(f))
 # isempty(x) => standard/trivial field?
 function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     if T == QQFieldElem
@@ -478,37 +481,56 @@ _detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ
 _detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.Floats{Float64}()
 
 function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
-    # we only want to check existing properties
-    f = x -> Polymake.exists(p, string(x))
-    propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
-    i = findfirst(f, propnames)
-    # find first OscarNumber wrapping a FieldElem
-    while !isnothing(i)
-        prop = getproperty(p, propnames[i])
-        for el in prop
-            on = Polymake.unwrap(el)
-            if on isa T
-                return parent(on)
-            end
-        end
-        i = findnext(f, propnames, i + 1)
+  # we only want to check existing properties
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
+  # find first OscarNumber wrapping a FieldElem
+  for pn in propnames
+    prop = getproperty(p, convert(String, pn))
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa T
+        return parent(on)
+      end
     end
-    throw(ArgumentError("BigObject does not contain information about a parent Field"))
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
+end
+
+function _detect_wrapped_type_and_field(p::Polymake.BigObject)
+  # we only want to check existing properties
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
+  # find first OscarNumber wrapping a FieldElem
+  for pn in propnames
+    prop = getproperty(p, convert(String, pn))
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa FieldElem
+        f = parent(on)
+        T = elem_type(f)
+        return (T, f)
+      end
+    end
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
 end
 
 function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
-    T = detect_scalar_type(U, p)
+  T = detect_scalar_type(U, p)
+  if isnothing(T)
+    return _detect_wrapped_type_and_field(p)
+  else
     return (T, _detect_default_field(T, p))
+  end
 end
 
 # promotion helpers
-function _promote_scalar_field(f::Field...)
-    try
-        x = sum([g(0) for g in f])
-        p = parent(x)
-        return (elem_type(p), p)
-    catch e
-        throw(ArgumentError("Can not find a mutual parent field for $f."))
+function _promote_scalar_field(f::Union{Field, ZZRing}...)
+  try
+    x = sum([g(0) for g in f])
+    p = parent(x)
+    return (elem_type(p), p)
+  catch e
+    throw(ArgumentError("Can not find a mutual parent field for $f."))
     end
 end
 
@@ -516,6 +538,10 @@ function _promote_scalar_field(a::AbstractArray{<:FieldElem})
     isempty(a) && return (QQFieldElem, QQ)
     return _promote_scalar_field(parent.(a)...)
 end
+
+_parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}) = parent(r.x)
+
+_parent_or_coefficient_field(v::AbstractVector{T}) where T<:Union{FieldElem, ZZRingElem} = _determine_parent_and_scalar(T, v)[1]
 
 function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
   T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))
@@ -529,4 +555,29 @@ end
 
 function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem)
    return is_rational(e)
+end
+
+# convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
+
+function _polyhedron_qe_to_on(x::Polymake.BigObject, f::Field)
+  res = Polymake.polytope.Polytope{Polymake.OscarNumber}()
+  for pn in Polymake.list_properties(x)
+    prop = Polymake.give(x, pn)
+    Polymake.take(res, string(pn), _property_qe_to_on(prop, f))
+  end
+  return res
+end
+
+_property_qe_to_on(x::Polymake.BigObject, f::Field) = Polymake.BigObject(Polymake.bigobject_type(x), x)
+
+_property_qe_to_on(x::Polymake.PropertyValue, f::Field) = x
+
+_property_qe_to_on(x::Polymake.QuadraticExtension{Polymake.Rational}, f::Field) = f(x)
+
+function _property_qe_to_on(x, f::Field)
+  if hasmethod(length, (typeof(x),)) && eltype(x) <: Polymake.QuadraticExtension{Polymake.Rational}
+    return f.(x)
+  else
+    return x
+  end
 end

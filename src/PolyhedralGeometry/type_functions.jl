@@ -4,9 +4,8 @@
 
 
 function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints, PolyhedralComplex}
-    scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(p)))
-    typename = scalar_regexp[1]
-    return scalar_type_to_oscar[typename]
+    typename = Polymake.bigobject_eltype(p)
+    return typename == "OscarNumber" ? nothing : scalar_type_to_oscar[typename]
 end
 
 scalar_type(::Union{Polyhedron{T}, Cone{T}, Hyperplane{T}, Halfspace{T}}) where T<:scalar_types = T
@@ -28,13 +27,13 @@ end
 
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
-    try
-        f = coefficient_field(iter.Obj)
-        h = affine_matrix_for_polymake(iter)
-        return (A = matrix(f, h[:, 2:end]), b = Vector{T}(f.(-h[:, 1])))
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
+  try
+    f = coefficient_field(iter.Obj)
+    h = affine_matrix_for_polymake(iter)
+    return (A = matrix(f, h[:, 2:end]), b = [f(x) for x in -h[:, 1]])
+  catch e
+    throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+  end
 end
 
 for fun in (

@@ -62,25 +62,25 @@ julia> HS = positive_hull(R, L)
 Polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(f::Union{Type{T}, Field}, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, R, L)
-    inputrays = remove_zero_rows(unhomogenized_matrix(R))
-    if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, _ambient_dim(R))
-    end
+function positive_hull(f::scalar_type_or_field, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, R, L)
+  inputrays = remove_zero_rows(unhomogenized_matrix(R))
+  if isnothing(L) || isempty(L)
+    L = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, _ambient_dim(R))
+  end
 
-    if non_redundant
-        return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),), parent_field)
-    else
-        return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),), parent_field)
-    end
+  if non_redundant
+    return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(RAYS = inputrays, LINEALITY_SPACE = unhomogenized_matrix(L),), parent_field)
+  else
+    return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(INPUT_RAYS = inputrays, INPUT_LINEALITY = unhomogenized_matrix(L),), parent_field)
+  end
 end
 # Redirect everything to the above constructor, use QQFieldElem as default for the
 # scalar type T.
 positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
 cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
-cone(f::Union{Type{T}, Field}, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types = positive_hull(f, R, L; non_redundant=non_redundant)
-cone(f::Union{Type{T}, Field}, x...) where T<:scalar_types = positive_hull(f, x...)
+cone(f::scalar_type_or_field, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(f, R, L; non_redundant=non_redundant)
+cone(f::scalar_type_or_field, x...) = positive_hull(f, x...)
 
 
 function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
@@ -115,16 +115,16 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(f::Union{Type{T}, Field}, I::AbstractCollection[LinearHalfspace], E::Union{Nothing, AbstractCollection[LinearHyperplane]} = nothing; non_redundant::Bool = false) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
-    IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+function cone_from_inequalities(f::scalar_type_or_field, I::AbstractCollection[LinearHalfspace], E::Union{Nothing, AbstractCollection[LinearHyperplane]} = nothing; non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
+  IM = -linear_matrix_for_polymake(I)
+  EM = isnothing(E) || isempty(E) ? Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
-    if non_redundant
-        return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(FACETS = IM, LINEAR_SPAN = EM), parent_field)
-    else
-        return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = IM, EQUATIONS = EM), parent_field)
-    end
+  if non_redundant
+    return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(FACETS = IM, LINEAR_SPAN = EM), parent_field)
+  else
+    return Cone{scalar_type}(Polymake.polytope.Cone{_scalar_type_to_polymake(scalar_type)}(INEQUALITIES = IM, EQUATIONS = EM), parent_field)
+  end
 end
 
 @doc raw"""
@@ -152,11 +152,11 @@ julia> dim(C)
 1
 ```
 """
-function cone_from_equations(f::Union{Type{T}, Field}, E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, E)
-    EM = linear_matrix_for_polymake(E)
-    IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
-    return cone_from_inequalities(f, IM, EM; non_redundant = non_redundant)
+function cone_from_equations(f::scalar_type_or_field, E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false)
+  parent_field, scalar_type = _determine_parent_and_scalar(f, E)
+  EM = linear_matrix_for_polymake(E)
+  IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
+  return cone_from_inequalities(f, IM, EM; non_redundant = non_redundant)
 end
 
 cone_from_inequalities(x...) = cone_from_inequalities(QQFieldElem, x...)

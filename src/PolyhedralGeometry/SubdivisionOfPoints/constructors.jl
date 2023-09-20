@@ -53,14 +53,14 @@ julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
 Subdivision of points in ambient dimension 3
 ```
 """
-function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
-   @req size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
-   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-      POINTS = homogenize(points,1),
-      MAXIMAL_CELLS = arr,
-   ), parent_field)
+function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::IncidenceMatrix)
+  @req size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
+  parent_field, scalar_type = _determine_parent_and_scalar(f, points)
+  arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
+  SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
+    POINTS = homogenize(points,1),
+    MAXIMAL_CELLS = arr,
+  ), parent_field)
 end
 
 
@@ -91,13 +91,13 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function subdivision_of_points(f::Union{Type{T}, Field}, points::AbstractCollection[PointVector], weights::AbstractVector) where T<:scalar_types
-   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
-   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
-   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-      POINTS = homogenize(points,1),
-      WEIGHTS = weights,
-   ), parent_field)
+function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], weights::AbstractVector)
+  @req size(points)[1] == length(weights) "Number of points must equal number of weights"
+  parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
+  SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
+    POINTS = homogenize(points,1),
+    WEIGHTS = weights,
+  ), parent_field)
 end
 
 """
@@ -109,13 +109,13 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 #Same construction for when the user provides maximal cells
-function subdivision_of_points(::Union{Type{T}, Field}, points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}}) where T<:scalar_types
-   subdivision_of_points(T, points, IncidenceMatrix(cells))
+function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
+  subdivision_of_points(f, points, IncidenceMatrix(cells))
 end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function subdivision_of_points(::Union{Type{T}, Field}, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}) where T<:scalar_types
-   subdivision_of_points(T, points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
+function subdivision_of_points(f::scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool})
+  subdivision_of_points(f, points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
 ###############################################################################
