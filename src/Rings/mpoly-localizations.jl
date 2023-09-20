@@ -3130,9 +3130,8 @@ julia> minimal_generating_set(I)
     # use available gb for shifted ideal is available
     G = first(values(I_shift.gb))
     is_local(G.ord) || error("inconsistent data: local ring, but global ordering for I_shift")
-    singular_assure(G)
     G.gens.S.isGB = true
-    _, I_shift_min = Singular.mstd(G.gens.S)
+    _, I_shift_min = Singular.mstd(singular_generators(G, G.ord))
   else
 
     # no gb for shifted ideal available
