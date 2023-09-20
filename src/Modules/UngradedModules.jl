@@ -6403,16 +6403,19 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   j   = 2
 
   while j <= Singular.length(res)
+    rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
       map = graded_map(codom, SM.matrix)
       dom = domain(map)
+      set_attribute!(dom, :name => "R^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
+      set_attribute!(dom, :name => "R^$rk")
       generator_matrix(SM)
       map = hom(dom, codom, SM.matrix)
     end
