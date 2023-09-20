@@ -58,10 +58,9 @@ function vector_space_dimension(A::MPolyQuoRing)
     error("vector_space_dimension requires a coefficient ring that is a field")
   end
   I = A.I
-  G = groebner_assure(I)
+  G = standard_basis(I)
   @req dim(I) == 0 "The ideal must be zero-dimensional"
-  singular_assure(G)
-  return Singular.vdim(G.S)
+  return Singular.vdim(singular_generators(G, G.ord))
 end
 
 @doc raw"""
@@ -96,10 +95,9 @@ julia> L = monomial_basis(A)
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   I = A.I
-  G = Oscar.groebner_assure(I)
+  G = standard_basis(I)
   @req dim(I) == 0 "The ideal must be zero-dimensional"
-  singular_assure(G)
-  si = Singular.kbase(G.S)
+  si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
 
@@ -892,11 +890,10 @@ function is_normal(A::MPolyQuoRing)
   @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
 
   I = A.I
-  singular_assure(I)
   # TODO remove old1 & old2 once new Singular jll is out
   old1 = Singular.libSingular.set_option("OPT_REDSB", false)
   old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
-  f = Singular.LibNormal.isNormal(I.gens.S)::Int
+  f = Singular.LibNormal.isNormal(singular_generators(I))::Int
   Singular.libSingular.set_option("OPT_REDSB", old1)
   Singular.libSingular.set_option("OPT_RETURN_SB", old2)
   return Bool(f)
@@ -1036,9 +1033,9 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   # This computes the normal form of f w.r.t. the truncated Gröbner basis GJ.
   # Since we have a product ordering, we cannot use divrem, and since GJ is
   # "not really" a Gröbner basis, we cannot use normal_form...
-  singular_assure(GJ)
-  I = Singular.Ideal(GJ.Sx, GJ.Sx(RtoT(f)))
-  K = ideal(T, reduce(I, GJ.S))
+  SR = singular_polynomial_ring(GJ)
+  I = Singular.Ideal(SR, SR(RtoT(f)))
+  K = ideal(T, reduce(I, singular_generators(GJ, GJ.ord)))
   @assert is_one(ngens(K.gens.S))
   nf = GJ.Ox(K.gens.S[1])
   ###
@@ -1315,8 +1312,7 @@ function normalization(A::MPolyQuoRing; algorithm=:equidimDec)
 
   I = A.I
   br = base_ring(base_ring(A))
-  singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(algorithm))
+  l = Singular.LibNormal.normal(singular_generators(I), _conv_normalize_alg(algorithm))
   return _conv_normalize_data(A, l, br)
 end
 
@@ -1373,8 +1369,7 @@ function normalization_with_delta(A::MPolyQuoRing; algorithm::Symbol=:equidimDec
 
   I = A.I
   br = base_ring(base_ring(A))
-  singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(algorithm), "withDelta")
+  l = Singular.LibNormal.normal(singular_generators(I), _conv_normalize_alg(algorithm), "withDelta")
   return (_conv_normalize_data(A, l, br), l[3][1]::Vector{Int}, l[3][2]::Int)
 end
 
@@ -1405,8 +1400,7 @@ function noether_normalization(A::MPolyQuoRing)
 
  I = A.I
  R = base_ring(I)
- singular_assure(I)
- l = Singular.LibAlgebra.noetherNormal(I.gens.S)
+ l = Singular.LibAlgebra.noetherNormal(singular_generators(I))
  i1 = [R(x) for x = gens(l[1])]
  i2 = [R(x) for x = gens(l[2])]
  m = matrix([[coeff(x, y) for y = gens(R)] for x = i1])
