@@ -400,12 +400,12 @@ julia> facets(Polyhedron, C)
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
@@ -451,12 +451,12 @@ julia> C = cube(3);
 
 julia> facets(C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
 facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
@@ -773,8 +773,8 @@ julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
 2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
-x₃ = 2
-x₄ = 5
+x_3 = 2
+x_4 = 5
 ```
 """
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(P, _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
@@ -1260,19 +1260,19 @@ set to `true`.
 # Examples
 ```jldoctest
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; numbered = true)
-1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
-2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-3: x₁ ≦ 2
-5: 0 ≦ -4
-6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+1: -x_1 + 4*x_3 + 5*x_4 <= 0
+2: 4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+3: x_1 <= 2
+5: 0 <= -4
+6: 9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
--x₁ + 4*x₃ + 5*x₄ ≦ 0
-4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-x₁ ≦ 2
-0 ≦ 3
-0 ≦ -4
-9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+-x_1 + 4*x_3 + 5*x_4 <= 0
+4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+x_1 <= 2
+0 <= 3
+0 <= -4
+9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 ```
 """
 function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::Symbol = :lte)
@@ -1321,12 +1321,12 @@ set to `true`.
 The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
 print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
