@@ -6391,6 +6391,10 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+  elseif algorithm == :mres
+    res = Singular.mres(singular_kernel_entry, len)
+  elseif algorithm == :nres
+    res = Singular.nres(singular_kernel_entry, len)
   else
     error("Unsupported algorithm $algorithm")
   end
