@@ -6376,7 +6376,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   len_missing = idx - first(r)
   @assert len_missing > 0
   if cc.complete == true
-    error("complex is complete, cannot extend")
+    return map(cc, first(r))
   end
 
   kernel_entry          = image(cc.maps[1])[1]
