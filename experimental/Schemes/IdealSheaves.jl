@@ -37,9 +37,9 @@ with homogeneous coordinates [x, y, z]
 julia> IdealSheaf(Y, I)
 Sheaf of ideals
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of multivariate polynomial ring
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
 with restrictions
   1: ideal(-(y//x)^2*(z//x) + 1)
   2: ideal((x//y)^3 - (z//y))
@@ -128,7 +128,7 @@ ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType
 
 
 # this constructs the zero ideal sheaf
-function IdealSheaf(X::CoveredScheme) 
+function IdealSheaf(X::AbsCoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(C)
@@ -188,20 +188,26 @@ of `ClosedEmbedding`s; return the ideal sheaf describing the images
 of the local morphisms.
 """
 function IdealSheaf(Y::AbsCoveredScheme, 
-    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding};
+    check::Bool=true
   )
   maps = morphisms(phi)
   V = [codomain(ff) for ff in values(maps)]
   dict = IdDict{AbsSpec, Ideal}()
-  for U in affine_charts(Y)
-    if U in V
-      i = findall(x->(codomain(x) == U), maps)
-      dict[U] = image_ideal(maps[first(i)])
-    else
-      dict[U] = ideal(OO(U), one(OO(U)))
-    end
+  V = unique!(V)
+  for W in V
+    i = findall(x->(codomain(x) == W), maps)
+    dict[W] = image_ideal(maps[first(i)])
   end
-  return IdealSheaf(Y, dict) # TODO: set check=false?
+#  for U in affine_charts(Y)
+#    if U in V
+#      i = findall(x->(codomain(x) == U), maps)
+#      dict[U] = image_ideal(maps[first(i)])
+#    else
+#      dict[U] = ideal(OO(U), one(OO(U)))
+#    end
+#  end
+  return IdealSheaf(Y, dict, check=check)
 end
 
     
@@ -272,8 +278,9 @@ Replaces the set of generators of the ideal sheaf by a minimal
 set of random linear combinations in every affine patch. 
 """
 function simplify!(I::IdealSheaf)
+  new_ideal_dict = IdDict{AbsSpec, Ideal}()
   for U in basic_patches(default_covering(space(I)))
-    Oscar.object_cache(underlying_presheaf(I))[U] = ideal(OO(U), small_generating_set(I(U)))
+    new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
     #=
     n = ngens(I(U)) 
     n == 0 && continue
@@ -292,6 +299,8 @@ function simplify!(I::IdealSheaf)
     Oscar.object_cache(underlying_presheaf(I))[U] = K 
     =#
   end
+  I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
+  #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
 end
 
@@ -940,7 +949,7 @@ function match_on_intersections(
   return matches
 end
 
-function (phi::Hecke.Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
+function (phi::Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
   R = domain(phi)
   S = codomain(phi)
@@ -1198,4 +1207,94 @@ end
   L = base_ring(I)
   g = small_generating_set(saturated_ideal(I))
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
+end
+
+
+function saturation(I::IdealSheaf, J::IdealSheaf)
+  X = scheme(I)
+  K = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+    K[U] = saturation(I(U), J(U))
+  end
+  return IdealSheaf(X, K, check=false)
+end
+
+
+@doc raw"""
+    IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
+
+Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal 
+`I` in its `cox_ring`.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+
+julia> (x1,x2,x3,x4) = gens(cox_ring(P3));
+
+julia> I = ideal([x2,x3])
+ideal(x2, x3)
+
+julia> IdealSheaf(P3, I);
+```
+"""
+function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
+  @req base_ring(I) === cox_ring(X) "ideal must live in the cox ring of the variety"
+
+  # We currently only support this provided that the following conditions are met:
+  # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
+  # 2. The dimension of all maximal cones matches the dimension of the fan.
+  @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
+  @req ispure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
+
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+
+  # We need to dehomogenize the ideal I in the Cox ring S to the local
+  # charts U_sigma, with sigma a cone in the fan of the variety.
+  # To this end we use Proposition 5.2.10 from Cox-Little-Schenck, p. 223ff.
+  # Abstractly, the chart U_sigma is isomorphic to C^n with n the number
+  # of ray generators of sigma, owing to the assumptions 1 an 2 above.
+  # Note however that the coordinates of C^n are not one to one to
+  # the homogeneous coordinates of the Cox ring. Rather, the coordinates 
+  # of the affine pieces correspond to the `hilbert_basis(polarize(sigma))`.
+
+  # TODO: In the long run we should think about making the creation of the 
+  # following dictionary lazy. But this requires partial rewriting of the 
+  # ideal sheaves as a whole, so we postpone it for the moment.
+
+  IM = maximal_cones(IncidenceMatrix, X)
+  for (k, U) in enumerate(affine_charts(X))
+
+    # We first create the morphism \pi_s* from p. 224, l. 3.
+    indices = [k for k in row(IM, k)]
+    help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
+    phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
+
+    # Now we need to create the inverse of alpha*.
+    imgs_alpha_star = elem_type(help_ring)[]
+    for m in hilbert_basis(weight_cone(U))
+      img = one(help_ring)
+      for j in 1:length(indices)
+        u_rho = matrix(ZZ,rays(X))[indices[j],:]
+        expo = (u_rho*m)[1]
+        img = img * x_rho[j]^expo
+      end
+      push!(imgs_alpha_star, img)
+    end
+    alpha_star = hom(OO(U), help_ring, imgs_alpha_star)
+
+    # TODO: There should be better ways to create this map!
+    # Presumably, one can invert the matrix with the `expo`s as entries?
+    # @larskastner If you can confirm this, let's change this.
+    alpha_star_inv = inverse(alpha_star)
+    ideal_dict[U] = ideal(OO(U), [alpha_star_inv(phi_s_star(g)) for g in gens(I)])
+  end
+
+  return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
+end
+
+function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
+  return blow_up(IdealSheaf(v, I))
 end

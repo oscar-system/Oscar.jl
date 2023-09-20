@@ -3,11 +3,11 @@
 ###########################
 
 @doc raw"""
-    vanishing_sets(variety::AbstractNormalToricVariety)
+    vanishing_sets(variety::NormalToricVarietyType)
 
 Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
 """
-@attr function vanishing_sets(variety::AbstractNormalToricVariety)
+@attr function vanishing_sets(variety::NormalToricVarietyType)
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)

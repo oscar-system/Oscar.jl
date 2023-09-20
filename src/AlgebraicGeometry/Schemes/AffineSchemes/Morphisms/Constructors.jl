@@ -123,12 +123,13 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
     by ideal(x1)
 
 julia> f = inclusion_morphism(Y, X)
 Morphism
-  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -170,12 +171,13 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
     by ideal(x1)
 
 julia> m1 = inclusion_morphism(Y, X)
 Morphism
-  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -193,8 +195,8 @@ given by the pullback function
 
 julia> m3 = identity_map(Y)
 Morphism
-  from [x1, x2, x3]  spec of quotient of multivariate polynomial ring
-  to   [x1, x2, x3]  spec of quotient of multivariate polynomial ring
+  from [x1, x2, x3]  V(x1)
+  to   [x1, x2, x3]  V(x1)
 given by the pullback function
   x1 -> 0
   x2 -> x2
@@ -236,7 +238,8 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
     by ideal(x1)
 
 julia> restrict(identity_map(X), Y, Y) == identity_map(Y)

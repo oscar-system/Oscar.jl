@@ -1,3 +1,6 @@
+using Oscar
+using Test
+
 include("integer.jl")
 include("rational.jl")
 include("mpoly.jl")
@@ -20,6 +23,9 @@ include("NumberField.jl")
 include("FunctionField.jl")
 include("AbelianClosure.jl")
 
+include("AlgClosureFp.jl")
+include("Laurent.jl")
+
 include("MPolyAnyMap/MPolyRing.jl")
 include("MPolyAnyMap/MPolyQuo.jl")
 include("MPolyAnyMap/AffineAlgebras.jl")
@@ -30,3 +36,6 @@ include("PBWAlgebraQuo.jl")
 include("FreeAssAlgIdeal.jl")
 
 include("binomial-ideals.jl")
+include("hilbert.jl")
+
+include("ReesAlgebra.jl")

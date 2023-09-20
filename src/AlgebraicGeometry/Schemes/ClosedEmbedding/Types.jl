@@ -11,7 +11,7 @@ ideal ``I ⊂ R``.
 """
 @attributes mutable struct ClosedEmbedding{DomainType<:AbsSpec,
                                            CodomainType<:AbsSpec,
-                                           PullbackType<:Hecke.Map
+                                           PullbackType<:Map
                                           }<:AbsSpecMor{DomainType,
                                                         CodomainType,
                                                         PullbackType,

@@ -54,6 +54,12 @@ function ideal(g::Vector{T}) where {T <: MPolyRingElem}
   return ideal(parent(g[1]), g)
 end
 
+# Coerce an ungraded ideal in a graded ring
+function ideal(S::MPolyDecRing, I::MPolyIdeal)
+  @req base_ring(I) === forget_grading(S) "Rings do not coincide"
+  return ideal(S, [ S(f) for f in gens(I) ])
+end
+
 function is_graded(I::MPolyIdeal)
   return is_graded(Hecke.ring(I))
 end
@@ -88,8 +94,7 @@ ideal(x^3, x^2*y, x*y^2, y^3)
 ```
 """
 function Base.:^(I::MPolyIdeal, m::Int)
-  singular_assure(I)
-  return MPolyIdeal(base_ring(I), I.gens.S^m)
+  return MPolyIdeal(base_ring(I), (singular_generators(I))^m)
 end
 
 @doc raw"""
@@ -183,12 +188,8 @@ ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
 ```
 """
 function Base.intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
-  singular_assure(I)
-  si = I.gens.S
-  for J in Js
-    singular_assure(J)
-  end
-  si = Singular.intersection(si, [J.gens.S for J in Js]...)
+  si = singular_generators(I)
+  si = Singular.intersection(si, [singular_generators(J) for J in Js]...)
   return MPolyIdeal(base_ring(I), si)
 end
 
@@ -234,9 +235,7 @@ ideal(x^2*y + y^3, x^3*z + x*y^2*z + y^4, x^2*z^2 + x*y^3 - x*y^2*z + y^2*z^2, x
 """
 function quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   @assert base_ring(I) == base_ring(J)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(base_ring(I), Singular.quotient(I.gens.S, J.gens.S))
+  return MPolyIdeal(base_ring(I), Singular.quotient(singular_generators(I), singular_generators(J)))
 end
 
 function quotient(I::MPolyIdeal{T}, f::T) where T
@@ -271,18 +270,14 @@ ideal(z, x*y)
 ```
 """
 function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
-  K, _ = Singular.saturation(I.gens.S, J.gens.S)
+  K, _ = Singular.saturation(singular_generators(I), singular_generators(J))
   return MPolyIdeal(base_ring(I), K)
 end
 
 # the following is corresponding to saturation2 from Singular
 # TODO: think about how to use use this properly/automatically
 function _saturation2(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
-  K, _ = Singular.saturation2(I.gens.S, J.gens.S)
+  K, _ = Singular.saturation2(singular_generators(I), singular_generators(J))
   return MPolyIdeal(base_ring(I), K)
 end
 
@@ -308,9 +303,7 @@ julia> K, m = saturation_with_index(I, J)
 ```
 """
 function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
-  K, k = Singular.saturation(I.gens.S, J.gens.S)
+  K, k = Singular.saturation(singular_generators(I), singular_generators(J))
   return (MPolyIdeal(base_ring(I), K), k)
  end
 
@@ -357,9 +350,8 @@ Multivariate polynomial ring in 4 variables t, x, y, z
 ```
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyRingElem
-  singular_assure(I)
-  S = base_ring(I.gens.S)
-  s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
+  S = singular_polynomial_ring(I)
+  s = Singular.eliminate(singular_generators(I), [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
 end
 function eliminate(I::MPolyIdeal, l::AbstractVector{Int})
@@ -427,18 +419,30 @@ ideal(102*b*d, 78*a*d, 51*b*c, 39*a*c, 6*a*b*d, 3*a*b*c)
 ```
 """
 @attr T function radical(I::T) where {T <: MPolyIdeal}
-  singular_assure(I)
   R = base_ring(I)
-  if elem_type(base_ring(R)) <: FieldElement
-    J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    J = Singular.LibPrimdecint.radicalZ(I.gens.Sx, I.gens.S)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    r = radical(map_coefficients(pseudo_inv(mA), I))
+    Irad = map_coefficients(mA, r, parent = R)
+    set_attribute!(Irad, :is_radical => true)
+    return Irad
+  elseif elem_type(base_ring(R)) <: FieldElement
+    J = Singular.LibPrimdec.radical(singular_polynomial_ring(I), singular_generators(I))
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
+    J = Singular.LibPrimdecint.radicalZ(singular_polynomial_ring(I), singular_generators(I))
   else
     error("not implemented for base ring")
   end
   Irad = ideal(R, J)
   set_attribute!(Irad, :is_radical => true)
   return Irad
+end
+
+function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
+  if parent === nothing
+    parent = Oscar.parent(map_coefficients(mp, gen(I, 1)))
+  end
+  return ideal(parent, [map_coefficients(mp, g, parent = parent) for g = gens(I)])
 end
 
 @doc raw"""
@@ -529,17 +533,24 @@ end
 
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
-  singular_assure(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    pd = primary_decomposition(map_coefficients(pseudo_inv(mA), I), algorithm = algorithm, cache = false)
+    if isempty(pd)
+      return Tuple{typeof(I), typeof(I)}[]
+    end
+    return Tuple{typeof(I), typeof(I)}[(map_coefficients(mA, x[1], parent = R), map_coefficients(mA, x[2], parent = R)) for x = pd]
+  end
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
-      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+      L = Singular.LibPrimdec.primdecGTZ(singular_polynomial_ring(I), singular_generators(I))
     elseif algorithm == :SY
-      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+      L = Singular.LibPrimdec.primdecSY(singular_polynomial_ring(I), singular_generators(I))
     else
       error("algorithm invalid")
     end
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
+    L = Singular.LibPrimdecint.primdecZ(singular_polynomial_ring(I), singular_generators(I))
   else
     error("base ring not implemented")
   end
@@ -634,8 +645,7 @@ Multivariate polynomial ring in 2 variables over number field graded by
   if is_zero(I)
      return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
   end
-  singular_assure(I)
-  (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
+  (S, d) = Singular.LibPrimdec.absPrimdecGTZ(singular_polynomial_ring(I), singular_generators(I))
   decomp = d[:primary_decomp]
   absprimes = d[:absolute_primes]
   @assert length(decomp) == length(absprimes)
@@ -741,17 +751,21 @@ julia> L = minimal_primes(I)
 """
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   R = base_ring(I)
-  singular_assure(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
+    return typeof(I)[map_coefficients(mA, x) for x = mp]
+  end
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
-      l = Singular.LibPrimdec.minAssGTZ(I.gens.Sx, I.gens.S)
+      l = Singular.LibPrimdec.minAssGTZ(singular_polynomial_ring(I), singular_generators(I))
     elseif algorithm == :charSets
-      l = Singular.LibPrimdec.minAssChar(I.gens.Sx, I.gens.S)
+      l = Singular.LibPrimdec.minAssChar(singular_polynomial_ring(I), singular_generators(I))
     else
       error("algorithm invalid")
     end
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    l = Singular.LibPrimdecint.minAssZ(I.gens.Sx, I.gens.S)
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
+    l = Singular.LibPrimdecint.minAssZ(singular_polynomial_ring(I), singular_generators(I))
   else
     error("base ring not implemented")
   end
@@ -796,8 +810,12 @@ julia> L = equidimensional_decomposition_weak(I)
   R = base_ring(I)
   iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  singular_assure(I)
-  l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_weak(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
+  end
+  l = Singular.LibPrimdec.equidim(singular_polynomial_ring(I), singular_generators(I))
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
     return typeof(I)[]
@@ -836,8 +854,12 @@ julia> L = equidimensional_decomposition_radical(I)
 @attr function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  singular_assure(I)
-  l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_decomposition_radical(map_coefficients(pseudo_inv(mA), I))
+    return typeof(I)[map_coefficients(mA, x) for x = eq]
+  end
+  l = Singular.LibPrimdec.prepareAss(singular_polynomial_ring(I), singular_generators(I))
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
     return typeof(I)[]
@@ -892,11 +914,15 @@ ideal(3)
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
-  singular_assure(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
   if elem_type(base_ring(R)) <: FieldElement
-    i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    i = Singular.LibPrimdecint.equidimZ(I.gens.Sx, I.gens.S)
+    i = Singular.LibPrimdec.equidimMax(singular_polynomial_ring(I), singular_generators(I))
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
+    i = Singular.LibPrimdecint.equidimZ(singular_polynomial_ring(I), singular_generators(I))
   else
     error("base ring not implemented")
   end
@@ -932,8 +958,12 @@ ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  singular_assure(I)
-  i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    eq = equidimensional_hull_radical(map_coefficients(pseudo_inv(mA), I))
+    return map_coefficients(mA, eq)
+  end
+  i = Singular.LibPrimdec.equiRadical(singular_polynomial_ring(I), singular_generators(I))
   return ideal(R, i)
 end
 
@@ -988,10 +1018,7 @@ true
 ```
 """
 function is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  G = groebner_assure(J)
-  singular_assure(G)
-  return Singular.iszero(Singular.reduce(I.gens.S, G.S))
+  return Singular.iszero(Singular.reduce(singular_generators(I), singular_groebner_generators(J)))
 end
 
 ### todo: wenn schon GB's  bekannt ...
@@ -1025,10 +1052,8 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
-  GI = standard_basis(I, ordering=ordering, complete_reduction=false)
-  singular_assure(GI)
-  Sx = base_ring(GI.S)
-  return Singular.iszero(Singular.reduce(Sx(f), GI.S))
+  Sx = singular_polynomial_ring(I, ordering)
+  return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
 end
 Base.:in(f::MPolyRingElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
@@ -1060,9 +1085,8 @@ false
 ```
 """
 function radical_membership(f::T, I::MPolyIdeal{T}) where T
-  singular_assure(I)
-  Sx = base_ring(I.gens.S)
-  return Singular.LibPolylib.rad_con(Sx(f), I.gens.S) == 1
+  Sx = singular_polynomial_ring(I)
+  return Singular.LibPolylib.rad_con(Sx(f), singular_generators(I)) == 1
 end
 inradical(f::MPolyRingElem, I::MPolyIdeal) = radical_membership(f,I)
 ################################################################################
@@ -1234,9 +1258,7 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
-  G = groebner_assure(I, false, true)
-  singular_assure(G)
-  I.dim = Singular.dimension(G.S)
+  I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
 end
 
@@ -1259,41 +1281,13 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal) = nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
 
-#######################################################
-#######################################################
-@doc raw"""
-    degree(I::MPolyIdeal)
+# Some fixes which were necessary for the above
+dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
+dim(R::ZZRing) = 1
 
-If `base_ring(I)` is standard-graded, in which case `I` is necessarily
-homogeneous with respect to this grading, return the degree of `I` (that
-is, the degree of the quotient of `base_ring(I)` modulo `I`). Otherwise,
-return the degree of the homogenization of `I` with respect to the
-standard-grading.
-
-!!! note
-    Geometrically, the degree of a homogeneous ideal as above is the number
-    of intersection points of its projective variety with a generic linear
-    subspace of complementary dimension (counted with multiplicities).
-    See also [MS21](@cite).
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> I = ideal(R, [y-x^2, x-z^3])
-ideal(-x^2 + y, x - z^3)
-
-julia> degree(I)
-6
-```
-"""
-@attr Int function degree(I::MPolyIdeal)
-  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
-  return Int(degree(HilbertData(I)))
-end
 
 ################################################################################
 #
@@ -1411,66 +1405,9 @@ end
 
 ################################################################################
 #
-# Minimal generating set
+# Small generating set
 #
 ################################################################################
-
-@doc raw"""
-    minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
-
-Given a homogeneous ideal `I` in a graded multivariate polynomial ring
-over a field, return an array containing a minimal set of generators
-of `I`. If `I` is the zero ideal an empty list is returned.
-
-# Examples
-```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
-
-julia> I = ideal(R, V)
-ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
-
-julia> minimal_generating_set(I)
-3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- x
- z^2
- y^3
-
-julia> I = ideal(R, zero(R))
-ideal(0)
-
-julia> minimal_generating_set(I)
-MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[]
-```
-"""
-function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
-  # This only works / makes sense for homogeneous ideals. So far ideals in an
-  # MPolyDecRing are forced to be homogeneous though.
-
-  R = base_ring(I)
-
-  @assert is_graded(R)
-
-  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-
-  if !isempty(I.gb)
-    # make sure to not recompute a GB from scratch on the singular
-    # side if we have one
-    G = first(values(I.gb))
-    singular_assure(G, G.ord)
-    G.gens.S.isGB = true
-    _, sing_min = Singular.mstd(G.gens.S)
-    return filter(!iszero, (R).(gens(sing_min)))
-  else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
-    ring = I.gens.Ox
-    computed_gb = IdealGens(ring, sing_gb, true)
-    I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
-  end
-end
 
 @doc raw"""
     small_generating_set(I::MPolyIdeal)
@@ -1524,8 +1461,7 @@ function small_generating_set(I::MPolyIdeal)
   @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  singular_assure(I)
-  sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+  sing_gb, sing_min = Singular.mstd(singular_generators(I))
   ring = I.gens.Ox
   computed_gb = IdealGens(ring, sing_gb, true)
   if !haskey(I.gb,computed_gb.ord)
@@ -1601,3 +1537,4 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     end
     return ideal(ring, converted_generators)
 end
+

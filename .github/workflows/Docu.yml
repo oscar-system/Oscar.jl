@@ -25,7 +25,7 @@ jobs:
         with:
           version: '1.9'
       - name: Build package
-        uses: julia-actions/julia-buildpkg@latest
+        uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
         run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
       - name: Build and deploy

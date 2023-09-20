@@ -2,6 +2,9 @@ include("types.jl")
 
 include("auxiliary.jl")
 
+include("FamilyOfSpaces/constructors.jl")
+include("FamilyOfSpaces/attributes.jl")
+
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
 include("WeierstrassModels/properties.jl")
@@ -17,6 +20,7 @@ include("HypersurfaceModels/properties.jl")
 include("HypersurfaceModels/methods.jl")
 
 include("standard_constructions.jl")
+include("serialization.jl")
 
 include("LiteratureModels/constructors.jl")
 include("LiteratureModels/attributes.jl")

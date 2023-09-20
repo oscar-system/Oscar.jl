@@ -469,8 +469,8 @@ julia> C = AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.ring(C)
-(Quotient of multivariate polynomial ring by ideal with 1 generator, Map from
-Multivariate polynomial ring in 2 variables over QQ to Quotient of multivariate polynomial ring by ideal with 1 generator defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(-x^3 + x + y^2), Map from
+Multivariate polynomial ring in 2 variables over QQ to Quotient of multivariate polynomial ring by ideal(-x^3 + x + y^2) defined by a julia-function with inverse)
 ```
 """
 function ring(C::PlaneCurve)

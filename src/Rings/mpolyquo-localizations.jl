@@ -106,14 +106,11 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
 end
 
 ### for convenience of later use
-MPAnyQuoRing = Union{MPolyQuoLocRing, 
-                MPolyQuoRing
-               }
+const MPAnyQuoRing = Union{MPolyQuoLocRing, MPolyQuoRing}
 
-MPAnyNonQuoRing = Union{MPolyRing, MPolyLocRing
-                  }
+const MPAnyNonQuoRing = Union{MPolyRing, MPolyLocRing}
 
-MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
+const MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
                 MPolyLocRing,MPolyQuoLocRing
                }
 
@@ -216,7 +213,9 @@ function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
   io = pretty(io)
   println(io, "Localization")
   print(io, Indent())
-  println(io, "of ", Lowercase(), underlying_quotient(L))
+  print(io, "of ", Lowercase())
+  show(io, MIME("text/plain"), underlying_quotient(L))
+  println(io)
   print(io, "at ", Lowercase(), inverted_set(L))
   print(io, Dedent())
 end
@@ -302,7 +301,10 @@ julia> RQL, iota = localization(RQ, U);
 
 julia> RQL
 Localization
-  of quotient of multivariate polynomial ring by ideal with 2 generators
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over number field of degree 2 over QQ
+    by ideal(2*x^2 - y^3, 2*x^2 - y^5)
   at complement of prime ideal(y - 1, x - a)
 
 julia> iota
@@ -1076,7 +1078,7 @@ end
 
 function compose(
     f::MPolyQuoLocalizedRingHom, 
-    g::Hecke.Map{<:Ring, <:Ring}
+    g::Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
 
@@ -1363,11 +1365,11 @@ function is_isomorphism(
   j2 = hom(B, C, B_vars, check=false)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
-				  symbols(C),
-				  ordering=Singular.ordering_dp(1)
-				  *Singular.ordering_dp(nvars(B)-1)
-				  *Singular.ordering_dp(1)
-				  *Singular.ordering_dp(nvars(A)-1))
+            symbols(C),
+            ordering=Singular.ordering_dp(1)
+                    *Singular.ordering_dp(nvars(B)-1)
+                    *Singular.ordering_dp(1)
+                    *Singular.ordering_dp(nvars(A)-1))
   # TODO: adjust this to the orderings used for the previous groebner basis 
   # computations in A and B once such things are respected. 
   singG = Singular.Ideal(singC, singC.(gens(G)))
@@ -1450,10 +1452,9 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   W = localized_ring(L)
   I = modulus(L)
   J = modulus(underlying_quotient(L))
-  singular_assure(J)
   R = base_ring(L)
   SR = singular_poly_ring(R)
-  SJ = J.gens.S
+  SJ = singular_generators(J)
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1506,10 +1507,9 @@ end
 
 function simplify(L::MPolyQuoRing)
   J = modulus(L)
-  singular_assure(J)
   R = base_ring(L)
   SR = singular_poly_ring(R)
-  SJ = J.gens.S
+  SJ = singular_generators(J)
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1572,14 +1572,14 @@ Ideals in localizations of affine algebras.
   W::LocRingType
 
   # fields for caching 
-  map_from_base_ring::Hecke.Map
+  map_from_base_ring::Map
 
   J::MPolyLocalizedIdealType
  
   function MPolyQuoLocalizedIdeal(
       W::MPolyQuoLocRing, 
       g::Vector{LocRingElemType};
-      map_from_base_ring::Hecke.Map = MapFromFunc(
+      map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
           x->W(x),
@@ -1613,7 +1613,7 @@ pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 
 ### a shorthand notation for any MPolyIdeal 
-MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
+const MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,
                  MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal
                 }
 
@@ -2141,7 +2141,7 @@ end
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
   ordering = degrevlex(gens(A)[r+1:end])
   if r > 0 
-    ordering = lex(theta)*ordering
+    ordering = deglex(theta)*ordering
   end
   Q = MPolyQuoRing(A, I, ordering)
   function my_fun(g)
@@ -2198,8 +2198,8 @@ Note: This is only available for localizations at rational points.
 
 
   ## determine the relations
-  singular_assure(I_shift, oL)
-  syz_mod=Singular.syz(I_shift.gens.S)
+  gensSord_shift = singular_generators(I_shift, oL)
+  syz_mod = Singular.syz(gensSord_shift)
 
   ## prepare Nakayama-check for minimal generating system
   F = free_module(R, length(Jlist))

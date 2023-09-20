@@ -546,7 +546,7 @@ is_conjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
 
 
 """
-    representative_action(Omega::GSet, omega1, omega2)
+    is_conjugate_with_data(Omega::GSet, omega1, omega2)
 
 Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
 If yes, return `true, g` where `g` is an element in the group `G` of
@@ -560,15 +560,15 @@ Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
 
 julia> Omega = gset(G);
 
-julia> representative_action(Omega, 1, 2)
+julia> is_conjugate_with_data(Omega, 1, 2)
 (true, (1,2))
 
-julia> representative_action(Omega, 1, 5)
+julia> is_conjugate_with_data(Omega, 1, 5)
 (false, ())
 
 ```
 """
-function representative_action(Omega::GSet, omega1, omega2)
+function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     # We do not call GAP's 'RepresentativeAction' with points, generators,
     # and actors.
     # The method in question would create a new 'ExternalSet' object
@@ -589,7 +589,6 @@ function representative_action(Omega::GSet, omega1, omega2)
     @assert(pre[1])
     return true, pre[2]
 end
-
 
 ############################################################################
 
@@ -948,14 +947,14 @@ ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
-  F = G.ring
-  n = G.deg
+  F = base_ring(G)
+  n = degree(G)
   q = GAP.Obj(order(F))
   V = VectorSpace(F, n)
   orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^n, k))
   orbreps = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
-  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]
-  orbreps = [[[F(x) for x in v] for v in bas] for bas in orbreps]
-  orbreps = [sub(V, [V(v) for v in bas])[1] for bas in orbreps]
-  return [(orbreps[i], stabs[i]) for i in 1:length(stabs)]
+  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
+  orbreps1 = [[[F(x) for x in v] for v in bas] for bas in orbreps]::Vector{Vector{Vector{elem_type(F)}}}
+  orbreps2 = [sub(V, [V(v) for v in bas])[1] for bas in orbreps1]
+  return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end

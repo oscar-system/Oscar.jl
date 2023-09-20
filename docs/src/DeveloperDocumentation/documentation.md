@@ -79,6 +79,12 @@ build_doc
 ```
 Please also read the section below on repairing the `jldoctest`s using
 `build_doc`.
+!!! note "Browser reports denied access"
+    Depending on your system, it might happen that the browser opens after a
+    successful build, but only informs you that the access to the file was denied.
+    This happens, for example, on Ubuntu which comes with a sandboxed Firefox.
+    In this case, using `build_doc` with `start_server = true` should circumvent
+    this problem.
 
 
 ### Automatically repairing `jldoctest`s

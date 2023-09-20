@@ -17,8 +17,8 @@ from other objects in OSCAR.
 ### Intersecting halfspaces: $H$-representation
 
 ```@docs
-polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
-polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
+polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
@@ -54,7 +54,7 @@ true
 ### Computing convex hulls: $V$-representation
 
 ```@docs
-convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar_types
+convex_hull(::Oscar.scalar_type_or_field, ::AnyVecOrMat; non_redundant::Bool=false)
 ```
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and
@@ -136,19 +136,52 @@ regular_600_cell
 ## Other polytope constructions
 
 ```@docs
+SIM_body_polytope
+associahedron
 billera_lee_polytope
+binary_markov_graph_polytope
 birkhoff_polytope
+cyclic_caratheodory_polytope
 cyclic_polytope
 del_pezzo_polytope
+dwarfed_cube
+dwarfed_product_polygons
+explicit_zonotope
 fano_simplex
 fractional_cut_polytope
+fractional_knapsack_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
+goldfarb_cube
+goldfarb_sit_cube
+hypersimplex
+hypertruncated_cube
+k_cyclic_polytope
+klee_minty_cube
+lecture_hall_simplex
+max_GC_rank_polytope
+n_gon
 newton_polytope
 orbit_polytope
+permutahedron
+pile_polytope
+pitman_stanley_polytope
 perles_nonrational_8_polytope
+pseudo_del_pezzo_polytope
+rand01_polytope
+rand_box_polytope
+rand_cyclic_polytope
+rand_metric
+rand_metric_int
+rand_normal_polytope
 rand_spherical_polytope
 rand_subpolytope
+rss_associahedron
+signed_permutahedron
+stable_set_polytope
+transportation_polytope
+zonotope
+zonotope_vertices_fukuda_matrix
 ```
 
 ## Operations on polyhedra

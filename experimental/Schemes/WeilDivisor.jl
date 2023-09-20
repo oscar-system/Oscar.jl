@@ -138,7 +138,7 @@ julia> II = IdealSheaf(Y, I);
 julia> weil_divisor(II)
 Effective weil divisor
   on scheme over QQ covered with 3 patches
-with coefficients in integer Ring
+with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
 ```
@@ -181,11 +181,16 @@ function Base.show(io::IO, D::WeilDivisor)
     print(io, name(D))
   elseif get(io, :supercompact, false)
     print(io, "Algebraic cycle")
+  # if the divisor is prime and the ideal sheaf has a name print that
+  elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
+    I = first(components(D))
+    I_name = get_attribute(I, :name)
+    print(io, Lowercase(), I_name)
   elseif length(components(D)) == 0
     print(io, "Zero weil divisor on ", Lowercase(),  X)
   elseif eff
     if prim
-      print(io, "Prime weil divisor on ", Lowercase(), X)
+      print(io, "Prime Weil divisor on ", Lowercase(), X)
     else
       print(io, "Effective Weil divisor on ", Lowercase(), X)
     end
@@ -196,7 +201,7 @@ end
 
 # Used in nested printing, where we assume that the associated scheme is already
 # printed in the nest - we keep track of the good covering `cov` to describe
-# everything consistenly.
+# everything consistently.
 function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
   io = pretty(io)
   X = scheme(D)
@@ -324,11 +329,18 @@ function intersect(D::WeilDivisor, E::WeilDivisor;
     for c2 in components(E)
       a2 = E[c2]
       if c1 === c2
-        result = a1*a2*_self_intersection(c1)
+        result = result + a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
-        @assert dim(I) <= 0 "divisors have nontrivial self intersection"
-        result = result + a1 * a2 * colength(I, covering=covering)
+        if dim(I) > 0
+          if c1 == c2
+            result = result + a1*a2*_self_intersection(c1)
+          else
+            error("self intersection unknown")
+          end
+        else
+          result = result + a1 * a2 * colength(I, covering=covering)
+        end
       end
     end
   end
@@ -581,6 +593,7 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   RP, _ = Localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   K = function_field(X)
+
   denom_mult = order_on_divisor(K(common_denominator), P, check=false)
   #denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!

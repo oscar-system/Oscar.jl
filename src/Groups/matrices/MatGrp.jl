@@ -104,6 +104,13 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   error("$x has neither :X nor :elm")
 end
 
+function change_base_ring(R::Ring, G::MatrixGroup)
+  g = dense_matrix_type(R)[]
+  for h in gens(G)
+    push!(g, map_entries(R, h.elm))
+  end
+  return matrix_group(g)
+end
 
 ########################################################################
 #
@@ -118,14 +125,12 @@ function Base.show(io::IO, x::MatrixGroup)
    if isdefined(x, :descr)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+      elseif x.ring isa Field && is_finite(x.ring)
+         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
       else
-         if x.ring isa Field
-            print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
-         else
-            print(io, string(x.descr), "(",x.deg,",")
-            print(IOContext(io, :supercompact => true), x.ring)
-            print(io ,")")
-         end
+         print(io, string(x.descr), "(",x.deg,",")
+         print(IOContext(io, :supercompact => true), x.ring)
+         print(io ,")")
       end
    else
       print(io, "Matrix group of degree ", x.deg, " over ")
@@ -462,7 +467,7 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
 
 Return the base ring of the matrix group `G`.
 """
-base_ring(G::MatrixGroup) = G.ring
+base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
 """
     degree(G::MatrixGroup)
@@ -529,8 +534,9 @@ end
 ########################################################################
 
 function _field_from_q(q::Int)
-   (n,p) = is_power(q)
-   @req is_prime(p) "The field size must be a prime power"
+   flag, n, p = is_prime_power_with_data(q)
+   @req flag "The field size must be a prime power"
+
    return GF(p, n)
 end
 

@@ -45,20 +45,53 @@ function Base.show(io::IO, X::AbsSpec)
   if has_attribute(X, :name)
     print(io, name(X))
   elseif get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty affine scheme over ")
-    K = base_ring(X)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(io, "Empty scheme")
   else
-    print(io, "Spec of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), OO(X))
+    _show(io, X)
   end
 end
+
+function _show(io::IO, X::AbsSpec)
+  print(io, LowercaseOff(), "Spec of ")
+  print(io, Lowercase(), OO(X))
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
+  io = pretty(io)
+  print(io, "affine ",ngens(OO(X)),"-space")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  join(io, gens(I), ", ")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  S = inverted_set(OO(X))
+  join(io, gens(I), ", ")
+  print(io, raw") \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "AA^", ngens(OO(X)))
+  S = inverted_set(OO(X))
+  print(io, raw" \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
+
+
 
 ########################################################
 # (3) Check for zero divisors in rings

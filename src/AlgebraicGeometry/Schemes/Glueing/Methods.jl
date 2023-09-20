@@ -6,7 +6,7 @@
 # coordinates so that on each open subset, the coordinates and the respective
 # descriptions are all aligned on the left, in an appropriate alignment and
 # distance. Moreover, since the glueing is given by some maps, we take care that
-# the arrows are aligned and so arguments are alignes on the right and their
+# the arrows are aligned and so arguments are aligns on the right and their
 # respective images are aligned on the left.
 function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   io = pretty(io)
@@ -120,7 +120,7 @@ function compose(G::Glueing, H::Glueing)
   return Glueing(X, Z, 
              compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
              compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
-	     )
+         )
 end
 
 @doc raw"""

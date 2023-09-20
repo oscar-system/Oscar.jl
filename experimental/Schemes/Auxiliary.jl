@@ -96,6 +96,14 @@ function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   return IdealSheaf(X, ID, check=false)
 end
 
+function pullback(f::CompositeCoveredSchemeMorphism, C::EffectiveCartierDivisor)
+  result = C
+  for g in reverse(maps(f))
+    result = pullback(g, result)
+  end
+  return result
+end
+
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
@@ -372,3 +380,6 @@ function inherit_glueings!(ref::Covering, orig::Covering)
   return ref
 end
 
+### Generic pullback and pushforward for composite maps
+pushforward(f::Generic.CompositeMap, a::Any) = pushforward(map2(f), pushforward(map1(f), a))
+pullback(f::Generic.CompositeMap, a::Any) = pullback(map1(f), pullback(map2(f), a))

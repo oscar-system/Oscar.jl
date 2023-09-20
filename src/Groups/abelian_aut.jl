@@ -1,6 +1,6 @@
-AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
-AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
-AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
+const AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
+const AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
+const AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   iso = isomorphism(T, A)
@@ -42,7 +42,7 @@ Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
 function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadModule,GrpAbFinGen}
-  function img(x::S)
+  function img(x::AutomorphismGroupElem{S})
     return group_element(aut, x.X)
   end
   to_gap = get_attribute(aut, :to_gap)
@@ -377,7 +377,7 @@ By default, the function checks whether `i` is injective and whether `i`
 is a torsion quadratic module morphism. One can disable these checks
 by setting `check = false`.
 """
-function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool = true)
+function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
 
   if check
     @req is_injective(i) "i must be an injection"

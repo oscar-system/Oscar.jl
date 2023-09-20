@@ -46,7 +46,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 julia> b = hom(B, B, [x^2*B[1]]);
 
 julia> C = chain_complex([a, b]; seed = 3)
-C_5 ----> C_4 ----> C_3
+C_3 <---- C_4 <---- C_5
 
 julia> range(C)
 5:-1:3

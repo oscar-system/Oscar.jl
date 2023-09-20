@@ -23,12 +23,13 @@ Spectrum
 julia> Y = Spec(P, I)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^3 - y^2*z)
 
 julia> U = complement(A, Y)
 Open subset
-  of spec of multivariate polynomial ring
+  of affine 3-space
 complement to V(x^3 - y^2*z)
 
 julia> OO(U)
@@ -41,7 +42,7 @@ Regular function
     of affine scheme with coordinates [x, y, z]
   complement to V(x^3 - y^2*z)
   covered by 1 affine patch
-    1: [x, y, z]   spec of localized ring
+    1: [x, y, z]   AA^3 \ V(x^3 - y^2*z)
 with restriction
   patch 1: 1
 ```

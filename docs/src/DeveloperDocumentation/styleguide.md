@@ -77,6 +77,15 @@ Here is a summary of the naming convention followed in OSCAR:
 Please check if your editor can be configured to honor our `.editorconfig`
 file, see <https://editorconfig.org> for more information about this.
 
+### JuliaFormatter
+
+There is a `.JuliaFormatter.toml` in our git repository. To format your files,
+first add `JuliaFormatter.jl` in Julia and then use
+```
+using JuliaFormatter
+format_file("path/to/file/file.jl")
+```
+
 ### Unicode
 
 As most modern programming languages, Julia allows the use of Unicode, e.g.,
@@ -84,9 +93,8 @@ As most modern programming languages, Julia allows the use of Unicode, e.g.,
 to various groups of users and developers, the use of Unicode should be kept
 to a minimum. Here is a general principle:
 
-> Do not use Unicode characters inside functions. See below for the exception
-> concerning printing.
-
+> Do not use Unicode characters inside functions. See
+> [Unicode printing](@ref) for the exception concerning printing.
 
 ### Whitespace
 

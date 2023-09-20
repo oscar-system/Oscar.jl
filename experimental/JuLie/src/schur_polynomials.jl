@@ -96,11 +96,11 @@ end
 #returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
 function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) where T<:Integer
   #if isempty(x) #this event is handled in the calling methods
-  #	if sum(lambda)==0
-  #	return 1
-  #	else
-  #	return 0
-  #	end
+  #  if sum(lambda)==0
+  #    return 1
+  #  else
+  #    return 0
+  #  end
   #end
 
   n = length(x)
@@ -112,7 +112,7 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) 
   @assert all(y->parent(y)===R, x) "input elements must have the same parent"
 
   #if n < length(lambda)
-  #	return 0
+  #  return 0
   #end
 
   #=

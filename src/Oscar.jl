@@ -82,11 +82,17 @@ function __init__()
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    for pkg in ["ctbllib",
-                "forms",
-                "wedderga", # provides a function to compute Schur indices
-                "repsn",
-               ]
+    for pkg in [
+       "atlasrep",
+       "ctbllib",  # character tables
+       "fga",      # dealing with free groups
+       "forms",    # bilinear/sesquilinear/quadratic forms
+       "primgrp",  # primitive groups library
+       "repsn",    # constructing representations of finite groups
+       "smallgrp", # small groups library
+       "transgrp", # transitive groups library
+       "wedderga", # provides a function to compute Schur indices
+       ]
       GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
     end
     __init_group_libraries()
@@ -96,6 +102,9 @@ function __init__()
 
     add_verbose_scope(:EllipticSurface)
     add_assert_scope(:EllipticSurface)
+
+    add_verbose_scope(:MorphismFromRationalFunctions)
+    add_assert_scope(:MorphismFromRationalFunctions)
 
     add_verbose_scope(:Glueing)
     add_assert_scope(:Glueing)
@@ -112,6 +121,8 @@ function __init__()
     add_verbose_scope(:Blowup)
     add_assert_scope(:Blowup)
 
+    add_verbose_scope(:hilbert)
+    add_assert_scope(:hilbert)
 
     add_verbose_scope(:GlobalTateModel)
     add_verbose_scope(:WeierstrassModel)
@@ -189,6 +200,7 @@ include("fallbacks.jl")
 
 
 include("Rings/Rings.jl")
+include("forward_declarations.jl")
 include("Groups/Groups.jl")
 
 include("GAP/GAP.jl")
@@ -222,6 +234,11 @@ include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
+# Serialization should always come at the end of Oscar source code
+# but before experimental, any experimental serialization should
+# be written inside the corresponding experimental code sub directory
+include("Serialization/main.jl")
+
 include("../experimental/Experimental.jl")
 
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
@@ -233,14 +250,10 @@ if is_dev
   include("../examples/PrimDec.jl")
 end
 
-include("Serialization/main.jl")
 
 include("aliases.jl")
 
 include("deprecations.jl")
-
-const global OSCAR = Oscar
-const global oscar = Oscar
 
 @doc raw"""
 ANTIC is the project name for the number theoretic cornerstone of OSCAR, see

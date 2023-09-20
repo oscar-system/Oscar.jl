@@ -1,9 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-  Oscar.AbstractAlgebra.set_current_module(@__MODULE__)
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Invariants of Finite Groups
@@ -17,7 +14,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
           $\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$
          
          Moreover, $K[V]^G$ is finitely generated as a $K$-algebra.
-		   
+
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
        $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(f \;\!   . \;\! \pi).$
@@ -166,6 +163,10 @@ secondary_invariants(IR::InvRing)
 
 ```@docs
 irreducible_secondary_invariants(IR::InvRing)
+```
+
+```@docs
+module_syzygies(RG::InvRing)
 ```
 
 ## Fundamental Systems of Invariants

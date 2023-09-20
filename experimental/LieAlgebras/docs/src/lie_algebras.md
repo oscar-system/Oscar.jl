@@ -29,6 +29,7 @@ symbols(::LieAlgebra)
 ## Special functions for `LinearLieAlgebra`s
 
 ```@docs
+coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:RingElement}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:RingElement}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:RingElement}
 matrix_repr(::LinearLieAlgebraElem{C}) where {C<:RingElement}
@@ -45,13 +46,6 @@ and fails otherwise.
 `v` can be of type `Vector{C}`, `Vector{Int}`, `SRow{C}`,
 or `MatElem{C}` (of size $1 \times \dim(L)$).
 
-If `L` is a `LinearLieAlgebra` of `dim(L) > 1`, the call
-`(L::LinearLieAlgebra{C})(m::MatElem{C})` returns the Lie algebra element whose
-matrix representation corresponds to `m`.
-This requires `m` to be a square matrix of size `n > 1` (the dimension of `L`), and
-to lie in the Lie algebra `L` (i.e. to be in the span of `basis(L)`).
-The case of `m` being a $1 \times \dim(L)$ matrix still works as explained above.
-
 
 ## Arithmetics
 The usual arithmetics, e.g. `+`, `-`, and `*`, are defined for `LieAlgebraElem`s.
@@ -63,16 +57,21 @@ The usual arithmetics, e.g. `+`, `-`, and `*`, are defined for `LieAlgebraElem`s
 
 ```@docs
 is_abelian(L::LieAlgebra)
+is_nilpotent(L::LieAlgebra)
+is_perfect(L::LieAlgebra)
 is_simple(L::LieAlgebra)
+is_solvable(L::LieAlgebra)
 ```
 
 ## More functions
 
 ```@docs
-derived_algebra(L::LieAlgebra)
 center(L::LieAlgebra)
 centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
 centralizer(L::LieAlgebra, x::LieAlgebraElem)
+derived_algebra(L::LieAlgebra)
+derived_series(L::LieAlgebra)
+lower_central_series(L::LieAlgebra)
 ```
 
 ## Lie algebra constructors
@@ -84,6 +83,7 @@ lie_algebra
 ## Classical Lie algebras
 
 ```@docs
+abelian_lie_algebra(R::Ring, n::Int)
 general_linear_lie_algebra(R::Ring, n::Int)
 special_linear_lie_algebra(R::Ring, n::Int)
 special_orthogonal_lie_algebra(R::Ring, n::Int)

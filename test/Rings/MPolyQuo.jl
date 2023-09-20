@@ -180,7 +180,7 @@ end
   Al, _ = quo(Rl, Il)
   @test modulus(Rl) == ideal(Rl,[zero(Rl)])
   @test modulus(Al) == Il
-  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y^2+1,z]))
+  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
   Rl2,_ = Localization(R,U2)
   Il2 = Rl2(I)
   Al2,_ = quo(Rl2,Il2)
@@ -265,5 +265,5 @@ end
   I = ideal(R, 1-x*y)
   o = revlex([x, y])
   Q = MPolyQuo(R, I, o)
-  @test oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+  @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end

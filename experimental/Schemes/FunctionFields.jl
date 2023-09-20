@@ -49,9 +49,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of quotient of multivariate polynomial ring
-    2: spec of quotient of multivariate polynomial ring
-    3: spec of quotient of multivariate polynomial ring
+    1: V(-(y//x)^2*(z//x) + 1)
+    2: V((x//y)^3 - (z//y))
+    3: V((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -60,18 +60,18 @@ with default covering
 julia> K = function_field(Ycov)
 Field of rational functions
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 represented by
   patch 1: fraction field of multivariate polynomial ring
 
 julia> one(K)
 Rational function
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   spec of quotient of multivariate polynomial ring
-    2: [(x//y), (z//y)]   spec of quotient of multivariate polynomial ring
-    3: [(x//z), (y//z)]   spec of quotient of multivariate polynomial ring
+    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
 represented by
   patch 1: 1
 ```
@@ -502,6 +502,19 @@ function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
 end
 
 function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
+  X = domain(f)
+  Y = codomain(f)
+  parent(a) === function_field(X) || error("element does not belong to the correct ring")
+  has_attribute(f, :isomorphism_on_open_subset) || error("need an isomorphism on some open subset")
+  f_res = isomorphism_on_open_subset(f)
+  U = domain(f_res)
+  V = codomain(f_res)
+  aa = a[ambient_scheme(U)]
+  f_res_inv = inverse(f_res)
+  num = pullback(f_res_inv)(numerator(aa))
+  den = pullback(f_res_inv)(denominator(aa))
+  #bb = fraction(num)//fraction(den)
+  return function_field(Y)(lifted_numerator(num)*lifted_denominator(den), lifted_numerator(den)*lifted_denominator(num))
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)

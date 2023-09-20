@@ -201,7 +201,7 @@ one of the homogeneous coordinates of ``P``.
 
 **Note:** Since this map returns representatives only, it 
 is not a mathematical morphism and, hence, in particular 
-not an instance of `Hecke.Map`.
+not an instance of `Map`.
 
 # Examples
 ```jldoctest
@@ -217,9 +217,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: spec of multivariate polynomial ring
-    2: spec of multivariate polynomial ring
-    3: spec of multivariate polynomial ring
+    1: affine 4-space
+    2: affine 4-space
+    3: affine 4-space
   in the coordinate(s)
     1: [(x1//x0), (x2//x0), u, v]
     2: [(x0//x1), (x2//x1), u, v]
@@ -372,4 +372,30 @@ function getindex(X::AbsProjectiveScheme, U::AbsSpec)
   return nothing, 0
 end
 
+# comparison of projective spaces
+function ==(X::AbsProjectiveScheme{<:Any,<:MPolyDecRing}, Y::AbsProjectiveScheme{<:Any,<:MPolyDecRing})
+  return homogeneous_coordinate_ring(X) === homogeneous_coordinate_ring(Y)
+end
 
+# comparison of subschemes of projective space
+function ==(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
+  ambient_space(X) == ambient_space(Y) || return false
+  IX = defining_ideal(X)
+  IY = defining_ideal(Y)
+  R = homogeneous_coordinate_ring(ambient_space(X))
+  irrelevant_ideal = ideal(R,gens(R))
+  IXsat = saturation(IX, irrelevant_ideal)
+  IYsat = saturation(IY, irrelevant_ideal)
+  return IXsat == IYsat
+end
+
+function issubset(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
+  ambient_space(X) == ambient_space(Y) || return false
+  IX = defining_ideal(X)
+  IY = defining_ideal(Y)
+  R = homogeneous_coordinate_ring(ambient_space(X))
+  irrelevant_ideal = ideal(R,gens(R))
+  IXsat = saturation(IX, irrelevant_ideal)
+  IYsat = saturation(IX, irrelevant_ideal)
+  return issubset(IYsat, IXsat)
+end

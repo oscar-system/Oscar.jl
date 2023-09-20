@@ -107,7 +107,8 @@ which the scheme theoretic intersection remembers. Therefore they are different.
 julia> Z = intersect(X, Y) # a non reduced scheme
 Spectrum
   of quotient
-    of multivariate polynomial ring in 2 variables over QQ
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
     by ideal(x^2 - y, y)
 
 julia> Zred == Z

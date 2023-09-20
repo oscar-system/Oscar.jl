@@ -4,8 +4,6 @@ export EmptyScheme
 export IdealSheaf
 export ProjectiveScheme
 export ProjectiveSchemeMor
-export ToricCoveredScheme
-export ToricSpec
 export VarietyFunctionField
 export VarietyFunctionFieldElem
 
@@ -203,10 +201,10 @@ identifications given by the glueings in the `default_covering`.
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
                     OpenType=AbsSpec, OutputType=Ring,
-                    RestrictionType=Hecke.Map,
+                    RestrictionType=Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
   end
 
   ### Structure sheaf on covered schemes
@@ -394,10 +392,10 @@ identifications given by the glueings in the `default_covering`.
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring,
-                      RestrictionType=Hecke.Map,
+                      RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes(X)
                      )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
   end
 end
 
@@ -423,7 +421,7 @@ identifications given by the glueings in the `default_covering`.
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
-  ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
+  ID::IdDict{AbsSpec, Ideal} # the ideals on the patches of some covering of X
   OOX::StructureSheafOfRings # the structure sheaf on X
   I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 
@@ -533,10 +531,10 @@ identifications given by the glueings in the `default_covering`.
 
     Ipre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=Ideal,
-                      RestrictionType=Hecke.Map,
+                      RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
-    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
+    I = new{typeof(X), AbsSpec, Ideal, Map}(ID, OOX, Ipre)
     @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic

@@ -1,4 +1,5 @@
 using Oscar
+using Test
 
 include("groebner_basis.jl")
 include("groebner_fan.jl")

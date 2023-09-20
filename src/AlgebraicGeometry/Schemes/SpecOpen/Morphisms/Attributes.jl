@@ -30,7 +30,7 @@ function pullback(f::SpecOpenMor)
         return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:ngens(V)])
       end
       f.pullback = MapFromFunc(OO(U), OO(V), my_restr)
-      return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+      return f.pullback::Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
     end
 
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
@@ -66,7 +66,7 @@ function pullback(f::SpecOpenMor)
       return SpecOpenRingElem(OO(V), b, check=false)
 
       # shortcut for regular elements on the ambient variety
-      # Does not work because of parent check done by the Hecke.Map
+      # Does not work because of parent check done by the Map
       # function mymap(a::RingElem)
       #   parent(a) === OO(ambient(U)) || return mymap(OO(ambient(U))(a))
       #   return SpecOpenRingElem(OO(V), 
@@ -76,6 +76,6 @@ function pullback(f::SpecOpenMor)
     end
     f.pullback = MapFromFunc(OO(U), OO(V), mymap)
   end
-  return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+  return f.pullback::Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
 end
 

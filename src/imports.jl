@@ -8,7 +8,7 @@ import AbstractAlgebra
 import AlgebraicSolving
 # we currently need to load Polymake before GAP to avoid the crashe mentioned in
 # https://github.com/oscar-system/Oscar.jl/pull/1902
-# Once there is a GAP_pkg_browse that links to the correct ncurses we might 
+# Once there is a GAP_pkg_browse that links to the correct ncurses we might
 # switch this back.
 import Polymake
 import GAP
@@ -168,6 +168,7 @@ let exclude_hecke = [
     :narrow_class_group,
     :Partition,
     :perm,
+    :QQBar,
     :SymmetricGroup,
     :tail,
     :terms,
@@ -180,13 +181,14 @@ let exclude_hecke = [
 end
 
 import Hecke:
+  conjugate,
+  expand,
   field_extension,
   hensel_qf,
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
   primitive_element,
-  conjugate,
-  expand
+  QQBar
 
 import cohomCalg_jll

@@ -80,7 +80,7 @@ end
 # allowed, but we keep as an option of not printing the coordinates. For
 # instance, in some nested printings for morphisms, we might have already
 # mentioned the coordinates, and so `show_coord = false` ensures that we avoid
-# redundacy
+# redundancy
 function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing}, show_coord::Bool = true)
   io = pretty(io)
   if get(io, :supercompact, false)

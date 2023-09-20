@@ -165,6 +165,7 @@ Note that at least one of the conditions must impose a limit on the group
 order, otherwise an exception is thrown.
 
 The following functions are currently supported as values for `func`:
+- `exponent`
 - `is_abelian`
 - `is_almostsimple`
 - `is_cyclic`

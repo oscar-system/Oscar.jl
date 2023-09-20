@@ -45,7 +45,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - name: "Build package"
-        uses: julia-actions/julia-buildpkg@latest
+        uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
@@ -95,7 +95,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - name: "Build package"
-        uses: julia-actions/julia-buildpkg@latest
+        uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
@@ -117,12 +117,14 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia --project=docs --depwarn=error --color=yes -e'
-            using Documenter
-            using Oscar
-            include("src/utils/limit_mem.jl")
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__)); recursive = true)
-            doctest(Oscar)'
+          julia ${{ matrix.julia-version == '1.9' && '--code-coverage' || '' }} \
+            --project=docs --depwarn=error --color=yes -e'
+              using Documenter
+              include("docs/documenter_helpers.jl")
+              using Oscar
+              include("src/utils/limit_mem.jl")
+              DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
+              doctest(Oscar)'
       - name: "Process code coverage"
         if: matrix.julia-version == '1.9'
         uses: julia-actions/julia-processcoverage@v1

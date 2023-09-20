@@ -56,7 +56,7 @@ defined by the ``fᵢⱼ`` give rise to a decomposition of ``X`` as a **disjoint
 ``X = \bigcup_{i} Z_i`` of locally closed subvarieties. 
 
 This information can be used for local computations in any chart ``Uᵢ`` of ``X`` 
-as above to focus on phenomena occuring exclusively along ``Zᵢ`` and assuming 
+as above to focus on phenomena occurring exclusively along ``Zᵢ`` and assuming 
 that other cases have been handled by computations in other charts. A key 
 application is counting points of zero-dimensional subschemes: To avoid overcounting, 
 we need to only consider points in ``Uᵢ`` which are located within ``Zᵢ`` and 

@@ -395,7 +395,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
 
@@ -446,7 +446,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     # Cache the isomorphism on the complement of the center
@@ -500,7 +500,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     W === codomain(p_res) || error("codomain not correct")
     ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
   end
-  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+  E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
   
@@ -593,7 +593,7 @@ end
 #    At, embeddingAt, T =  _add_variables(R,[:t])
 #    t = T[1]
 #
-#    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+#    #@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
 #    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
 #
 #    Imod = modulus(A)
@@ -794,7 +794,7 @@ function blow_up(
     # Gather the information on the isomorphism on the complement
     p = covered_projection_to_base(local_blowups[U])
     isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
-    # manual merge becaus `merge` does not preserve IdDicts.
+    # manual merge because `merge` does not preserve IdDicts.
     for x in keys(isos_on_complement_of_center)
       comp_iso_dict[x] = isos_on_complement_of_center[x]
     end
@@ -1021,35 +1021,35 @@ end
 
 
 # function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-	#(IOw: Exc Div ^\infty)
-	
+#(IOw: Exc Div ^\infty)
+
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
-#	while true
+#
+#        while true
 #          Inew = quotient(Iold, Excdiv)
 #          Iold == Inew && break
 #          Iold = Inew
-#	end
+#        end
 #        return gens(Iold)
 #end
 #
 #
 #
 #function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-#	#IOw
-#	
+#        #IOw
+#
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #        return gens(Iold)
 #end
@@ -1058,43 +1058,43 @@ end
 #### NOT TESTED YET
 #function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #
-#	while true
-#		Inew = quotient(Iold, Excdiv)
-#		!(Iold == Excdiv * Inew) && break
-#		Iold = Inew 
-#	end
-#	return gens(Iold)
-#	#(IOw : Exc Div ^k), k maximal
+#        while true
+#           Inew = quotient(Iold, Excdiv)
+#           !(Iold == Excdiv * Inew) && break
+#           Iold = Inew 
+#        end
+#        return gens(Iold)
+#        #(IOw : Exc Div ^k), k maximal
 #end
 #
 #### NOT TESTED YET
 #function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
-#	#(IOw : Exc Div ^i)
+#        #(IOw : Exc Div ^i)
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
 #
-#	for j in 1:i
-#		Inew = quotient(Iold,Excdiv)
-#		Inew == 1 && break
-#		Iold = Inew
-#	end
-#	
-#	return gens(Iold)
+#
+#        for j in 1:i
+#          Inew = quotient(Iold,Excdiv)
+#          Inew == 1 && break
+#          Iold = Inew
+#        end
+#
+#        return gens(Iold)
 #
 #end
 #

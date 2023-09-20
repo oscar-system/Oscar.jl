@@ -436,5 +436,7 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         end
       end
     end
+
+    return
 end
 

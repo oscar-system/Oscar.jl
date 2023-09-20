@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, relatively_minimal_model, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart, transform_to_weierstrass
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -50,9 +50,31 @@ end
 base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
 
 @doc raw"""
+    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllCrvPt})
+
+Set generators for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
+
+This invalidates previous computations depending on the generators of the
+mordell weil lattice such as the `algebraic_lattice`. Use with care.
+"""
+function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllCrvPt})
+  @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
+  X.MWL = mwl_basis
+  # clear old computations
+  if has_attribute(X, :algebraic_lattice)
+    deleteat!(X.__attrs, :algebraic_lattice)
+  end
+  if has_attribute(X, :mordell_weil_lattice)
+    deleteat!(X.__attrs, :mordell_weil_lattice)
+  end
+end
+
+@doc raw"""
     elliptic_surface(generic_fiber::EllCrv, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
+
+This is also known as the Kodaira-Néron model of ``E``.
 
 # Examples
 ```jldoctest
@@ -80,11 +102,15 @@ function elliptic_surface(generic_fiber::EllCrv{BaseField}, euler_characteristic
   return S
 end
 
+kodaira_neron_model(E::EllCrv) = elliptic_surface(E)
+
 function underlying_scheme(S::EllipticSurface)
   if isdefined(S,:Y)
     return S.Y
   end
-  return relatively_minimal_model(S)[1]
+  # trigger the computation
+  weierstrass_contraction(S)
+  return underlying_scheme(S)
 end
 
 @doc raw"""
@@ -93,7 +119,26 @@ end
 Return the generic fiber as an elliptic curve.
 """
 generic_fiber(S::EllipticSurface) = S.E
-weierstrass_chart(S::EllipticSurface) = S.Weierstrasschart
+
+@doc raw"""
+    weierstrass_chart(X::EllipticSurface)
+
+Return the Weierstrass chart of ``X`` on its `weierstrass_model`.
+"""
+weierstrass_chart(X::EllipticSurface) = weierstrass_model(X)[1][1][1]
+
+@doc raw"""
+    weierstrass_chart_on_minimal_model(X::EllipticSurface)
+
+Return an affine chart ``U`` of ``X`` which is isomorphic to the `weierstrass_chart` 
+of ``X`` on its `weierstrass_model`, but with all singular fibers removed.
+
+More precisely, the affine coordinates of ``U`` are ``(x,y,t)`` and the chart is 
+constructed as the vanishing locus of
+``y^2 + a_1(t) xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6``
+minus the reducible singular fibers.
+"""
+weierstrass_chart_on_minimal_model(X::EllipticSurface) = X[1][1]
 
 @doc raw"""
     euler_characteristic(X::EllipticSurface) -> Int
@@ -255,9 +300,9 @@ end
 @doc raw"""
     weierstrass_model(X::EllipticSurface) -> CoveredScheme, CoveredClosedEmbedding
 
-Return the weierstrass model ``S`` of ``X`` and the inclusion
-
-\[S \subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1})\]
+Return the Weierstrass model ``S`` of ``X`` and the inclusion in
+its ambient projective bundle
+$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1}).$$
 """
 function weierstrass_model(X::EllipticSurface)
   if isdefined(X, :Weierstrassmodel)
@@ -330,29 +375,34 @@ function _separate_singularities!(X::EllipticSurface)
   # to make sure that there is only a single singular point in each chart
   refined_charts = AbsSpec[]
   U = P[1][1]  # the weierstrass_chart
-  IsingU = I_sing_P(U)
-  dec_info = []
+  IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
+    # we want one smooth weierstrass chart
     push!(refined_charts, U)
+    set_attribute!(U, :is_smooth => true)
   else
     # there is at most one singularity in every fiber
     # project the singular locus to an affine chart of P1
     disc = gens(eliminate(IsingU, coordinates(U)[1:2]))[1]
+    # The t-coordinates of the reducible fibers
     redfib = [f[1] for f in factor(disc)]
+    # One chart with all reducible fibers taken out
+    UU = PrincipalOpenSubset(U, redfib)
+    set_attribute!(UU, :is_smooth => true)
+    push!(refined_charts, UU)
     if length(redfib)==1
-      push!(refined_charts, U)
+      # We need to recreate U as a PrincipalOpenSubset of itself here 
+      # in order to maintain the correct tree-structure for refinements.
+      # In any Covering no patch is allowed to be an ancestor of another. 
+      push!(refined_charts, PrincipalOpenSubset(U, one(OO(U))))
     else
       for i in 1:length(redfib)
+        # We take out all but the i-th singular fiber
         r = copy(redfib)
         g = r[i]
         deleteat!(r, i)
         Uref = PrincipalOpenSubset(U, r)
         push!(refined_charts, Uref)
-        if i>1
-          push!(dec_info, Uref=> RingElem[g])
-        else
-         push!(dec_info, Uref=> RingElem[])
-        end
       end
     end
   end
@@ -427,22 +477,25 @@ function _separate_singularities!(X::EllipticSurface)
 end
 
 @doc raw"""
-    relatively_minimal_model(E::EllipticSurface) -> CoveredScheme, SchemeMor
+    weierstrass_contraction(X::EllipticSurface) -> SchemeMor
 
-Return the relatively minimal model $X \to C$ and the contraction
-$\Psi \colon X \to S$ to its Weierstrass model $S$.
+Return the contraction morphism of ``X`` to its Weierstrass model.
+
+This triggers the computation of the `underlying_scheme` of ``X``
+as a blowup from its Weierstrass model. It may take a few minutes.
 """
-function relatively_minimal_model(E::EllipticSurface)
-  if isdefined(E, :blowups)
-    return E.Y, E.blowup
+function weierstrass_contraction(X::EllipticSurface)
+  Y = X
+  if isdefined(Y, :blowup)
+    return Y.blowup
   end
-  S, inc_S = weierstrass_model(E)
-  Crefined = _separate_singularities!(E)
+  S, inc_S = weierstrass_model(Y)
+  Crefined = _separate_singularities!(Y)
   # Blow up singular points (one at a time) until smooth
   # and compute the strict transforms of the `divisors`
   # collect the exceptional divisors
   # blowup ambient spaces: X0 → X   ⊂
-  # blowup pi: (K3 = Y0)  → (S singular weierstrass model)
+  # blowup pi: Y  → (S singular weierstrass model)
   #
   # initialization for the while loop
   X0 = codomain(inc_S)
@@ -450,9 +503,9 @@ function relatively_minimal_model(E::EllipticSurface)
   inc_Y0 = inc_S
 
 
-  ambient_exceptionals = EffectiveCartierDivisor{typeof(X0)}[]
+  ambient_exceptionals = EffectiveCartierDivisor[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
-  projectionsX = BlowupMorphism{typeof(X0)}[]
+  projectionsX = BlowupMorphism[]
   projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
@@ -491,13 +544,17 @@ function relatively_minimal_model(E::EllipticSurface)
     # take the first singular point and blow it up
     J = radical(I_sing_X0[1]) # radical to have small number of generators
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    # Set the attribute so that the strict_transform does some extra work
+    isomorphism_on_open_subset(pr_X1)
+
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
     E1 = exceptional_divisor(pr_X1)
 
     @vprint :EllipticSurface 2 "computing strict transforms\n"
     # compute the exceptional divisors
-    ambient_exceptionals = [strict_transform(pr_X1, e) for e in ambient_exceptionals]
+    ambient_exceptionals = EffectiveCartierDivisor[strict_transform(pr_X1, e) for e in ambient_exceptionals]
     # move the divisors coming originally from S up to the next chart
     push!(ambient_exceptionals, E1)
 
@@ -511,19 +568,35 @@ function relatively_minimal_model(E::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
   end
-  E.Y = Y0
-  E.blowups = projectionsY
-  E.ambient_blowups = projectionsX
-  E.ambient_exceptionals = ambient_exceptionals
-  piY = reduce(*, reverse(projectionsY))
-  E.blowup = piY
-  E.inc_Y = inc_Y0
+  Y.Y = Y0
+  Y.blowups = projectionsY
 
-  set_attribute!(Y0, :is_irreducible=>true)
-  set_attribute!(Y0, :is_reduced=>true)
-  set_attribute!(Y0, :is_integral=>true)
-  return Y0, piY
+  # We need to rewrap the last maps so that the domain is really Y
+  last_pr = pop!(projectionsY)
+  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+
+  push!(projectionsY, last_pr_wrap)
+  Y.ambient_blowups = projectionsX
+
+  Y.ambient_exceptionals = ambient_exceptionals
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
+  Y.blowup = piY
+
+  inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
+  Y.inc_Y = inc_Y0_wrap
+
+  set_attribute!(Y, :is_irreducible=> true)
+  set_attribute!(Y, :is_reduced=>true)
+  set_attribute!(Y, :is_integral=>true)
+  return piY
 end
 
 #  global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
@@ -531,8 +604,10 @@ end
 @doc raw"""
     _trivial_lattice(S::EllipticSurface)
 
-Internal function. Output:
-basis of the trivial lattice, gram matrix, fiber_components
+Internal function. Returns a list consisting of:
+- basis of the trivial lattice
+- gram matrix
+- fiber_components without multiplicities
 """
 @attr function _trivial_lattice(S::EllipticSurface)
   #=
@@ -580,8 +655,6 @@ basis of the trivial lattice, gram matrix, fiber_components
 
   O = zero_section(S)
   pt0, F = fiber(S)
-  # we manually set the self-intersections
-  set_attribute!(components(F)[1], :_self_intersection, 0)
   set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
 
 
@@ -666,7 +739,7 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   end
   r = length(f)
   G = -2*identity_matrix(ZZ, r)
-  @vprint :EllipticSurface 2 "computing intersections:"
+  @vprintln :EllipticSurface 2 "computing intersections:"
   for i in 1:r
     @vprint :EllipticSurface 3 "\nrow $(i): \n"
     for j in 1:i-1
@@ -700,7 +773,7 @@ Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
 """
 function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
-  _ = relatively_minimal_model(S) # cache stuff
+  underlying_scheme(S) # cache stuff
   D = IdDict{AbsSpec, RingElem}()
   k = base_ring(S0)
   P = k.(P)
@@ -745,7 +818,7 @@ function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   else
     error("[0,0] is not a point in projective space")
   end
-  F = EffectiveCartierDivisor(S0, D, trivializing_covering=S0[1])
+  F = EffectiveCartierDivisor(S0, D, trivializing_covering=S0[1], check=false)
   return pullback(S.blowup)(F)
 end
 
@@ -764,14 +837,33 @@ function fiber_components(S::EllipticSurface, P)
 end
 
 function fiber(X::EllipticSurface)
-  pt, F = irreducible_fiber(X)
-  return pt, weil_divisor(F)
+  b, pt, F = irreducible_fiber(X)
+  if b
+    W = weil_divisor(F)
+    # we manually set the self-intersection
+    set_attribute!(components(W)[1], :_self_intersection, 0)
+  else
+    # all fibers are reducible pick the one over [0 : 1]
+    k = base_ring(X)
+    pt = [k(0),k(1)]
+    f = fiber_components(X, pt)
+    fiber_type, W, componentsW, gramW = standardize_fiber(X, f)
+  end
+  set_attribute!(W, :name=> "Fiber over ($(pt[1]), $(pt[2]))")
+  return pt, W
 end
 
-@doc raw"""
-    irreducible_fiber(S::EllipticSurface) -> EffectiveCartierDivisor
 
-Return an irreducible fiber as a cartier divisor.
+@doc raw"""
+    irreducible_fiber(S::EllipticSurface) -> Bool, Point, EffectiveCartierDivisor
+
+Return an irreducible fiber as a cartier divisor and whether it exists.
+
+The return value is a triple `(b, pt, F)` where
+
+- `b` is `true` if an irreducible fiber exists over the base field of `S`
+- `pt` the base point of the fiber
+- `F` the irreducible fiber which projects to `pt`
 """
 function irreducible_fiber(S::EllipticSurface)
   W = weierstrass_model(S)
@@ -780,12 +872,13 @@ function irreducible_fiber(S::EllipticSurface)
   k = coefficient_ring(kt)
   r = [k.(roots(i[1])) for i in factor(d) if i[2]>=2]
   sing = reduce(append!,r, init=[])
-
+  pt = k.([0,0]) # initialize
+  found = false
   if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
     pt = k.([1, 0])
+    found = true
   else
     if is_finite(k)
-      found = false
       for i in k
         if !(i in sing)  # true if the fiber over [i,1] is irreducible
           pt = k.([i,1])
@@ -793,22 +886,20 @@ function irreducible_fiber(S::EllipticSurface)
           break
         end
       end
-      found || error("there is no irreducible fiber defined over the base field")
     else
       i = k(0)
       while true
         i = i+1
         if !(i in sing)
           pt = k.([i,1])
+          found = true
           break
         end
       end
     end
   end
-  # F = fiber_components(S,pt) this does not terminate .... so we have to build it by hand
-  # @assert length(F) == 1
   F = fiber_cartier(S, pt)
-  return pt,F
+  return found, pt, F
 end
 
 @doc raw"""
@@ -845,7 +936,9 @@ function _section(X::EllipticSurface, P::EllCrvPt)
   PY = pullback(X.inc_Y, PX)
   set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
   set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
-  return WeilDivisor(PY, check=false)
+  W =  WeilDivisor(PY, check=false)
+  set_attribute!(W, :is_prime=>true)
+  return W
 end
 
 @doc raw"""
@@ -950,25 +1043,30 @@ function _prop217(E::EllCrv, P::EllCrvPt, k)
   return result
 end
 
+function iszero(P::EllCrvPt)
+  return iszero(P[1]) && isone(P[2]) && iszero(P[3])
+end
+
 @doc raw"""
     linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64) -> LinearSystem
 
 Compute the linear system ``|O + P + k F|`` on the elliptic surface ``X``.
 Here ``F`` is the class of the fiber over ``[0:1]``, ``O`` the zero section
 and ``P`` any section given as a point on the generic fiber.
+
+The linear system is represented in terms of the Weierstrass coordinates.
 """
 function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
   euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
-  FS = function_field(weierstrass_model(X)[1])
-  U = weierstrass_chart(X)
+  #FS = function_field(weierstrass_model(X)[1])
+  FS = function_field(X)
+  U = weierstrass_chart_on_minimal_model(X)
   (x,y,t) = ambient_coordinates(U)
 
   sections = elem_type(FS)[]
   if iszero(P[3])
     append!(sections, [FS(t)^(i-k) for i in 0:k])
     append!(sections, [FS(t)^(i-k)*FS(x) for i in 0:k-4])
-  elseif iszero((2*P)[3])
-    error("not implemented for 2-torsion sections")
   else
     xn = numerator(P[1])
     xd = denominator(P[1])
@@ -991,21 +1089,103 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
     end
   end
   return sections
-  sectionsX = pullback(X.blowup).(sections)
-  return sectionX
 end
 
 @doc raw"""
-  elliptic_parameter(X::EllipticSurface, F::ZZMat) -> LinearSystem
+    two_neighbor_step(X::EllipticSurface, F1::Vector{QQFieldElem})
 
-Return the complete linear system ``|F|``.
+Given an isotropic nef divisor ``F1`` with ``F1.F = 2``,
+compute the linear system ``|F1|`` and return the corresponding generic fiber
+as a double cover `C` of the projective line branched over four points.
 
-Here `F` must be given with respect to the basis of
-`algebraic_lattice(X)` and be an isotropic nef divisor. Assumes that $X$ is
-a K3 surface.
+Input:
+``F1`` is represented as a vector in the `algebraic_lattice(X)`
+
+Output:
+A tuple `(C, (x1, y1, t1))` defined as follows.
+- `C` is given by a polynomial `y1^2 - q(x1)` in `k(t)[x1,y1]` with `q` of degree 3 or 4.
+- (x1,y1,t1) are expressed as rational functions in terms of the weierstrass coordinates `(x,y,t)`.
 """
-function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
-  # TODO: Adapt this to compute linear systems on elliptic surfaces in general.
+function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
+  E = generic_fiber(X)
+  basisNS, tors, NS = algebraic_lattice(X)
+  V = ambient_space(NS)
+  @req inner_product(V, F, F)==0 "not an isotropic divisor"
+  @req euler_characteristic(X) == 2 "not a K3 surface"
+  F0 = zeros(QQ,degree(NS)); F0[1]=1
+
+  @req inner_product(V, F, F0) == 2 "not a 2-neighbor"
+
+  D1, D, P, l, c = horizontal_decomposition(X, F)
+  u = _elliptic_parameter(X, D1, D, P, l, c)
+  @assert scheme(parent(u)) === X
+  pr = weierstrass_contraction(X)
+  WX, _ = weierstrass_model(X)
+  # The following is a cheating version of the command u = pushforward(pr)(u)
+  u = function_field(WX)(u[weierstrass_chart_on_minimal_model(X)])
+  @assert scheme(parent(u)) === weierstrass_model(X)[1]
+
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  # transform to a quartic y'^2 = q(x)
+  if iszero(P[3])  #  P = O
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case1)
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
+#   function phi_func(x)
+#     y = phi1(x)
+#     n = numerator(y)
+#     d = denominator(y)
+#     return phi2(n)//phi2(d)
+#   end
+#   phi = MapFromFunc(domain(phi1), codomain(phi2), phi_func)
+#   # TODO: Verify that the construction below also works and replace by that, eventually.
+#   phi_alt = compose(phi1, extend_domain_to_fraction_field(phi2))
+#   @assert phi.(gens(domain(phi))) == phi_alt.(gens(domain(phi)))
+   phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+  elseif iszero(2*P) # P is a 2-torsion section
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case3)
+    #eqn1, phi1 = _conversion_case_3(X, u)
+    (x2, y2) = gens(parent(eqn1))
+
+    # Make sure the coefficient of y² is one (or a square) so that 
+    # completing the square works. 
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    eqn1 = inv(unit(factor(c)))*eqn1
+
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
+    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+  else  # P has infinite order
+    eqn1, phi1 = _elliptic_parameter_conversion(X, u, case=:case2)
+    #eqn1, phi1 = _conversion_case_2(X, u)
+    (x2, y2) = gens(parent(eqn1))
+    
+    # Make sure the coefficient of y² is one (or a square) so that 
+    # completing the square works. 
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    eqn1 = inv(unit(factor(c)))*eqn1
+
+    eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
+    phi = compose(phi1, extend_domain_to_fraction_field(phi2))
+  end
+
+  return eqn2, phi
+end
+
+@doc raw"""
+    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllCrvPt
+
+Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
+find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
+``O`` is the zero section, ``P`` is any section and ``V`` is vertical.
+
+Returns a tuple `(D1, D, P, l, c)` where `D` and `P` are as above and
+``D <= D1 = (n-1)O + P + n_1F_1 + ... n_k F_k`` with ``l = n_1 + ... n_k`` minimal
+and the `F_i` are some other fibers.
+The rational function `c=c(t)` has divisor of zeros and poles``
+(c) = lF - n_0F_1 + ... n_k F_k``
+"""
+function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   E = generic_fiber(X)
   basisNS, tors, NS = algebraic_lattice(X)
   V = ambient_space(NS)
@@ -1021,26 +1201,28 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   P0_div = section(X, P0)
   @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the trivial lattice
+  F1 = F - p0  # should be contained in the QQ-trivial-lattice
   F2 = F1
-  tmp = F1
-  if all(denominator(i)==1 for i in F1)
+  if all(isone(denominator(i)) for i in F1)
     # no torsion
     P = P0
     P_div = P0_div
   else
-    for (T, tor) in tors
-      if all(denominator(i)==1 for i in F1-tor)
+    found = false
+    for (i,(T, tor)) in enumerate(tors)
+      d = F2-vec(tor)
+      if all(isone(denominator(i)) for i in d)
+        found = true
+        T0 = mordell_weil_torsion(X)[i]
+        P = P0 + T0
         break
-        flag = true
-        P = P0 - T
-        F2 = F1 - tor
-        tmp = tor
       end
     end
-    @assert flag
+    @assert found
     P_div = section(X, P)
-    @assert basis_representation(X, P_div) == tmp
+    p = basis_representation(X, P_div)
+    F2 = F1 - p
+    @assert all( isone(denominator(i)) for i in F2)
   end
   D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
@@ -1049,7 +1231,7 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   l = F2[1] # number of fibers that we need
   # find the fiber components meeting O necessary
   F3 = F2
-  (_,_,t) = ambient_coordinates(weierstrass_chart(X))
+  (_,_,t) = ambient_coordinates(weierstrass_chart_on_minimal_model(X))
   c = t^0
   for (pt, rt, fiber, comp, gram) in reducible_fibers(X)
     Fib0 = comp[1]
@@ -1092,12 +1274,38 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert all(F4[i]>=0 for i in 1:length(basisNS))
   D = D + sum(ZZ(F4[i])*basisNS[i] for i in 1:length(basisNS))
   @assert D<=D1
+  l = Int(l)
+  return D1, D, P, l, c
+end
 
+@doc raw"""
+  elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
+
+Return the elliptic parameter ``u`` of the divisor class `F`. 
+
+The input `F` must be given with respect to the basis of
+`algebraic_lattice(X)` and be an isotropic nef divisor. 
+This method assumes that $X$ is a K3 surface.
+"""
+function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
+  D1, D, P, l, c = horizontal_decomposition(X, F)
+  return _elliptic_parameter(X, D1, D, P, l, c)
+end
+
+@doc raw"""
+    _elliptic_parameter(X::EllipticSurface, D::WeilDivisor, l, c)
+
+Compute the linear system of ``D = (n-1) O + P + V``.
+where V is vertical and `l` is the coefficient of the fiber class.
+Assumes `D` nef and `D^2=0`.
+Typically ``D`` is the output of `horizontal_decomposition`.
+"""
+function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllCrvPt, l::Int, c)
   S, piS = weierstrass_model(X);
-  _,piX = relatively_minimal_model(X)
-  c = function_field(S)(c)
-  L = [i*c for i in linear_system(X, P, Int(l))];
-  LonX = linear_system(pullback(piX).(L), D1, check=false);
+  piX = weierstrass_contraction(X)
+  c = function_field(X)(c)
+  L = [i*c for i in linear_system(X, P, l)];
+  LonX = linear_system(L, D1, check=false);
 
   LsubF, Tmat = subsystem(LonX, D);
 
@@ -1108,7 +1316,6 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
   u2 = LsubFonS[2]//LsubFonS[1]
   return u2
 end
-
 
 
 @doc raw"""
@@ -1175,4 +1382,364 @@ end
 function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, <:MPolyQuoLocRingElem,
                                               <:MPolyQuoRingElem, <:MPolyLocRingElem}})
   return f
+end
+
+########################################################################
+# Internal functionality for Weierstrass transformation 
+########################################################################
+
+
+@doc raw"""
+    _normalize_hyperelliptic_curve(g::MPolyRingElem, parent=nothing)
+
+Transform ``a(x)y^2 + b(x)y - h(x)`` in ``K(t)[x,y]`` to ``y'^2 - h(x')``
+"""
+function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRing, Nothing}=parent(g))
+  R = Oscar.parent(g)
+  @assert ngens(R) == 2 "polynomial must be bivariate"
+  F = fraction_field(R)
+  kt = coefficient_ring(R)
+  (x, y) = gens(R)
+
+  # Prepare the output ring
+  if parent===nothing
+    R1, (x1, y1) = R, gens(R)
+  else
+    R1 = parent
+    @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
+    (x1, y1) = gens(R1)
+  end
+
+  # Get the coefficients of g as a univariate polynomial in y
+  ktx, X = polynomial_ring(kt, :X, cached=false)
+  ktxy, Y = polynomial_ring(ktx, :y, cached=false)
+
+  # Maps to transform to univariate polynomials in y
+  split_map_R = hom(R, ktxy, [ktxy(X), Y])
+  split_map_R1 = hom(R1, ktxy, [ktxy(X), Y])
+  G = split_map_R(g)
+  @assert degree(G) == 2 "polynomial must be of degree 2 in its second variable"
+
+  #complete the square
+  h, b, a = collect(coefficients(G))
+  h = -h
+  u = unit(factor(a))
+  a = inv(u)*a
+  b = inv(u)*b
+  success, sqa = is_square_with_sqrt(a)
+  @assert success "leading coefficient as univariate polynomial in the second variable must be a square"
+
+  F1 = fraction_field(R1)
+  psi = hom(R1, F, F.([x, (2*evaluate(a, x)*y + evaluate(b, x))//(2*evaluate(sqa, x))]))
+  conv = MapFromFunc(ktx, R1, f->evaluate(f, x1))
+  (a1, b1, sqa1) = conv.([a, b, sqa])
+  phi = hom(R, F1, F1.([x1, (2*sqa1*y1-b1)//(2*a1)]))
+  phiF = MapFromFunc(F, F1, x-> phi(numerator(x))//phi(denominator(x)))
+  # the inverse map if wanted
+  # psiF = MapFromFunc(F1, F, x-> psi(numerator(x))//psi(denominator(x)))
+  # @assert all(phiF(psiF(F1(i)))==i for i in gens(R1))
+
+  # absorb squares into y1
+  g1 = numerator(phi(g))
+  G1 = split_map_R1(g1)
+  ff = factor(first(coefficients(G1)))
+  c = prod([p^div(i, 2) for (p, i) in ff], init=one(ktx))
+  #d = sqrt(my_coeff(g1, y1, 2))
+  d = last(coefficients(split_map_R1(g1)))
+  success, d = is_square_with_sqrt(d)
+  @assert success "leading coefficient must be a square"
+
+  phi1 = hom(R1, F1, [F1(x1), F1(evaluate(c, x1), evaluate(d, x1))*y1])
+  phiF1 = MapFromFunc(F1, F1, x-> phi1(numerator(x))//phi1(denominator(x)))
+  phi2 = compose(phi, phiF1)
+  g2 = numerator(phi1(g1))
+  #c = my_coeff(g2, y1, 2)
+  c = last(coefficients(split_map_R1(g2)))
+  g2 = divexact(g2, evaluate(c, x1))
+  @assert degree(g2, gen(parent, 1)) <= 4 "degree in the first variable is too high"
+  @assert degree(g2, gen(parent, 1)) >= 3 "degree in the first variable is too low"
+  return g2, phi2
+end
+
+
+@doc raw"""
+    elliptic_surface(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
+degree at most ``4`` to Weierstrass form and return the corresponding
+elliptic surface as well as the coordinate transformation.
+"""
+function elliptic_surface(g::MPolyElem, P::Vector{<:RingElem})
+  R = parent(g)
+  (x, y) = gens(R)
+  P = base_ring(R).(P)
+  g2, phi2 = transform_to_weierstrass(g, x, y, P);
+  E2 = elliptic_curve(g2, x, y);
+  t2 = gen(base_field(E2));
+  Y2 = elliptic_surface(E2, 2)
+
+  W = weierstrass_chart(Y2)
+  RW = ambient_coordinate_ring(W); FRW = fraction_field(RW);
+  (x, y, t) = gens(RW) # Output of phi2 lives in (k(t))(x, y), so we need to convert
+  psi = hom(base_ring(codomain(phi2)), FRW, f->evaluate(f, t), FRW.([x,y])); # a helper function
+  psi_ext = extend_domain_to_fraction_field(psi)
+  return Y2, phi2 * psi_ext
+end
+
+@doc raw"""
+    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
+to Weierstrass form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
+`fraction_field` of `parent(g)` and `f` is the transform. The input `P` must be a rational point 
+on the curve defined by `g`, i.e. `g(P) == 0`.
+"""
+function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+  R = parent(g)
+  @assert ngens(R) == 2 "input polynomial must be bivariate"
+  @assert x in gens(R) "second argument must be a variable of the parent of the first"
+  @assert y in gens(R) "third argument must be a variable of the parent of the first"
+
+  kk = coefficient_ring(R)
+  kkx, X = polynomial_ring(kk, :x, cached=false)
+  kkxy, Y = polynomial_ring(kkx, :y, cached=false)
+
+  imgs = [kkxy(X), Y]
+  if x == R[2] && y == R[1]
+    imgs = reverse(imgs)
+  end
+  split_map = hom(R, kkxy, imgs)
+
+  G = split_map(g)
+  @assert degree(G) == 2 "input polynomial must be of degree 2 in y"
+  @assert all(h->degree(h)<=4, coefficients(G)) "input polynomial must be of degree <= 4 in x"
+  @assert iszero(coefficients(G)[1]) "coefficient of linear term in y must be zero"
+  @assert isone(coefficients(G)[2]) "leading coefficient in y must be one"
+
+  length(P) == 2 || error("need precisely two point coordinates")
+  (px, py) = P
+  #    assert g.subs({x:px,y:py})==0
+  @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
+  gx = -evaluate(g, [X + px, zero(X)])
+  coeff_gx = collect(coefficients(gx))
+  A = coeff(gx, 4)
+  B = coeff(gx, 3)
+  C = coeff(gx, 2)
+  D = coeff(gx, 1)
+  E = coeff(gx, 0)
+  #E, D, C, B, A = coeff_gx
+  if !iszero(E)
+    b = py
+    a4, a3, a2, a1, a0 = A,B,C,D,E
+    A = b
+    B = a1//(2*b)
+    C = (4*a2*b^2-a1^2)//(8*b^3)
+    D = -2*b
+
+    x1 = x//y
+    y1 = (A*y^2+B*x*y+C*x^2+D*x^3)//y^2
+    x1 = x1+px
+
+    # TODO: The following are needed for the inverse. To be added eventually.
+    # x2 = (y-(A+B*x+C*x^2))//(D*x^2)
+    # y2 = x2//x
+    # x2 = evaluate(x2, [x-px, y])
+    # y2 = evaluate(y2, [x-px, y])
+
+    # @assert x == evaluate(x1, [x2, y2])
+    # @assert y == evaluate(y1, [x2, y2])
+  else
+    # TODO compute the inverse transformation (x2,y2)
+    x1 = 1//x
+    y1 = y//x^2
+    g1 = numerator(evaluate(g, [x1, y1]))
+    c = coeff(g1, [x], [3])
+    x1 = evaluate(x1, [-x//c, y//c])
+    y1 = evaluate(y1, [-x//c, y//c])
+    x1 = x1+px
+    #@assert x == evaluate(x1, [x2, y2])
+    #@assert y == evaluate(y1, [x2, y2])
+  end
+  F = fraction_field(R)
+  @assert F === parent(x1) "something is wrong with caching of fraction fields"
+  # TODO: eventually add the inverse.
+  trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  f_trans = trans(F(g))
+  fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
+  isone(length(fac)) || error("transform to weierstrass form did not succeed")
+
+  # normalize the output
+  result = first(fac)
+  result = inv(first(coefficients(coeff(result, gens(parent(result)), [3, 0]))))*result
+
+  return result, trans
+end
+
+function _is_in_weierstrass_form(f::MPolyElem)
+  R = parent(f)
+  @req ngens(R) == 2 "polynomial must be bivariate"
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  (x, y) = gens(R)
+  f = -inv(my_const(coeff(f, [x, y], [0, 2]))) * f
+  isone(-coeff(f, [x, y], [0, 2])) || return false
+  isone(coeff(f, [x, y], [3, 0])) || return false
+  
+  a6 = coeff(f, [x,y], [0,0])
+  a4 = coeff(f, [x,y], [1,0])
+  a2 = coeff(f, [x,y], [2,0])
+  a3 = -coeff(f, [x,y], [0,1])
+  a1 = -coeff(f, [x,y], [1,1])
+  a_invars = [my_const(i) for i in [a1,a2,a3,a4,a6]]
+  (a1,a2,a3,a4,a6) = a_invars
+  return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
+end
+
+function evaluate(f::AbstractAlgebra.Generic.Frac{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
+end
+
+function evaluate(f::AbstractAlgebra.Generic.Frac{<:PolyRingElem}, a::RingElem)
+  return evaluate(numerator(f), a)//evaluate(denominator(f), a)
+end
+
+function extend_domain_to_fraction_field(phi::Map{<:MPolyRing, <:Ring})
+  ext_dom = fraction_field(domain(phi))
+  return MapFromFunc(ext_dom, codomain(phi), x->phi(numerator(x))*inv(phi(denominator(x))))
+end
+
+########################################################################
+# The three conversions from Section 39.1 in 
+#   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+# pp. 44--45.
+########################################################################
+
+function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFieldElem; 
+    case::Symbol=:case1, names=[:x, :y, :t]
+  )
+  @req variety(parent(u)) === weierstrass_model(X)[1] "function field element must live on the weierstrass model of the first argument"
+  @req length(names) == 3 "need 3 variable names x, y, t"
+  U = weierstrass_chart(X)
+  R = ambient_coordinate_ring(U)
+  x, y, t = gens(R)
+  loc_eqn = first(gens(modulus(OO(U))))
+  E = generic_fiber(X)::EllCrv
+  f = equation(E)
+  kk = base_ring(X)
+  kkt_frac_XY = parent(f)::MPolyRing
+  (xx, yy) = gens(kkt_frac_XY)
+  kkt_frac = coefficient_ring(kkt_frac_XY)::AbstractAlgebra.Generic.FracField
+  kkt = base_ring(kkt_frac)::PolyRing
+  T = first(gens(kkt))
+
+# kk = base_ring(U)
+# kkt, T = polynomial_ring(kk, :T, cached=false)
+# kkt_frac = fraction_field(kkt)
+# kkt_frac_XY, (xx, yy) = polynomial_ring(kkt_frac, [:X, :Y], cached=false)
+  R_to_kkt_frac_XY = hom(R, kkt_frac_XY, [xx, yy, kkt_frac_XY(T)])
+
+  f_loc = first(gens(modulus(OO(U))))
+  @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
+  a = a_invars(E)
+
+  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+
+  # Set up the ambient_coordinate_ring of the new Weierstrass-chart
+  kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
+  kkt2_frac = fraction_field(kkt2)
+  S, (x2, y2) = polynomial_ring(kkt2_frac, names[1:2], cached=false)
+  FS = fraction_field(S)
+
+  # Helper function
+  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+
+  # We verify the assumptions made on p. 44 of
+  #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface"
+  # for the first case considered there.
+  @assert all(x->isone(denominator(x)), a) "local equation does not have the correct form"
+  a = numerator.(a)
+  @assert iszero(a[1]) "local equation does not have the correct form"
+  @assert degree(a[2]) <= 4 "local equation does not have the correct form"
+  @assert iszero(a[3]) "local equation does not have the correct form"
+  @assert degree(a[4]) <= 8 "local equation does not have the correct form"
+  @assert degree(a[5]) <= 12 "local equation does not have the correct form" # This is really a₆ in the notation of the paper, a₅ does not exist.
+  # reduce fraction
+  u_frac = R_to_kkt_frac_XY(numerator(u_loc))//R_to_kkt_frac_XY(denominator(u_loc))
+  u_num = numerator(u_frac)
+  u_den = denominator(u_frac)
+  if case == :case1
+    # D = 2O
+    u_poly = u_num*inv(u_den) # Will throw if the latter is not a unit
+    # Extract a(t) and b(t) as in the notation of the paper
+    a_t = my_const(coeff(u_poly, [xx, yy], [0, 0]))
+    b_t = my_const(coeff(u_poly, [xx, yy], [1, 0]))
+
+    a_t = evaluate(a_t, x2)
+    b_t = evaluate(b_t, x2)
+    phi = hom(R, FS, FS.([(t2 - a_t)//b_t, y2, x2]))
+    f_trans = phi(f_loc)
+    return numerator(f_trans), phi
+  elseif case == :case2
+    # D = O + P
+    @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
+    @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
+
+    # We expect a form as on p. 44, l. -4
+    denom_unit = my_const(coeff(u_den, [xx, yy], [1, 0]))
+    x0 = -inv(denom_unit)*my_const(coeff(u_den, [xx, yy], [0, 0]))
+    b_t = inv(denom_unit)*my_const(coeff(u_num, [xx, yy], [0, 1]))
+    u_num = u_num - denom_unit * b_t * yy
+    a_t = inv(denom_unit)*my_const(coeff(u_num, [xx, yy], [1, 0]))
+    u_num = u_num - denom_unit * a_t * (xx - x0)
+    @assert is_constant(u_num) "numerator is not in the correct form"
+    y0 = my_const(coeff(u_num, [xx, yy], [0, 0])) * inv(denom_unit * b_t)
+
+    @assert a_t + b_t*(yy + y0)//(xx - x0) == u_frac "decomposition failed"
+    # We have 
+    #
+    #   y ↦ (u - a_t) * (x - x₀) / b_t - y₀ = (t₂ - a_t(x₂)) * (y₂ - x₀(x₂)) / b_t(x₂) - y₀(x₂)
+    #   x ↦ y₂
+    #   t ↦ x₂
+    phi = hom(R, FS, FS.([y2, (t2 - evaluate(a_t, x2)) * (y2 - evaluate(x0, x2)) // evaluate(b_t, x2) - evaluate(y0, x2), x2]))
+    f_trans = phi(f_loc)
+    eqn1 = numerator(f_trans)
+    # According to 
+    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+    # p. 45, l. 1 we expect the following cancellation to be possible:
+    divisor_num = evaluate(numerator(x0), x2)
+    divisor_den = evaluate(denominator(x0), x2)
+    divisor = divisor_den * y2 - divisor_num
+    success, eqn1 = divides(eqn1, divisor) # This division must only be possible in the ring K(x2)[y2].
+                                           # Hence, multiplying by the denominator `divisor_den` is 
+                                           # merely an educated guess.
+    @assert success "division failed"
+    return eqn1, phi
+  elseif case == :case3
+    # D = O + T
+
+    @assert u_den == xx "elliptic parameter was not brought to the correct form"
+    @assert degree(u_num, 1) <= 1 && degree(u_num, 2) <= 1 "numerator does not have the correct degrees"
+    a_t = my_const(coeff(u_num, [xx, yy], [1, 0]))
+    b_t = my_const(coeff(u_num, [xx, yy], [0, 1]))
+
+    # New Weierstrass equation is of the form 
+    #
+    #   x^2 = h(t, u)
+    #
+    # so y₂ = x, x₂ = t, and t₂ = u.
+    #
+    # We have u = a_t + b_t * y/x ⇒ y = (u - a_t) * x / b_t = (t₂ - a_t(x₂)) * y₂ / b_t(x₂)
+    phi = hom(R, FS, FS.([y2, (t2 - evaluate(a_t, x2)) * y2 // evaluate(b_t, x2), x2]))
+    f_trans = phi(f_loc)
+    eqn1 = numerator(f_trans)
+    # According to 
+    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
+    # p. 45, l. 15 we expect the following cancellation to be possible:
+    success, eqn1 = divides(eqn1, y2)
+    @assert success "equation did not come out in the anticipated form"
+    return eqn1, phi
+  else 
+    error("case not recognized")
+  end
 end
