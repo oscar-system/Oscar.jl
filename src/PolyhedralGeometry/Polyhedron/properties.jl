@@ -1250,14 +1250,14 @@ _cmp_string(::Val{:lte}) = is_unicode_allowed() ? "≦" : "<="
 _cmp_string(::Val{:eq}) = "="
 
 @doc raw"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial = false, numbered = false, io = stdout, cmp = :lte)
+    print_constraints([io = stdout,] A::AnyVecOrMat, b::AbstractVector; trivial = false, numbered = false, cmp = :lte)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-# Keyword Arguments
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
 - `trivial::Bool`: If `true`, include trivial inequalities.
 - `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
-- `io::IO`: Target `IO` where the  constraints are printed to.
 - `cmp::Symbol`: Defines the string used for the comparison sign; supports `:lte` (less than or equal) and `:eq` (equal).
 
 Trivial inequalities are always counted for numbering, even when omitted.
@@ -1280,7 +1280,7 @@ x_1 <= 2
 9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::Symbol = :lte)
+function print_constraints(io::IO, A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, cmp::Symbol = :lte)
   zero_char = is_unicode_allowed() ? '₀' : '0'
   us_ascii = is_unicode_allowed() ? "" : "_"
   for i in 1:length(b)
@@ -1315,14 +1315,14 @@ _constraint_string(x::QQFieldElem) = string(x)
 _constraint_string(x::FieldElem) = string("(", x, ")")
 
 @doc raw"""
-    print_constraints(P::Polyhedron; trivial = false, numbered = false, io = stdout)
+    print_constraints([io = stdout,] P::Polyhedron; trivial = false, numbered = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-# Keyword Arguments
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
 - `trivial::Bool`: If `true`, include trivial inequalities.
 - `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
-- `io::IO`: Target `IO` where the  constraints are printed to.
 
 Trivial inequalities are always counted for numbering, even when omitted.
 
@@ -1338,15 +1338,28 @@ x_2 <= 1
 x_3 <= 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+print_constraints(io::IO, P::Polyhedron; trivial::Bool = false, numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(facets(P))...; trivial = trivial)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
+print_constraints(io::IO, H::Halfspace; trivial::Bool = false) = print_constraints(io, hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = :eq)
+print_constraints(io::IO, H::Hyperplane; trivial::Bool = false) = print_constraints(io, hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, cmp = :eq)
 
-print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
+print_constraints(io::IO, H::SubObjectIterator{<:Halfspace}; numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(H)...; trivial = true, numbered = numbered)
 
-print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = :eq)
+print_constraints(io::IO, H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, cmp = :eq)
+
+# Default `io = stdout`
+print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, cmp::Symbol = :lte) =
+  print_constraints(stdout, A, b; trivial = trivial, numbered = numbered, cmp = cmp)
+
+print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false) =
+  print_constraints(stdout, P; trivial = trivial, numbered = numbered)
+
+print_constraints(H::Union{Halfspace, Hyperplane}; trivial::Bool = false) =
+  print_constraints(stdout, H; trivial = trivial)
+
+print_constraints(H::SubObjectIterator{<:Union{Halfspace, Hyperplane}}; numbered::Bool = false) =
+  print_constraints(stdout, H; numbered = numbered)
 
 function Base.show(io::IO, H::Halfspace)
     n = length(normal_vector(H))
@@ -1354,7 +1367,7 @@ function Base.show(io::IO, H::Halfspace)
         print(io, "The trivial half-space, R^$n")
     else
         print(io, "The half-space of R^$n described by\n")
-        print_constraints(H; io=io)
+        print_constraints(io, H)
     end
 end
 
@@ -1365,7 +1378,7 @@ function Base.show(io::IO, H::Hyperplane)
         print(io, "The trivial hyperplane, R^$n")
     else
         print(io, "The hyperplane of R^$n described by\n")
-        print_constraints(H; io = io)
+        print_constraints(io, H)
     end
 end
 
@@ -1380,12 +1393,12 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
         n = length(normal_vector(H[1]))
         print(io, " over the Halfspaces of R^$n described by:\n")
         if s < d
-            print_constraints(H; io = io)
+            print_constraints(io, H)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)]; io = io)
+            print_constraints(io, view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)])
             println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
+            print_constraints(io, A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end])
         end
     end
 end
@@ -1399,12 +1412,12 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
         n = length(normal_vector(H[1]))
         print(io, " over the Hyperplanes of R^$n described by:\n")
         if s < d
-            print_constraints(H; io = io)
+            print_constraints(io, H)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = :eq)
+            print_constraints(io, A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; cmp = :eq)
             println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = :eq)
+            print_constraints(io, A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; cmp = :eq)
         end
     end
 end
