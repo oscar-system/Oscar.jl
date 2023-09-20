@@ -6429,7 +6429,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
     cc.complete = true
   end
-  return map(cc, idx)
+  set_attribute!(cc, :show => free_show)
+  maxidx = min(idx, first(Hecke.map_range(cc)))
+  return map(cc, maxidx)
 end
 
 @doc raw"""
