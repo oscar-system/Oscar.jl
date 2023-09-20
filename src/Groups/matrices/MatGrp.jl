@@ -467,7 +467,7 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
 
 Return the base ring of the matrix group `G`.
 """
-base_ring(G::MatrixGroup) = G.ring
+base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
 """
     degree(G::MatrixGroup)

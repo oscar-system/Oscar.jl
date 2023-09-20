@@ -947,14 +947,14 @@ ZZRingElem[12, 12, 16]
 ```
 """
 function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
-  F = G.ring
-  n = G.deg
+  F = base_ring(G)
+  n = degree(G)
   q = GAP.Obj(order(F))
   V = VectorSpace(F, n)
   orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^n, k))
   orbreps = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
-  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]
-  orbreps = [[[F(x) for x in v] for v in bas] for bas in orbreps]
-  orbreps = [sub(V, [V(v) for v in bas])[1] for bas in orbreps]
-  return [(orbreps[i], stabs[i]) for i in 1:length(stabs)]
+  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
+  orbreps1 = [[[F(x) for x in v] for v in bas] for bas in orbreps]::Vector{Vector{Vector{elem_type(F)}}}
+  orbreps2 = [sub(V, [V(v) for v in bas])[1] for bas in orbreps1]
+  return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end
