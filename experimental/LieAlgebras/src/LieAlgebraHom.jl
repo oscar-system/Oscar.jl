@@ -26,9 +26,7 @@
     h.matrix = mat::dense_matrix_type(coefficient_ring(L2))
     h.header = MapHeader(L1, L2)
     if check
-      for x1 in basis(L1), x2 in basis(L1)
-        @req h(x1) * h(x2) == h(x1 * x2) "Not a homomorphism"
-      end
+      @req is_welldefined(h) "Not a homomorphism"
     end
     return h
   end
@@ -49,6 +47,20 @@ Note: The matrix operates on the coefficient vectors from the right.
 """
 function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:RingElement}
   return (h.matrix)::dense_matrix_type(C2)
+end
+
+@doc raw"""
+    is_welldefined(h::LieAlgebraHom) -> Bool
+
+Return `true` if `h` is a well-defined homomorphism of Lie algebras.
+This function is used internally when calling `hom` with `check=true`.
+"""
+function is_welldefined(h::LieAlgebraHom)
+  L1 = domain(h)
+  for x1 in basis(L1), x2 in basis(L1)
+    h(x1) * h(x2) == h(x1 * x2) || return false
+  end
+  return true
 end
 
 ###############################################################################
@@ -300,4 +312,31 @@ Lie algebra morphism
 """
 function identity_map(L::LieAlgebra)
   return hom(L, L, basis(L); check=false)
+end
+
+@doc raw"""
+    zero_map(L1::LieAlgebra, L2::LieAlgebra) -> LieAlgebraHom
+    zero_map(L::LieAlgebra) -> LieAlgebraHom
+
+Construct the zero map from `L1` to `L2` or from `L` to `L`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3)
+Special linear Lie algebra of degree 3
+  of dimension 8
+over rational field
+
+julia> zero_map(L)
+Lie algebra morphism
+  from special linear Lie algebra of degree 3 over QQ
+  to   special linear Lie algebra of degree 3 over QQ
+```
+"""
+function zero_map(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}
+  return hom(L1, L2, zero_matrix(coefficient_ring(L2), dim(L1), dim(L2)); check=false)
+end
+
+function zero_map(L::LieAlgebra)
+  return zero_map(L, L)
 end

@@ -16,6 +16,10 @@ import ..Oscar:
   basis,
   basis_matrix,
   base_ring,
+  canonical_injection,
+  canonical_injections,
+  canonical_projection,
+  canonical_projections,
   center,
   centralizer,
   coeff,
@@ -32,6 +36,7 @@ import ..Oscar:
   gen,
   gens,
   hom,
+  hom_tensor,
   identity_map,
   ideal,
   image,
@@ -42,6 +47,7 @@ import ..Oscar:
   is_perfect,
   is_simple,
   is_solvable,
+  is_welldefined,
   kernel,
   matrix,
   ngens,
@@ -51,6 +57,7 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  zero_map,
   ⊕,
   ⊗
 
@@ -76,12 +83,15 @@ export bracket
 export cartan_matrix
 export chevalley_basis
 export coefficient_vector
+export coerce_to_lie_algebra_elem
 export combinations
 export derived_algebra
 export dynkin_diagram
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power
@@ -146,6 +156,7 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export coerce_to_lie_algebra_elem
 export derived_algebra
 export cartan_matrix
 export chevalley_basis
@@ -153,6 +164,8 @@ export dynkin_diagram
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
+export hom_direct_sum
+export hom_power
 export is_direct_sum
 export is_dual
 export is_exterior_power

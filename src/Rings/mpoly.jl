@@ -709,6 +709,10 @@ function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_o
   return singular_generators(generating_system(I), monorder)
 end
 
+function singular_polynomial_ring(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
+  return (singular_generators(I, monorder)).base_ring
+end
+
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
     I.Sx = singular_poly_ring(I.Ox)

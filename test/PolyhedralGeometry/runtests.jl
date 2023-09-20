@@ -1,6 +1,7 @@
-const pm = Polymake
-
 using Oscar
+using Test
+
+const pm = Polymake
 
 include("types.jl")
 include("iterators.jl")

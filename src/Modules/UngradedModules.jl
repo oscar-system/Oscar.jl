@@ -5067,7 +5067,7 @@ function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
   @assert length(tM) == size(A, 1) && length(tN) == size(A, 2)
   @assert all(ij -> domain(A[ij[1],ij[2]]) === tM[ij[1]] && codomain(A[ij[1],ij[2]]) === tN[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
-  return hom(M,N,Vector{elem_type(N)}([sum([Hecke.canonical_injection(N,j)(sum([A[i,j](Hecke.canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
+  return hom(M,N,Vector{elem_type(N)}([sum([canonical_injection(N,j)(sum([A[i,j](canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
 end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
@@ -7299,45 +7299,64 @@ end
 
 ⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
+@doc raw"""
+    canonical_injections(G::ModuleFP)
+
+Return the canonical injections from all components into $G$
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_injections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_injection(G, i) for i in 1:length(H)]
+end
 
 @doc raw"""
-    Hecke.canonical_injection(G::ModuleFP, i::Int)
+    canonical_injection(G::ModuleFP, i::Int)
 
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_injection(G::ModuleFP, i::Int)
+function canonical_injection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   injection_dictionary = get_attribute(G, :injection_morphisms)
   if haskey(injection_dictionary, i)
     return injection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1)
-  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l = 1:ngens(H[i])]))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]))
   injection_dictionary[i] = emb
   return emb
 end
 
 @doc raw"""
-    Hecke.canonical_projection(G::ModuleFP, i::Int)
+    canonical_projections(G::ModuleFP)
+
+Return the canonical projections from $G$ to all components
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_projections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_projection(G, i) for i in 1:length(H)]
+end
+
+@doc raw"""
+    canonical_projection(G::ModuleFP, i::Int)
 
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_projection(G::ModuleFP, i::Int)
+function canonical_projection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   projection_dictionary = get_attribute(G, :projection_morphisms)
   if haskey(projection_dictionary, i)
     return projection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)])))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
+  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])))
   projection_dictionary[i] = pro
   return pro
 end

@@ -1,4 +1,5 @@
 using Oscar
+using Test
 
 @testset "Data Loading" begin
   data_dir = joinpath(dirname(dirname(@__DIR__)), "data")

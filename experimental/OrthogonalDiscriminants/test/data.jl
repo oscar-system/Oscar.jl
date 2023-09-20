@@ -50,58 +50,74 @@ end
   end
 end
 
-@testset "display tables with ODs" begin
-  # a table with irrational ODs
-  t = character_table("L2(11)");
-  io = IOBuffer()
-  Oscar.OrthogonalDiscriminants.show_with_ODs(t, io)
-  @test String(take!(io)) ==
-  """
-  L2(11)
+using Documenter
 
-                  2  2  2  1  .  .  1   .   .
-                  3  1  1  1  .  .  1   .   .
-                  5  1  .  .  1  1  .   .   .
-                 11  1  .  .  .  .  .   1   1
-                                             
-                    1a 2a 3a 5a 5b 6a 11a 11b
-                 2P 1a 1a 3a 5b 5a 3a 11b 11a
-                 3P 1a 2a 1a 5b 5a 2a 11a 11b
-                 5P 1a 2a 3a 1a 1a 6a 11a 11b
-                11P 1a 2a 3a 5a 5b 6a  1a  1a
-      d      OD   2                          
-  X_1 1           +  1  1  1  1  1  1   1   1
-  X_2 2           o  5  1 -1  .  .  1   B  /B
-  X_3 2           o  5  1 -1  .  .  1  /B   B
-  X_4 1     -11   + 10 -2  1  .  .  1  -1  -1
-  X_5 1     -11   + 10  2  1  .  . -1  -1  -1
-  X_6 1           + 11 -1 -1  1  1 -1   .   .
-  X_7 2 22-11b5   + 12  .  .  A A*  .   1   1
-  X_8 2 11b5+33   + 12  .  . A*  A  .   1   1
+#
+# This module only exists to "host" a doctest used by the test suite.
+#
+module AuxDocTest_show_with_ODs
+@doc raw"""
+a table with irrational ODs
 
-  A = -z_5^3 - z_5^2 - 1
-  A* = z_5^3 + z_5^2
-  B = z_11^9 + z_11^5 + z_11^4 + z_11^3 + z_11
-  /B = -z_11^9 - z_11^5 - z_11^4 - z_11^3 - z_11 - 1
-  """
+```jldoctest show_with_ODs.test
+julia> using Oscar
 
-  # a table with unknown ODs (outside the scope of the database)
-  t = character_table("D8");
-  io = IOBuffer()
-  Oscar.OrthogonalDiscriminants.show_with_ODs(t, io)
-  @test String(take!(io)) ==
-  """
-  D8
+julia> t = character_table("L2(11)");
 
-            2  3  3  2  2  2
-                            
-              1a 2a 4a 2b 2c
-           2P 1a 1a 2a 1a 1a
-      d OD  2               
-  X_1 1     +  1  1  1  1  1
-  X_2 1     +  1  1  1 -1 -1
-  X_3 1     +  1  1 -1  1 -1
-  X_4 1     +  1  1 -1 -1  1
-  X_5 1  ?  +  2 -2  .  .  .
-  """
+julia> Oscar.OrthogonalDiscriminants.show_with_ODs(t, stdout)
+L2(11)
+
+                2  2  2  1  .  .  1   .   .
+                3  1  1  1  .  .  1   .   .
+                5  1  .  .  1  1  .   .   .
+               11  1  .  .  .  .  .   1   1
+                                           
+                  1a 2a 3a 5a 5b 6a 11a 11b
+               2P 1a 1a 3a 5b 5a 3a 11b 11a
+               3P 1a 2a 1a 5b 5a 2a 11a 11b
+               5P 1a 2a 3a 1a 1a 6a 11a 11b
+              11P 1a 2a 3a 5a 5b 6a  1a  1a
+    d      OD   2                          
+X_1 1           +  1  1  1  1  1  1   1   1
+X_2 2           o  5  1 -1  .  .  1   B  /B
+X_3 2           o  5  1 -1  .  .  1  /B   B
+X_4 1     -11   + 10 -2  1  .  .  1  -1  -1
+X_5 1     -11   + 10  2  1  .  . -1  -1  -1
+X_6 1           + 11 -1 -1  1  1 -1   .   .
+X_7 2 22-11b5   + 12  .  .  A A*  .   1   1
+X_8 2 11b5+33   + 12  .  . A*  A  .   1   1
+
+A = -z_5^3 - z_5^2 - 1
+A* = z_5^3 + z_5^2
+B = z_11^9 + z_11^5 + z_11^4 + z_11^3 + z_11
+/B = -z_11^9 - z_11^5 - z_11^4 - z_11^3 - z_11 - 1
+```
+
+a table with unknown ODs (outside the scope of the database)
+
+```jldoctest show_with_ODs.test
+julia> t = character_table("D8");
+
+julia> Oscar.OrthogonalDiscriminants.show_with_ODs(t, stdout)
+D8
+
+          2  3  3  2  2  2
+                          
+            1a 2a 4a 2b 2c
+         2P 1a 1a 2a 1a 1a
+    d OD  2               
+X_1 1     +  1  1  1  1  1
+X_2 1     +  1  1  1 -1 -1
+X_3 1     +  1  1 -1  1 -1
+X_4 1     +  1  1 -1 -1  1
+X_5 1  ?  +  2 -2  .  .  .
+```
+"""
+function dummy_placeholder end
+
+end
+
+@testset "show and print character tables" begin
+  doctest(nothing, [AuxDocTest_show_with_ODs])
+  #doctest(nothing, [AuxDocTest_show_with_ODs]; fix=true)
 end

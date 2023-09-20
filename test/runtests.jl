@@ -105,51 +105,34 @@ end
 end
 
 testlist = [
-  
   "Aqua.jl",
-
   "printing.jl",
 
   "PolyhedralGeometry/runtests.jl",
   "Combinatorics/runtests.jl",
-
   "GAP/runtests.jl",
   "Groups/runtests.jl",
-
   "Rings/runtests.jl",
-
-  "NumberTheory/nmbthy.jl",
-  "NumberTheory/galthy.jl",
-  
-  "Rings/ReesAlgebra.jl",
-
+  "NumberTheory/runtests.jl",
   "Modules/runtests.jl",
-
   "InvariantTheory/runtests.jl",
 
   "AlgebraicGeometry/Schemes/runtests.jl",
   "AlgebraicGeometry/ToricVarieties/runtests.jl",
-  "AlgebraicGeometry/Surfaces/K3Auto.jl",
+  "AlgebraicGeometry/Surfaces/runtests.jl",
 
   "TropicalGeometry/runtests.jl",
 
   "Serialization/runtests.jl",
+  "Serialization/polymake/runtests.jl",
+  "Serialization/upgrades/runtests.jl",
 
-  # Will automatically include all experimental packages following our
-# guidelines.
-
+  # Automatically include tests of all experimental packages following our
+  # guidelines.
   "../experimental/runtests.jl",
 
-  "Experimental/gmodule.jl",
-  "Experimental/ModStdQt.jl",
-  "Experimental/ModStdNF.jl",
-  "Experimental/MatrixGroups.jl",
-  "Experimental/ExteriorAlgebra.jl",
-
-
   "Data/runtests.jl",
-
-  "StraightLinePrograms/runtests.jl"
+  "StraightLinePrograms/runtests.jl",
 ]
 
 # if many workers, distribute tasks across them
