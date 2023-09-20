@@ -1340,9 +1340,9 @@ x_3 <= 1
 """
 print_constraints(io::IO, P::Polyhedron; trivial::Bool = false, numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(facets(P))...; trivial = trivial)
 
-print_constraints(io::IO, H::Halfspace; trivial::Bool = false) = print_constraints(io, hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial)
+print_constraints(io::IO, H::Halfspace; trivial::Bool = false) = print_constraints(io, permutedims(normal_vector(H)), [negbias(H)]; trivial = trivial)
 
-print_constraints(io::IO, H::Hyperplane; trivial::Bool = false) = print_constraints(io, hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, cmp = :eq)
+print_constraints(io::IO, H::Hyperplane; trivial::Bool = false) = print_constraints(io, permutedims(normal_vector(H)), [negbias(H)]; trivial = trivial, cmp = :eq)
 
 print_constraints(io::IO, H::SubObjectIterator{<:Halfspace}; numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(H)...; trivial = true, numbered = numbered)
 
