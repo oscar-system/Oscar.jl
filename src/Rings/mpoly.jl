@@ -713,7 +713,7 @@ function singular_polynomial_ring(I::MPolyIdeal, monorder::MonomialOrdering=defa
   return (singular_generators(I, monorder)).base_ring
 end
 
-function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord))
+function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord)
   return (singular_generators(G, monorder)).base_ring
 end
 
