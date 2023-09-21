@@ -782,6 +782,7 @@ julia> vertex_sizes(bipyramid(simplex(2)))
 ```
 """
 function vertex_sizes(P::Polyhedron{T}) where T<:scalar_types
+  pm_object(P).LINEALITY_DIM > 0 && return Vector{Int}()
   res = Vector{Int}(pm_object(P).VERTEX_SIZES)
   fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)]
   vertices = symdiff(Vector{Int}(1:pm_object(P).N_VERTICES),fai)

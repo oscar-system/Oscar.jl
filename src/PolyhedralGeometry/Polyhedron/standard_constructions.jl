@@ -2316,15 +2316,13 @@ end
 @doc raw"""
     vertex_figure(P::Polyhedron, n::Int; cutoff::Rational=1/2)
 
-Construct the vertex figure of the vertex `n` of a polyhedron. The vertex figure is dual to a facet of the dual polytope. 
+Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex figure is dual to a facet of the dual polytope. 
 
 # Optional Arguments
 -`cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
 Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
 Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\fraction{1}{2}$. 
 -`no_coordinates::Bool`: Skip the coordinates computation, producing a pure combinatorial description. 
--`no_labels::Bool`: Do not copy `VERTEX_LABELS` from the underlying `pm_object` of the original polytope (`true`), 
-default: do copy them (`false`). 
 
 #Example
 To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
