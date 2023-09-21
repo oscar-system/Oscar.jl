@@ -556,6 +556,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
   # this should be moved to the serializer at some point
   jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
+  if haskey(jsondict, :id)
+    id = jsondict[:id]
+    if haskey(global_serializer_state.id_to_obj, UUID(id))
+      return global_serializer_state.id_to_obj[UUID(id)]
+    end
+  end
+
   # handle different namespaces
   @req haskey(jsondict, :_ns) "Namespace is missing"
   _ns = jsondict[:_ns]
