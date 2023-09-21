@@ -1118,9 +1118,9 @@ end
   # To reproduce the string on the right hand side, evaluate 
   #   `"$(Oscar.minimal_betti_table(M))"` 
   # and insert the result here; after verification of the result!
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
 
-  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
+  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
 
   @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
 
