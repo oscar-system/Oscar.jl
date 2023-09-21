@@ -5570,8 +5570,7 @@ julia> F2 = free_module(R, 2)
 Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map from
-V to Set of all homomorphisms from Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ to Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ defined by a julia-function with inverse)
+(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ to Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
 
 julia> f(V[1])
 Map with following data
@@ -5598,8 +5597,7 @@ julia> F2 = graded_free_module(Rg, [3,5])
 Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
 
 julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map from
-V to Set of all homomorphisms from Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg to Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg defined by a julia-function with inverse)
+(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg to Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg)
 
 julia> f(V[1])
 F1 -> F2

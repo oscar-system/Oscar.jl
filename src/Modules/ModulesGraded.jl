@@ -240,8 +240,7 @@ julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of multivariate polynomial ring by ideal(x*y), Map from
-R to S defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x*y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> F = free_module(S, 2)
 Free module of rank 2 over S

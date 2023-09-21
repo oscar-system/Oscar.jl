@@ -56,6 +56,8 @@ elem_type(::NfNSGen{T, S}) where {T, S} = NfNSGenElem{T, S}
 
 elem_type(::Type{NfNSGen{T, S}}) where {T, S} = NfNSGenElem{T, S}
 
+is_simple(::NfNSGen) = false
+
 ################################################################################
 #
 #  Constructors
@@ -521,6 +523,11 @@ for t in [Base.Integer, Base.Rational{<:Base.Integer}, ZZRingElem, QQFieldElem]
       return K(polynomial_ring(K)(a))
     end
   end
+end
+
+function (K::NfNSGen{T, S})(x::NfAbsOrdElem{NfNSGen{T, S}, <:Any}) where {T, S}
+  @req nf(parent(x)) === K "Parent of element must be an order of the number field"
+  return elem_in_nf(x)
 end
 
 ################################################################################

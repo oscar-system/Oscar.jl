@@ -232,8 +232,9 @@ julia> Q
 (PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
 
 julia> q
-Map from
-PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z to (PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2) defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from pBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
+  to (PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z)/two_sided_ideal(x^2, y^2, z^2)
 ```
 
 !!! note
