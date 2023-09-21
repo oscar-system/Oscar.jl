@@ -117,3 +117,14 @@ end
    @test f(S([1,2,4,3]))==G[1]
    @test f(S([2,1,4,3]))==one(G)
 end
+
+@testset "matrix groups" begin
+   K, a = CyclotomicField(3, "a");
+   S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+   T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+   H3 = matrix_group(S, T)
+   C, iC = center(H3);
+   @test !has_is_finite(C)
+   Q, pQ = quo(H3, C);
+   @test has_is_finite(C)
+end
