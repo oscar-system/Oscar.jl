@@ -483,11 +483,18 @@ for f in (QQ, ENF)
 
         end
 
-        if T == nf_elem
+        if T == EmbeddedElem{nf_elem}
 
             @testset "Dodecahedron" begin
 
-                R, a = quadratic_field(5)
+              D = polyhedron(Polymake.polytope.dodecahedron())
+              R = coefficient_field(D)
+              NF = number_field(R)
+              let isq = Hecke.isquadratic_type(NF)
+                @test isq[1]
+                @test isq[2] == 5
+              end
+              a = R(gens(NF)[])
 
                 V = [[1//2, a//4 + 3//4, 0],
                     [-1//2, a//4 + 3//4, 0],
@@ -510,9 +517,7 @@ for f in (QQ, ENF)
                     [1//2, -a//4 - 3//4, 0],
                     [-1//2, -a//4 - 3//4, 0]]
 
-                D = Polyhedron{T}(Polymake.polytope.dodecahedron(), R)
                 @test D isa Polyhedron{T}
-                @test polyhedron(Polymake.polytope.dodecahedron()) == D
 
                 @test nvertices(D) == 20
                 @test vertices(D) == V
@@ -527,13 +532,14 @@ for f in (QQ, ENF)
                         if S == Pair{Matrix{T}, T}
                             @test facets(S, D) == [Pair(A[i], b[i]) for i in 1:12]
                         elseif S == Polyhedron{T}
-                            @test facets(S, D) == [polyhedron(R, A[i], b[i]) for i in 1:12]
+                            @test nvertices.(facets(S, D)) == repeat([5], 12)
                         else
                             @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
                         end
                         @test length(facets(S, D)) == 12
                         @test affine_inequality_matrix(facets(S, D)) == matrix(R, hcat(-b, vcat(A...)))
-                        @test halfspace_matrix_pair(facets(S, D)).A == vcat(A...) && halfspace_matrix_pair(facets(S, D)).b == b
+                        @test halfspace_matrix_pair(facets(S, D)) == (A = matrix(R, vcat(A...)),  b = b)
+
                         @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
                         @test vertex_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
                         @test vertex_and_ray_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
@@ -562,9 +568,6 @@ for f in (QQ, ENF)
                 @test faces(D, 0) == convex_hull.(T, V)
                 @test isempty(affine_hull(D))
                 @test relative_interior_point(D) == [0, 0, 0]
-
-                @test platonic_solid("dodecahedron") == D
-
             end
 
         end

@@ -2,221 +2,190 @@
 ######## Vector types
 ################################################################################
 
-struct PointVector{U} <: AbstractVector{U}
-    p::Vector{U}
+for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
+  
+  @eval begin
+
+    struct $T{U} <: AbstractVector{U}
+      p::MatElem{U}
+
+      $T{U}(p::MatElem{U}) where U<:scalar_types_extended = new{U}(p)
+    end
+
+    Base.IndexStyle(::Type{<:$T}) = IndexLinear()
+    Base.getindex(po::$T, i::Base.Integer) = po.p[1, i]
+
+    function Base.setindex!(po::$T, val, i::Base.Integer)
+      @boundscheck 1 <= length(po) <= i
+      po.p[1, i] = val
+      return val
+    end
+
+    Base.firstindex(::$T) = 1
+    Base.lastindex(iter::$T) = length(iter)
+    Base.size(po::$T) = (size(po.p, 2),)
+
+    coefficient_field(po::$T) = base_ring(po.p)
+
+    function $_t(p::Union{scalar_type_or_field, ZZRing}, v::AbstractVector)
+      parent_field, scalar_type = _determine_parent_and_scalar(p, v)
+      n = length(v)
+      mat = matrix(parent_field, 1, n, collect(v)) # collect: workaround for constructor typing
+      return $T{scalar_type}(mat)
+    end
+
+    function $_t(p::Union{scalar_type_or_field, ZZRing}, n::Base.Integer)
+      parent_field, scalar_type = _determine_parent_and_scalar(p)
+      mat = zero_matrix(parent_field, 1, n)
+      return $T{scalar_type}(mat)
+    end
+
+    $_t(x::Union{AbstractVector, Base.Integer}) = $_t(QQ, x)
+
+    function Base.similar(X::$T, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
+      return $_t(coefficient_field(X), dims...)
+    end
+
+    Base.BroadcastStyle(::Type{<:$T}) = Broadcast.ArrayStyle{$T}()
+
+    _parent_or_coefficient_field(po::$T) = coefficient_field(po)
+
+    function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType
+      U, f = _promote_scalar_field(_parent_or_coefficient_field.(bc.args)...)
+      return $_t(f, axes(bc)...)
+    end
+
+    Base.:*(k::scalar_types_extended, po::$T) = k .* po
+
+    Base.:*(A::MatElem, v::$T) = A * transpose(v.p)
     
-    PointVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
-    PointVector(p::AbstractVector) = new{QQFieldElem}(p)
+  end
 end
 
-Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
+@doc """
+    point_vector(p = QQ, v::AbstractVector)
 
-Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[i]
+Return a `PointVector` resembling a point whose coordinates equal the entries of `v`.
+`p` specifies the `Field` or `Type` of its coefficients.
+"""
+point_vector
 
-function Base.setindex!(po::PointVector, val, i::Base.Integer)
-    @boundscheck checkbounds(po.p, i)
-    po.p[i] = val
-    return val
-end
+@doc """
+    ray_vector(p = QQ, v::AbstractVector)
 
-Base.firstindex(::PointVector) = 1
-Base.lastindex(iter::PointVector) = length(iter)
-Base.size(po::PointVector) = size(po.p)
-
-# Forward multiplication with oscar matrices.
-Base.:*(A::MatElem, v::PointVector) = A*v.p
-
-PointVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = PointVector{U}(p.(v))
-
-PointVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(p.(zeros(Int, n)))
-
-PointVector{U}(::UndefInitializer, n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(Vector{U}(undef, n))
-
-PointVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = PointVector{U}(undef, length(n))
-
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-    return PointVector{S}(undef, dims...)
-end
-
-Base.BroadcastStyle(::Type{<:PointVector}) = Broadcast.ArrayStyle{PointVector}()
-
-function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector}}, ::Type{ElType}) where ElType
-    return PointVector{ElType}(axes(bc)...)
-end
-
-################################################################################
-
-struct RayVector{U} <: AbstractVector{U}
-    p::Vector{U}
-    
-    RayVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
-    RayVector(p::AbstractVector) = new{QQFieldElem}(p)
-end
-
-Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
-
-Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended = po.p[i]
-
-function Base.setindex!(po::RayVector, val, i::Base.Integer)
-    @boundscheck checkbounds(po.p, i)
-    po.p[i] = val
-    return val
-end
-
-Base.firstindex(::RayVector) = 1
-Base.lastindex(iter::RayVector) = length(iter)
-Base.size(po::RayVector) = size(po.p)
-
-# Forward multiplication with oscar matrices.
-Base.:*(A::MatElem, v::RayVector) = A*v.p
-
-RayVector{U}(p::Union{Field, ZZRing}, v::AbstractVector) where U<:scalar_types_extended = RayVector{U}(p.(v))
-
-RayVector{U}(p::Union{Field, ZZRing}, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(p.(zeros(Int, n)))
-
-RayVector{U}(::UndefInitializer, n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(Vector{U}(undef, n))
-
-RayVector{U}(n::UR) where {U<:scalar_types_extended, UR<:Base.AbstractUnitRange} = RayVector{U}(undef, length(n))
-
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
-    return RayVector{S}(undef, dims...)
-end
-
-Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
-
-function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}, ::Type{ElType}) where ElType
-    return RayVector{ElType}(axes(bc)...)
-end
-
-################################################################################
-
-Base.:*(k::scalar_types_extended, po::Union{PointVector, RayVector}) = k .* po
+Return a `RayVector` resembling a ray from the origin through the point whose coordinates equal the entries of `v`.
+`p` specifies the `Field` or `Type` of its coefficients.
+"""
+ray_vector
 
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################
 
-abstract type Halfspace{T} end
+for (h, comp) in (("halfspace", "≤"), ("hyperplane", "="))
 
-################################################################################
+  H = uppercasefirst(h)
+  Habs = Symbol(H)
+  Haff = Symbol("Affine", H)
+  Hlin = Symbol("Linear", H)
+  Fabs = Symbol(h)
+  Faff = Symbol("affine_", h)
+  Flin = Symbol("linear_", h)
 
-@doc raw"""
-    Halfspace(a, b)
+  @eval begin
 
-One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax ≤ b \}.$$
-"""
-struct AffineHalfspace{T} <: Halfspace{T}
-    a::Vector{T}
-    b::T
-    parent_field::Field
+    abstract type $Habs{T} end
 
-    AffineHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
-end
+    # Affine types
+    struct $Haff{T} <: $Habs{T}
+      a::MatElem{T}
+      b::T
 
-halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_halfspace(a, b)
-halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_halfspace(f, a, b)
+      $Haff{T}(a::MatElem{T}, b::T) where T<:scalar_types = new{T}(a, b)
+    end
 
-invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(coefficient_field(H), -normal_vector(H), -negbias(H))
+    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(a, b)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(f, a, b)
 
-function affine_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-    return AffineHalfspace{scalar_type}(parent_field, a, b)
-end
+    invert(H::$Haff{T}) where T<:scalar_types = $Haff{T}(-H.a, -negbias(H))
 
-affine_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_halfspace(QQ, a, b)
+    @doc """
+    $($Faff)(p = QQ, a, b)
 
-################################################################################
+Return the `$($Haff)` `H(a,b)`, which is given by a vector `a` and a value `b` such that
+\$\$H(a,b) = \\{ x | ax $($comp) b \\}.\$\$
+`p` specifies the `Field` or `Type` of its coefficients.
+    """
+    function $Faff(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
+      parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
+      mat = matrix(parent_field, 1, length(a), collect(a))
+      return $Haff{scalar_type}(mat, parent_field(b))
+    end
 
-struct LinearHalfspace{T} <: Halfspace{T}
-    a::Vector{T}
-    parent_field::Field
+    $Faff(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $Faff(QQ, a, b)
+
+
+    # Linear types
+
+    struct $Hlin{T} <: $Habs{T}
+      a::MatElem{T}
     
-    LinearHalfspace{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
+      $Hlin{T}(a::MatElem{T}) where T<:scalar_types = new{T}(a)
+    end
+
+    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(a)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(f, a)
+
+    invert(H::$Hlin{T}) where T<:scalar_types = $Hlin{T}(-H.a)
+
+    @doc """
+    $($Flin)(p = QQ, a, b)
+
+Return the `$($Hlin)` `H(a)`, which is given by a vector `a` such that
+\$\$H(a,b) = \\{ x | ax $($comp) 0 \\}.\$\$
+`p` specifies the `Field` or `Type` of its coefficients.
+    """
+    function $Flin(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
+      parent_field, scalar_type = _determine_parent_and_scalar(f, a)
+      mat = matrix(parent_field, 1, length(a), collect(a))
+      return $Hlin{scalar_type}(mat)
+    end
+
+    $Flin(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(QQ, a)
+
+    coefficient_field(h::$Habs) = base_ring(h.a)
+
+  end
+
 end
-
-halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(a)
-halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_halfspace(f, a)
-
-invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(coefficient_field(H), -normal_vector(H))
-
-function linear_halfspace(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-    return LinearHalfspace{scalar_type}(parent_field, a)
-end
-
-linear_halfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_halfspace(QQ, a)
-
-coefficient_field(h::Halfspace) = h.parent_field
-
-################################################################################
-
-abstract type Hyperplane{T} end
-
-################################################################################
-
-@doc raw"""
-    AffineHyperplane(a, b)
-
-One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax = b \}.$$
-"""
-struct AffineHyperplane{T} <: Hyperplane{T}
-    a::Vector{T}
-    b::T
-    parent_field::Field
-    
-    AffineHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(p.(vec(a)), p(b), p)
-end
-
-hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = affine_hyperplane(a, b)
-hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) where T<:scalar_types = affine_hyperplane(f, a, b)
-
-function affine_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
-    return AffineHyperplane{scalar_type}(parent_field, a, b)
-end
-
-affine_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = affine_hyperplane(QQ, a, b)
-
-################################################################################
-
-struct LinearHyperplane{T} <: Hyperplane{T}
-    a::Vector{T}
-    parent_field::Field
-    
-    LinearHyperplane{T}(p::Field, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(p.(vec(a)), p)
-end
-
-hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(a)
-hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = linear_hyperplane(f, a)
-
-function linear_hyperplane(f::Union{Type{T}, Field}, a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types
-    parent_field, scalar_type = _determine_parent_and_scalar(f, a)
-    return LinearHyperplane{scalar_type}(parent_field, a)
-end
-
-linear_hyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = linear_hyperplane(QQ, a)
-
-coefficient_field(h::Hyperplane) = h.parent_field
-
-################################################################################
 
 #  Field access
-negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
-negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = coefficient_field(H)(0)
-normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
+negbias(H::Union{AffineHalfspace, AffineHyperplane}) = H.b
+negbias(H::Union{LinearHalfspace, LinearHyperplane}) = coefficient_field(H)(0)
+normal_vector(H::Union{Halfspace, Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
 
 _ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
 
-# TODO: abstract notion of equality
-Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
+function Base.:(==)(x::Halfspace, y::Halfspace)
+  ax = normal_vector(x)
+  ay = normal_vector(y)
+  ix = findfirst(a -> !iszero(a), ax)
+  iy = findfirst(a -> !iszero(a), ay)
+  ix == iy || return false
+  r = y.a[iy]//x.a[ix]
+  r > 0 || return false
+  return (r .* ax == ay) && (r * negbias(x) == negbias(y))
+end
 
-Base.:(==)(x::LinearHalfspace, y::LinearHalfspace) = x.a == y.a
-
-Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
-
-Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
+function Base.:(==)(x::Hyperplane, y::Hyperplane)
+  ax = normal_vector(x)
+  ay = normal_vector(y)
+  ix = findfirst(a -> !iszero(a), ax)
+  iy = findfirst(a -> !iszero(a), ay)
+  ix == iy || return false
+  r = y.a[iy]//x.a[ix]
+  return (r .* ax == ay) && (r * negbias(x) == negbias(y))
+end
 
 Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
   hash((x.a, x.b), hash(T, h))
@@ -383,9 +352,8 @@ for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
     M = Symbol(f)
     @eval begin
         function $M(::Val{_empty_access}, P::PolyhedralObjectUnion; homogenized=false)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(pm_object(P))))
-            typename = scalar_regexp[1]
-            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
+            typename = Polymake.bigobject_eltype(pm_object(P))
+            T = typename == "OscarNumber" ? Polymake.OscarNumber : _scalar_type_to_polymake(scalar_type_to_oscar[typename])
             return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized)
         end
     end

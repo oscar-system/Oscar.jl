@@ -17,8 +17,8 @@ from other objects in OSCAR.
 ### Intersecting halfspaces: $H$-representation
 
 ```@docs
-polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
-polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
+polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
@@ -54,7 +54,7 @@ true
 ### Computing convex hulls: $V$-representation
 
 ```@docs
-convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar_types
+convex_hull(::Oscar.scalar_type_or_field, ::AnyVecOrMat; non_redundant::Bool=false)
 ```
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and

@@ -119,7 +119,8 @@ function bracket(
   L = parent(x)
   mat = sum(
     cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(coefficients(x)),
-    (j, cyj) in enumerate(coefficients(y))
+    (j, cyj) in enumerate(coefficients(y));
+    init=sparse_row(coefficient_ring(L)),
   )
   return L(mat)
 end
@@ -287,6 +288,7 @@ function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
 end
 
 function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:AbstractLieAlgebra}
+  @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
   s = ["x_$(i)" for i in 1:n]
   L = lie_algebra(R, n, basis, s; check=false)

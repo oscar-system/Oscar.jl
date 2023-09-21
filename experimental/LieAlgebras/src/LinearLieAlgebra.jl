@@ -140,21 +140,17 @@ end
 ###############################################################################
 
 @doc raw"""
-    (L::LinearLieAlgebra{C})(m::MatElem{C}) -> LieAlgebraElem{C}
+    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
 
-Return the Lie algebra element whose matrix representation corresponds to `m`.
-This requires `m` to be a square matrix of size `n > 1` (the dimension of `L`), and
-to lie in the Lie algebra `L` (i.e. to be in the span of `basis(L)`).
-
-If `m` is a $1 \times \dim(L)` vector, it is assumed to be a coefficient vector in the
-basis `basis(L)`.
+Returns the element of `L` whose matrix representation corresponds to `x`.
+If no such element exists, an error is thrown.
 """
-function (L::LinearLieAlgebra{C})(m::MatElem{C}) where {C<:RingElement}
-  if L.n > 1 && size(m) == (L.n, L.n)
-    m = coefficient_vector(m, matrix_repr_basis(L))
-  end
-  @req size(m) == (1, dim(L)) "Invalid matrix dimensions."
-  return elem_type(L)(L, m)
+function coerce_to_lie_algebra_elem(
+  L::LinearLieAlgebra{C}, x::MatElem{C}
+) where {C<:RingElement}
+  @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
+  m = coefficient_vector(x, matrix_repr_basis(L))
+  return L(m)
 end
 
 ###############################################################################
@@ -169,7 +165,11 @@ end
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
 function Generic.matrix_repr(x::LinearLieAlgebraElem)
-  return sum(c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(parent(x))))
+  L = parent(x)
+  return sum(
+    c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(L));
+    init=zero_matrix(coefficient_ring(L), L.n, L.n),
+  )
 end
 
 function bracket(
@@ -179,7 +179,7 @@ function bracket(
   L = parent(x)
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
-  return L(x_mat * y_mat - y_mat * x_mat)
+  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
 end
 
 ###############################################################################
@@ -230,10 +230,12 @@ The first argument can be optionally provided to specify the type of the returne
 Lie algebra.
 """
 function abelian_lie_algebra(R::Ring, n::Int)
+  @req n >= 0 "Dimension must be non-negative."
   return abelian_lie_algebra(LinearLieAlgebra, R, n)
 end
 
 function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:LinearLieAlgebra}
+  @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
   s = ["x_$(i)" for i in 1:n]
   L = lie_algebra(R, n, basis, s; check=false)

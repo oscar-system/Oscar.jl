@@ -1346,6 +1346,9 @@ mutable struct RelativeBrauerGroupElem
   end
 end
 
+Oscar.elem_type(::Type{RelativeBrauerGroup}) = RelativeBrauerGroupElem
+Oscar.parent_type(::Type{RelativeBrauerGroupElem}) = RelativeBrauerGroup
+
 Oscar.parent(a::RelativeBrauerGroupElem) = a.parent
 
 (B::RelativeBrauerGroup)(d::Dict{Union{NfAbsOrdIdl, Hecke.NumFieldEmb}, Hecke.QmodnZElem}) = RelativeBrauerGroupElem(B, d)
