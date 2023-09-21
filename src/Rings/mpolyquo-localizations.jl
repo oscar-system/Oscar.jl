@@ -308,8 +308,9 @@ Localization
   at complement of prime ideal(y - 1, x - a)
 
 julia> iota
-Map from
-RQ to Localization of quotient of multivariate polynomial ring at complement of prime ideal defined by a julia-function
+Map defined by a julia-function
+  from quotient of multivariate polynomial ring by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+  to localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """ localization(A::MPolyQuoRing, U::AbsMPolyMultSet)
 

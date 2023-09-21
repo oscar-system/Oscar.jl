@@ -79,8 +79,7 @@ julia> I = ideal(R, [x^2, y^3])
 ideal(x^2, y^3)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map from
-R to A defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> L = monomial_basis(A)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -133,8 +132,7 @@ julia> I = ideal(R, [x^2])
 ideal(x^2)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal(x^2), Map from
-R to A defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x^2), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> L = monomial_basis(A, 3)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
