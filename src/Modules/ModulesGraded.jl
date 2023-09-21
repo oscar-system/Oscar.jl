@@ -1334,6 +1334,22 @@ julia> betti_table(FA)
 2    : -  2  3  1
 ------------------
 total: 1  4  4  1
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x, y, x+y]);
+
+julia> M = quotient_ring_as_module(I);
+
+julia> FM = free_resolution(M, algorithm = :nres);
+
+julia> betti_table(FM)
+       0  1  2
+---------------
+-1   : -  -  1
+0    : 1  3  1
+---------------
+total: 1  3  2
 ```
 """
 function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
@@ -1382,40 +1398,58 @@ function Base.show(io::IO, b::BettiTable)
     println(io, "Empty table")
     return
   end
-  step, min, max = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))
-  s1 = ndigits(max)
-  s3 = ndigits(sum(values(T)))
+  step, min, maxv = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))
+  column_widths = Dict()
+  for j in min:step:maxv
+    sum_col = sum(getindex(T, x[m]) for m in 1:length(x) if x[m][1] == j)
+    col_width_from_sum = ndigits(abs(sum_col))
+    col_width_from_header = ndigits(abs(j)) + (j < 0 ? 1 : 0)
+    column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
+  end
+
   if b.project == nothing
     for i in 1:ngens(parent(x[1][2]))
-      s2 = ndigits(maximum(x[j][2][i] for j in 1:length(x)))
-      spaces = maximum([s2, s1, s3])
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
-      print(io, " "^(s2 + (7 - s2)))
-      for j in min:step:max
-        print(io, j, j == max ? "" : " "^(spaces - ndigits(j) + 1))
-      end
-      print(io, "\n")
-      divider_width = 6 + (b.reverse_direction ? (min - max) + 1 : (max - min) + 1) * (spaces + 1)
-      print(io, "-" ^ divider_width)    
-      print(io, "\n")
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
+      initial_padding = max(ndigits(mi) + mi < 0 ? 0 : 1, 7)
+      print(io, " "^initial_padding)
+      total_space_count = initial_padding
+      for j in min:step:maxv
+        adjustment = j < 0 ? 1 : 0
+        space_count = max(0, column_widths[j] - ndigits(j) - adjustment)
+        print(io, j)
+        if j != maxv
+          print(io, " "^space_count)
+        end
+        total_space_count = total_space_count + space_count + ndigits(j) + adjustment
+      end
+      total_space_count = total_space_count - 1
+      print(io, "\n")
+      print(io, "-"^total_space_count)
+      print(io, "\n")
       for j in mi:mx
-        print(io, j, " "^(s2 - ndigits(j) + (5 - s2)))
-        print(io, ": ")
-        for h in min:step:max
+        adjustment = j < 0 ? 1 : 0
+        print(io, j, " "^(5 - ndigits(j) - adjustment))
+        print(io, ":")
+        for h in min:step:maxv
           sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
-          print(io, sum_current == 0 ? "-" : sum_current)
-          h == max || print(io, " "^(spaces - (sum_current == 0 ? 0 : ndigits(sum_current)) + (sum_current == 0 ? 0 : 1)))
+          print(io, " ", sum_current == 0 ? "-" : sum_current)
+          if h != maxv
+            print(io, " "^(column_widths[h] - ndigits(sum_current) - 1))
+          end
         end
         print(io,"\n")
       end
-      print(io, "-" ^ divider_width)
-      print(io, "\n", "total: ")
-      for i_total in min:step:max
+      print(io, "-" ^ total_space_count)
+      print(io, "\n", "total:")
+      for i_total in min:step:maxv
         sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
-        print(io, sum_row, i_total == max ? "" : " " ^ (spaces - ndigits(sum_row) + 1))
+        print(io, " ", sum_row)
+        if i_total != maxv
+          print(io, " "^(column_widths[i_total] - ndigits(sum_row) - 1))
+        end
       end
       print(io, "\n")
     end
@@ -1468,6 +1502,8 @@ function Base.show(io::IO, b::BettiTable)
     end
   end
 end
+
+
 
 
 ###############################################################################
