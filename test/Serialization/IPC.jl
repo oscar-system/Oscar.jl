@@ -1,11 +1,12 @@
 using Distributed
 
+process_ids = addprocs(1)
+
 @everywhere begin
     using Oscar
 end
 
 @testset "Interprocess Serialization" begin
-  addprocs(1)
 
   @everywhere function do_work(rings, jobs, results) # define work function everywhere
     Qx, F, MR = take!(rings)
@@ -47,6 +48,7 @@ end
 
   @test total == a
 
-  map(rmprocs, workers())
 end
+
+map(rmprocs, process_ids)
 
