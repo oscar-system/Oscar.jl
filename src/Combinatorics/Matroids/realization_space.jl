@@ -76,7 +76,6 @@ function is_realizable(RS::MatroidRealizationSpace)
         RS.realizable = true
         return RS.realizable
     end
-
     for p in minimal_primes(RS.defining_ideal)
         component_non_trivial = true
         for f in RS.inequations
@@ -84,10 +83,10 @@ function is_realizable(RS::MatroidRealizationSpace)
                 component_non_trivial = false
                 break
             end
-            if component_non_trivial
-                RS.realizable = true
-                return RS.realizable
-            end
+        end
+        if component_non_trivial
+            RS.realizable = true
+            return RS.realizable
         end
     end
     RS.realizable = false
@@ -374,12 +373,14 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
     =#
 
     ineqs = gens_2_factors(ineqs)
+    #=
     # Only saturate easy inequations as it's too slow otherwise.
     for i in 1:length(ineqs)
         if count(k -> k!=0, degrees(ineqs[i])) < 3 && sum(degrees(ineqs[i])) < 3
             def_ideal = saturation(def_ideal, ideal([ineqs[i]]))
         end
     end
+    =#
     isone(def_ideal) && return MatroidRealizationSpace(F, char, q)
     
     RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, F, char, q)
