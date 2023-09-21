@@ -85,6 +85,11 @@ end
 #   String I/O
 #
 ###############################################################################
+#make root system string
+function string_root_system(L::SimpleLieAlgebra)
+  return string(root_system_type(L)[1]) * string(root_system_type(L)[2])
+end
+
 function Base.show(io::IO, ::MIME"text/plain", L::SimpleLieAlgebra)
   io = pretty(io)
   println(io, "Simple Lie algebra")
@@ -100,13 +105,13 @@ function Base.show(io::IO, L::SimpleLieAlgebra)
   if get(io, :supercompact, false)
     print(io, "Simple Lie algebra")
     print(io,
-      "$(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
+      "$(string_root_system(L))",
     )
   else
     io = pretty(io)
     print(io, "Simple Lie algebra")
      print(io,
-      "$(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
+      "$(string_root_system(L))",
       Dedent(),
     )
     print(io, "over ", Lowercase())
