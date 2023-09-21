@@ -6353,7 +6353,7 @@ function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
 end
 
-function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorithm::Symbol=:fres)
+function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 # assuming a free res is a chain_complex, then it will be
 # M_1 -> M_0 -> S -> 0
 #the range is 1:-1:-2 or so
@@ -6362,6 +6362,11 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
 # - extending lift is repeated pushfirst
 # - the idx is only used to see how many maps are missing
 
+  algorithm = get_attribute(cc, :algorithm)
+  if algorithm == nothing
+    algorithm = :fres
+    set_attribute!(cc, :algorithm, :fres)
+  end
   r = Hecke.map_range(cc)
   if idx < last(r)
     error("extending past the final zero not supported")
@@ -6369,7 +6374,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   len_missing = idx - first(r)
   @assert len_missing > 0
   if cc.complete == true
-    error("complex is complete, cannot extend")
+    return map(cc, first(r))
   end
 
   kernel_entry          = image(cc.maps[1])[1]
@@ -6384,6 +6389,10 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
     res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+  elseif algorithm == :mres
+    res = Singular.mres(singular_kernel_entry, len)
+  elseif algorithm == :nres
+    res = Singular.nres(singular_kernel_entry, len)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -6392,16 +6401,19 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   j   = 2
 
   while j <= Singular.length(res)
+    rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
       map = graded_map(codom, SM.matrix)
       dom = domain(map)
+      set_attribute!(dom, :name => "R^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
+      set_attribute!(dom, :name => "R^$rk")
       generator_matrix(SM)
       map = hom(dom, codom, SM.matrix)
     end
@@ -6415,7 +6427,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
     cc.complete = true
   end
-  return map(cc, idx)
+  set_attribute!(cc, :show => free_show)
+  maxidx = min(idx, first(Hecke.map_range(cc)))
+  return map(cc, maxidx)
 end
 
 @doc raw"""
@@ -6467,7 +6481,9 @@ julia> fr[4]
 Free module of rank 0 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> fr
-C_-2 <---- C_-1 <---- C_0 <---- C_1 <---- C_2 <---- C_3 <---- C_4
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 
 julia> is_complete(fr)
 true
@@ -6574,6 +6590,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
   set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :algorithm, algorithm)
 
   return FreeResolution(cc)
 end
