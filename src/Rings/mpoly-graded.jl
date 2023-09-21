@@ -1288,8 +1288,9 @@ homogeneous component of Graded multivariate polynomial ring in 5 variables over
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-S_[1 1] of dim 6 to S defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from s_[1 1] of dim 6
+  to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 x[2]*y[3]
