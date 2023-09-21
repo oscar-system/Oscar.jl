@@ -624,6 +624,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   loaded =  load_typed_object(s, jsondict; override_params=params)
 
   if haskey(jsondict, :id)
+    global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
     global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
   end
   return loaded
