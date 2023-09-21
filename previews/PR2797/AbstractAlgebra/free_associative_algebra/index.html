@@ -60,9 +60,32 @@ julia&gt; exponent_word(-x^2*y^2*z^2*x + z*y, 1)
  2
  3
  3
- 1</code></pre><h3 id="Iterators"><a class="docs-heading-anchor" href="#Iterators">Iterators</a><a id="Iterators-1"></a><a class="docs-heading-anchor-permalink" href="#Iterators" title="Permalink"></a></h3><p>The following iterators are provided for elements of a free associative algebra, with <code>exponent_words</code> providing the analogous functionality that <code>exponent_vectors</code> provides for multivariate polynomials.</p><pre><code class="language-julia hljs">terms(p::FreeAssAlgElem)
+ 1</code></pre><article class="docstring"><header><a class="docstring-binding" id="evaluate-Union{Tuple{U}, Tuple{T}, Tuple{FreeAssAlgElem{T}, Vector{U}}} where {T&lt;:RingElement, U&lt;:NCRingElem}" href="#evaluate-Union{Tuple{U}, Tuple{T}, Tuple{FreeAssAlgElem{T}, Vector{U}}} where {T&lt;:RingElement, U&lt;:NCRingElem}"><code>evaluate</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">evaluate(a::FreeAssAlgElem{T}, vals::Vector{U}) where {T &lt;: RingElement, U &lt;: NCRingElem}</code></pre><p>Evaluate <code>a</code> by substituting in the array of values for each of the variables. The evaluation will succeed if multiplication is defined between elements of the coefficient ring of <code>a</code> and elements of <code>vals</code>.</p><p>The syntax <code>a(vals...)</code> is also supported.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = free_associative_algebra(ZZ, [&quot;x&quot;, &quot;y&quot;]);
+
+julia&gt; f = x*y - y*x
+x*y - y*x
+
+julia&gt; S = MatrixAlgebra(ZZ, 2);
+
+julia&gt; m1 = S([1 2; 3 4])
+[1   2]
+[3   4]
+
+julia&gt; m2 = S([0 1; 1 0])
+[0   1]
+[1   0]
+
+julia&gt; evaluate(f, [m1, m2])
+[-1   -3]
+[ 3    1]
+
+julia&gt; m1*m2 - m2*m1 == evaluate(f, [m1, m2])
+true
+
+julia&gt; m1*m2 - m2*m1 == f(m1, m2)
+true</code></pre></div></section></article><h3 id="Iterators"><a class="docs-heading-anchor" href="#Iterators">Iterators</a><a id="Iterators-1"></a><a class="docs-heading-anchor-permalink" href="#Iterators" title="Permalink"></a></h3><p>The following iterators are provided for elements of a free associative algebra, with <code>exponent_words</code> providing the analogous functionality that <code>exponent_vectors</code> provides for multivariate polynomials.</p><pre><code class="language-julia hljs">terms(p::FreeAssAlgElem)
 coefficients(p::FreeAssAlgElem)
-monomials(p::FreeAssAlgElem)</code></pre><article class="docstring"><header><a class="docstring-binding" id="exponent_words-Union{Tuple{FreeAssAlgElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#exponent_words-Union{Tuple{FreeAssAlgElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>exponent_words</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">exponent_words(a::AbstractAlgebra.FreeAssAlgElem{T}) where T &lt;: RingElement</code></pre><p>Return an iterator for the exponent words of the given polynomial. To retrieve an array of the exponent words, use <code>collect(exponent_words(a))</code>.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c) = free_associative_algebra(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])
+monomials(p::FreeAssAlgElem)</code></pre><article class="docstring"><header><a class="docstring-binding" id="exponent_words-Union{Tuple{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#exponent_words-Union{Tuple{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>exponent_words</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">exponent_words(a::FreeAssAlgElem{T}) where T &lt;: RingElement</code></pre><p>Return an iterator for the exponent words of the given polynomial. To retrieve an array of the exponent words, use <code>collect(exponent_words(a))</code>.</p></div></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (a, b, c) = free_associative_algebra(ZZ, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])
 (Free associative algebra on 3 indeterminates over integers, AbstractAlgebra.Generic.FreeAssAlgElem{BigInt}[a, b, c])
 
 julia&gt; collect(terms(3*b*a*c - b + c + 2))
@@ -91,4 +114,13 @@ julia&gt; collect(exponent_words(3*b*a*c - b + c + 2))
  [2, 1, 3]
  [2]
  [3]
- []</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 14 September 2023 13:48">Thursday 14 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ []</code></pre><h3 id="Groebner-bases"><a class="docs-heading-anchor" href="#Groebner-bases">Groebner bases</a><a id="Groebner-bases-1"></a><a class="docs-heading-anchor-permalink" href="#Groebner-bases" title="Permalink"></a></h3><p>The function <code>groebner_basis</code> provides the computation of a Groebner basis of an ideal, given a set of  generators of that ideal. Since such a Groebner basis is not necessarily finite, one can additionally pass a <code>reduction_bound</code> to the function, to only compute a partial Groebner basis.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, u, v, t, s) = free_associative_algebra(GF(2), [&quot;x&quot;, &quot;y&quot;, &quot;u&quot;, &quot;v&quot;, &quot;t&quot;, &quot;s&quot;])
+(Free associative algebra on 6 indeterminates over finite field F_2, AbstractAlgebra.Generic.FreeAssAlgElem{AbstractAlgebra.GFElem{Int64}}[x, y, u, v, t, s])
+
+julia&gt; g = Generic.groebner_basis([u*(x*y)^3 + u*(x*y)^2 + u + v, (y*x)^3*t + (y*x)^2*t + t + s])
+5-element Vector{AbstractAlgebra.Generic.FreeAssAlgElem{AbstractAlgebra.GFElem{Int64}}}:
+ u*x*y*x*y*x*y + u*x*y*x*y + u + v
+ y*x*y*x*y*x*t + y*x*y*x*t + t + s
+ u*x*s + v*x*t
+ u*x*y*x*s + v*x*y*x*t
+ u*x*y*x*y*x*s + v*x*y*x*y*x*t</code></pre><p>In order to check whether a given element of the algebra is in the ideal generated by a Groebner  basis <code>g</code>, one can compute its normal form. ```jldoctest; setup = :(using AbstractAlgebra) julia&gt; R, (x, y, u, v, t, s) = free<em>associative</em>algebra(GF(2), [&quot;x&quot;, &quot;y&quot;, &quot;u&quot;, &quot;v&quot;, &quot;t&quot;, &quot;s&quot;]);</p><p>julia&gt; g = Generic.groebner_basis([u<em>(x</em>y)^3 + u<em>(x</em>y)^2 + u + v, (y<em>x)^3</em>t + (y<em>x)^2</em>t + t + s]);</p><p>julia&gt; normal_form(u<em>(x</em>y)^3<em>s</em>t + u<em>(x</em>y)^2<em>s</em>t +u<em>s</em>t + v<em>s</em>t, g) 0  ```</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 21 September 2023 13:40">Thursday 21 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
