@@ -99,18 +99,13 @@ end
 function Base.show(io::IO, L::SimpleLieAlgebra)
   if get(io, :supercompact, false)
     print(io, "Simple Lie algebra")
-    print(
-      io,
-      Indent(),
+    print(io,
       "$(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
-      Dedent(),
     )
   else
     io = pretty(io)
     print(io, "Simple Lie algebra")
-     print(
-      io,
-      Indent(),
+     print(io,
       "$(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
       Dedent(),
     )
