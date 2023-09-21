@@ -786,7 +786,7 @@ function vertex_sizes(P::Polyhedron{T}) where T<:scalar_types
   res = Vector{Int}(pm_object(P).VERTEX_SIZES)
   fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)]
   vertices = symdiff(Vector{Int}(1:pm_object(P).N_VERTICES),fai)
-  return keepat!(res,vertices)
+  return Base.keepat!(res,vertices)
 end
 
 ###############################################################################
