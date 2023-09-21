@@ -616,6 +616,7 @@ export has_transitive_groups
 export has_vertex
 export haspreimage
 export height
+export heisenberg_group
 export helper_eta
 export helper_ideal
 export helper_images
