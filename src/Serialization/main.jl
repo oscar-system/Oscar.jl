@@ -598,12 +598,20 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
       if isnothing(params) 
         params = load_type_params(state, type, jsondict[type_key][:params])
       end
-      return load_object(state, type, jsondict[:data], params)
+      loaded = load_object(state, type, jsondict[:data], params)
     end
     Base.issingletontype(type) && return type()
-    return load_object(state, type, jsondict[:data])
+    loaded = load_object(state, type, jsondict[:data])
+  else
+    loaded = load_typed_object(state, jsondict; override_params=params)
   end
-  return load_typed_object(state, jsondict; override_params=params)
+
+  if haskey(jsondict, :id)
+    global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
+    global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+  end
+
+  return loaded
 end
 
 function load(filename::String; params::Any = nothing, type::Any = nothing)
