@@ -35,6 +35,10 @@ function lie_algebra_module_conformance_test(
     @test iszero(zero(V))
 
     @test coefficients(v) == [coeff(v, i) for i in 1:dim(V)]
+    @test Oscar.coefficients_dense(v) == dense_row(Oscar.coefficients_sparse(v), dim(V))
+    @test Oscar.coefficients_sparse(v) == sparse_row(Oscar.coefficients_dense(v))
+    @test coefficients(v) == Vector(Oscar.coefficients_sparse(v), dim(V))
+    @test coefficients(v) == Array(Oscar.coefficients_dense(v))[1, :]
     @test all(i -> coeff(v, i) == v[i], 1:dim(V))
     @test sum(v[i] * basis(V, i) for i in 1:dim(V); init=zero(V)) == v
 
@@ -217,7 +221,7 @@ end
   )
 
   @testset "standard_module" begin
-    L = special_orthogonal_lie_algebra(QQ, 4)
+    L = special_linear_lie_algebra(QQ, 4)
     V = standard_module(L)
     @test dim(V) == 4
     @test length(repr(V)) < 10^4 # outputs tend to be excessively long due to recursion
@@ -226,7 +230,7 @@ end
 
     x = L(rand(-10:10, dim(L)))
     v = V(rand(-10:10, dim(V)))
-    @test x * v == V(matrix_repr(x) * coefficients(v))
+    @test x * v == V(transpose(matrix_repr(x) * transpose(Oscar.coefficients_dense(v))))
   end
 
   @testset "dual" begin
@@ -446,9 +450,7 @@ end
       dimV = dim(V)
       struct_const_V = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimV)
       for (i, xi) in enumerate(basis(L)), (j, vj) in enumerate(basis(V))
-        struct_const_V[i, j] = [
-          (c, k) for (k, c) in enumerate(coefficients(xi * vj)) if !iszero(c)
-        ]
+        struct_const_V[i, j] = [(c, k) for (k, c) in Oscar.coefficients_sparse(xi * vj)]
       end
       return struct_const_V
     end

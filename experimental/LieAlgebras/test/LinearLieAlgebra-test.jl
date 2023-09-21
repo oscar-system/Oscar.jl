@@ -76,9 +76,7 @@
       dimL = dim(L)
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)
       for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
-        struct_const_L[i, j] = [
-          (c, k) for (k, c) in enumerate(coefficients(xi * xj)) if !iszero(c)
-        ]
+        struct_const_L[i, j] = [(c, k) for (k, c) in Oscar.coefficients_sparse(xi * xj)]
       end
       return struct_const_L
     end

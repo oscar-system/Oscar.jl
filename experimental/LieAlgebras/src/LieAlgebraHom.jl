@@ -14,7 +14,7 @@
 
     mat = zero_matrix(coefficient_ring(L2), dim(L1), dim(L2))
     for (i, img) in enumerate(imgs)
-      mat[i, :] = _matrix(img)
+      mat[i, :] = coefficients_dense(img)
     end
     return LieAlgebraHom(L1, L2, mat; check)
   end
@@ -121,7 +121,7 @@ Return the image of `x` under `h`.
 """
 function image(h::LieAlgebraHom, x::LieAlgebraElem)
   @req parent(x) === domain(h) "Domain mismatch"
-  return codomain(h)(_matrix(x) * matrix(h))
+  return codomain(h)(coefficients_dense(x) * matrix(h))
 end
 
 @doc raw"""

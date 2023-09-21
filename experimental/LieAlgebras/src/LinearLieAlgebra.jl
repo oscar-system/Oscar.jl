@@ -37,7 +37,7 @@ const LinearLieAlgebraDict = CacheDictType{
 
 struct LinearLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
+  mat::SRow{C}
 end
 
 ###############################################################################
@@ -55,6 +55,8 @@ parent(x::LinearLieAlgebraElem) = x.parent
 coefficient_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra) = L.dim
+
+coefficients_sparse(x::LinearLieAlgebraElem) = x.mat
 
 @doc raw"""
     matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}
@@ -167,7 +169,7 @@ Return the Lie algebra element `x` in the underlying matrix representation.
 function Generic.matrix_repr(x::LinearLieAlgebraElem)
   L = parent(x)
   return sum(
-    c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(L));
+    c * matrix_repr_basis(L, i) for (i, c) in coefficients_sparse(x);
     init=zero_matrix(coefficient_ring(L), L.n, L.n),
   )
 end

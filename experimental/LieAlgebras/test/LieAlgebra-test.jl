@@ -29,6 +29,10 @@ function lie_algebra_conformance_test(
     @test iszero(zero(L))
 
     @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
+    @test Oscar.coefficients_dense(x) == dense_row(Oscar.coefficients_sparse(x), dim(L))
+    @test Oscar.coefficients_sparse(x) == sparse_row(Oscar.coefficients_dense(x))
+    @test coefficients(x) == Vector(Oscar.coefficients_sparse(x), dim(L))
+    @test coefficients(x) == Array(Oscar.coefficients_dense(x))[1, :]
     @test all(i -> coeff(x, i) == x[i], 1:dim(L))
     @test sum(x[i] * basis(L, i) for i in 1:dim(L); init=zero(L)) == x
 

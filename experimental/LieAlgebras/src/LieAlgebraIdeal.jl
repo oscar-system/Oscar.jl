@@ -23,11 +23,11 @@
       left = copy(gens)
       while !isempty(left)
         g = pop!(left)
-        can_solve(basis_matrix, _matrix(g); side=:left) && continue
+        can_solve(basis_matrix, coefficients_dense(g); side=:left) && continue
         for b in basis(L)
           push!(left, b * g)
         end
-        basis_matrix = vcat(basis_matrix, _matrix(g))
+        basis_matrix = vcat(basis_matrix, coefficients_dense(g))
         rank = rref!(basis_matrix)
         basis_matrix = basis_matrix[1:rank, :]
       end
@@ -163,7 +163,7 @@ end
 Return `true` if `x` is in the ideal `I`, `false` otherwise.
 """
 function Base.in(x::LieAlgebraElem, I::LieAlgebraIdeal)
-  return can_solve(basis_matrix(I), _matrix(x); side=:left)
+  return can_solve(basis_matrix(I), coefficients_dense(x); side=:left)
 end
 
 ###############################################################################

@@ -17,7 +17,7 @@
 
     mat = zero_matrix(coefficient_ring(V2), dim(V1), dim(V2))
     for (i, img) in enumerate(imgs)
-      mat[i, :] = _matrix(img)
+      mat[i, :] = coefficients_dense(img)
     end
     return LieAlgebraModuleHom(V1, V2, mat; check)
   end
@@ -130,7 +130,7 @@ function image(
   h::LieAlgebraModuleHom{T1,T2}, v::LieAlgebraModuleElem
 ) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
   @req parent(v) === domain(h) "Domain mismatch"
-  return codomain(h)(_matrix(v) * matrix(h))
+  return codomain(h)(coefficients_dense(v) * matrix(h))
 end
 
 # TODO: image and kernel, once submodules are implemented

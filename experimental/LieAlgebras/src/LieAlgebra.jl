@@ -14,6 +14,7 @@ abstract type LieAlgebraElem{C<:RingElement} end
 # parent(x::MyLieAlgebraElem{C})
 # coefficient_ring(L::MyLieAlgebra{C})
 # dim(L::MyLieAlgebra{C})
+# coefficients_sparse(x::LieAlgebraElem{C})
 # Base.show(io::IO, x::MyLieAlgebra{C})
 # symbols(L::MyLieAlgebra{C})
 # bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C})
@@ -63,8 +64,7 @@ end
 Return the zero element of the Lie algebra `L`.
 """
 function zero(L::LieAlgebra)
-  mat = zero_matrix(coefficient_ring(L), 1, dim(L))
-  return elem_type(L)(L, mat)
+  return L(sparse_row(coefficient_ring(L)))
 end
 
 @doc raw"""
@@ -73,11 +73,25 @@ end
 Check whether the Lie algebra element `x` is zero.
 """
 function iszero(x::LieAlgebraElem)
-  return iszero(coefficients(x))
+  return iszero(coefficients_sparse(x))
 end
 
-@inline function _matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return (x.mat)::dense_matrix_type(C)
+@doc raw"""
+    coefficients_sparse(x::LieAlgebraElem{C}) -> SRow{C}
+
+Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref)
+as a sparse row. This is the fastes access to the coefficients of `x`.
+"""
+coefficients_sparse(_::LieAlgebraElem) = error("Should be implemented by subtypes.")
+
+@doc raw"""
+    coefficients_sparse(x::LieAlgebraElem{C}) -> MatElem{C}
+
+Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref)
+as a dense row, i.e. a $1 \times \dim(L)$ matrix
+"""
+function coefficients_dense(x::LieAlgebraElem)
+  return dense_row(coefficients_sparse(x), dim(parent(x)))
 end
 
 @doc raw"""
@@ -86,7 +100,7 @@ end
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
 function coefficients(x::LieAlgebraElem)
-  return collect(_matrix(x))[1, :]
+  return Vector(coefficients_sparse(x), dim(parent(x)))
 end
 
 @doc raw"""
@@ -95,7 +109,7 @@ end
 Return the `i`-th coefficient of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
 function coeff(x::LieAlgebraElem, i::Int)
-  return _matrix(x)[1, i]
+  return coefficients_sparse(x)[i]
 end
 
 @doc raw"""
@@ -108,7 +122,7 @@ function getindex(x::LieAlgebraElem, i::Int)
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
-  return parent(x)(deepcopy_internal(_matrix(x), dict))
+  return parent(x)(deepcopy_internal(coefficients_sparse(x), dict))
 end
 
 function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
@@ -130,7 +144,7 @@ symbols(_::LieAlgebra) = error("Should be implemented by subtypes.")
 
 function expressify(v::LieAlgebraElem, s=symbols(parent(v)); context=nothing)
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(coefficients(v))
+  for (i, c) in coefficients_sparse(v)
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -171,7 +185,7 @@ Return the element of `L` with coefficient vector `v`.
 function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
-  return elem_type(L)(L, mat)
+  return L(mat)
 end
 
 @doc raw"""
@@ -181,8 +195,8 @@ Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
 function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
-  @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
-  return elem_type(L)(L, mat)
+  @req size(mat) == (1, dim(L)) "Invalid dimensions."
+  return L(sparse_row(mat))
 end
 
 @doc raw"""
@@ -191,8 +205,7 @@ end
 Return the element of `L` with coefficient vector `v`.
 """
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
-  mat = dense_row(v, dim(L))
-  return elem_type(L)(L, mat)
+  return elem_type(L)(L, v)
 end
 
 @doc raw"""
@@ -212,43 +225,43 @@ end
 ###############################################################################
 
 function Base.:-(x::LieAlgebraElem{C}) where {C<:RingElement}
-  return parent(x)(-_matrix(x))
+  return parent(x)(-coefficients_sparse(x))
 end
 
 function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) + _matrix(x2))
+  return parent(x1)(coefficients_sparse(x1) + coefficients_sparse(x2))
 end
 
 function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) - _matrix(x2))
+  return parent(x1)(coefficients_sparse(x1) - coefficients_sparse(x2))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(_matrix(x) * c)
+  return parent(x)(coefficients_sparse(x) * c)
 end
 
 function Base.:*(x::LieAlgebraElem, c::U) where {U<:Union{Rational,IntegerUnion}}
-  return parent(x)(_matrix(x) * c)
+  return parent(x)(coefficients_sparse(x) * c)
 end
 
 function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
-  return parent(x)(_matrix(x) * c)
+  return parent(x)(coefficients_sparse(x) * c)
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(c * _matrix(x))
+  return parent(x)(c * coefficients_sparse(x))
 end
 
 function Base.:*(c::U, x::LieAlgebraElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(x)(c * _matrix(x))
+  return parent(x)(c * coefficients_sparse(x))
 end
 
 function Base.:*(c::ZZRingElem, x::LieAlgebraElem{ZZRingElem})
-  return parent(x)(c * _matrix(x))
+  return parent(x)(c * coefficients_sparse(x))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:RingElement}
@@ -263,13 +276,13 @@ end
 
 function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
   check_parent(x1, x2)
-  return coefficients(x1) == coefficients(x2)
+  return coefficients_sparse(x1) == coefficients_sparse(x2)
 end
 
 function Base.hash(x::LieAlgebraElem, h::UInt)
   b = 0x6724cbedbd860982 % UInt
   h = hash(parent(x), h)
-  h = hash(coefficients(x), h)
+  h = hash(coefficients_sparse(x), h)
   return xor(h, b)
 end
 
@@ -300,7 +313,7 @@ function center(L::LieAlgebra)
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
   for (i, bi) in enumerate(basis(L))
     for (j, bj) in enumerate(basis(L))
-      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bi * bj)
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = coefficients_dense(bi * bj)
     end
   end
 
@@ -319,7 +332,7 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L) * length(xs))
   for (i, bi) in enumerate(basis(L))
     for (j, xj) in enumerate(xs)
-      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bracket(bi, xj))
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = coefficients_dense(bracket(bi, xj))
     end
   end
 
@@ -392,7 +405,7 @@ Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 @attr Bool function is_abelian(L::LieAlgebra)
   b = basis(L)
   n = length(b)
-  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in (i + 1):n)
 end
 
 @doc raw"""
@@ -453,7 +466,7 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   b = basis(L)
 
   to_R(x::LieAlgebraElem) =
-    sum(c * g for (c, g) in zip(coefficients(x), gensR); init=zero(R))
+    sum(c * gensR[i] for (i, c) in coefficients_sparse(x); init=zero(R))
 
   rel = strictly_upper_triangular_matrix([
     to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
@@ -462,7 +475,7 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
 
   L_to_U = MapFromFunc(
     L, U, function (x::LieAlgebraElem)
-      sum(c * g for (c, g) in zip(coefficients(x), gensU); init=zero(U))
+      sum(c * gensU[i] for (i, c) in coefficients_sparse(x); init=zero(U))
     end
   )
   return U, L_to_U

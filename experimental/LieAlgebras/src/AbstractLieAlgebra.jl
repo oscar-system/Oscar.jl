@@ -50,7 +50,7 @@ const AbstractLieAlgebraDict = CacheDictType{
 
 struct AbstractLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
   parent::AbstractLieAlgebra{C}
-  mat::MatElem{C}
+  mat::SRow{C}
 end
 
 ###############################################################################
@@ -69,6 +69,8 @@ parent(x::AbstractLieAlgebraElem) = x.parent
 coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra) = L.dim
+
+coefficients_sparse(x::AbstractLieAlgebraElem) = x.mat
 
 ###############################################################################
 #
@@ -118,8 +120,8 @@ function bracket(
   check_parent(x, y)
   L = parent(x)
   mat = sum(
-    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(coefficients(x)),
-    (j, cyj) in enumerate(coefficients(y));
+    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in coefficients_sparse(x),
+    (j, cyj) in coefficients_sparse(y);
     init=sparse_row(coefficient_ring(L)),
   )
   return L(mat)
@@ -256,7 +258,7 @@ function lie_algebra(
   end
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, length(basis), length(basis))
   for (i, bi) in enumerate(basis), (j, bj) in enumerate(basis)
-    fl, row = can_solve_with_solution(basis_matrix, _matrix(bi * bj); side=:left)
+    fl, row = can_solve_with_solution(basis_matrix, coefficients_row(bi * bj); side=:left)
     @req fl "Not closed under the bracket."
     struct_consts[i, j] = sparse_row(row)
   end

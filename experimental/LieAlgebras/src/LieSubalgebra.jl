@@ -23,11 +23,11 @@
       left = copy(gens)
       while !isempty(left)
         g = pop!(left)
-        can_solve(basis_matrix, _matrix(g); side=:left) && continue
+        can_solve(basis_matrix, coefficients_dense(g); side=:left) && continue
         for i in 1:nrows(basis_matrix)
           push!(left, g * L(basis_matrix[i, :]))
         end
-        basis_matrix = vcat(basis_matrix, _matrix(g))
+        basis_matrix = vcat(basis_matrix, coefficients_dense(g))
         rank = rref!(basis_matrix)
         basis_matrix = basis_matrix[1:rank, :]
       end
@@ -162,7 +162,7 @@ end
 Return `true` if `x` is in the Lie subalgebra `S`, `false` otherwise.
 """
 function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
-  return can_solve(basis_matrix(S), _matrix(x); side=:left)
+  return can_solve(basis_matrix(S), coefficients_dense(x); side=:left)
 end
 
 ###############################################################################
@@ -207,7 +207,7 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
   mat = zero_matrix(coefficient_ring(L), dim(L) + dim(S)^2, dim(L) * dim(S))
   for (i, bi) in enumerate(basis(L))
     for (j, sj) in enumerate(basis(S))
-      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bracket(bi, sj))
+      mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = coefficients_dense(bracket(bi, sj))
     end
   end
   for i in 1:dim(S)

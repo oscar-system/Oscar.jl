@@ -28,7 +28,7 @@ end
 
 struct LieAlgebraModuleElem{C<:RingElement}
   parent::LieAlgebraModule{C}
-  mat::MatElem{C}
+  mat::SRow{C}
 end
 
 ###############################################################################
@@ -91,8 +91,7 @@ end
 Return the zero element of the Lie algebra module `V`.
 """
 function zero(V::LieAlgebraModule)
-  mat = zero_matrix(coefficient_ring(V), 1, dim(V))
-  return elem_type(V)(V, mat)
+  return V(sparse_row(coefficient_ring(V)))
 end
 
 @doc raw"""
@@ -101,11 +100,27 @@ end
 Check whether the Lie algebra module element `v` is zero.
 """
 function iszero(v::LieAlgebraModuleElem)
-  return iszero(coefficients(v))
+  return iszero(coefficients_sparse(v))
 end
 
-@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  return (v.mat)::dense_matrix_type(C)
+@doc raw"""
+    coefficients_sparse(v::LieAlgebraElem{C}) -> SRow{C}
+
+Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref)
+as a sparse row. This is the fastes access to the coefficients of `v`.
+"""
+function coefficients_sparse(v::LieAlgebraModuleElem)
+  return v.mat
+end
+
+@doc raw"""
+    coefficients_sparse(v::LieAlgebraElem{C}) -> MatElem{C}
+
+Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref)
+as a dense row, i.e. a $1 \times \dim(V)$ matrix
+"""
+function coefficients_dense(v::LieAlgebraModuleElem)
+  return dense_row(coefficients_sparse(v), dim(parent(v)))
 end
 
 @doc raw"""
@@ -114,7 +129,7 @@ end
 Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
 function coefficients(v::LieAlgebraModuleElem)
-  return collect(_matrix(v))[1, :]
+  return Vector(coefficients_sparse(v), dim(parent(v)))
 end
 
 @doc raw"""
@@ -123,7 +138,7 @@ end
 Return the `i`-th coefficient of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
 function coeff(v::LieAlgebraModuleElem, i::Int)
-  return _matrix(v)[1, i]
+  return coefficients_sparse(v)[i]
 end
 
 @doc raw"""
@@ -136,7 +151,7 @@ function getindex(v::LieAlgebraModuleElem, i::Int)
 end
 
 function Base.deepcopy_internal(v::LieAlgebraModuleElem, dict::IdDict)
-  return parent(v)(deepcopy_internal(_matrix(v), dict))
+  return parent(v)(deepcopy_internal(coefficients_sparse(v), dict))
 end
 
 function check_parent(
@@ -257,7 +272,7 @@ end
 
 function expressify(v::LieAlgebraModuleElem, s=symbols(parent(v)); context=nothing)
   sum = Expr(:call, :+)
-  for (i, c) in enumerate(coefficients(v))
+  for (i, c) in coefficients_sparse(v)
     push!(sum.args, Expr(:call, :*, expressify(c; context=context), s[i]))
   end
   return sum
@@ -298,7 +313,7 @@ Return the element of `V` with coefficient vector `v`.
 function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(V), 1, length(v), v)
-  return elem_type(V)(V, mat)
+  return V(mat)
 end
 
 @doc raw"""
@@ -307,10 +322,9 @@ end
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
-  @req ncols(v) == dim(V) "Length of vector does not match dimension"
-  @req nrows(v) == 1 "Not a vector in module constructor"
-  return elem_type(V)(V, v)
+function (V::LieAlgebraModule{C})(mat::MatElem{C}) where {C<:RingElement}
+  @req size(mat) == (1, dim(V)) "Invalid dimensions."
+  return V(sparse_row(mat))
 end
 
 @doc raw"""
@@ -319,8 +333,7 @@ end
 Return the element of `V` with coefficient vector `v`.
 """
 function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
-  mat = dense_row(v, dim(V))
-  return elem_type(V)(V, mat)
+  return elem_type(V)(V, v)
 end
 
 @doc raw"""
@@ -332,7 +345,7 @@ If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   if is_dual(V) && base_module(V) === parent(v)
-    return V(coefficients(v))
+    return V(coefficients_sparse(v))
   end
   @req V === parent(v) "Incompatible modules."
   return v
@@ -390,47 +403,47 @@ end
 ###############################################################################
 
 function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
-  return parent(v)(-_matrix(v))
+  return parent(v)(-coefficients_sparse(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) + _matrix(v2))
+  return parent(v1)(coefficients_sparse(v1) + coefficients_sparse(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) - _matrix(v2))
+  return parent(v1)(coefficients_sparse(v1) - coefficients_sparse(v2))
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(_matrix(v) * c)
+  return parent(v)(coefficients_sparse(v) * c)
 end
 
 function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(_matrix(v) * c)
+  return parent(v)(coefficients_sparse(v) * c)
 end
 
 function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
-  return parent(v)(_matrix(v) * c)
+  return parent(v)(coefficients_sparse(v) * c)
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(c * _matrix(v))
+  return parent(v)(c * coefficients_sparse(v))
 end
 
 function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(c * _matrix(v))
+  return parent(v)(c * coefficients_sparse(v))
 end
 
 function Base.:*(c::ZZRingElem, v::LieAlgebraModuleElem{ZZRingElem})
-  return parent(v)(c * _matrix(v))
+  return parent(v)(c * coefficients_sparse(v))
 end
 
 ###############################################################################
@@ -459,13 +472,13 @@ function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:RingElement}
   check_parent(v1, v2)
-  return coefficients(v1) == coefficients(v2)
+  return coefficients_sparse(v1) == coefficients_sparse(v2)
 end
 
 function Base.hash(v::LieAlgebraModuleElem, h::UInt)
   b = 0x723913014484513a % UInt
   h = hash(parent(v), h)
-  h = hash(coefficients(v), h)
+  h = hash(coefficients_sparse(v), h)
   return xor(h, b)
 end
 
@@ -488,13 +501,12 @@ end
 function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
-  cx = coefficients(x)
+  cx = coefficients_sparse(x)
   V = parent(v)
   return V(
     sum(
-      cx[i] * _matrix(v) * transformation_matrix(V, i) for
-      i in 1:dim(parent(x)) if !iszero(cx[i]);
-      init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
+      c * coefficients_dense(v) * transformation_matrix(V, i) for (i, c) in cx;
+      init=zero_matrix(coefficient_ring(V), 1, dim(V)),
     ),
   )
 end

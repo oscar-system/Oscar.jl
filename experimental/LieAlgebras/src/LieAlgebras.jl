@@ -78,6 +78,8 @@ export base_module
 export base_modules
 export bracket
 export coefficient_vector
+export coefficients_dense
+export coefficients_sparse
 export coerce_to_lie_algebra_elem
 export combinations
 export derived_algebra

@@ -41,7 +41,7 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra)
     [
       [
         begin
-          pairs = filter(pair -> !iszero(last(pair)), collect(enumerate(_matrix(xi * xj))))
+          pairs = filter(pair -> !iszero(last(pair)), collect(coefficients_sparse(xi * xj)))
           (map(first, pairs), GAP.Obj[coeffs_iso(c) for c in map(last, pairs)])
         end for xj in basis(LO)
       ] for xi in basis(LO)
