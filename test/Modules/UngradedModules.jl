@@ -176,12 +176,15 @@ end
   @test length(free_res.C.maps) == 4
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
+	@test free_res[100] == free_module(R, 0)
   @test is_complete(free_res) == true
 	free_res = free_resolution(M)
+  @test get_attribute(free_res.C, :algorithm) == :fres
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
 	free_res = free_resolution(M, algorithm = :mres)
+  @test get_attribute(free_res.C, :algorithm) == :mres
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution(M, algorithm = :nres)
 	@test all(iszero, homology(free_res.C))
