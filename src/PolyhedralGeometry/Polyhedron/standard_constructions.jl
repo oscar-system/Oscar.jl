@@ -598,28 +598,28 @@ Polyhedron in ambient dimension 7
 
 julia> facets(s)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
--x₄ ≦ 0
--x₅ ≦ 0
--x₆ ≦ 0
--x₇ ≦ 0
-x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+-x_4 <= 0
+-x_5 <= 0
+-x_6 <= 0
+-x_7 <= 0
+x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 <= 1
 
 julia> t = simplex(7, 5)
 Polyhedron in ambient dimension 7
 
 julia> facets(t)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
--x₄ ≦ 0
--x₅ ≦ 0
--x₆ ≦ 0
--x₇ ≦ 0
-x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+-x_4 <= 0
+-x_5 <= 0
+-x_6 <= 0
+-x_7 <= 0
+x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 <= 5
 ```
 """
 function simplex(f::scalar_type_or_field, d::Int, n)
@@ -654,28 +654,28 @@ Polyhedron in ambient dimension 3
 
 julia> facets(C)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
-x₁ + x₂ + x₃ ≦ 1
--x₁ + x₂ + x₃ ≦ 1
-x₁ - x₂ + x₃ ≦ 1
--x₁ - x₂ + x₃ ≦ 1
-x₁ + x₂ - x₃ ≦ 1
--x₁ + x₂ - x₃ ≦ 1
-x₁ - x₂ - x₃ ≦ 1
--x₁ - x₂ - x₃ ≦ 1
+x_1 + x_2 + x_3 <= 1
+-x_1 + x_2 + x_3 <= 1
+x_1 - x_2 + x_3 <= 1
+-x_1 - x_2 + x_3 <= 1
+x_1 + x_2 - x_3 <= 1
+-x_1 + x_2 - x_3 <= 1
+x_1 - x_2 - x_3 <= 1
+-x_1 - x_2 - x_3 <= 1
 
 julia> D = cross_polytope(3, 2)
 Polyhedron in ambient dimension 3
 
 julia> facets(D)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
-x₁ + x₂ + x₃ ≦ 2
--x₁ + x₂ + x₃ ≦ 2
-x₁ - x₂ + x₃ ≦ 2
--x₁ - x₂ + x₃ ≦ 2
-x₁ + x₂ - x₃ ≦ 2
--x₁ + x₂ - x₃ ≦ 2
-x₁ - x₂ - x₃ ≦ 2
--x₁ - x₂ - x₃ ≦ 2
+x_1 + x_2 + x_3 <= 2
+-x_1 + x_2 + x_3 <= 2
+x_1 - x_2 + x_3 <= 2
+-x_1 - x_2 + x_3 <= 2
+x_1 + x_2 - x_3 <= 2
+-x_1 + x_2 - x_3 <= 2
+x_1 - x_2 - x_3 <= 2
+-x_1 - x_2 - x_3 <= 2
 ```
 """
 function cross_polytope(f::scalar_type_or_field, d::Int64, n)
@@ -1318,11 +1318,11 @@ julia> vertices(A)
 
 julia> facets(A)
 5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
--x₁ ≦ -1
--2*x₁ - 2*x₂ ≦ -10
--x₂ ≦ -1
--2*x₂ - 2*x₃ ≦ -10
--x₃ ≦ -1
+-x_1 <= -1
+-2*x_1 - 2*x_2 <= -10
+-x_2 <= -1
+-2*x_2 - 2*x_3 <= -10
+-x_3 <= -1
 ```
 """
 function associahedron(d::Int)
@@ -1517,10 +1517,10 @@ julia> f = fractional_knapsack_polytope([10,-2,-3,-5])
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(f)
-2*x₁ + 3*x₂ + 5*x₃ ≦ 10
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
+2*x_1 + 3*x_2 + 5*x_3 <= 10
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
 ```
 """
 fractional_knapsack_polytope(b::AbstractVector{<:Base.Number}) = Polyhedron{QQFieldElem}(
@@ -1547,17 +1547,17 @@ Polyhedron in ambient dimension 4
 
 julia> facets(G)
 4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
-x₄ ≦ 1
-x₃ ≦ 1
--x₁ - x₃ - x₄ ≦ -2
-x₁ ≦ 1
+x_4 <= 1
+x_3 <= 1
+-x_1 - x_3 - x_4 <= -2
+x_1 <= 1
 
 julia> facets(H)
 4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
-x₄ ≦ 1
-x₃ ≦ 1
--x₁ - x₃ - x₄ ≦ -2
-x₁ ≦ 1
+x_4 <= 1
+x_3 <= 1
+-x_1 - x_3 - x_4 <= -2
+x_1 <= 1
 ```
 """
 function hypersimplex(
@@ -1700,15 +1700,15 @@ julia> H = hypertruncated_cube(3,2,3)
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(H)
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
-x₁ ≦ 1
-x₂ ≦ 1
-x₃ ≦ 1
-5*x₁ - 2*x₂ - 2*x₃ ≦ 3
--2*x₁ + 5*x₂ - 2*x₃ ≦ 3
--2*x₁ - 2*x₂ + 5*x₃ ≦ 3
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+x_1 <= 1
+x_2 <= 1
+x_3 <= 1
+5*x_1 - 2*x_2 - 2*x_3 <= 3
+-2*x_1 + 5*x_2 - 2*x_3 <= 3
+-2*x_1 - 2*x_2 + 5*x_3 <= 3
 ```
 """
 function hypertruncated_cube(d::Int, k::Number, lambda::Number)
@@ -1760,12 +1760,12 @@ julia> k = klee_minty_cube(3,1//8)
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(k)
--x₁ ≦ 0
-x₁ ≦ 1
-1//8*x₁ - x₂ ≦ 0
-1//8*x₁ + x₂ ≦ 1
-1//8*x₂ - x₃ ≦ 0
-1//8*x₂ + x₃ ≦ 1
+-x_1 <= 0
+x_1 <= 1
+1//8*x_1 - x_2 <= 0
+1//8*x_1 + x_2 <= 1
+1//8*x_2 - x_3 <= 0
+1//8*x_2 + x_3 <= 1
 ```
 """
 function klee_minty_cube(d::Int, e::Number)
@@ -2146,15 +2146,15 @@ julia> vertices(a)
 
 julia> facets(a) 
 9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^5 described by:
-x₁ - x₂ ≦ -1
-x₁ - x₃ ≦ -4
-x₁ - x₄ ≦ -9
-x₂ - x₃ ≦ -1
-x₂ - x₄ ≦ -4
-x₂ - x₅ ≦ -9
-x₃ - x₄ ≦ -1
-x₃ - x₅ ≦ -4
-x₄ - x₅ ≦ -1
+x_1 - x_2 <= -1
+x_1 - x_3 <= -4
+x_1 - x_4 <= -9
+x_2 - x_3 <= -1
+x_2 - x_4 <= -4
+x_2 - x_5 <= -9
+x_3 - x_4 <= -1
+x_3 - x_5 <= -4
+x_4 - x_5 <= -1
 ```
 """
 function rss_associahedron(n::Int)
