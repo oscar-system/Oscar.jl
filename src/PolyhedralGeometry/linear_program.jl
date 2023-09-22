@@ -69,7 +69,11 @@ function Base.show(io::IO, LP::LinearProgram)
   elseif LP.convention == :min
     print(io, "   min")
   end
-  print(io, "{c⋅x + k | x ∈ P}\n")
+  if is_unicode_allowed()
+    print(io, "{c⋅x + k | x ∈ P}\n")
+  else
+    print(io, "{c*x + k | x in P}\n")
+  end
   print(io, "where P is a " * string(typeof(LP.feasible_region)))
   print(io, " and\n   c=")
   print(io, string(c'))
@@ -133,7 +137,7 @@ Polyhedron in ambient dimension 3
 
 julia> LP=linear_program(C,[1,2,-3])
 Linear program
-   max{c⋅x + k | x ∈ P}
+   max{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
    c=Polymake.LibPolymake.Rational[1 2 -3]
    k=0
@@ -174,7 +178,7 @@ Polyhedron in ambient dimension 3
 
 julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program
-   min{c⋅x + k | x ∈ P}
+   min{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
    c=Polymake.LibPolymake.Rational[1 2 -3]
    k=0
