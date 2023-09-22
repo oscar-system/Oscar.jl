@@ -19,7 +19,16 @@ function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
 end
 
+function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
+  K = coefficient_ring(R)
+  return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
+end
+
 invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+
+function invariant_ring(R::MPolyDecRing, matrices::MatrixElem{T}...) where {T}
+  return invariant_ring(R, collect(matrices))
+end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
@@ -28,11 +37,16 @@ end
 @doc raw"""
     invariant_ring(G::MatrixGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
+    invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+    invariant_ring(R::MPolyDecRing, G::PermGroup)
 
 Return the invariant ring of the finite matrix group or permutation group `G`.
 
 In the latter case, use the specified field `K` as the coefficient field. 
 The default value for `K` is `QQ`.
+
+The polynomial ring `R` on which `G` acts can be supplied as a first argument,
+in case an existing ring should be used.
 
 !!! note
     The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
@@ -68,9 +82,16 @@ function invariant_ring(G::MatrixGroup)
   return InvRing(base_ring(G), G, action)
 end
 
+function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  return InvRing(base_ring(G), G, action, R)
+end
+
 invariant_ring(K::Field, G::PermGroup) = InvRing(K, G, gens(G))
 
 invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
+
+invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
 
 function Base.show(io::IO, IR::InvRing)
   print(io, "Invariant ring of\n")
