@@ -624,13 +624,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         params = load_type_params(s, type, jsondict[type_key][:params])
       end
 
-      loaded = load_object(state, type, jsondict[:data], params)
+      loaded = load_object(s, type, jsondict[:data], params)
     else
       Base.issingletontype(type) && return type()
-      loaded = load_object(state, type, jsondict[:data])
+      loaded = load_object(s, type, jsondict[:data])
     end
   else
-    loaded = load_typed_object(state, jsondict; override_params=params)
+    loaded = load_typed_object(s, jsondict; override_params=params)
   end
 
   if haskey(jsondict, :id)
