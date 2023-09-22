@@ -440,9 +440,9 @@ Polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
 3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₃ ≦ 0
--x₁ + x₃ ≦ 0
--x₂ + x₃ ≦ 0
+-x_3 <= 0
+-x_1 + x_3 <= 0
+-x_2 + x_3 <= 0
 ```
 """
 facets(as::Type{<:Union{LinearHalfspace{T}, Cone{T}}}, C::Cone{T}) where T<:scalar_types = SubObjectIterator{as}(C, _facet_cone, nfacets(C))
@@ -502,7 +502,7 @@ julia> c = positive_hull([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
 1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
-x₃ = 0
+x_3 = 0
 ```
 """
 linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(C, _linear_span, size(pm_object(C).LINEAR_SPAN, 1))

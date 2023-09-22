@@ -29,13 +29,13 @@ Polyhedron in ambient dimension 2
 
 julia> facets(P)
 2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
--x₁ ≦ 0
-x₁ ≦ 1
+-x_1 <= 0
+x_1 <= 1
 
 
 julia> affine_hull(P)
 1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^2 described by:
-x₂ = 0
+x_2 = 0
 
 
 julia> Q0 = polyhedron(facets(P))

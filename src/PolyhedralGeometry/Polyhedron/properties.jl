@@ -406,12 +406,12 @@ julia> facets(Polyhedron, C)
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
@@ -457,12 +457,12 @@ julia> C = cube(3);
 
 julia> facets(C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
 facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
@@ -777,8 +777,8 @@ julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
 2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
-x₃ = 2
-x₄ = 5
+x_3 = 2
+x_4 = 5
 ```
 """
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(P, _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
@@ -1250,93 +1250,120 @@ function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_t
 end
 
 
+_cmp_string(::Val{:lte}) = is_unicode_allowed() ? "≦" : "<="
+_cmp_string(::Val{:eq}) = "="
+
 @doc raw"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
+    print_constraints([io = stdout,] A::AnyVecOrMat, b::AbstractVector; trivial = false, numbered = false, cmp = :lte)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+- `cmp::Symbol`: Defines the string used for the comparison sign; supports `:lte` (less than or equal) and `:eq` (equal).
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 ```jldoctest
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; numbered = true)
-1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
-2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-3: x₁ ≦ 2
-5: 0 ≦ -4
-6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+1: -x_1 + 4*x_3 + 5*x_4 <= 0
+2: 4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+3: x_1 <= 2
+5: 0 <= -4
+6: 9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
--x₁ + 4*x₃ + 5*x₄ ≦ 0
-4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-x₁ ≦ 2
-0 ≦ 3
-0 ≦ -4
-9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+-x_1 + 4*x_3 + 5*x_4 <= 0
+4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+x_1 <= 2
+0 <= 3
+0 <= -4
+9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::String = "≦")
-    for i in 1:length(b)
-        terms = Vector{String}(undef, size(A)[2])
-        first = true
-        for j in 1:size(A)[2]
-            if iszero(A[i, j])
-                terms[j] = ""
-            else
-                if isone(A[i, j]) || isone(-A[i, j])
-                    terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
-                        string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
-                else
-                    terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
-                end
-                first = false
-            end
+function print_constraints(io::IO, A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, cmp::Symbol = :lte)
+  zero_char = is_unicode_allowed() ? '₀' : '0'
+  us_ascii = is_unicode_allowed() ? "" : "_"
+  for i in 1:length(b)
+    terms = Vector{String}(undef, size(A)[2])
+    first = true
+    for j in 1:size(A)[2]
+      if iszero(A[i, j])
+        terms[j] = ""
+      else
+        if isone(A[i, j]) || isone(-A[i, j])
+          terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , us_ascii, reverse([zero_char + d for d in digits(j)])...) :
+            string(isone(A[i, j]) ? " + x" : " - x", us_ascii, reverse([zero_char + d for d in digits(j)])...)
+        else
+          terms[j] = first ? string(_constraint_string(A[i, j]), "*x", us_ascii, reverse([zero_char + d for d in digits(j)])...) :
+            string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", us_ascii, reverse([zero_char + d for d in digits(j)])...)
         end
-        if first
-            if b[i] >= 0 && !trivial
-                continue
-            end
-            terms[1] = "0"
-        end
-        println(io, string(numbered ? string(i, ": ") : "", terms..., " ", cmp, " ", b[i]))
+        first = false
+      end
     end
+    if first
+      if b[i] >= 0 && !trivial
+        continue
+      end
+      terms[1] = "0"
+    end
+    println(io, string(numbered ? string(i, ": ") : "", terms..., " ", _cmp_string(Val(cmp)), " ", b[i]))
+  end
 end
 
 _constraint_string(x::Any) = string(x)
-
-_constraint_string(x::nf_elem) = string("(", x, ")")
+_constraint_string(x::QQFieldElem) = string(x)
+_constraint_string(x::FieldElem) = string("(", x, ")")
 
 @doc raw"""
-    print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
+    print_constraints([io = stdout,] P::Polyhedron; trivial = false, numbered = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+print_constraints(io::IO, P::Polyhedron; trivial::Bool = false, numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(facets(P))...; trivial = trivial)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
+print_constraints(io::IO, H::Halfspace; trivial::Bool = false) = print_constraints(io, permutedims(normal_vector(H)), [negbias(H)]; trivial = trivial)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+print_constraints(io::IO, H::Hyperplane; trivial::Bool = false) = print_constraints(io, permutedims(normal_vector(H)), [negbias(H)]; trivial = trivial, cmp = :eq)
 
-print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
+print_constraints(io::IO, H::SubObjectIterator{<:Halfspace}; numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(H)...; trivial = true, numbered = numbered)
 
-print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = "=")
+print_constraints(io::IO, H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false) = print_constraints(io, halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, cmp = :eq)
+
+# Default `io = stdout`
+print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, cmp::Symbol = :lte) =
+  print_constraints(stdout, A, b; trivial = trivial, numbered = numbered, cmp = cmp)
+
+print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false) =
+  print_constraints(stdout, P; trivial = trivial, numbered = numbered)
+
+print_constraints(H::Union{Halfspace, Hyperplane}; trivial::Bool = false) =
+  print_constraints(stdout, H; trivial = trivial)
+
+print_constraints(H::SubObjectIterator{<:Union{Halfspace, Hyperplane}}; numbered::Bool = false) =
+  print_constraints(stdout, H; numbered = numbered)
 
 function Base.show(io::IO, H::Halfspace)
     n = length(normal_vector(H))
@@ -1344,7 +1371,7 @@ function Base.show(io::IO, H::Halfspace)
         print(io, "The trivial half-space, R^$n")
     else
         print(io, "The half-space of R^$n described by\n")
-        print_constraints(H; io=io)
+        print_constraints(io, H)
     end
 end
 
@@ -1355,7 +1382,7 @@ function Base.show(io::IO, H::Hyperplane)
         print(io, "The trivial hyperplane, R^$n")
     else
         print(io, "The hyperplane of R^$n described by\n")
-        print_constraints(H; io = io)
+        print_constraints(io, H)
     end
 end
 
@@ -1370,12 +1397,12 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
         n = length(normal_vector(H[1]))
         print(io, " over the Halfspaces of R^$n described by:\n")
         if s < d
-            print_constraints(H; io = io)
+            print_constraints(io, H)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)]; io = io)
+            print_constraints(io, view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)])
             println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
+            print_constraints(io, A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end])
         end
     end
 end
@@ -1389,12 +1416,12 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
         n = length(normal_vector(H[1]))
         print(io, " over the Hyperplanes of R^$n described by:\n")
         if s < d
-            print_constraints(H; io = io)
+            print_constraints(io, H)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = "=")
+            print_constraints(io, A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; cmp = :eq)
             println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = "=")
+            print_constraints(io, A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; cmp = :eq)
         end
     end
 end
