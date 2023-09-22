@@ -96,7 +96,7 @@ end
 
   # Kem99, p. 183: S_3^3
   s3 = symmetric_group(3)
-  G = PermGroup(direct_product(s3, s3, s3))
+  G = permutation_group(direct_product(s3, s3, s3))
   RG = invariant_ring(G)
   invars = primary_invariants(RG)
   @test length(invars) == 9

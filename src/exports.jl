@@ -532,6 +532,7 @@ export flats
 export forget_decoration
 export forget_grading
 export forget_toric_structure
+export fp_group
 export fraction
 export fraction_field
 export fractional_cut_polytope

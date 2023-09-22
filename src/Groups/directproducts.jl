@@ -96,7 +96,7 @@ function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=fals
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
     GapObj([G.X for G in L]), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
   )
-  DP = PermGroup(P, sum([degree(G) for G in L]; init=0))
+  DP = permutation_group(P, sum([degree(G) for G in L]; init=0))
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAP.Globals.Embedding(P, i)) for i in 1:length(L)]
     proj = [
