@@ -76,7 +76,11 @@ function describe(io::IO, MILP::MixedIntegerLinearProgram)
   elseif MILP.convention == :min
     print(io, "   min")
   end
-  print(io, "{c⋅x + k | x ∈ P}\n")
+  if is_unicode_allowed()
+    print(io, "{c⋅x + k | x ∈ P}\n")
+  else
+    print(io, "{c*x + k | x in P}\n")
+  end
   print(io, "where P is a " * string(typeof(MILP.feasible_region)))
   print(io, "\n   c=")
   print(io, string(c'))
