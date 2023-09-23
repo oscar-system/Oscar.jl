@@ -77,6 +77,15 @@ end
   Lf = integer_lattice_with_isometry(L; neg = true)
   @test order_of_isometry(Lf) == -1
 
+  F, C = invariant_coinvariant_pair(Lf)
+  @test rank(F) + rank(C) == rank(Lf)
+  @test order_of_isometry(C) == order_of_isometry(Lf)
+  @test is_one(isometry(F))
+
+  @test is_primary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 6)))[1]
+  @test is_elementary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 7)))[1]
+  @test is_unimodular(integer_lattice_with_isometry(hyperbolic_plane_lattice()))
+
   isdefined(Main, :test_save_load_roundtrip) || include(
     joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl")
   )
@@ -88,6 +97,8 @@ end
   end
   
   L = @inferred integer_lattice_with_isometry(A3)
+  @test is_primary(L, 2)
+  @test !is_elementary(L, 2)
   @test length(unique([L, L, L])) == 1
   @test ambient_space(L) isa QuadSpaceWithIsom
   @test isone(isometry(L))
@@ -195,9 +206,15 @@ end
   @test C == A3
   _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation = false)
   @test order(G) == order(OA3)
-  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1])
+  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1]; ambient_representation = false)
   @test is_sublattice(A3, C)
 
+  B = matrix(QQ, 3, 3, [1 0 0; 0 1 0; 0 0 1]);
+  G = matrix(QQ, 3, 3, [2 -1 0; -1 2 0; 0 0 -4]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 3, 3, [0 -1 0; 1 1 0; 0 0 1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  @test is_bijective(image_centralizer_in_Oq(Lf)[2])
 end
 
 @testset "Enumeration of lattices with finite isometries" begin
