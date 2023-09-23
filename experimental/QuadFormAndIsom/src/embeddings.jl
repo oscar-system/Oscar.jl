@@ -579,6 +579,9 @@ end
 #
 ###############################################################################
 
+# For deprecation reasons, let us keep track of that function
+_isomorphism_classes_primitive_extensions(N::ZZLat, M::ZZLat, H::TorQuadModule, classification::Symbol) = primitive_extensions(M, N, H; classification)
+
 @doc raw"""
     primitive_extensions(M::ZZLat, N::ZZLat, H::TorQuadModule;
                                              classification::Symbol = :sublat)
