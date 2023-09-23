@@ -1712,7 +1712,6 @@ julia> order(G)
   elseif is_definite(L) || rank(L) == 2
     # We can compute the orthogonal groups and centralizer with GAP
     OL = orthogonal_group(L)
-    discL = discriminant_representation(L, OL)
     f = isometry(Lf)
     # The ambient isometry might not be identity on the complement of L, so we
     # built another ambient isometry extending f by the identity
