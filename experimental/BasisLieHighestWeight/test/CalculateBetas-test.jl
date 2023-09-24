@@ -9,7 +9,6 @@ include("../src/WordCalculations.jl")
     word = [1, 2, 1]
     
     betas = compute_betas(type, rank, word)
-    betas = [Vector{Int}(GAP.Globals.List(b)) for b in betas]
     
     # Expected beta values
     expected_betas = [
