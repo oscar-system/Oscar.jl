@@ -1,7 +1,7 @@
 using ..Oscar
 using ..Oscar: GAPWrap
 
-function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Int}
+function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Vector{Int}}
     """
     Calculate betas from type, rank and a longest-word from the weylgroup.
     """
@@ -19,26 +19,27 @@ function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Int}
     for k = 1:length(word)
         beta = copy(simple_roots[word[k]])
         for j = k-1:-1:1  # Iterate in reverse
-            GAP.Globals.ApplySimpleReflection(cartan_matrix, word[j], beta)
+            GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, word[j], beta)
         end
         push!(betas, beta)
     end
 
-    betas = Vector{Int}(GAP.Globals.List(b)) # Convert to Vector{Int}
-    return betas
+    julia_betas = [Int[i for i in GAP.Globals.List(gap_obj)] for gap_obj in betas]
+    return julia_betas
 end
 
-function root_to_root_vector(type::String, rank::Int, root::Vector{Int})
+function root_to_root_vector(type::String, rank::Int, root::Vector{Int}) #::GAP.Obj
     """
     For a given positive or negative root, return the GAP root vector.
     """
     # Construct Gap-Objects
     lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     root_system = GAP.Globals.RootSystem(lie_algebra)
+    chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra)
 
     # Check if root is one of positive_roots
     positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(root_system))
-    positive_root_vectors = GAP.Globals.PositiveRootVectors(root_system)
+    positive_root_vectors = chevalley_basis[1]
     
     for (i, root_i) in enumerate(positive_roots)
         print(root_i)
@@ -49,7 +50,7 @@ function root_to_root_vector(type::String, rank::Int, root::Vector{Int})
 
     # Check if root is one of negative roots
     negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(root_system))
-    negative_root_vectors = GAP.Globals.NegativeRootVectors(root_system)
+    negative_root_vectors = chevalley_basis[2]
     
     for (i, root_i) in enumerate(negative_roots)
         if root == root_i
@@ -60,7 +61,7 @@ function root_to_root_vector(type::String, rank::Int, root::Vector{Int})
     return false
 end
 
-function_compute_operators_lustzig_nz(type::String, rank::Int, reduced_expression::Vector{Int})
+function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expression::Vector{Int}) #::GAP.Obj
     """
     Computes the operators for the lustzig and nz polytopes for a longest weyl-word 
     reduced_expression.

@@ -129,6 +129,7 @@ include("./MonomialOrder.jl")
 include("./RootConversion.jl")
 include("./WeylPolytope.jl")
 include("./DemazureOperators.jl")
+include("./WordCalculations.jl")
 
 fromGap = Oscar.GAP.gap_to_julia
 
@@ -223,7 +224,7 @@ function basis_lie_highest_weight(
         type::String,
         rank::Int, 
         highest_weight::Vector{Int};
-        operators::Union{String, Vector{Int}} = "regular", 
+        operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any} = "regular", 
         monomial_order::Union{String, Function} = "degrevlex", 
         cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
@@ -269,10 +270,10 @@ function basis_lie_highest_weight(
     # lie_algebra of type, rank and its chevalley_basis
     lie_algebra = LieAlgebraStructure(type, rank)
     chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
-    
 
     # operators that are represented by our monomials. x_i is connected to operators[i]
     operators = get_operators(lie_algebra, operators, chevalley_basis) 
+
     weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
     # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
     weights_eps = [w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
@@ -308,8 +309,8 @@ end
 function basis_lie_highest_weight_lustzig(
     type::String,
     rank::Int, 
-    highest_weight::Vector{Int};
-    reduced_expression::Vector{Int},
+    highest_weight::Vector{Int},
+    reduced_expression::Vector{Int};    
     monomial_order::Union{String, Function} = "oplex", 
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
@@ -317,7 +318,8 @@ function basis_lie_highest_weight_lustzig(
     Lustzig polytope
     """
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    return basis_lie_highest_weight(type, rank, highest_weight, 
+    operators = compute_operators_lustzig_nz(type, rank, reduced_expression)
+    return basis_lie_highest_weight(type, rank, highest_weight, operators = operators,
                                     monomial_order=monomial_order, cache_size=cache_size)
 end
 
@@ -352,19 +354,21 @@ function basis_lie_highest_weight_fflv(
                                     monomial_order=monomial_order, cache_size=cache_size)
 end
 
-function basis_lie_highest_weight_nZ(
+function basis_lie_highest_weight_nz(
     type::String,
     rank::Int, 
-    highest_weight::Vector{Int};
-    reduced_expression::Vector{Int}, 
+    highest_weight::Vector{Int},
+    reduced_expression::Vector{Int};
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
     """
     Nakashima-Zelevinsky polytope
     """
     monomial_order = "lex"
+    operators = compute_operators_lustzig_nz(type, rank, reduced_expression)
     # operators = some sequence of the Nakashima-Zelevinsky polytope, same as for _string
-    return basis_lie_highest_weight(type, rank, highest_weight, 
+    print("operators: ", operators)
+    return basis_lie_highest_weight(type, rank, highest_weight, operators=operators,
                                     monomial_order=monomial_order, cache_size)
 end
 
@@ -378,7 +382,7 @@ function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::GAP.Obj
     return operators
 end
 
-function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String, Vector{Int}}, 
+function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any}, 
                         chevalley_basis::GAP.Obj)::GAP.Obj
     """
     handles user input for operators
@@ -386,8 +390,10 @@ function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String
     "longest-word" for random longest-word in Weyl-group (currently not implemented)
     operators::Vector{Int} for explicit longest-word
     """
-    # create standard operators
-    if operators == "regular" # use operators as specified by GAP
+    #if typeof(operators) == GAP.Obj  # If user already submitted gap-roots as operators, keep
+    if typeof(operators) != String && typeof(operators) != Vector{Int}
+        return operators
+    elseif operators == "regular" # create standard operators, use operators as specified by GAP
         operators = chevalley_basis[1]
         return operators
     # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
