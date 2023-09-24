@@ -438,7 +438,6 @@ export demazure_character
 export denest
 export denominator
 export denominators
-export dense_row
 export depth
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup

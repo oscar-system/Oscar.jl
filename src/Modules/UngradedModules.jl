@@ -8277,34 +8277,6 @@ function getindex(a::Hecke.SRow, b::AbstractVector{Int})
   return b
 end
 
-@doc raw"""
-    sparse_row(A::MatElem)
-
-Convert `A` to a sparse row. 
-`nrows(A) == 1` must hold.
-"""
-function sparse_row(A::MatElem)
-  @assert nrows(A) == 1
-  if ncols(A) == 0
-    return sparse_row(base_ring(A))
-  end
-  return Hecke.sparse_matrix(A)[1]
-end
-
-@doc raw"""
-    dense_row(r::Hecke.SRow, n::Int)
-
-Convert `r[1:n]` to a dense row, that is an AbstractAlgebra matrix.
-"""
-function dense_row(r::Hecke.SRow, n::Int)
-  R = base_ring(r)
-  A = zero_matrix(R, 1, n)
-  for i in intersect(r.pos, 1:n)
-    A[1,i] = r[i]
-  end
-  return A
-end
-
 function default_ordering(F::FreeMod)
   if iszero(F)
     return default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
