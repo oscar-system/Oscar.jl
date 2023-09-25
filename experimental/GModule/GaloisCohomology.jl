@@ -1323,7 +1323,7 @@ mutable struct RelativeBrauerGroup
 end
 
 function Base.show(io::IO, B::RelativeBrauerGroup)
-  print(io, "Relative Brauer group for $(B.K) over $(B.k)\n")
+  print(io, "Relative Brauer group for $(B.K) over $(B.k)")
 end
 
 """
