@@ -423,9 +423,9 @@ end
   P, (u,v) = W["u", "v"]
   PQ, _ = quo(P, ideal(P, [u]))
 
-  @test evaluate(v, gens(PQ)) == v
+  @test parent(evaluate(v, gens(PQ))) === PQ
 
   PP, (uu, vv) = P["uu", "vv"]
-  @test one(W) * uu == uu
+  @test parent(one(W) * uu) === PP
 end
 

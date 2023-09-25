@@ -103,6 +103,119 @@ function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
   return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
 
+########################################################################
+# Representatives of elements in quotient rings and normal forms 
+#
+# Elements [a] ∈ P/I in quotients of polynomial rings 
+# P = 𝕜[x₁,…,xₙ] by ideals I = ⟨f₁,…,fᵣ⟩ admit unique representatives 
+# a ∈ P whenever a normal form algorithm exists for the polynomial 
+# ring P. This is really a question about the ring of coefficients 𝕜. 
+#
+# In general, we can not expect a normal form algorithm to exist and, 
+# in particular, that it is implemented in Singular. However, we wish 
+# to use Singular as a default backend and this also drives the design 
+# of the quotient rings to begin with. 
+#
+# To make sure that the data structure for quotient rings can 
+# nevertheless also accomodate more exotic coefficient rings we 
+# provide the following functionality to decide the existence and use 
+# of a Singular backend depending on the type.
+#
+# Since the concept of traits in Julia is not uniform, we briefly 
+# describe how to set up your own type of coefficients with this
+# framework. 
+#
+# Say you have a new type `MyType` for the `coefficient_ring` of a 
+# polynomial ring `P` and you would like to make the `MPolyQuo` 
+# structure useful for quotients of the form `P/I`. Then you would 
+# declare 
+#
+#   HasGroebnerAlgorithmTrait(::Type{MyType}) = HasSingularGroebnerAlgorithm()
+#
+# in case you are sure that the generic code to use Singular as a 
+# backend can also digest polynomial rings whose coefficient ring 
+# is of type `MyType`. 
+#
+# If you need to implement your own backend, you do the following.
+# You declare
+#
+#   HasGroebnerAlgorithmTrait(::Type{MyType}) = HasMyCustomBackend()
+#
+# where `HasMyCustomBackend` is a name of your choice and then implement
+#
+# function _simplify(::HasMyCustomBackend, f::MPolyQuoRingElem)
+#   # Do whatever has to be done to achieve a unique representative
+#   ...
+# end
+#
+# function _hash(::HasMyCustomBackend, f::MPolyQuoRingElem, u::UInt)
+#   # Implement a hash which is unique for the class, NOT the 
+#   # representative!
+#   ...
+# end
+#
+# function _is_equal(::HasMyCustomBackend, f::MPolyRingElem, g::MPolyQuoRingElem)
+#   # Implement an equality check.
+#   ...
+# end
+#
+########################################################################
+
+# The trait of the coefficient ring and its elements to decide 
+# which backend to use for Groebner basis and normal form computations.
+abstract type HasGroebnerAlgorithmTrait end
+# Having a normal form algorithm available is strictly stronger than 
+# having a Grobner basis algorithm. Thus we derive one type from the
+# other here. 
+abstract type HasNormalFormTrait <: HasGroebnerAlgorithmTrait end
+
+# A normal form algorithm (for possibly non-global orderings) requires 
+# strictly more, so we make it a subcase.
+struct HasSingularNormalForm <: HasNormalFormTrait end
+struct HasNoNormalForm <: HasNormalFormTrait end
+
+struct HasSingularGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
+struct HasRingFlattening <: HasGroebnerAlgorithmTrait end
+struct HasNoGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
+
+# By default we do not expect the Singular backend to be able to compute normal forms
+HasNormalFormTrait(::Type{T}) where {T} = HasNoNormalForm()
+
+# for convenience, allow passing in rings, ring elements or ring element types
+HasNormalFormTrait(a::Ring) = HasNormalFormTrait(typeof(a))
+HasNormalFormTrait(a::RingElem) = HasNormalFormTrait(parent_type(a))
+HasNormalFormTrait(::Type{T}) where {T <: RingElem} = HasNormalFormTrait(parent_type(T))
+
+# Same for the Groebner bases. But if a normal form algorithm exists, then 
+# Groebner bases can be computed, too.
+HasGroebnerAlgorithmTrait(a::Ring) = HasGroebnerAlgorithmTrait(typeof(a))
+HasGroebnerAlgorithmTrait(a::RingElem) = HasGroebnerAlgorithmTrait(parent_type(a))
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: RingElem} = HasGroebnerAlgorithmTrait(parent_type(T))
+
+function HasGroebnerAlgorithmTrait(::Type{T}) where {T}
+  HasNormalFormTrait(T) isa HasSingularNormalForm && return HasSingularGroebnerAlgorithm()
+  return HasNoGroebnerAlgorithm()
+end
+
+# For polynomial rings over fields we expect Singular to be able to compute normal forms
+HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
+
+# For polynomial rings over the integers we can compute Gröbner bases but
+# in general can not compute normal forms.
+HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
+
+# This list can (and should) be extended by eventual new types which 
+# are supposed to make use of the Singular backend; see above.
+
+# In particular, it is decided based on this trait whether a reasonable 
+# hash function for elements in the quotient ring exists.
+
+# In some cases it is useful to know that we can do a RingFlattening 
+# and carry out certain operations in the de-nested ring
+# These declarations happen in the file src/Rings/MPolyMap/flattenings.jl
+# and need to be postponed due to limitations in inclusion orders.
+
 ##############################################################################
 #
 # Quotient ring ideals
@@ -708,7 +821,7 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc raw"""
-    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+    simplify(f::MPolyQuoRingElem)
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
@@ -734,7 +847,14 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+function simplify(f::MPolyQuoRingElem)
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _simplify(HasGroebnerAlgorithmTrait(kk), f)
+end
+
+function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
@@ -746,23 +866,7 @@ function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}
   return f::elem_type(R)
 end
 
-# Extra method for quotients of graded rings. 
-# TODO: Could this be simplified if the type-parameter signature of decorated rings 
-# was consistent with the one for polynomial rings? I.e. if the first type parameter 
-# was the one for the coefficient rings and not the one for the underlying polynomial ring?
-function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
-  f.simplified && return f
-  R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
-  G  = singular_origin_groebner_basis(R)
-  g  = f.f
-  f.f = OR(reduce(SR(g), G))
-  f.simplified = true
-  return f::elem_type(R)
-end
-
-# The above methods for `simplify` assume that there is a singular backend which 
+# The above method for `simplify` assume that there is a singular backend which 
 # can be used. However, we are using (graded) quotient rings also with coefficient 
 # rings R which can not be translated to Singular; for instance when R is again 
 # a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
@@ -775,7 +879,7 @@ end
 # but it nevertheless reduces the element to zero in case its representative is 
 # contained in the modulus. This allows for both, the use of `RingFlattening`s and 
 # the potential speedup of `iszero` tests. 
-function simplify(f::MPolyQuoRingElem)
+function _simplify(::HasRingFlattening, f::MPolyQuoRingElem)
   f.simplified && return f
   if f.f in modulus(parent(f))
     f.f = zero(f.f)
@@ -784,6 +888,13 @@ function simplify(f::MPolyQuoRingElem)
   return f::elem_type(parent(f))
 end
 
+# Having the simplify method do nothing still allows for arithmetic to operate 
+# (simplify is automatically called for multiplications), but further functionality 
+# like equality and hashing will throw an error.
+function _simplify(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem)
+  return f
+  # error("no groebner backend available for simplification; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
+end
 
 @doc raw"""
     ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
@@ -808,9 +919,27 @@ true
 """
 function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   check_parent(f, g)
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _is_equal(HasGroebnerAlgorithmTrait(kk), f, g)
+end
+
+function _is_equal(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  f.f == g.f && return true
   simplify(f)
   simplify(g)
   return f.f == g.f
+end
+
+# By default we refer to the generic ideal membership routine which 
+# might be implemented by other means, for instance via a `RingFlattening`.
+function _is_equal(::HasRingFlattening, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  return f.f - g.f in modulus(parent(f))
+end
+
+function _is_equal(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  error("no groebner backend available for equality check; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
 end
 
 @doc raw"""
@@ -1321,8 +1450,19 @@ function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 end
 
 function hash(w::MPolyQuoRingElem, u::UInt)
+  Q = parent(w)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _hash(HasGroebnerAlgorithmTrait(kk), w, u)
+end
+
+function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
   simplify(w)
   return hash(w.f, u)
+end
+
+function _hash(::HasGroebnerAlgorithmTrait, w::MPolyQuoRingElem, u::UInt)
+  error("hash function not implemented due to lack of unique representatives; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(w)))))`")
 end
 
 ################################################################
