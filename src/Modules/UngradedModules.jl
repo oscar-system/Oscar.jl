@@ -1194,7 +1194,6 @@ function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L}
   return subModule
 end
 
-# missing method
 function sparse_row(A::MatElem)
   @assert isone(nrows(A)) "matrix must have only one row"
   R = base_ring(A)
