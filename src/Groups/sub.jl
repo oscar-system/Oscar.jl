@@ -483,6 +483,10 @@ PermGroup
 """
 function quo(G::T, N::T) where T <: GAPGroup
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, N.X)::GapObj
+  # The call may have found out new information about `G.X`,
+  # for example that `G.X` is finite.
+#FIXME: The GAP function should deal with this situation.
+  GAP.Globals.UseSubsetRelation(G.X, N.X)
   cod = GAP.Globals.ImagesSource(mp)::GapObj
   S = elem_type(G)
   S1 = _get_type(cod)
