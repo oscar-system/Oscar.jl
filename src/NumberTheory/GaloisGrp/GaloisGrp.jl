@@ -485,7 +485,7 @@ mutable struct ComplexRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{ComplexRootCtx})
-  print(io, "Galois Context for $(GC.f) using complex roots\n")
+  print(io, "Galois Context for $(GC.f) using complex roots")
 end
 
 function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = false)
@@ -556,7 +556,7 @@ mutable struct SymbolicRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{SymbolicRootCtx})
-  print(io, "Galois Context for $(GC.f) using symbolic roots\n")
+  print(io, "Galois Context for $(GC.f) using symbolic roots")
 end
 
 function Hecke.roots(C::GaloisCtx{SymbolicRootCtx}, ::Int; raw::Bool = false)
