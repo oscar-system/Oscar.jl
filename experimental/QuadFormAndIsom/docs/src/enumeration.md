@@ -85,6 +85,6 @@ Note that an important feature from the theory in [BH23](@cite) is the notion of
 *admissible gluings* and equivariant primitive embeddings for admissible triples.
 In the next chapter, we present the methods regarding Nikulins's theory on primitive
 embeddings and their equivariant version. We use this basis to introduce the
-method [`admissible_equivariant_primitive_extension`](@ref) (Algorithm 2 in
+method [`admissible_equivariant_primitive_extensions`](@ref) (Algorithm 2 in
 [BH23](@cite)) which is the major tool making the previous enumeration
 possible and fast, from an algorithmic point of view.
