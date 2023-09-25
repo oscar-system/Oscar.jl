@@ -119,7 +119,7 @@ end
 # provide the following functionality to decide the existence and use 
 # of a Singular backend depending on the type.
 #
-# Since the concept of traits in julia is not uniform, we briefly 
+# Since the concept of traits in Julia is not uniform, we briefly 
 # describe how to set up your own type of coefficients with this
 # framework. 
 #
@@ -177,10 +177,12 @@ struct HasRingFlattening <: HasGroebnerAlgorithmTrait end
 struct HasNoGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
 
 # By default we do not expect the Singular backend to be able to compute normal forms
+HasNormalFormTrait(::Type{T}) where {T} = HasNoNormalForm()
+
+# for convenience, allow passing in rings, ring elements or ring element types
 HasNormalFormTrait(a::Ring) = HasNormalFormTrait(typeof(a))
 HasNormalFormTrait(a::RingElem) = HasNormalFormTrait(parent_type(a))
 HasNormalFormTrait(::Type{T}) where {T <: RingElem} = HasNormalFormTrait(parent_type(T))
-HasNormalFormTrait(::Type{T}) where {T} = HasNoNormalForm()
 
 # Same for the Groebner bases. But if a normal form algorithm exists, then 
 # Groebner bases can be computed, too.
@@ -196,7 +198,8 @@ end
 # For polynomial rings over fields we expect Singular to be able to compute normal forms
 HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 
-# For polynomial rings over the integers we only allow global orderings
+# For polynomial rings over the integers we can compute Gröbner bases but
+# in general can not compute normal forms.
 HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
 HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
 
@@ -204,7 +207,7 @@ HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm
 # are supposed to make use of the Singular backend; see above.
 
 # In particular, it is decided based on this trait whether a reasonable 
-# Hash function for elements in the quotient ring exists.
+# hash function for elements in the quotient ring exists.
 
 # In some cases it is useful to know that we can do a RingFlattening 
 # and carry out certain operations in the de-nested ring
