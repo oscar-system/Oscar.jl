@@ -80,12 +80,18 @@ Fixes all doctests for the file `n`, ie. all files in Oscar where
 function doctest_fix(n::String; set_meta::Bool = false)
   doc = get_document(set_meta)
 
+  if isdefined(Main.Documenter, :DocTests)
+    doctest = Main.Documenter.DocTests.doctest
+  else
+    doctest = Main.Documenter._doctest
+  end
+
   #essentially inspired by Documenter/src/DocTests.jl
   bm = Main.Documenter.DocSystem.getmeta(Oscar)
   for (k, md) = bm
     for s in md.order
       if occursin(n, md.docs[s].data[:path])
-        Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+        doctest(md.docs[s], Oscar, doc)
       end
     end
   end
