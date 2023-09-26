@@ -1368,6 +1368,6 @@ function _glue_stabilizers(phi::TorQuadModuleMor,
   union!(stab, kerB)
   stab = TorQuadModuleMor[restrict_automorphism(g, j; check = false) for g in stab]
   stab = TorQuadModuleMor[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
-
+  unique!(stab)
   return disc, stab
 end
