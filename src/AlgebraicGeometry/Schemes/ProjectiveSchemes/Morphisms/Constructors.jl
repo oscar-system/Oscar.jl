@@ -44,7 +44,7 @@ function ProjectiveSchemeMor(
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a, check=false))
 end
 
-function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
+function compose(f::AbsProjectiveSchemeMorphism, g::AbsProjectiveSchemeMorphism)
   return ProjectiveSchemeMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
 end
 
@@ -165,3 +165,17 @@ function sub(P::AbsProjectiveScheme, f::Vector{<:RingElem})
   return sub(P, I)
 end
 
+function compose(f::ProjectiveClosedEmbedding, g::ProjectiveClosedEmbedding)
+  X = domain(f)
+  Y = codomain(f)
+  Y === domain(g) || error("domain and codomain not compatible")
+  Z = codomain(g)
+  pb = compose(pullback(g), pullback(f))
+  Ig = image_ideal(g)
+  SY = homogeneous_coordinate_ring(Y)
+  SZ = homogeneous_coordinate_ring(Z)
+  If = image_ideal(f)
+  push_If = ideal(SZ, [preimage(pullback(g), x) for x in gens(If)])
+  J = push_If + Ig
+  return ProjectiveClosedEmbedding(compose(underlying_morphism(f), underlying_morphism(g)), J, check=false)
+end

@@ -328,4 +328,12 @@ end
   @test codomain(inc_Y) === X
   @test image_ideal(inc_Y) == ideal(T, T[1]*T[2] - T[3]^2)
   map_on_affine_cones(inc_Y)
+  inc_comp = compose(inc_Y, inc)
+  @test inc_comp isa Oscar.ProjectiveClosedEmbedding
+  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)), 
+            homogeneous_coordinate_ring(domain(inc_comp)),
+            pullback(inc_comp).(gens(homogeneous_coordinate_ring(codomain(inc_comp))))
+           )
+  K = kernel(phi)
+  @test K == I + ideal(S, S[1]*S[2] - S[3]^2)
 end

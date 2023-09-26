@@ -146,6 +146,21 @@ end
     f = ProjectiveSchemeMor(Q, P, pr, check=false)
     return new{typeof(Q), DomainType, typeof(pr), Nothing, IdealType}(f, I)
   end
+
+  function ProjectiveClosedEmbedding(
+      f::ProjectiveSchemeMor,
+      I::Ideal;
+      check::Bool=true
+    )
+    Y = codomain(f)
+    SY = homogeneous_coordinate_ring(Y) 
+    base_ring(I) === SY || error("ideal does not belong to the correct ring")
+    @check begin
+      pbf = pullback(f)
+      kernel(pbf) == I || error("ideal does not coincide with the kernel of the pullback")
+    end
+    return new{typeof(domain(f)), typeof(Y), typeof(pullback(f)), Nothing, typeof(I)}(f, I)
+  end
 end
 
 
