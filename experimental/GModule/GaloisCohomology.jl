@@ -1001,7 +1001,7 @@ function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl,
 end
 
 function Oscar.galois_group(A::ClassField)
-  return PermGroup(codomain(A.quotientmap))
+  return permutation_group(codomain(A.quotientmap))
 end
 
 """
@@ -1045,7 +1045,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelPar
   @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
     s, ms = split_extension(gmodule(A))
-    return permutation_group(s)[1], ms
+    return permutation_group(s), ms
   end
   if idel_parent === nothing
     idel_parent = idel_class_gmodule(base_field(A))

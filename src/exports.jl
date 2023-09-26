@@ -246,8 +246,6 @@ export archimedean_solid
 export are_algebraically_independent
 export as_dictionary
 export as_gset
-export as_perm_group
-export as_polycyclic_group
 export associahedron
 export atlas_description
 export atlas_group
@@ -533,6 +531,7 @@ export flats
 export forget_decoration
 export forget_grading
 export forget_toric_structure
+export fp_group
 export fraction
 export fraction_field
 export fractional_cut_polytope

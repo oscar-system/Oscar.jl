@@ -128,6 +128,9 @@ Sym( [ 1 .. 6 ] )
    end
 end
 
+permutation_group(G::GapObj) = PermGroup(G)
+permutation_group(G::GapObj, deg::Int) = PermGroup(G, deg)
+
 """
     PermGroupElem
 
@@ -163,6 +166,8 @@ this presentation allows for efficient computations with the group elements.
     return z
   end
 end
+
+pc_group(G::GapObj) = PcGroup(G)
 
 """
     PcGroupElem
@@ -208,6 +213,8 @@ see [`free_group`](@ref).
     return z
   end
 end
+
+fp_group(G::GapObj) = FPGroup(G)
 
 """
 TODO: document this
@@ -276,7 +283,7 @@ function _oscar_group(obj::GapObj, G::PermGroup)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
-  return PermGroup(obj, N)
+  return permutation_group(obj, N)
 end
 
 # `MatrixGroup`: set dimension and ring of `G`
