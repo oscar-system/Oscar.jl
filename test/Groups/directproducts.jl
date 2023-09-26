@@ -12,7 +12,7 @@
    @test_throws ArgumentError factor_of_direct_product(G,3)
    @test number_of_factors(G)==2
    @test is_full_direct_product(G)
-   @test PermGroup(G) isa PermGroup
+   @test permutation_group(G) isa PermGroup
 
    G,emb,proj = direct_product(S,C; morphisms=true)
    @test G==direct_product(S,C)
@@ -62,13 +62,13 @@
    x = is_conjugate_with_data(G,P,PP)[2]
    @test P^x==PP
 
-   @test_throws ArgumentError as_perm_group(G)
-   @test_throws ArgumentError as_polycyclic_group(G)
    G = direct_product(S,S)
    @test G isa DirectProductGroup
-   @test as_perm_group(G) isa PermGroup
+   @test permutation_group(G) isa PermGroup
    G = direct_product(C,C)
-   @test as_polycyclic_group(G) isa PcGroup
+   @test pc_group(G) isa PcGroup
+   G = direct_product(free_group(1), free_group(1))
+   @test fp_group(G) isa FPGroup
 
    @testset "Inner direct products" begin
       C2 = cyclic_group(2)
@@ -113,7 +113,7 @@
       @test is_abelian(G)
       @test factor_of_direct_product(G,5)==C
       @test is_isomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))
-      @test PermGroup(G) isa PermGroup
+      @test permutation_group(G) isa PermGroup
       x1 = G(C[1],one(C),one(C),one(C),one(C))
       x2 = G(one(C),C[1],one(C),one(C),one(C))
       x3 = G(one(C),one(C),C[1],one(C),one(C))
@@ -141,7 +141,7 @@ end
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test is_full_semidirect_product(G)
-   @test PermGroup(G) isa PermGroup
+   @test permutation_group(G) isa PermGroup
    x = G(Q[1]*Q[2],C[1])
    @test parent(x)==G
    H = sub(G,[x])[1]
@@ -175,7 +175,7 @@ end
    @test order(W)==48
    @test is_full_wreath_product(W)
    @test W==sub(W,gens(W))[1]
-   @test PermGroup(W) isa PermGroup
+   @test permutation_group(W) isa PermGroup
 
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)

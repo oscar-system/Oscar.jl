@@ -499,7 +499,7 @@ Group homomorphism from
 to
 Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
 
-julia> PermGroup(G)
+julia> permutation_group(G)
 Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
 
 julia> codomain(iso) === ans
@@ -738,11 +738,14 @@ end
 
 """
     FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    fp_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
     GrpAbFinGen(G::T) where T <: GAPGroup
     PcGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    pc_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
     PermGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    permutation_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
 
-Return a group of type `T` that is isomorphic with `G`.
+Return a group of the requested type that is isomorphic to `G`.
 If one needs the isomorphism then
 [isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}](@ref)
 can be used instead.
@@ -754,6 +757,10 @@ end
 function (::Type{T})(G::GrpAbFinGen) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
+
+fp_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = FPGroup(G)
+pc_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = PcGroup(G)
+permutation_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = PermGroup(G)
 
 # Now for GrpGen
 

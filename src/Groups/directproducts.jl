@@ -96,7 +96,7 @@ function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=fals
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
     GapObj([G.X for G in L]), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
   )
-  DP = PermGroup(P, sum([degree(G) for G in L]; init=0))
+  DP = permutation_group(P, sum([degree(G) for G in L]; init=0))
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAP.Globals.Embedding(P, i)) for i in 1:length(L)]
     proj = [
@@ -151,43 +151,6 @@ Return the `j`-th factor of `G`.
 function factor_of_direct_product(G::DirectProductGroup, j::Int)
   @req j in 1:length(G.L) "index not valid"
   return G.L[j]
-end
-
-"""
-    as_perm_group(G::DirectProductGroup)
-
-If `G` is direct product of permutations groups, return `G` as permutation group.
-
-# Examples
-```jldoctest
-julia> H = symmetric_group(3)
-Sym( [ 1 .. 3 ] )
-
-julia> K = symmetric_group(2)
-Sym( [ 1 .. 2 ] )
-
-julia> G = direct_product(H,K)
-DirectProduct of
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
-
-julia> as_perm_group(G)
-Group([ (1,2,3), (1,2), (4,5) ])
-```
-"""
-function as_perm_group(G::DirectProductGroup)
-  @req all(H -> H isa PermGroup, G.L) "The group is not a permutation group"
-  return PermGroup(G.X, GAP.Globals.Maximum(GAP.Globals.MovedPoints(G.X)))
-end
-
-"""
-    as_polycyclic_group(G::DirectProductGroup)
-
-If `G` is direct product of polycyclic groups, return `G` as polycyclic group.
-"""
-function as_polycyclic_group(G::DirectProductGroup)
-  @req all(H -> H isa PcGroup, G.L) "The group is not a polycyclic group"
-  return PcGroup(G.X)
 end
 
 """
@@ -293,11 +256,10 @@ julia> proj2(g)
 ```
 """
 function projection(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
-  f = GAP.Globals.Projection(G.Xfull, j)
-  H = G.L[j]
-  p = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(G, H, p)
+  @req j in 1:number_of_factors(G) "index not valid"
+  f = GAPWrap.Projection(G.Xfull, j)
+  p = GAPWrap.RestrictedMapping(f, G.X)
+  return GAPGroupHomomorphism(G, factor_of_direct_product(G, j), p)
 end
 
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
@@ -446,10 +408,9 @@ end
 Return the projection of `G` into the second component of `G`.
 """
 function projection(G::SemidirectProductGroup)
-  f = GAP.Globals.Projection(G.Xfull)
-  H = G.H
-  p = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(G, H, p)
+  f = GAPWrap.Projection(G.Xfull)
+  p = GAPWrap.RestrictedMapping(f, G.X)
+  return GAPGroupHomomorphism(G, acting_subgroup(G), p)
 end
 
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T}
@@ -620,10 +581,9 @@ Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
 """
 function projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
-  f = GAP.Globals.Projection(W.Xfull)
-  H = W.H
-  p = GAPWrap.GroupHomomorphismByFunction(W.X, H.X, y -> GAPWrap.Image(f, y))
-  return GAPGroupHomomorphism(W, H, p)
+  f = GAPWrap.Projection(W.Xfull)
+  p = GAPWrap.RestrictedMapping(f, W.X)
+  return GAPGroupHomomorphism(W, acting_subgroup(W), p)
 end
 
 """
