@@ -149,3 +149,19 @@ identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         check=false
                                                        )
 
+function sub(P::AbsProjectiveScheme, I::Ideal)
+  @req base_ring(I) === homogeneous_coordinate_ring(P) "ideal must be defined in the homogeneous coordinate ring of the scheme"
+  inc = ProjectiveClosedEmbedding(P, I)
+  return domain(inc), inc
+end
+  
+function sub(P::AbsProjectiveScheme, f::RingElem)
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
+function sub(P::AbsProjectiveScheme, f::Vector{<:RingElem})
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
