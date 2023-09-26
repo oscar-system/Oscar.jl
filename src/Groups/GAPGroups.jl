@@ -1761,7 +1761,7 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
      end
    end
    famG = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))
-   if GAP.Globals.IsFreeGroup(G.X)
+   if GAPWrap.IsFreeGroup(G.X)
      w = GAPWrap.ObjByExtRep(famG, GapObj(ll))::GapObj
    else
      # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.

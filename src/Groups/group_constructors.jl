@@ -475,20 +475,26 @@ where the `i`-th generator is printed as `L[i]`.
 function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
    if eltype == :syllable
-     return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else
-     return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
    end
+   GAP.Globals.SetRankOfFreeGroup(G.X, n)
+   return G
 end
 
 function free_group(L::Vector{<:VarName})
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
+   return G
 end
 
 function free_group(L::VarName...)
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
+   return G
 end
 
 # FIXME: a function `free_abelian_group` with the same signature is
