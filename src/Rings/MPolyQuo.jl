@@ -44,7 +44,6 @@ function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
 end
 
 function Base.show(io::IO, Q::MPolyQuoRing)
-  io = pretty(io)
   @show_name(io, Q)
   @show_special(io, Q)
   if get(io, :supercompact, false)

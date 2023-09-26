@@ -446,10 +446,10 @@ end
 ###############################################################################
 
 function Base.show(io::IO, R::SpecOpenRing)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Ring")
   else
+    io = pretty(io)
     print(io, "Ring of regular functions on ", Lowercase(), domain(R))
   end
 end
@@ -464,10 +464,10 @@ function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
 end
 
 function Base.show(io::IO, a::SpecOpenRingElem)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Ring element")
   else
+    io = pretty(io)
     print(io, "Regular function on ", Lowercase(), domain(parent(a)))
   end
 end

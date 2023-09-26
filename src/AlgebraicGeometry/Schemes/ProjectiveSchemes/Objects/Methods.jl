@@ -10,10 +10,10 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:M
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Scheme")
   elseif get_attribute(P, :is_empty, false)
+    io = pretty(io)
     print(io, "Empty projective scheme over ")
     K = base_ring(P)
     if K == QQ

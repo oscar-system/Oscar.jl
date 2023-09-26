@@ -119,7 +119,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyPowersOfElement)
 end
 
 function Base.show(io::IO, S::MPolyPowersOfElement)
-  io = pretty(io)
   # no need for supercompact printing
   if get(io, :supercompact, false)
     print(io, "Products of ")
@@ -253,7 +252,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfPrimeIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Complement of prime ideal")
   else
@@ -465,7 +463,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfKPointIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Complement of maximal ideal")
   else
@@ -598,15 +595,15 @@ end
 function Base.show(io::IO, S::MPolyProductOfMultSets)
   io = pretty(io)
   if get(io, :supercompact, false)
-    println("Product of multiplicatively closed subsets")
+    print(io, "Product of multiplicatively closed subsets")
   else
     print(io, "Product of the multiplicative subsets [")
     for s in sets(S)
       print(IOContext(io, :supercompact=>true), Lowercase(), s)
       s !== last(sets(S)) && print(io, ", ")
     end
+    print(io, "]")
   end
-  print(io, "]")
 end
 
 ### generation of random elements 
@@ -694,12 +691,12 @@ function Base.show(io::IO,::MIME"text/plain", S::MPolyLeadingMonOne)
 end
 
 function Base.show(io::IO, S::MPolyLeadingMonOne)
-  io = pretty(IOContext(io, :supercompact=>true))
+  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Elements with leading monomial 1")
   else
     print(io, "Elements with leading monomial 1 w.r.t. ")
-    print(io, ordering(S))
+    print(IOContext(io, :supercompact=>true), ordering(S))
   end
 end
 
@@ -2330,20 +2327,14 @@ julia> (I,)
 """
 function Base.show(io::IO,::MIME"text/plain", I::MPolyLocalizedIdeal)
   n = ngens(I)
-  io = pretty(IOContext(io,:supercompact=>true))
+  io = pretty(io)
   println(io, "Ideal")
-  println(io, Indent(), "of ", Lowercase(), base_ring(I))
+  println(IOContext(io,  :supercompact=>true), Indent(), "of ", Lowercase(), base_ring(I))
   if n > 0
     print(io, Dedent())
     println(io, "with ", ItemQuantity(ngens(I),"generator"))
     print(io, Indent())
-    for i in 1:n
-      if i < n
-        println(io, gen(I, i))
-      else
-        print(io, gen(I, i))
-      end
-    end
+    join(IOContext(io,  :supercompact=>true), gens(I), "\n")
   else
     print(io, Dedent())
     print(io, "with ", ItemQuantity(ngens(I),"generator"))
@@ -2758,19 +2749,20 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyLocalizedRingHom)
-  io = pretty(io)
   if get(io, :supercompact, false)
-    println("Ring homomorphism")
+    print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
-    print(IOContext(io,:supercompact=>true), "hom: ", domain(phi))
+    io = pretty(io)
+    io = IOContext(io, :supercompact=>true)
+    print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
     else
       print(io, " -> ")
     end
-    print(IOContext(io,:supercompact=>true), codomain(phi))
+    print(io, codomain(phi))
   end
 end
 

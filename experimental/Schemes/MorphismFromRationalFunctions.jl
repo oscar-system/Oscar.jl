@@ -119,7 +119,6 @@ codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
 coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 
 function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print("Morphism from rational functions")
   else
