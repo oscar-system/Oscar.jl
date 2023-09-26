@@ -312,3 +312,20 @@ end
   @test issubset(X1, P2)
   @test issubset(X1, X2)
 end
+
+@testset "closed embeddings" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, [x^2 + y^2 + z^2])
+  X, inc = sub(IP2, I)
+  X, inc = sub(IP2, gens(I))
+  @test X === domain(inc)
+  @test IP2 === codomain(inc)
+  T = homogeneous_coordinate_ring(X)
+  Y, inc_Y = sub(X, T[1]*T[2] - T[3]^2)
+  @test domain(inc_Y) === Y
+  @test codomain(inc_Y) === X
+  @test image_ideal(inc_Y) == ideal(T, T[1]*T[2] - T[3]^2)
+  map_on_affine_cones(inc_Y)
+end
