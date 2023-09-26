@@ -1453,7 +1453,7 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
 end
 
 # TODO/FIXME: the rank method below is disabled because it conflicts
-# with semantics of  the `rank` method for GrpAbGen. We'll have
+# with semantics of  the `rank` method for GrpAbFinGen. We'll have
 # to resolve this first; afterwards we can uncomment this code,
 # and possibly rename it to whatever we agreed on (if it is different from `rank`)
 #"""
