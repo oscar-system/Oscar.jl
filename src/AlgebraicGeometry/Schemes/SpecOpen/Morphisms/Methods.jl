@@ -46,10 +46,10 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
 end
 
 function Base.show(io::IO, f::SpecOpenMor)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Morphism")
   else
+    io = pretty(io)
     print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end

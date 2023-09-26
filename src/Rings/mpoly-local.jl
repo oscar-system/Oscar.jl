@@ -88,7 +88,7 @@ function Base.deepcopy_internal(a::MPolyRingElemLoc{T}, dict::IdDict) where T
 end
 
 function Base.show(io::IO, W::MPolyRingLoc)
-  print("Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
+  print(io, "Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
 end
 
 function Base.show(io::IO, w::MPolyRingElemLoc)
