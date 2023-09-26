@@ -121,7 +121,7 @@ space over the same ring with the identity on the base.
   end
 end
 
-mutable struct ProjectiveClosedEmbedding{
+@attributes mutable struct ProjectiveClosedEmbedding{
     DomainType<:AbsProjectiveScheme,
     CodomainType<:AbsProjectiveScheme,
     PullbackType<:Map,

@@ -90,6 +90,31 @@ with default covering
   return ff
 end
 
+@attr CoveredClosedEmbedding function covered_scheme_morphism(f::ProjectiveClosedEmbedding)
+  PX = domain(f)
+  PY = codomain(f)
+  SX = homogeneous_coordinate_ring(PX)
+  SY = homogeneous_coordinate_ring(PY)
+  pbf = pullback(f)
+
+  X = covered_scheme(PX)
+  Y = covered_scheme(PY)
+
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  U = affine_charts(X)
+  # TODO: The code below does not run when we have empty affine charts. Adjust accordingly when cleaning up!
+  II = IdealSheaf(PY, image_ideal(f))
+  for i in 1:ngens(SX)
+    U_i = U[i]
+    V_i = affine_charts(Y)[i]
+    mor_dict[U_i] = ClosedEmbedding(SpecMor(U_i, V_i, gens(OO(U_i)), check=false), II(V_i))
+  end
+  f_cov = CoveringMorphism(default_covering(X), default_covering(Y), mor_dict, check=false)
+
+  result = CoveredClosedEmbedding(X, Y, f_cov, check=false)
+  return result
+end
+
 ###############################################################################
 #
 #  Printing
