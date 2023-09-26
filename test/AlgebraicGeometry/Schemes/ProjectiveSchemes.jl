@@ -320,6 +320,14 @@ end
   I = ideal(S, [x^2 + y^2 + z^2])
   X, inc = sub(IP2, I)
   X, inc = sub(IP2, gens(I))
+
+  J = ideal(S, [x+y+z])
+  X2, inc2 = sub(IP2, J)
+  inc_cov = covered_scheme_morphism(inc)
+  inc2_cov = covered_scheme_morphism(inc2)
+  j1, j2 = fiber_product(inc_cov, inc2_cov)
+  @test pushforward(inc_cov)(image_ideal(j2)) == pushforward(inc2_cov)(image_ideal(j1))
+  
   @test X === domain(inc)
   @test IP2 === codomain(inc)
   T = homogeneous_coordinate_ring(X)

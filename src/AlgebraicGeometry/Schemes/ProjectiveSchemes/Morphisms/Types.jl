@@ -154,6 +154,7 @@ end
     )
     Y = codomain(f)
     SY = homogeneous_coordinate_ring(Y) 
+    ambient_coordinate_ring(Y) === ambient_coordinate_ring(domain(f)) || error("ambient coordinate rings are not compatible")
     base_ring(I) === SY || error("ideal does not belong to the correct ring")
     @check begin
       pbf = pullback(f)
