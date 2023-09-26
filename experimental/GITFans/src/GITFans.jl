@@ -181,8 +181,8 @@ julia> G, _ = sub(sym10, permgens);
 
 julia> Oscar.GITFans.action_on_target(Q, G)
 Group homomorphism
-  from permutation group
-  to matrix group
+  from permutation group of degree 10
+  to matrix group of degree 5 over QQ
 
 ```
 

@@ -173,10 +173,10 @@ Direct product of
 
 julia> emb1 = embedding(G,1)
 Group homomorphism
-  from permutation group
+  from permutation group of degree 3 and order 6
   to direct product of
-   Permutation group
-   Permutation group
+   Permutation group of degree 3 and order 6
+   Permutation group of degree 2 and order 2
 
 julia> h = perm(H,[2,3,1])
 (1,2,3)
@@ -186,10 +186,10 @@ julia> emb1(h)
 
 julia> emb2 = embedding(G,2)
 Group homomorphism
-  from permutation group
+  from permutation group of degree 2 and order 2
   to direct product of
-   Permutation group
-   Permutation group
+   Permutation group of degree 3 and order 6
+   Permutation group of degree 2 and order 2
 
 julia> k = perm(K,[2,1])
 (1,2)
@@ -230,16 +230,16 @@ Direct product of
 julia> proj1 = projection(G,1)
 Group homomorphism
   from direct product of
-   Permutation group
-   Permutation group
-  to permutation group
+   Permutation group of degree 3 and order 6
+   Permutation group of degree 2 and order 2
+  to permutation group of degree 3 and order 6
 
 julia> proj2 = projection(G,2)
 Group homomorphism
   from direct product of
-   Permutation group
-   Permutation group
-  to permutation group
+   Permutation group of degree 3 and order 6
+   Permutation group of degree 2 and order 2
+  to permutation group of degree 2 and order 2
 
 julia> g = perm([2,3,1,5,4])
 (1,2,3)(4,5)

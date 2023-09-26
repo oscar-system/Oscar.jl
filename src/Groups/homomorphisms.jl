@@ -1,10 +1,10 @@
 function Base.show(io::IO, ::MIME"text/plain", x::GAPGroupHomomorphism)
-   println(io, "Group homomorphism")
-   io = AbstractAlgebra.pretty(io)
-   print(io, Indent())
-   println(IOContext(io, :supercompact => true), "from ", Lowercase(), domain(x))
-   print(IOContext(io, :supercompact => true), "to ", Lowercase(), codomain(x))
-   print(io, Dedent())
+  println(IOContext(io, :supercompact => true), x)
+  io = pretty(io)
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(x))
+  print(io, "to ", Lowercase(), codomain(x))
+  print(io, Dedent())
 end
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -453,8 +453,8 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from permutation group
-  to pc group
+  from permutation group of degree 3 and order 6
+  to pc group of order 6
 ```
 """
 function isomorphism(G::GAPGroup, H::GAPGroup)
@@ -508,8 +508,8 @@ Pc group of order 6
 
 julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
-  from pc group
-  to permutation group
+  from pc group of order 6
+  to permutation group of degree 6 and order 6
 
 julia> permutation_group(G)
 Permutation group of degree 6 and order 6
@@ -948,8 +948,8 @@ julia> a = perm(S,[2,1,4,3])
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from permutation group
-  to permutation group
+  from permutation group of degree 4 and order 24
+  to permutation group of degree 4 and order 24
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -1000,8 +1000,8 @@ Aut( Sym( [ 1 .. 4 ] ) )
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from permutation group
-  to permutation group
+  from permutation group of degree 4 and order 24
+  to permutation group of degree 4 and order 24
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )

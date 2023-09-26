@@ -591,7 +591,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group
-  to permutation group
+  to permutation group of degree 4 and order 24
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
