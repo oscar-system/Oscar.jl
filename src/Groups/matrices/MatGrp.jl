@@ -118,24 +118,37 @@ end
 #
 ########################################################################
 
-function Base.show(io::IO, x::MatrixGroup)
-   AbstractAlgebra.@show_name(io, x)
-   AbstractAlgebra.@show_special(io,x)
+function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  if x.descr==:GU || x.descr==:SU
+    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+  elseif x.ring isa Field && is_finite(x.ring)
+    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+  else
+    print(io, string(x.descr), "(",x.deg,",")
+    print(IOContext(io, :supercompact => true), x.ring)
+    print(io ,")")
+  end
+end
 
-   if isdefined(x, :descr)
-      if x.descr==:GU || x.descr==:SU
-         print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
-      elseif x.ring isa Field && is_finite(x.ring)
-         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
-      else
-         print(io, string(x.descr), "(",x.deg,",")
-         print(IOContext(io, :supercompact => true), x.ring)
-         print(io ,")")
-      end
-   else
-      print(io, "Matrix group of degree ", x.deg, " over ")
-      show(IOContext(io, :compact => true), x.ring)
-   end
+function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
+  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+  println(io, "Matrix group of degree ", degree(x))
+  io = AbstractAlgebra.pretty(io)
+  print(io, Indent())
+  print(io, "over ", Lowercase(), base_ring(x))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, x::MatrixGroup)
+  @show_name(io, x)
+  @show_special(io, x)
+  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+  print(io, "Matrix group")
+  if !get(io, :supercompact, false)
+    print(io, " of degree ", degree(x))
+    io = pretty(io)
+    print(IOContext(io, :supercompact => true), " over ", Lowercase(), base_ring(x))
+  end
 end
 
 Base.show(io::IO, x::MatrixGroupElem) = show(io, x.elm)

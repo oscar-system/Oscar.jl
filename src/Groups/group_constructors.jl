@@ -20,7 +20,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 120
 
 julia> order(G)
 120
@@ -56,7 +56,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Alt( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 60
 
 julia> order(G)
 60
@@ -93,13 +93,13 @@ Return the cyclic group of order `n`, as an instance of type `T`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(5)
-<pc group of size 5 with 1 generator>
+Pc group of order 5
 
 julia> G = cyclic_group(PermGroup, 5)
-Group([ (1,2,3,4,5) ])
+Permutation group of degree 5 and order 5
 
 julia> G = cyclic_group(PosInf())
-Pcp-group with orders [ 0 ]
+Pc group of infinite order
 
 ```
 """
@@ -136,7 +136,7 @@ and throw an error otherwise.
 # Examples
 ```jldoctest
 julia> g = permutation_group(5, [cperm(1:3), cperm(4:5)])
-Group([ (1,2,3), (4,5) ])
+Permutation group of degree 5
 
 julia> cyclic_generator(g)
 (1,2,3)(4,5)
@@ -240,7 +240,7 @@ The group is represented as a permutation group.
 # Examples
 ```jldoctest
 julia> g = projective_general_linear_group(2, 3)
-Group([ (3,4), (1,2,4) ])
+Permutation group of degree 4 and order 24
 
 julia> order(g)
 24
@@ -263,7 +263,7 @@ The group is represented as a permutation group.
 # Examples
 ```jldoctest
 julia> g = projective_special_linear_group(2, 3)
-Group([ (2,3,4), (1,2)(3,4) ])
+Permutation group of degree 4 and order 12
 
 julia> order(g)
 12
@@ -286,7 +286,7 @@ The group is represented as a permutation group.
 # Examples
 ```jldoctest
 julia> g = projective_symplectic_group(2, 3)
-Group([ (2,3,4), (1,2)(3,4) ])
+Permutation group of degree 4 and order 12
 
 julia> order(g)
 12
@@ -310,7 +310,7 @@ The group is represented as a permutation group.
 # Examples
 ```jldoctest
 julia> g = projective_unitary_group(2, 3)
-Group([ (3,4)(5,8)(6,9)(7,10), (1,2,6)(3,7,10)(4,8,5) ])
+Permutation group of degree 10 and order 24
 
 julia> order(g)
 24
@@ -333,7 +333,7 @@ The group is represented as a permutation group.
 # Examples
 ```jldoctest
 julia> g = projective_special_unitary_group(2, 3)
-Group([ (2,9,6)(3,8,10)(4,7,5), (1,2)(5,10)(6,9)(7,8) ])
+Permutation group of degree 10 and order 12
 
 julia> order(g)
 12
@@ -475,20 +475,26 @@ where the `i`-th generator is printed as `L[i]`.
 function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
    if eltype == :syllable
-     return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else
-     return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
    end
+   GAP.Globals.SetRankOfFreeGroup(G.X, n)
+   return G
 end
 
 function free_group(L::Vector{<:VarName})
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
+   return G
 end
 
 function free_group(L::VarName...)
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
+   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
+   return G
 end
 
 # FIXME: a function `free_abelian_group` with the same signature is
@@ -531,13 +537,13 @@ where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
 # Examples
 ```jldoctest
 julia> dihedral_group(6)
-<pc group of size 6 with 2 generators>
+Pc group of order 6
 
 julia> dihedral_group(PermGroup, 6)
-Group([ (1,2,3), (2,3) ])
+Permutation group of degree 3
 
 julia> dihedral_group(PosInf())
-Pcp-group with orders [ 2, 0 ]
+Pc group of infinite order
 
 julia> dihedral_group(7)
 ERROR: ArgumentError: n must be a positive even integer or infinity
@@ -588,13 +594,13 @@ where `n` is a power of 2 and `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
 # Examples
 ```jldoctest
 julia> g = quaternion_group(8)
-<pc group of size 8 with 3 generators>
+Pc group of order 8
 
 julia> quaternion_group(PermGroup, 8)
-Group([ (1,5,3,7)(2,8,4,6), (1,2,3,4)(5,6,7,8) ])
+Permutation group of degree 8
 
 julia> g = quaternion_group(FPGroup, 8)
-<fp group of size 8 on the generators [ r, s ]>
+Finitely presented group of order 8
 
 julia> relators(g)
 3-element Vector{FPGroupElem}:

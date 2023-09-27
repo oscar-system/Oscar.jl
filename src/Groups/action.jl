@@ -506,7 +506,7 @@ Compute the action of `G` on the right cosets of its subgroup `U`.
 julia> G = symmetric_group(6);
 
 julia> H = sylow_subgroup(G, 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> index(G, H)
 45
