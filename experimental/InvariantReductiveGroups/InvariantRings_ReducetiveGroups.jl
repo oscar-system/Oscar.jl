@@ -207,7 +207,7 @@ end
 
 #############################
 #DIRECT SUM
-#############################
+
 
 function rep_mat_(m::Int, v::Vector{Int}, dir_sum::Bool)
     if dir_sum
@@ -295,6 +295,9 @@ mutable struct InvariantRing
     poly_ring::MPolyDecRing #graded
     group::ReductiveGroup
     generators::Vector{MPolyDecRingElem}
+    HilbertIdeal::MPolyIdeal
+    DerksenIdeal::MPolyIdeal
+    cached_rep_mat::AbstractAlgebra.Generic.MatSpaceElem
 
     #Not finished
     function InvariantRing(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
@@ -325,7 +328,10 @@ mutable struct InvariantRing
         n = G.vector_space_dimension
         z.poly_ring, __ = grade(PolynomialRing(QQ, "X" => 1:n)[1])
         z.group = G
-        z.generators = inv_generators(G, z.poly_ring)
+        #right now these will be computed 2 or 3 times. TODO.
+        z.DerksenIdeal, z.cached_rep_mat = proj_of_image_ideal(G)
+        z.HilbertIdeal = ideal(generators(G, z.DerksenIdeal))
+        z.generators = inv_generators(G, z.poly_ring, z.cached_rep_mat, z.DerksenIdeal)
         return z
     end
 end
@@ -336,6 +342,14 @@ end
 
 function gens(R::InvariantRing)
     return R.generators
+end
+
+function hilbert_ideal(R::InvariantRing)
+    return R.HilbertIdeal
+end
+
+function derksen_ideal(R::InvariantRing)
+    return R.DerksenIdeal
 end
 
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
@@ -388,7 +402,7 @@ end
 
 function proj_of_image_ideal(G::ReductiveGroup)
     W = image_ideal(G)
-    mixed_ring_xy = base_ring(W[1])
+    mixed_ring_xy = base_ring(W[2])
     n = G.vector_space_dimension
     m = G.group[2]
     r = G.direct_product[2]
@@ -398,8 +412,7 @@ end
 
 
 #evaluate at y = 0 
-function generators(G::ReductiveGroup)
-    (X, new_rep_mat) = proj_of_image_ideal(G)
+function generators(G::ReductiveGroup, X::MPolyIdeal)
     n = G.vector_space_dimension
     m = G.group[2]
     gbasis = gens(X) 
@@ -436,28 +449,29 @@ function generators(G::ReductiveGroup)
     mixed_ring_graded, (x,y,zz) = grade(mixed_ring_xy)
     mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
     ev_gbasis_new = [mapp(ev_gbasis[i]) for i in 1:length(ev_gbasis)]
-    new_rep_mat_ = matrix(mixed_ring_graded,n,n,[mapp(new_rep_mat[i,j]) for i in 1:n, j in 1:n])
     if length(ev_gbasis_new) == 0
         return [mixed_ring_graded()], new_rep_mat
     end
-    return minimal_generating_set(ideal(ev_gbasis_new)), new_rep_mat_
+    return minimal_generating_set(ideal(ev_gbasis_new))
 end
 
 #now we have to perform reynolds operation. This will happen in mixed_ring_xy. 
 #the elements returned will be in the polynomial ring K[X]
-function inv_generators(G::ReductiveGroup, ringg::MPolyRing)
-    rep_mat = G.rep_mat
-    genss, new_rep_mat = generators(G)
+function inv_generators(G::ReductiveGroup, ringg::MPolyRing, M::AbstractAlgebra.Generic.MatSpaceElem, X::MPolyIdeal)
+    genss = generators(G, X)
     if length(genss) == 0
         return Vector{elem_type(ringg)}()
     end
     mixed_ring_xy = parent(genss[1])
+    R = base_ring(M)
     m = G.group[2]
     n = G.vector_space_dimension
     r = G.direct_product[2]
-    mapp_ = hom(base_ring(rep_mat), mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(r*m^2)])
+    mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
+    new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(M[i,j]) for i in 1:n, j in 1:n])
     #we need det_
     det_ = det(G.canonical_representation)
+    mapp_ = hom(parent(det_), mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(r*m^2)])
     new_det = mapp_(det_)
     if G.group[1] == :SL && !G.direct_product[1] #TODO other types of reductive groups
         new_gens_wrong_ring = [G.reynolds_operator(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
@@ -580,24 +594,5 @@ function reduce_gens_(v::Vector{MPolyDecRingElem})
 end
 
 
-##########################
-#Tensor product
-#use kronecker_product
-##########################
-#function kroenecker_product(A::AbstractAlgebra.Generic.MatSpaceElem, B::AbstractAlgebra.Generic.MatSpaceElem)
-#    base_ring(A) == base_ring(B) || error("Base ring must be same for tensor product of matrices")
-#    R = base_ring(A)
-#    arows = nrows(A)
-#    acols = ncols(A)
-#    brows = nrows(B)
-#    bcols = ncols(B)
-#    M = matrix(R, arows*brows, acols*bcols, [0 for i in 1:arows*brows*acols*bcols])
-#    for i in 1:arows
-#        for j in 1:acols
-#           M[(i-1)*brows+1:i*brows, (j-1)*bcols+1:j*bcols] = A[i,j]*B
-#        end
-#    end
-#    return M
-#end
 
 
