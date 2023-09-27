@@ -114,9 +114,9 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-$Character table of permutation group of degree 4 and order 12
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
 3 & 1 & . & 1 & 1 \\
  &  &  &  &  \\
@@ -181,9 +181,9 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-$Character table of permutation group of degree 4 and order 12
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
 3 & 1 & . & 1 & 1 \\
  &  &  &  &  \\
@@ -326,9 +326,9 @@ X_5| 5  1 -1                 .                 .|
 julia> show(IOContext(stdout, :separators_col => [0,5],
                           :separators_row => [0,5]),
             MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rrrrr|}
+$\begin{array}{r|rrrrr|}
 2 & 2 & 2 & . & . & . \\
 3 & 1 & . & 1 & . & . \\
 5 & 1 & . & . & 1 & 1 \\
@@ -441,9 +441,9 @@ julia> show(IOContext(stdout, :separators_col => [0],
                      :separators_row => [0],
                      :portions_col => [2,3]),
        MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rr}
+$\begin{array}{r|rr}
 2 & 2 & 2 \\
 3 & 1 & . \\
 5 & 1 & . \\
@@ -564,9 +564,9 @@ julia> show(IOContext(stdout, :separators_col => [0],
                           :separators_row => [0],
                           :portions_row => [2,3]),
             MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rrrrr}
+$\begin{array}{r|rrrrr}
 2 & 2 & 2 & . & . & . \\
 3 & 1 & . & 1 & . & . \\
 5 & 1 & . & . & 1 & 1 \\
@@ -624,9 +624,9 @@ Character table of permutation group of degree 4 and order 12
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-$Character table of permutation group of degree 4 and order 12
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrrr}
+$\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
  & 3 & 1 & . & 1 & 1 \\
  &  &  &  &  &  \\
@@ -668,9 +668,9 @@ Character table of permutation group of degree 4 and order 12
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-$Character table of permutation group of degree 4 and order 12
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrrr}
+$\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
  & 3 & 1 & . & 1 & 1 \\
  &  &  &  &  &  \\
@@ -711,9 +711,9 @@ julia> Oscar.with_unicode() do
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-$2-modular Brauer table of permutation group of degree 4 and order 12
+2-modular Brauer table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
  & 3 & 1 & 1 & 1 \\
  &  &  &  &  \\
