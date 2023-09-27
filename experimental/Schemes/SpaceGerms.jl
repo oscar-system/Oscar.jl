@@ -960,7 +960,13 @@ julia> X1 = HypersurfaceGerm(Spec(Q1),[0,0,0]);
 julia> X2 = HypersurfaceGerm(Spec(Q2),[0,0,0]);
 
 julia> union(X1,X2)
-x1^2*x2 - x1*x2^2
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x1, x2, x3
+        over rational field
+      by ideal(x1^2*x2 - x1*x2^2)
+    at complement of maximal ideal of point (0, 0, 0)
 
 ```
 """
@@ -987,6 +993,7 @@ function Base.union(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   f_new = radical(ideal(R,[f_new]))[1]
   Y = HypersurfaceGerm(Spec(quo(R,ideal(R,f_new))[1]), point(X))
   Y.f = f_new
+  return Y
 end
 
 ##############################################################################
