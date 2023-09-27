@@ -153,8 +153,44 @@ function _compute_toric_glueing(gd::ToricGlueingData)
   # are then obtained by expressing the generators on the one 
   # side in terms of the others. 
 
-  hb_L = tau_dual.pm_cone.HILBERT_BASIS_GENERATORS[2] 
+  # We are using Proposition 1.2.10 in Cox-Little-Schenck here: 
+  #  "If τ is a face of a polyhedral cone σ and τ* = σ ̌ ∩ τ⟂, 
+  #   then τ* is a face of σ ̌."
+
+  degs1 = hilbert_basis(U)             
+  non_local_indices_1 = filter(i->!(vec(-degs1[i,:]) in tau_dual), 1:nrows(degs1))
+  degs2 = hilbert_basis(V) 
+  non_local_indices_2 = filter(i->!(vec(-degs2[i,:]) in tau_dual), 1:nrows(degs2))
+
+  x = gens(OO(U))
+  UV = PrincipalOpenSubset(U, [x[i] for i in 1:length(x) if !(i in non_local_indices_1)])
+  y = gens(OO(V))
+  VU = PrincipalOpenSubset(V, [y[i] for i in 1:length(y) if !(i in non_local_indices_2)])
   
+  y_to_x = _convert_degree_system(degs1, degs2, non_local_indices_1)
+  x_to_y = _convert_degree_system(degs2, degs1, non_local_indices_2)
+
+  xx = gens(OO(UV))
+  yy = gens(OO(VU))
+  f = SpecMor(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
+  g = SpecMor(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
+  set_attribute!(f, :inverse, g)
+  set_attribute!(g, :inverse, f)
+
+  result = Glueing(U, V, f, g, check=true)
+  return result
+end
+
+# Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative 
+# coefficients for the vectors vᵢ of `degs1` with index i ∈ `non_local_indices`.
+function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int64})
+  result = Vector{ZZMatrix}()
+  for i in 1:nrows(degs2)
+    C = identity_matrix(ZZ, nrows(degs1))[non_local_indices_1,:]
+    S = solve_mixed(transpose(degs1), transpose(degs2[i,:]), C; permit_unbounded=true)  
+    push!(result, S[1, :])
+  end
+  return result
 end
 
 

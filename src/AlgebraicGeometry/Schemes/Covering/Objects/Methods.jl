@@ -247,7 +247,7 @@ true
 function add_glueing!(C::Covering, G::AbsGlueing)
   (X, Y) = patches(G)
   C.glueings[(X, Y)] = G
-  C.glueings[(Y, X)] = inverse(G)
+  C.glueings[(Y, X)] = LazyGlueing(Y, X, inverse, G)
   return C
 end
 
