@@ -87,3 +87,22 @@ using Test
   end
 
 end
+
+@testset "lazy glueings" begin
+  f = polyhedral_fan([0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1], IncidenceMatrix([[1,2,3],[1
+                                                                                               ,4,5,6]]))
+  n_maximal_cones(f)
+  ntv = normal_toric_variety(f)
+  X = underlying_scheme(ntv)
+  for g in values(glueings(default_covering(X)))
+    @test !(g isa Oscar.LazyGlueing) || !isdefined(g, :G)
+  end
+
+  for g in values(glueings(default_covering(X)))
+    g isa Oscar.LazyGlueing || continue
+    g_sub = underlying_glueing(g)
+    @test g_sub isa Oscar.SimpleGlueing
+    @test g_sub === g.G
+  end
+end
+
