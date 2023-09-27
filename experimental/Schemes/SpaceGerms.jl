@@ -942,6 +942,27 @@ end
     union(X::HypersurfaceGerm, Y:: HypersurfaceGerm) --> HypersurfaceGerm
 
 Returns the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
+
+# Example:
+```jldoctest
+julia> X = affine_space(QQ,3);
+
+julia> R = coordinate_ring(X);
+
+julia> (x,y,z) = gens(R);
+
+julia> Q1,_ = quo(R,ideal(R,[x*y]));
+
+julia> Q2,_ = quo(R,ideal(R,[x*(x-y)]));
+
+julia> X1 = HypersurfaceGerm(Spec(Q1),[0,0,0]);
+
+julia> X2 = HypersurfaceGerm(Spec(Q2),[0,0,0]);
+
+julia> union(X1,X2)
+x1^2*x2 - x1*x2^2
+
+```
 """
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   R = ambient_coordinate_ring(X)
@@ -962,8 +983,10 @@ function Base.union(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
-  f_new = lcm(numerator(X.f),numerator(Y.f))
-  return HypersurfaceGerm(quo(R,ideal(R,f_new))[1],f_new)
+  f_new = numerator(X.f)*numerator(Y.f)
+  f_new = radical(ideal(R,[f_new]))[1]
+  Y = HypersurfaceGerm(Spec(quo(R,ideal(R,f_new))[1]), point(X))
+  Y.f = f_new
 end
 
 ##############################################################################
