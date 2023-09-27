@@ -115,7 +115,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
     print(io, Lowercase())
   end
   println(io, X)
-  print(io, "to   ")
+  print(io, "to ")
   if typeof(Y) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # same as above
     print(io, Lowercase())
   end
