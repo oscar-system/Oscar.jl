@@ -86,6 +86,20 @@ using Test
     @test is_smooth(subscheme(pb_K)) == true
   end
 
+
+  @testset "ToricBlowupMorphism" begin
+    IP2 = projective_space(NormalToricVariety, 2)
+    bl = blow_up(IP2, [1, 1])
+    f = underlying_morphism(bl)
+    S = cox_ring(IP2)
+    x, y, z = gens(S)
+    I = ideal(S, [x-y])*ideal(S, [z])
+    II = IdealSheaf(IP2, I)
+    pb_II = pullback(bl, II)
+    # The following is not yet functional, because `exceptional_divisor` is not yet implemented.
+    # However, this should run using the generic code!
+    #J = strict_transform(bl, II)
+  end
 end
 
 @testset "lazy glueings" begin
