@@ -1,4 +1,6 @@
 import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
+#export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
+#export InvariantRing, invariant_ring, gens, hilbert_ideal, derksen_ideal
 ##########################
 #Reductive Groups
 ##########################
@@ -136,9 +138,12 @@ function reductive_group(sym::Symbol, m::Int, r::Int, dir_prod::Bool)
     return ReductiveGroup(sym,m,r,dir_prod)
 end
 
-function representation_matrix(G::ReductiveGroup)
-    return G.rep_mat
-end
+representation_matrix(G::ReductiveGroup) = G.rep_mat
+group(G::ReductiveGroup) = G.group
+reynolds_operator(G::ReductiveGroup) = G.reynolds_operator
+group_ideal(G::ReductiveGroup) = G.group_ideal
+canonical_representation(G::ReductiveGroup) = G.canonical_representation
+natural_representation(G::ReductiveGroup) = G.canonical_representation
 
 ###############
 
@@ -336,21 +341,10 @@ mutable struct InvariantRing
     end
 end
 
-function invariant_ring(G::ReductiveGroup)
-    return InvariantRing(G)
-end
-
-function gens(R::InvariantRing)
-    return R.generators
-end
-
-function hilbert_ideal(R::InvariantRing)
-    return R.HilbertIdeal
-end
-
-function derksen_ideal(R::InvariantRing)
-    return R.DerksenIdeal
-end
+invariant_ring(G::ReductiveGroup) = InvariantRing(G)
+gens(R::InvariantRing) = R.generators
+hilbert_ideal(R::InvariantRing) = R.HilbertIdeal
+derksen_ideal(R::InvariantRing) = R.DerksenIdeal
 
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
     #if get(io, :supercompact, false)
