@@ -244,7 +244,7 @@ julia> L2 = special_linear_lie_algebra(QQ, 3);
 julia> h = hom(L1, L2, [basis(L2, 1), basis(L2, 4), basis(L2, 7)]) # embed sl_2 into sl_3
 Lie algebra morphism
   from special linear Lie algebra of degree 2 over QQ
-  to   special linear Lie algebra of degree 3 over QQ
+  to special linear Lie algebra of degree 3 over QQ
   
 julia> [(x, h(x)) for x in basis(L1)]
 3-element Vector{Tuple{LinearLieAlgebraElem{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}}}:
@@ -277,7 +277,7 @@ julia> L2 = general_linear_lie_algebra(QQ, 2);
 julia> h = hom(L1, L2, matrix(QQ, [0 1 0 0; 0 0 1 0; 1 0 0 -1]))
 Lie algebra morphism
   from special linear Lie algebra of degree 2 over QQ
-  to   general linear Lie algebra of degree 2 over QQ
+  to general linear Lie algebra of degree 2 over QQ
 
 julia> [(x, h(x)) for x in basis(L1)]
 3-element Vector{Tuple{LinearLieAlgebraElem{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}}}:
@@ -307,7 +307,7 @@ over rational field
 julia> identity_map(L)
 Lie algebra morphism
   from special linear Lie algebra of degree 3 over QQ
-  to   special linear Lie algebra of degree 3 over QQ
+  to special linear Lie algebra of degree 3 over QQ
 ```
 """
 function identity_map(L::LieAlgebra)
@@ -330,7 +330,7 @@ over rational field
 julia> zero_map(L)
 Lie algebra morphism
   from special linear Lie algebra of degree 3 over QQ
-  to   special linear Lie algebra of degree 3 over QQ
+  to special linear Lie algebra of degree 3 over QQ
 ```
 """
 function zero_map(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}

@@ -33,7 +33,7 @@ julia> Y = projective_scheme(P, I);
 julia> f = identity_map(Y)
 Morphism
   from projective scheme in IP^2 over QQ
-  to   projective scheme in IP^2 over QQ
+  to projective scheme in IP^2 over QQ
 
 julia> fcov = covered_scheme_morphism(f);
 
