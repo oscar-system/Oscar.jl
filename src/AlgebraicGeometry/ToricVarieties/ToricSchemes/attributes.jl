@@ -117,6 +117,46 @@ Spectrum
 """
 @attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
 
+### 
+# Some additional structure to make computation of toric glueings lazy
+struct ToricGlueingData
+  X::NormalToricVariety
+  U::AffineNormalToricVariety
+  V::AffineNormalToricVariety
+# i::Int # The indices of the charts to be glued
+# j::Int
+end
+
+function _compute_toric_glueing(gd::ToricGlueingData)
+  X = gd.X
+  U = gd.U
+  V = gd.V
+# i = gd.i
+# j = gd.j
+# U = affine_charts(X)[i]
+# V = affine_charts(X)[j]
+  sigma_1 = cone(U)
+  sigma_2 = cone(V)
+  tau = intersect(sigma_1, sigma_2)
+  sigma_1_dual = weight_cone(U)
+  sigma_2_dual = weight_cone(V)
+  tau_dual = polarize(tau)
+
+  # We do the following. There is a commutative diagram of rings 
+  #
+  #       ℚ [σ₁̌] ↪  ℚ [τ ̌]  ↩  ℚ [σ₂̌] 
+  #
+  # given by localization maps. The cone τ ̌ has lineality L. 
+  # We need to find a Hilbert basis for both L ∩ σ₁̌ and L ∩ σ₂̌.
+  # Then the localization maps are given by inverting the 
+  # elements of these Hilbert bases. The glueing isomorphisms 
+  # are then obtained by expressing the generators on the one 
+  # side in terms of the others. 
+
+  hb_L = tau_dual.pm_cone.HILBERT_BASIS_GENERATORS[2] 
+  
+end
+
 
 @doc raw"""
     underlying_scheme(X::NormalToricVariety)
@@ -160,6 +200,9 @@ with default covering
     for j in i+1:length(patch_list)
       X = patch_list[i]
       Y = patch_list[j]
+      gd = ToricGlueingData(Z, X, Y)
+      add_glueing!(cov, LazyGlueing(X, Y, _compute_toric_glueing, gd))
+      continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue
       vmat = _find_localization_element(cone(X), cone(Y), facet)
@@ -171,7 +214,7 @@ with default covering
   
   # TODO: Improve the gluing (lazy gluing) or try to use the Hasse diagram.
   # TODO: For now, we conjecture, that the composition of the computed glueings is sufficient to deduce all glueings.
-  fill_transitions!(cov)
+  #fill_transitions!(cov)
   return CoveredScheme(cov)
 end
 
