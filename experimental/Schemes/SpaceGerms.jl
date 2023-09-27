@@ -161,13 +161,17 @@ julia> X = Spec(R, I);
 julia> XS = SpaceGerm(X,[0,0,0])
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> representative(XS)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
 
 julia> representative(XS) == X
@@ -182,7 +186,8 @@ julia> Z = germ_at_point(quo(L,IL)[1])[1];
 julia> representative(Z)
 Spectrum
   of quotient
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
 
 ```
@@ -260,7 +265,8 @@ julia> XS = SpaceGerm(X,[0,0,0]);
 julia> ambient_germ(XS)
 Spectrum
   of localization
-    of multivariate polynomial ring in 3 variables over QQ
+    of multivariate polynomial ring in 3 variables x, y, z
+      over rational field
     at complement of maximal ideal of point (0, 0, 0)
 
 ```
@@ -292,7 +298,10 @@ julia> X = Spec(R, I);
 julia> XS = HypersurfaceGerm(X,[0,0,0])
 Spectrum
   of localization
-    of quotient of multivariate polynomial ring by ideal with 1 generator
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> Oscar.defining_ring_element(XS)
@@ -976,11 +985,13 @@ julia> R = coordinate_ring(X);
 
 julia> (x,y,z) = gens(R);
 
+julia> Q,_ = quo(R,ideal(R,[x^2+y^2]));
+
 julia> Y = SpaceGerm(Spec(Q),[0,0,0]);
 
-julia> SL, incSL = singular_locus(Y);
+julia> XSL, incSL = singular_locus(Y);
 
-julia> SL
+julia> XSL
 Spectrum
   of localization
     of quotient
@@ -1030,6 +1041,8 @@ julia> X = affine_space(QQ,3);
 julia> R = coordinate_ring(X);
 
 julia> (x,y,z) = gens(R);
+
+julia> Q,_ = quo(R,ideal(R,[x^2+y^2]));
 
 julia> Y = SpaceGerm(Spec(Q),[0,0,0]);
 
