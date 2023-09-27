@@ -1,4 +1,4 @@
-import Oscar.gens, AbstractAlgebra.direct_sum
+import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
 ##########################
 #Reductive Groups
 ##########################
@@ -296,6 +296,7 @@ mutable struct InvariantRing
     group::ReductiveGroup
     generators::Vector{MPolyDecRingElem}
 
+    #Not finished
     function InvariantRing(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
         G.group[1] != SL && return nothing
         z = new()
@@ -327,11 +328,15 @@ mutable struct InvariantRing
         z.generators = inv_generators(G, z.poly_ring)
         return z
     end
+end
+
+function invariant_ring(G::ReductiveGroup)
+    return InvariantRing(G)
+end
 
 function gens(R::InvariantRing)
     return R.generators
 end
-
 
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
     #if get(io, :supercompact, false)
