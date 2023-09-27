@@ -664,9 +664,7 @@ end
 # Produce LaTeX output if `"text/latex"` is prescribed,
 # via the `:TeX` attribute of the io context.
 function Base.show(io::IO, ::MIME"text/latex", tbl::GAPGroupCharacterTable)
-  print(io, "\$")
   show(IOContext(io, :TeX => true), MIME("text/plain"), tbl)
-  print(io, "\$")
 end
 
 @doc raw"""
@@ -783,9 +781,9 @@ C3
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/latex"), tbl)
        end;
-$C3
+C3
 
-\begin{array}{rrrr}
+$\begin{array}{rrrr}
 3 & 1 & 1 & 1 \\
  &  &  &  \\
  & 1a & 3a & 3b \\
