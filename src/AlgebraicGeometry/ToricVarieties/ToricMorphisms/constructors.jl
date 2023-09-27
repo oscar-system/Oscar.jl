@@ -209,3 +209,4 @@ function Base.show(io::IO, tm::ToricMorphism)
 end
 
 Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)
+

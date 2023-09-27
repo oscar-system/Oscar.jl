@@ -1302,6 +1302,195 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
 end
 
+#=
+@doc raw"""
+    IdealSheaf(X::NormalToricVariety, v::AbstractVector{<:Integer})
+
+Method to construct a locally principal ideal sheaf for the exceptional 
+divisor in a blowup coming from a fan subdivision. Here `v` is the newly 
+introduced ray.
+"""
+function IdealSheaf(X::NormalToricVariety, v::AbstractVector{<:Integer})
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+  v in rays(X) || error("vector not found among the rays of the toric variety")
+  c = maximal_cones(X)
+  for (i, U) in enumerate(patches(default_covering(X)))
+    sigma = cone(U)
+    if !(v in sigma)
+      ideal_dict[U] = ideal(OO(U), one(OO(U)))
+      continue
+    end
+    k = findfirst(x->x==v, rays(sigma))
+  end
+end
+=#
+
+@doc raw"""
+    IdealSheaf(X::NormalToricVariety, tau::Cone)
+
+Construct the sheaf of ideals on `X` which is determined by the 
+cone `tau` in the Orbit-cone-correspondence; see Cox-Little-Schenck, 
+Theorem 3.2.6.
+"""
+function IdealSheaf(X::NormalToricVariety, tau::Cone)
+  @assert tau in fan(X) "cone must be in the fan of the variety"
+  A = _to_matrix(rays(tau))
+  @show matrix(ZZ, rays(tau))
+  A = matrix(ZZ, rays(tau))
+  (r, K) = kernel(A)
+  @show K
+  @show typeof(K)
+  w = _colum_vectors_to_rays(K)
+  @show w
+  w = vcat(w, -w)
+  @show w
+  # TODO: Can we use a direct command instead of this hack?
+  tau_perp = positive_hull(w)
+  # Maybe it's a mistake in the book and we really need the dual?
+  #tau_perp = polarize(tau)
+  @show rays(tau_perp)
+  @show lineality_space(tau_perp)
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+  # We are using Equation (3.2.7) in CLS to determine the local 
+  # form of the ideal.
+  for U in affine_charts(X)
+    cu = cone(U)
+    cu_pol = weight_cone(U)
+    inter = intersect(tau_perp, cu_pol)
+    @show rays(inter)
+    @assert is_pointed(inter) "intersection must be a pointed cone"
+    hb_inter = hilbert_basis(inter)
+    if iszero(length(hb_inter))
+      ideal_dict[U] = ideal(OO(U), one(OO(U)))
+      #ideal_dict[U] = ideal(OO(U), elem_type(OO(U))[])
+      continue
+    end
+    @show hb_inter
+    B = _to_integer_column_matrix(hb_inter)
+    hb_cu_pol = hilbert_basis(cu_pol)
+    A = _to_integer_column_matrix(hb_cu_pol)
+    C = identity_matrix(ZZ, ncols(A))
+    @show A
+    @show B
+    @show C
+    # For some reason `solve_mixed` returns the transpose of the actual solution, 
+    # so we have to correct this.
+    S = transpose(solve_mixed(ZZMatrix, A, B, C))
+    @show S
+    x = gens(OO(U))
+    @show x
+    @show prod(x[i]^S[i, 1] for i in 1:length(x); init=one(OO(U)))
+    g = elem_type(OO(U))[prod(x[i]^S[i, j] for i in 1:length(x); init=one(OO(U))) for j in 1:ncols(S)] # The generators of the ideal on U
+    @show g
+    ideal_dict[U] = ideal(OO(U), g)
+  end
+  #return IdealSheaf(X, ideal_dict, check=true) #TODO: Set to false
+  return ideal_dict
+end
+
+# TODO: Why don't we have that already? Is this too expensive and 
+# we don't want to do it that way?
+function Base.in(tau::Cone, Sigma::PolyhedralFan)
+  # Check that all the rays of tau are also rays of Sigma
+  indices = [findfirst(w->w==v, rays(Sigma)) for v in rays(tau)]
+  any(x->x===nothing, indices) && return false
+  # Now check that this cone is really in Sigma
+  all_cones = cones(Sigma)
+  return any(j->all(i -> all_cones[j, i], indices), 1:nrows(all_cones))
+end
+
+
+function _to_integer_column_matrix(v::SubObjectIterator{PointVector{ZZRingElem}})
+  n = length(v)
+  @assert n > 0 "can not convert the empty list"
+  m = length(first(v))
+  result = zero_matrix(ZZ, m, n)
+  for j in 1:n
+    for i in 1:m
+      result[i, j] = v[j][i]
+    end
+  end
+  return result
+end
+
+function _colum_vectors_to_rays(K::QQMatrix)
+  m = nrows(K)
+  n = ncols(K)
+  result = Vector{Vector{QQFieldElem}}()
+  for i in 1:n
+    row = Vector{QQFieldElem}()
+    for j in 1:m
+      push!(row, K[j, i])
+    end
+    push!(result, row)
+  end
+  return result
+end
+
+function _colum_vectors_to_rays(K::ZZMatrix)
+  m = nrows(K)
+  n = ncols(K)
+  result = Vector{Vector{ZZRingElem}}()
+  for i in 1:n
+    row = Vector{ZZRingElem}()
+    for j in 1:m
+      push!(row, K[j, i])
+    end
+    push!(result, row)
+  end
+  return result
+end
+
+
+
+function _to_matrix(v::RayVector{QQFieldElem})
+  n = length(v)
+  result = zero_matrix(QQ, 1, n)
+  for i in 1:n
+    result[1, i] = v[i]
+  end
+  return result
+end
+
+function _to_matrix(v::SubObjectIterator{RayVector{QQFieldElem}})
+  m = length(v)
+  @assert m > 0 "can not convert the empty list"
+  n = length(first(v))
+  @assert all(x->length(x)==n, v) "vectors must have the same lengths"
+  result = zero_matrix(QQ, m, n)
+  for i in 1:m
+    for j in 1:n
+      result[i, j] = v[i][j]
+    end
+  end
+  return result
+end
+
 function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
   return blow_up(IdealSheaf(v, I))
+end
+
+function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
+  f_cov = covering_morphism(f)
+  dom_cov = domain(f_cov)
+  cod_cov = codomain(f_cov)
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+  for V in cod_cov
+    f_loc = maps_with_given_codomain(f_cov, V)
+    I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
+    ideal_dict[V] = intersect(I_loc...)
+  end
+  return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
+end
+
+function Base.:^(II::IdealSheaf, k::IntegerUnion)
+  k < 0 && error("negative powers of ideal sheaves are not allowed")
+  if iszero(k) 
+    X = scheme(II)
+    return IdealSheaf(X, IdDict{AbsSpec, Ideal}([U => ideal(OO(U), one(OO(U))) for U in affine_charts(X)]), check=false)
+  end
+  isone(k) && return II
+  b = div(k, 2)
+  r = k - b
+  return II^b * II^r
 end
