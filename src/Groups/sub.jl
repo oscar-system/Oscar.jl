@@ -470,7 +470,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> N = pcore(G, 2)[1];
 
@@ -589,10 +589,9 @@ a word in its generators.
 julia> G = symmetric_group(4);
 
 julia> epi = epimorphism_from_free_group(G)
-Group homomorphism from
-<free group on the generators [ x1, x2 ]>
-to
-Sym( [ 1 .. 4 ] )
+Group homomorphism
+  from free group
+  to permutation group of degree 4 and order 24
 
 julia> pi = G([2,4,3,1])
 (1,2,4)

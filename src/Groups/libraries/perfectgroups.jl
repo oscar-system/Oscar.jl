@@ -98,7 +98,7 @@ The type `T` can be either `PermGroup` or `FPGroup`.
 # Examples
 ```jldoctest
 julia> perfect_group(60, 1)
-A5
+Permutation group of degree 5 and order 60
 
 julia> gens(ans)
 2-element Vector{PermGroupElem}:
@@ -106,7 +106,7 @@ julia> gens(ans)
  (2,3,4)
 
 julia> perfect_group(FPGroup, 60, 1)
-A5
+Finitely presented group of order 60
 
 julia> gens(ans)
 2-element Vector{FPGroupElem}:
