@@ -54,6 +54,16 @@ function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_red
     end
 end
 
+function singular_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  standard_basis(I, ordering=ordering, complete_reduction = complete_reduction)
+  return singular_generators(I.gb[ordering], ordering)
+end
+
+function singular_groebner_generators(I::MPolyIdeal, complete_reduction::Bool, need_global::Bool)
+  G = groebner_assure(I, complete_reduction, need_global)
+  return singular_generators(G, G.ord)
+end
+
 @doc raw"""
     _compute_standard_basis(B::IdealGens; ordering::MonomialOrdering,
                             complete_reduction::Bool = false)

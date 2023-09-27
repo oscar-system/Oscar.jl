@@ -614,7 +614,7 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
     @hassert :ZZLatWithIsom 1 basis_matrix(L)*f_ambient == f*basis_matrix(L)
   end
 
-  return ZZLatWithIsom(Vf, L, f, n)::ZZLatWithIsom
+  return ZZLatWithIsom(Vf, L, f, n)
 end
 
 @doc raw"""
@@ -646,7 +646,7 @@ function integer_lattice_with_isometry(L::ZZLat; neg::Bool = false)
   if neg
     f = -f
   end
-  return integer_lattice_with_isometry(L, f; check = false, ambient_representation = true)::ZZLatWithIsom
+  return integer_lattice_with_isometry(L, f; check = false, ambient_representation = true)
 end
 
 @doc raw"""
@@ -684,7 +684,7 @@ Integer lattice of rank 2 and degree 2
   [0   -1]
 ```
 """
-lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(Vf), order_of_isometry(Vf))::ZZLatWithIsom
+lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(Vf), order_of_isometry(Vf))
 
 @doc raw"""
     lattice(Vf::QuadSpaceWithIsom, B::MatElem{<:RationalUnion};
@@ -1437,7 +1437,7 @@ function discriminant_group(Lf::ZZLatWithIsom)
   q = discriminant_group(L)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
   f = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
-  return (q, f)::Tuple{TorQuadModule, AutomorphismGroupElem{TorQuadModule}}
+  return (q, f)
 end
 
 @doc raw"""
@@ -1471,29 +1471,43 @@ julia> order(G)
   @req is_integral(Lf) "Underlying lattice must be integral"
   n = order_of_isometry(Lf)
   L = lattice(Lf)
-  f = ambient_isometry(Lf)
   if (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
+    # Trivial cases: the lattice has rank 0, or is endowed with +- identity
     return image_in_Oq(L)
-  elseif is_definite(L) 
+  elseif rank(L) == euler_phi(n)
+    # this should also cover the case of rank 1
+    # The image of -id and multiplication by primitive root of unity
+    qL, fqL = discriminant_group(Lf)
+    OqL = orthogonal_group(qL)
+    UL = ZZMatrix[-matrix(one(OqL)), matrix(fqL)]
+    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
+    return sub(OqL, unique!(UL))
+  elseif is_definite(L) || rank(L) == 2
+    # We can compute the orthogonal groups and centralizer with GAP
     OL = orthogonal_group(L)
-    f = OL(f)
-    UL = QQMatrix[matrix(OL(s)) for s in gens(centralizer(OL, f)[1])]
+    f = isometry(Lf)
+    V = ambient_space(L)
+    B = basis_matrix(L)
+    B2 = orthogonal_complement(V, B)
+    C = vcat(B, B2)
+    f = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
+    f = inv(C)*f*C
+    f = OL(f; check = false)
+    UL = QQMatrix[matrix(s) for s in gens(centralizer(OL, f)[1])]
     qL = discriminant_group(L)
     UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)])) for g in UL]
     unique!(UL)
     OqL = orthogonal_group(qL)
     UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
     return sub(OqL, UL)
-  elseif rank(L) == euler_phi(n)
-    qL = discriminant_group(L)
-    UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(-lift(t)) for t in gens(qL)]))]
-    OqL = orthogonal_group(qL)
-    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
-    return sub(OqL, UL)
   else
     @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
-    dets = Oscar._local_determinants_morphism(Lf)
-    return kernel(dets)
+    # indefinite of rank bigger or equal to 3
+    # We use Hermitian Miranda-Morrison (see [BH23, Part 6])
+    dets, j = Oscar._local_determinants_morphism(Lf)
+    _, jj = kernel(dets)
+    jj = compose(jj, j)
+    return image(jj)
   end
 end
 
@@ -1812,11 +1826,18 @@ true
 function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
+  if !ambient_representation
+    V = ambient_space(L)
+    B = basis_matrix(L)
+    B2 = orthogonal_complement(V, B)
+    B3 = vcat(B, B2)
+  end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
-      m = solve(basis_matrix(L), matrix(g)*basis_matrix(L))
-      m = solve_left(basis_matrix(C), basis_matrix(C)*m)
+      g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
+      g_ambient = inv(B3)*g_ambient*B3
+      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
       push!(gene, matrix(g))
@@ -1864,11 +1885,18 @@ with gram matrix
 function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representation::Bool = true)
   F = invariant_lattice(L, G; ambient_representation)
   C = orthogonal_submodule(L, F)
+  if !ambient_representation
+    V = ambient_space(L)
+    B = basis_matrix(L)
+    B2 = orthogonal_complement(V, B)
+    B3 = vcat(B, B2)
+  end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
-      m = solve(basis_matrix(L), matrix(g)*basis_matrix(L))
-      m = solve_left(basis_matrix(C), basis_matrix(C)*m)
+      g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
+      g_ambient = inv(B3)*g_ambient*B3
+      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
       push!(gene, matrix(g))

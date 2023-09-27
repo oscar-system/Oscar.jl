@@ -36,7 +36,7 @@ function lie_algebra_module_conformance_test(
 
     @test coefficients(v) == [coeff(v, i) for i in 1:dim(V)]
     @test all(i -> coeff(v, i) == v[i], 1:dim(V))
-    @test sum(v[i] * basis(V, i) for i in 1:dim(V)) == v
+    @test sum(v[i] * basis(V, i) for i in 1:dim(V); init=zero(V)) == v
 
     @test v == v
     @test deepcopy(v) == v
@@ -115,6 +115,18 @@ end
   sc[3, 2] = sparse_row(QQ, [1, 2], [0, -1])
 
   @testset "conformance tests" begin
+    @testset "0-dim module of sl_2(QQ)" begin
+      L = special_linear_lie_algebra(QQ, 2)
+      V = trivial_module(L, 0)
+      lie_algebra_module_conformance_test(L, V)
+    end
+
+    @testset "3-dim trivial module of so_3(QQ)" begin
+      L = special_orthogonal_lie_algebra(QQ, 2)
+      V = trivial_module(L, 3)
+      lie_algebra_module_conformance_test(L, V)
+    end
+
     @testset "V of sl_2(QQ) using structure constants" begin
       L = special_linear_lie_algebra(QQ, 2)
       V = abstract_module(L, 2, sc)

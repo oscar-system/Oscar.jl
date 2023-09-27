@@ -82,11 +82,17 @@ function __init__()
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    for pkg in ["ctbllib",
-                "forms",
-                "wedderga", # provides a function to compute Schur indices
-                "repsn",
-               ]
+    for pkg in [
+       "atlasrep",
+       "ctbllib",  # character tables
+       "fga",      # dealing with free groups
+       "forms",    # bilinear/sesquilinear/quadratic forms
+       "primgrp",  # primitive groups library
+       "repsn",    # constructing representations of finite groups
+       "smallgrp", # small groups library
+       "transgrp", # transitive groups library
+       "wedderga", # provides a function to compute Schur indices
+       ]
       GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
     end
     __init_group_libraries()

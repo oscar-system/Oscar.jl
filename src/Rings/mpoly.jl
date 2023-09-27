@@ -709,6 +709,14 @@ function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_o
   return singular_generators(generating_system(I), monorder)
 end
 
+function singular_polynomial_ring(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
+  return (singular_generators(I, monorder)).base_ring
+end
+
+function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord)
+  return (singular_generators(G, monorder)).base_ring
+end
+
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
     I.Sx = singular_poly_ring(I.Ox)
@@ -966,9 +974,7 @@ Tries to write the entries of `b` as linear combinations of `a`.
 function coordinates(a::Vector{<:MPolyRingElem}, b::Vector{<:MPolyRingElem})
   ia = ideal(a)
   ib = ideal(b)
-  singular_assure(ia)
-  singular_assure(ib)
-  c = _lift(ia.gens.S, ib.gens.S)
+  c = _lift(singular_generators(ia), singular_generators(ib))
   F = free_module(parent(a[1]), length(a))
   return [F(c[x]) for x = 1:Singular.ngens(c)]
 end
