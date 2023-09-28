@@ -1,16 +1,3 @@
-export HypersurfaceGerm
-export CompleteIntersectionGerm
-export SpaceGerm
-export ambient_germ
-export germ_at_point
-export hypersurface_germ
-export complete_intersection_germ
-export is_isolated_singularity
-export point
-export rational_point_coordinates
-export representative
-export milnor_algebra
-export milnor_number
 
 import AbstractAlgebra: Ring
 
@@ -304,7 +291,7 @@ Spectrum
       by ideal(x^3 - x^2 - x*y^2 + x*z^2 + y^2 - z^2)
     at complement of maximal ideal of point (0, 0, 0)
 
-julia> Oscar.defining_ring_element(XS)
+julia> defining_ring_element(XS)
 -x^3 + x^2 + x*y^2 - x*z^2 - y^2 + z^2
 
 ```
