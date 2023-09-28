@@ -169,7 +169,7 @@ end
 
 
 ########################################################################
-# Spectial implementations for closed embeddings
+# Special implementations for closed embeddings
 ########################################################################
 
 underlying_morphism(f::ProjectiveClosedEmbedding) = f.underlying_morphism
