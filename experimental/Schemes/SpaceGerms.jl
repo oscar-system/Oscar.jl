@@ -112,12 +112,12 @@ end
 ## Some more shorthand notation
 ##############################################################################
 AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
-AnySpaceGermClosedPoint = Union{SpaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
-                                HypersurfaceGerm{<:Any,<:Any,<:GermAtClosedPoint},
-                                CompleteIntersectionGerm{<:Any,<:Any,<:GermAtClosedPoint}}
-AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Any,<:Any,<:GermAtGeometricPoint},
-                                HypersurfaceGerm{<:Any,<:Any,<:GermAtGeometricPoint},
-                                CompleteIntersectionGerm{<:Any,<:Any,<:GermAtGeometricPoint}}
+AnySpaceGermClosedPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
+                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
+                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtClosedPoint}}
+AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
+                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
+                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtGeometricPoint}}
 
 ##############################################################################
 ### Getter functions
