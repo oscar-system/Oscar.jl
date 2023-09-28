@@ -1,5 +1,5 @@
 import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
-#export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
+#export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation, vector_space_dimension
 #export InvariantRing, invariant_ring, gens, hilbert_ideal, derksen_ideal
 ##########################
 #Reductive Groups
@@ -117,12 +117,9 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-    if !G.direct_sum[1] && !G.direct_product[1]
+    if !G.direct_product[1] && !G.direct_product[1]
         println(io, "Reductive group ", G.group[1], G.group[2])
         println(io, "acting on vector space of dimension ", G.vector_space_dimension)
-    elseif G.direct_sum[1]
-        println(io, "Reductive group ", G.group[1], G.group[2])
-        println(io, "acting on direct sum of vector spaces of dimensions ", G.direct_sum[2])
     end
 end
 
@@ -144,6 +141,7 @@ reynolds_operator(G::ReductiveGroup) = G.reynolds_operator
 group_ideal(G::ReductiveGroup) = G.group_ideal
 canonical_representation(G::ReductiveGroup) = G.canonical_representation
 natural_representation(G::ReductiveGroup) = G.canonical_representation
+vector_space_dimension(G::ReductiveGroup) = G.vector_space_dimension
 
 ###############
 
