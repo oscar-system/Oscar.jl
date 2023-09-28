@@ -2253,3 +2253,6 @@ function small_generating_set(
   J = pre_image_ideal(I)
   return filter(!iszero, Q.(small_generating_set(J)))
 end
+
+dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
+
