@@ -425,3 +425,21 @@ end
   @test length(small_gens) == 1
   @test isone(first(small_gens))
 end
+
+@testset "dimensions of localizations at prime ideals" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+  f = x^2 + x*y^2 - z^3
+  P = ideal(R, f)
+  U = complement_of_prime_ideal(P)
+  L, loc = localization(R, U)
+  @test dim(L) == 1
+
+  U = complement_of_prime_ideal(ideal(R, [x^2 + 1, y]))
+  L, loc = localization(R, U)
+  @test dim(L) == 2
+
+  U = complement_of_prime_ideal(ideal(R, [x^2 + 1, y, z]))
+  L, loc = localization(R, U)
+  @test dim(L) == 3
+end
+
