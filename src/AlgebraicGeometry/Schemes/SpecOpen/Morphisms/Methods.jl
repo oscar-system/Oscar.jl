@@ -47,10 +47,10 @@ end
 
 function Base.show(io::IO, f::SpecOpenMor)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Spec open morphism")
   else
     io = pretty(io)
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

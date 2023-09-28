@@ -388,7 +388,7 @@ canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface tha
 function Base.show(io::IO, KK::VarietyFunctionField)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Field")
+    print(io, "Function field")
   else
     print(io, "Function field of ", Lowercase(), variety(KK))
   end
@@ -414,7 +414,7 @@ end
 function Base.show(io::IO, f::VarietyFunctionFieldElem)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Field element")
+    print(io, "Function field element")
   else
     print(io, "Rational function on ", Lowercase(), variety(parent(f)))
   end

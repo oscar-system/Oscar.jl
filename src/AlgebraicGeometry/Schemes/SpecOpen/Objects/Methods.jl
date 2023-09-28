@@ -187,7 +187,7 @@ function Base.show(io::IO, U::SpecOpen, show_coord::Bool = true)
   if isdefined(U, :name) 
     print(io, name(U))
   elseif get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Zariski open in affine scheme")
   elseif get_attribute(U, :is_empty, false)
     print(io, "Empty open subset of ", Lowercase(), ambient_space(U))
   else

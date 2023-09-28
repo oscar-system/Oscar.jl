@@ -281,7 +281,7 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
   n = length(projective_patches(CPS))
   K = base_ring(base_scheme(CPS))
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Covered projective scheme")
   else
     if length(projective_patches(CPS)) == 0
       print(io, "Empty covered projective scheme over ")

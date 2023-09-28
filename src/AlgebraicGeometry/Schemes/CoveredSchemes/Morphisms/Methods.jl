@@ -126,9 +126,9 @@ end
 function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Covered scheme morphism")
   else
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

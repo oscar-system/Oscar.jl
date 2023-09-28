@@ -180,7 +180,7 @@ function Base.show(io::IO, D::WeilDivisor)
   if has_name(D)
     print(io, name(D))
   elseif get(io, :supercompact, false)
-    print(io, "Algebraic cycle")
+    print(io, "Weil divisor")
   # if the divisor is prime and the ideal sheaf has a name print that
   elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
     I = first(components(D))

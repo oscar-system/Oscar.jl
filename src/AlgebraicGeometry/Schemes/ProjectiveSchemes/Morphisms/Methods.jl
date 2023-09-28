@@ -98,10 +98,10 @@ end
 
 function Base.show(io::IO, f::ProjectiveSchemeMor)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Projective scheme morphism")
   else
     io = pretty(io)
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

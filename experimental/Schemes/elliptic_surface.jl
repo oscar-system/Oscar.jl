@@ -276,7 +276,7 @@ end
 function Base.show(io::IO, S::EllipticSurface)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Elliptic surface")
   else
     E = generic_fiber(S)
     print(io, "Elliptic surface with generic fiber ", equation(E))

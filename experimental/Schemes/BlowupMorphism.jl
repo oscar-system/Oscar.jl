@@ -497,7 +497,7 @@ end
 function Base.show(io::IO, Bl::BlowupMorphism)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Blow-up morphism")
   else
     print(io, "Blow-up: ", Lowercase(), domain(Bl))
     print(io, " -> ", Lowercase(), codomain(Bl))
