@@ -27,7 +27,7 @@ end
 
 function visualize(P::SubdivisionOfPoints{T}) where T<:Union{QQFieldElem, Float64}
   d = ambient_dim(P)
-  @req ambient_dim(P) <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
+  @req d <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
   # polymake will by default use 0:n-1 as labels so we assign labels
   # starting from 1 here if there are no labels yet
   # (note: labels are mutable, i.e. they can be changed again later)
