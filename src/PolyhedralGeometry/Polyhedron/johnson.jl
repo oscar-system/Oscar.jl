@@ -603,3 +603,113 @@ function _johnson_solid(::Val{39})
        0 -mre -(1+mre*(sre5-1))//2]
   return convex_hull(EMF, V; non_redundant = true)
 end
+
+function johnson_solid(::Val{83})
+  Qx, x = QQ["x"]
+  NF, sr5 = number_field(x^2 - 5)
+  ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+  V =  [(5+sre5)//4 0 (3+sre5)//4; 
+        -(5+sre5)//4 0 (3+sre5)//4; 
+
+        (5+sre5)//4 0 -(3+sre5)//4; 
+
+        0 (3+sre5)//4 -(5+sre5)//4;
+        0 -(3+sre5)//4 -(5+sre5)//4;
+
+        (3+sre5)//4 (5+sre5)//4 0;
+        (3+sre5)//4 -(5+sre5)//4 0;
+        -(3+sre5)//4 (5+sre5)//4 0;
+        -(3+sre5)//4 -(5+sre5)//4 0;
+
+        1//2 1//2 (2+sre5)//2;
+        1//2 -1//2 (2+sre5)//2;
+        -1//2 1//2 (2+sre5)//2;
+        -1//2 -1//2 (2+sre5)//2;
+
+        1//2 1//2 -(2+sre5)//2;
+        1//2 -1//2 -(2+sre5)//2;
+
+        (2+sre5)//2 1//2 1//2;
+        (2+sre5)//2 1//2 -1//2;
+        (2+sre5)//2 -1//2 1//2;
+        (2+sre5)//2 -1//2 -1//2;
+        -(2+sre5)//2 1//2 1//2;
+        -(2+sre5)//2 1//2 -1//2;
+        -(2+sre5)//2 -1//2 1//2;
+        -(2+sre5)//2 -1//2 -1//2;
+
+        1//2 (2+sre5)//2 -1//2;
+        1//2 -(2+sre5)//2 -1//2;
+        -1//2 (2+sre5)//2 -1//2;
+        -1//2 -(2+sre5)//2 -1//2;
+
+        (3+sre5)//4 (1+sre5)//4 (1+sre5)//2;
+        (3+sre5)//4 -(1+sre5)//4 (1+sre5)//2;
+        -(3+sre5)//4 (1+sre5)//4 (1+sre5)//2;
+        -(3+sre5)//4 -(1+sre5)//4 (1+sre5)//2;
+
+        (3+sre5)//4 (1+sre5)//4 -(1+sre5)//2;
+        (3+sre5)//4 -(1+sre5)//4 -(1+sre5)//2;
+
+        (1+sre5)//2 (3+sre5)//4 (1+sre5)//4;
+        (1+sre5)//2 (3+sre5)//4 -(1+sre5)//4;
+        (1+sre5)//2 -(3+sre5)//4 (1+sre5)//4;
+        (1+sre5)//2 -(3+sre5)//4 -(1+sre5)//4;
+        -(1+sre5)//2 (3+sre5)//4 (1+sre5)//4;
+        -(1+sre5)//2 (3+sre5)//4 -(1+sre5)//4;
+        -(1+sre5)//2 -(3+sre5)//4 (1+sre5)//4;
+        -(1+sre5)//2 -(3+sre5)//4 -(1+sre5)//4;
+
+        (1+sre5)//4 (1+sre5)//2 -(3+sre5)//4;
+        (1+sre5)//4 -(1+sre5)//2 -(3+sre5)//4;
+        -(1+sre5)//4 (1+sre5)//2 -(3+sre5)//4;
+        -(1+sre5)//4 -(1+sre5)//2 -(3+sre5)//4]
+end
+
+function _johnson_solid(::Val{91})
+  Qx, x = QQ["x"]
+  NF, sr = number_field(x^2 - 5)
+  ENF, sr5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+  V =  [1//2 0 (3+sr5)//4;
+        1//2 0 -(3+sr5)//4;
+        -1//2 0 (3+sr5)//4;
+        -1//2 0 -(3+sr5)//4;
+        (1+sr5)//4 1//2 1//2;
+        (1+sr5)//4 1//2 -1//2;
+        (1+sr5)//4 -1//2 1//2;
+        (1+sr5)//4 -1//2 -1//2;
+        -(1+sr5)//4 1//2 1//2;
+        -(1+sr5)//4 1//2 -1//2;
+        -(1+sr5)//4 -1//2 1//2;
+        -(1+sr5)//4 -1//2 -1//2;
+        0 (1+sr5)//4 0;
+        0 -(1+sr5)//4 0]
+  return convex_hull(ENF, V; non_redundant = true)
+end
+
+function _johnson_solid(::Val{92})
+  Qx, x = QQ["x"]
+  NF, srs = number_field([x^2 - 3, x^2 - 5])
+  ENF, srse = Hecke.embedded_field(NF, real_embeddings(NF)[4])
+  sr3, sr5 = srse
+  V = [1//2 -sr3//6 sr3*(3+sr5)//6;
+       -1//2 -sr3//6 sr3*(3+sr5)//6;
+       0 sr3//3 sr3*(3+sr5)//6;
+       1//2 sr3*(2+sr5)//6 sr3*(1+sr5)//6;
+       -1//2 sr3*(2+sr5)//6 sr3*(1+sr5)//6;
+       (3+sr5)//4 -sr3*(sr5-1)//12 sr3*(1+sr5)//6;
+       -(3+sr5)//4 -sr3*(sr5-1)//12 sr3*(1+sr5)//6;
+       (1+sr5)//4 -sr3*(5+sr5)//12 sr3*(1+sr5)//6;
+       -(1+sr5)//4 -sr3*(5+sr5)//12 sr3*(1+sr5)//6;
+       (3+sr5)//4 sr3*(3+sr5)//12 sr3//3;
+       -(3+sr5)//4 sr3*(3+sr5)//12 sr3//3;
+       0 -sr3*(3+sr5)//6 sr3//3; 
+       1//2 sr3//2 0;
+       1//2 -sr3//2 0;
+       -1//2 sr3//2 0;
+       -1//2 -sr3//2 0;
+       1 0 0; 
+       -1 0 0]
+  return convex_hull(ENF, V; non_redundant = true)
+end
+
