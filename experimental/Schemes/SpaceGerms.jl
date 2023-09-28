@@ -58,7 +58,7 @@ A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme
 
   function HypersurfaceGerm(X::GermAtClosedPoint,f::MPolyLocRingElem; check::Bool=true)
     base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
-    if check
+    @check begin
       (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,f)
@@ -68,7 +68,7 @@ A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme
 ## as no backend for groebner computations is currently available in this case
   function HypersurfaceGerm(X::GermAtGeometricPoint, f::MPolyLocRingElem; check::Bool=true)
     base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
-    if check
+    @check begin
       (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,f)
@@ -86,7 +86,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
     R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
-    if check
+    @check begin
 ## TODO: change dim(Spec(R)) to dim(R) as soon as the fixes for dim have
 ## been moved to the algebra side!!!!
       length(v) == dim(Spec(R)) - dim(X) || error("not a complete intersection")
@@ -100,7 +100,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   function CompleteIntersectionGerm(X::GermAtGeometricPoint, v::Vector{MPolyLocRingElem}; check::Bool=true)
     R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
-    if check
+    @check begin
       length(v) == dim(Spec(R)) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
@@ -180,18 +180,21 @@ Spectrum
 ```
 """
 @attr Spec function representative(X::AnySpaceGerm)
-      return Spec(underlying_quotient(OO(X)))
+  return Spec(underlying_quotient(OO(X)))
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocRing})
-    R = ambient_coordinate_ring(X)
-    return Spec(R)
+  R = ambient_coordinate_ring(X)
+  return Spec(R)
 end
 
 @doc raw"""
-    point(X::AbsSpaceGerm)
+    point(X::AnySpaceGermClosedPoint)
+    point(X::AnySpaceGermGeometricPoint)
 
-Returns the point `p` of a germ `(X,p)`.
+Returns the point `p` of a germ `(X,p)`, where p is specified
+- as its point_coordinates in the first case
+- as the respective prime ideal of `p` in the second case
 
 # Examples:
 ```jldoctest
@@ -215,19 +218,19 @@ function point(X::AnySpaceGermClosedPoint)
   return point_coordinates(inverted_set(OO(X)))
 end
 
-## currently unused case
+## TODO: move to higher level, i not already available
 function point(X::AnySpaceGermGeometricPoint)
   return prime_ideal(inverted_set(OO(X)))
 end
 
-Oscar.ring(X::AbsSpaceGerm) = OO(X)
+coordinate_ring(X::AbsSpaceGerm) = OO(X)
 
-function Oscar.ideal(X::AnySpaceGerm)
+function defining_ideal(X::AnySpaceGerm)
     return modulus(OO(X))
 end
 
-function Oscar.ideal(X::SpaceGerm{<:Ring,<:MPolyLocRing})
-    return ideal(OO(X),[zero(OO(X))])
+function defining_ideal(X::SpaceGerm{<:Ring,<:MPolyLocRing})
+    return ideal(OO(X),[])
 end
 
 @doc raw"""
@@ -296,8 +299,8 @@ julia> defining_ring_element(XS)
 
 ```
 """
-defining_ring_element(X::HypersurfaceGerm) = X.f
-defining_ring_elements(X::CompleteIntersectionGerm) = X.v
+defining_ring_element(X::HypersurfaceGerm) = X.f::MPolyLocRingElem
+defining_ring_elements(X::CompleteIntersectionGerm) = X.v::Vector{MPolyLocRingElem}
 
 ################################################################################
 # allow user to specify point also as ideal
@@ -355,7 +358,7 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
 ```jldoctest
@@ -450,7 +453,7 @@ may be specified in several equivalent ways:
 
 This variant allows explicit specification of the generator for the hypersurface. The given `f` is checked to generate to modulus of OO(X) or A respectively. In the affirmative case, the given generator will subsequently be used by all methods explicitly accessing a generator.
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
 ```jldoctest
@@ -610,7 +613,7 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples:
 
@@ -685,7 +688,7 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 !!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
@@ -758,7 +761,7 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently supported.
+!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 !!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
@@ -878,11 +881,11 @@ end
 #       intersect uses explicit fallback to Spec and adjusted return types
 #       union uses explicit fallback and adjusted return types
 ##############################################################################
-@doc raw"""
-    is_subset(X::AbsSpaceGerm,Y::AbsSpaceGerm)
-
-Returns whether `X` is a subset of `Y` as space germs
-"""
+#@doc raw"""
+#    is_subset(X::AbsSpaceGerm,Y::AbsSpaceGerm)
+#
+#Returns whether `X` is a subset of `Y` as space germs
+#"""
 function is_subset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing})
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -924,13 +927,13 @@ function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   return SpaceGerm(Z)
 end
 
-@doc raw"""
+#@doc raw"""
     union(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
     union(X::HypersurfaceGerm, Y:: HypersurfaceGerm) --> HypersurfaceGerm
 
 Returns the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
 
-# Example:
+ Example:
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
@@ -976,7 +979,7 @@ function Base.union(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
-  f_new = numerator(X.f)*numerator(Y.f)
+  f_new = numerator(defining_ring_element(X))*numerator(defining_ring_element(Y))
   f_new = radical(ideal(R,[f_new]))[1]
   Y = HypersurfaceGerm(Spec(quo(R,ideal(R,f_new))[1]), point(X))
   Y.f = f_new
@@ -1048,6 +1051,8 @@ function subgerm(X::AbsSpaceGerm, I::Ideal)
   return SpaceGerm(Y)
 end
 
+subscheme(X::AbsSpaceGerm, I::Ideal) = subgerm(X::AbsSpaceGerm, I::Ideal)
+
 @doc raw"""
     is_isolated_singularity(X::AbsSpaceGerm)
 
@@ -1087,7 +1092,7 @@ function milnor_algebra(X::HypersurfaceGerm)
   R = localized_ring(OO(X))
   ## milnor number independent of choice of representative
   ## hence choose a polynomial representative for easier computation
-  f_poly = numerator(X.f)
+  f_poly = numerator(defining_ring_element(X))
   I = ideal(R, R.([derivative(f_poly, i) for i=1:nvars(base_ring(R))]))
   return quo(R,I)[1]
 end
@@ -1106,7 +1111,7 @@ function milnor_number(X::CompleteIntersectionGerm)
   R = localized_ring(OO(X))
   ## milnor number independent of choice of representative
   ## hence choose polynomial representatives for easier computation
-  v = [numerator(a) for a in X.v]
+  v = [numerator(a) for a in defining_ring_elements(X)]
   w = typeof(v[1])[]   ## already used entries of v
   dims = 0             ## for building up the alternating sum
   sign = 1             ##     and the sign
