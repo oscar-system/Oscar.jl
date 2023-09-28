@@ -335,7 +335,7 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 Facet degrees of the cone. The degree of a facet is the number of adjacent facets. 
 In particular a general $2$-dimensional cone has two facets (rays) that meet at the origin. 
 
-#Example
+# Example
 Produce the facet degrees of a cone over a square and a cone over a square pyramid. 
 ```jldoctest
 julia> c = positive_hull([1 1 0; 1 -1 0; 1 0 1; 1 0 -1])
@@ -372,7 +372,7 @@ there are no rays that are also faces.
 Note the corresponding `polymake` property is called `VERTEX_DEGREES` and behaves 
 differently if the cone has lineality.
 
-#Examples
+# Examples
 ```jldoctest
 julia> c = cone_from_inequalities([-1 0 0; 0 -1 0])
 Polyhedral cone in ambient dimension 3

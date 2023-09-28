@@ -2319,12 +2319,12 @@ end
 Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex figure is dual to a facet of the dual polytope. 
 
 # Optional Arguments
--`cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
-Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
-Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\fraction{1}{2}$. 
--`no_coordinates::Bool`: Skip the coordinates computation, producing a pure combinatorial description. 
+- `cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
+  Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
+  Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\fraction{1}{2}$. 
+- `no_coordinates::Bool`: Skip the coordinates computation, producing a pure combinatorial description. 
 
-#Example
+# Example
 To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
 ```jldoctest
 julia> T = vertex_figure(cube(3), 8) 
@@ -2348,11 +2348,11 @@ julia> vertices(T)
 
 """
 function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing, no_coordinates=nothing) where {T<:scalar_types}
-  (n<=0 || n > nvertices(P)) && throw(ArgumentError("vertex_figure: There is no vertex "*string(n)*" in this polyhedron"))
+  @req 1 <= n <= nvertices(P) "There is no vertex $n in this polyhedron"
   opts = Dict{Symbol,Any}()
   if !isnothing(cutoff)
-    (cutoff <= 0 || cutoff >=1) && throw(ArgumentError("vertex_figure: cutoff factor must be within (0,1)"))
-    !isnothing(no_coordinates) && throw(ArgumentError("vertex_figure: cannot specify cutoff and no_coordinates options simultaneously"))
+    @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"
+    @req isnothing(no_coordinates) "cannot specify cutoff and no_coordinates options simultaneously"
     opts[:cutoff] = convert(Number, cutoff)
   end
   if !isnothing(no_coordinates)
