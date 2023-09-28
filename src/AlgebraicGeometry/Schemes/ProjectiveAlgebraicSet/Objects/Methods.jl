@@ -26,7 +26,7 @@ function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing}
       I = fat_ideal(X)
     end
     join(io, gens(I), ",")
-    print(io,")")
+    print(io, ")")
   end
 end
 

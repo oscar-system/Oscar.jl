@@ -208,22 +208,12 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
 end
 
 function Base.show(io::IO, f::AbsSpecMor)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Affine scheme morphism")
   else
-    X = domain(f)
-    Y = codomain(f)
+    io = pretty(io)
     print(io, "Hom: ")
-    if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the domain is not given as a V(bla)
-      print(io, Lowercase())
-    end
-    print(io, X)
-    print(io, " -> ")
-    if typeof(Y) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the codomain is not given as a V(bla)
-      print(io, Lowercase())
-    end
-    print(io, Y)
+    print(io, Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 
