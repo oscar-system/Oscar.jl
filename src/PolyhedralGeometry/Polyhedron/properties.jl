@@ -754,15 +754,8 @@ julia> facet_sizes(p)
 ```
 """
 function facet_sizes(P::Polyhedron{T}) where T<:scalar_types
-  is_bounded(P) && return Vector{Int}(pm_object(P).FACET_SIZES)
-  im = IncidenceMatrix(pm_object(P).VERTICES_IN_FACETS)
-  nrows = size(im)[1]
-  #get the vertices that are really vertices and the facets that are really facets
-  ff = convert(Set{Int}, Polymake.to_one_based_indexing(P.pm_polytope.FAR_FACE))
-  i = _facet_at_infinity(pm_object(P))
-  rows = Vector{Int}(1:nrows)
-  i <= nrows && deleteat!(rows,i) #the face at infinity is not always a facet, so does not always need to be removed
-  return [length(Base.setdiff(row(im,i), ff)) for i in 1:length(rows)]
+  im = vertex_indices(facets(P))
+  return [length(row(im, i)) for i in 1:nrows(im)]
 end
 
 @doc raw"""
@@ -784,9 +777,9 @@ julia> vertex_sizes(bipyramid(simplex(2)))
 function vertex_sizes(P::Polyhedron{T}) where T<:scalar_types
   pm_object(P).LINEALITY_DIM > 0 && return Vector{Int}()
   res = Vector{Int}(pm_object(P).VERTEX_SIZES)
-  fai = [i+1 for i in Vector{Int}(pm_object(P).FAR_FACE)]
-  vertices = symdiff(Vector{Int}(1:pm_object(P).N_VERTICES),fai)
-  return [res[i] for i in vertices]
+
+  vertices = Polymake.to_one_based_indexing(Polymake.polytope.bounded_vertices(pm_object(P)))
+  return res[collect(vertices)]
 end
 
 ###############################################################################
