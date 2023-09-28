@@ -146,7 +146,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   print(io, Indent(), "from ", Lowercase())
   Oscar._show_semi_compact(io, domain(f), domain(g), "a")
   println(io)
-  print(io, "to   ", Lowercase())
+  print(io, "to ", Lowercase())
   Oscar._show_semi_compact(io, codomain(f), codomain(g), "b")
   if min(length(domain(g)), length(codomain(g))) == 0
     print(io, Dedent())
