@@ -299,8 +299,8 @@ julia> defining_ring_element(XS)
 
 ```
 """
-defining_ring_element(X::HypersurfaceGerm) = X.f::MPolyLocRingElem
-defining_ring_elements(X::CompleteIntersectionGerm) = X.v::Vector{MPolyLocRingElem}
+defining_ring_element(X::HypersurfaceGerm) = X.f::elem_type(localized_ring_type(ring_type(X)))
+defining_ring_elements(X::CompleteIntersectionGerm) = X.v::Vector{elem_type(localized_ring_type(ring_type(X)))}
 
 ################################################################################
 # allow user to specify point also as ideal
