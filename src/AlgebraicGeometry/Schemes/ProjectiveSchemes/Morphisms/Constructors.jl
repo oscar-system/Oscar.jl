@@ -152,6 +152,7 @@ identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
 function sub(P::AbsProjectiveScheme, I::Ideal)
   @req base_ring(I) === homogeneous_coordinate_ring(P) "ideal must be defined in the homogeneous coordinate ring of the scheme"
   inc = ProjectiveClosedEmbedding(P, I)
+  set_attribute!(domain(inc), :ambient_space, ambient_space(P))
   return domain(inc), inc
 end
   
@@ -178,4 +179,14 @@ function compose(f::ProjectiveClosedEmbedding, g::ProjectiveClosedEmbedding)
   push_If = ideal(SZ, [preimage(pullback(g), x) for x in gens(If)])
   J = push_If + Ig
   return ProjectiveClosedEmbedding(compose(underlying_morphism(f), underlying_morphism(g)), J, check=false)
+end
+
+function ambient_embedding(X::AbsProjectiveScheme)
+  IP = ambient_space(X)
+  S = homogeneous_coordinate_ring(IP)
+  T = homogeneous_coordinate_ring(X)
+  I = defining_ideal(X)
+  pb = hom(S, T, gens(T))
+  inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
+  return ProjectiveClosedEmbedding(inc_sub, I, check=false)
 end
