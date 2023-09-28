@@ -247,7 +247,7 @@ julia> s
 Morphism
   from scheme over QQ covered with 1 patch
     1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
-  to   scheme over QQ covered with 3 patches
+  to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
     3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
