@@ -927,7 +927,7 @@ function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   return SpaceGerm(Z)
 end
 
-#@doc raw"""
+@doc raw"""
     union(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
     union(X::HypersurfaceGerm, Y:: HypersurfaceGerm) --> HypersurfaceGerm
 
