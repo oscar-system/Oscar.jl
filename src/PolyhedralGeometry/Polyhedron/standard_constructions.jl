@@ -2314,7 +2314,7 @@ function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
 end
 
 @doc raw"""
-    vertex_figure(P::Polyhedron, n::Int; cutoff::Rational=1/2)
+    vertex_figure(P::Polyhedron, n::Int; cutoff=1//2)
 
 Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex figure is dual to a facet of the dual polytope. 
 
@@ -2353,10 +2353,10 @@ function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing, no_coordinates=
   if !isnothing(cutoff)
     @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"
     @req isnothing(no_coordinates) "cannot specify cutoff and no_coordinates options simultaneously"
-    opts[:cutoff] = convert(Number, cutoff)
+    opts[:cutoff] = convert(Polymake.PolymakeType, cutoff)
   end
   if !isnothing(no_coordinates)
     opts[:no_coordinates] = convert(Bool, no_coordinates)
   end
-  return Polyhedron{T}(Polymake.polytope.vertex_figure(pm_object(P),n-1; opts...))
+  return Polyhedron{T}(Polymake.polytope.vertex_figure(pm_object(P), n-1; opts...), coefficient_field(P))
 end
