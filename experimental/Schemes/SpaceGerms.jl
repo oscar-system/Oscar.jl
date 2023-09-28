@@ -60,7 +60,7 @@ end
 
 @doc raw"""
     HypersurfaceGerm{BaseRingType, RingType, SpecType}
-A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type `SpecType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct HypersurfaceGerm{
                  BaseRingType<:Ring,
