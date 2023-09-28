@@ -1,5 +1,5 @@
 
-function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor) 
+function ==(f::AbsProjectiveSchemeMorphism, g::AbsProjectiveSchemeMorphism) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   for s in gens(homogeneous_coordinate_ring(codomain(f)))
@@ -8,15 +8,15 @@ function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
   return true
 end
 
-function ==(f::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}},
-            g::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}})
+function ==(f::AbsProjectiveSchemeMorphism{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}},
+            g::AbsProjectiveSchemeMorphism{<:AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}})
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
 @doc raw"""
-    covered_scheme_morphism(f::ProjectiveSchemeMor)
+    covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
 
 Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
 return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
@@ -51,7 +51,7 @@ with default covering
     3: [(x//z), (y//z)]
 ```
 """
-@attr function covered_scheme_morphism(f::ProjectiveSchemeMor)
+@attr function covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
   PX = domain(f)
   PY = codomain(f)
   SX = ambient_coordinate_ring(PX)
@@ -90,13 +90,38 @@ with default covering
   return ff
 end
 
+@attr CoveredClosedEmbedding function covered_scheme_morphism(f::ProjectiveClosedEmbedding)
+  PX = domain(f)
+  PY = codomain(f)
+  SX = homogeneous_coordinate_ring(PX)
+  SY = homogeneous_coordinate_ring(PY)
+  pbf = pullback(f)
+
+  X = covered_scheme(PX)
+  Y = covered_scheme(PY)
+
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  U = affine_charts(X)
+  # TODO: The code below does not run when we have empty affine charts. Adjust accordingly when cleaning up!
+  II = IdealSheaf(PY, image_ideal(f))
+  for i in 1:ngens(SX)
+    U_i = U[i]
+    V_i = affine_charts(Y)[i]
+    mor_dict[U_i] = ClosedEmbedding(SpecMor(U_i, V_i, gens(OO(U_i)), check=false), II(V_i))
+  end
+  f_cov = CoveringMorphism(default_covering(X), default_covering(Y), mor_dict, check=false)
+
+  result = CoveredClosedEmbedding(X, Y, f_cov, check=false)
+  return result
+end
+
 ###############################################################################
 #
 #  Printing
 #
 ###############################################################################
 
-function Base.show(io::IO, f::ProjectiveSchemeMor)
+function Base.show(io::IO, f::AbsProjectiveSchemeMorphism)
   if get(io, :supercompact, false)
     print(io, "Morphism")
   else
@@ -105,7 +130,7 @@ function Base.show(io::IO, f::ProjectiveSchemeMor)
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
+function Base.show(io::IO, ::MIME"text/plain", f::AbsProjectiveSchemeMorphism)
   io = pretty(io)
   X = domain(f)
   Y = codomain(f)
@@ -130,7 +155,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::ProjectiveSchemeMor)
   end
 end
 
-function _show_semi_compact(io::IO, f::ProjectiveSchemeMor)
+function _show_semi_compact(io::IO, f::AbsProjectiveSchemeMorphism)
   io = pretty(io)
   print(io, "Morphism of projective schemes")
   if has_attribute(f, :covered_scheme_morphism)
