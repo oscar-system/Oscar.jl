@@ -29,6 +29,27 @@
   @test milnor_number(YG) == 5
 end
 
+@testset "SpaceGerms at geometric points" begin
+  X = affine_space(QQ,3)
+  OOX = coordinate_ring(X)
+  (x,y,z) = gens(OOX)
+  I = ideal(OOX,[x+y+z^2+1])
+  J = ideal(OOX,[x+y,z^2+1])
+  QI,_ = quo(OOX,I)
+  QJ,_ = quo(OOX,J)
+  U = complement_of_prime_ideal(ideal(OOX,[x,y,z^2+1]))
+  RI,_ = localization(QI,U)
+  RJ,_ = localization(QJ,U)
+  Y = SpaceGerm(RI)
+  @test OO(Y) == RI
+#  HypersurfaceGerm(RI)      does not work without standard bases
+#  CompleteIntersectionGerm(TI)     does not work without standard bases
+  V = complement_of_prime_ideal(ideal(OOX,[x,z^2+1]))
+  SI,_ = localization(QI,V)
+  Z = SpaceGerm(SI)
+  @test_broken dim(Z) == 1
+end
+
 @testset "Space Germ constructors Spec-Ideal" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   J = ideal(R, [x-y])
