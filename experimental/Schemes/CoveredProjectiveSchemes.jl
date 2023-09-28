@@ -1756,3 +1756,45 @@ end
 #
 #
 
+function fiber_product(
+    i1::CoveredClosedEmbedding,
+    i2::CoveredClosedEmbedding
+  )
+  X1 = domain(i1)
+  X2 = domain(i2)
+  Y = codomain(i1)
+  Y === codomain(i2) || error("codomains do not coincide")
+  i1_cov = covering_morphism(i1)
+  i2_cov = covering_morphism(i2)
+  codomain(i1_cov) === codomain(i2_cov) || error("case of different coverings in codomain not implemented")
+  cod_cov = codomain(i1_cov)
+  #=
+  cod_ref, ref1, ref2 = common_refinement(codomain(i1_cov), codomain(i2_cov))
+  dom_ref1, i1_res = fiber_product(i1, ref1)
+  dom_ref2, i2_res = fiber_product(i1, ref2)
+  # etc. etc.... This is roughly the generic code to come.
+  =#
+  I1 = image_ideal(i1)
+  pb_I1 = pullback(i2, I1)
+  I2 = image_ideal(i2)
+  pb_I2 = pullback(i1, I2)
+
+  j1 = Oscar.CoveredClosedEmbedding(domain(i2), pb_I1)
+  Z = domain(j1)
+  morphism_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  for U in affine_charts(Z)
+    V2 = codomain(j1[U])
+    W = codomain(i2[V2])
+    V1_candidates = maps_with_given_codomain(i1, W)
+    @assert length(V1_candidates) == 1 "not the correct number of patches found"
+    V1 = domain(first(V1_candidates))
+    x = gens(OO(V1))
+    lift_x = [preimage(pullback(i1[V1]), f) for f in x]
+    pb_x = pullback(i2[V2]).(lift_x)
+    pb_x = pullback(j1[U]).(pb_x)
+    morphism_dict[U] = ClosedEmbedding(SpecMor(U, V1, pb_x, check=false), pb_I2(V1), check=false)
+  end
+  j2_cov = CoveringMorphism(default_covering(Z), domain(i1_cov), morphism_dict, check=false)
+  j2 = Oscar.CoveredClosedEmbedding(Z, X1, j2_cov)
+  return j1, j2
+end
