@@ -339,7 +339,7 @@ end
   L, loc = localization(A, U)
   @test dim(L) == 0
 
-  U = complement_of_prime_ideal(modulus(A) + ideal(R, [x, y]))
+  U = complement_of_prime_ideal(modulus(A) + ideal(R, [y, z]))
   L, loc = localization(A, U)
   @test dim(L) == 2
 end
