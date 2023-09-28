@@ -232,7 +232,7 @@ with default covering
     3: [(x//z), (y//z)]
 
 julia> I, s = singular_locus(Ycov)
-(Scheme over QQ covered with 1 patch, Morphism: scheme over QQ covered with 1 patch -> scheme over QQ covered with 3 patches)
+(Scheme over QQ covered with 1 patch, Hom: scheme over QQ covered with 1 patch -> scheme over QQ covered with 3 patches)
 
 julia> I # singular locus actually lives in the patch {z != 0}
 Scheme

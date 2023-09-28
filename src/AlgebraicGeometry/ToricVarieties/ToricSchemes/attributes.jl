@@ -17,7 +17,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal, affine toric variety
 
 julia> forget_toric_structure(antv)
-(V(0), Morphism: V(0) -> Normal, affine toric variety)
+(V(0), Hom: V(0) -> Normal, affine toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
@@ -41,7 +41,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> forget_toric_structure(P2)
-(Scheme over QQ covered with 3 patches, Morphism: scheme over QQ covered with 3 patches -> normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor)
+(Scheme over QQ covered with 3 patches, Hom: scheme over QQ covered with 3 patches -> normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor)
 ```
 """
 function forget_toric_structure(X::NormalToricVariety)

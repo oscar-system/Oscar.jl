@@ -24,7 +24,7 @@ julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
 
 julia> G = Glueing(U1, U2, f, g) # Construct the glueing
 Glueing
-  of  affine 2-space
+  of affine 2-space
   and affine 2-space
 along the open subsets
   [x, y]   AA^2 \ V(x)
@@ -46,7 +46,7 @@ julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
 julia> H = Glueing(U1, U2, h1, h2)
 Glueing
-  of  affine 2-space
+  of affine 2-space
   and affine 2-space
 along the open subsets
   [x, y]   complement to V(x) in affine scheme with coordinates [x, y]

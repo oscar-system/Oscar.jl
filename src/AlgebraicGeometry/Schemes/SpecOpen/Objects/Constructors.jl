@@ -150,7 +150,7 @@ julia> Y2 = Spec(P2, I2);
 julia> U2 = complement(A2, Y2);
 
 julia> V, iU, iZ = product(U2, Y1)
-(Complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1], Morphism: complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1] -> complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2], Morphism: complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1] -> complement to V(1) in affine scheme with coordinates [x1, y1, z1])
+(Complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1], Hom: complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1] -> complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2], Hom: complement to V(x2^2 - y2^2 + z2^2) in affine scheme with coordinates [x2, y2, z2, x1, y1, z1] -> complement to V(1) in affine scheme with coordinates [x1, y1, z1])
 
 julia> V
 Open subset
