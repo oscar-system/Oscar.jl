@@ -619,7 +619,7 @@ equivalent ways:
 
 !!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
-# Examples:
+# Examples
 
 ```jldoctest
 julia> X = affine_space(QQ,3);
