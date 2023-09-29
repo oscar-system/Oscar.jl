@@ -85,7 +85,7 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, nf(order(codomain((mR)))))[2])
   k = nf(order(codomain(mR)))
   G = domain(mG)
 
