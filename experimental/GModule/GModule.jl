@@ -1114,24 +1114,13 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GMo
     end
     #should actually compute an rref of the hom base to make sure
     if any(x->length(x) != length(t[1]), t)
+      @show :BP
       #bad prime...
       continue
     end
     if length(t[1]) == 0
       return []
     end
-    pv = [findfirst(!iszero, x) for x = t[1]]
-    if any(!isequal(pv[1]), pv)
-      continue
-    end
-    for i=1:length(pv)
-      for j=1:length(t)
-        if !isone(t[j][i][pv[i]])
-          t[j][i] *= inv(t[j][i][pv[i]])
-        end
-      end
-    end
-    @assert all(i->all(x->x[pv[i]] == 1, t[i]), 1:length(pv))
 
     tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
     @assert base_ring(tt[1]) == k
@@ -1144,7 +1133,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GMo
       pp *= p
       S = []
       for t = T
-        fl, s = induce_rational_reconstruction(t, pp)# , ErrorTolerant = true)
+        fl, s = induce_rational_reconstruction(t, pp, ErrorTolerant = true)
         fl || break
         push!(S, s)
       end
