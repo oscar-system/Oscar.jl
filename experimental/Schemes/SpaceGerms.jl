@@ -198,7 +198,7 @@ Returns the point `p` of a germ `(X,p)`, where p is specified
 - as its point_coordinates in the first case
 - as the respective prime ideal of `p` in the second case
 
-# Examples:
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"];
 
