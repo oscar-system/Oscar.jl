@@ -3191,3 +3191,6 @@ function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:F
   I_min = L.(small_generating_set(saturated_ideal(I)))
   return filter(!iszero, I_min)
 end
+
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+
