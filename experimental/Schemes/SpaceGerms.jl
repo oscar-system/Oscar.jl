@@ -1085,8 +1085,7 @@ false
 ```
 """
 @attr Bool function is_isolated_singularity(X::AbsSpaceGerm)
-  dim(singular_locus(X)[1]) < 1 || return false
-  return true
+  return dim(singular_locus(X)[1]) < 1
 end
 
 ##############################################################################
