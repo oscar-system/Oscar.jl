@@ -151,7 +151,7 @@ end
 # aligned on the right, and their respective images are aligned on the left.
 function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
   io = pretty(io)
-  println(io, "Morphism")
+  println(io, "Covering morphism")
   print(io, Indent(), "from ", Lowercase(), domain(f))
   print(io, Indent())
   co_str = String[""]

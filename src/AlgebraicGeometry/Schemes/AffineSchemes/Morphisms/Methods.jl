@@ -162,7 +162,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   kY = length(str)                                  # Length coordinates codomain
   push!(co_str, str)
   k = max(length.(co_str)...)                       # Maximum to estimate offsets
-  println(io, "Morphism")
+  println(io, "Affine scheme morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2))                 # Consider offset for alignment
   if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}} # Take care of the case where the domain is not given as a V(bla)

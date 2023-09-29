@@ -142,7 +142,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   g = covering_morphism(f)
-  println(io, "Morphism")
+  println(io, "Covered scheme morphism")
   print(io, Indent(), "from ", Lowercase())
   Oscar._show_semi_compact(io, domain(f), domain(g), "a")
   println(io)
