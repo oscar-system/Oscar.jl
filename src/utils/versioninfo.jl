@@ -71,7 +71,7 @@ function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit
       branch = jll = julia = commit = true
    end
    print(io, "OSCAR version $(VERSION_NUMBER)")
-   println(io, branch ? _lookup_git_branch(dirname(@__DIR__); commit=commit) : "")
+   println(io, branch ? _lookup_git_branch(Oscar.oscardir; commit=commit) : "")
    println(io, "  combining:")
    _print_dependency_versions(io, cornerstones; suffix=".jl", branch=branch, commit=commit)
    if jll
