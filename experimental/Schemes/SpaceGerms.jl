@@ -81,7 +81,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
 """
 @attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
   X::SpecType
-  v::Vector{RingElem}
+  v::Vector{<:RingElem}
 
   function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
     R = base_ring(modulus(OO(X)))
@@ -300,7 +300,7 @@ julia> defining_ring_element(XS)
 ```
 """
 defining_ring_element(X::HypersurfaceGerm) = X.f::elem_type(localized_ring_type(ring_type(X)))
-defining_ring_elements(X::CompleteIntersectionGerm) = Vector{elem_type(localized_ring_type(ring_type(X)))}(X.v)
+defining_ring_elements(X::CompleteIntersectionGerm) = X.v::Vector{elem_type(localized_ring_type(ring_type(X)))}
 
 ################################################################################
 # allow user to specify point also as ideal
