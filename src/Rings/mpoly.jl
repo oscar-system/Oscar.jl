@@ -1300,7 +1300,7 @@ function hessian_matrix(f::MPolyElem)
   R = parent(f)
   n = nvars(R)
   df = jacobi_matrix(f)
-  result = zero(MatrixSpace(R, n, n))
+  result = zero_matrix(R, n, n)
   for i in 1:n
     for j in i:n
       result[i, j] = result[j, i] = derivative(df[i], j)
