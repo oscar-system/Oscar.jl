@@ -150,7 +150,10 @@ end
   G = dihedral_group(8)
   z = irreducible_modules(G)
   @test dim((z[1] ⊕ z[2]) ⊗ z[3]) == 2
-  
+ 
+  k, a = quadratic_field(3)
+  r, mr = ray_class_group(7*5*maximal_order(k), n_quo = 2)
+  z = gmodule(automorphism_group(PermGroup, k)[1], mr)
 end
 
 @testset "H^3" begin
