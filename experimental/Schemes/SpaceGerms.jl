@@ -693,9 +693,11 @@ equivalent ways:
 - by a maximal ideal `I` in the ambient_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
+!!!note
+    Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
-!!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
+!!!note
+    If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
 # Examples
 ```jldoctest
