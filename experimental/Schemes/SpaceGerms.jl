@@ -455,7 +455,8 @@ may be specified in several equivalent ways:
 
 This variant allows explicit specification of the generator for the hypersurface. The given `f` is checked to generate to modulus of OO(X) or A respectively. In the affirmative case, the given generator will subsequently be used by all methods explicitly accessing a generator.
 
-!!!note: Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
+!!!note
+    Only `LocalRing`s localized at rational points over the coefficient field are currently fully supported.
 
 # Examples
 ```jldoctest
