@@ -1646,6 +1646,7 @@ function discriminant_representation(L::ZZLat, G::MatrixGroup;
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     C = vcat(B, B2)
+    iC = inv(C)
   end
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
@@ -1654,7 +1655,7 @@ function discriminant_representation(L::ZZLat, G::MatrixGroup;
   for g in geneG
     if !ambient_representation
       mg = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      mg = inv(C)*mg*C
+      mg = iC*mg*C
     else
       mg = matrix(g)
     end
@@ -1884,8 +1885,9 @@ function signatures(Lf::ZZLatWithIsom)
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()
   fC = change_base_ring(C, f)
+  ifC = inv(fC)
   for i in Sq
-    M = fC + inv(fC) - lambda^i - lambda^(-i)
+    M = fC + ifC - lambda^i - lambda^(-i)
     D[i] = _real_kernel_signatures(L, M)
   end
   return D
@@ -2138,12 +2140,13 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     B3 = vcat(B, B2)
+    iB3 = inv(B3)
   end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = inv(B3)*g_ambient*B3
+      g_ambient = iB3*g_ambient*B3
       m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
@@ -2212,12 +2215,13 @@ function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representa
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     B3 = vcat(B, B2)
+    iB3 = inv(B3)
   end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = inv(B3)*g_ambient*B3
+      g_ambient = iB3*g_ambient*B3
       m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
