@@ -131,7 +131,7 @@ end
     representative(X::AnySpaceGerm)
     representative(X::SpaceGerm{<:Ring, <:MPolyLocRing})
 
-Returns a representative `Y` of a space germ `(X,p)` at a point `p`.
+Return a representative `Y` of a space germ `(X,p)` at a point `p`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
@@ -192,7 +192,7 @@ end
     point(X::AnySpaceGermClosedPoint)
     point(X::AnySpaceGermGeometricPoint)
 
-Returns the point `p` of a germ `(X,p)`, where p is specified
+Return the point `p` of a germ `(X,p)`, where p is specified
 - as its point_coordinates in the first case
 - as the respective prime ideal of `p` in the second case
 
@@ -236,7 +236,7 @@ end
 @doc raw"""
     ambient_germ(X::AbsSpaceGerm)
 
-Returns the ambient germ of a given germ `(X,p)`.
+Return the ambient germ of a given germ `(X,p)`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
@@ -274,7 +274,7 @@ end
     defining_ring_element(X::HypersurfaceGerm)
     defining_ring_elements(X::CompleteIntersectionGerm)
 
-Returns the (fixed) defining element(s) of the ideal of `X` in the ring of the ambient germ of `X`. Note that the return value is not an element of a polynomial ring, but of a localization of a polynomial ring the complement of a maximal ideal. (Hence each such element has a numerator and a denominator.)
+Return the (fixed) defining element(s) of the ideal of `X` in the ring of the ambient germ of `X`. Note that the return value is not an element of a polynomial ring, but of a localization of a polynomial ring the complement of a maximal ideal. (Hence each such element has a numerator and a denominator.)
 
 Caution: This command is not exported and is only provided for convenience in programming.
 # Examples:
@@ -350,7 +350,7 @@ end
     SpaceGerm(X::Spec(LocalRing))
     SpaceGerm(A::LocalRing)
 
-Returns the space germ `(X,p)` arising from the given representative `X` or the given
+Return the space germ `(X,p)` arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
@@ -427,7 +427,7 @@ end
     SpaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     SpaceGerm(p::AbsAffineRationalPoint)
 
-Returns a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `Y`.
+Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `Y`.
 """
 SpaceGerm(p::AbsAffineRationalPoint) = SpaceGerm(codomain(p), coordinates(p))
 
@@ -510,7 +510,7 @@ end
     HypersurfaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     HypersurfaceGerm(p::AbsAffineRationalPoint)
 
-Returns a hypersurface germ `(X,p)` for a given `X` and a rational point `p` on some scheme `Y`. If no `X` is specified, `Y` is used in its place.
+Return a hypersurface germ `(X,p)` for a given `X` and a rational point `p` on some scheme `Y`. If no `X` is specified, `Y` is used in its place.
 """
 HypersurfaceGerm(p::AbsAffineRationalPoint) = HypersurfaceGerm(codomain(p), coordinates(p))
 
@@ -588,7 +588,7 @@ end
     CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
 
-Returns a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighbourhood of `p`. If no `X` is specified, `Y` is used in its place.
+Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighbourhood of `p`. If no `X` is specified, `Y` is used in its place.
 """
 CompleteIntersectionGerm(p::AbsAffineRationalPoint) = CompleteIntersectionGerm(codomain(p), coordinates(p))
 
@@ -604,7 +604,7 @@ end
               I::Union{Ideal,Vector})
     germ_at_point(A::LocalRing, I::Union{Ideal,Vector})
 
-Returns a SpaceGerm `(X,p)` and the corresponding inclusion morphism of spectra
+Return a SpaceGerm `(X,p)` and the corresponding inclusion morphism of spectra
 arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
@@ -661,7 +661,7 @@ germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
     germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
     germ_at_point(p::AbsAffineRationalPoint)
 
-Returns a space germ `(X,p)` and the corresponding inclusion morphism of spectra arising
+Return a space germ `(X,p)` and the corresponding inclusion morphism of spectra arising
 from the representative `X` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place..
 
 """
@@ -679,7 +679,7 @@ end
               I::Union{Ideal,Vector})
     hypersurface_germ(A::LocalRing, I::Union{Ideal,Vector})
 
-Returns a HypersurfaceGerm `(X,p)` and the corresponding inclusion morphism of spectra
+Return a HypersurfaceGerm `(X,p)` and the corresponding inclusion morphism of spectra
 arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
@@ -736,7 +736,7 @@ hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
     hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
     hypersurface_germ(p::AbsAffineRationalPoint)
 
-Returns a hypersurface germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place. 
+Return a hypersurface germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place. 
 
 !!!mote: If the defining ideal of `(X,p)` is not principal. an error exception occurs.
 """
@@ -754,7 +754,7 @@ end
               I::Union{Ideal,Vector})
     complete_intersection_germ(A::LocalRing, I::Union{Ideal,Vector})
 
-Returns a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphism of spectra arising from the given representative `X` or the given `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
+Return a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphism of spectra arising from the given representative `X` or the given `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I`in the coordinate ring of `X` or
@@ -809,7 +809,7 @@ complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
     complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
     complete_intersection_germ(p::AbsAffineRationalPoint)
 
-Returns a complete intersection germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
+Return a complete intersection germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
 !!!mote: If the defining ideal of `(X,p)` does not describe a complete intersection. an error exception occurs.
 """
@@ -884,7 +884,7 @@ end
 #@doc raw"""
 #    is_subset(X::AbsSpaceGerm,Y::AbsSpaceGerm)
 #
-#Returns whether `X` is a subset of `Y` as space germs
+#Return whether `X` is a subset of `Y` as space germs
 #"""
 function is_subset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocRing})
   R = ambient_coordinate_ring(X)
@@ -919,7 +919,7 @@ end
 @doc raw"""
     intersect(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
 
-Returns the intersection of `X` and `Y`, provided they are germs at the same point.
+Return the intersection of `X` and `Y`, provided they are germs at the same point.
 """
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
@@ -931,7 +931,7 @@ end
     union(X::AbsSpaceGerm,Y::AbsSpaceGerm) --> SpaceGerm
     union(X::HypersurfaceGerm, Y:: HypersurfaceGerm) --> HypersurfaceGerm
 
-Returns the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
+Return the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
 
  Example:
 ```jldoctest
@@ -995,7 +995,7 @@ end
 @doc raw"""
    singular_locus(X::AbsSpaceGerm)  --> SpaceGerm, ClosedEmbedding
 
-Returns the space germ (Y,p) for a given germ (X,p) and the closed embedding of (Y,p) into (X,p), where Y is the singular locus of X.
+Return the space germ (Y,p) for a given germ (X,p) and the closed embedding of (Y,p) into (X,p), where Y is the singular locus of X.
 
 # Examples:
 ```jldoctest
@@ -1041,7 +1041,7 @@ end
 @doc raw"""
     subgerm(X::AbsSpaceGerm, I::Ideal) --> SpaceGerm
 
-Returns the space germ (Y,p) of (X,p) defined by the ideal I in the local ring of X at p
+Return the space germ (Y,p) of (X,p) defined by the ideal I in the local ring of X at p
 
 !!! note: (Y,p) is of type SpaceGerm, even if (X,p) is a HypersurfaceGerm or a CompleteIntersectionGerm.
 """
@@ -1056,7 +1056,7 @@ subscheme(X::AbsSpaceGerm, I::Ideal) = subgerm(X::AbsSpaceGerm, I::Ideal)
 @doc raw"""
     is_isolated_singularity(X::AbsSpaceGerm)
 
-Returns whether `(X,p)` has at most an isolated singularity.
+Return whether `(X,p)` has at most an isolated singularity.
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
@@ -1086,7 +1086,7 @@ end
 @doc raw"""
     milnor_algebra(X::HypersurfaceGerm)
 
-Returns the local Milnor algebra of `(X,p)` at p
+Return the local Milnor algebra of `(X,p)` at p
 """
 function milnor_algebra(X::HypersurfaceGerm)
   R = localized_ring(OO(X))
@@ -1101,7 +1101,7 @@ end
     milnor_number(X::HypersurfaceGerm)
     milnor_number(X::CompleteIntersectionGerm)
 
-Returns the local Milnor number of `(X,p)` at p
+Return the local Milnor number of `(X,p)` at p
 """
 function milnor_number(X::HypersurfaceGerm)
   return vector_space_dimension(milnor_algebra(X))
@@ -1175,7 +1175,7 @@ end
 @doc raw"""
     milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
 
-Returns the global milnor algebra of the affine hypersurface `X`. If `X` is not a hypersurface, an error occurs.
+Return the global milnor algebra of the affine hypersurface `X`. If `X` is not a hypersurface, an error occurs.
 """
 function milnor_algebra(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
@@ -1188,7 +1188,7 @@ end
 @doc raw"""
     milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
 
-Returns the global milnor number of the affine hypersurface or complete intersection `X`. If `X` is neither of the two, an error occurs.
+Return the global milnor number of the affine hypersurface or complete intersection `X`. If `X` is neither of the two, an error occurs.
 """
 function milnor_number(X::Spec{<:Field,<:MPolyQuoRing})
   R = base_ring(OO(X))
