@@ -944,7 +944,7 @@ end
 
 Returns the union of `X`and `Y`. If `X`and `Y` happen to be HypersurfaceGerms, so is the result.
 
- Example:
+# Examples
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
