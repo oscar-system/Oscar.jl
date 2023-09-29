@@ -78,6 +78,7 @@ end
 
 @doc raw"""
     CompleteIntersectionGerm{BaseRingType, RingType, SpecType}
+
 A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, SpecType<:Spec} <: AbsSpaceGerm{BaseRingType, RingType}
