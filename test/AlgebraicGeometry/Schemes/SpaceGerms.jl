@@ -9,7 +9,9 @@
   Y0 = SpaceGerm(Y,[0,0,0])
   Y1 = SpaceGerm(Y,[1,2,1])
   Z0 = HypersurfaceGerm(X,[0,0,0])
+  @test defining_ring_element(Z0) isa elem_type(Oscar.localized_ring_type(ring_type(Z0)))
   Z1 = CompleteIntersectionGerm(X,[1,2,1])
+  @test defining_ring_elements(Z1) isa Vector{elem_type(Oscar.localized_ring_type(ring_type(Z0)))}
   U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   U1 = MPolyComplementOfKPointIdeal(R,[1,2,1])
   @test U0 == inverted_set(OO(X0))
