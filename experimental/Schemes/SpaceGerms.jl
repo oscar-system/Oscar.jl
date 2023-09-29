@@ -1000,7 +1000,7 @@ end
 
 Returns the space germ (Y,p) for a given germ (X,p) and the closed embedding of (Y,p) into (X,p), where Y is the singular locus of X.
 
-# Examples:
+# Examples
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
