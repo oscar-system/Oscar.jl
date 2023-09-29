@@ -139,7 +139,7 @@ More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a poly
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
 to `p. Then the representative `Y = Spec R/I` is returned.
 
-Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"];
 
