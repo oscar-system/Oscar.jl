@@ -394,7 +394,7 @@ function Oscar.tensor_product(C::GModule{<:Any, GrpAbFinGen}...; task::Symbol = 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, M}...; task::Symbol = :map) where S <: Oscar.GAPGroup where M <: AbstractAlgebra.Generic.FreeModule{<:Any}
+function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup 
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -412,9 +412,10 @@ end
 import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
 
-function Oscar.tensor_product(F::Generic.FreeModule{T}...; task = :none) where {T}
+
+function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
-  d = prod(rank(x) for x = F)
+  d = prod(dim(x) for x = F)
   G = free_module(base_ring(F[1]), d)
   if task == :none
     return G
@@ -422,7 +423,7 @@ function Oscar.tensor_product(F::Generic.FreeModule{T}...; task = :none) where {
 
   g = vec(collect(Base.Iterators.ProductIterator(Tuple(gens(g) for g = reverse(F)))))
 
-  function pure(g::Generic.FreeModuleElem...)
+  function pure(g...)
     @assert length(g) == length(F)
     @assert all(i-> parent(g[i]) == F[i], 1:length(F))
 
