@@ -56,7 +56,7 @@ julia> h = subfields(base_ring(C), degree = 2)[1][2];
 julia> restriction_of_scalars(C, h)
 G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 4 over number field of degree 2 over QQ
 
-julia> Oscar.GModuleFromGap.restriction_of_scalars(C, QQ)
+julia> restriction_of_scalars(C, QQ)
 G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 8 over rational field
 
 ```
@@ -1470,6 +1470,7 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
+export restriction_of_scalars
 export trivial_gmodule
 
 ## Fill in some stubs for Hecke
@@ -1522,5 +1523,6 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
+export restriction_of_scalars
 export trivial_gmodule
 
