@@ -534,7 +534,7 @@ be specified in several equivalent ways:
 - by a maximal ideal in the coordinate ring of `X` or
 - by a maximal ideal in the ambient_coordinate_ring of `X`
 
-#Examples
+# Examples
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
