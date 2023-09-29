@@ -697,6 +697,7 @@ equivalent ways:
 
 !!!note: If the defining ideal of `(X,p)` is not principal, an error exception occurs.
 
+# Examples
 ```jldoctest
 julia> X = affine_space(QQ,3);
 
