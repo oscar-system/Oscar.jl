@@ -146,6 +146,11 @@ end
   C = gmodule(GF(5), C)
   i = indecomposition(C)
   @test length(i) == 8
+
+  G = dihedral_group(8)
+  z = irreducible_modules(G)
+  @test dim((z[1] ⊕ z[2]) ⊗ z[3]) == 2
+  
 end
 
 @testset "H^3" begin
