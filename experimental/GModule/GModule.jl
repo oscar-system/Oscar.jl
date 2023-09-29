@@ -3,6 +3,39 @@ using Oscar
 using Hecke
 import Hecke: data
 
+#XXX: have a type for an implicit field - in Hecke?
+#     add all(?) the other functions to it
+function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
+  k = domain(m)
+  K = codomain(m)
+  kt, t = polynomial_ring(k, cached = false)
+  f = defining_polynomial(K)
+  Qt = parent(f)
+  #the Trager construction, works for extensions of the same field given
+  #via primitive elements
+  h = gcd(gen(k) - map_coefficients(k, Qt(m(gen(k))), parent = kt), map_coefficients(k, f, parent = kt))
+  coordinates = function(x::FieldElem)
+    @assert parent(x) == K
+    c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
+    c = vcat(c, zeros(k, degree(h)-length(c)))
+    return c
+  end
+  rep_mat = function(x::FieldElem)
+    @assert parent(x) == K
+    c = map_coefficients(k, Qt(x), parent = kt) % h
+    m = collect(Hecke.coefficients(c))
+    m = vcat(m, zeros(k, degree(h) - length(m)))
+    r = m
+    for i=2:degree(h)
+      c = shift_left(c, 1) % h
+      m = collect(Hecke.coefficients(c))
+      m = vcat(m, zeros(k, degree(h) - length(m)))
+      r = hcat(r, m)
+    end
+    return transpose(matrix(r))
+  end
+  return h, coordinates, rep_mat
+end
 
 """
     restriction_of_scalars(M::GModule, phi::Map)
@@ -14,11 +47,34 @@ If `R` has `S`-rank `d` and `M` has rank `n` then the returned module
 has rank `d*n`.
 
 # Examples
+```jldoctest; setup = :(using Oscar)
+julia> G = dihedral_group(20);
+julia> T = character_table(G);
+julia> C = gmodule(T[8]);
+julia> C = gmodule(CyclotomicField, C);
+julia> h = subfields(base_ring(C), degree = 2)[1][2];
+julia> restriction_of_scalars(C, h)
+G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 4 over number field of degree 2 over QQ
 
-(cases that `R` is a finite field or a number field, and `S` is a subfield)
+julia> Oscar.GModuleFromGap.restriction_of_scalars(C, QQ)
+G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 8 over rational field
+
+```
 """
-function restriction_of_scalars(M::GModule, phi::Map)
-  error("not yet ...")
+function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FieldElem}}, phi::Map)
+  #works iff relative_field above works. At least for AnticNumberField and 
+  #finite fields
+  @assert codomain(phi) == base_ring(M)
+  d = divexact(degree(codomain(phi)), degree(domain(phi)))
+  F = free_module(domain(phi), dim(M)*d)
+  _, _, rep = relative_field(phi)
+
+  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x = transpose(mat(y))]...)) for y = M.ac])
+end
+
+function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, ::QQField)
+  F = free_module(QQ, dim(C)*degree(base_ring(C)))
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
 end
 
 
@@ -201,6 +257,14 @@ function irreducible_modules(G::Oscar.GAPGroup)
   return IM
 end
 
+"""
+  G acting on M trivially, ie. g(m) == m.
+"""
+function trivial_gmodule(G::Oscar.GAPGroup, M::Union{GrpAbFinGen, AbstractAlgebra.FPModule})
+  I = hom(M, M, gens(M))
+  return Oscar.gmodule(M, G, typeof(I)[I for x = gens(G)])
+end
+
 function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{nf_elem}})
   k, mk = Hecke.subfield(base_ring(M), vec(collect(vcat(map(mat, M.ac)...))))
   if k != base_ring(M)
@@ -272,6 +336,7 @@ function irreducible_modules(::typeof(CyclotomicField), G::Oscar.GAPGroup)
 end
 
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
+  #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
   return [gmodule(QQ, m) for m in z]
 end
@@ -589,7 +654,7 @@ end
 
 """
 Compute the factor set or 2-cochain defined by `C` as a Galois
-module of the autmorphism group over the character field.
+module of the automorphism group over the character field.
 If `mA` is given, it needs to map the automorphism group over the
 character field into the the automorphisms of the base ring.
 """
@@ -737,7 +802,7 @@ function istwo_cocycle(X::Dict, mA, op = *)
   for g = G
     for h = G
       for k = G
-        #= if (g*h)(x) = h(g(x)), then the cocycle should be
+        #= if (g*h)(x) = g(h(x)), then the cocycle should be
              X[(g*h, k)] X[(g, h)] == mA(g)(X[(h, k)]) X[(g, hk)]
            if (g*h)(x) = h(g(x)) then we should get
              X[(g, hk)] X[(h, k)]  == mA(k)(X[(g, h)]) X[(gh, k)]
@@ -1310,6 +1375,10 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   return gmodule(group(chi), [hom(F, F, x) for x = z])
 end
 
+function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AnticNumberField}}, chi::Oscar.GAPGroupClassFunction)
+  return gmodule(T, gmodule(chi))
+end
+
 function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModule{fqPolyRepFieldElem}}) where {T <: Oscar.GAPGroup}
   k = base_ring(C)
   A, mA = abelian_group(C.M)
@@ -1332,6 +1401,7 @@ end
 
 function Base.vec(M::MatElem)
   r = elem_type(base_ring(M))[]
+  sizehint!(r, nrows(M) * ncols(M))
   for j=1:ncols(M)
     for i=1:nrows(M)
       push!(r, M[i, j])
@@ -1411,6 +1481,7 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
+export trivial_gmodule
 
 ## Fill in some stubs for Hecke
 
@@ -1462,4 +1533,5 @@ export indecomposition
 export irreducible_modules
 export is_decomposable
 export is_G_hom
+export trivial_gmodule
 
