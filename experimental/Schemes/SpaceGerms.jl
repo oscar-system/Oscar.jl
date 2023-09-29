@@ -113,11 +113,11 @@ end
 ##############################################################################
 ## Some more shorthand notation
 ##############################################################################
-AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
-AnySpaceGermClosedPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
+const AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
+const AnySpaceGermClosedPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
                                 HypersurfaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
                                 CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtClosedPoint}}
-AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
+const AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
                                 HypersurfaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
                                 CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtGeometricPoint}}
 
