@@ -2321,7 +2321,7 @@ Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex 
 # Optional Arguments
 - `cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
   Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
-  Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\fraction{1}{2}$. 
+  Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\frac{1}{2}$. 
 - `no_coordinates::Bool`: Skip the coordinates computation, producing a pure combinatorial description. 
 
 # Example

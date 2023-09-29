@@ -738,17 +738,19 @@ Number of vertices in each facet.
 
 # Example
 ```jldoctest
-julia> p = johnson_solid(3) 
+julia> p = johnson_solid(4) 
 Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
-julia> facet_sizes(p) 
-8-element Vector{Int64}:
+julia> facet_sizes(p)
+10-element Vector{Int64}:
+ 8
+ 4
+ 3
+ 4
+ 4
  3
  4
  3
- 3
- 4
- 6
  3
  4
 ```
