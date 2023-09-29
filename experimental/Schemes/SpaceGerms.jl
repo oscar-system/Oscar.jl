@@ -821,7 +821,8 @@ complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
 
 Returns a complete intersection germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
-!!!mote: If the defining ideal of `(X,p)` does not describe a complete intersection. an error exception occurs.
+!!!note
+    If the defining ideal of `(X,p)` does not describe a complete intersection. an error exception occurs.
 """
 complete_intersection_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
 
