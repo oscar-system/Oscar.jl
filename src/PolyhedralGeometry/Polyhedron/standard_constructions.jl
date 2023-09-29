@@ -250,7 +250,16 @@ Construct the `i`-th proper Johnson solid.
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
-johnson_solid(index::Int) = polyhedron(Polymake.polytope.johnson_solid(index));
+function johnson_solid(index::Int)
+  pmp = Polymake.polytope.johnson_solid(index)
+  # work around bug in polymake which returns an QE polytope
+  # where it is not necessary, will be fixed in polymake 4.11
+  if index == 3
+    pmp = Polymake.common.convert_to{Polymake.Rational}(pmp)
+    Polymake.remove_attachment(pmp, "REVERSE_TRANSFORMATION")
+  end
+  return polyhedron(pmp)
+end
 
 @doc raw"""
     regular_24_cell()

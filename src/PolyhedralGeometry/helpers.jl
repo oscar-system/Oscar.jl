@@ -549,12 +549,16 @@ end
 
 # oscarnumber helpers
 
-function Polymake._fieldelem_to_rational(e::Hecke.EmbeddedNumFieldElem)
+function Polymake._fieldelem_to_rational(e::EmbeddedElem)
    return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::Hecke.EmbeddedNumFieldElem)
+function Polymake._fieldelem_is_rational(e::EmbeddedElem)
    return is_rational(e)
+end
+
+function Polymake._fieldelem_to_float(e::EmbeddedElem)
+   return Float64(real(embedding(parent(e))(data(e), 32)))
 end
 
 # convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
