@@ -804,7 +804,7 @@ end
 end
 
 @testset "Coordinates (lift)" begin
-  Z3, a = FiniteField(3,1,"a")
+  Z3, a = finite_field(3,1,"a")
   R, (x,y) = polynomial_ring(Z3, ["x", "y"])
   coeffs = [Z3(i) for i=0:1]
 

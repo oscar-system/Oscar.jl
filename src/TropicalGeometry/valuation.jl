@@ -124,9 +124,9 @@ end
 # Constructor:
 function TropicalSemiringMap(Q::QQField, p::QQFieldElem, M::Union{typeof(min),typeof(max)}=min)
   function residue_map(c)
-    return FiniteField(ZZ(p))[1](ZZ(c))
+    return finite_field(ZZ(p))[1](ZZ(c))
   end
-  return TropicalSemiringMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p,TropicalSemiring(M))
+  return TropicalSemiringMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),finite_field(ZZ(p))[1],residue_map,:p,TropicalSemiring(M))
 end
 # for other types of `p` such as `Integer`
 TropicalSemiringMap(Q::QQField,p::ZZRingElem,M::Union{typeof(min),typeof(max)}=min) = TropicalSemiringMap(Q,QQ(p),M)

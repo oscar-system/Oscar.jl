@@ -14,7 +14,7 @@
   N2 = matrix(F3, 3, 3, [ 2, 0, 0, 0, 2, 0, 0, 0, 2 ])
   RGp = invariant_ring(N1, N2) # char p, non-modular
 
-  F9, b = FiniteField(3, 2, "b")
+  F9, b = finite_field(3, 2, "b")
   N3 = matrix(F9, [ 1 0 0 0; b + 1 1 0 0; -1 0 1 0; b 0 -1 1 ])
   N4 = matrix(F9, [ 1 0 0 0; 1 1 0 0; 1 0 1 0; b -b b 1 ])
   RGm = invariant_ring(N3, N4) # char p, modular

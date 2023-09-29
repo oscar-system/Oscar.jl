@@ -220,7 +220,7 @@ end
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
-  F, a = FiniteField(11, 2, "a")
+  F, a = finite_field(11, 2, "a")
   R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
