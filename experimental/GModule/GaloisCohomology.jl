@@ -1391,6 +1391,10 @@ function Base.show(io::IO, a::RelativeBrauerGroupElem)
   print(io, a.data)
 end
 
+function Base.show(io::IO, m::MIME"text/plain",a::RelativeBrauerGroupElem)
+  show(io, m, a.data)
+end
+
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
   return B(CC).data
 end

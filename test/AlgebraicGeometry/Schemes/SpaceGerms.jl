@@ -8,6 +8,10 @@
   X1 = SpaceGerm(X,[1,2,1])
   Y0 = SpaceGerm(Y,[0,0,0])
   Y1 = SpaceGerm(Y,[1,2,1])
+  Z0 = HypersurfaceGerm(X,[0,0,0])
+  @test defining_ring_element(Z0) isa elem_type(Oscar.localized_ring_type(ring_type(Z0)))
+  Z1 = CompleteIntersectionGerm(X,[1,2,1])
+  @test defining_ring_elements(Z1) isa Vector{elem_type(Oscar.localized_ring_type(ring_type(Z0)))}
   U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   U1 = MPolyComplementOfKPointIdeal(R,[1,2,1])
   @test U0 == inverted_set(OO(X0))
@@ -15,6 +19,37 @@
   @test X0 == Y0
   @test X1 !=Y1
   @test isempty(Y1)
+  @test milnor_number(Z0) == 1
+  @test milnor_number(Z1) == 0
+  XG = Spec(R,I)
+  @test milnor_number(XG) == 1
+  K = ideal(R,[x^2+y^2-z^2,x*y])
+  YG = Spec(R,K)
+  @test milnor_number(YG) == 5
+  K = ideal(R,[x*y,x^2+y^2-z^2])
+  ZG = Spec(R,K)
+  @test milnor_number(YG) == 5
+end
+
+@testset "SpaceGerms at geometric points" begin
+  X = affine_space(QQ,3)
+  OOX = coordinate_ring(X)
+  (x,y,z) = gens(OOX)
+  I = ideal(OOX,[x+y+z^2+1])
+  J = ideal(OOX,[x+y,z^2+1])
+  QI,_ = quo(OOX,I)
+  QJ,_ = quo(OOX,J)
+  U = complement_of_prime_ideal(ideal(OOX,[x,y,z^2+1]))
+  RI,_ = localization(QI,U)
+  RJ,_ = localization(QJ,U)
+  Y = SpaceGerm(RI)
+  @test OO(Y) == RI
+#  HypersurfaceGerm(RI)      does not work without standard bases
+#  CompleteIntersectionGerm(TI)     does not work without standard bases
+  V = complement_of_prime_ideal(ideal(OOX,[x,z^2+1]))
+  SI,_ = localization(QI,V)
+  Z = SpaceGerm(SI)
+  @test_broken dim(Z) == 1
 end
 
 @testset "Space Germ constructors Spec-Ideal" begin
@@ -123,9 +158,9 @@ end
   @test point(X0)==[0,0,0]
   Y = representative(X0)
   Y1 = representative(X1)
-  @test ideal(X0) != ideal(R,zero(R))
-  @test ideal(X0) == ideal(OO(X0),[0])
-  @test ideal(X2) == ideal(localized_ring(OO(X2)),[x,y])
+  @test defining_ideal(X0) != ideal(R,zero(R))
+  @test defining_ideal(X0) == ideal(OO(X0),[0])
+  @test defining_ideal(X2) == ideal(localized_ring(OO(X2)),[x,y])
   @test inverted_set(OO(ambient_germ(X2))) == MPolyComplementOfKPointIdeal(R,[0,0,0])
   @test ambient_germ(X0) == X0
 end
@@ -147,13 +182,13 @@ end
   Z0 = SpaceGerm(Z,[0,0,0])
   W0 = SpaceGerm(W,[0,0,0])
   SY0 = SpaceGerm(SY,[0,0,0])
-  @test isempty(Z0)
-  @test issubset(Z0,X0)
-  @test issubset(Y0,X0)
-  @test issubset(Z0,Y0)
-  @test issubset(X0,Y0)
-  @test !issubset(W0,X0)
-  @test !issubset(X0,Z0)
+  @test is_empty(Z0)
+  @test is_subset(Z0,X0)
+  @test is_subset(Y0,X0)
+  @test is_subset(Z0,Y0)
+  @test is_subset(X0,Y0)
+  @test !is_subset(W0,X0)
+  @test !is_subset(X0,Z0)
   @test Y0 == intersect(X0,Y0)
   V0=intersect(W0,X0)
   @test V0 == SpaceGerm(V,[0,0,0])

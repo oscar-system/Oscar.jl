@@ -22,6 +22,7 @@ function subscheme(P::AbsProjectiveScheme, f::RingElem)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -39,6 +40,7 @@ function subscheme(
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -52,6 +54,7 @@ function subscheme(P::AbsProjectiveScheme,
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 

@@ -1,4 +1,19 @@
 ########################################################################
+# Abstract type for morphisms of projective schemes for which the 
+# generic interface is defined.
+########################################################################
+abstract type AbsProjectiveSchemeMorphism{
+    DomainType,
+    CodomainType,
+    SelfType, # The concrete type itself as required by the generic `Map` implementation
+    BaseMorType
+  } <: SchemeMor{DomainType, CodomainType,
+                 SelfType,
+                 BaseMorType
+                }
+end
+
+########################################################################
 # Morphisms of projective schemes                                      #
 ########################################################################
 @doc raw"""
@@ -28,7 +43,7 @@ space over the same ring with the identity on the base.
     CodomainType<:AbsProjectiveScheme,
     PullbackType<:Map,
     BaseMorType
-  } <: SchemeMor{DomainType, CodomainType,
+  } <: AbsProjectiveSchemeMorphism{DomainType, CodomainType,
                  ProjectiveSchemeMor,
                  BaseMorType
                 }
@@ -105,4 +120,48 @@ space over the same ring with the identity on the base.
     return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
   end
 end
+
+@attributes mutable struct ProjectiveClosedEmbedding{
+    DomainType<:AbsProjectiveScheme,
+    CodomainType<:AbsProjectiveScheme,
+    PullbackType<:Map,
+    BaseMorType, 
+    IdealType<:Ideal
+  } <: AbsProjectiveSchemeMorphism{DomainType, CodomainType,
+                 ProjectiveClosedEmbedding,
+                 BaseMorType
+                }
+  underlying_morphism::ProjectiveSchemeMor{DomainType, CodomainType, PullbackType, Nothing}
+  ideal_of_image::IdealType
+
+  function ProjectiveClosedEmbedding(
+      P::DomainType,
+      I::IdealType,
+      check::Bool=true
+    ) where {DomainType<:AbsProjectiveScheme, IdealType<:Ideal}
+    S = homogeneous_coordinate_ring(P)
+    @req base_ring(I) === S "ideal must be defined in the homogeneous coordinate ring of the scheme"
+    T, pr = quo(S, I)
+    Q = ProjectiveScheme(T)
+    f = ProjectiveSchemeMor(Q, P, pr, check=false)
+    return new{typeof(Q), DomainType, typeof(pr), Nothing, IdealType}(f, I)
+  end
+
+  function ProjectiveClosedEmbedding(
+      f::ProjectiveSchemeMor,
+      I::Ideal;
+      check::Bool=true
+    )
+    Y = codomain(f)
+    SY = homogeneous_coordinate_ring(Y) 
+    ambient_coordinate_ring(Y) === ambient_coordinate_ring(domain(f)) || error("ambient coordinate rings are not compatible")
+    base_ring(I) === SY || error("ideal does not belong to the correct ring")
+    @check begin
+      pbf = pullback(f)
+      kernel(pbf) == I || error("ideal does not coincide with the kernel of the pullback")
+    end
+    return new{typeof(domain(f)), typeof(Y), typeof(pullback(f)), Nothing, typeof(I)}(f, I)
+  end
+end
+
 

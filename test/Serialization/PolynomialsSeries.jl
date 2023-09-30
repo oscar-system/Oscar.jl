@@ -35,6 +35,13 @@ cases = [
 
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
+    @testset "Empty Ideal" begin
+      i = Oscar.ideal(QQ[:x, :y][1], [])
+      test_save_load_roundtrip(path, i) do loaded
+        loaded == i
+      end
+    end
+
     for case in cases
       @testset "Univariate Polynomial over $(case[4])" begin
         R, z = polynomial_ring(case[1], "z")

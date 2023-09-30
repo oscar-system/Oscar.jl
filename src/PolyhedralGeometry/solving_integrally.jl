@@ -1,15 +1,20 @@
-function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix)
+function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false)
     @req ncols(A) == ncols(C) "solve_mixed(A,b,C,d): A and C must have the same number of columns."
     @req nrows(A) == nrows(b) "solve_mixed(A,b,C,d): A and b must have the same number of rows."
     @req nrows(C) == nrows(d) "solve_mixed(A,b,C,d): C and d must have the same number of rows."
     @req ncols(b) == 1 "solve_mixed(A,b,C,d): b must be a matrix with a single column."
     @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
     P = polyhedron((-C, vec(-d)), (A, vec(b)))
-    return lattice_points(P)
+    if !permit_unbounded
+      return lattice_points(P)
+    else
+      sol = pm_object(P).LATTICE_POINTS_GENERATORS
+      return sol[1][:, 2:end]
+    end
 end
 
-function solve_mixed(as::Type{ZZMatrix}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix)
-    LP = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d)
+function solve_mixed(as::Type{ZZMatrix}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false)
+    LP = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, b, C, d; permit_unbounded)
     return matrix(ZZ, LP)
 end
 
@@ -60,8 +65,8 @@ julia> for x in it
 [7] [7] [7] [7] [7] [7] [7] [7] 
 ```
 """
-solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) where {T} = solve_mixed(T, A, b, C, d)
-solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) = solve_mixed(ZZMatrix, A, b, C, d)
+solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false) where {T} = solve_mixed(T, A, b, C, d; permit_unbounded)
+solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix; permit_unbounded=false) = solve_mixed(ZZMatrix, A, b, C, d; permit_unbounded)
 
 
 @doc raw"""
@@ -109,8 +114,8 @@ julia> for x in it
 [3] [3] [3] [3] 
 ```
 """
-solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
-solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) = solve_mixed(ZZMatrix, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
+solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1); permit_unbounded)
+solve_mixed(A::ZZMatrix, b::ZZMatrix, C::ZZMatrix; permit_unbounded=false) = solve_mixed(ZZMatrix, A, b, C, zero_matrix(FlintZZ, nrows(C), 1); permit_unbounded)
 
 
 
@@ -149,8 +154,8 @@ julia> typeof(solve_ineq(SubObjectIterator{PointVector{ZZRingElem}}, A,b))
 SubObjectIterator{PointVector{ZZRingElem}}
 ```
 """
-solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T} = solve_mixed(T, zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b)
-solve_ineq(A::ZZMatrix, b::ZZMatrix) = solve_ineq(ZZMatrix, A, b)
+solve_ineq(as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) where {T} = solve_mixed(T, zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b; permit_unbounded)
+solve_ineq(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) = solve_ineq(ZZMatrix, A, b; permit_unbounded)
 
 
 
@@ -189,7 +194,7 @@ julia> typeof(solve_non_negative(SubObjectIterator{PointVector{ZZRingElem}}, A,b
 SubObjectIterator{PointVector{ZZRingElem}}
 ```
 """
-solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T} = solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)))
-solve_non_negative(A::ZZMatrix, b::ZZMatrix) = solve_non_negative(ZZMatrix, A, b)
+solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) where {T} = solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)); permit_unbounded)
+solve_non_negative(A::ZZMatrix, b::ZZMatrix; permit_unbounded=false) = solve_non_negative(ZZMatrix, A, b; permit_unbounded)
 
 

@@ -259,7 +259,7 @@ const IdealUnionType = Union{MPolyIdeal, LaurentMPolyIdeal, FreeAssAlgIdeal}
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    ref = save_as_ref(s, parent(gens(x)[1]))
+    ref = save_as_ref(s, base_ring(x))
     save_object(s, ref, :params)
   end
 end
