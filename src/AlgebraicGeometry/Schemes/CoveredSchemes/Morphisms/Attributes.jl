@@ -43,7 +43,7 @@ julia> I, s = singular_locus(Ycov)
 (Scheme over QQ covered with 1 patch, Hom: scheme over QQ covered with 1 patch -> scheme over QQ covered with 3 patches)
 
 julia> covering_morphism(s)
-Morphism
+Covering morphism
   from covering with 1 patch
     1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to covering with 3 patches

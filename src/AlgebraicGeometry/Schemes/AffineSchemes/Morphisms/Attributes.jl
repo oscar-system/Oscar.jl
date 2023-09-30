@@ -42,7 +42,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -91,7 +91,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -250,7 +250,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function

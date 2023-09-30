@@ -28,7 +28,7 @@ Covering
     3: [(x//z), (y//z)]
 
 julia> identity_map(C)
-Morphism
+Covering morphism
   from covering with 3 patches
     1a: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
     2a: [(x//y), (z//y)]   V((x//y)^3 - (z//y))

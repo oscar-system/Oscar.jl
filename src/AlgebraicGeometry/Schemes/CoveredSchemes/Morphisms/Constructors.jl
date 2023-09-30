@@ -33,7 +33,7 @@ with default covering
     3: [(x//z), (y//z)]
 
 julia> identity_map(Xcov)
-Morphism
+Covered scheme morphism
   from scheme over QQ covered with 3 patches
     1a: [(y//x), (z//x)]   V((y//x), 1)
     2a: [(x//y), (z//y)]   V(1, (x//y))

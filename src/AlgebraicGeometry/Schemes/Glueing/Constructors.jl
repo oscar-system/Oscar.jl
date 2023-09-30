@@ -52,7 +52,7 @@ along the open subsets
   [x, y]   complement to V(x) in affine scheme with coordinates [x, y]
   [u, v]   complement to V(u) in affine scheme with coordinates [u, v]
 defined by the map
-  morphism
+  affine scheme morphism
     from [x, y]  AA^2 \ V(x)
     to   [u, v]  affine 2-space
   given by the pullback function

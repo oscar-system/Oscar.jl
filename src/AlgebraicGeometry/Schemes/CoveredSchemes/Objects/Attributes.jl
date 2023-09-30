@@ -244,7 +244,7 @@ with default covering
     1: [(x//z), (y//z)]
 
 julia> s
-Morphism
+Covered scheme morphism
   from scheme over QQ covered with 1 patch
     1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to scheme over QQ covered with 3 patches

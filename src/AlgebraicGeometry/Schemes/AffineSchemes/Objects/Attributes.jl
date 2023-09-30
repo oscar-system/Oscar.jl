@@ -229,7 +229,7 @@ Spectrum
     by ideal(x)
 
 julia> inc = ambient_embedding(Y)
-Morphism
+Affine scheme morphism
   from [x, y]  V(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function

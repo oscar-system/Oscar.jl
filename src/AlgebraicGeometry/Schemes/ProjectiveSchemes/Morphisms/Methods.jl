@@ -31,7 +31,7 @@ julia> I = ideal([x^3-y^2*z]);
 julia> Y = projective_scheme(P, I);
 
 julia> f = identity_map(Y)
-Morphism
+Projective scheme morphism
   from projective scheme in IP^2 over QQ
   to projective scheme in IP^2 over QQ
 
