@@ -628,6 +628,8 @@ export helper_images
 export helper_kappa
 export helper_ring
 export hermitian_form
+export hessian
+export hessian_matrix
 export hilbert_basis
 export hilbert_function
 export hilbert_polynomial

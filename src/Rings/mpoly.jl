@@ -1294,3 +1294,20 @@ end
 
 # assure compatibility with generic code for MPolyQuos:
 lift(f::MPolyRingElem) = f
+
+### Hessian matrix
+function hessian_matrix(f::MPolyElem)
+  R = parent(f)
+  n = nvars(R)
+  df = jacobi_matrix(f)
+  result = zero_matrix(R, n, n)
+  for i in 1:n
+    for j in i:n
+      result[i, j] = result[j, i] = derivative(df[i], j)
+    end
+  end
+  return result
+end
+
+hessian(f::MPolyElem) = det(hessian_matrix(f))
+

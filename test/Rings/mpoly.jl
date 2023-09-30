@@ -316,3 +316,11 @@ end
   equidimensional_decomposition_weak(I)
 end
 
+@testset "Hessian matrix" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+  f = x^2 + x*y^2 - z^3
+  H = hessian_matrix(f)
+  @test H == R[2 2*y 0; 2*y 2*x 0; 0 0 -6*z]
+  @test hessian(f) == -24*x*z + 24*y^2*z
+end
+
