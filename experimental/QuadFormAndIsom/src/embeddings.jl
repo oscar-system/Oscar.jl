@@ -268,7 +268,7 @@ function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor
   end
 
   subs = TorQuadModule[s[1] for s in subs]
-  m = gset(O, _on_subgroup_automorphic, subs)
+  m = gset(O, _on_subgroups, subs)
   orbs = orbits(m)
   for orb in orbs
     rep = representative(orb)
@@ -494,7 +494,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   end
 
   # We inspect each primary part of q and look for orbit representatives and
-  # stabilizers of automorphic subgroups which will be isometric to the given
+  # stabilizers of isomorphic subgroups which will be isometric to the given
   # primary part of H.
   #
   # First, we cut q as an orthogonal direct sum of its primary parts
@@ -584,7 +584,7 @@ end
 # on to the others.
 function _classes_isomorphic_subgroups(q::TorQuadModule,
                                        O::AutomorphismGroup{TorQuadModule},
-                                       ordH::Int,
+                                       ordH::IntegerUnion,
                                        f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)),
                                        compute_stab::Bool = true)
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
@@ -592,7 +592,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   !is_divisible_by(order(q), ordH) && return res
 
   # Trivial case: we look for subgroups in a given primary part of q
-  ok, e, p = is_prime_power_with_data
+  ok, e, p = is_prime_power_with_data(ordH)
   if ok
     if e == 1
       _, Vinq = _get_V(id_hom(q), minimal_polynomial(identity_matrix(QQ, 1)), p)
@@ -689,7 +689,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothing,
+    primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing} = nothing,
                                              q::Union{TorQuadModule, Nothing} = nothing,
                                              classification::Symbol = :sublat)
                                           -> Vector{Tuple{ZZLat, ZZLat, ZZLat}}
@@ -725,7 +725,7 @@ For the classifications of type `:emb`, if one wants a classification up to the
 action of $O(M)$ only, one should instead call
 `primitive_extensions(N, M, rescale(H, -1)); classification = :emb)`.
 """
-function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothing,
+function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing} = nothing,
                                                   q::Union{TorQuadModule, Nothing} = nothing,
                                                   classification::Symbol = :sublat)
   @req classification in Symbol[:first, :emb, :sublat] "Wrong symbol for classification"
@@ -737,9 +737,9 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
   # We check the initial conditions to make sense for having a primitive
   # extensions with the potential given requirements
   if !isnothing(x)
-    !is_divisible_by(gcd(det(M), det(N)), x) && return results
+    !is_divisible_by(numerator(gcd(det(M), det(N))), x) && return results
     if !isnothing(q)
-      @req x*order(q)^2 == det(M)*det(N) "Wrong requirements: the index `x` should be equal to (det(M)*det(N)/order(q)^2)"
+      @req x^2*order(q) == det(M)*det(N) "Wrong requirements: the square of the index `x` should be equal to (det(M)*det(N)/order(q))"
     end
   elseif !isnothing(q)
     aM, _, bM = signature_tuple(M)
@@ -747,7 +747,9 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
     !is_genus(q, (aM+aN, bM+bN)) && return results
     @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
     G = genus(q, (aM+aN, bM+bN))
-    ok, x = divides(det(M)*det(N), order(q)^2)
+    ok, x = divides(numerator(det(M)*det(N)), order(q))
+    !ok && return results
+    ok, x = is_square_with_sqrt(x)
     !ok && return results
   end
 
@@ -780,12 +782,12 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
     # First case: we know the order of the subgroup along which we glue!
     # We first enumerate respective of isometry classes of subgroups of qN of
     # order x
-    subsN = _classes_automorphic_subgroups(qN, GN, x)
+    subsN = _classes_isomorphic_subgroups(qN, GN, x)
     isempty(subsN) && return results
     for H2 in subsN
       # Then for each class, we look for representative of isometry classes of
       # subgroups of M anti-isometric to them
-      subsM = _classes_isomorphic_subgroups(qM, GM, domain(rescale(H2[1], -1)))
+      subsM = _classes_isomorphic_subgroups(qM, GM, rescale(domain(H2[1]), -1))
       isempty(subsM) && continue
       for H1 in subsM
         ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
@@ -819,15 +821,15 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
         for g in reps
           g = iso\(representative(g))
           phig = compose(phi, hom(g))
-          L, _, _ = _overlattice(phig, HMinD, HNinD)
+          L, _, _ = _overlattice(phig, HMinD, HNinD; same_ambient)
 
           # L might not be in the good genus if one is fixed
           if !isnothing(q)
             genus(L) == G || continue
           end
-          M2 = lattice_in_same_ambient_space(L, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(N))))
+          M2 = lattice_in_same_ambient_space(L, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L)-degree(M))))
           @hassert  :ZZLatWithIsom 1 genus(M) == genus(M2)
-          N2 = lattice_in_same_ambient_space(L, hcat(zero_matrix(QQ, rank(N), degree(M)), basis_matrix(N)))
+          N2 = lattice_in_same_ambient_space(L, hcat(zero_matrix(QQ, rank(N), degree(L)-degree(N)), basis_matrix(N)))
           @hassert :ZZLatWithIsom 1 genus(N) == genus(N2)
           push!(results, (L, M2, N2))
           @vprintln :ZZLatWithIsom 1 "Gluing done"
@@ -855,7 +857,7 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
         subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k; compute_stab = false)
       elseif ok && (ek == 1)
         _, VNinqN = _get_V(id_hom(qN), minimal_polynomial(identity_matrix(QQ, 1)), k)
-        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqL, GN, k; compute_stab = false)
+        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k; compute_stab = false)
       else
         if prN || prM
           _, VNinqN = primary_part(qN, max(pN, pM))
@@ -903,10 +905,10 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{Int, Nothing} = nothi
           for g in reps
             g = iso\(representative(g))
             phig = compose(phi, hom(g))
-            L, _, _ = _overlattice(phig, HMinD, HNinD)
-            M2 = lattice_in_same_ambient_space(L, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(N))))
+            L, _, _ = _overlattice(phig, HMinD, HNinD; same_ambient)
+            M2 = lattice_in_same_ambient_space(L, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L)-degree(M))))
             @hassert  :ZZLatWithIsom 1 genus(M) == genus(M2)
-            N2 = lattice_in_same_ambient_space(L, hcat(zero_matrix(QQ, rank(N), degree(M)), basis_matrix(N)))
+            N2 = lattice_in_same_ambient_space(L, hcat(zero_matrix(QQ, rank(N), degree(L)-degree(N)), basis_matrix(N)))
             @hassert :ZZLatWithIsom 1 genus(N) == genus(N2)
             push!(results, (L, M2, N2))
             @vprintln :ZZLatWithIsom 1 "Gluing done"
@@ -1071,8 +1073,8 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   # enumerating it, we just have to classify primitive extensions into G
   if is_unimodular(G)
     qM = discriminant_group(M)
-    !is_genus(rescale(qM), (posL-posM, negL-negM)) && return false, results
-    GK = genus(rescale(qM), (posL-posM, negL-negM))
+    !is_genus(rescale(qM, -1), (posL-posM, negL-negM)) && return false, results
+    GK = genus(rescale(qM, -1), (posL-posM, negL-negM))
     
     # Now for each K in GK, we compute primitive extensions of M and K into a
     # unimodular lattice in G
@@ -1091,7 +1093,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   # surjective O(T) -> O(qT), and such that qT and q are anti-isometric
   # The easiest way to do this is to add a hyperbolic plane to a representative
   # of the genus G, rescale by -1.
-  T, _ = direct_sum(rescale(lll(respresentative(G)), -1), hyperbolic_plane_lattice())
+  T, _ = direct_sum(rescale(lll(representative(G)), -1), hyperbolic_plane_lattice())
 
   # The algorithm goes on with finding primitive extensions of M+T and then
   # embeddings such in a big unimodular lattice (which we take unique in its
@@ -1099,23 +1101,29 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   Vs = primitive_extensions(M, T)
 
   # L is our big unimodular lattice where we embed each of the V in Vs
-  GL = genera((rank(G)+1, rank(G)+1), 1; even=true)
+  GL = genus(torsion_quadratic_module(QQ[0;]), (rank(G)+1, rank(G)+1))
   # M2 is M seen in V, and T2 is T seen in V
   for (V, M2, T2) in Vs
-    resV = primitive_embeddings(GL, V; classification = :emb)
+    okV, resV = primitive_embeddings(GL, V; classification = :sublat)
+    !okV && continue
     for (S, V2, W2) in resV
       # This is T seen in S
-      T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2))))
+      T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
       @hassert :ZZLatWithIsom 1 genus(T3) == genus(T)
       # This is one of the lattice in G in which we embed primitively
       L = orthogonal_submodule(S, T3)
       @hassert :ZZLatWithIsom 1 genus(L) == G
       # This is M seen in L
-      M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2))))
+      M3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(M2), zero_matrix(QQ, rank(M2), degree(W2)-degree(M2))))
       @hassert :ZZLatWithIsom 1 is_sublattice(L, M3)
       @hassert :ZZLatWithIsom 1 is_primitive(L, M3)
       # And this is the orthogonal complement of M in L
       N = orthogonal_submodule(L, M3)
+      bM = solve_left(basis_matrix(L), basis_matrix(M3))
+      bN = solve_left(basis_matrix(L), basis_matrix(N))
+      L = integer_lattice(; gram = gram_matrix(L))
+      M3 = lattice_in_same_ambient_space(L, bM)
+      N = lattice_in_same_ambient_space(L, bN)
       push!(results, (L, M3, N))
       classification == :first && return true, results
     end
@@ -1471,7 +1479,7 @@ function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
   # We first massage phi such that it maps HA to HB
   phiHA, _ = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
-  G = GSetByElements(OSB, _on_subgroup_automorphic, TorQuadModule[HB])
+  G = GSetByElements(OSB, _on_subgroups, TorQuadModule[HB])
   ok, g = representative_action(G, phiHA, HB)
   @hassert :ZZLatWithIsom 1 ok
   phi_1 = compose(phi, hom(g))
