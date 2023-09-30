@@ -53,14 +53,17 @@ primitive_embeddings(::TorQuadModule, ::Tuple{Int, Int},
 ```
 
 In order to compute such primitive embeddings of a lattice $M$ into a lattice
-$L$, one first computes the possible genera for the orthogonal of $M$ in $L$
-(after embedding). For each lattice $N$ representing an isometry class in such
-a genus, one computes isomorphism classes of *primitive extensions* of
-$M \oplus N$ modulo $\overline{O(N)}$ (and $\overline{O(M)}$ in the case
-of classification of primitive sublattices of $L$ isometric to $M$).
+$L$, we follow the proof of Proposition 1.15.1 of [Nik79](@cite).
+
+Note: for the implementation of the algorithm, we construct an even lattice
+$T := M(-1)\oplus U$ where $U$ is a hyperbolic plane - $T$ is unique in its
+genus and $O(T)\to O(D_T)$ is surjective. We then classify all primitive
+extensions of $M\oplus T$ modulo $O(D_T)$ (and modulo $O(M)$ for a
+classification of primitive sublattices). To classify such primitive
+extensions, we use Proposition 1.5.1 of [Nik79](@cite):
 
 ```@docs
-primitive_extensions(::ZZLat, ::ZZLat, ::TorQuadModule)
+primitive_extensions(::ZZLat, ::ZZLat)
 ```
 
 We recall that a *primitive extension* of the orthogonal direct sum of two

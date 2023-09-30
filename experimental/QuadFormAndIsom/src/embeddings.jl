@@ -699,7 +699,6 @@ of isomorphism classes of primitive extensions $M \oplus N \subseteq L$.
 
 One can decide to choose the index of $[L:(M\oplus N)]$, which should be a
 positive integer by setting `x` to the desired value.
-
 One can also decide on the isometry class of the discriminant form of the
 primitive extension by setting `q` to the desired value.
 If there are no primitive extensions of $M\oplus N$ satisfying the conditions
@@ -929,7 +928,7 @@ end
 Given an even integer lattice $L$, which is unique in its genus, and an even
 integer lattice $M$, return whether $M$ embeds primitively in $L$.
 
-The first input of the function is a boolean `T` stating whether $M$ embeds
+The first output of the function is a boolean `T` stating whether $M$ embeds
 primitively in $L$. The second output $V$ consists of triples $(L', M', N')$
 where $L'$ is isometric to $L$, $M'$ is a primitive sublattice of $L'$ isometric
 to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
@@ -992,7 +991,7 @@ Given a tuple `sign` of non-negative integers and a torsion quadratic module
 $q$ which define a genus symbol $G$ for even integer lattices, return whether the
 even integer lattice $M$ embeds primitively in a lattice in $G$.
 
-The first input of the function is a boolean `T` stating whether $M$ embeds
+The first output of the function is a boolean `T` stating whether $M$ embeds
 primitively in a lattice in $G$. The second output $V$ consists of triples
 $(L', M', N')$ where $L'$ is a lattice in $G$, $M'$ is a sublattice of
 $L'$ isometric to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
@@ -1030,7 +1029,7 @@ end
 Given a genus symbol $G$ for even integer lattices and an even integer
 lattice $M$, return whether $M$ embeds primitively in a lattice in $G$.
 
-The first input of the function is a boolean `T` stating whether $M$ embeds
+The first output of the function is a boolean `T` stating whether $M$ embeds
 primitively in a lattice in $G$. The second output $V$ consists of triples
 $(L', M', N')$ where $L'$ is a lattice in $G$, $M'$ is a sublattice of
 $L'$ isometric to $M$, and $N'$ is the orthogonal complement of $M'$ in $L'$.
@@ -1100,7 +1099,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   # genus)
   Vs = primitive_extensions(M, T)
 
-  # L is our big unimodular lattice where we embed each of the V in Vs
+  # GL is our big unimodular genus where we embed each of the V in Vs
   GL = genus(torsion_quadratic_module(QQ[0;]), (rank(G)+1, rank(G)+1))
   # M2 is M seen in V, and T2 is T seen in V
   for (V, M2, T2) in Vs
@@ -1119,6 +1118,9 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       @hassert :ZZLatWithIsom 1 is_primitive(L, M3)
       # And this is the orthogonal complement of M in L
       N = orthogonal_submodule(L, M3)
+      # L, M3 and N live in a very big ambient space: we redescribed them in the
+      # rational span of L so that L has full rank and we keep only the
+      # necessary information.
       bM = solve_left(basis_matrix(L), basis_matrix(M3))
       bN = solve_left(basis_matrix(L), basis_matrix(N))
       L = integer_lattice(; gram = gram_matrix(L))
