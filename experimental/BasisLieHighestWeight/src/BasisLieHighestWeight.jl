@@ -133,6 +133,91 @@ include("./WordCalculations.jl")
 
 fromGap = Oscar.GAP.gap_to_julia
 
+function basis_lie_highest_weight_compute(
+    type::String,
+    rank::Int, 
+    highest_weight::Vector{Int},
+    get_operators::Function,
+    monomial_order::Union{String, Function},
+    cache_size::Int,
+)::BasisLieHighestWeightStructure
+    """
+    Pseudocode:
+
+    basis_lie_highest_weight(highest_weight)
+        return compute_monomials(highest_weight)
+
+    compute_monomials(highest_weight)
+        if highest_weight was already computed 
+            return old results
+        if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
+            return add_by_hand(highest_weight, {})
+        else
+            set_mon = {}
+            go through all partitions lambda_1 + lambda_2 = highest_weight
+                add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
+            if set_mon too small
+                add_by_hand(highest_weight, set_mon)
+            return set_mon
+    
+    add_by_hand(highest_weight, set_mon)
+        add_known_monomials(set_mon)
+        go through all weightspaces that are not full
+            add_new_monomials(weightspace, set_mon)
+        return set_mon
+      
+    add_known_monomials(set_mon)
+        add all monomials from set_mon to basis
+    
+    add_new_monomials(weightspace, set_mon)
+        calculate monomials with weight in weightspace
+        go through them one by one in monomial_order until basis is full
+        return set_mon
+    """
+    highest_weight = convert(Vector{ZZRingElem}, highest_weight)
+    # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
+    # steps. Then it starts the recursion and returns the result.
+
+    # initialization of objects that can be precomputed
+    # lie_algebra of type, rank and its chevalley_basis
+    lie_algebra = LieAlgebraStructure(type, rank)
+    chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+
+    # operators that are represented by our monomials. x_i is connected to operators[i]
+    operators = get_operators(lie_algebra, chevalley_basis)
+
+    weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
+    # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
+    weights_eps = [w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
+    
+    asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
+    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps)
+    
+    ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
+    monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx) # less than function to sort monomials by order
+    
+    # save computations from recursions
+    calc_highest_weight = Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}}([ZZ(0) for i in 1:rank] => Set([ZZx(1)]))
+    # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
+    no_minkowski = Set{Vector{ZZRingElem}}()
+
+    # start recursion over highest_weight
+    set_mon = compute_monomials(lie_algebra, birational_sequence, ZZx, highest_weight, monomial_order_lt, calc_highest_weight, cache_size, no_minkowski)
+    
+    # output
+    return BasisLieHighestWeightStructure(
+        lie_algebra,
+        birational_sequence,
+        highest_weight,
+        monomial_order,
+        MonomialBasis(
+            ZZx,
+            set_mon,
+            no_minkowski
+        )
+    )
+end
+
 @doc """
 basis_lie_highest_weight(
     type::String,
@@ -228,82 +313,8 @@ function basis_lie_highest_weight(
         monomial_order::Union{String, Function} = "degrevlex", 
         cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
-
-    """
-    Pseudocode:
-
-    basis_lie_highest_weight(highest_weight)
-        return compute_monomials(highest_weight)
-
-    compute_monomials(highest_weight)
-        if highest_weight was already computed 
-            return old results
-        if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
-            return add_by_hand(highest_weight, {})
-        else
-            set_mon = {}
-            go through all partitions lambda_1 + lambda_2 = highest_weight
-                add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
-            if set_mon too small
-                add_by_hand(highest_weight, set_mon)
-            return set_mon
-    
-    add_by_hand(highest_weight, set_mon)
-        add_known_monomials(set_mon)
-        go through all weightspaces that are not full
-            add_new_monomials(weightspace, set_mon)
-        return set_mon
-      
-    add_known_monomials(set_mon)
-        add all monomials from set_mon to basis
-    
-    add_new_monomials(weightspace, set_mon)
-        calculate monomials with weight in weightspace
-        go through them one by one in monomial_order until basis is full
-        return set_mon
-    """
-    highest_weight = convert(Vector{ZZRingElem}, highest_weight)
-    # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
-    # steps. Then it starts the recursion and returns the result.
-
-    # initialization of objects that can be precomputed
-    # lie_algebra of type, rank and its chevalley_basis
-    lie_algebra = LieAlgebraStructure(type, rank)
-    chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
-
-    # operators that are represented by our monomials. x_i is connected to operators[i]
-    operators = get_operators(lie_algebra, operators, chevalley_basis) 
-
-    weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
-    # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
-    weights_eps = [w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
-    
-    asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
-    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps)
-    
-    ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
-    monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx) # less than function to sort monomials by order
-    
-    # save computations from recursions
-    calc_highest_weight = Dict{Vector{ZZRingElem}, Set{ZZMPolyRingElem}}([ZZ(0) for i in 1:rank] => Set([ZZx(1)]))
-    # we save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-    no_minkowski = Set{Vector{ZZRingElem}}()
-
-    # start recursion over highest_weight
-    set_mon = compute_monomials(lie_algebra, birational_sequence, ZZx, highest_weight, monomial_order_lt, calc_highest_weight, cache_size, no_minkowski)
-    
-    # output
-    return BasisLieHighestWeightStructure(
-        lie_algebra,
-        birational_sequence,
-        highest_weight,
-        monomial_order,
-        MonomialBasis(
-            ZZx,
-            set_mon,
-            no_minkowski
-        )
-    )
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, operators)
+    return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
 function basis_lie_highest_weight_lustzig(
@@ -318,9 +329,8 @@ function basis_lie_highest_weight_lustzig(
     Lustzig polytope
     """
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    operators = compute_operators_lustzig_nz(type, rank, reduced_expression)
-    return basis_lie_highest_weight(type, rank, highest_weight, operators = operators,
-                                    monomial_order=monomial_order, cache_size=cache_size)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)
+    return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
 function basis_lie_highest_weight_string(
@@ -346,7 +356,7 @@ function basis_lie_highest_weight_fflv(
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
     """
-    Feigin-Fourier-Littelman    n-Vinberg polytope  
+    Feigin-Fourier-Littelmann-Vinberg polytope  
     """
     monomial_order = "oplex"
     # operators = all positive roots, same ordering as GAP uses
@@ -382,8 +392,11 @@ function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GA
     return operators
 end
 
-function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any}, 
-                        chevalley_basis::GAP.Obj)::Vector{GAP.Obj}
+function get_operators_normal(
+    lie_algebra::LieAlgebraStructure, 
+    chevalley_basis::GAP.Obj,
+    operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any}, 
+    )::Vector{GAP.Obj}
     """
     handles user input for operators
     "regular" for all operators

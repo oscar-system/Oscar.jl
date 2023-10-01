@@ -81,7 +81,7 @@ test_sample_weights = Dict(
 
 )
 
-# Code to generate test-examples:
+# Code to generate fixed test-examples, that can be copy-pasted into console or files:
 
 # using Random
 

@@ -1,13 +1,12 @@
 using ..Oscar
 using ..Oscar: GAPWrap
 
-function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Vector{Int}}
+function compute_betas(lie_algebra::LieAlgebraStructure, word::Vector{Int})::Vector{Vector{Int}}
     """
     Calculate betas from type, rank and a longest-word from the weylgroup.
     """
     # Construct Gap-Objects
-    lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
-    root_system = GAP.Globals.RootSystem(lie_algebra)
+    root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
 
     simple_roots = GAP.Globals.SimpleSystem(root_system)
     weyl_group = GAP.Globals.WeylGroup(root_system)
@@ -28,14 +27,15 @@ function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Vecto
     return julia_betas
 end
 
-function roots_to_root_vectors(type::String, rank::Int, roots::Vector{Vector{Int}})::Vector{GAP.Obj}
+function roots_to_root_vectors(
+    lie_algebra::LieAlgebraStructure,
+    chevalley_basis::GAP.Obj,
+    roots::Vector{Vector{Int}})::Vector{GAP.Obj}
     """
     Returns for list of roots the corresponding root-vectors from GAP
     """
-    # Construct Gap-Objects
-    lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
-    root_system = GAP.Globals.RootSystem(lie_algebra)
-    chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra)
+    # Root-system Gap-Objects
+    root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
 
     # positive-roots
     positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(root_system))
@@ -54,7 +54,7 @@ end
 
 function find_root_in_chevalley_basis(
     positive_roots::Vector{Vector{Int}}, 
-    positive_root_vectors::GAP.Obj, 
+    positive_root_vectors::GAP.Obj,
     negative_roots::Vector{Vector{Int}}, 
     negative_root_vectors::GAP.Obj, 
     root::Vector{Int})::GAP.Obj
@@ -80,7 +80,10 @@ function find_root_in_chevalley_basis(
     return false
 end
 
-function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expression::Vector{Int})::Vector{GAP.Obj}
+function get_operators_lustzig_nz(
+    lie_algebra::LieAlgebraStructure, 
+    chevalley_basis::GAP.Obj,
+    reduced_expression::Vector{Int})::Vector{GAP.Obj}
     """
     Computes the operators for the lustzig and nz polytopes for a longest weyl-word 
     reduced_expression.
@@ -92,8 +95,8 @@ function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expressio
     \beta_2 = \alpha_1 + \alpha_2
     \beta_3 = \alpha_2
     """
-    betas = compute_betas(type, rank, reduced_expression)
-    operators = roots_to_root_vectors(type, rank, betas)
+    betas = compute_betas(lie_algebra, reduced_expression)
+    operators = roots_to_root_vectors(lie_algebra, chevalley_basis, betas)
 
     println("operators: ", operators)
     println("GAP-operators: ", GAP.julia_to_gap(operators))
