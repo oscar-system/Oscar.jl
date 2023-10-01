@@ -28,30 +28,49 @@ function compute_betas(type::String, rank::Int, word::Vector{Int})::Vector{Vecto
     return julia_betas
 end
 
-function root_to_root_vector(type::String, rank::Int, root::Vector{Int}) #::GAP.Obj
+function roots_to_root_vectors(type::String, rank::Int, roots::Vector{Vector{Int}})::Vector{GAP.Obj}
     """
-    For a given positive or negative root, return the GAP root vector.
+    Returns for list of roots the corresponding root-vectors from GAP
     """
     # Construct Gap-Objects
     lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
     root_system = GAP.Globals.RootSystem(lie_algebra)
     chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra)
 
-    # Check if root is one of positive_roots
+    # positive-roots
     positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(root_system))
     positive_root_vectors = chevalley_basis[1]
-    
+
+    # negative-roots
+    negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(root_system))
+    negative_root_vectors = chevalley_basis[2]
+
+    return [
+        find_root_in_chevalley_basis(positive_roots, positive_root_vectors, negative_roots, negative_root_vectors, root) 
+        for root in roots
+    ]
+end
+
+
+function find_root_in_chevalley_basis(
+    positive_roots::Vector{Vector{Int}}, 
+    positive_root_vectors::GAP.Obj, 
+    negative_roots::Vector{Vector{Int}}, 
+    negative_root_vectors::GAP.Obj, 
+    root::Vector{Int})::GAP.Obj
+    """
+    For a given positive or negative root, return the GAP root vector.
+    """
+    # Check if root is positive-root
     for (i, root_i) in enumerate(positive_roots)
-        print(root_i)
+        # print(root_i)
         if root == root_i
+            println("positive root i: ", i)
             return positive_root_vectors[i]
         end
     end
 
-    # Check if root is one of negative roots
-    negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(root_system))
-    negative_root_vectors = chevalley_basis[2]
-    
+    # Check if root is negative-root
     for (i, root_i) in enumerate(negative_roots)
         if root == root_i
             return negative_root_vectors[i]
@@ -61,7 +80,7 @@ function root_to_root_vector(type::String, rank::Int, root::Vector{Int}) #::GAP.
     return false
 end
 
-function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expression::Vector{Int}) #::GAP.Obj
+function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expression::Vector{Int})::Vector{GAP.Obj}
     """
     Computes the operators for the lustzig and nz polytopes for a longest weyl-word 
     reduced_expression.
@@ -74,7 +93,9 @@ function compute_operators_lustzig_nz(type::String, rank::Int, reduced_expressio
     \beta_3 = \alpha_2
     """
     betas = compute_betas(type, rank, reduced_expression)
-    operators = [root_to_root_vector(type, rank, beta) for beta in betas]
-    
+    operators = roots_to_root_vectors(type, rank, betas)
+
+    println("operators: ", operators)
+    println("GAP-operators: ", GAP.julia_to_gap(operators))
     return operators
 end

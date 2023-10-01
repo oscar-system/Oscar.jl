@@ -65,7 +65,7 @@ function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
 end
 
 struct BirationalSequence
-    operators::GAP.Obj # TODO Integer 
+    operators::Vector{GAP.Obj} # TODO Integer 
     operators_vectors::Vector{Vector{Any}}
     weights_w::Vector{Vector{ZZRingElem}}
     weights_eps::Vector{Vector{QQFieldElem}}
@@ -346,7 +346,7 @@ function basis_lie_highest_weight_fflv(
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
     """
-    Feigin-Fourier-Littelmann-Vinberg polytope  
+    Feigin-Fourier-Littelman    n-Vinberg polytope  
     """
     monomial_order = "oplex"
     # operators = all positive roots, same ordering as GAP uses
@@ -372,18 +372,18 @@ function basis_lie_highest_weight_nz(
                                     monomial_order=monomial_order, cache_size)
 end
 
-function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::GAP.Obj
+function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GAP.Obj}
     """
     substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
     """
     root_system = GAP.Globals.RootSystem(lie_algebra_gap)
     canonical_generators = fromGap(GAP.Globals.CanonicalGenerators(root_system)[1], recursive = false)
-    operators = GAP.Obj([canonical_generators[i] for i in word], recursive = false)
+    operators = [canonical_generators[i] for i in word]
     return operators
 end
 
 function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any}, 
-                        chevalley_basis::GAP.Obj)::GAP.Obj
+                        chevalley_basis::GAP.Obj)::Vector{GAP.Obj}
     """
     handles user input for operators
     "regular" for all operators
@@ -394,8 +394,7 @@ function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String
     if typeof(operators) != String && typeof(operators) != Vector{Int}
         return operators
     elseif operators == "regular" # create standard operators, use operators as specified by GAP
-        operators = chevalley_basis[1]
-        return operators
+        return [v for v in chevalley_basis[1]]
     # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
     # temporarily deleted
     # choose a random longest word. Created by extending by random not leftdescending reflections until total length is 
@@ -404,7 +403,7 @@ function get_operators(lie_algebra::LieAlgebraStructure, operators::Union{String
     #    operators = longest_weyl_word(t,n)
     #    operators = sub_simple_refl(operators, lie_algebra, n)
     #    return operators
-    end
+    end 
 
     # use user defined operators
     # wrong input

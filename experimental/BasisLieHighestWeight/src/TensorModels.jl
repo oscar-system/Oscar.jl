@@ -39,10 +39,11 @@ tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n-1), A)
 tensorPowers(As, n) = (A->tensorPower(A, n)).(As)
 
 function tensorMatricesForOperators(lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, 
-                                    operators::GAP.Obj)::Vector{SMat{ZZRingElem}}
+                                    operators::Vector{GAP.Obj})::Vector{SMat{ZZRingElem}}
     """
     Calculates the matrices g_i corresponding to the operator ops[i].
     """
+    operatos = GAP.Obj(operators, recursive=false)
     matrices_of_operators = []
     for i in 1:length(highest_weight)
         if highest_weight[i] <= 0
