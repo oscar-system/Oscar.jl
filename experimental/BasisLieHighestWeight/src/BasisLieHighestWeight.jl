@@ -1,5 +1,8 @@
 module BasisLieHighestWeight
-export LieAlgebra
+export LieAlgebraStructure
+export BirationalSequence
+export MonomialBasis
+export BasisLieHighestWeightStructure
 export basis_lie_highest_weight
 export is_fundamental
 export get_dim_weightspace
@@ -49,7 +52,6 @@ using Polymake
 # DimensionOfHighestWeightModule
 # CanonicalGenerators
 
-
 struct LieAlgebraStructure
     lie_type::String
     rank::Int
@@ -98,7 +100,7 @@ function Base.show(io::IO, monomial_basis::MonomialBasis)
     println(io, "Generators within semi-group: ", monomial_basis.no_minkowski)
     println(io, "First 10 Monomials in degrevlex: ", sort(collect(monomial_basis.set_mon), 
             lt = get_monomial_order_lt("degrevlex", monomial_basis.ZZx))[1:min(end, 10)])
-    print(io, "Volume polytope: ", monomial_basis.polytope.VOLUME)
+    # print(io, "Volume polytope: ", monomial_basis.polytope.VOLUME)
 end
 
 struct BasisLieHighestWeightStructure
@@ -309,14 +311,36 @@ function basis_lie_highest_weight(
         type::String,
         rank::Int, 
         highest_weight::Vector{Int};
-        operators::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any} = "regular", 
+        reduced_expression::Union{String, Vector{Int}, Vector{GAP.GapObj}, Any} = "regular", 
         monomial_order::Union{String, Function} = "degrevlex", 
         cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
-    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, operators)
+    """
+    Standard function with all options
+    """
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
     return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
+@doc """
+# Examples
+```jldoctest
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig("D", 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
+Lie-Algebra of type D and rank 4
+
+BirationalSequence
+Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.4, GAP: v.3, GAP: v.10, GAP: v.6, GAP: v.7, GAP: v.2, GAP: v.12, GAP: v.11, GAP: v.9, GAP: v.8, GAP: v.5, GAP: v.1]
+Weights in w_i:Vector{ZZRingElem}[[0, -1, 0, 2], [0, -1, 2, 0], [-1, 0, 1, 1], [-1, 1, 1, -1], [-1, 1, -1, 1], [-1, 2, -1, -1], [0, 1, 0, 0], [1, -1, 1, 1], [1, 0, -1, 1], [1, 0, 1, -1], [1, 1, -1, -1], [2, -1, 0, 0]]
+
+Highest-weight: [1, 1, 1, 1]
+Monomial-order: oplex
+
+MonomialBasis
+Dimension: 4096
+Generators within semi-group: Set([[0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1], [0, 0, 1, 0], [1, 0, 0, 0]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x12, x11, x10, x9, x8, x7, x6, x5, x4]
+```
+"""
 function basis_lie_highest_weight_lustzig(
     type::String,
     rank::Int, 
@@ -327,28 +351,69 @@ function basis_lie_highest_weight_lustzig(
     )::BasisLieHighestWeightStructure
     """
     Lustzig polytope
+    BasisLieHighestWeight.basis_lie_highest_weight_lustzig("D", 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
     """
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
     get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)
     return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
+@doc """
+# Examples
+```jldoctest
+julia> BasisLieHighestWeight.basis_lie_highest_weight_string("B", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+Lie-Algebra of type B and rank 3
+
+BirationalSequence
+Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.3, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1]
+Weights in w_i:Vector{ZZRingElem}[[0, -1, 2], [-1, 2, -2], [0, -1, 2], [-1, 2, -2], [2, -1, 0], [-1, 2, -2], [0, -1, 2], [-1, 2, -2], [2, -1, 0]]
+
+Highest-weight: [1, 1, 1]
+Monomial-order: oplex
+
+MonomialBasis
+Dimension: 512
+Generators within semi-group: Set([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x5, x2, x1, x5*x6, x2*x5, x1*x5, x2*x3, x1*x2, x5*x6*x7]
+```
+"""
 function basis_lie_highest_weight_string(
     type::String,
     rank::Int, 
-    highest_weight::Vector{Int};
-    reduced_expression::Vector{Int},
+    highest_weight::Vector{Int},
+    reduced_expression::Vector{Int};
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
     """
     String / Littelmann-Berenstein-Zelevinsky polytope
+    BasisLieHighestWeight.basis_lie_highest_weight_string("B", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+    BasisLieHighestWeight.basis_lie_highest_weight_string("B", 4, [1,1,1,1], [4,3,4,3,2,3,4,3,2,1,2,3,4,3,2,1])
     """
+    # reduced_expression = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
     monomial_order = "oplex"
-    # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    return basis_lie_highest_weight(type, rank, highest_weight, operators=reduced_expression, 
-                                    monomial_order=monomial_order, cache_size=cache_size)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
+    return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
+@doc """
+# Examples
+```jldoctest
+julia> BasisLieHighestWeight.basis_lie_highest_weight_fflv("A", 3, [1,1,1])
+Lie-Algebra of type A and rank 3
+
+BirationalSequence
+Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.4, GAP: v.5, GAP: v.6]
+Weights in w_i:Vector{ZZRingElem}[[2, -1, 0], [-1, 2, -1], [0, -1, 2], [1, 1, -1], [-1, 1, 1], [1, 0, 1]]
+
+Highest-weight: [1, 1, 1]
+Monomial-order: oplex
+
+MonomialBasis
+Dimension: 64
+Generators within semi-group: Set([[0, 1, 0], [1, 0, 1], [0, 0, 1], [1, 0, 0]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x5*x6, x2*x6, x4*x5]
+```
+"""
 function basis_lie_highest_weight_fflv(
     type::String,
     rank::Int,
@@ -356,14 +421,34 @@ function basis_lie_highest_weight_fflv(
     cache_size::Int = 0,
     )::BasisLieHighestWeightStructure
     """
-    Feigin-Fourier-Littelmann-Vinberg polytope  
+    Feigin-Fourier-Littelmann-Vinberg polytope
+    BasisLieHighestWeight.basis_lie_highest_weight_fflv("A", 3, [1,1,1])
     """
     monomial_order = "oplex"
     # operators = all positive roots, same ordering as GAP uses
-    return basis_lie_highest_weight(type, rank, highest_weight, operators="regular", 
-                                    monomial_order=monomial_order, cache_size=cache_size)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, "regular")
+    return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
+@doc """
+# Examples
+```jldoctest
+julia> BasisLieHighestWeight.basis_lie_highest_weight_nz("C", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+Lie-Algebra of type C and rank 3
+
+BirationalSequence
+Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.3, GAP: v.5, GAP: v.7, GAP: v.2, GAP: v.8, GAP: v.6, GAP: v.9, GAP: v.4, GAP: v.1]
+Weights in w_i:Vector{ZZRingElem}[[0, -2, 2], [-1, 0, 1], [-2, 2, 0], [-1, 2, -1], [0, 1, 0], [1, -1, 1], [2, 0, 0], [1, 1, -1], [2, -1, 0]]
+
+Highest-weight: [1, 1, 1]
+Monomial-order: lex
+
+MonomialBasis
+Dimension: 512
+Generators within semi-group: Set([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2, x1]
+```
+"""
 function basis_lie_highest_weight_nz(
     type::String,
     rank::Int, 
@@ -373,13 +458,11 @@ function basis_lie_highest_weight_nz(
     )::BasisLieHighestWeightStructure
     """
     Nakashima-Zelevinsky polytope
+    BasisLieHighestWeight.basis_lie_highest_weight_nz("C", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
     """
     monomial_order = "lex"
-    operators = compute_operators_lustzig_nz(type, rank, reduced_expression)
-    # operators = some sequence of the Nakashima-Zelevinsky polytope, same as for _string
-    print("operators: ", operators)
-    return basis_lie_highest_weight(type, rank, highest_weight, operators=operators,
-                                    monomial_order=monomial_order, cache_size)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)
+    return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
 function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GAP.Obj}

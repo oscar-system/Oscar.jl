@@ -1,14 +1,12 @@
 using Oscar
 using Test
-
 include("../src/WordCalculations.jl")
-include("../src/LieAlgebras.jl")
 
 @testset "Test CalculateBetas for A2" begin
     type = "A"
     rank = 2
     word = [1, 2, 1]
-    lie_algebra = LieAlgebraStructure(type, rank)
+    lie_algebra = BasisLieHighestWeight.LieAlgebraStructure(type, rank)
     
     betas = compute_betas(lie_algebra, word)
     

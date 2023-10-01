@@ -63,9 +63,7 @@ function find_root_in_chevalley_basis(
     """
     # Check if root is positive-root
     for (i, root_i) in enumerate(positive_roots)
-        # print(root_i)
         if root == root_i
-            println("positive root i: ", i)
             return positive_root_vectors[i]
         end
     end
@@ -97,8 +95,5 @@ function get_operators_lustzig_nz(
     """
     betas = compute_betas(lie_algebra, reduced_expression)
     operators = roots_to_root_vectors(lie_algebra, chevalley_basis, betas)
-
-    println("operators: ", operators)
-    println("GAP-operators: ", GAP.julia_to_gap(operators))
     return operators
 end
