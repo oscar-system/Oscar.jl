@@ -1,3 +1,5 @@
+import JSON3: Object, read
+
 ################################################################################
 # (de)Serializer States
 
@@ -30,20 +32,9 @@ mutable struct SerializerState
   key::Union{Symbol, Nothing}
 end
 
-function SerializerState(io::IO)
+function serializer_open(io::IO)
+  # some level of handling should be done here at a later date
   return SerializerState(true, UUID[], io, nothing)
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
 end
 
 function begin_node(s::SerializerState)
@@ -82,18 +73,16 @@ function end_array_node(s::SerializerState)
   end
 end
 
-struct DeserializerState
-  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-  # the values of refs are objects to be deserialized
-  refs::Dict{Symbol, Dict}
+function serialize_dict(f::Function, s::SerializerState)
+  begin_dict_node(s)
+  f()
+  end_dict_node(s)
 end
 
-function DeserializerState()
-  return DeserializerState(Dict{Symbol, Any}())
-end
-
-function finish_writing(s::SerializerState)
-  # nothing to do here
+function serialize_array(f::Function, s::SerializerState)
+  begin_array_node(s)
+  f()
+  end_array_node(s)
 end
 
 function set_key(s::SerializerState, key::Symbol)
@@ -113,6 +102,7 @@ function save_data_dict(f::Function, s::SerializerState,
   end
 end
 
+                        
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
@@ -137,16 +127,51 @@ function save_data_json(s::SerializerState, jsonstr::Any,
   write(s.io, jsonstr)
 end
 
-function serializer_open(io::IO)
-  # some level of handling should be done here at a later date
-  return SerializerState(io)
-end
-
 function serializer_close(s::SerializerState)
   finish_writing(s)
 end
 
-function deserializer_open(io::IO)
-  # should eventually take io
-  return DeserializerState()
+function finish_writing(s::SerializerState)
+  # nothing to do here
 end
+
+struct DeserializerState
+  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+  # the values of refs are objects to be deserialized
+  obj::Union{Object, Array}
+  #refs::Dict{Symbol, Dict}
+end
+
+function deserializer_open(io::IO)
+  obj = read(io)
+
+  return DeserializerState(obj)
+end
+
+function dict_node(f::Function, s::DeserializerState)
+  obj = copy(s.obj)
+  s.obj = s.obj[s.key]
+  s.key = nothing
+  f()
+  s.obj = obj
+end
+
+function set_key(s::DeserializerState, key::Union{Symbol, Int})
+  @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
+  s.key = key
+end
+
+function deserialize_dict(f::Function, s::DeserializerState)
+  dict_node(s) do
+    f()
+  end
+end
+
+function load_value(f::Function, s::DeserializerState,
+                    key::Union{Symbol, Int} = nothing)
+  !isnothing(key) && set_key(s, key)
+  deserialize_dict(s) do
+    f()
+  end
+end
+

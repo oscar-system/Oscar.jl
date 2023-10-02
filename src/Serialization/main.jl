@@ -240,6 +240,9 @@ function decode_type(input::Dict{Symbol, Any})
   return decode_type(input[:name])
 end
 
+function decode_type(s::DeserializerState)
+  return decode_type(s.obj[type_key])
+end
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
@@ -333,21 +336,29 @@ end
 
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
-function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
+function load_typed_object(s::DeserializerState, key::Union{Symbol, Int, Nothing};
                            override_params::Any = nothing)
-  T = decode_type(dict[type_key])
-  if Base.issingletontype(T) && return T()
-  elseif serialize_with_params(T)
-    if !isnothing(override_params)
-      params = override_params
+  load_value(s, key) do
+    T = decode_type(s)
+    if Base.issingletontype(T) && return T()
+    elseif serialize_with_params(T)
+      if !isnothing(override_params)
+        params = override_params
+      else
+        # depending on the type, :params is either an object to be loaded or a
+        # dict with keys and object values to be loaded
+        # dict[type_key][:params] this can be found from state
+        
+        params = load_type_params(s, T) 
+      end
+      load_value(s, :data) do
+        return load_object(s, T, params)
+      end
     else
-      # depending on the type, :params is either an object to be loaded or a
-      # dict with keys and object values to be loaded
-      params = load_type_params(s, T, dict[type_key][:params])
+      load_value(s, :data) do
+        return load_object(s, T)
+      end
     end
-    return load_object(s, T, dict[:data], params)
-  else
-    return load_object(s, T, dict[:data])
   end
 end
 
@@ -481,6 +492,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
       save_json(state, json(metadata), :meta)
     end
   end
+
   serializer_close(state)
   return nothing
 end
@@ -552,20 +564,20 @@ true
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing)
   state = deserializer_open(io)
-
+  
   # this should be moved to the serializer at some point
-  jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+  #jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-  if haskey(jsondict, :id)
-    id = jsondict[:id]
+  if haskey(state.obj, :id)
+    id = state.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end
   end
 
   # handle different namespaces
-  @req haskey(jsondict, :_ns) "Namespace is missing"
-  _ns = jsondict[:_ns]
+  @req haskey(state.obj, :_ns) "Namespace is missing"
+  _ns = state.obj[:_ns]
   if haskey(_ns, :polymake)
     # If this is a polymake file
     return load_from_polymake(jsondict)
@@ -573,16 +585,16 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades
-  file_version = get_file_version(jsondict)
+  file_version = get_file_version(state.obj)
 
   if file_version < VERSION_NUMBER
     jsondict = upgrade(jsondict, file_version)
   end
 
   # add refs to state for referencing during recursion
-  if haskey(jsondict, refs_key)
-    merge!(state.refs, jsondict[refs_key])
-  end
+  #if haskey(jsondict, refs_key)
+  #  merge!(state.refs, jsondict[refs_key])
+  #end
 
   if type !== nothing
     # Decode the stored type, and compare it to the type `T` supplied by the caller.
@@ -604,7 +616,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
       loaded = load_object(state, type, jsondict[:data])
     end
   else
-    loaded = load_typed_object(state, jsondict; override_params=params)
+    loaded = load_typed_object(state; override_params=params)
   end
 
   if haskey(jsondict, :id)
