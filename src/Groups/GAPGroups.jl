@@ -499,6 +499,37 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+
+  # Recurse to regular printing
+  print(io, G)
+  has_gens(G) || return
+  println(io)
+  io = pretty(io)
+  n = ngens(G)
+  print(io, "with ", ItemQuantity(n, "generator"))
+
+  # compute maximum number of generators that can fit on the screen
+  rows,cols = displaysize(io)
+  maxgens = rows - 6
+  maxgens > 0 || return
+
+  println(io, Indent())
+  for (i, g) in enumerate(gens(G))
+    if i > maxgens
+      print(io, "⋮")
+      break
+    end
+    show(io, MIME"text/plain"(), g)
+    if i < n
+      println(io)
+    end
+  end
+  print(io, Dedent())
+end
+
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(GapObj(x))
 
