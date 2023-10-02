@@ -67,16 +67,17 @@ function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
 end
 
 struct BirationalSequence
-    operators::Vector{GAP.Obj} # TODO Integer 
+    operators::Vector{GAP.Obj}
     operators_vectors::Vector{Vector{Any}}
     weights_w::Vector{Vector{ZZRingElem}}
     weights_eps::Vector{Vector{QQFieldElem}}
+    weights_alpha::Vector{Vector{QQFieldElem}}
 end
 
 function Base.show(io::IO, birational_sequence::BirationalSequence)
     println(io, "BirationalSequence")
     println(io, "Operators: ", birational_sequence.operators)
-    print(io, "Weights in w_i:", birational_sequence.weights_w)
+    print(io, "Weights in alpha_i:", birational_sequence.weights_alpha)
 end
 
 struct MonomialBasis
@@ -191,9 +192,10 @@ function basis_lie_highest_weight_compute(
     weights_w = weights_for_operators(lie_algebra.lie_algebra_gap, chevalley_basis[3], operators) # weights of the operators
     # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
     weights_eps = [w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
-    
+    weights_alpha = [w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w] # other root system
+
     asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
-    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps)
+    birational_sequence = BirationalSequence(operators, [asVec(v) for v in operators], weights_w, weights_eps, weights_alpha)
     
     ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
     monomial_order_lt = get_monomial_order_lt(monomial_order, ZZx) # less than function to sort monomials by order
@@ -388,6 +390,7 @@ function basis_lie_highest_weight_string(
     String / Littelmann-Berenstein-Zelevinsky polytope
     BasisLieHighestWeight.basis_lie_highest_weight_string("B", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
     BasisLieHighestWeight.basis_lie_highest_weight_string("B", 4, [1,1,1,1], [4,3,4,3,2,3,4,3,2,1,2,3,4,3,2,1])
+    BasisLieHighestWeight.basis_lie_highest_weight_string("A", 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
     """
     # reduced_expression = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
     monomial_order = "oplex"
@@ -459,6 +462,7 @@ function basis_lie_highest_weight_nz(
     """
     Nakashima-Zelevinsky polytope
     BasisLieHighestWeight.basis_lie_highest_weight_nz("C", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+    BasisLieHighestWeight.basis_lie_highest_weight_nz("A", 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
     """
     monomial_order = "lex"
     get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)

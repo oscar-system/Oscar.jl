@@ -53,8 +53,6 @@ function get_dim_weightspace(
 end
 
 
-
-
 function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
     return [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) 
               for lattice_point in lattice_points_weightspace]
