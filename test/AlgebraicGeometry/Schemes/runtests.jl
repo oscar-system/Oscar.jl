@@ -29,3 +29,5 @@ include("MorphismFromRationalFunctions.jl")
 include("AffineRationalPoint.jl")
 include("ProjectiveRationalPoint.jl")
 include("BlowupMorphism.jl")
+
+include("ExteriorPowers.jl")
