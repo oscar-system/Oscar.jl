@@ -162,70 +162,6 @@ const oscar_serialization_version = get_version_info()
 # parameters of type should not matter here
 const reverse_type_map = Dict{String, Type}()
 
-function register_serialization_type(@nospecialize(T::Type), str::String)
-  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
-    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
-  end
-  reverse_type_map[str] = T
-end
-
-# @register_serialization_type NewType "String Representation of type" uses_id uses_params
-
-# register_serialization_type is a macro to ensure that the string we generate
-# matches exactly the expression passed as first argument, and does not change
-# in unexpected ways when import/export statements are adjusted.
-# The last three arguments are optional and can arise in any order. Passing a string
-# argument will override how the type is stored as a string. The last two are boolean
-# flags. When setting uses_id the object will be stored as a reference and will be
-# referred to throughout the serialization using a UUID. This should typically only
-# be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
-# Using the uses_params flag will serialize the object with a more structured type
-# description which will make the serialization more efficient see the discussion on
-# save_type_params / load_type_params below.
-function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
-  return esc(
-    quote
-      register_serialization_type($ex, $str)
-      encode_type(::Type{<:$ex}) = $str
-      # There exist types where equality cannot be discerned from the serialization
-      # these types require an id so that equalities can be forced upon load.
-      # The ids are only necessary for parent types, checking for element type equality
-      # can be done once the parents are known to be equal.
-      # For example two serializations of QQ[x] require ids to check for equality.
-      # Although they're isomorphic rings, they may want to be treated as separate
-      # This is done since other software might not use symbols in their serialization of QQ[x].
-      # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
-      # whenever there is a possibility (amongst any software system) that the objects
-      # cannot be distinguish on a syntactic level we use ids.
-      # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
-      # ambiguities in their encodings.
-
-      serialize_with_id(obj::T) where T <: $ex = $uses_id 
-      serialize_with_id(T::Type{<:$ex}) = $uses_id
-      serialize_with_params(T::Type{<:$ex}) = $uses_params
-    end)
-end
-
-macro register_serialization_type(ex::Any, args...)
-  uses_id = false
-  uses_params = false
-  str = nothing
-  for el in args
-    if el isa String
-      str = el
-    elseif el == :uses_id
-      uses_id = true
-    elseif el == :uses_params
-      uses_params = true
-    end
-  end
-  if str === nothing
-    str = string(ex)
-  end
-
-  return register_serialization_type(ex, str, uses_id, uses_params)
-end
-
 function encode_type(::Type{T}) where T
   error("unsupported type '$T' for encoding")
 end
@@ -391,6 +327,90 @@ function load_parents(s::DeserializerState, parent_ids::Vector)
 end
 
 ################################################################################
+# Type Registration
+function register_serialization_type(@nospecialize(T::Type), str::String)
+  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
+    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
+  end
+  reverse_type_map[str] = T
+end
+
+# @register_serialization_type NewType "String Representation of type" uses_id uses_params
+
+# register_serialization_type is a macro to ensure that the string we generate
+# matches exactly the expression passed as first argument, and does not change
+# in unexpected ways when import/export statements are adjusted.
+# The last three arguments are optional and can arise in any order. Passing a string
+# argument will override how the type is stored as a string. The last two are boolean
+# flags. When setting uses_id the object will be stored as a reference and will be
+# referred to throughout the serialization using a UUID. This should typically only
+# be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
+# Using the uses_params flag will serialize the object with a more structured type
+# description which will make the serialization more efficient see the discussion on
+# save_type_params / load_type_params below.
+
+import Serialization.serialize
+import Serialization.deserialize
+import Serialization.serialize_type
+import Distributed.AbstractSerializer
+
+function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
+  return esc(
+    quote
+      register_serialization_type($ex, $str)
+      encode_type(::Type{<:$ex}) = $str
+      # There exist types where equality cannot be discerned from the serialization
+      # these types require an id so that equalities can be forced upon load.
+      # The ids are only necessary for parent types, checking for element type equality
+      # can be done once the parents are known to be equal.
+      # For example two serializations of QQ[x] require ids to check for equality.
+      # Although they're isomorphic rings, they may want to be treated as separate
+      # This is done since other software might not use symbols in their serialization of QQ[x].
+      # Which will then still allow for the distinction between QQ[x] and QQ[y], i.e.
+      # whenever there is a possibility (amongst any software system) that the objects
+      # cannot be distinguish on a syntactic level we use ids.
+      # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
+      # ambiguities in their encodings.
+
+      serialize_with_id(obj::T) where T <: $ex = $uses_id 
+      serialize_with_id(T::Type{<:$ex}) = $uses_id
+      serialize_with_params(T::Type{<:$ex}) = $uses_params
+
+      # only extend serialize on non std julia types
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple})
+        function serialize(s::AbstractSerializer, obj::T) where T <: $ex
+          serialize_type(s, T)
+          save(s.io, obj; serializer_type=IPCSerializer)
+        end
+        function deserialize(s::AbstractSerializer, ::Type{<:$ex})
+          load(s.io; serializer_type=IPCSerializer)
+        end
+      end
+
+    end)
+end
+
+macro register_serialization_type(ex::Any, args...)
+  uses_id = false
+  uses_params = false
+  str = nothing
+  for el in args
+    if el isa String
+      str = el
+    elseif el == :uses_id
+      uses_id = true
+    elseif el == :uses_params
+      uses_params = true
+    end
+  end
+  if str === nothing
+    str = string(ex)
+  end
+
+  return register_serialization_type(ex, str, uses_id, uses_params)
+end
+
+################################################################################
 # Include serialization implementations for various types
 
 include("basic_types.jl")
@@ -449,13 +469,14 @@ julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
-function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where T
-  state = serializer_open(io)
-  save_data_dict(state) do
+function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
+              serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
+  s = state(serializer_open(io, serializer_type))
+  save_data_dict(s) do
     # write out the namespace first
-    save_header(state, oscar_serialization_version, :_ns)
+    save_header(s, oscar_serialization_version, :_ns)
 
-    save_typed_object(state, obj)
+    save_typed_object(s, obj)
 
     if serialize_with_id(T)
       ref = get(global_serializer_state.obj_to_id, obj, nothing)
@@ -463,25 +484,28 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing) where 
         ref = global_serializer_state.obj_to_id[obj] = uuid4()
         global_serializer_state.id_to_obj[ref] = obj
       end
-      save_object(state, string(ref), :id)
+      save_object(s, string(ref), :id)
+      
     end
     
     # this should be handled by serializers in a later commit / PR
-    !isempty(state.refs) && save_data_dict(state, refs_key) do
-      for id in state.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        state.key = Symbol(id)
-        save_data_dict(state) do
-          save_typed_object(state, ref_obj)
+    if !isempty(s.refs) && serializer_type == JSONSerializer
+      save_data_dict(s, refs_key) do
+        for id in s.refs
+          ref_obj = global_serializer_state.id_to_obj[id]
+          s.key = Symbol(id)
+          save_data_dict(s) do
+            save_typed_object(s, ref_obj)
+          end
         end
       end
     end
     
     if !isnothing(metadata)
-      save_json(state, json(metadata), :meta)
+      save_json(s, json(metadata), :meta)
     end
   end
-  serializer_close(state)
+  serializer_close(s)
   return nothing
 end
 
@@ -550,8 +574,9 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::Any = nothing, type::Any = nothing)
-  state = deserializer_open(io)
+function load(io::IO; params::Any = nothing, type::Any = nothing,
+              serializer_type=JSONSerializer)
+  s = state(deserializer_open(io, serializer_type))
 
   # this should be moved to the serializer at some point
   jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
@@ -581,7 +606,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
 
   # add refs to state for referencing during recursion
   if haskey(jsondict, refs_key)
-    merge!(state.refs, jsondict[refs_key])
+    merge!(s.refs, jsondict[refs_key])
   end
 
   if type !== nothing
@@ -596,22 +621,22 @@ function load(io::IO; params::Any = nothing, type::Any = nothing)
 
     if serialize_with_params(type)
       if isnothing(params) 
-        params = load_type_params(state, type, jsondict[type_key][:params])
+        params = load_type_params(s, type, jsondict[type_key][:params])
       end
-      loaded = load_object(state, type, jsondict[:data], params)
+
+      loaded = load_object(s, type, jsondict[:data], params)
     else
       Base.issingletontype(type) && return type()
-      loaded = load_object(state, type, jsondict[:data])
+      loaded = load_object(s, type, jsondict[:data])
     end
   else
-    loaded = load_typed_object(state, jsondict; override_params=params)
+    loaded = load_typed_object(s, jsondict; override_params=params)
   end
 
   if haskey(jsondict, :id)
     global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
     global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
   end
-
   return loaded
 end
 
