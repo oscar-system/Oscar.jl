@@ -5,7 +5,7 @@
 function Base.show(io::IO, ::MIME"text/plain",
                    X::AbsProjectiveAlgebraicSet{<:Field,<:MPolyQuoRing})
   io = pretty(io)
-  println(io, "Algebraic set")
+  println(io, "Projective algebraic set")
   println(io, Indent(), "in ", Lowercase(), ambient_space(X))
   print(io, Dedent(), "defined by ", Lowercase(), defining_ideal(X))
 end
@@ -15,7 +15,7 @@ end
 function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing})
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Projective algebraic set")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty projective algebraic set")
   else

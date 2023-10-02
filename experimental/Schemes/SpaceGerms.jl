@@ -643,7 +643,7 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> phi
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
 given by the pullback function
@@ -721,7 +721,7 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> phi
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
 given by the pullback function
@@ -796,7 +796,7 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> phi
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2, x1*x2)
 given by the pullback function
@@ -1032,7 +1032,7 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> incSL
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
 given by the pullback function

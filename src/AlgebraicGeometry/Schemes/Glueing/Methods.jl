@@ -11,7 +11,7 @@
 function Base.show(io::IO, ::MIME"text/plain", G::AbsGlueing)
   io = pretty(io)
   println(io, "Glueing")
-  println(io, Indent(), "of  ", Lowercase(), patches(G)[1])
+  println(io, Indent(), "of ", Lowercase(), patches(G)[1])
   println(io, "and ", Lowercase(), patches(G)[2])
   println(io, Dedent(), "along the open subsets")
   f = glueing_morphisms(G)[1]

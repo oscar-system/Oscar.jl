@@ -126,7 +126,7 @@ function Base.show(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X,
   if has_name(X)
     print(io, name(X))
   elseif get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Covered scheme")
   else
     if get_attribute(X, :is_empty, false) || npatches(cov) == 0
       print(io, "Empty covered scheme over ")

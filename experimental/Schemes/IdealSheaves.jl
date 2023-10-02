@@ -1029,7 +1029,7 @@ function Base.show(io::IO, I::IdealSheaf, show_scheme::Bool = true)
   if has_attribute(I, :name)
     print(io, get_attribute(I, :name))
   elseif get(io, :supercompact, false)
-    print(io, "Presheaf")
+    print(io, "Sheaf of ideals")
   else
     if get_attribute(I, :is_one, false)
       print(io, "Sheaf of unit ideals")
