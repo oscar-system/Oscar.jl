@@ -174,5 +174,5 @@ end
   @test length(i) == 5
 
   C, _ = Oscar.GModuleFromGap.ghom(C, C)
-  @test dim(C[1]) == 4
+  @test dim(C) == 4
 end
