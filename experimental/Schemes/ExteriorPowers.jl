@@ -37,11 +37,16 @@ index_type(::Type{OrderedMultiIndex{T}}) where {T} = T
 # Internal function for "multiplication" of ordered multiindices.
 # 
 # The for i = (0 < i₁ < i₂ < … < iₚ ≤ n) and j = (0 < j₁ < j₂ < … < jᵣ ≤ n)
-# the result is a pair `(sign, k)` with `sign` either 0 in case that 
+# the result is a pair `(sign, a)` with `sign` either 0 in case that 
 # iₖ = jₗ for some k and l, or ±1 depending on the number of transpositions 
-# needed to put (i₁, …, iₚ, j₁, …, jᵣ) into a strictly increasing order.
+# needed to put (i₁, …, iₚ, j₁, …, jᵣ) into a strictly increasing order 
+# to produce `a`.
 function _mult(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   @assert bound(a) == bound(b) "multiindices must have the same bounds"
+
+  # in case of a double index return zero
+  any(x->(x in indices(b)), indices(a)) && return 0, a
+
   p = length(a)
   q = length(b)
   result_indices = vcat(indices(a), indices(b))
@@ -50,38 +55,38 @@ function _mult(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   # bubble sort result_indices and keep track of the sign
   for k in p:-1:1
     l = k
-    while l < p + q && result_indices[l] >= result_indices[l+1]
-      # in case of a double index return zero
-      result_indices[l] == result_indices[l+1] && return 0, result_indices
-      c = result_indices[l+1]
-      result_indices[l+1] = result_indices[l]
-      result_indices[l] = c
+    c = result_indices[l]
+    while l < p + q && c > result_indices[l+1]
+      result_indices[l] = result_indices[l+1]
       sign = -sign
       l = l+1
     end
+    result_indices[l] = c
   end
   return sign, result_indices
 end
 
 # For two ordered multiindices i = (0 < i₁ < i₂ < … < iₚ ≤ n) 
-# and j = (0 < j₁ < j₂ < … < jᵣ ≤ n) this returns a pair `(sign, k)` 
+# and j = (0 < j₁ < j₂ < … < jᵣ ≤ n) this returns a pair `(sign, a)` 
 # with `sign` either 0 in case that iₖ = jₗ for some k and l, 
 # or ±1 depending on the number of transpositions needed to put 
-# (i₁, …, iₚ, j₁, …, jᵣ) into a strictly increasing order.
-function wedge(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
+# (i₁, …, iₚ, j₁, …, jᵣ) into a strictly increasing order to produce `a`.
+function _wedge(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   sign, ind = _mult(a, b)
-  iszero(sign) && return sign, OrderedMultiIndex([i for i in 1:length(a) + length(b)], bound(a))
+  iszero(sign) && return sign, a
   return sign, OrderedMultiIndex(ind, bound(a))
 end
 
-function wedge(a::Vector{T}) where {T <: OrderedMultiIndex}
+function _wedge(a::Vector{T}) where {T <: OrderedMultiIndex}
   isempty(a) && error("list must not be empty")
   isone(length(a)) && return 1, first(a)
-  b = first(a)
-  rem = a[2:end]
-  sign, ind = wedge(rem)
-  new_sign, new_ind = wedge(b, ind)
-  return sign*new_sign, new_ind
+  k = div(length(a), 2)
+  b = a[1:k]
+  c = a[k+1:end]
+  sign_b, ind_b = _wedge(b)
+  sign_c, ind_c = _wedge(c)
+  sign, ind = _wedge(ind_b, ind_c)
+  return sign * sign_b * sign_c, ind
 end
 
 function ==(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
@@ -91,7 +96,7 @@ end
 
 ########################################################################
 # A data type to facilitate iteration over all ordered multiindices 
-# of the form 0 < i₁ < i₂ < … < iₚ ≤ n for fixed 0 < p ≤ n.
+# of the form 0 < i₁ < i₂ < … < iₚ ≤ n for fixed 0 ≤ p ≤ n.
 #
 # Example:
 #
@@ -104,7 +109,7 @@ mutable struct OrderedMultiIndexSet
   p::Int
 
   function OrderedMultiIndexSet(p::Int, n::Int)
-    @assert p <= n
+    @assert 0 <= p <= n "invalid bounds"
     return new(n, p)
   end
 end
@@ -149,7 +154,7 @@ end
 
 # For an ordered multiindex i = (0 < i₁ < i₂ < … < iₚ ≤ n) this 
 # returns the number k so that i appears at the k-th spot in the 
-# enumeration of all ordered multiindices for this pair 0 < p ≤ n.
+# enumeration of all ordered multiindices for this pair 0 ≤ p ≤ n.
 function linear_index(ind::OrderedMultiIndex)
   n = bound(ind)
   p = length(ind)
@@ -159,7 +164,7 @@ function linear_index(ind::OrderedMultiIndex)
   return binomial(n, p) - binomial(n - first(i) + 1, p) + linear_index(OrderedMultiIndex(i[2:end].-first(i), n-first(i)))
 end
 
-# For a pair 0 < p ≤ n return the k-th ordered multiindex in the 
+# For a pair 0 ≤ p ≤ n return the k-th ordered multiindex in the 
 # enumeration of all ordered multiindices (0 < i₁ < i₂ < … < iₚ ≤ n).
 function ordered_multi_index(k::Int, p::Int, n::Int)
   (k < 1 || k > binomial(n, p)) && error("index out of range")
@@ -262,7 +267,7 @@ function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
   p + r == q || error("powers are incompatible")
   
   # map the generators
-  img_gens = [sum(v[l] * wedge(f, e) for (l, f) in enumerate(gens(H)); init=zero(G)) for e in gens(F)]
+  img_gens = [wedge(v, e) for e in gens(F)]
   return hom(F, G, img_gens)
 end
 
@@ -286,19 +291,25 @@ function wedge(u::FreeModElem, v::FreeModElem)
   n = rank(F1)
 
   result = zero(exterior_power(F1, p + q))
-  for i in OrderedMultiIndexSet(p, n)
-    for j in OrderedMultiIndexSet(q, n)
-      sign, k = wedge(i, j)
+  for (i, ind_i) in enumerate(OrderedMultiIndexSet(p, n))
+    a = u[i]
+    iszero(a) && continue
+    for (j, ind_j) in enumerate(OrderedMultiIndexSet(q, n))
+      b = v[j]
+      iszero(b) && continue
+      sign, k = _wedge(ind_i, ind_j)
       iszero(sign) && continue
-      result = result + sign * u[linear_index(i)] * v[linear_index(j)] * parent(result)[linear_index(k)]
+      result = result + sign * a * b * parent(result)[linear_index(k)]
     end
   end
   return result
 end
 
 function wedge(u::Vector{T}) where {T<:FreeModElem}
+  isempty(u) && error("list must not be empty")
   isone(length(u)) && return first(u)
-  return wedge(first(u), wedge(u[2:end]))
+  k = div(length(u), 2)
+  return wedge(wedge(u[1:k]), wedge(u[k+1:end]))
 end
 
 
@@ -372,7 +383,7 @@ function koszul_dual(F::FreeMod)
   return exterior_power(M, rank(M) - p)
 end
 
-function koszul_dual(v::Vector{T}) where {T<:FreeModElem}
+function koszul_duals(v::Vector{T}) where {T<:FreeModElem}
   isempty(v) && error("list of elements must not be empty")
   all(u->parent(u) === parent(first(v)), v[2:end]) || error("parent mismatch")
 
@@ -388,14 +399,14 @@ function koszul_dual(v::Vector{T}) where {T<:FreeModElem}
   F_dual = koszul_dual(F)
   results = [F_dual[j] for j in lin_ind]
   for r in 1:length(v)
-    sign, _ = wedge(ind[r], comp[r])
+    sign, _ = _wedge(ind[r], comp[r])
     isone(sign) || (results[r] = -results[r])
   end
   return results 
 end
 
 function koszul_dual(v::FreeModElem)
-  return first(koszul_dual([v]))
+  return first(koszul_duals([v]))
 end
 
 function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int)
@@ -407,18 +418,8 @@ function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, 
   Fp = exterior_power(F, p)
   Gp = exterior_power(G, p)
 
-  img_gens = elem_type(Gp)[]
-  A = matrix(phi)
-  for (i, e) in enumerate(gens(Fp))
-    ind_i = ordered_multi_index(i, p, m)
-    img = zero(Gp)
-    for (j, f) in enumerate(gens(Gp))
-      ind_j = ordered_multi_index(j, p, n)
-      A_sub = A[indices(ind_i), indices(ind_j)]
-      img = img + det(A_sub) * f
-    end
-    push!(img_gens, img)
-  end
+  imgs = phi.(gens(F))
+  img_gens = [wedge(imgs[indices(ind)]) for ind in OrderedMultiIndexSet(p, m)]
   return hom(Fp, Gp, img_gens)
 end
 

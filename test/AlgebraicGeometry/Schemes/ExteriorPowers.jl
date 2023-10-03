@@ -5,17 +5,17 @@
   I5 = Oscar.ordered_multi_index([5], 5)
   J = Oscar.ordered_multi_index([3, 4], 5)
   K = Oscar.ordered_multi_index([2, 4], 5)
-  Oscar.wedge(I, J)
-  sign, ind = Oscar.wedge([I2, I5, I1])
+  @test "$(Oscar._wedge(I, J)[2])" == "0 < 1 < 2 < 3 < 4 < 5 <= 5"
+  sign, ind = Oscar._wedge([I2, I5, I1])
   @test ind == I
   @test sign == 1
-  sign, ind = Oscar.wedge([I2, I1, I5])
+  sign, ind = Oscar._wedge([I2, I1, I5])
   @test ind == I
   @test sign == -1
 
-  sign, ind = Oscar.wedge(J, K)
+  sign, ind = Oscar._wedge(J, K)
   @test sign == 0
-  sign, ind = Oscar.wedge(I, K)
+  sign, ind = Oscar._wedge(I, K)
   @test sign == 0
 
   c = [ind for ind in Oscar.OrderedMultiIndexSet(3, 5)]
@@ -78,12 +78,12 @@ end
 
   Oscar.koszul_dual(Fwedge2[3])
 
-  dual_basis = Oscar.koszul_dual(gens(Fwedge1))
+  dual_basis = Oscar.koszul_duals(gens(Fwedge1))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge1))]
   Fwedge5 = Oscar.exterior_power(F, 5)
   @test all(x->x==Fwedge5[1], tmp)
 
-  dual_basis = Oscar.koszul_dual(gens(Fwedge2))
+  dual_basis = Oscar.koszul_duals(gens(Fwedge2))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge2))]
   @test all(x->x==Fwedge5[1], tmp)
 end
@@ -107,10 +107,11 @@ end
 
   phi_3 = Oscar.induced_map_on_exterior_power(phi, 3)
 
-  for ind in Oscar.OrderedMultiIndexSet(3, 5)
-    imgs = [phi(R5[i]) for i in Oscar.indices(ind)]
-    img = Oscar.wedge(imgs)
-    @test img == phi_3(domain(phi_3)[Oscar.linear_index(ind)])
+  A3 = matrix(phi_3)
+  for ind1 in Oscar.OrderedMultiIndexSet(3, 5)
+    for ind2 in Oscar.OrderedMultiIndexSet(3, 4)
+      @test A3[Oscar.linear_index(ind1), Oscar.linear_index(ind2)] == det(A[Oscar.indices(ind1), Oscar.indices(ind2)])
+    end
   end
 
   psi = hom(R4, R5, transpose(A))
