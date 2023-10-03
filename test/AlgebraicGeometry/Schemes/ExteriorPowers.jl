@@ -87,3 +87,35 @@ end
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge2))]
   @test all(x->x==Fwedge5[1], tmp)
 end
+
+@testset "induced maps on exterior powers" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+
+  R5 = FreeMod(R, 5)
+  R4 = FreeMod(R, 4)
+
+  A = R[x y u v; 7*y u v w; u 5*v w x; v w x y; w 4*x y u]
+  phi = hom(R5, R4, A)
+
+  phi_2 = Oscar.induced_map_on_exterior_power(phi, 2)
+
+  for ind in Oscar.OrderedMultiIndexSet(2, 5)
+    imgs = [phi(R5[i]) for i in Oscar.indices(ind)]
+    img = Oscar.wedge(imgs)
+    @test img == phi_2(domain(phi_2)[Oscar.linear_index(ind)])
+  end
+
+  phi_3 = Oscar.induced_map_on_exterior_power(phi, 3)
+
+  for ind in Oscar.OrderedMultiIndexSet(3, 5)
+    imgs = [phi(R5[i]) for i in Oscar.indices(ind)]
+    img = Oscar.wedge(imgs)
+    @test img == phi_3(domain(phi_3)[Oscar.linear_index(ind)])
+  end
+
+  psi = hom(R4, R5, transpose(A))
+  psi_2 = Oscar.induced_map_on_exterior_power(psi, 2)
+  @test compose(phi_2, psi_2) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 2)
+  psi_3 = Oscar.induced_map_on_exterior_power(psi, 3)
+  @test compose(phi_3, psi_3) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 3)
+end

@@ -397,3 +397,29 @@ end
 function koszul_dual(v::FreeModElem)
   return first(koszul_dual([v]))
 end
+
+function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int)
+  F = domain(phi)
+  m = rank(F)
+  G = codomain(phi)
+  n = rank(G)
+
+  Fp = exterior_power(F, p)
+  Gp = exterior_power(G, p)
+
+  img_gens = elem_type(Gp)[]
+  A = matrix(phi)
+  for (i, e) in enumerate(gens(Fp))
+    ind_i = ordered_multi_index(i, p, m)
+    img = zero(Gp)
+    for (j, f) in enumerate(gens(Gp))
+      ind_j = ordered_multi_index(j, p, n)
+      A_sub = A[indices(ind_i), indices(ind_j)]
+      img = img + det(A_sub) * f
+    end
+    push!(img_gens, img)
+  end
+  return hom(Fp, Gp, img_gens)
+end
+
+
