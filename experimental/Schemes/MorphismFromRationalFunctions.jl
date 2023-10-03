@@ -122,7 +122,9 @@ function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
   if get(io, :supercompact, false)
     print("Morphism from rational functions")
   else
-    print("Hom: ", X, " -> ", Y)
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(io, Lowercase(), domain(Phi), " -> ", Lowercase(), codomain(Phi))
   end
 end
 

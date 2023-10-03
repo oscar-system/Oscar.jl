@@ -132,19 +132,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", f::AbsProjectiveSchemeMorphism)
   io = pretty(io)
-  X = domain(f)
-  Y = codomain(f)
   println(io, "Projective scheme morphism")
-  print(io, Indent(), "from ")
-  if typeof(X) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # X is not a V(bla)
-    print(io, Lowercase())
-  end
-  println(io, X)
-  print(io, "to ")
-  if typeof(Y) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # same as above
-    print(io, Lowercase())
-  end
-  print(io, Y)
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(f))
+  print(io, "to ", Lowercase(), codomain(f))
   print(io, Dedent())
   if has_attribute(f, :covered_scheme_morphism)
     println(io)
