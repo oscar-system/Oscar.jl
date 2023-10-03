@@ -47,17 +47,22 @@ If `R` has `S`-rank `d` and `M` has rank `n` then the returned module
 has rank `d*n`.
 
 # Examples
-```jldoctest; setup = :(using Oscar)
+```jldoctest
 julia> G = dihedral_group(20);
+
 julia> T = character_table(G);
+
 julia> C = gmodule(T[8]);
+
 julia> C = gmodule(CyclotomicField, C);
+
 julia> h = subfields(base_ring(C), degree = 2)[1][2];
+
 julia> restriction_of_scalars(C, h)
-G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 4 over number field of degree 2 over QQ
+G-module for G acting on Vector space of dimension 4 over number field of degree 2 over QQ
 
 julia> restriction_of_scalars(C, QQ)
-G-module for <pc group of size 20 with 3 generators> acting on Vector space of dimension 8 over rational field
+G-module for G acting on Vector space of dimension 8 over rational field
 
 ```
 """
