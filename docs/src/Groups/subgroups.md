@@ -55,6 +55,12 @@ hall_subgroup_reps
 hall_system
 complement_class_reps
 complement_system
+chief_series
+composition_series
+jennings_series
+p_central_series
+lower_central_series
+upper_central_series
 ```
 
 !!! note
