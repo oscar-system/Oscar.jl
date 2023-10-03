@@ -251,14 +251,7 @@ function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
   p + r == q || error("powers are incompatible")
   
   # map the generators
-  img_gens = elem_type(G)[]
-  for (k, e) in enumerate(gens(F))
-    img = zero(G)
-    for (l, f) in enumerate(gens(H))
-      img = img + v[l] * wedge(f, e)
-    end
-    push!(img_gens, img)
-  end
+  img_gens = [sum(v[l] * wedge(f, e) for (l, f) in enumerate(gens(H)); init=zero(G)) for e in gens(F)]
   return hom(F, G, img_gens)
 end
 
@@ -298,8 +291,66 @@ function wedge(u::Vector{T}) where {T<:FreeModElem}
 end
 
 
+########################################################################
+# Koszul homology
+########################################################################
 
+function koszul_complex(v::FreeModElem)
+  F = parent(v)
+  n = rank(F)
+  ext_powers = [exterior_power(F, p) for p in 0:n]
+  boundary_maps = [wedge_multiplication_map(ext_powers[i+1], ext_powers[i+2], v) for i in 0:n-1]
+  return chain_complex(boundary_maps)
+end
 
+function koszul_complex(v::FreeModElem, M::ModuleFP)
+  K = koszul_complex(v)
+  KM = tensor_product(K, M)
+  return KM
+end
 
+function koszul_homology(v::FreeModElem, i::Int)
+  F = parent(v)
+  n = rank(F)
 
+  # Catch the edge cases
+  if i == n # This captures the homological degree zero due to the convention of the chain_complex constructor
+    phi = wedge_multiplication_map(exterior_power(F, 0), F, v)
+    return kernel(phi)[1]
+  end
 
+  if iszero(i) # Homology at the last entry of the complex.
+    phi = wedge_multiplication_map(exterior_power(F, n-1), exterior_power(F, n), v)
+    return cokernel(phi)[1]
+  end
+
+  ext_powers = [exterior_power(F, p) for p in i-1:i+1]
+  boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
+  K = chain_complex(boundary_maps)
+  return homology(K, 1)
+end
+
+function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int)
+  F = parent(v)
+  n = rank(F)
+
+  # Catch the edge cases
+  if i == n # This captures the homological degree zero due to the convention of the chain_complex constructor
+    phi = wedge_multiplication_map(exterior_power(F, 0), F, v)
+    K = chain_complex([phi])
+    KM = tensor_product(K, M)
+    return kernel(map(KM, 1))[1]
+  end
+
+  if iszero(i) # Homology at the last entry of the complex.
+    phi = wedge_multiplication_map(exterior_power(F, n-1), exterior_power(F, n), v)
+    K = chain_complex([phi])
+    KM = tensor_product(K, M)
+    return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
+  end
+
+  ext_powers = [exterior_power(F, p) for p in i-1:i+1]
+  boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
+  K = chain_complex(boundary_maps)
+  return homology(K, 1)
+end

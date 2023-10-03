@@ -51,4 +51,15 @@
   @test iszero(compose(phi2, phi3))
 
   @test Oscar.wedge([F[1], F[2], F[4]]) == - Oscar.wedge([F[2], F[1], F[4]]) == Oscar.wedge([F[4], F[1], F[2]])
+
+  K = koszul_complex(v)
+  @test all(i->iszero(homology(K, i)), 1:5)
+
+  for i in 1:5
+    @test iszero(koszul_homology(v, i))
+    @test iszero(koszul_homology(v, F, i))
+  end
+
+  @test !iszero(koszul_homology(v, 0))
+  @test !iszero(koszul_homology(v, F, 0))
 end
