@@ -63,3 +63,27 @@
   @test !iszero(koszul_homology(v, 0))
   @test !iszero(koszul_homology(v, F, 0))
 end
+
+@testset "exterior powers of graded modules" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+  S, (x, y, u, v, w) = grade(R)
+  F = graded_free_module(S, [1, 1, 1, 1, -2])
+  Fwedge1 = Oscar.exterior_power(F, 1)
+  Fwedge2 = Oscar.exterior_power(F, 2)
+  Fwedge3 = Oscar.exterior_power(F, 3)
+  @test is_graded(Fwedge3)
+
+  S1 = graded_free_module(S, 1)
+  I, inc_I = sub(S1, [f^3*S1[1] for f in gens(S)])
+
+  Oscar.koszul_dual(Fwedge2[3])
+
+  dual_basis = Oscar.koszul_dual(gens(Fwedge1))
+  tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge1))]
+  Fwedge5 = Oscar.exterior_power(F, 5)
+  @test all(x->x==Fwedge5[1], tmp)
+
+  dual_basis = Oscar.koszul_dual(gens(Fwedge2))
+  tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge2))]
+  @test all(x->x==Fwedge5[1], tmp)
+end

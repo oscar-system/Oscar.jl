@@ -196,6 +196,17 @@ function exterior_power(F::FreeMod, p::Int)
   R = base_ring(F)
   n = rank(F)
   result = FreeMod(R, binomial(n, p))
+
+  # In case F was graded, we have to take an extra detour. 
+  if is_graded(F)
+    G = grading_group(F)
+    weights = elem_type(G)[]
+    for ind in OrderedMultiIndexSet(p, n)
+      push!(weights, sum(degree(F[i]) for i in indices(ind); init=zero(G)))
+    end
+    result = grade(result, weights)
+  end
+
   set_attribute!(result, :is_exterior_power, (F, p))
   powers[p] = result
   return result
@@ -353,4 +364,36 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int)
   boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
   K = chain_complex(boundary_maps)
   return homology(K, 1)
+end
+
+function koszul_dual(F::FreeMod)
+  success, M, p = is_exterior_power(F)
+  !success && error("module must be an exterior power of some other module")
+  return exterior_power(M, rank(M) - p)
+end
+
+function koszul_dual(v::Vector{T}) where {T<:FreeModElem}
+  isempty(v) && error("list of elements must not be empty")
+  all(u->parent(u) === parent(first(v)), v[2:end]) || error("parent mismatch")
+
+  F = parent(first(v))
+  success, M, p = is_exterior_power(F)
+  n = rank(M)
+  success || error("element must be an exterior product")
+  k = [findfirst(x->x==u, gens(F)) for u in v]
+  any(x->x===nothing, k) && error("elements must be generators of the module")
+  ind = [ordered_multi_index(r, p, n) for r in k]
+  comp = [ordered_multi_index([i for i in 1:n if !(i in indices(I))], n) for I in ind]
+  lin_ind = linear_index.(comp)
+  F_dual = koszul_dual(F)
+  results = [F_dual[j] for j in lin_ind]
+  for r in 1:length(v)
+    sign, _ = wedge(ind[r], comp[r])
+    isone(sign) || (results[r] = -results[r])
+  end
+  return results 
+end
+
+function koszul_dual(v::FreeModElem)
+  return first(koszul_dual([v]))
 end
