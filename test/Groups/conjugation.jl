@@ -236,7 +236,7 @@ end
    end
 
    F,t = polynomial_ring(GF(3),"t")
-   F,z = FiniteField(t^2+1,"z")
+   F,z = finite_field(t^2+1,"z")
    _,t = polynomial_ring(F,"t")
    G = GL(8,F)
    x = cat(generalized_jordan_block(t^2+t+z,2), generalized_jordan_block(t^2+z+1,2); dims=(1,2))

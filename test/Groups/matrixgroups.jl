@@ -31,7 +31,7 @@
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = polynomial_ring(GF(3) ,"t")
-   F,z = FiniteField(t^2+1,"z")
+   F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
@@ -155,7 +155,7 @@ end
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    @test G isa MatrixGroup
@@ -377,7 +377,7 @@ end
 
 @testset "Membership" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    S = SL(2,F)
@@ -428,7 +428,7 @@ end
 
 @testset "Methods on elements" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    x = G([1,z,0,1])
@@ -471,7 +471,7 @@ end
 
 @testset "Subgroups" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    s1 = G([2,1,2,0])
@@ -496,7 +496,7 @@ end
 
 @testset "Cosets and conjugacy classes" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    H = GO(-1,2,F)
@@ -573,7 +573,7 @@ end
    x = one(G)
    @test is_semisimple(x) && is_unipotent(x)
 
-   F,z = FiniteField(5,3,"z")
+   F,z = finite_field(5,3,"z")
    G = GL(6,F)
    R,t = polynomial_ring(F,"t")
    f = t^3+t*z+1
