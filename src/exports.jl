@@ -975,7 +975,7 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_denominators
 export minimal_faces
-export minimal_generating_set
+export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
 export minimal_generators
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
@@ -1325,7 +1325,6 @@ export singular_locus
 export singular_locus_reduced
 export singular_poly_ring
 export slpoly_ring
-export small_generating_set
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
