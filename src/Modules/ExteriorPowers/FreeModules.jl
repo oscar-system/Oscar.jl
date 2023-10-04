@@ -139,10 +139,14 @@ end
 
 function koszul_complex(v::FreeModElem)
   F = parent(v)
+  R = base_ring(F)
   n = rank(F)
   ext_powers = [exterior_power(F, p) for p in 0:n]
   boundary_maps = [wedge_multiplication_map(ext_powers[i+1], ext_powers[i+2], v) for i in 0:n-1]
-  return chain_complex(boundary_maps)
+  Z = is_graded(F) ? graded_free_module(R, []) : free_module(R, 0)
+  pushfirst!(boundary_maps, hom(Z, domain(first(boundary_maps)), elem_type(domain(first(boundary_maps)))[]))
+  push!(boundary_maps, hom(codomain(last(boundary_maps)), Z, [zero(Z) for i in 1:ngens(codomain(last(boundary_maps)))]))
+  return chain_complex(boundary_maps, seed=-1)
 end
 
 function koszul_complex(v::FreeModElem, M::ModuleFP)
