@@ -301,6 +301,10 @@ end
 function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
   io = pretty(io)
   X = scheme(D)
+  # If the IO context knows about a covering to be used, we used this one.
+  # Otherwise, we check whether X has a simplified covering. If not, we use the
+  # default covering of X
+  cov = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
   eff = all(i >= 0 for i in collect(values(D.coefficients)))
   if length(components(D)) == 0
     print(io, "Zero algebraic cycle")
@@ -319,7 +323,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
   end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  show(io, X, cov)
+  show(IOContext(io, :covering => cov), X)
   println(io, Dedent())
   print(io, "with coefficients in ", Lowercase(), coefficient_ring(D))
   if length(components(D)) != 0
@@ -334,7 +338,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering 
       kI = length(co_str[i])
       print(io, " "^(k-kI)*"$(D[I]) * ")
       print(io, Indent(), Lowercase())
-      show(io, I, false)
+      show(IOContext(io, :show_scheme => false), I)
       print(io, Dedent())
     end
   end

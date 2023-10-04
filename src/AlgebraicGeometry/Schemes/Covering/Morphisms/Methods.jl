@@ -91,7 +91,9 @@ end
 
 function Base.show(io::IO, f::CoveringMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, f)
+  elseif get(io, :supercompact, false)
     print(io, "Covering morphism")
   else
     print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))

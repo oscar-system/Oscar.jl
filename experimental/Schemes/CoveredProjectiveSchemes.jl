@@ -192,7 +192,8 @@ function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
   println(io, Indent(), Lowercase(), PU)
   println(io, Lowercase(), PV)
   print(io, Dedent(), "defined by ", Lowercase())
-  Oscar._show_semi_compact(io, f)
+  show(IOContext(io, :show_semi_compact => true), f)
+  #Oscar._show_semi_compact(io, f)
 end
 
 ### type getters
@@ -278,8 +279,7 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
     end
     print(io, Lowercase(), base_scheme(CPS))
     if n != 0
-      print(io, " covered with $n projective patch")
-      n > 1 && print(io, "es")
+      print(io, " covered with ", ItemQuantity(n, "projective patch", "projective patches"))
     end
   end
 end
@@ -290,10 +290,10 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   n = length(pp)
   println(io, "Relative projective scheme")
   print(io, Indent(), "over ", Lowercase())
-  Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
+  show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
+  #Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
   println(io)
-  print(io, Dedent(), "covered with $n projective patch")
-  n > 1 && print(io, "es")
+  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch", "projective patches"))
   print(io, Indent())
   l = ndigits(n)
   for i in 1:n
