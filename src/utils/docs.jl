@@ -47,11 +47,16 @@ function get_document(set_meta::Bool)
   doc = Document(root = joinpath(oscardir, "docs"), doctest = :fix)
 
   if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    #ugly: needs to be in sync with the docs/make_docs.jl file
     Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
   end
 
-  return doc
+  if isdefined(Main.Documenter, :DocTests)
+    doctest = Main.Documenter.DocTests.doctest
+  else
+    doctest = Main.Documenter._doctest
+  end
+
+  return doc, doctest
 end
 
 """
@@ -61,13 +66,14 @@ Fixes all doctests for the given function `f`.
 """
 function doctest_fix(f::Function; set_meta::Bool = false)
   S = Symbol(f)
-  doc = get_document(set_meta)
+  doc, doctest = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(Oscar)
-  md = bm[Base.Docs.Binding(Oscar, S)]
+  pm = parentmodule(f)
+  bm = Base.Docs.meta(pm)
+  md = bm[Base.Docs.Binding(pm, S)]
   for s in md.order
-    Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+    doctest(md.docs[s], Oscar, doc)
   end
 end
 
@@ -78,16 +84,10 @@ Fixes all doctests for the file `n`, ie. all files in Oscar where
   `n` occurs in the full pathname of.
 """
 function doctest_fix(n::String; set_meta::Bool = false)
-  doc = get_document(set_meta)
-
-  if isdefined(Main.Documenter, :DocTests)
-    doctest = Main.Documenter.DocTests.doctest
-  else
-    doctest = Main.Documenter._doctest
-  end
+  doc, doctest = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(Oscar)
+  bm = Base.Docs.meta(Oscar)
   for (k, md) = bm
     for s in md.order
       if occursin(n, md.docs[s].data[:path])
