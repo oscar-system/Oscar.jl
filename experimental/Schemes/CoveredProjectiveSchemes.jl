@@ -193,7 +193,6 @@ function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
   println(io, Lowercase(), PV)
   print(io, Dedent(), "defined by ", Lowercase())
   show(IOContext(io, :show_semi_compact => true), f)
-  #Oscar._show_semi_compact(io, f)
 end
 
 ### type getters
@@ -291,7 +290,6 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   println(io, "Relative projective scheme")
   print(io, Indent(), "over ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
-  #Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
   println(io)
   print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch", "projective patches"))
   print(io, Indent())

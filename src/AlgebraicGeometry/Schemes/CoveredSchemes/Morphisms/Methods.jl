@@ -145,11 +145,9 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   println(io, "Covered scheme morphism")
   print(io, Indent(), "from ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => domain(g), :label => "a"), domain(f))
-  #Oscar._show_semi_compact(io, domain(f), domain(g), "a")
   println(io)
   print(io, "to ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => codomain(g), :label => "b"), codomain(f))
-  #Oscar._show_semi_compact(io, codomain(f), codomain(g), "b")
   if min(length(domain(g)), length(codomain(g))) == 0
     print(io, Dedent())
   else
@@ -158,7 +156,6 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
     length(domain(g)) != 1 && print(io, "s")
     println(io, Indent())
     show(IOContext(io, :show_semi_compact => true), covering_morphism(f))
-    #Oscar._show_semi_compact(io, covering_morphism(f))
   end
 end
 

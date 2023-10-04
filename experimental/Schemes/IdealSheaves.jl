@@ -1108,7 +1108,6 @@ function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf)
   println(io, "Sheaf of ideals")
   print(io, Indent(), "on ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
-  #Oscar._show_semi_compact(io, scheme(I), cov)
   if length(cov) > 0
     l = ndigits(length(cov))
     println(io)

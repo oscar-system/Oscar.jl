@@ -52,7 +52,6 @@ function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
   println(io)
   print(io, Indent(), "on ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
-  #Oscar._show_semi_compact(io, X, cov)
   if length(cov) > 0
     l = ndigits(length(cov))
     println(io)

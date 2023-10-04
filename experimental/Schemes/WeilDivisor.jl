@@ -227,7 +227,6 @@ function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering)
     print(io, "Weil divisor on ", Lowercase())
   end
   show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
-  #Oscar._show_semi_compact(io, X, cov)
 end
 
 # Take care of some offsets to make sure that the coefficients are all aligned
@@ -486,7 +485,6 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
   println(io, "Linear system")
   print(io, Indent(), "of ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => cov), weil_divisor(L))
-  #Oscar._show_semi_compact(io, weil_divisor(L), cov)
   gg = gens(L)
   if length(gg) > 0
     println(io)
@@ -500,7 +498,6 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
       println(io)
       print(io, Lowercase())
       show(IOContext(io, :show_semi_compact => true, :covering => cov, :offset => offset[i]), f)
-      #Oscar._show_semi_compact(io, f, cov, offset[i])
     end
     print(io, Dedent())
   end

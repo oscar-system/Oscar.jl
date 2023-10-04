@@ -426,12 +426,10 @@ function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor)
   println(io)
   print(io, Indent(), "on ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
-  #Oscar._show_semi_compact(io, scheme(C), cov)
   println(io, Dedent())
   println(io, "defined by", Lowercase())
   print(io, Indent())
   show(IOContext(io, :show_semi_compact => true), I)
-  #Oscar._show_semi_compact(io, I)
   print(io, Dedent())
 end
 
@@ -453,7 +451,6 @@ function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering, n
   println(io, " defined by")
   print(io, Indent(), Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => cov, :label => n), ideal_sheaf(C))
-  #Oscar._show_semi_compact(io, ideal_sheaf(C), cov, n)
   print(io, Dedent())
 end
 
@@ -542,7 +539,6 @@ function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering, n::String)
       print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
       show(IOContext(io, :show_semi_compact => true, :covering => cov, :label => n), ideal_sheaf(I))
-      #Oscar._show_semi_compact(io, ideal_sheaf(I), cov, n)
       if i != length(components(C))
         println(io, "--------------------------------------------------------------------------------")
       end
