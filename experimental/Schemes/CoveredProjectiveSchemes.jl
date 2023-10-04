@@ -173,23 +173,11 @@ mutable struct ProjectiveGlueing{
 end
 
 function Base.show(io::IO, PG::LazyProjectiveGlueing)
-  if get(io, :supercompact, false)
-    print(io, "Projective glueing")
-  else
-    if isdefined(G, :underlying_glueing)
-      show(io, underlying_glueing(G))
-    else
-      print(io, "Glueing of projective patches (not yet computed)")
-    end
-  end
+  print(io, "Glueing of projective patches (not yet computed)")
 end
 
 function Base.show(io::IO, PG::ProjectiveGlueing)
-  if get(io, :supercompact, false)
-    print(io, "Projective glueing")
-  else
-    print(io, "Glueing of projective patches")
-  end
+  print(io, "Glueing of projective patches")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
@@ -281,10 +269,10 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
   n = length(projective_patches(CPS))
   K = base_ring(base_scheme(CPS))
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Relative projective scheme")
   else
     if length(projective_patches(CPS)) == 0
-      print(io, "Empty covered projective scheme over ")
+      print(io, "Empty relative projective scheme over ")
     else
       print(io, "Relative projective scheme over ")
     end

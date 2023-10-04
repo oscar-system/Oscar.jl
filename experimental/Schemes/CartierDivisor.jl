@@ -398,7 +398,7 @@ dim(C::CartierDivisor) = dim(scheme(C))-1
 function Base.show(io::IO, C::EffectiveCartierDivisor)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Cartier divisor")
+    print(io, "Effective cartier divisor")
   elseif has_attribute(C, :name)
     print(io, get_attribute(C, :name))
   else

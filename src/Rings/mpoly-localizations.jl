@@ -2722,29 +2722,20 @@ julia> (PSI, )
 ```
 """
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
-  R = base_ring(domain(phi))
-  psi = restricted_map(phi)
   io = pretty(io)
-  println(io, "Ring homomorphism")
+  println(IOContext(io, :supercompact => true), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
   println(io, "to ", Lowercase(), codomain(phi))
-  print(io, Dedent())
-  println(io,"defined by")
-  print(io, Indent())
-  if is_unicode_allowed()
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) ↦ $(psi(R[i]))")
-    end
-    n = ngens(R)
-    println(io, "$(R[n]) ↦ $(psi(R[n]))")
-  else
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) -> $(psi(R[i]))")
-    end
-    n = ngens(R)
-    print(io, "$(R[n]) -> $(psi(R[n]))")
+  println(io, Dedent(), "defined by", Indent())
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  to = is_unicode_allowed() ? " ↦ " : " -> "
+  for i in 1:ngens(R)-1
+    println(io, R[i], to, psi(R[i]))
   end
+  n = ngens(R)
+  print(io, R[n], to, psi(R[n]))
   print(io, Dedent())
 end
 
@@ -3191,3 +3182,6 @@ function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:F
   I_min = L.(small_generating_set(saturated_ideal(I)))
   return filter(!iszero, I_min)
 end
+
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+

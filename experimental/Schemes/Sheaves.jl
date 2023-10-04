@@ -453,7 +453,7 @@ end
 function Base.show(io::IO, R::StructureSheafOfRings)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Presheaf")
+    print(io, "Structure sheaf of rings")
   else
     if is_unicode_allowed()
       print(io, "𝒪_{")

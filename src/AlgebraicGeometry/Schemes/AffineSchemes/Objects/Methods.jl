@@ -47,7 +47,7 @@ function Base.show(io::IO, X::AbsSpec)
   elseif get(io, :supercompact, false)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty scheme")
+    print(io, "Empty affine scheme")
   else
     _show(io, X)
   end
@@ -60,7 +60,7 @@ end
 
 function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
   io = pretty(io)
-  print(io, "affine ",ngens(OO(X)),"-space")
+  print(io, "Affine ",ngens(OO(X)),"-space")
 end
 
 function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})

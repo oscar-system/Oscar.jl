@@ -4,6 +4,7 @@ using Test
 isdefined(Main, :test_save_load_roundtrip) ||
   include(joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl"))
 
+include("IPC.jl")
 include("session.jl")
 include("basic_types.jl")
 include("PolyhedralGeometry.jl")

@@ -32,11 +32,6 @@ mutable struct SerializerState
   key::Union{Symbol, Nothing}
 end
 
-function serializer_open(io::IO)
-  # some level of handling should be done here at a later date
-  return SerializerState(true, UUID[], io, nothing)
-end
-
 function begin_node(s::SerializerState)
   if !s.new_level_entry
     write(s.io, ",")
@@ -83,7 +78,6 @@ function serialize_array(f::Function, s::SerializerState)
   begin_array_node(s)
   f()
   end_array_node(s)
-end
 
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
@@ -101,7 +95,6 @@ function save_data_dict(f::Function, s::SerializerState,
     f()
   end
 end
-
                         
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
@@ -130,7 +123,7 @@ end
 function serializer_close(s::SerializerState)
   finish_writing(s)
 end
-
+  
 function finish_writing(s::SerializerState)
   # nothing to do here
 end
@@ -141,13 +134,7 @@ struct DeserializerState
   obj::Union{Object, Array}
   #refs::Dict{Symbol, Dict}
 end
-
-function deserializer_open(io::IO)
-  obj = read(io)
-
-  return DeserializerState(obj)
-end
-
+  
 function dict_node(f::Function, s::DeserializerState)
   obj = copy(s.obj)
   s.obj = s.obj[s.key]
@@ -175,3 +162,26 @@ function load_value(f::Function, s::DeserializerState,
   end
 end
 
+################################################################################
+# Serializers
+abstract type OscarSerializer end
+
+struct JSONSerializer <: OscarSerializer
+  state::S where S <: Union{SerializerState, DeserializerState}
+end
+
+struct IPCSerializer <: OscarSerializer
+  state::S where S <: Union{SerializerState, DeserializerState}
+end
+
+state(s::OscarSerializer) = s.state
+
+function serializer_open(io::IO, T::Type{<: OscarSerializer})
+  # some level of handling should be done here at a later date
+  return T(SerializerState(true, UUID[], io, nothing))
+end
+
+function deserializer_open(io::IO, T::Type{<: OscarSerializer})
+  obj = read(io)
+  return T(DeserializerState(obj))
+end

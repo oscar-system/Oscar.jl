@@ -1,6 +1,6 @@
 function Base.show(io::IO, ::MIME"text/plain", x::GAPGroupHomomorphism)
-  println(IOContext(io, :supercompact => true), x)
   io = pretty(io)
+  println(IOContext(io, :supercompact => true), x)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(x))
   print(io, "to ", Lowercase(), codomain(x))
@@ -8,13 +8,9 @@ function Base.show(io::IO, ::MIME"text/plain", x::GAPGroupHomomorphism)
 end
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
-  #@show_name(io, x)
-  #@show_special(io, x)
   if get(io, :supercompact, false)
-    # no nested printing
     print(io, "Group homomorphism")
   else
-    # nested printing allowed, preferably supercompact
     io = pretty(io)
     print(io, "Hom: ")
     print(IOContext(io, :supercompact => true), Lowercase(), domain(x), " -> ", Lowercase(), codomain(x))

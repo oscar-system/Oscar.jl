@@ -78,7 +78,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
   io = pretty(io)
-  println(io, LowercaseOff(), "Lie algebra module morphism")
+  println(IOContext(io, :supercompact => true), h)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))

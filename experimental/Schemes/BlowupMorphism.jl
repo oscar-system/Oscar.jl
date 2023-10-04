@@ -35,7 +35,7 @@ julia> I = ideal(R, [x,y,z])
 ideal(x, y, z)
 
 julia> bl = blow_up(A3, I)
-Blow up
+Blowup
   of scheme over QQ covered with 1 patch
     1b: [x, y, z]   affine 3-space
   in sheaf of ideals with restriction
@@ -497,9 +497,9 @@ end
 function Base.show(io::IO, Bl::BlowupMorphism)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Blowup morphism")
   else
-    print(io, "Blow-up: ", Lowercase(), domain(Bl))
+    print(io, "Blowup: ", Lowercase(), domain(Bl))
     print(io, " -> ", Lowercase(), codomain(Bl))
   end
 end
@@ -519,7 +519,7 @@ function show(io::IO, ::MIME"text/plain", Bl::BlowupMorphism)
 
   ## create the output
   io = pretty(io)
-  println(io, "Blow up")
+  println(io, "Blowup")
   print(io, Indent(), "of ", Lowercase())
   Oscar._show_semi_compact(io, X0, C0, "b")
   println(io)

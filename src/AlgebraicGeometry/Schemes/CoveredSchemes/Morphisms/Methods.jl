@@ -126,9 +126,9 @@ end
 function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Covered scheme morphism")
   else
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 
@@ -142,7 +142,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
   io = pretty(io)
   g = covering_morphism(f)
-  println(io, "Morphism")
+  println(io, "Covered scheme morphism")
   print(io, Indent(), "from ", Lowercase())
   Oscar._show_semi_compact(io, domain(f), domain(g), "a")
   println(io)

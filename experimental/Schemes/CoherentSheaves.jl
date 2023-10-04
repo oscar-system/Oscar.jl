@@ -71,7 +71,7 @@ end
 function Base.show(io::IO, M::AbsCoherentSheaf)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Presheaf")
+    print(io, "Coherent sheaf of modules")
   elseif has_attribute(M, :name)
     print(io, get_attribute(M, :name))
   else
@@ -1011,7 +1011,7 @@ end
 
 function Base.show(io::IO, M::DirectSumSheaf)
   if get(io, :supercompact, false)
-    print(io, "Presheaf")
+    print(io, "Direct sum of sheaves")
   else
     s = summands(M)
     if is_unicode_allowed() && length(s) > 0
@@ -1020,7 +1020,7 @@ function Base.show(io::IO, M::DirectSumSheaf)
       end
       print(io, "$(s[end])")
     else
-      print(io, "Sheaf of modules on covered scheme")
+      print(io, "Direct sum of sheaves of modules on covered scheme")
     end
   end
 end

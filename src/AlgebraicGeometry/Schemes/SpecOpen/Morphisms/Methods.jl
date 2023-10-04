@@ -20,7 +20,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   kY = length(str)
   push!(co_str, str)
   k = max(length.(co_str)...)
-  println(io, "Morphism")
+  println(io, "Spec open morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2), Lowercase())
   show(io, domain(f), false)
@@ -47,10 +47,10 @@ end
 
 function Base.show(io::IO, f::SpecOpenMor)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Spec open morphism")
   else
     io = pretty(io)
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

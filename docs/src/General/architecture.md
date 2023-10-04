@@ -5,6 +5,10 @@ DocTestSetup = quote
 end
 ```
 
+```@setup oscar
+using Oscar
+```
+
 # Architecture
 
 This page aims to give a short technical overview of the architecture of OSCAR.

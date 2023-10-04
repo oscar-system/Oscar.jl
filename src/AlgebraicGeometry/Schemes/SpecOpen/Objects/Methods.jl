@@ -149,7 +149,7 @@ end
 # space and complement (see printing above)
 function _show_semi_compact(io::IO, U::SpecOpen)
   io = pretty(io)
-  println(io, "Zariski open subset")
+  println(io, "Open subset")
   c = ambient_coordinates(U)
   str = "["*join(c, ", ")*"]"
   print(io, Indent(), "of affine scheme with coordinate")
@@ -187,7 +187,7 @@ function Base.show(io::IO, U::SpecOpen, show_coord::Bool = true)
   if isdefined(U, :name) 
     print(io, name(U))
   elseif get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Open subset of affine scheme")
   elseif get_attribute(U, :is_empty, false)
     print(io, "Empty open subset of ", Lowercase(), ambient_space(U))
   else
