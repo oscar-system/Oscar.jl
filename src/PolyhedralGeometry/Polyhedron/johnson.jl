@@ -332,6 +332,7 @@ function _johnson_solid(::Val{25})
   return convex_hull(ELF, V; non_redundant = true)
 end
 
+# in Polymake, index 30 returns a solid isomorphic to J31
 function _johnson_solid(::Val{30})
   Qx, x = QQ["x"]
   NF, sr5 = number_field(x^2 - 5)
@@ -362,6 +363,7 @@ function _johnson_solid(::Val{30})
   return convex_hull(EMF, V; non_redundant = true)
 end
 
+# in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
 function _johnson_solid(::Val{32})
   Qx, x = QQ["x"]
   NF, sr5 = number_field(x^2 - 5)
@@ -397,6 +399,7 @@ function _johnson_solid(::Val{32})
   return convex_hull(EMF, V; non_redundant = true)
 end
 
+# in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
 function _johnson_solid(::Val{33})
   Qx, x = QQ["x"]
   NF, sr5 = number_field(x^2 - 5)
@@ -524,6 +527,7 @@ function _johnson_solid(::Val{36})
   return convex_hull(ENF, V; non_redundant = true)
 end
 
+# in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
 function _johnson_solid(::Val{38})
   Qx, x = QQ["x"]
   NF, sr5 = number_field(x^2 - 5)
@@ -564,6 +568,7 @@ function _johnson_solid(::Val{38})
   return convex_hull(EMF, V; non_redundant = true)
 end
 
+# in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
 function _johnson_solid(::Val{39})
   Qx, x = QQ["x"]
   NF, sr5 = number_field(x^2 - 5)
