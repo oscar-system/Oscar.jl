@@ -80,9 +80,9 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
   if get(io, :supercompact, false)
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "𝔸$(ltx["\\^$(dim(X))"])")
+      print(io, LowercaseOff(), "𝔸$(ltx["\\^$(dim(X))"])")
     else
-      print(io, "AA^$(dim(X))")
+      print(io, LowercaseOff(), "AA^$(dim(X))")
     end
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine space over ")
@@ -91,7 +91,7 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "𝔸")
+      print(io, LowercaseOff(), "𝔸")
       n = dim(X)
       for d in reverse(digits(n))
         print(io, ltx["\\^$d"])

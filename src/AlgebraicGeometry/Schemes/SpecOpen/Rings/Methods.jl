@@ -458,7 +458,8 @@ end
 function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
   io = pretty(io)
   println(io, "Ring of regular functions")
-  print(io, Indent(), "on ", Lowercase(), domain(R))
+  print(io, Indent(), "on ", Lowercase())
+  show(io, domain(R))
   print(io, Dedent())
 end
 

@@ -41,9 +41,9 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   if get(io, :supercompact, false)
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
+      print(io, LowercaseOff(), "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
     else
-      print(io, "IP^$(relative_ambient_dimension(P))")
+      print(io, LowercaseOff(), "IP^$(relative_ambient_dimension(P))")
     end
   elseif get_attribute(P, :is_empty, false)
     print(io, "Empty projective space over ")
@@ -52,7 +52,7 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "ℙ")
+      print(io, LowercaseOff(), "ℙ")
       n = relative_ambient_dimension(P)
       for d in reverse(digits(n))
         print(io, ltx["\\^$d"])

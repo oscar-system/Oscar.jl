@@ -318,7 +318,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 julia> empty_covered_projective_scheme(R)
 Relative projective scheme
   over empty covered scheme over multivariate polynomial ring
-covered with 0 projective patch
+covered with 0 projective patches
 ```
 """
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}

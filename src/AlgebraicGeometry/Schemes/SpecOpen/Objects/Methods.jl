@@ -183,7 +183,9 @@ end
 
 function Base.show(io::IO, U::SpecOpen)
   show_coord = get(io, :show_coordinates, true)
-  if isdefined(U, :name) 
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, U)
+  elseif isdefined(U, :name)
     print(io, name(U))
   elseif get(io, :supercompact, false)
     print(io, "Open subset of affine scheme")

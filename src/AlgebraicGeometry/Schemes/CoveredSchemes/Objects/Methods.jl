@@ -99,7 +99,7 @@ end
 # or "b" depending on whether `X` is the domain or the codomain.
 function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering, n::String)
   io = pretty(io)
-  show(IOContext(io, :covering => cov), X)
+  show(IOContext(io, :covering => cov, :show_semi_compact => false), X)
   print(io, Indent())
   co_str = String[""]
   for i in 1:length(cov)

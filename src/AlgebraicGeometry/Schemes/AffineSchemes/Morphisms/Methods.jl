@@ -168,7 +168,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   println(IOContext(io, :show_coordinates => false), Lowercase(), X)
   print(io, "to   ")
   print(io, co_str[2]*" "^(k-kY+2))                 # Consider offset for alignment
-  println(IOContext(io, :show_coordinates => false), Lowercase(), Y)
+  print(IOContext(io, :show_coordinates => false), Lowercase(), Y)
   x = coordinates(codomain(f))
   # If there are no coordinates, we do not print anything (since the target is
   # empty then)
