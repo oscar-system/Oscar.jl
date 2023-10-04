@@ -2353,5 +2353,7 @@ function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scala
     @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"
     opts[:cutoff] = convert(Polymake.PolymakeType, cutoff)
   end
-  return Polyhedron{T}(Polymake.polytope.vertex_figure(pm_object(P), n-1; opts...), coefficient_field(P))
+  return Polyhedron{T}(
+    Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
+  )
 end
