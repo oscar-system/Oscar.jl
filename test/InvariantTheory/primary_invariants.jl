@@ -1,6 +1,6 @@
 @testset "Primary invariants (for matrix groups)" begin
   # Char 0
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG = invariant_ring(M1, M2)
@@ -36,7 +36,7 @@
   end
 
   # Kem99, Example 1
-  K, a = CyclotomicField(9, "a")
+  K, a = cyclotomic_field(9, "a")
   M = matrix(K, 2, 2, [ a, 0, 0, -a^3 ])
   RG = invariant_ring(M)
   invars = primary_invariants(RG)
@@ -45,7 +45,7 @@
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
 
   # Kem99, Example 2
-  K, a = CyclotomicField(9, "a")
+  K, a = cyclotomic_field(9, "a")
   M = matrix(K, 3, 3, [ a, 0, 0, 0, a^2, 0, 0, 0, a^6 ])
   RG = invariant_ring(M)
   invars = primary_invariants(RG)
@@ -65,7 +65,7 @@ end
 
 @testset "Primary invariants (for permutation groups)" begin
   # Char 0
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   G = symmetric_group(4)
   RG = invariant_ring(K, G)
   invars = primary_invariants(RG)

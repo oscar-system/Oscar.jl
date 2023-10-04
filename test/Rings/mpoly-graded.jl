@@ -342,7 +342,7 @@ end
 
 
 @testset "homogenization: ideal()" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -368,7 +368,7 @@ end
 end
 
 @testset "homogenization: ideal(0)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -394,7 +394,7 @@ end
 end
 
 @testset "homogenization: ideal(1)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -450,7 +450,7 @@ end
 
 
 @testset "homogenization: random ideal" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -506,7 +506,7 @@ end
 # expanding rational function
 
 let
-  Qx, x = PolynomialRing(QQ, "x", cached = false)
+  Qx, x = polynomial_ring(QQ, "x", cached = false)
   e = expand(1//(1 - x), 10)
   t = gen(parent(e))
   @test e == sum(t^i for i in 1:10; init = t^0)

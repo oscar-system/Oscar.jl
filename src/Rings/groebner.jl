@@ -1506,7 +1506,7 @@ multi-modular strategy.
     only with high probability.
 
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x","y","z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x","y","z"]);
 
 julia> I = ideal(R, [x^2+1209, x*y + 3279*y^2])
 ideal(x^2 + 1209, x*y + 3279*y^2)
@@ -1540,9 +1540,9 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrd
 
   p = iterate(primes)[1]
   Qt = base_ring(I)
-  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
 
-  Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
   std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
   std_basis_crt_previous = std_basis_mod_p_lifted
 
@@ -1553,7 +1553,7 @@ function groebner_basis_modular(I::MPolyIdeal{fmpq_mpoly}; ordering::MonomialOrd
   while !done
     while n_stable_primes < 2
       p = iterate(primes, p)[1]
-      Rt, t = PolynomialRing(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
       std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
 
       # test for unlucky prime

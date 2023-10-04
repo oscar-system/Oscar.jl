@@ -119,7 +119,7 @@ end
 end
 
 @testset "matrix groups" begin
-   K, a = CyclotomicField(3, "a");
+   K, a = cyclotomic_field(3, "a");
    S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
    T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
    H3 = matrix_group(S, T)

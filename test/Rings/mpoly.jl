@@ -287,7 +287,7 @@ end
 end
 
 @testset "IdealGens" begin
-   R, (x0, x1, x2) = PolynomialRing(QQ, ["x0", "x1", "x2"])
+   R, (x0, x1, x2) = polynomial_ring(QQ, ["x0", "x1", "x2"])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
    @test elements(g) == [x0*x1, x2]

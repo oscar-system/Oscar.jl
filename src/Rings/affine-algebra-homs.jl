@@ -184,10 +184,10 @@ Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 
 # Examples
 ```jldoctest
-julia> D, (t,) = PolynomialRing(QQ, ["t"])
+julia> D, (t,) = polynomial_ring(QQ, ["t"])
 (Multivariate Polynomial Ring in t over Rational Field, fmpq_mpoly[t])
 
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> C, _ = quo(R,  ideal(R, [x*y-1]))

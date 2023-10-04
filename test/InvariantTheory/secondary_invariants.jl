@@ -1,5 +1,5 @@
 @testset "Secondary invariants (for matrix groups)" begin
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
