@@ -510,8 +510,10 @@ export exterior_power
 export f_vector
 export face_fan
 export faces
+export facet_degrees
 export facet_indices
 export facet_points
+export facet_sizes
 export facets
 export factor_of_direct_product
 export factorisations
@@ -1209,6 +1211,7 @@ export rational_equivalence_class
 export rational_point_coordinates
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
+export ray_degrees
 export ray_indices
 export ray_vector
 export rays
@@ -1442,7 +1445,9 @@ export vector_matrix
 export vector_space_basis
 export vector_space_dimension
 export vertex_and_ray_indices
+export vertex_figure
 export vertex_indices
+export vertex_sizes
 export vertexindices
 export vertical_connectivity
 export vertices

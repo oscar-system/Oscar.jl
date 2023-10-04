@@ -2312,3 +2312,48 @@ function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
     Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A, 1))
   )
 end
+
+@doc raw"""
+    vertex_figure(P::Polyhedron, n::Int; cutoff=1//2)
+
+Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex figure is dual to a facet of the dual polytope. 
+
+# Optional Arguments
+- `cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
+  Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
+  Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\frac{1}{2}$. 
+
+# Example
+To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
+```jldoctest
+julia> T = vertex_figure(cube(3), 8) 
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 0]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> T = vertex_figure(cube(3), 8, cutoff = 1/4)
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 1//2]
+ [1, 1//2, 1]
+ [1//2, 1, 1]
+```
+
+"""
+function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scalar_types}
+  @req 1 <= n <= nvertices(P) "There is no vertex $n in this polyhedron"
+  opts = Dict{Symbol,Any}()
+  if !isnothing(cutoff)
+    @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"
+    opts[:cutoff] = convert(Polymake.PolymakeType, cutoff)
+  end
+  return Polyhedron{T}(
+    Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
+  )
+end
