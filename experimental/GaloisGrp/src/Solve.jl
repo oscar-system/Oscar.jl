@@ -291,7 +291,7 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Permutation group of degree 3 and order 6, Galois Context for x^3 - 3*x + 17 and prime 7)
+(Permutation group of degree 3 and order 6, Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:

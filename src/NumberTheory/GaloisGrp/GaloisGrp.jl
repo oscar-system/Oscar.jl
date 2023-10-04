@@ -6,6 +6,8 @@ import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
               upper_bound
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
+import Oscar: pretty, LowercaseOff
+
 export cauchy_ideal
 export elementary_symmetric
 export fixed_field
@@ -485,7 +487,7 @@ mutable struct ComplexRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{ComplexRootCtx})
-  print(io, "Galois Context for $(GC.f) using complex roots")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) using complex roots")
 end
 
 function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = false)
@@ -556,7 +558,7 @@ mutable struct SymbolicRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{SymbolicRootCtx})
-  print(io, "Galois Context for $(GC.f) using symbolic roots")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) using symbolic roots")
 end
 
 function Hecke.roots(C::GaloisCtx{SymbolicRootCtx}, ::Int; raw::Bool = false)
@@ -598,10 +600,10 @@ function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
 end
 
 function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})
-  print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) and prime $(GC.C.p)")
 end
 function Base.show(io::IO, GC::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries})
-  print(io, "Galois Context for $(GC.f)")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f)")
 end
 
 
@@ -1933,7 +1935,7 @@ extension of the p-adics.
 julia> K, a = cyclotomic_field(5);
 
 julia> G, C = galois_group(K)
-(Permutation group of degree 4 and order 4, Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
+(Permutation group of degree 4 and order 4, Galois context for x^4 + x^3 + x^2 + x + 1 and prime 19)
 
 julia> describe(G)
 "C4"
@@ -2382,7 +2384,7 @@ Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
-```jldoctest; filter = r"Group\(.*\]\)"
+```jldoctest; filter = r"Galois context\(.*\]\)"
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-2);
@@ -2392,7 +2394,7 @@ julia> galois_quotient(C, 6)
  Number field of degree 6 over QQ
 
 julia> galois_group(ans[1])
-(Permutation group of degree 6 and order 6, Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Permutation group of degree 6 and order 6, Galois context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
