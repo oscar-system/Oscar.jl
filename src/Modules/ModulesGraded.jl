@@ -853,11 +853,7 @@ Return the grading group of `base_ring(M)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -890,11 +886,7 @@ Return the degrees of the generators of `M`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -940,11 +932,7 @@ Return  `true` if `m` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1017,11 +1005,7 @@ Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the 
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1102,11 +1086,7 @@ If `a` is graded, return the degree of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1173,11 +1153,7 @@ Return `true` if `a` is graded, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1212,11 +1188,7 @@ If `a` is graded, return the grading group of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1254,11 +1226,7 @@ is graded of degree `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1721,7 +1689,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
