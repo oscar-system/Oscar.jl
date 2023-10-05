@@ -1140,7 +1140,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
     println(io, domain(fmh))
     println(io, "Codomain:")
     println(io, "=========")
-    println(io, codomain(fmh))
+    print(io, codomain(fmh))
   end
 end
 
@@ -3107,8 +3107,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1]
-, Map with following data
+3 -> z^4*e[1], Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -3125,8 +3124,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1]
-)
+3 -> z^4*e[1])
 ```
 
 ```jldoctest
@@ -4657,7 +4655,7 @@ function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: Abs
     println(io, domain(fmh))
     println(io, "Codomain:")
     println(io, "=========")
-    println(io, codomain(fmh))
+    print(io, codomain(fmh))
   end
 end
 
@@ -5687,8 +5685,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-)
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
 ```
 
 ```jldoctest
@@ -5787,8 +5784,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
-)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
 ```
 
 ```jldoctest
