@@ -66,7 +66,7 @@
 end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
-   fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
+   fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, QQ(1)))
    F, z = abelian_closure(QQ)
    push!(fields, (F, z(5)))
@@ -109,8 +109,8 @@ end
    M = matrix(QQ, [ 2 0; 0 2 ])
    @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
 
-   K, a = CyclotomicField(5, "a")
-   L, b = CyclotomicField(3, "b")
+   K, a = cyclotomic_field(5, "a")
+   L, b = cyclotomic_field(3, "b")
 
    inputs = [
      #[ matrix(ZZ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],

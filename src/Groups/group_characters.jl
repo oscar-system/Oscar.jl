@@ -37,7 +37,7 @@ julia> Oscar.with_unicode() do
        end;
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
-julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
+julia> atlas_irrationality(cyclotomic_field(5)[1], "r5")
 -2*z_5^3 - 2*z_5^2 - 1
 
 julia> Oscar.with_unicode() do

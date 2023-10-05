@@ -7,7 +7,7 @@ RNG = Random.MersenneTwister(42)
 ##################################################################
 
 @testset "Graded free modules constructors" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
     Rg = grade(R,[Z[1], Z[1], Z[1]])[1]
     M1 = graded_free_module(Rg, 2)

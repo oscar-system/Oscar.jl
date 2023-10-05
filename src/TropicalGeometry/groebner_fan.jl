@@ -24,7 +24,7 @@ Return a `Cone` that is the space of all weight vectors under which all elements
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> G1 = [x1+x2,x2+x3,x3]
@@ -81,7 +81,7 @@ Suppose `G` is the reduced Groebner basis of an ideal `I` with respect to a glob
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> G1 = [x1+x2,x2+x3,x3]
@@ -162,7 +162,7 @@ If `homogeneityWeight` is unspecified, will test if `G` is quasi-homogeneous, an
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal([x1,x2+x3])
@@ -411,7 +411,7 @@ If `return_orderings==true`, returns a dictionary whose keys are interior points
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal([x1,x2+x3])

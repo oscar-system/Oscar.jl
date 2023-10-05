@@ -383,9 +383,9 @@ end
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
-  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
+  base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
-  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
+  coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
   ambient_space_grading = zero_matrix(Int, nrows(base_grading)+1,ncols(base_grading)+3)
   for i in 1:nrows(base_grading)
     for j in 1:ncols(base_grading)
@@ -403,9 +403,9 @@ end
 
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
-  base_space = family_of_spaces(PolynomialRing(QQ, base_vars, cached = false)[1], base_grading, d)
+  base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
-  coordinate_ring_ambient_space = PolynomialRing(QQ, ambient_space_vars, cached = false)[1]
+  coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
   w = Matrix{Int64}(vcat([k.coeff for k in cox_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
   D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]

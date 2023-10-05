@@ -1,5 +1,5 @@
 @testset "Invariant rings (for matrix groups)" begin
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
@@ -109,7 +109,7 @@ end
   G = symmetric_group(3)
   RGQ = invariant_ring(G)   # char. 0, over QQ
 
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   RGK = invariant_ring(K, G)   # char. 0, over K
 
   F5 = GF(5)
