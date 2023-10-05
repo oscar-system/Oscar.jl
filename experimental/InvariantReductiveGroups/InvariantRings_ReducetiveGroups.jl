@@ -1,5 +1,5 @@
 import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
-#export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation, vector_space_dimension
+#export ReductiveGroup, reductive_group, representation_matrix, group, mu_star, reynolds_operator, group_ideal, canonical_representation, natural_representation, vector_space_dimension, 
 #export InvariantRing, invariant_ring, gens, hilbert_ideal, derksen_ideal
 ##########################
 #Reductive Groups
@@ -117,9 +117,12 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-    if !G.direct_product[1] && !G.direct_product[1]
+    if !G.direct_sum[1] && !G.direct_product[1]
         println(io, "Reductive group ", G.group[1], G.group[2])
         println(io, "acting on vector space of dimension ", G.vector_space_dimension)
+    elseif G.direct_sum[1]
+        println(io, "Reductive group ", G.group[1], G.group[2])
+        println(io, "acting on direct sum of vector spaces of dimensions ", G.direct_sum[2])
     end
 end
 
@@ -143,6 +146,36 @@ canonical_representation(G::ReductiveGroup) = G.canonical_representation
 natural_representation(G::ReductiveGroup) = G.canonical_representation
 vector_space_dimension(G::ReductiveGroup) = G.vector_space_dimension
 
+function mu_star(elem_::MPolyElem, G::ReductiveGroup)
+    n = G.vector_space_dimension
+    ngens(parent(elem_)) == n || error("group not compatible with element")
+    m = G.group[2]
+    mixed_ring_xz, x, z = PolynomialRing(QQ, "x"=>1:n, "z"=>(1:m,1:m))
+    group_ring = base_ring(G.rep_mat)
+    map1 = hom(group_ring, mixed_ring_xz, gens(mixed_ring_xz)[n+1:n+m^2])
+    new_rep_mat = matrix(mixed_ring_xz,n,n,[map1(G.rep_mat[i,j]) for i in 1:n, j in 1:n])
+    D = mu_star(new_rep_mat)
+    vector_ring = parent(elem_)
+    map2 = hom(vector_ring, mixed_ring_xz, gens(mixed_ring_xz)[1:n])
+    elem = map2(elem_)
+    sum = mixed_ring_xz()
+    #mu_star: 
+    mons = collect(monomials(elem))
+    coeffs = collect(coefficients(elem))
+    for i in 1:length(mons)
+        k = mixed_ring_xz(1)
+        factors = factorise(mons[i])
+        for j in 1:length(factors)
+            if factors[j][2] != 0
+                neww = getindex(D, factors[j][1])
+                k = k*(neww^(factors[j][2]))
+            end
+        end
+        sum += coeffs[i]*k
+    end
+    return sum
+end
+
 ###############
 
 #for the representation matrices
@@ -153,9 +186,9 @@ function rep_mat_(m::Int, sym_deg::Int)
     group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
     vars = [t[i] for i in 1:m]
     new_vars = vars*group_mat
-    degree_basiss = degree_basis(mixed_ring,m, sym_deg)
+    degree_basiss = reverse(degree_basis(mixed_ring,m, sym_deg))
     sum = mixed_ring()
-    for j in 1:length(degree_basiss)
+    for j=1:length(degree_basiss)
         prod = mixed_ring(1)
         factors_ = factorise(degree_basiss[j])
         for i in 1:length((factors_)[1:m])
@@ -182,6 +215,7 @@ function rep_mat_(m::Int, sym_deg::Int)
     Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
     return Mat            
 end
+
 
 function degree_basis(R::MPolyRing,m::Int, t::Int)
     v = R(1)
@@ -484,17 +518,16 @@ function inv_generators(G::ReductiveGroup, ringg::MPolyRing, M::AbstractAlgebra.
     
     #remove ugly coefficients: 
     V= Vector{QQFieldElem}[]
-    for elem in new_gens
-        V = vcat(V,collect(coefficients(elem)))
-    end
-    maxx = maximum([abs(denominator(V[i])) for i in 1:length(V)])
-    minn = minimum([abs(numerator(V[i])) for i in 1:length(V)])
     new_gens_ = Vector{MPolyDecRingElem}(undef,0)
     for elem in new_gens
+        V = vcat(V,collect(coefficients(elem)))
+        maxx = maximum([abs(denominator(V[i])) for i in 1:length(V)])
+        minn = minimum([abs(numerator(V[i])) for i in 1:length(V)])
         if denominator((maxx*elem)//minn) != 1
             error("den not 1")
         end
         push!(new_gens_, numerator((maxx*elem)//minn))
+        V= Vector{QQFieldElem}[]
     end
     return new_gens_
 end
@@ -504,7 +537,7 @@ function mu_star(new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
     mixed_ring_xy = parent(new_rep_mat[1,1])
     n = ncols(new_rep_mat)
     vars = matrix(mixed_ring_xy,n,1,[gens(mixed_ring_xy)[i] for i in 1:n])
-    new_vars = new_rep_mat*vars 
+    new_vars = new_rep_mat*vars
     D = Dict([])
     for i in 1:n
         push!(D, gens(mixed_ring_xy)[i]=>new_vars[i])
@@ -517,16 +550,18 @@ function reynolds__(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Generic
     mixed_ring_xy = parent(elem)
     sum = mixed_ring_xy()
     #mu_star: 
-    for monomial in monomials(elem)
+    mons = collect(monomials(elem))
+    coeffs = collect(coefficients(elem))
+    for i in 1:length(mons)
         k = mixed_ring_xy(1)
-        factors = factorise(monomial)
+        factors = factorise(mons[i])
         for j in 1:length(factors)
             if factors[j][2] != 0
                 neww = getindex(D, factors[j][1])
                 k = k*(neww^(factors[j][2]))
             end
         end
-        sum += k
+        sum += coeffs[i]*k
     end
     t = needed_degree(sum, m)
     if !divides(t, m)[1]
@@ -534,9 +569,9 @@ function reynolds__(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Generic
     else
         p = divexact(t, m)
     end
-    num = omegap(p, new_det, sum)
+    num = omegap_(p, new_det, sum)
     #num = omegap(p, new_det, elem)
-    den = omegap(p, new_det, (new_det)^p)
+    den = omegap_(p, new_det, (new_det)^p)
     if !(denominator(num//den)==1)
         error("denominator of reynolds not rational")
     end
@@ -546,12 +581,12 @@ end
 function needed_degree(elem::MPolyDecRingElem, m::Int)
     R = parent(elem)
     n = numerator((ngens(R) - m^2)//2)
-    extra_ring, zzz = PolynomialRing(base_ring(R), "zzz"=>1:m^2)
+    extra_ring, _= PolynomialRing(base_ring(R), "z"=>1:m^2)
     mapp = hom(R,extra_ring, vcat([1 for i in 1:2*n], gens(extra_ring)))
     return total_degree(mapp(elem))
 end
 
-#works
+#works #Unused.
 function omegap(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
     parent(det_) == parent(f) || error("Omega process ring error")
     action_ring = parent(det_)
@@ -575,16 +610,46 @@ function omegap(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
     return h
 end
 
-function reduce_gens_(v::Vector{MPolyDecRingElem})
-    new_gens_ = [v[1]]
-    for i in 1:length(v)-1
-        if !(v[i+1] in ideal(v[1:i]))
-            push!(new_gens_, v[i+1])
+#alternate function for omegap. Works the same.
+function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
+    parent(det_) == parent(f) || error("Omega process ring error")
+    action_ring = parent(det_)
+    monos = collect(monomials(det_))
+    coeffs = collect(coefficients(det_))
+    for i in 1:p
+    h = action_ring()
+    for i in 1:length(monos)
+        exp_vect = exponent_vector(monos[i], 1)
+        x = f
+        for i in 1:length(exp_vect)
+            for j in 1:exp_vect[i]
+                x = derivative(x, gens(action_ring)[i])
+                if x == 0
+                    break
+                end
+            end
         end
+        h += coeffs[i]*x
     end
-    return new_gens_
+        f = h
+    end
+    return f
 end
 
+#####################callable reynold's operator
 
-
-
+function reynolds_operator(elem::MPolyElem, G::ReductiveGroup)
+    G.group[1] == :SL || error("Only implemented for SLm")
+    vector_ring = parent(elem)
+    n = Int(ngens(vector_ring))
+    n == G.vector_space_dimension || error("group not compatible with element")
+    m = G.group[2]
+    R, _ = grade(PolynomialRing(QQ,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m))[1])
+    map1 = hom(vector_ring, R, gens(R)[1:n])
+    new_elem = map1(elem)
+    group_ring = base_ring(G.rep_mat)
+    map = hom(group_ring, R, gens(R)[2*n+1:2*n+m^2])
+    new_rep_mat = matrix(R,n,n,[map(G.rep_mat[i,j]) for i in 1:n, j in 1:n])
+    new_det = map(det(G.canonical_representation))
+    return G.reynolds_operator(new_elem, new_rep_mat, new_det, m)
+end
