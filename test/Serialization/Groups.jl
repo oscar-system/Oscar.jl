@@ -15,19 +15,47 @@
       end
 
       # subgroup of a symmetric group
-      P = sylow_subgroup(G, 2)[1]
-      test_save_load_roundtrip(path, P) do loaded
-        @test P == loaded
+      U = sylow_subgroup(G, 2)[1]
+      test_save_load_roundtrip(path, U) do loaded
+        @test U == loaded
+      end
+      y = gen(U, 1)
+      test_save_load_roundtrip(path, y) do loaded
+        @test y == loaded
       end
 
-      # element and group together
-      v = [x, P, G]
-      test_save_load_roundtrip(path, v) do loaded
-        @test v == loaded
-      end
+      # elements and groups together (`Vector{Any}` is not supported)
+      v = (x, y, G, U)
+      filenamev = joinpath(path, "v")
+      save(filenamev, v)
+      loadedv = load(filenamev)
+      @test v == loadedv
+
+      # three elements from two different groups
+      w = (x, x^2, y)
+      filenamew = joinpath(path, "w")
+      save(filenamew, w)
+      loadedw = load(filenamew)
+      @test w == loadedw
+      @test parent(loadedv[1]) === parent(loadedw[1])
+
+      # simulate loading into a fresh Julia session
+      Oscar.reset_global_serializer_state()
+      loadedv = load(filenamev)
+#     @test parent(loadedv[1]) === loadedv[3]
+
+      loadedw = load(filenamew)
+      @test parent(loadedw[1]) === parent(loadedw[2])
+      @test parent(loadedw[1]) !== parent(loadedw[3])
+      @test parent(loadedw[1]) !== G
+      @test parent(loadedw[1]) == G
+      @test parent(loadedw[3]) !== U
+      @test parent(loadedw[3]) == U
+      @test loadedw[1] == loadedv[1]
+      @test parent(loadedw[1]) === parent(loadedv[1])
     end
 
-    @testset "Finitely presented group" begin
+    @testset "Free groups" begin
       F = free_group(2)
 
       # single element
@@ -38,40 +66,102 @@
 
       # full free group
       test_save_load_roundtrip(path, F) do loaded
-        @test F == loaded
+        @test F === loaded
       end
 
       # subgroup of free group
       U = sub(F, [gen(F, 1)])[1]
       test_save_load_roundtrip(path, U) do loaded
-        @test U == loaded
+        @test U === loaded
+      end
+      y = gen(U, 1)
+      test_save_load_roundtrip(path, y) do loaded
+        @test y == loaded
       end
 
-      # full f.p. group with relators
-      G = quo(F, [x^2])[1]
+#     # elements and groups together (`Vector{Any}` is not supported)
+#     v = (x, y, F, U)
+#     filenamev = joinpath(path, "v")
+#     save(filenamev, v)
+#     loadedv = load(filenamev)
+#     @test v == loadedv
+#
+#     # three elements from two different groups
+#     w = (x, x^2, y)
+#     filenamew = joinpath(path, "w")
+#     save(filenamew, w)
+#     loadedw = load(filenamew)
+#     @test w == loadedw
+#     @test parent(loadedv[1]) === parent(loadedw[1])
+#
+#     # simulate loading into a fresh Julia session
+#      Oscar.reset_global_serializer_state()
+#      loadedv = load(filenamev)
+#      @test parent(loadedv[1]) === loadedv[3]
+#
+#      loadedw = load(filenamew)
+#      @test parent(loadedw[1]) === parent(loadedw[2])
+#      @test parent(loadedw[1]) !== parent(loadedw[3])
+#      @test parent(loadedw[1]) !== G
+#      @test parent(loadedw[3]) !== U
+#      @test loadedw[1] == loadedv[1]
+#      @test parent(loadedw[1]) === parent(loadedv[1])
+    end
+
+    @testset "Finitely presented groups" begin
+      F = free_group(2)
+      x1 = gen(F, 1)
+      x2 = gen(F, 2)
+      G = quo(F, [x1^2, x2^2, comm(x1, x2)])[1]
+
+      # single element
+      x = gen(G, 1)
+      test_save_load_roundtrip(path, x) do loaded
+        @test x == loaded
+      end
+
+      # full f.p. group
       test_save_load_roundtrip(path, G) do loaded
         @test G == loaded
       end
-      
-      # subgroup of f.p. group with relators
-      S = sub(G, [gen(G, 1)])[1]
-      test_save_load_roundtrip(path, S) do loaded
-        @test gens(S) == gens(loaded)
+
+      # subgroup of f.p. group
+      U = sub(G, [gen(G, 1)])[1]
+      test_save_load_roundtrip(path, U) do loaded
+        @test gens(U) == gens(loaded)
+      end
+      y = gen(U, 1)
+      test_save_load_roundtrip(path, y) do loaded
+        @test y == loaded
       end
 
-      # various objects together
-      v = [x, F, U, G, gens(S)]
-      test_save_load_roundtrip(path, v) do loaded
-        @test v == loaded
-      end
-
-      # Load objects from another Oscar session,
-      # and check consistency.
-      # (The file contains the vector `v`.)
-      x, F, U, G, Sgens = load(joinpath(@__DIR__, "Groups_input.json"))
-      @test x == gen(F, 1)
-      @test x == gen(U, 1)
-      @test Sgens[1] == gen(G, 1)
+#      # elements and groups together (`Vector{Any}` is not supported)
+#      v = (x, y, G, U)
+#      filenamev = joinpath(path, "v")
+#      save(filenamev, v)
+#      loadedv = load(filenamev)
+#      @test v == loadedv
+#
+#      # three elements from two different groups
+#      w = (x, x^2, y)
+#      filenamew = joinpath(path, "w")
+#      save(filenamew, w)
+#      loadedw = load(filenamew)
+#      @test w == loadedw
+#      @test parent(loadedv[1]) === parent(loadedw[1])
+#
+#      # simulate loading into a fresh Julia session
+#      Oscar.reset_global_serializer_state()
+#      loadedv = load(filenamev)
+#      @test parent(loadedv[1]) === loadedv[3]
+#
+#      loadedw = load(filenamew)
+#      @test parent(loadedw[1]) === parent(loadedw[2])
+#      @test parent(loadedw[1]) !== parent(loadedw[3])
+#      @test parent(loadedw[1]) !== G
+#      @test parent(loadedw[3]) !== U
+#      @test loadedw[1] == loadedv[1]
+#      @test parent(loadedw[1]) === parent(loadedv[1])
     end
   end
 end

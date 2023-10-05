@@ -98,7 +98,6 @@ function __init__()
       GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
     end
     __init_group_libraries()
-    __init_group_serialization()
 
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)

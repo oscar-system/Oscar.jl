@@ -1730,7 +1730,7 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
     # element of a f.p. group
     gX = GAPWrap.UnderlyingElement(gX)
   end
-  @assert length(GAP.getbangproperty(GAP.Globals.FamilyObj(gX), :names)) == length(genimgs)
+  @assert length(GAP.getbangproperty(GAPWrap.FamilyObj(gX), :names)) == length(genimgs)
   @assert GAPWrap.IsAssocWord(gX)
   if GAPWrap.IsLetterAssocWordRep(gX)
     # `GAPWrap.ExtRepOfObj` would create a syllable representation,
@@ -1912,15 +1912,21 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
        push!(ll, GAP.Obj(p.second))
      end
    end
-   famG = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))
-   if GAPWrap.IsFreeGroup(G.X)
-     w = GAPWrap.ObjByExtRep(famG, GapObj(ll))::GapObj
+   return G(ll)
+end
+
+# This format is used in the serialization of `FPGroupElem`.
+function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
+   @req is_full_fp_group(G) "the group must be a full f. p. group"
+   famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G.X))
+   if GAP.Globals.IsFreeGroup(G.X)
+     w = GAPWrap.ObjByExtRep(famG, GapObj(extrep))
    else
      # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
      F = GAP.getbangproperty(famG, :freeGroup)
-     famF = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(F))
-     w = GAPWrap.ObjByExtRep(famF, GapObj(ll))::GapObj
-     w = GAP.Globals.ElementOfFpGroup(famG, w)::GapObj
+     famF = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+     w1 = GAPWrap.ObjByExtRep(famF, GapObj(extrep))
+     w = GAPWrap.ElementOfFpGroup(famG, w1)
    end
 
    return FPGroupElem(G, w)

@@ -64,6 +64,7 @@ GAP.@wrap DeterminantOfCharacter(x::GapObj)::GapObj
 GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap EigenvaluesChar(x::GapObj, y::GAP.Obj)::GapObj
+GAP.@wrap ElementOfFpGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Elements(x::GapObj)::GapObj
 GAP.@wrap ElementsFamily(x::GapObj)::GapObj
 GAP.@wrap ELMS_LIST(x::GapObj, y::GapObj)::GapObj
@@ -218,6 +219,7 @@ GAP.@wrap Maxes(x::GapObj)::GapObj
 GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
+GAP.@wrap NameFunction(x::GapObj)::GapObj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NormalSubgroupClasses(x::GapObj, y::GAP.Obj)::GapObj
@@ -275,6 +277,7 @@ GAP.@wrap UnivariatePolynomialByCoefficients(x::GapObj, y::GapObj, z::Int)::GapO
 GAP.@wrap Value(x::GapObj, y::Any)::Any
 GAP.@wrap Value(x::GapObj, y::Any, z::Any)::Any
 GAP.@wrap Value(x::GapObj, y::GapObj, z::GapObj, a::Any)::Any
+GAP.@wrap ValueGlobal(x::GapObj)::GAP.Obj
 GAP.@wrap ValuesOfClassFunction(x::GapObj)::GapObj
 GAP.@wrap Z(x::Any)::GAP.Obj
 GAP.@wrap Zero(x::Any)::GAP.Obj
