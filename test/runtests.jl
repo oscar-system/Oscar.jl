@@ -36,6 +36,7 @@ end
 @everywhere using Test
 @everywhere using Oscar
 @everywhere Oscar.set_seed!($seed)
+@everywhere Oscar.randseed!($seed)
 
 @everywhere import Oscar.Nemo.AbstractAlgebra
 @everywhere include(joinpath(pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
