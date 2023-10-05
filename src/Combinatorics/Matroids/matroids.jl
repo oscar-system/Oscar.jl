@@ -8,7 +8,7 @@ const GroundsetType = Union{AbstractVector, AbstractSet}
 struct Matroid
     pm_matroid::Polymake.BigObject
     groundset::AbstractVector # groundset of the matroid 
-    gs2num::Dict{Any, IntegerUnion}# dictionary to map the groundset to the integers from 1 to its size
+    gs2num::Dict{<:Any, Int}# dictionary to map the groundset to the integers from 1 to its size
 end
 
 pm_object(M::Matroid) = M.pm_matroid
@@ -20,7 +20,7 @@ function Base.show(io::IO, M::Matroid)
 end
 
 # function that generates the dictionary which maps the groundset to integers
-create_gs2num(E::GroundsetType) = Dict{Any,IntegerUnion}(E[i] => i for i in 1:length(E))
+create_gs2num(E::GroundsetType) = Dict(zip(E, 1:length(E)))
 
 @doc raw"""
     Matroid(pm_matroid::Polymake.BigObjectAllocated, [E::GroundsetType])
@@ -319,7 +319,7 @@ Matroid of rank 2 on 4 elements
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc raw"""
-    cycle_matroid(g::Graph)
+    cycle_matroid(g::Graph{Undirected})
 
 The cycle matroid of a graph `g`.
 
@@ -334,12 +334,12 @@ julia> M = cycle_matroid(g)
 Matroid of rank 3 on 6 elements
 ```
 """
-function cycle_matroid(g::Graph)
-    pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
-    M = Polymake.matroid.matroid_from_graph(pm_Graph)
-    n = ne(g)
-    gs2num = create_gs2num(1:n)
-    return Matroid(M,1:n,gs2num)
+function cycle_matroid(g::Graph{Undirected})
+  pm_Graph = Polymake.graph.Graph(ADJACENCY=pm_object(g))
+  M = Polymake.matroid.matroid_from_graph(pm_Graph)
+  gs = collect(edges(g))
+  gs2num = create_gs2num(gs)
+  return Matroid(M,gs,gs2num)
 end
 
 @doc raw"""
@@ -498,10 +498,10 @@ function deletion(M::Matroid,set::GroundsetType)
         error("The set of deleted element must be a subset of the groundset.")
     end
     sort_set = Vector(undef,length(M.groundset)-length(set))
-    gs2num = Dict{Any,IntegerUnion}()
+    gs2num = typeof(M.gs2num)()
     i = 1
     for elem in M.groundset
-        if length(findall(x->x==elem, set))==0
+        if !(elem in set)
             sort_set[i]=elem
             gs2num[elem] = i
             i+=1
@@ -628,7 +628,8 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
     if elem in M.groundset
         error("The element you are about to add is already contained in the ground set")
     end
-    gs2num = copy(M.gs2num)
+    ktype = keytype(M.gs2num)
+    gs2num = Dict{Union{ktype, ElementType}, Int}(M.gs2num)
     gs2num[elem] = length(M.groundset)+1
     pm_set = Set{Int}([gs2num[i]-1 for i in set])
     return Matroid(Polymake.matroid.principal_extension(M.pm_matroid, pm_set),[M.groundset;elem],gs2num)
