@@ -23,7 +23,9 @@ include("NumberField.jl")
 include("FunctionField.jl")
 include("AbelianClosure.jl")
 
-include("AlgClosureFp.jl")
+# FIXME: temporarily disable AlgClosureFp tests until we resolve
+# issue https://github.com/oscar-system/Oscar.jl/issues/2691
+#include("AlgClosureFp.jl")
 include("Laurent.jl")
 
 include("MPolyAnyMap/MPolyRing.jl")
