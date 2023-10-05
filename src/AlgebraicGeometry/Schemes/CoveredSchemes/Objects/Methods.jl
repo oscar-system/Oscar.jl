@@ -83,6 +83,8 @@ function Base.show(io::IO, ::MIME"text/plain", X::AbsCoveredScheme)
   end
 end
 
+_covering_for_printing(io::IO, X::AbsCoveredScheme) = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+
 # The explanation of the printing are the same as the function above. We need
 # this `_show_semi_compact` for detailed nested printing. Here, we assume that
 # in our nest, we already made precised the base ring of our covered scheme.
@@ -121,7 +123,7 @@ function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering, n::Strin
 end
 
 function Base.show(io::IO, X::AbsCoveredScheme)
-  cov = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+  cov = _covering_for_printing(io, X)
   if get(io, :show_semi_compact, false)
     l = get(io, :label, "")
     _show_semi_compact(io, X, cov, l)
@@ -140,7 +142,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
       end
       print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
     end
-    n > 0 && print(io, " covered with ", ItemQuantity(n, "patch", "patches"))
+    n > 0 && print(io, " covered with ", ItemQuantity(n, "patch"))
   end
 end
 

@@ -161,7 +161,7 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   if npatches(U) > 0
     println(io)
     l = ndigits(npatches(U))
-    print(io, "covered by ", ItemQuantity(npatches(U), "affine patch", "affine patches"))
+    print(io, "covered by ", ItemQuantity(npatches(U), "affine patch"))
     print(io, Indent())
     co_str = [""]
     for V in affine_patches(U)

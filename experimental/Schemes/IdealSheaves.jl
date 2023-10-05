@@ -1021,7 +1021,7 @@ function Base.show(io::IO, I::IdealSheaf)
   io = pretty(io)
   X = scheme(I)
   if get(io, :show_semi_compact, false)
-    cov = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+    cov = Oscar._covering_for_printing(io, X)
     n = get(io, :label, "")
     _show_semi_compact(io, I, cov, n)
   else
@@ -1103,7 +1103,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf)
   io = pretty(io)
   X = scheme(I)
-  cov = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+  cov = Oscar._covering_for_printing(io, X)
   # If there is a simplified covering, use it!
   println(io, "Sheaf of ideals")
   print(io, Indent(), "on ", Lowercase())

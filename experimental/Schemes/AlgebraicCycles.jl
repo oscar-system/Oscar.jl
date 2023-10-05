@@ -298,13 +298,13 @@ end
 # As it is given as a formal sum, we want a nice printing where all the
 # coefficients of the respective ideal sheaves are aligned on the right - one
 # needs to take care about some left offsets.
-function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle)
   io = pretty(io)
   X = scheme(D)
-  # If the IO context knows about a covering to be used, we used this one.
+  # If the IO context knows about a covering to be used, we use this one.
   # Otherwise, we check whether X has a simplified covering. If not, we use the
   # default covering of X
-  cov = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+  cov = Oscar._covering_for_printing(io, X)
   eff = all(i >= 0 for i in collect(values(D.coefficients)))
   if length(components(D)) == 0
     print(io, "Zero algebraic cycle")

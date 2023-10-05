@@ -292,7 +292,7 @@ function Base.show(io::IO, C::Covering)
   if get(io, :supercompact, false)
     print(io, "Covering")
   else
-    print(io,  "Covering with ", ItemQuantity(npatches(C), "patch", "patches")) 
+    print(io,  "Covering with ", ItemQuantity(npatches(C), "patch"))
   end
 end
 

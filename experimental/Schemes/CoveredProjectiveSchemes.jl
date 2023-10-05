@@ -278,7 +278,7 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
     end
     print(io, Lowercase(), base_scheme(CPS))
     if n != 0
-      print(io, " covered with ", ItemQuantity(n, "projective patch", "projective patches"))
+      print(io, " covered with ", ItemQuantity(n, "projective patch"))
     end
   end
 end
@@ -291,7 +291,7 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   print(io, Indent(), "over ", Lowercase())
   show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
   println(io)
-  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch", "projective patches"))
+  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch"))
   print(io, Indent())
   l = ndigits(n)
   for i in 1:n
