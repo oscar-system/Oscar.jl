@@ -1509,20 +1509,20 @@ function Base.show(io::IO, table::sheafCohTable)
 
   # header
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, rpad(" ", row_label_length, " "))
+  pushfirst!(header, rpad(".", row_label_length, " "))
 
-  println(io, prod(header))
+  println(io, header...)
   size_row = sum(length, first(print_rows))
   println(io, repeat("-", size_row))
   for rw in print_rows
-    println(io, prod(rw))
+    println(io, rw...)
   end
   println(io, repeat("-", size_row))
-  println(io, prod(chi_print))
+  print(io, chi_print...)
 end
 
 @doc raw"""
-    function sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+    sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M`. The range of twists is between `l` and `h`.
@@ -1533,7 +1533,7 @@ The values of the returned table can be accessed by indexing it
 with a cohomological index and a value between `l` and `h` as shown
 in the example below.
 
-
+```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:4);
 
 julia> S, _= grade(R);
@@ -1549,7 +1549,7 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology_bgg(M, -6, 2)
-       -6  -5  -4  -3  -2  -1   0   1   2
+.      -6  -5  -4  -3  -2  -1   0   1   2
 -----------------------------------------
 0:     70  36  15   4   -   -   -   -   *
 1:      *   -   -   -   -   -   -   -   -
@@ -1564,14 +1564,14 @@ julia> tbl[0, -6]
 julia> tbl[2, 0]
 1
 
-julia> R, x = polynomial_ring(QQ, "x" => (1:5, ));
+julia> R, x = polynomial_ring(QQ, "x" => 1:5);
 
 julia> R, x = grade(R);
 
 julia> F = graded_free_module(R, 1);
 
 julia> sheaf_cohomology_bgg(F, -7, 2)
-       -7  -6  -5  -4  -3  -2  -1   0   1   2
+.      -7  -6  -5  -4  -3  -2  -1   0   1   2
 ---------------------------------------------
 0:     15   5   1   -   -   -   *   *   *   *
 1:      *   -   -   -   -   -   -   *   *   *
@@ -1580,6 +1580,7 @@ julia> sheaf_cohomology_bgg(F, -7, 2)
 4:      *   *   *   *   -   -   -   1   5  15
 ---------------------------------------------
 chi:    *   *   *   *   -   -   *   *   *   *
+```
 """
 function sheaf_cohomology_bgg(M::ModuleFP{T},
                               l::Int,
