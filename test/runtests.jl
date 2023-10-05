@@ -37,6 +37,9 @@ end
 @everywhere using Oscar
 @everywhere Oscar.set_seed!($seed)
 
+@everywhere import Oscar.Nemo.AbstractAlgebra
+@everywhere include(joinpath(pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest
 end
