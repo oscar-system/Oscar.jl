@@ -10,7 +10,7 @@ mutable struct OrderedMultiIndex{IntType<:IntegerUnion}
   n::IntType
 
   function OrderedMultiIndex(i::Vector{T}, n::T) where {T<:IntegerUnion}
-    @assert all(k->i[k]<i[k+1], 1:length(i)-1) "indices must be strictly ordered"
+    #@assert all(k->i[k]<i[k+1], 1:length(i)-1) "indices must be strictly ordered"
     return new{T}(i, n)
   end
 end
@@ -20,7 +20,7 @@ function ordered_multi_index(i::Vector{T}, n::T) where {T<:IntegerUnion}
 end
 
 # For an ordered multiindex i = (0 < i₁ < i₂ < … < iₚ ≤ n) this returns the vector (i₁,…,iₚ).
-indices(a::OrderedMultiIndex) = copy(a.i)
+indices(a::OrderedMultiIndex) = a.i
 
 # For an ordered multiindex i = (0 < i₁ < i₂ < … < iₚ ≤ n) this returns n.
 bound(a::OrderedMultiIndex) = a.n
@@ -127,7 +127,7 @@ end
 
 function Base.iterate(I::OrderedMultiIndexSet, state::OrderedMultiIndex)
   bound(I) == bound(state) || error("index not compatible with set")
-  ind = indices(state)
+  ind = copy(indices(state))
   l = length(state)
   while l > 0 && ind[l] == bound(I) - length(state) + l
     l = l - 1
@@ -168,10 +168,11 @@ end
 # enumeration of all ordered multiindices (0 < i₁ < i₂ < … < iₚ ≤ n).
 function ordered_multi_index(k::Int, p::Int, n::Int)
   (k < 1 || k > binomial(n, p)) && error("index out of range")
+  iszero(p) && return OrderedMultiIndex(Int[], n)
   isone(p) && return OrderedMultiIndex([k], n)
   i1 = 1
   bin = binomial(n, p)
-  while !(bin - binomial(n - i1, p) > k - 1)
+  while i1 <= n - p && !(bin - binomial(n - i1, p) > k - 1)
     i1 = i1 + 1
   end
   prev_res = ordered_multi_index(k - bin + binomial(n - i1 + 1, p), p-1, n - i1)

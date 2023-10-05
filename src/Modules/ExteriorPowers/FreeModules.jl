@@ -156,15 +156,16 @@ function wedge(u::FreeModElem, v::FreeModElem;
   n = rank(F1)
 
   result = zero(parent)
-  for (i, ind_i) in enumerate(OrderedMultiIndexSet(p, n))
+  a_ind = [k for (k, _) in coordinates(u)]
+  for i in a_ind
+    ind_i = ordered_multi_index(i, p, n)
     a = u[i]
-    iszero(a) && continue
-    for (j, ind_j) in enumerate(OrderedMultiIndexSet(q, n))
-      b = v[j]
-      iszero(b) && continue
+    b_ind = [k for (k, _) in coordinates(v)]
+    for j in b_ind
+      ind_j = ordered_multi_index(j, q, n)
       sign, k = _wedge(ind_i, ind_j)
       iszero(sign) && continue
-      result = result + sign * a * b * parent[linear_index(k)]
+      result = result + sign * a * v[j] * parent[linear_index(k)]
     end
   end
   return result
