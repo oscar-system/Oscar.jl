@@ -27,12 +27,12 @@
 
   R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
   F = FreeMod(R, 5)
-  Fwedge3 = Oscar.exterior_power(F, 3)
-  tmp = Oscar.exterior_power(F, 3, cached=false)
+  Fwedge3, _ = Oscar.exterior_power(F, 3)
+  tmp, _ = Oscar.exterior_power(F, 3, cached=false)
   @test tmp !== Fwedge3
-  @test Fwedge3 === Oscar.exterior_power(F, 3)
-  Fwedge1 = Oscar.exterior_power(F, 1)
-  Fwedge2 = Oscar.exterior_power(F, 2)
+  @test Fwedge3 === Oscar.exterior_power(F, 3)[1]
+  Fwedge1, _ = Oscar.exterior_power(F, 1)
+  Fwedge2, _ = Oscar.exterior_power(F, 2)
 
   success, orig_mod, q = Oscar.is_exterior_power(Fwedge3)
   @test success
@@ -40,12 +40,12 @@
   @test q == 3
 
   v = sum(gens(R)[i]*F[i] for i in 1:5)
-  phi0 = Oscar.wedge_multiplication_map(exterior_power(F, 0), F, v)
-  phi1 = Oscar.wedge_multiplication_map(F, exterior_power(F, 2), v)
+  phi0 = Oscar.wedge_multiplication_map(exterior_power(F, 0)[1], F, v)
+  phi1 = Oscar.wedge_multiplication_map(F, exterior_power(F, 2)[1], v)
   @test iszero(compose(phi0, phi1))
   @test image(phi0)[1] == kernel(phi1)[1]
   phi2 = Oscar.wedge_multiplication_map(Fwedge1, Fwedge2, v)
-  phi2_alt = Oscar.wedge_multiplication_map(Oscar.exterior_power(F, 1, cached=false), Oscar.exterior_power(F, 2, cached=false), v)
+  phi2_alt = Oscar.wedge_multiplication_map(Oscar.exterior_power(F, 1, cached=false)[1], Oscar.exterior_power(F, 2, cached=false)[1], v)
   @test domain(phi2) !== domain(phi2_alt)
   @test codomain(phi2) !== codomain(phi2_alt)
   phi3 = Oscar.wedge_multiplication_map(Fwedge2, Fwedge3, v)
@@ -74,9 +74,9 @@ end
   R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
   S, (x, y, u, v, w) = grade(R)
   F = graded_free_module(S, [1, 1, 1, 1, -2])
-  Fwedge1 = Oscar.exterior_power(F, 1)
-  Fwedge2 = Oscar.exterior_power(F, 2)
-  Fwedge3 = Oscar.exterior_power(F, 3)
+  Fwedge1, _ = Oscar.exterior_power(F, 1)
+  Fwedge2, _ = Oscar.exterior_power(F, 2)
+  Fwedge3, _ = Oscar.exterior_power(F, 3)
   @test is_graded(Fwedge3)
 
   S1 = graded_free_module(S, 1)
@@ -86,7 +86,7 @@ end
 
   dual_basis = Oscar.koszul_duals(gens(Fwedge1))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge1))]
-  Fwedge5 = Oscar.exterior_power(F, 5)
+  Fwedge5, _ = Oscar.exterior_power(F, 5)
   @test all(x->x==Fwedge5[1], tmp)
 
   dual_basis = Oscar.koszul_duals(gens(Fwedge2))
@@ -125,8 +125,21 @@ end
   @test compose(phi_2, psi_2) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 2)
   psi_3 = Oscar.induced_map_on_exterior_power(psi, 3)
   @test compose(phi_3, psi_3) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 3)
-  psi_3_alt = Oscar.induced_map_on_exterior_power(psi, 3, domain = Oscar.exterior_power(R4, 3, cached=false), codomain = Oscar.exterior_power(R5, 3, cached=false))
+  psi_3_alt = Oscar.induced_map_on_exterior_power(psi, 3, domain = Oscar.exterior_power(R4, 3, cached=false)[1], codomain = Oscar.exterior_power(R5, 3, cached=false)[1])
   @test matrix(psi_3) == matrix(psi_3_alt)
   @test domain(psi_3) !== domain(psi_3_alt)
   @test codomain(psi_3) !== codomain(psi_3_alt)
 end
+
+@testset "multiplication map" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+
+  F = FreeMod(R, 5)
+  F3, mm = Oscar.exterior_power(F, 3)
+  v = (F[1], F[3], F[4])
+  u = (F[1], F[4], F[3])
+  @test mm(v) == -mm(u)
+  w = mm(v)
+  @test preimage(mm, w) == v
+end
+

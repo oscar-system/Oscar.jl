@@ -8,8 +8,8 @@
 ########################################################################
 
 # We need to cache eventually created exterior powers.
-@attr Dict{Int, <:FreeMod} function _exterior_powers(F::FreeMod) 
-  return Dict{Int, typeof(F)}()
+@attr Dict{Int, Tuple{T, <:Map}} function _exterior_powers(F::T) where {T<:FreeMod}
+  return Dict{Int, Tuple{typeof(F), Map}}()
 end
 
 # User facing constructor for ⋀ ᵖ F.
@@ -18,7 +18,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   if cached
     powers = _exterior_powers(F)
-    haskey(powers, p) && return powers[p]::typeof(F)
+    haskey(powers, p) && return powers[p]::Tuple{typeof(F), <:Map}
   end
 
   R = base_ring(F)
@@ -35,11 +35,40 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     result = grade(result, weights)
   end
 
+  # Create the multiplication map
+  function my_mult(u::FreeModElem...)
+    isempty(u) && return result[1] # only the case p=0
+    @assert all(x->parent(x)===F, u) "elements must live in the same module"
+    @assert length(u) == p "need a $p-tuple of elements"
+    return wedge(collect(u), parent=result)
+  end
+  function my_mult(u::Tuple)
+    return my_mult(u...)
+  end
+
+  function my_decomp(u::FreeModElem)
+    parent(u) === result || error("element does not belong to the correct module")
+    k = findfirst(x->x==u, gens(result)) 
+    k === nothing && error("element must be a generator of the module")
+    ind = ordered_multi_index(k, p, n)
+    e = gens(F)
+    return Tuple(e[i] for i in indices(ind))
+  end
+
+  mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(F) for f in 1:p])), result, my_mult, my_decomp)
+  @assert domain(mult_map) === parent(Tuple(zero(F) for i in 1:p)) "something went wrong with the parents"
+
+  set_attribute!(result, :multiplication_map, mult_map)
   set_attribute!(result, :is_exterior_power, (F, p))
 
-  cached && (_exterior_powers(F)[p] = result)
+  cached && (_exterior_powers(F)[p] = (result, mult_map))
 
-  return result
+  return result, mult_map
+end
+
+function multiplication_map(M::FreeMod)
+  has_attribute(M, :multiplication_map) || error("module is not an exterior power")
+  return get_attribute(M, :multiplication_map)::Map
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
@@ -62,7 +91,7 @@ end
 function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
   success, orig_mod, p = is_exterior_power(F)
   if !success 
-    Fwedge1 = exterior_power(F, 1)
+    Fwedge1, _ = exterior_power(F, 1)
     id = hom(F, Fwedge1, gens(Fwedge1))
     tmp = wedge_multiplication_map(Fwedge1, G, v)
     return compose(id, tmp)
@@ -70,7 +99,7 @@ function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
 
   success, orig_mod_2, q = is_exterior_power(G)
   if !success
-    Gwedge1 = exterior_power(G, 1)
+    Gwedge1, _ = exterior_power(G, 1)
     id = hom(Gwedge1, G, gens(G))
     tmp = wedge_multiplication_map(F, Gwedge1, v)
     return compose(tmp, id)
@@ -81,7 +110,7 @@ function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
 
   # In case v comes from the original module, convert.
   if H === orig_mod
-    M = exterior_power(orig_mod, 1)
+    M, _ = exterior_power(orig_mod, 1)
     w = M(coordinates(v))
     return wedge_multiplication_map(F, G, w)
   end
@@ -106,20 +135,20 @@ function wedge(u::FreeModElem, v::FreeModElem;
       end
       success, _, q = is_exterior_power(Oscar.parent(v))
       !success && (q = 1)
-      exterior_power(F, p + q)
+      exterior_power(F, p + q)[1]
     end
   )
   success1, F1, p = is_exterior_power(Oscar.parent(u))
   if !success1
     F = Oscar.parent(u) 
-    Fwedge1 = exterior_power(F1, 1)
+    Fwedge1, _ = exterior_power(F1, 1)
     return wedge(Fwedge1(coordinates(u)), v, parent=parent)
   end
 
   success2, F2, q = is_exterior_power(Oscar.parent(v))
   if !success2
     F = Oscar.parent(v) 
-    Fwedge1 = exterior_power(F1, 1)
+    Fwedge1, _ = exterior_power(F1, 1)
     return wedge(u, Fwedge1(coordinates(v)), parent=parent)
   end
 
@@ -154,7 +183,7 @@ function wedge(u::Vector{T};
         end
         r = r + p
       end
-      exterior_power(F, r)
+      exterior_power(F, r)[1]
     end
   ) where {T<:FreeModElem}
   isempty(u) && error("list must not be empty")
@@ -174,7 +203,7 @@ function koszul_complex(v::FreeModElem; cached::Bool=true)
   F = parent(v)
   R = base_ring(F)
   n = rank(F)
-  ext_powers = [exterior_power(F, p, cached=cached) for p in 0:n]
+  ext_powers = [exterior_power(F, p, cached=cached)[1] for p in 0:n]
   boundary_maps = [wedge_multiplication_map(ext_powers[i+1], ext_powers[i+2], v) for i in 0:n-1]
   Z = is_graded(F) ? graded_free_module(R, []) : free_module(R, 0)
   pushfirst!(boundary_maps, hom(Z, domain(first(boundary_maps)), elem_type(domain(first(boundary_maps)))[]))
@@ -194,16 +223,16 @@ function koszul_homology(v::FreeModElem, i::Int; cached::Bool=true)
 
   # Catch the edge cases
   if i == n # This captures the homological degree zero due to the convention of the chain_complex constructor
-    phi = wedge_multiplication_map(exterior_power(F, 0, cached=cached), F, v)
+    phi = wedge_multiplication_map(exterior_power(F, 0, cached=cached)[1], F, v)
     return kernel(phi)[1]
   end
 
   if iszero(i) # Homology at the last entry of the complex.
-    phi = wedge_multiplication_map(exterior_power(F, n-1), exterior_power(F, n, cached=cached), v)
+    phi = wedge_multiplication_map(exterior_power(F, n-1)[1], exterior_power(F, n, cached=cached)[1], v)
     return cokernel(phi)[1]
   end
 
-  ext_powers = [exterior_power(F, p, cached=cached) for p in i-1:i+1]
+  ext_powers = [exterior_power(F, p, cached=cached)[1] for p in i-1:i+1]
   boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
   K = chain_complex(boundary_maps)
   return homology(K, 1)
@@ -215,20 +244,20 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
 
   # Catch the edge cases
   if i == n # This captures the homological degree zero due to the convention of the chain_complex constructor
-    phi = wedge_multiplication_map(exterior_power(F, 0, cached=cached), F, v)
+    phi = wedge_multiplication_map(exterior_power(F, 0, cached=cached)[1], F, v)
     K = chain_complex([phi])
     KM = tensor_product(K, M)
     return kernel(map(KM, 1))[1]
   end
 
   if iszero(i) # Homology at the last entry of the complex.
-    phi = wedge_multiplication_map(exterior_power(F, n-1), exterior_power(F, n, cached=cached), v)
+    phi = wedge_multiplication_map(exterior_power(F, n-1)[1], exterior_power(F, n, cached=cached)[1], v)
     K = chain_complex([phi])
     KM = tensor_product(K, M)
     return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
   end
 
-  ext_powers = [exterior_power(F, p, cached=cached) for p in i-1:i+1]
+  ext_powers = [exterior_power(F, p, cached=cached)[1] for p in i-1:i+1]
   boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
   K = chain_complex(boundary_maps)
   return homology(K, 1)
@@ -237,7 +266,7 @@ end
 function koszul_dual(F::FreeMod; cached::Bool=true)
   success, M, p = is_exterior_power(F)
   !success && error("module must be an exterior power of some other module")
-  return exterior_power(M, rank(M) - p, cached=cached)
+  return exterior_power(M, rank(M) - p, cached=cached)[1]
 end
 
 function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
@@ -267,8 +296,8 @@ function koszul_dual(v::FreeModElem; cached::Bool=true)
 end
 
 function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int;
-    domain::FreeMod=exterior_power(Oscar.domain(phi), p),
-    codomain::FreeMod=exterior_power(Oscar.codomain(phi), p)
+    domain::FreeMod=exterior_power(Oscar.domain(phi), p)[1],
+    codomain::FreeMod=exterior_power(Oscar.codomain(phi), p)[1]
   )
   F = Oscar.domain(phi)
   m = rank(F)
