@@ -60,7 +60,7 @@ using Test
   pb_I = pullback(bl, I)
   pb_J = pullback(bl, J)
 
-  @testset "toric blowdown morphism as morphism of covered schemes" begin
+  @testset "Toric blowdown morphism as morphism of covered schemes" begin
     @test scheme(I) === IP2
     @test length(Oscar.maximal_associated_points(I)) == 2
     @test length(Oscar.maximal_associated_points(pb_I)) == 3
@@ -86,25 +86,21 @@ using Test
     @test is_smooth(subscheme(pb_K)) == true
   end
 
+  S = cox_ring(IP2)
+  x, y, z = gens(S)
+  I = ideal(S, [x-y])*ideal(S, [z])
+  II = IdealSheaf(IP2, I)
 
-  @testset "ToricBlowupMorphism" begin
-    IP2 = projective_space(NormalToricVariety, 2)
-    bl = blow_up(IP2, [1, 1])
-    f = underlying_morphism(bl)
-    S = cox_ring(IP2)
-    x, y, z = gens(S)
-    I = ideal(S, [x-y])*ideal(S, [z])
-    II = IdealSheaf(IP2, I)
-    pb_II = pullback(bl, II)
-    # The following is not yet functional, because `exceptional_divisor` is not yet implemented.
-    # However, this should run using the generic code!
-    #J = strict_transform(bl, II)
+  @testset "Blowups that leave the toric setting" begin
+    @test is_surjective(grid_morphism(underlying_morphism(bl)))
+    @test is_injective(grid_morphism(underlying_morphism(bl)))
+    @test length(Oscar.maximal_associated_points(pullback(bl,II))) == 3
+    @test length(Oscar.maximal_associated_points(strict_transform(bl, II))) == 2
   end
 end
 
-@testset "lazy glueings" begin
-  f = polyhedral_fan([0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1], IncidenceMatrix([[1,2,3],[1
-                                                                                               ,4,5,6]]))
+@testset "Lazy glueings" begin
+  f = polyhedral_fan([0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1], IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]))
   n_maximal_cones(f)
   ntv = normal_toric_variety(f)
   X = underlying_scheme(ntv)

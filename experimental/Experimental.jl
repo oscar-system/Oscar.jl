@@ -67,6 +67,13 @@ include("Schemes/BlowupMorphism.jl")
 include("Schemes/duValSing.jl")
 include("Schemes/elliptic_surface.jl")
 include("Schemes/MorphismFromRationalFunctions.jl")
-include("Schemes/ToricBlowups.jl")
+
+include("Schemes/ToricIdealSheaves/auxiliary.jl")
+include("Schemes/ToricIdealSheaves/constructors.jl")
+
+include("Schemes/ToricBlowups/types.jl")
+include("Schemes/ToricBlowups/constructors.jl")
+include("Schemes/ToricBlowups/attributes.jl")
+include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

@@ -668,6 +668,7 @@ export ideal
 export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
+export ideal_sheaf
 export ideal_type
 export identifier
 export identity_map
@@ -682,6 +683,7 @@ export independent_sets
 export index
 export index_of_gen
 export index_of_leading_term
+export index_of_new_ray
 export indicator
 export induce
 export induce_shift
@@ -1396,6 +1398,7 @@ export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
 export total_space
+export total_transform
 export transform
 export transition_graph
 export transitive_group
