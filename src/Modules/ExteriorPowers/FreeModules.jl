@@ -13,10 +13,13 @@
 end
 
 # User facing constructor for ⋀ ᵖ F.
-function exterior_power(F::FreeMod, p::Int)
+function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   (p < 0 || p > rank(F)) && error("index out of bounds")
-  powers = _exterior_powers(F)
-  haskey(powers, p) && return powers[p]::typeof(F)
+
+  if cached
+    powers = _exterior_powers(F)
+    haskey(powers, p) && return powers[p]::typeof(F)
+  end
 
   R = base_ring(F)
   n = rank(F)
@@ -33,7 +36,9 @@ function exterior_power(F::FreeMod, p::Int)
   end
 
   set_attribute!(result, :is_exterior_power, (F, p))
-  powers[p] = result
+
+  cached && (_exterior_powers(F)[p] = result)
+
   return result
 end
 
@@ -87,30 +92,41 @@ function wedge_multiplication_map(F::FreeMod, G::FreeMod, v::FreeModElem)
   p + r == q || error("powers are incompatible")
   
   # map the generators
-  img_gens = [wedge(v, e) for e in gens(F)]
+  img_gens = [wedge(v, e, parent=G) for e in gens(F)]
   return hom(F, G, img_gens)
 end
 
 # The wedge product of two or more elements.
-function wedge(u::FreeModElem, v::FreeModElem)
-  success1, F1, p = is_exterior_power(parent(u))
+function wedge(u::FreeModElem, v::FreeModElem; 
+    parent::FreeMod=begin
+      success, F, p = is_exterior_power(Oscar.parent(u))
+      if !success 
+        F = Oscar.parent(u)
+        p = 1
+      end
+      success, _, q = is_exterior_power(Oscar.parent(v))
+      !success && (q = 1)
+      exterior_power(F, p + q)
+    end
+  )
+  success1, F1, p = is_exterior_power(Oscar.parent(u))
   if !success1
-    F = parent(u) 
+    F = Oscar.parent(u) 
     Fwedge1 = exterior_power(F1, 1)
-    return wedge(Fwedge1(coordinates(u)), v)
+    return wedge(Fwedge1(coordinates(u)), v, parent=parent)
   end
 
-  success2, F2, q = is_exterior_power(parent(v))
+  success2, F2, q = is_exterior_power(Oscar.parent(v))
   if !success2
-    F = parent(v) 
+    F = Oscar.parent(v) 
     Fwedge1 = exterior_power(F1, 1)
-    return wedge(u, Fwedge1(coordinates(v)))
+    return wedge(u, Fwedge1(coordinates(v)), parent=parent)
   end
 
   F1 === F2 || error("modules are not exterior powers of the same original module")
   n = rank(F1)
 
-  result = zero(exterior_power(F1, p + q))
+  result = zero(parent)
   for (i, ind_i) in enumerate(OrderedMultiIndexSet(p, n))
     a = u[i]
     iszero(a) && continue
@@ -119,17 +135,34 @@ function wedge(u::FreeModElem, v::FreeModElem)
       iszero(b) && continue
       sign, k = _wedge(ind_i, ind_j)
       iszero(sign) && continue
-      result = result + sign * a * b * parent(result)[linear_index(k)]
+      result = result + sign * a * b * parent[linear_index(k)]
     end
   end
   return result
 end
 
-function wedge(u::Vector{T}) where {T<:FreeModElem}
+function wedge(u::Vector{T};
+    parent::FreeMod=begin
+      r = 0
+      isempty(u) && error("list must not be empty")
+      F = Oscar.parent(first(u)) # initialize variable
+      for v in u
+        success, F, p = is_exterior_power(Oscar.parent(v))
+        if !success 
+          F = Oscar.parent(v)
+          p = 1
+        end
+        r = r + p
+      end
+      exterior_power(F, r)
+    end
+  ) where {T<:FreeModElem}
   isempty(u) && error("list must not be empty")
   isone(length(u)) && return first(u)
   k = div(length(u), 2)
-  return wedge(wedge(u[1:k]), wedge(u[k+1:end]))
+  result = wedge(wedge(u[1:k]), wedge(u[k+1:end]), parent=parent)
+  @assert Oscar.parent(result) === parent
+  return result
 end
 
 
@@ -233,17 +266,17 @@ function koszul_dual(v::FreeModElem)
   return first(koszul_duals([v]))
 end
 
-function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int)
-  F = domain(phi)
+function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, Nothing}, p::Int;
+    domain::FreeMod=exterior_power(Oscar.domain(phi), p),
+    codomain::FreeMod=exterior_power(Oscar.codomain(phi), p)
+  )
+  F = Oscar.domain(phi)
   m = rank(F)
-  G = codomain(phi)
+  G = Oscar.codomain(phi)
   n = rank(G)
 
-  Fp = exterior_power(F, p)
-  Gp = exterior_power(G, p)
-
   imgs = phi.(gens(F))
-  img_gens = [wedge(imgs[indices(ind)]) for ind in OrderedMultiIndexSet(p, m)]
-  return hom(Fp, Gp, img_gens)
+  img_gens = [wedge(imgs[indices(ind)], parent=codomain) for ind in OrderedMultiIndexSet(p, m)]
+  return hom(domain, codomain, img_gens)
 end
 

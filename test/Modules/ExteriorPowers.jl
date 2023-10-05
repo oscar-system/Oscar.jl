@@ -28,6 +28,9 @@
   R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
   F = FreeMod(R, 5)
   Fwedge3 = Oscar.exterior_power(F, 3)
+  tmp = Oscar.exterior_power(F, 3, cached=false)
+  @test tmp !== Fwedge3
+  @test Fwedge3 === Oscar.exterior_power(F, 3)
   Fwedge1 = Oscar.exterior_power(F, 1)
   Fwedge2 = Oscar.exterior_power(F, 2)
 
@@ -42,6 +45,9 @@
   @test iszero(compose(phi0, phi1))
   @test image(phi0)[1] == kernel(phi1)[1]
   phi2 = Oscar.wedge_multiplication_map(Fwedge1, Fwedge2, v)
+  phi2_alt = Oscar.wedge_multiplication_map(Oscar.exterior_power(F, 1, cached=false), Oscar.exterior_power(F, 2, cached=false), v)
+  @test domain(phi2) !== domain(phi2_alt)
+  @test codomain(phi2) !== codomain(phi2_alt)
   phi3 = Oscar.wedge_multiplication_map(Fwedge2, Fwedge3, v)
   @test !iszero(phi2)
   @test !iszero(phi3)
@@ -119,4 +125,8 @@ end
   @test compose(phi_2, psi_2) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 2)
   psi_3 = Oscar.induced_map_on_exterior_power(psi, 3)
   @test compose(phi_3, psi_3) == Oscar.induced_map_on_exterior_power(compose(phi, psi), 3)
+  psi_3_alt = Oscar.induced_map_on_exterior_power(psi, 3, domain = Oscar.exterior_power(R4, 3, cached=false), codomain = Oscar.exterior_power(R5, 3, cached=false))
+  @test matrix(psi_3) == matrix(psi_3_alt)
+  @test domain(psi_3) !== domain(psi_3_alt)
+  @test codomain(psi_3) !== codomain(psi_3_alt)
 end
