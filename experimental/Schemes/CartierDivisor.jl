@@ -397,7 +397,11 @@ dim(C::CartierDivisor) = dim(scheme(C))-1
 ########################################################################### 
 function Base.show(io::IO, C::EffectiveCartierDivisor)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if get(io, :show_semi_compact, false)
+    cov = Oscar._covering_for_printing(io, scheme(C))
+    n = get(io, :label, "")
+    _show_semi_compact(io, C, cov, n)
+  elseif get(io, :supercompact, false)
     print(io, "Effective cartier divisor")
   elseif has_attribute(C, :name)
     print(io, get_attribute(C, :name))
@@ -409,10 +413,11 @@ end
 
 # We keep track of the covering, so that we have more flexibility and
 # consistency
-function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor)
   io = pretty(io)
   I = ideal_sheaf(C)
   X = scheme(C)
+  cov = Oscar._covering_for_printing(io, X)
 
   print(io, "Effective cartier divisor")
   if has_attribute(C, :name)
@@ -420,11 +425,11 @@ function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor, cov::
   end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, scheme(C), cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
   println(io, Dedent())
   println(io, "defined by", Lowercase())
   print(io, Indent())
-  Oscar._show_semi_compact(io, I)
+  show(IOContext(io, :show_semi_compact => true), I)
   print(io, Dedent())
 end
 
@@ -436,7 +441,7 @@ end
 # sheaves - this is done via the string `n`
 #
 # We usually use "a" for the domain and "b" for the codomain
-function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))), n::String = "")
+function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering, n::String)
   io = pretty(io)
   X = scheme(C)
   print(io, "Effective cartier divisor")
@@ -445,13 +450,17 @@ function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering = 
   end
   println(io, " defined by")
   print(io, Indent(), Lowercase())
-  Oscar._show_semi_compact(io, ideal_sheaf(C), cov, n)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov, :label => n), ideal_sheaf(C))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, C::CartierDivisor)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if get(io, :show_semi_compact, false)
+    cov = Oscar._covering_for_printing(io, scheme(C))
+    n = get(io, :label, "")
+    _show_semi_compact(io, C, cov, n)
+  elseif get(io, :supercompact, false)
     print(io, "Cartier divisor")
   elseif has_attribute(C, :name)
     print(io, get_attribute(C, :name))
@@ -466,14 +475,15 @@ end
 #
 # We have to take care of some offsets to have our coefficients aligned on the
 # right.
-function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))))
+function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor)
   io = pretty(io)
   X = scheme(C)
+  cov = Oscar._covering_for_printing(io, X)
   cc = components(C)
   if length(cc) == 0
     print(io, "Zero cartier divisor ")
     print(io, Indent(), "on ", Lowercase())
-    show(io, scheme(C), cov)
+    show(IOContext(io, :covering => cov), scheme(C))
     print(io, Dedent())
   else
     print(io, "Cartier divisor")
@@ -482,7 +492,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering 
     end
     println(io)
     print(io, Indent(), "on ", Lowercase())
-    show(io, scheme(C), cov)
+    show(IOContext(io, :covering => cov), scheme(C))
     println(io)
     println(io, Dedent(), "with coefficients in ", Lowercase(), coefficient_ring(C))
     print(io, "defined by the formal sum of")
@@ -494,7 +504,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor, cov::Covering 
       kI = length(co_str[i])
       print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
-      show(io, ideal_sheaf(I), false)
+      show(IOContext(io, :show_scheme => false), ideal_sheaf(I))
     end
     print(io, Dedent())
   end
@@ -508,7 +518,7 @@ end
 # sheaves - this is done via the string `n`
 #
 # We usually use "a" for the domain and "b" for the codomain
-function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering = get_attribute(scheme(C), :simplified_covering, default_covering(scheme(C))), n::String = "")
+function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering, n::String)
   io = pretty(io)
   X = scheme(C)
   cc = components(C)
@@ -528,7 +538,7 @@ function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering = get_attri
       kI = length(co_str[i])
       print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
-      Oscar._show_semi_compact(io, ideal_sheaf(I), cov, n)
+      show(IOContext(io, :show_semi_compact => true, :covering => cov, :label => n), ideal_sheaf(I))
       if i != length(components(C))
         println(io, "--------------------------------------------------------------------------------")
       end

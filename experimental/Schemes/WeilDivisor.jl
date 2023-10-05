@@ -174,35 +174,40 @@ end
 function Base.show(io::IO, D::WeilDivisor)
   io = pretty(io)
   X = scheme(D)
-  C = underlying_cycle(D)
-  eff = all(i >= 0 for i in collect(values(C.coefficients)))
-  prim = eff && get_attribute(D, :is_prime, false)
-  if has_name(D)
-    print(io, name(D))
-  elseif get(io, :supercompact, false)
-    print(io, "Weil divisor")
-  # if the divisor is prime and the ideal sheaf has a name print that
-  elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
-    I = first(components(D))
-    I_name = get_attribute(I, :name)
-    print(io, Lowercase(), I_name)
-  elseif length(components(D)) == 0
-    print(io, "Zero weil divisor on ", Lowercase(),  X)
-  elseif eff
-    if prim
-      print(io, "Prime Weil divisor on ", Lowercase(), X)
-    else
-      print(io, "Effective Weil divisor on ", Lowercase(), X)
-    end
+  if get(io, :show_semi_compact, false)
+    cov = Oscar._covering_for_printing(io, X)
+    _show_semi_compact(io, D, cov)
   else
-    print(io, "Weil divisor on ", Lowercase(), X)
+    C = underlying_cycle(D)
+    eff = all(i >= 0 for i in collect(values(C.coefficients)))
+    prim = eff && get_attribute(D, :is_prime, false)
+    if has_name(D)
+      print(io, name(D))
+    elseif get(io, :supercompact, false)
+      print(io, "Weil divisor")
+    # if the divisor is prime and the ideal sheaf has a name print that
+    elseif length(components(D)) == 1 && has_attribute(first(components(D)), :name)
+      I = first(components(D))
+      I_name = get_attribute(I, :name)
+      print(io, Lowercase(), I_name)
+    elseif length(components(D)) == 0
+      print(io, "Zero weil divisor on ", Lowercase(),  X)
+    elseif eff
+      if prim
+        print(io, "Prime Weil divisor on ", Lowercase(), X)
+      else
+        print(io, "Effective Weil divisor on ", Lowercase(), X)
+      end
+    else
+      print(io, "Weil divisor on ", Lowercase(), X)
+    end
   end
 end
 
 # Used in nested printing, where we assume that the associated scheme is already
 # printed in the nest - we keep track of the good covering `cov` to describe
 # everything consistently.
-function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering)
   io = pretty(io)
   X = scheme(D)
   C = underlying_cycle(D)
@@ -221,14 +226,15 @@ function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering = get_attribut
   else
     print(io, "Weil divisor on ", Lowercase())
   end
-  Oscar._show_semi_compact(io, X, cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
 end
 
 # Take care of some offsets to make sure that the coefficients are all aligned
 # on the right.
-function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = get_attribute(scheme(D), :simplified_covering, default_covering(scheme(D))))
+function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor)
   io = pretty(io)
   X = scheme(D)
+  cov = Oscar._covering_for_printing(io, X)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(C.coefficients)))
   prim = eff && get_attribute(D, :is_prime, false)
@@ -250,7 +256,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
   end
   println(io)
   print(io, Indent(), "on ", Lowercase())
-  show(io, X, cov)
+  show(IOContext(io, :covering => cov), X)
   println(io, Dedent())
   print(io, "with coefficients in ", Lowercase(), coefficient_ring(C))
   if length(components(C)) != 0
@@ -265,7 +271,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor, cov::Covering = g
       kI = length(co_str[i])
       print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Indent(), Lowercase())
-      show(io, I, false)
+      show(IOContext(io, :show_scheme => false), I)
       print(io, Dedent())
     end
   end
@@ -478,7 +484,7 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
   cov = default_covering(X)
   println(io, "Linear system")
   print(io, Indent(), "of ", Lowercase())
-  Oscar._show_semi_compact(io, weil_divisor(L), cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), weil_divisor(L))
   gg = gens(L)
   if length(gg) > 0
     println(io)
@@ -491,7 +497,7 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
       f = gg[i]
       println(io)
       print(io, Lowercase())
-      Oscar._show_semi_compact(io, f, cov, offset[i])
+      show(IOContext(io, :show_semi_compact => true, :covering => cov, :offset => offset[i]), f)
     end
     print(io, Dedent())
   end

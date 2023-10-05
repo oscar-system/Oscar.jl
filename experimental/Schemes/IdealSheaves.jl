@@ -1017,31 +1017,38 @@ end
 ###########################################################################
 
 # If we know things about the ideal sheaf, we print them
-function Base.show(io::IO, I::IdealSheaf, show_scheme::Bool = true)
+function Base.show(io::IO, I::IdealSheaf)
   io = pretty(io)
   X = scheme(I)
-  if has_attribute(I, :dim) && has_attribute(X, :dim)
-    z = dim(X) - dim(I) == 0 ? true : false
+  if get(io, :show_semi_compact, false)
+    cov = Oscar._covering_for_printing(io, X)
+    n = get(io, :label, "")
+    _show_semi_compact(io, I, cov, n)
   else
-    z = false
-  end
-  prim = get_attribute(I, :is_prime, false)
-  if has_attribute(I, :name)
-    print(io, get_attribute(I, :name))
-  elseif get(io, :supercompact, false)
-    print(io, "Sheaf of ideals")
-  else
-    if get_attribute(I, :is_one, false)
-      print(io, "Sheaf of unit ideals")
-    elseif z
-      print(io, "Sheaf of zero ideals")
-    elseif prim
-      print(io, "Sheaf of prime ideals")
+    show_scheme = get(io, :show_scheme, true)
+    if has_attribute(I, :dim) && has_attribute(X, :dim)
+      z = dim(X) - dim(I) == 0 ? true : false
     else
-      print(io, "Sheaf of ideals")
+      z = false
     end
-    if show_scheme
-      print(io," on ", Lowercase(), X)
+    prim = get_attribute(I, :is_prime, false)
+    if has_attribute(I, :name)
+      print(io, get_attribute(I, :name))
+    elseif get(io, :supercompact, false)
+      print(io, "Sheaf of ideals")
+    else
+      if get_attribute(I, :is_one, false)
+        print(io, "Sheaf of unit ideals")
+      elseif z
+        print(io, "Sheaf of zero ideals")
+      elseif prim
+        print(io, "Sheaf of prime ideals")
+      else
+        print(io, "Sheaf of ideals")
+      end
+      if show_scheme
+        print(io," on ", Lowercase(), X)
+      end
     end
   end
 end
@@ -1057,7 +1064,7 @@ end
 #
 # We take also care of left offsets when printing the labels - if there are more
 # than 10 charts, this is necessary to have all the labels aligned on the right
-function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))), n::String = "")
+function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering, n::String)
   io = pretty(io)
   X = scheme(I)
   if has_attribute(I, :dim) && has_attribute(X, :dim)
@@ -1093,14 +1100,14 @@ function _show_semi_compact(io::IO, I::IdealSheaf, cov::Covering = get_attribute
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf, cov::Covering = get_attribute(scheme(I), :simplified_covering, default_covering(scheme(I))))
+function Base.show(io::IO, ::MIME"text/plain", I::IdealSheaf)
   io = pretty(io)
   X = scheme(I)
-
+  cov = Oscar._covering_for_printing(io, X)
   # If there is a simplified covering, use it!
   println(io, "Sheaf of ideals")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, scheme(I), cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
   if length(cov) > 0
     l = ndigits(length(cov))
     println(io)

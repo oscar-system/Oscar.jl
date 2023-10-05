@@ -122,7 +122,9 @@ end
 ###############################################################################
 
 function Base.show(io::IO, f::AbsProjectiveSchemeMorphism)
-  if get(io, :supercompact, false)
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, f)
+  elseif get(io, :supercompact, false)
     print(io, "Projective scheme morphism")
   else
     io = pretty(io)

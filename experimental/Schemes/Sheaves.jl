@@ -468,7 +468,7 @@ function Base.show(io::IO, ::MIME"text/plain", R::StructureSheafOfRings)
   io = pretty(io)
   println(io, "Structure sheaf of rings of regular functions")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, space(R))
+  show(IOContext(io, :show_semi_compact => true), space(R))
   print(io, Dedent())
 end
 

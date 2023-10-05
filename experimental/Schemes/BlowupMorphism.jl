@@ -521,21 +521,21 @@ function show(io::IO, ::MIME"text/plain", Bl::BlowupMorphism)
   io = pretty(io)
   println(io, "Blowup")
   print(io, Indent(), "of ", Lowercase())
-  Oscar._show_semi_compact(io, X0, C0, "b")
+  show(IOContext(io, :show_semi_compact => true, :covering => C0, :label => "b"), X0)
   println(io)
 
   print(io, "in ", Lowercase())
-  Oscar._show_semi_compact(io, C_X0, C0, "b")
+  show(IOContext(io, :show_semi_compact => true, :covering => C0, :label => "b"), C_X0)
   println(io, Dedent())
 
   println(io, "with domain")
   print(io, Indent(), Lowercase())
-  Oscar._show_semi_compact(io, X1, C1, "a")
+  show(IOContext(io, :show_semi_compact => true, :covering => C1, :label => "a"), X1)
   println(io, Dedent())
 
   println(io, "and exceptional divisor")
   print(io, Indent(), Lowercase())
-  Oscar._show_semi_compact(io, ED, C1, "a")
+  show(IOContext(io, :show_semi_compact => true, :covering => C1, :label => "a"), ED)
   print(io, Dedent())
 end
 

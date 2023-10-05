@@ -17,6 +17,7 @@ function Base.show(io::IO, X::AbsProjectiveVariety{<:Field,<:MPolyQuoRing})
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty projective variety")
   else
+    io = pretty(io)
     print(io, LowercaseOff(), "V(")
     if isdefined(X.X, :Xred)
       I = vanishing_ideal(X)
