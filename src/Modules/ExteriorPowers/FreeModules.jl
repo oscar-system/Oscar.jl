@@ -56,9 +56,13 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   end
 
   mult_map = MapFromFunc(Hecke.TupleParent(Tuple([zero(F) for f in 1:p])), result, my_mult, my_decomp)
+  inv_mult_map = MapFromFunc(result, domain(mult_map), my_decomp, my_mult)
   @assert domain(mult_map) === parent(Tuple(zero(F) for i in 1:p)) "something went wrong with the parents"
 
+  # Store the map in the attributes
   set_attribute!(result, :multiplication_map, mult_map)
+  set_attribute!(result, :pure, mult_map)
+  set_attribute!(result, :inv_pure, inv_mult_map)
   set_attribute!(result, :is_exterior_power, (F, p))
 
   cached && (_exterior_powers(F)[p] = (result, mult_map))
@@ -104,6 +108,16 @@ end
 function multiplication_map(M::FreeMod)
   has_attribute(M, :multiplication_map) || error("module is not an exterior power")
   return get_attribute(M, :multiplication_map)::Map
+end
+
+function pure(M::FreeMod)
+  has_attribute(M, :pure) || error("module is not an exterior power")
+  return get_attribute(M, :pure)::Map
+end
+
+function inv_pure(M::FreeMod)
+  has_attribute(M, :inv_pure) || error("module is not an exterior power")
+  return get_attribute(M, :inv_pure)::Map
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
