@@ -129,6 +129,9 @@ end
   @test matrix(psi_3) == matrix(psi_3_alt)
   @test domain(psi_3) !== domain(psi_3_alt)
   @test codomain(psi_3) !== codomain(psi_3_alt)
+
+  psi_3_alt = hom(domain(psi_3), codomain(psi_3), psi)
+  @test psi_3_alt == psi_3
 end
 
 @testset "multiplication map" begin
