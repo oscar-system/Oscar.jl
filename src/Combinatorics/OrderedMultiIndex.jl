@@ -1,9 +1,10 @@
 ########################################################################
 # Ordered multiindices of the form 0 < i₁ < i₂ < … < iₚ ≤ n.
 #
-# These provide a coherent way to enumerate the generators of an 
-# exterior power ⋀ ᵖ M of a module M given a chosen set of generators 
-# of M.
+# For instance, these provide a coherent way to enumerate the generators 
+# of an exterior power ⋀ ᵖ M of a module M given a chosen set of 
+# generators of M. But they can also be used for other purposes 
+# like enumerating subsets of p elements out of a set with n elements.
 ########################################################################
 mutable struct OrderedMultiIndex{IntType<:IntegerUnion}
   i::Vector{IntType}
