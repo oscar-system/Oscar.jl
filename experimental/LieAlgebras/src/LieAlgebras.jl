@@ -41,6 +41,7 @@ import ..Oscar:
   image,
   inv,
   is_abelian,
+  is_exterior_power,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
@@ -88,7 +89,7 @@ export hom_direct_sum
 export hom_power
 export is_direct_sum
 export is_dual
-export is_exterior_power
+#export is_exterior_power
 export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
