@@ -61,8 +61,8 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   # Store the map in the attributes
   set_attribute!(result, :multiplication_map, mult_map)
-  set_attribute!(result, :pure, mult_map)
-  set_attribute!(result, :inv_pure, inv_mult_map)
+  set_attribute!(result, :wedge_pure_function, mult_map)
+  set_attribute!(result, :wedge_generator_decompose_function, inv_mult_map)
   set_attribute!(result, :is_exterior_power, (F, p))
 
   cached && (_exterior_powers(F)[p] = (result, mult_map))
@@ -110,14 +110,14 @@ function multiplication_map(M::FreeMod)
   return get_attribute(M, :multiplication_map)::Map
 end
 
-function pure(M::FreeMod)
-  has_attribute(M, :pure) || error("module is not an exterior power")
-  return get_attribute(M, :pure)::Map
+function wedge_pure_function(M::FreeMod)
+  has_attribute(M, :wedge_pure_function) || error("module is not an exterior power")
+  return get_attribute(M, :wedge_pure_function)::Map
 end
 
-function inv_pure(M::FreeMod)
-  has_attribute(M, :inv_pure) || error("module is not an exterior power")
-  return get_attribute(M, :inv_pure)::Map
+function wedge_generator_decompose_function(M::FreeMod)
+  has_attribute(M, :wedge_generator_decompose_function) || error("module is not an exterior power")
+  return get_attribute(M, :wedge_generator_decompose_function)::Map
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.

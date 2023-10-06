@@ -143,8 +143,8 @@ end
   u = (F[1], F[4], F[3])
   @test mm(v) == -mm(u)
   w = mm(v)
-  @test Oscar.pure(F3)(v) == w
-  @test Oscar.inv_pure(F3)(w) == v
+  @test Oscar.wedge_pure_function(F3)(v) == w
+  @test Oscar.wedge_generator_decompose_function(F3)(w) == v
   @test preimage(mm, w) == v
 end
 

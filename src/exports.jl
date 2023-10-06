@@ -1458,6 +1458,8 @@ export wdegrevlex
 export weakly_connected_components
 export wedge
 export wedge_multiplication_map
+export wedge_pure_function
+export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering
