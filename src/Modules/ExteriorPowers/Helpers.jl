@@ -10,7 +10,7 @@ mutable struct OrderedMultiIndex{IntType<:IntegerUnion}
   n::IntType
 
   function OrderedMultiIndex(i::Vector{T}, n::T) where {T<:IntegerUnion}
-    #@assert all(k->i[k]<i[k+1], 1:length(i)-1) "indices must be strictly ordered"
+    @assert all(k->i[k]<i[k+1], 1:length(i)-1) "indices must be strictly ordered"
     return new{T}(i, n)
   end
 end
