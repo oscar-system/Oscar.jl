@@ -143,3 +143,20 @@ end
   @test preimage(mm, w) == v
 end
 
+@testset "printing" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+
+  F = FreeMod(R, 5)
+  F3, mm = Oscar.exterior_power(F, 3)
+  v = (F[1], F[3], F[4])
+  u = (F[1], F[4], F[3])
+
+  @test "$(mm(v))" == "e[1]∧e[3]∧e[4]"
+  @test "$(F3)" == "⋀^3(Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ)"
+
+  eu = sum(f*e for (f, e) in zip(gens(R), gens(F)))
+  K = koszul_complex(eu)
+  for i in 1:5
+    @test "$(K[i])" == "⋀^$(5-i)($F)"
+  end
+end

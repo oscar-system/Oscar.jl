@@ -63,7 +63,42 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   cached && (_exterior_powers(F)[p] = (result, mult_map))
 
+  # Set the variable names for printing
+  orig_symb = String.(symbols(F))
+  new_symb = Symbol[]
+  if iszero(p)
+    new_symb = [Symbol("1")]
+  else
+    for ind in OrderedMultiIndexSet(p, n)
+      symb_str = orig_symb[ind[1]]
+      for i in 2:p
+        symb_str = symb_str * "∧" * orig_symb[ind[i]]
+      end
+      push!(new_symb, Symbol(symb_str))
+    end
+  end
+  result.S = new_symb
+  
+  set_attribute!(result, :show => show_exterior_product)
+
   return result, mult_map
+end
+
+function symbols(F::FreeMod)
+  return copy(F.S)
+end
+
+function show_exterior_product(io::IO, M::FreeMod)
+  success, F, p = is_exterior_power(M)
+  success || error("module is not an exterior power")
+  print(io, "⋀^$p($F)")
+end
+
+function show_exterior_product(io::IO, ::MIME"text/html", M::FreeMod)
+  success, F, p = is_exterior_power(M)
+  success || error("module is not an exterior power")
+  io = IOContext(io, :compact => true)
+  print(io, "⋀^$p$F")
 end
 
 function multiplication_map(M::FreeMod)
