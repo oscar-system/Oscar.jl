@@ -9,4 +9,4 @@ include("module-localizations.jl")
 include("local_rings.jl")
 include("mpolyquo.jl")
 
-include("Iterators.jl")
+#include("Iterators.jl") # inclusion postponed to src/InvariantTheory/InvariantTheory.jl due to dependencies
