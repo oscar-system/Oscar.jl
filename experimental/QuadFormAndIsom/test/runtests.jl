@@ -98,10 +98,6 @@ end
   @test is_elementary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 7)))[1]
   @test is_unimodular(integer_lattice_with_isometry(hyperbolic_plane_lattice()))
 
-  isdefined(Main, :test_save_load_roundtrip) || include(
-    joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl")
-  )
-
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
       @test Lf == loaded
