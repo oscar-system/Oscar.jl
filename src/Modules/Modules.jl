@@ -9,3 +9,4 @@ include("module-localizations.jl")
 include("local_rings.jl")
 include("mpolyquo.jl")
 
+include("Iterators.jl")
