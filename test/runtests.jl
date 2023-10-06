@@ -92,7 +92,6 @@ Random.shuffle!(testlist)
   if joinpath(Base.source_dir(), str) in testlist
     @error "invalid include of $str: this file is be included automatically"
   else
-    @warn "redirecting include for $str"
     Oscar._timed_include(str, mod)
   end
 end
@@ -101,7 +100,13 @@ end
 # otherwise, is essentially a serial loop
 stats = merge(pmap(x -> Oscar.test_module(x; new=false, timed=true), testlist)...)
 
-if haskey(ENV, "GITHUB_STEP_SUMMARY") &&
+# this needs to run here to make sure it runs on the main process
+# it is in the ignore list for the other tests
+if numprocs == 1
+   push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+end
+
+if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
     print_stats(io, stats; fmt=PrettyTables.tf_markdown)
   end
