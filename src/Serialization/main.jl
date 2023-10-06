@@ -592,16 +592,16 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   # this should be moved to the serializer at some point
   #jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-  if haskey(state.obj, :id)
-    id = state.obj[:id]
+  if haskey(s.obj, :id)
+    id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end
   end
 
-  # handle different namespaces
-  @req haskey(state.obj, :_ns) "Namespace is missing"
-  _ns = state.obj[:_ns]
+    # handle different namespaces
+  @req haskey(obj, :_ns) "Namespace is missing"
+  _ns = obj[:_ns]
   if haskey(_ns, :polymake)
     # If this is a polymake file
     return load_from_polymake(jsondict)
@@ -609,7 +609,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades
-  file_version = get_file_version(state.obj)
+  file_version = get_file_version(s.obj)
 
   if file_version < VERSION_NUMBER
     jsondict = upgrade(jsondict, file_version)
@@ -641,7 +641,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_object(s, type, jsondict[:data])
     end
   else
-    loaded = load_typed_object(state; override_params=params)
+    loaded = load_typed_object(s; override_params=params)
   end
 
   if haskey(jsondict, :id)

@@ -78,6 +78,7 @@ function serialize_array(f::Function, s::SerializerState)
   begin_array_node(s)
   f()
   end_array_node(s)
+end
 
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
