@@ -684,6 +684,7 @@ export indicator
 export induce
 export induce_shift
 export induced_automorphism
+export induced_map_on_exterior_power
 export induced_cyclic
 export induced_ring_ordering
 export initial
@@ -1455,6 +1456,8 @@ export walls
 export wdeglex
 export wdegrevlex
 export weakly_connected_components
+export wedge
+export wedge_multiplication_map
 export weight
 export weight_cone
 export weight_ordering
