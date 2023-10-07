@@ -1797,6 +1797,15 @@ function coordinates(
   ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   L = base_ring(I)
   parent(a) === L || return coordinates(L(a), I, check=check)
+
+  b = numerator(a)
+  if b in pre_saturated_ideal(I)
+    x = coordinates(b, pre_saturated_ideal(I))
+    q = denominator(a)
+    # multiplications sparse*dense have to be carried out this way round.
+    return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+  end
+
   @check a in I "the given element is not in the ideal"
   !is_saturated(I) && _replace_pre_saturated_ideal(I, saturated_ideal(I), prod(denominators(inverted_set(L)); init=one(base_ring(L)))) # Computing the saturation first is cheaper than the generic Posur method
   J = pre_saturated_ideal(I)
@@ -2227,6 +2236,7 @@ function ideal_membership(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
+  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
