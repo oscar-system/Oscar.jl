@@ -78,7 +78,7 @@ function find_root_in_chevalley_basis(
     return false
 end
 
-function get_operators_lustzig_nz(
+function get_operators_lustzig(
     lie_algebra::LieAlgebraStructure, 
     chevalley_basis::GAP.Obj,
     reduced_expression::Vector{Int})::Vector{GAP.Obj}

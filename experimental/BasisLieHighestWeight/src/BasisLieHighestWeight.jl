@@ -356,7 +356,7 @@ function basis_lie_highest_weight_lustzig(
     BasisLieHighestWeight.basis_lie_highest_weight_lustzig("D", 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
     """
     # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-    get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig(lie_algebra, chevalley_basis, reduced_expression)
     return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
@@ -465,7 +465,7 @@ function basis_lie_highest_weight_nz(
     BasisLieHighestWeight.basis_lie_highest_weight_nz("A", 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
     """
     monomial_order = "lex"
-    get_operators = (lie_algebra, chevalley_basis) -> get_operators_lustzig_nz(lie_algebra, chevalley_basis, reduced_expression)
+    get_operators = (lie_algebra, chevalley_basis) -> get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
     return basis_lie_highest_weight_compute(type, rank, highest_weight, get_operators, monomial_order, cache_size)
 end
 
@@ -665,6 +665,8 @@ function add_known_monomials!(
     extend the weightspace with missing monomials, we need to calculate and add the vector of each monomial to our 
     basis.
     """
+    # println("add_known_monomials")
+
     for mon in set_mon_in_weightspace[weight_w]
         # calculate the vector vec associated with mon
         if cache_size == 0
@@ -704,11 +706,15 @@ function add_new_monomials!(
     Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
     polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
     """
-    
+    #println("add_new_monomials")
+
     # get monomials that are in the weightspace, sorted by monomial_order_lt
     poss_mon_in_weightspace = convert_lattice_points_to_monomials(ZZx, get_lattice_points_of_weightspace(
         birational_sequence.weights_eps, w_to_eps(lie_algebra.lie_type, lie_algebra.rank, convert(Vector{QQFieldElem}, weight_w)), lie_algebra.lie_type))
+    #println("before sort")
+    #flush(stdout)
     poss_mon_in_weightspace = sort(poss_mon_in_weightspace, lt=monomial_order_lt)
+    #println("after sort")
 
     # check which monomials should get added to the basis
     i=0
@@ -761,7 +767,9 @@ function add_by_hand(
     cache_size::Int,
     )::Set{ZZMPolyRingElem}
 
-    # println("add_by_hand", highest_weight)
+    #println("")
+    #println("")
+    #println("add_by_hand", highest_weight)
     set_mon_temp = copy(set_mon)
 
     """

@@ -54,8 +54,16 @@ end
 
 
 function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
-    return [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) 
+    #println("convert_lattice_points_to_monomials")
+    #println("lattice_points_weightspace type: ", typeof(lattice_points_weightspace))
+    #lat = [convert(Vector{Int}, convert(Vector{Int64}, lattice_point)) for lattice_point in lattice_points_weightspace]
+    #println("before build")
+    #monomials = [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), p)) for p in lat]
+    #          for lattice_point in lattice_points_weightspace]
+    monomials =  [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, convert(Vector{Int64}, lattice_point)))) 
               for lattice_point in lattice_points_weightspace]
+    #println("end convert_lattice_points_to_monomials")
+    return monomials
 end
 
 function scale_weights_to_integers(weights_eps::Vector{Vector{QQFieldElem}}, weight_eps::Vector{QQFieldElem})
@@ -131,8 +139,11 @@ function get_lattice_points_of_weightspace_A_G_n(weights_eps, weight_eps)
     poly = polytope.Polytope(INEQUALITIES=ineq, EQUATIONS=equ)
 
     # convert lattice-points to Oscar monomials
+    #println("before lattice_points")
     lattice_points_weightspace = lattice_points(Polyhedron(poly))
+    #println("after lattice-points")
     lattice_points_weightspace = [lattice_point[2:end] for lattice_point in lattice_points_weightspace]
+    #println("after deleting first coordinate")
     return lattice_points_weightspace
 
 end
