@@ -1106,6 +1106,11 @@ function morphism_type(
   return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
+function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+  # HACK
+  show(io, fmh)
+end
+
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
@@ -4615,6 +4620,11 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapT
     hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
     return hom
   end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  # HACK
+  show(io, fmh)
 end
 
 function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}

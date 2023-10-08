@@ -1,4 +1,3 @@
-export FunctionField
 export function_field
 export representative
 export representative_field
@@ -77,15 +76,6 @@ represented by
 ```
 """
 @attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
-
-@doc raw"""
-    FunctionField(X::AbsCoveredScheme; kw...)
-
-Return the function field of the irreducible variety `X`.
-
-See [`function_field(X::AbsCoveredScheme)`](@ref).
-"""
-FunctionField(X::AbsCoveredScheme; kw... ) = function_field(X; kw...)
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #

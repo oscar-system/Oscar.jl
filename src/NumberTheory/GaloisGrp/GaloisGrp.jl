@@ -418,7 +418,7 @@ mutable struct GaloisCtx{T}
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
     r.prime = (shft, p)
-    Qt, t = RationalFunctionField(QQ, "t", cached = false)
+    Qt, t = rational_function_field(QQ, "t", cached = false)
     Qts, s = polynomial_ring(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
@@ -583,7 +583,7 @@ end
 
 function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   @assert nvars(parent(f)) == 2
-  Qs, s = RationalFunctionField(FlintQQ, "t", cached = false)
+  Qs, s = rational_function_field(FlintQQ, "t", cached = false)
   Qsx, x = polynomial_ring(Qs, cached = false)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
@@ -2190,14 +2190,14 @@ function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = tru
 end
 
 function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
-  return FunctionField(f, n, cached = cached)
+  return function_field(f, n, cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
   return number_field(f, n, cached = cached)
 end
 
-Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+#Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
 
 
 @doc raw"""

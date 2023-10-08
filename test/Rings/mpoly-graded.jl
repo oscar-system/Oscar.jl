@@ -289,7 +289,7 @@ end
   @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
 
   W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
-  S, _ = LaurentPolynomialRing(QQ, ["t₁", "t₂", "t₃"])
+  S, _ = laurent_polynomial_ring(QQ, ["t₁", "t₂", "t₃"])
   custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
   gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
   generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
