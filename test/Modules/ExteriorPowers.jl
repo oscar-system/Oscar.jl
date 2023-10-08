@@ -139,3 +139,42 @@ end
     @test "$(K[i])" == "⋀^$(5-i)($F)"
   end
 end
+
+@testset "exterior powers of subquos" begin
+  R, (x, y, z, w) = QQ[:x, :y, :z, :w]
+
+  M = R[x y z; y-1 z-2 w]
+
+  I = ideal(R, minors(M, 2))
+
+  A, pr = quo(R, I)
+
+  phi = hom(FreeMod(A, 2), FreeMod(A, 3), change_base_ring(A, M))
+
+  MM = cokernel(phi)
+
+  MM2, mm2 = exterior_power(MM, 2)
+  MM1, mm1 = exterior_power(MM, 1)
+  MM0, mm0 = exterior_power(MM, 0)
+  MM3, mm3 = exterior_power(MM, 3)
+
+  @test iszero(MM3)
+
+  (u, v, w) = gens(MM1)
+  uv = wedge(u, v)
+  (U, V, W) = gens(MM)
+  @test uv == mm2((U, V))
+  @test (U, V) == preimage(mm2, uv)
+  uv = wedge(u, v)
+  uw = wedge(u, w)
+  vw = wedge(v, w)
+  psi = hom(FreeMod(A, 3), MM2, [uv, uw, vw])
+  @test !iszero(kernel(psi)[1])
+  @test parent(wedge(u, v)) === MM2
+
+  d02 = Oscar.wedge_multiplication_map(MM0, MM2, uv + vw)
+  d01 = Oscar.wedge_multiplication_map(MM0, MM1, u + 2*v - w)
+  d12 = Oscar.wedge_multiplication_map(MM1, MM2, u + 2*v - w)
+  @test iszero(compose(d01, d12))
+  @test iszero(wedge([u, v, w]))
+end
