@@ -5,7 +5,7 @@ function lie_algebra_module_conformance_test(
   parentT::DataType=LieAlgebraModule{C},
   elemT::DataType=LieAlgebraModuleElem{C};
   num_random_tests::Int=10,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @testset "basic manipulation" begin
     v = V(rand(-10:10, dim(V)))
 
@@ -440,7 +440,7 @@ end
   @testset "so_n correctness regression" begin
     function lie_algebra_module_struct_const(
       L::LieAlgebra{C}, V::LieAlgebraModule{C}
-    ) where {C<:RingElement}
+    ) where {C<:FieldElem}
       R = coefficient_ring(L)
       dimL = dim(L)
       dimV = dim(V)

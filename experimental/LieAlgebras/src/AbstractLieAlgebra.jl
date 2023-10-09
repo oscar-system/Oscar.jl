@@ -1,4 +1,4 @@
-@attributes mutable struct AbstractLieAlgebra{C<:RingElement} <: LieAlgebra{C}
+@attributes mutable struct AbstractLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
   R::Ring
   dim::Int
   struct_consts::Matrix{SRow{C}}
@@ -10,7 +10,7 @@
     s::Vector{Symbol};
     cached::Bool=true,
     check::Bool=true,
-  ) where {C<:RingElement}
+  ) where {C<:FieldElem}
     return get_cached!(
       AbstractLieAlgebraDict, (R, struct_consts, s), cached
     ) do
@@ -48,7 +48,7 @@ const AbstractLieAlgebraDict = CacheDictType{
   Tuple{Ring,Matrix{SRow},Vector{Symbol}},AbstractLieAlgebra
 }()
 
-struct AbstractLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
+struct AbstractLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::AbstractLieAlgebra{C}
   mat::MatElem{C}
 end
@@ -59,14 +59,13 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:RingElement} =
-  AbstractLieAlgebra{C}
+parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:FieldElem} = AbstractLieAlgebra{C}
 
-elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlgebraElem{C}
+elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:FieldElem} = AbstractLieAlgebraElem{C}
 
 parent(x::AbstractLieAlgebraElem) = x.parent
 
-coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra) = L.dim
 
@@ -114,7 +113,7 @@ end
 
 function bracket(
   x::AbstractLieAlgebraElem{C}, y::AbstractLieAlgebraElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
   mat = sum(
@@ -164,7 +163,7 @@ function lie_algebra(
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
   cached::Bool=true,
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
@@ -229,7 +228,7 @@ function lie_algebra(
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
   cached::Bool=true,
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
   struct_consts2 = Matrix{SRow{elem_type(R)}}(
     undef, size(struct_consts, 1), size(struct_consts, 2)
@@ -245,7 +244,7 @@ end
 
 function lie_algebra(
   basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   parent_L = parent(basis[1])
   @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)

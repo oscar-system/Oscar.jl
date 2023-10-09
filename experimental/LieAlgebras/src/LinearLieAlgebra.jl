@@ -1,4 +1,4 @@
-@attributes mutable struct LinearLieAlgebra{C<:RingElement} <: LieAlgebra{C}
+@attributes mutable struct LinearLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
   R::Ring
   n::Int  # the n of the gl_n this embeds into
   dim::Int
@@ -12,7 +12,7 @@
     s::Vector{Symbol};
     cached::Bool=true,
     check::Bool=true,
-  ) where {C<:RingElement}
+  ) where {C<:FieldElem}
     return get_cached!(
       LinearLieAlgebraDict, (R, n, basis, s), cached
     ) do
@@ -35,7 +35,7 @@ const LinearLieAlgebraDict = CacheDictType{
   Tuple{Ring,Int,Vector{<:MatElem},Vector{Symbol}},LinearLieAlgebra
 }()
 
-struct LinearLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
+struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
   mat::MatElem{C}
 end
@@ -46,13 +46,13 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{LinearLieAlgebraElem{C}}) where {C<:RingElement} = LinearLieAlgebra{C}
+parent_type(::Type{LinearLieAlgebraElem{C}}) where {C<:FieldElem} = LinearLieAlgebra{C}
 
-elem_type(::Type{LinearLieAlgebra{C}}) where {C<:RingElement} = LinearLieAlgebraElem{C}
+elem_type(::Type{LinearLieAlgebra{C}}) where {C<:FieldElem} = LinearLieAlgebraElem{C}
 
 parent(x::LinearLieAlgebraElem) = x.parent
 
-coefficient_ring(L::LinearLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::LinearLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::LinearLieAlgebra) = L.dim
 
@@ -62,7 +62,7 @@ dim(L::LinearLieAlgebra) = L.dim
 Return the basis `basis(L)` of the Lie algebra `L` in the underlying matrix
 representation.
 """
-function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:RingElement}
+function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:FieldElem}
   return Vector{dense_matrix_type(C)}(L.basis)
 end
 
@@ -72,7 +72,7 @@ end
 Return the `i`-th element of the basis `basis(L)` of the Lie algebra `L` in the
 underlying matrix representation.
 """
-function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:RingElement}
+function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:FieldElem}
   return (L.basis[i])::dense_matrix_type(C)
 end
 
@@ -147,7 +147,7 @@ If no such element exists, an error is thrown.
 """
 function coerce_to_lie_algebra_elem(
   L::LinearLieAlgebra{C}, x::MatElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
   m = coefficient_vector(x, matrix_repr_basis(L))
   return L(m)
@@ -174,7 +174,7 @@ end
 
 function bracket(
   x::LinearLieAlgebraElem{C}, y::LinearLieAlgebraElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
   x_mat = matrix_repr(x)
@@ -205,13 +205,13 @@ function lie_algebra(
   s::Vector{<:VarName};
   cached::Bool=true,
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
 end
 
 function lie_algebra(
   basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   parent_L = parent(basis[1])
   @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)
