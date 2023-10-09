@@ -210,11 +210,35 @@ function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vec
     return vcat(incomparable_polynomials, xy_polynomials)
 end
 
+@doc raw"""
+    volume_map(M::Matroid; A::MPolyQuoRing)
+
+Return A (normalized) function that maps the top degree component of the Chow ring to the base ring.
+
+# Examples
+The following computes the volume map of the Chow ring of the Fano matroid.
+```jldoctest
+julia> M = fano_matroid();
+
+julia> R = chow_ring(M);
+
+julia> f = volume_map(M,R)
+
+julia> f(R[1]*R[8])
+1
+
+julia> f(R[1]^2)
+-2
+```
 """
-A helper function to select indices of a vector that do `include` elements of a given set and `exclude` another
-"""
-function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
-    all = union(set...)
-    compl = setdiff(all,exclude)
-    return findall(s->issubset(include,s)&&issubset(s,compl),set);
+function volume_map(M::Matroid, A::MPolyQuoRing)
+    flat = flats(M)[1];
+    prod = one(A);
+    for i in 2:length(flats(M))-1
+        if(is_subset(flat,flats(M)[i]))
+            flat = flats(M)[i]
+            prod*= A[i-1]
+        end
+    end
+    volume_map(f) = is_zero(f) ? 0//coeff(prod.f,1) : coeff(f.f,1)//coeff(prod.f,1);
 end
