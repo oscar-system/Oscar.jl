@@ -240,5 +240,5 @@ function volume_map(M::Matroid, A::MPolyQuoRing)
             prod*= A[i-1]
         end
     end
-    volume_map(f) = is_zero(f) ? 0//coeff(prod.f,1) : coeff(f.f,1)//coeff(prod.f,1);
+    return f -> is_zero(f) ? 0//coeff(prod.f,1) : coeff(f.f,1)//coeff(prod.f,1)
 end
