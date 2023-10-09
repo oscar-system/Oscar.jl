@@ -235,7 +235,7 @@ function volume_map(M::Matroid, A::MPolyQuoRing)
     flat = flats(M)[1]
     prod = one(A)
     for i in 2:length(flats(M))-1
-        if(is_subset(flat,flats(M)[i]))
+        if is_subset(flat, flats(M)[i])
             flat = flats(M)[i]
             prod*= A[i-1]
         end
