@@ -222,7 +222,7 @@ julia> M = fano_matroid();
 
 julia> R = chow_ring(M);
 
-julia> f = volume_map(M,R)
+julia> f = volume_map(M,R);
 
 julia> f(R[1]*R[8])
 1
