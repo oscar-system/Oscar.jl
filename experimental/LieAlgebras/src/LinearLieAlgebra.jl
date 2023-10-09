@@ -1,12 +1,12 @@
 @attributes mutable struct LinearLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Ring
+  R::Field
   n::Int  # the n of the gl_n this embeds into
   dim::Int
   basis::Vector{MatElem{C}}
   s::Vector{Symbol}
 
   function LinearLieAlgebra{C}(
-    R::Ring,
+    R::Field,
     n::Int,
     basis::Vector{<:MatElem{C}},
     s::Vector{Symbol};
@@ -32,7 +32,7 @@
 end
 
 const LinearLieAlgebraDict = CacheDictType{
-  Tuple{Ring,Int,Vector{<:MatElem},Vector{Symbol}},LinearLieAlgebra
+  Tuple{Field,Int,Vector{<:MatElem},Vector{Symbol}},LinearLieAlgebra
 }()
 
 struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
@@ -189,7 +189,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Ring, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with basis `basis` and basis element names
 given by `s`. The basis elements must be square matrices of size `n`.
@@ -199,7 +199,7 @@ two basis elements in its span.
 If `cached` is `true`, the constructed Lie algebra is cached.
 """
 function lie_algebra(
-  R::Ring,
+  R::Field,
   n::Int,
   basis::Vector{<:MatElem{C}},
   s::Vector{<:VarName};
@@ -221,20 +221,20 @@ function lie_algebra(
 end
 
 @doc raw"""
-    abelian_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Ring, n::Int) -> AbstractLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
 
 Return the abelian Lie algebra of dimension `n` over the ring `R`.
 The first argument can be optionally provided to specify the type of the returned
 Lie algebra.
 """
-function abelian_lie_algebra(R::Ring, n::Int)
+function abelian_lie_algebra(R::Field, n::Int)
   @req n >= 0 "Dimension must be non-negative."
   return abelian_lie_algebra(LinearLieAlgebra, R, n)
 end
 
-function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:LinearLieAlgebra}
+function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:LinearLieAlgebra}
   @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
   s = ["x_$(i)" for i in 1:n]
@@ -244,7 +244,7 @@ function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:LinearLieAlge
 end
 
 @doc raw"""
-    general_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    general_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
 Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
 
@@ -270,7 +270,7 @@ julia> matrix_repr_basis(L)
  [0 0; 0 1]
 ```
 """
-function general_linear_lie_algebra(R::Ring, n::Int)
+function general_linear_lie_algebra(R::Field, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
   L = lie_algebra(R, n, basis, s; check=false)
@@ -279,7 +279,7 @@ function general_linear_lie_algebra(R::Ring, n::Int)
 end
 
 @doc raw"""
-    special_linear_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    special_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
 Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
 
@@ -303,7 +303,7 @@ julia> matrix_repr_basis(L)
  [1 0; 0 -1]
 ```
 """
-function special_linear_lie_algebra(R::Ring, n::Int)
+function special_linear_lie_algebra(R::Field, n::Int)
   basis_e = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n]
   basis_f = [(b = zero_matrix(R, n, n); b[j, i] = 1; b) for i in 1:n for j in (i + 1):n]
   basis_h = [
@@ -318,7 +318,7 @@ function special_linear_lie_algebra(R::Ring, n::Int)
 end
 
 @doc raw"""
-    special_orthogonal_lie_algebra(R::Ring, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    special_orthogonal_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
 Return the special orthogonal Lie algebra $\mathfrak{so}_n(R)$.
 
@@ -342,7 +342,7 @@ julia> matrix_repr_basis(L)
  [0 0 0; 0 0 1; 0 -1 0]
 ```
 """
-function special_orthogonal_lie_algebra(R::Ring, n::Int)
+function special_orthogonal_lie_algebra(R::Field, n::Int)
   basis = [
     (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
   ]

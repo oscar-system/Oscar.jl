@@ -83,10 +83,10 @@ lie_algebra
 ## Classical Lie algebras
 
 ```@docs
-abelian_lie_algebra(R::Ring, n::Int)
-general_linear_lie_algebra(R::Ring, n::Int)
-special_linear_lie_algebra(R::Ring, n::Int)
-special_orthogonal_lie_algebra(R::Ring, n::Int)
+abelian_lie_algebra(R::Field, n::Int)
+general_linear_lie_algebra(R::Field, n::Int)
+special_linear_lie_algebra(R::Field, n::Int)
+special_orthogonal_lie_algebra(R::Field, n::Int)
 ```
 
 ## Relation to GAP Lie algebras
