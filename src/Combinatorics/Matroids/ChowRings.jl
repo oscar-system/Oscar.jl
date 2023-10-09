@@ -232,8 +232,8 @@ julia> f(R[1]^2)
 ```
 """
 function volume_map(M::Matroid, A::MPolyQuoRing)
-    flat = flats(M)[1];
-    prod = one(A);
+    flat = flats(M)[1]
+    prod = one(A)
     for i in 2:length(flats(M))-1
         if(is_subset(flat,flats(M)[i]))
             flat = flats(M)[i]
