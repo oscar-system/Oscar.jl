@@ -539,6 +539,9 @@ function dummy_placeholder end
 end
 
 @testset "show and print formatted matrices" begin
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
   doctest(nothing, [AuxDocTest_labelled_matrix_formatted])
   #doctest(nothing, [AuxDocTest_labelled_matrix_formatted]; fix=true)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
 end
