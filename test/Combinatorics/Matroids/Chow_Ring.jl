@@ -28,11 +28,21 @@
     @test A[4]*A[5] == 0
     @test_throws ErrorException chow_ring(non_fano_matroid(), ring=R)
 
+    vol_map = volume_map(M,A)
+    @test [vol_map(A[i]) for i in 1:7] == [1,1,1,0,0,0,1]
+
+    M = fano_matroid()
+    A = chow_ring(M)
+    vol_map = volume_map(M,A)
+    @test [vol_map(A[i]) for i in 1:7] == [1,1,1,0,0,0,1]
+    @test vol_map(A[1]*A[8]) == 1
+    @test vol_map(A[1]*A[1]) ==-2
+    @test vol_map(A[8]*A[8]) ==-1
+
     A = augmented_chow_ring(M)
     @test nvars(base_ring(A)) == 8
     @test A[1]*A[2] == 0
     @test A[1]*A[3] != 0
     @test A[1]*A[3] == A[2]*A[4]
     @test A[5]*A[8] != 0
-
 end
