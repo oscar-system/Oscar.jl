@@ -186,3 +186,116 @@ end
   @test u in I
   @test !(v in I)
 end
+
+@testset "flattenings of modules" begin
+  R, (x, y) = QQ[:x, :y]
+  S, (u, v) = grade(R[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test is_graded(F_flat)
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+
+  A, _ = quo(R, [x-y])
+
+  S, (u, v) = grade(A[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+
+  U = powers_of_element(y)
+  L, _ = localization(R, U)
+  S, (u, v) = grade(L[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+  U, V, X, Y = gens(S_flat)
+
+  @test degree(U) == degree(u)
+  @test iszero(degree(X))
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+
+  U = powers_of_element(y)
+  W, _ = localization(A, U)
+  S, (u, v) = grade(W[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+  U, V, X, Y = gens(S_flat)
+
+  @test degree(U) == degree(u)
+  @test iszero(degree(X))
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+end
+
+@testset "free (graded) resolutions" begin
+  R, (x, y) = QQ[:x, :y]
+  S, (u, v) = grade(R[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = quo(F, [u^5*F[1], v*F[1]])
+  M_flat, iso, iso_inv = Oscar.flatten(M)
+  res = free_resolution(M)
+  @test Oscar._regularity_bound(M) == 2
+end
