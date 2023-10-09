@@ -412,11 +412,7 @@ function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(_matrix(v) * c)
-end
-
-function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
+function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
   return parent(v)(_matrix(v) * c)
 end
 
@@ -425,11 +421,7 @@ function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return parent(v)(c * _matrix(v))
 end
 
-function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(c * _matrix(v))
-end
-
-function Base.:*(c::ZZRingElem, v::LieAlgebraModuleElem{ZZRingElem})
+function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:RationalUnion}
   return parent(v)(c * _matrix(v))
 end
 

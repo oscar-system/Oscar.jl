@@ -230,11 +230,7 @@ function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(x::LieAlgebraElem, c::U) where {U<:Union{Rational,IntegerUnion}}
-  return parent(x)(_matrix(x) * c)
-end
-
-function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
+function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
   return parent(x)(_matrix(x) * c)
 end
 
@@ -243,11 +239,7 @@ function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(c::U, x::LieAlgebraElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(x)(c * _matrix(x))
-end
-
-function Base.:*(c::ZZRingElem, x::LieAlgebraElem{ZZRingElem})
+function Base.:*(c::U, x::LieAlgebraElem) where {U<:RationalUnion}
   return parent(x)(c * _matrix(x))
 end
 
