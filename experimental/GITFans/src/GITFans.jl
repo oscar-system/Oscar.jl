@@ -162,7 +162,7 @@ julia> Q = matrix(QQ, [ 1  1 ; -1  1 ; -1 -1 ; 1 -1 ])
 [-1   -1]
 [ 1   -1]
 
-julia> S, emb = symmetry_group_q_matrix(Q);
+julia> S, emb = Oscar.GITFans.symmetry_group_q_matrix(Q);
 
 julia> describe(S)
 "D8"
