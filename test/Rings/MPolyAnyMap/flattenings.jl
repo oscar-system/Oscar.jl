@@ -117,3 +117,72 @@ end
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
 end
 
+@testset "flattenings of graded rings" begin
+  # towers of polynomial rings
+  R, (x, y) = QQ[:x, :y]
+  S, (u, v) = grade(R[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+
+  @test is_graded(S_flat)
+  G = grading_group(S_flat)
+
+  @test degree.(gens(S_flat)) == [G[1], G[1], zero(G), zero(G)]
+  @test default_ordering(S_flat) == degrevlex(gens(S_flat)[1:2])*degrevlex(gens(S_flat)[3:4])
+
+  I = ideal(S, [u-v])
+  I_flat = flat(I)
+  @test is_graded(I_flat)
+  @test !(u in I)
+  @test u-v in I
+
+  # graded rings over quotient rings
+  A, _ = quo(R, [x-y])
+  S, (u, v) = grade(A[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_flat) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*x])
+  I_flat = flat(I)
+  @test !(u in I)
+  @test u*y in I
+
+  # graded rings over localizations of quotient rings
+  U = powers_of_element(x^2 + y^2)
+  W, _ = localization(A, U)
+  S, (u, v) = graded_polynomial_ring(W, [:u, :v])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_poly) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*x])
+  I_flat = flat(I)
+  @test u in I
+  @test !(v in I)
+
+  # graded rings over localizations of polynomial rings 
+  L, _ = localization(R, U)
+  S, (u, v) = graded_polynomial_ring(L, [:u, :v])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_poly) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*(x^2 + y^2)])
+  I_flat = flat(I)
+  @test u in I
+  @test !(v in I)
+end

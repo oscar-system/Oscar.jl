@@ -36,6 +36,30 @@
   end
 
   function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem}
+    R = base_ring(S)
+    kk = coefficient_ring(R)
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(S_flat, 
+         matrix_ordering(S_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
+    return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     R_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
       S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyQuoRingElem}
     A = base_ring(S)::MPolyQuoRing
@@ -46,6 +70,42 @@
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
     T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
+    S_flat, pr = quo(T_flat, I_flat)
+
+    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(A))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     A_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoRingElem}
+    A = base_ring(S)::MPolyQuoRing
+    R = base_ring(A)::MPolyRing
+    I = modulus(A)::MPolyIdeal
+    kk = coefficient_ring(R)::Field
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
@@ -96,6 +156,49 @@
   end
 
   function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoLocRingElem}
+    Q = base_ring(S)::MPolyQuoLocRing
+    R = base_ring(Q)::MPolyRing
+    L = localized_ring(Q)::MPolyLocRing
+    A = underlying_quotient(Q)::MPolyQuoRing
+    U = inverted_set(Q)::AbsMultSet
+    I = modulus(Q)::MPolyLocalizedIdeal
+    kk = coefficient_ring(R)::Field
+
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the localized quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
+    L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end], check=false)
+
+    I_flat = ideal(T_flat_loc, L_to_T_flat_loc.(gens(I)))
+    S_flat, pr = quo(T_flat_loc, I_flat)
+
+    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     Q_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
       S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyLocRingElem}
     L = base_ring(S)::MPolyLocRing
@@ -121,6 +224,44 @@
                                                      L_to_S_flat
                                                     )
   end
+  
+  function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyLocRingElem}
+    L = base_ring(S)::MPolyLocRing
+    R = base_ring(L)::MPolyRing
+    U = inverted_set(L)::AbsMultSet
+    kk = coefficient_ring(R)::Field
+
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the localized quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
+    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     L_to_S_flat
+                                                    )
+  end
+
 
   # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
   function RingFlattening(
@@ -451,3 +592,6 @@ HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoRing{<:MPolyRingElem{<:
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
 
+function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
+  set_attribute!(S, :default_ordering, ord)
+end
