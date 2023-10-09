@@ -407,7 +407,7 @@ function Base.:-(
   return parent(v1)(_matrix(v1) - _matrix(v2))
 end
 
-function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
+function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(_matrix(v) * c)
 end
@@ -420,7 +420,7 @@ function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
+function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(c * _matrix(v))
 end

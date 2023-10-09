@@ -225,7 +225,7 @@ function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldEl
   return parent(x1)(_matrix(x1) - _matrix(x2))
 end
 
-function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
+function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(_matrix(x) * c)
 end
@@ -238,7 +238,7 @@ function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
+function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(c * _matrix(x))
 end
