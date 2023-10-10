@@ -8,4 +8,5 @@ include("ModulesGraded.jl")
 include("module-localizations.jl")
 include("local_rings.jl")
 include("mpolyquo.jl")
+include("flattenings.jl")
 

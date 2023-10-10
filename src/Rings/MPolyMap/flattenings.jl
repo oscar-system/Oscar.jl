@@ -20,6 +20,8 @@
   flat_to_orig::Map{FlatRingType, TowerRingType}
   base_ring_to_flat::Map{CoeffRingType, FlatRingType}
 
+  flat_counterparts::AbstractAlgebra.WeakKeyIdDict{Any, Any}
+
   function RingFlattening(
       S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem}
@@ -385,7 +387,12 @@ end
 
 ### Getters 
 function (phi::RingFlattening)(x::RingElem)
-  return phi.orig_to_flat(x)
+  if !haskey(flat_counterparts(phi), x)
+    result = phi.orig_to_flat(x)
+    flat_counterparts(phi)[x] = result
+    return result
+  end
+ return flat_counterparts(phi)[x]::elem_type(codomain(phi))
 end
 
 function inverse(phi::RingFlattening)
@@ -404,6 +411,30 @@ function map_from_coefficient_ring_to_flattening(phi::RingFlattening)
   return phi.base_ring_to_flat
 end
 
+### flat counterparts of algebraic objects defined over the domain
+# Given a `RingFlattening` `phi` from `R` to `S` and an algebraic object 
+# `M` on R, one wishes to be able to use `phi` to deflect questions 
+# on `M` to questions about its flattening `N` over `S`. 
+#
+# The common syntax should be to call `phi(M)` to get `N` and then 
+# proceed. Clearly, `N` should be cached. We could cache it in `M`, 
+# but then it is not clear how two different ring flattenings could 
+# distinguish which one of the attributes `N` is theirs. Also, `M` 
+# might not even be an object that supports attribute storage. 
+#
+# To solve this problem, we add a dictionary here in which we can 
+# store the flat counterparts to any object `M` as above. Any call 
+# of the form `phi(M)` should then first look up whether a flat 
+# counterpart for `M` has already been stored, using `M` itself as 
+# a key. Note that, to prevent memory flooding, this dictionary 
+# has weak keys. 
+function flat_counterparts(phi::RingFlattening)
+  if !isdefined(phi, :flat_counterparts)
+    phi.flat_counterparts = AbstractAlgebra.WeakKeyIdDict{Any, Any}()
+  end
+  return phi.flat_counterparts
+end
+
 ### Some basic functionality
 @attr RingFlattening function flatten(R::MPolyRing)
   return RingFlattening(R)
@@ -414,12 +445,12 @@ end
 end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
-  if !has_attribute(I, :flat_counterpart)
-    I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
-    set_attribute!(I, :flat_counterpart, I_flat)
-    return I_flat
+  if haskey(flat_counterparts(phi), I)
+    return flat_counterparts(phi)[I][1]
   end
-  return get_attribute(I, :flat_counterpart)
+  I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
+  flat_counterparts(phi)[I] = (I_flat, phi)
+  return I_flat
 end
 
 function preimage(phi::RingFlattening, x::RingElem)
@@ -512,7 +543,7 @@ function kernel(
   K_flat = kernel(f_flat)
   phi = flatten(domain(f))
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  set_attribute!(K, :flat_counterpart, K_flat) # TODO: Support attribute storage?
+  flat_counterparts(phi)[K] = (K_flat, phi)
   return K
 end
 
@@ -528,7 +559,7 @@ function kernel(
   f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))), check=false)
   K_flat = kernel(f_flat)
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  set_attribute!(K, :flat_counterpart, K_flat) # TODO: Support attribute storage?
+  flat_counterparts(phi)[K] = (K_flat, phi)
   return K
 end
 
@@ -592,88 +623,4 @@ HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoRing{<:MPolyRingElem{<:
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
 
-function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
-  set_attribute!(S, :default_ordering, ord)
-end
-
-### Flattenings of (graded) modules
-
-function flatten(F::ModuleFP)
-  return flatten(base_ring(F))(F)
-end
-
-function (flat_map::RingFlattening)(F::ModuleFP{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
-  if !has_attribute(F, :flat_counterpart)
-    F_flat, iso = change_base_ring(flat_map, F)
-    iso_inv = hom(F_flat, F, gens(F), inverse(flat_map))
-    set_attribute!(iso, :inverse, iso_inv)
-    set_attribute!(iso_inv, :inverse, iso)
-    set_attribute!(F, :flat_counterpart, (F_flat, iso, iso_inv))
-  end
-    
-  F_flat, iso, iso_inv = get_attribute(F, :flat_counterpart)::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
-  return F_flat, iso, iso_inv
-end
-
-function flatten(
-    a::FreeModElem{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
-  F = parent(a)
-  _, flat, _ = flatten(F)
-  return flat(a)
-end
-
-function Base.in(
-    a::FreeModElem{T}, M::SubQuo{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
-  return flatten(a) in flatten(M)[1]
-end
-
-function coordinates(
-    a::FreeModElem{T}, M::SubQuo{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
-  c = coordinates(flatten(a), flatten(M)[1])
-  return map_entries(inverse(flatten(base_ring(M))), c)
-end
-
-function free_resolution(
-    M::SubQuo{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
-  flat = flatten(base_ring(M))
-  M_flat, iso_M, iso_M_inv = flatten(M)
-  comp = free_resolution(M_flat)
-  res_obj = ModuleFP[]
-  isos = ModuleFPHom[]
-  push!(res_obj, M)
-  push!(isos, iso_M_inv)
-  res_maps = Map[]
-  for i in 0:first(chain_range(comp))
-    F_flat = comp[i]
-    @assert F_flat === domain(map(comp, i))
-    @assert domain(last(isos)) === codomain(map(comp, i))
-    F, iso_F_inv = _change_base_ring_and_preserve_gradings(inverse(flat), F_flat)
-    iso_F = hom(F, F_flat, gens(F_flat), flat)
-    push!(res_maps, hom(F, last(res_obj), last(isos).(map(comp, i).(iso_F.(gens(F))))))
-    push!(res_obj, F)
-    push!(isos, iso_F_inv)
-  end
-  comp_up = ComplexOfMorphisms(ModuleFP, reverse(res_maps), typ=:chain, seed=-1, check=false)
-  comp_up.complete = true
-  return FreeResolution(comp_up)
-end
-
-# TODO: We need this special routine, because we can not write a generic 
-# base change method for morphisms of graded rings. See pr #2677
-function _change_base_ring_and_preserve_gradings(phi::Map{<:Ring, <:Ring}, F::FreeMod)
-  R = domain(phi)
-  S = codomain(phi)
-  FS = (is_graded(F) ? graded_free_module(S, degree.(gens(F))) : FreeMod(S, ngens(F)))
-  FS.S = F.S
-  return FS, hom(F, FS, gens(FS), phi)
-end
 

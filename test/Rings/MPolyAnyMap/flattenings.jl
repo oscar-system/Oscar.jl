@@ -1,7 +1,6 @@
 @testset "kernels via flattenings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-
-  S, _ = polynomial_ring(R, ["s", "t"])
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -66,10 +65,9 @@
 end
 
 @testset "cross kernel computations" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-
-  S, (s, t) = polynomial_ring(R, ["s", "t"])
-
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, (s, t) = polynomial_ring(R, ["s", "t"], cached=false)
+  
   f = hom(R, S, [s, s, t])
   @test x-y in kernel(f)
 
@@ -82,9 +80,9 @@ end
 end
 
 @testset "flattenings of quotient rings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
 
-  S, _ = polynomial_ring(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q)
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -119,8 +117,8 @@ end
 
 @testset "flattenings of graded rings" begin
   # towers of polynomial rings
-  R, (x, y) = QQ[:x, :y]
-  S, (u, v) = grade(R[:u, :v][1])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
 
   flat = Oscar.flatten(S)
   S_flat = codomain(flat)
@@ -188,8 +186,8 @@ end
 end
 
 @testset "flattenings of modules" begin
-  R, (x, y) = QQ[:x, :y]
-  S, (u, v) = grade(R[:u, :v][1])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
 
   flat = Oscar.flatten(S)
 
@@ -284,8 +282,8 @@ end
 end
 
 @testset "free (graded) resolutions" begin
-  R, (x, y) = QQ[:x, :y]
-  S, (u, v) = grade(R[:u, :v][1])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
 
   flat = Oscar.flatten(S)
 
@@ -299,3 +297,16 @@ end
   res = free_resolution(M)
   @test Oscar._regularity_bound(M) == 2
 end
+
+@testset "garbage collection" begin
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
+  phi = Oscar.flatten(S)
+  a = x^2 + y^2
+  b = phi(a)
+  @test phi(a) === b
+  a = 5
+  GC.gc()
+  @test isempty(keys(Oscar.flat_counterparts(phi)))
+end
+  
