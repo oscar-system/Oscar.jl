@@ -43,7 +43,7 @@ julia> val_2(1//4)
 
  $t$-adic valuation on $\mathbb{Q}(t)$:
 ```jldoctest
-julia> Kt,t = RationalFunctionField(QQ,"t");
+julia> Kt,t = rational_function_field(QQ,"t");
 
 julia> val_t = TropicalSemiringMap(Kt,t);
 
@@ -243,7 +243,7 @@ functions which, given an ideal I in variables x1, ..., xn over a field with val
 returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
 correspond to standard bases of I w.r.t. (-1,w)
 Example:
-K,s = RationalFunctionField(QQ,"s")
+K,s = rational_function_field(QQ,"s")
 val_t = TropicalSemiringMap(K,s)
 Kx,(x1,x2,x3) = polynomial_ring(K,3)
 I = ideal([x1+s*x2,x2+s*x3])
@@ -329,7 +329,7 @@ I = ideal([x+2*y,y+2*z])
 vvI = simulate_valuation(I,val_2)
 desimulate_valuation(vvI,val_2)
 
-Ks,s = RationalFunctionField(QQ,"s")
+Ks,s = rational_function_field(QQ,"s")
 val_s = TropicalSemiringMap(Ks,s)
 Ksx,(x1,x2,x3) = polynomial_ring(Ks,3)
 I = ideal([x1+s*x2,x2+s*x3])
@@ -411,7 +411,7 @@ tighten_simulation(f,val_2)
 tighten_simulation(2^3*f,val_2)
 tighten_simulation(p^3*f,val_2)
 
-K,s = RationalFunctionField(QQ,"s")
+K,s = rational_function_field(QQ,"s")
 val_s = TropicalSemiringMap(K,s)
 s = val_s.uniformizer_ring
 Rtx,(t,x1,x2,x3) = polynomial_ring(val_s.valued_ring,["t","x1","x2","x3"])

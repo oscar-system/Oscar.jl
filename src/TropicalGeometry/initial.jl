@@ -103,7 +103,7 @@ julia> initial(f,val_trivial,w)
 1
 ```
 ```jldoctest
-julia> Kt,t = RationalFunctionField(QQ,"t");
+julia> Kt,t = rational_function_field(QQ,"t");
 
 julia> w = [1,1];
 
@@ -117,7 +117,7 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 1
 ```
 ```jldoctest
-julia> Kt,t = RationalFunctionField(GF(32003),"t");
+julia> Kt,t = rational_function_field(GF(32003),"t");
 
 julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
 

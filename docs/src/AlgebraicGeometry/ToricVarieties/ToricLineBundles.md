@@ -41,8 +41,9 @@ Equality of toric line bundles can be tested via `==`.
 To check if a toric line bundle is trivial, one can invoke `is_trivial`. Beyond this,
 we support the following properties of toric line bundles:
 ```@docs
-is_basepoint_free(l::ToricLineBundle)
 is_ample(l::ToricLineBundle)
+is_basepoint_free(l::ToricLineBundle)
+is_immaculate(l::ToricLineBundle)
 is_very_ample(l::ToricLineBundle)
 ```
 

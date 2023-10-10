@@ -1216,7 +1216,6 @@ end
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end
 
-
 function saturation(I::IdealSheaf, J::IdealSheaf)
   X = scheme(I)
   K = IdDict{AbsSpec, Ideal}()
@@ -1226,82 +1225,27 @@ function saturation(I::IdealSheaf, J::IdealSheaf)
   return IdealSheaf(X, K, check=false)
 end
 
-
-@doc raw"""
-    IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
-
-Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal 
-`I` in its `cox_ring`.
-
-# Examples
-```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
-
-julia> (x1,x2,x3,x4) = gens(cox_ring(P3));
-
-julia> I = ideal([x2,x3])
-ideal(x2, x3)
-
-julia> IdealSheaf(P3, I);
-```
-"""
-function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
-  @req base_ring(I) === cox_ring(X) "ideal must live in the cox ring of the variety"
-
-  # We currently only support this provided that the following conditions are met:
-  # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
-  # 2. The dimension of all maximal cones matches the dimension of the fan.
-  @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
-  @req ispure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
-
+function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
+  f_cov = covering_morphism(f)
+  dom_cov = domain(f_cov)
+  cod_cov = codomain(f_cov)
   ideal_dict = IdDict{AbsSpec, Ideal}()
-
-  # We need to dehomogenize the ideal I in the Cox ring S to the local
-  # charts U_sigma, with sigma a cone in the fan of the variety.
-  # To this end we use Proposition 5.2.10 from Cox-Little-Schenck, p. 223ff.
-  # Abstractly, the chart U_sigma is isomorphic to C^n with n the number
-  # of ray generators of sigma, owing to the assumptions 1 an 2 above.
-  # Note however that the coordinates of C^n are not one to one to
-  # the homogeneous coordinates of the Cox ring. Rather, the coordinates 
-  # of the affine pieces correspond to the `hilbert_basis(polarize(sigma))`.
-
-  # TODO: In the long run we should think about making the creation of the 
-  # following dictionary lazy. But this requires partial rewriting of the 
-  # ideal sheaves as a whole, so we postpone it for the moment.
-
-  IM = maximal_cones(IncidenceMatrix, X)
-  for (k, U) in enumerate(affine_charts(X))
-
-    # We first create the morphism \pi_s* from p. 224, l. 3.
-    indices = [k for k in row(IM, k)]
-    help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
-    phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
-
-    # Now we need to create the inverse of alpha*.
-    imgs_alpha_star = elem_type(help_ring)[]
-    for m in hilbert_basis(weight_cone(U))
-      img = one(help_ring)
-      for j in 1:length(indices)
-        u_rho = matrix(ZZ,rays(X))[indices[j],:]
-        expo = (u_rho*m)[1]
-        img = img * x_rho[j]^expo
-      end
-      push!(imgs_alpha_star, img)
-    end
-    alpha_star = hom(OO(U), help_ring, imgs_alpha_star)
-
-    # TODO: There should be better ways to create this map!
-    # Presumably, one can invert the matrix with the `expo`s as entries?
-    # @larskastner If you can confirm this, let's change this.
-    alpha_star_inv = inverse(alpha_star)
-    ideal_dict[U] = ideal(OO(U), [alpha_star_inv(phi_s_star(g)) for g in gens(I)])
+  for V in cod_cov
+    f_loc = maps_with_given_codomain(f_cov, V)
+    I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
+    ideal_dict[V] = intersect(I_loc...)
   end
-
-  return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
+  return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
 end
 
-function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
-  return blow_up(IdealSheaf(v, I))
+function Base.:^(II::IdealSheaf, k::IntegerUnion)
+  k < 0 && error("negative powers of ideal sheaves are not allowed")
+  if iszero(k) 
+    X = scheme(II)
+    return IdealSheaf(X, IdDict{AbsSpec, Ideal}([U => ideal(OO(U), one(OO(U))) for U in affine_charts(X)]), check=false)
+  end
+  isone(k) && return II
+  b = div(k, 2)
+  r = k - b
+  return II^b * II^r
 end

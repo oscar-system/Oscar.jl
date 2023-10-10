@@ -345,7 +345,7 @@ export coefficients
 export coefficients_and_exponents
 export cohomology
 export cohomology_class
-export cohomology_index
+export cohomology_indices
 export cohomology_ring
 export cohyperplanes
 export cokernel
@@ -668,6 +668,7 @@ export ideal
 export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
+export ideal_sheaf
 export ideal_type
 export identifier
 export identity_map
@@ -676,12 +677,14 @@ export image_ideal
 export image_in_Oq
 export images
 export img_gens
+export immaculate_line_bundles
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
 export index
 export index_of_gen
 export index_of_leading_term
+export index_of_new_ray
 export indicator
 export induce
 export induce_shift
@@ -778,6 +781,7 @@ export is_graded
 export is_groebner_basis
 export is_homogeneous
 export is_identity_map
+export is_immaculate
 export is_injective
 export is_inner_automorphism
 export is_integral
@@ -1396,6 +1400,7 @@ export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
 export total_space
+export total_transform
 export transform
 export transition_graph
 export transitive_group

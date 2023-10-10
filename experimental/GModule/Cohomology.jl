@@ -354,7 +354,7 @@ end
 
 function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::AbstractAlgebra.Generic.DirectSumModule{T}, mp::Vector{AbstractAlgebra.Generic.ModuleHomomorphism{T}})  where T
   @assert length(M.m) == length(mp) == length(N.m)
-  return hom(M, N, cat(map(mat, mp)..., dims = (1,2)))
+  return hom(M, N, cat(map(matrix, mp)..., dims = (1,2)))
 end
 
 function Oscar.direct_product(C::GModule...; task::Symbol = :none)
@@ -713,7 +713,7 @@ end
    - issubset yields (for GrpAb) only true/ false, not the map
    - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
-   - mat or matrix is used to get "the matrix" from a hom
+   - matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
    - Janko-Module-Homs have different types, they probably need to
      come under a common abstract type or be more selective
@@ -1591,7 +1591,7 @@ function Oscar.hom(V::Module, W::Module, v::MatElem; check::Bool = true)
   return Generic.ModuleHomomorphism(V, W, v)
 end
 function Oscar.inv(M::Generic.ModuleHomomorphism)
-  return hom(codomain(M), domain(M), inv(mat(M)))
+  return hom(codomain(M), domain(M), inv(matrix(M)))
 end
 
 function Oscar.direct_product(M::Module...; task::Symbol = :none)
@@ -1608,18 +1608,18 @@ function Oscar.direct_product(M::Module...; task::Symbol = :none)
   error("illegal task")
 end
 
-Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
-Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
-Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) + mat(b))
-Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) - mat(b))
-Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -mat(a))
+Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
+Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
+Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) + matrix(b))
+Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) - matrix(b))
+Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -matrix(a))
 
-function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
+function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
 end
 
 function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism})
-  return mat(a) == mat(b)
+  return matrix(a) == matrix(b)
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)

@@ -88,7 +88,7 @@ Over the rational function field, we can also compute the monodromy group:
 DocTestFilters = r"Galois context\(.*\]\)"
 ```
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
-julia> Qt, t = RationalFunctionField(QQ, "t");
+julia> Qt, t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 
@@ -233,7 +233,7 @@ is now a polynomial with integer coefficients. Thus the bound needs
 to bound the degree as well as the coefficient size.
 
 ```jldoctest
-julia> Qt,t = RationalFunctionField(QQ, "t");
+julia> Qt,t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 

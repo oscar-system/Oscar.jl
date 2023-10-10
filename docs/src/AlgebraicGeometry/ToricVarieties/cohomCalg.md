@@ -46,5 +46,5 @@ Beyond this, we support the following attributes for vanishing sets:
 ```@docs
 toric_variety(tvs::ToricVanishingSet)
 polyhedra(tvs::ToricVanishingSet)
-cohomology_index(tvs::ToricVanishingSet)
+cohomology_indices(tvs::ToricVanishingSet)
 ```

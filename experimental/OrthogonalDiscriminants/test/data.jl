@@ -118,6 +118,9 @@ function dummy_placeholder end
 end
 
 @testset "show and print character tables" begin
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
   doctest(nothing, [AuxDocTest_show_with_ODs])
   #doctest(nothing, [AuxDocTest_show_with_ODs]; fix=true)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
 end

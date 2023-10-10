@@ -96,7 +96,9 @@ julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]
 
 julia> grid_morphism = hom(character_lattice(domain), character_lattice(codomain), mapping_matrix)
-Map: GrpAb: Z -> GrpAb: Z^2
+Map
+  from GrpAb: Z
+  to GrpAb: Z^2
 
 julia> toric_morphism(domain, grid_morphism, codomain)
 A toric morphism
@@ -209,3 +211,4 @@ function Base.show(io::IO, tm::ToricMorphism)
 end
 
 Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)
+

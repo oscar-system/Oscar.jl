@@ -132,7 +132,7 @@ tropical variety of an ideal
 todo: proper documentation
 Example:
 import Random
-K,s = RationalFunctionField(QQ,"s");
+K,s = rational_function_field(QQ,"s");
 Kx,(x1,x2,x3,x4) = polynomial_ring(K,4);
 val = TropicalSemiringMap(K,s);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);

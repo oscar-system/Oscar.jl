@@ -325,7 +325,7 @@ function load_object(s::DeserializerState,
   else
     symbols = Symbol(dict[:symbols])
   end
-  return RationalFunctionField(R, symbols, cached=false)[1]
+  return rational_function_field(R, symbols, cached=false)[1]
 end
 
 #elements
