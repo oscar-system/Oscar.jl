@@ -37,6 +37,10 @@ end
 @everywhere using Oscar
 @everywhere Oscar.set_seed!($seed)
 @everywhere Oscar.randseed!($seed)
+# setting the global julia seed does not work for distributed processes
+# the RNG is task-local and each '@everywhere' runs in a separate task...
+# to make sure we seed the main process we run this again
+Oscar.randseed!(seed)
 
 if VERSION >= v"1.8.0"
   # Enable GC logging to help track down certain GC related issues.
@@ -82,8 +86,9 @@ for exp in [Oscar.exppkgs; Oscar.oldexppkgs]
   end
 end
 
-# this sorting should be stable since the global rng is now seeded
-Random.shuffle!(testlist)
+# make sure we have the same list everywhere
+sort!(testlist)
+Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
 @everywhere testlist = $testlist
 
