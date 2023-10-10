@@ -4,4 +4,4 @@ DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 
 [compat]
 Documenter = "0.27.0"
-DocumenterCitations = "1.0.0"
+DocumenterCitations = "1.1.0"
