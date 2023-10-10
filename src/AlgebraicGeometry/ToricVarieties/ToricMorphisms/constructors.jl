@@ -42,10 +42,10 @@ All checks can be disabled with `check=false`.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
@@ -87,10 +87,10 @@ All checks can be disabled with `check=false`.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]

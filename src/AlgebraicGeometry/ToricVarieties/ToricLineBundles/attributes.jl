@@ -10,7 +10,7 @@ Return the class in the Picard group which defines the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -32,13 +32,13 @@ Return the toric variety over which the toric line bundle `l` is defined.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
 julia> toric_variety(l)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety without torusfactor
 ```
 """
 toric_variety(l::ToricLineBundle) = l.toric_variety
@@ -52,7 +52,7 @@ Return a toric divisor corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -84,7 +84,7 @@ Return a divisor class in the Class group corresponding to the toric line bundle
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -107,7 +107,7 @@ Return the degree of the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -131,7 +131,7 @@ Return a basis of the global sections of the toric line bundle `l` in terms of r
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -169,7 +169,7 @@ For convenience, this method can also be called via
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety

@@ -10,7 +10,7 @@ Return the normal toric variety of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -19,7 +19,7 @@ julia> cc = cohomology_class(d)
 Cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 
 julia> toric_variety(cc)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, simplicial, complete toric variety
 ```
 """
 toric_variety(c::CohomologyClass) = c.v
@@ -33,7 +33,7 @@ Return the coefficients of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -59,7 +59,7 @@ Return the exponents of the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -91,7 +91,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -115,7 +115,7 @@ to the cohomology class `c`.
 # Examples
 ```jldoctest
 julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety

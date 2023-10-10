@@ -6,7 +6,7 @@ Return the element of the class group corresponding to the toric divisor class `
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
@@ -28,13 +28,13 @@ Return the toric variety on which the toric divisor class `tdc` is defined.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
 
 julia> toric_variety(tdc)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
@@ -48,7 +48,7 @@ Constructs a toric divisor corresponding to the toric divisor class  `tdc`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety

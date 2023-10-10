@@ -86,7 +86,7 @@ associated to the torusinvariant prime divisors of the normal toric toric variet
 # Examples
 ```jldoctest
 julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> length(intersection_form(F3))
 10

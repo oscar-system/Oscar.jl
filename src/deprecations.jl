@@ -409,3 +409,81 @@ end
 
 @deprecate dual_cone(v::AffineNormalToricVariety) weight_cone(v)
 @deprecate cohomology_index(tvs::ToricVanishingSet) cohomology_indices(tvs)
+
+
+
+# see https://github.com/oscar-system/Oscar.jl/pull/2908
+function affine_normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(C)
+end
+
+function normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(C)
+end
+
+function affine_normal_toric_variety(v::NormalToricVariety, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(v)
+end
+
+function normal_toric_variety(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(P)
+end
+
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :Base.:*)
+  return v*w
+end
+
+function affine_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_space)
+  return affine_space(Type{NormalToricVariety}, d)
+end
+
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :del_pezzo_surface)
+  return del_pezzo_surface(Type{NormalToricVariety}, b)
+end
+
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :hirzebruch_surface)
+  return hirzebruch_surface(Type{NormalToricVariety}, r)
+end
+
+function projective_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :projective_space)
+  return projective_space(Type{NormalToricVariety}, d)
+end
+
+function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}, set_attributes::Bool) where {T <: IntegerUnion}
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :weighted_projective_space)
+  return weighted_projective_space(Type{NormalToricVariety}, w)
+end
+
+function normal_toric_variety_from_star_triangulation(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety_from_star_triangulation)
+  return normal_toric_variety_from_star_triangulation(P)
+end
+
+function normal_toric_varieties_from_star_triangulations(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_varieties_from_star_triangulations)
+  return normal_toric_varieties_from_star_triangulations(P)
+end
+
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, new_ray, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, n::Int, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, n, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, I, coordinate_name)
+end

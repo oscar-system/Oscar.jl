@@ -11,7 +11,7 @@ coefficient_field(::NormalToricVarietyType) = QQ
 ######################
 
 @doc raw"""
-    affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
+    affine_normal_toric_variety(C::Cone)
 
 Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
 cone `C`.
@@ -23,30 +23,21 @@ julia> C = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-Normal, affine toric variety
+Normal toric variety
 ```
 """
-function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = polyhedral_fan(C)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = AffineNormalToricVariety(pmntv)
-    
-    if set_attributes
-        set_attribute!(variety, :cone, C)
-        set_attribute!(variety, :fan, fan)
-        set_attribute!(variety, :is_affine, true)
-        set_attribute!(variety, :is_complete, false)
-        set_attribute!(variety, :is_projective, false)
-        set_attribute!(variety, :is_projective_space, false)
-        set_attribute!(variety, :picard_group, free_abelian_group(0))
-    end
-    
-    return variety
+function affine_normal_toric_variety(C::Cone)
+  fan = polyhedral_fan(C)
+  pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
+  variety = AffineNormalToricVariety(pmntv)
+  set_attribute!(variety, :cone, C)
+  set_attribute!(variety, :fan, fan)
+  return variety
 end
 
 
 @doc raw"""
-    normal_toric_variety(C::Cone; set_attributes::Bool = true)
+    normal_toric_variety(C::Cone)
 
 Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
 polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
@@ -58,26 +49,21 @@ julia> C = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
 julia> ntv = normal_toric_variety(C)
-Normal, affine toric variety
+Normal toric variety
 ```
 """
-function normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = polyhedral_fan(C)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv)
-    
-    if set_attributes
-        set_attribute!(variety, :is_affine, true)
-        set_attribute!(variety, :is_projective_space, false)
-        set_attribute!(variety, :picard_group, free_abelian_group(0))
-    end
-    
-    return variety
+function normal_toric_variety(C::Cone)
+  fan = polyhedral_fan(C)
+  pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
+  variety = NormalToricVariety(pmntv)
+  set_attribute!(variety, :cone, C)
+  set_attribute!(variety, :fan, fan)
+  return variety
 end
 
 
 @doc raw"""
-    normal_toric_variety(rays::AbstractMatrix, max_cones::Vector{Vector{Int64}})
+    normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
 as vector of vectors. By default, this method assumes that the input is not
@@ -136,15 +122,14 @@ Normal toric variety
 ```
 """
 function normal_toric_variety(PF::PolyhedralFan)
-    fan = Oscar.pm_object(PF)
-    pmntv = Polymake.fulton.NormalToricVariety(fan)
-    variety = NormalToricVariety(pmntv)
-    return variety
+  fan = Oscar.pm_object(PF)
+  pmntv = Polymake.fulton.NormalToricVariety(fan)
+  return NormalToricVariety(pmntv)
 end
 
 
 @doc raw"""
-    normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
+    normal_toric_variety(P::Polyhedron)
 
 Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
 fan $\Sigma_P$ of the given polyhedron `P`.
@@ -162,17 +147,15 @@ julia> ntv = normal_toric_variety(square)
 Normal toric variety
 ```
 """
-function normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
-    variety = normal_toric_variety(normal_fan(P))
-    if set_attributes
-        set_attribute!(variety, :polyhedron, P)
-    end
-    return variety
+function normal_toric_variety(P::Polyhedron)
+  variety = normal_toric_variety(normal_fan(P))
+  set_attribute!(variety, :polyhedron, P)
+  return variety
 end
 
 
 @doc raw"""
-    affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
+    affine_normal_toric_variety(v::NormalToricVariety)
 
 For internal design, we make a strict distinction between
 normal toric varieties and affine toric varieties.
@@ -182,22 +165,15 @@ this method turns it into an affine toric variety.
 # Examples
 ```jldoctest
 julia> v = normal_toric_variety(positive_hull([1 0; 0 1]))
-Normal, affine toric variety
+Normal toric variety
 
 julia> affineVariety = affine_normal_toric_variety(v)
-Normal, affine toric variety
+Normal toric variety
 ```
 """
-function affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
-    is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
-    variety = AffineNormalToricVariety(pm_object(v))
-    
-    if set_attributes
-        set_attribute!(variety, :is_affine, true)
-        set_attribute!(variety, :is_projective_space, false)
-    end
-    
-    return variety
+function affine_normal_toric_variety(v::NormalToricVariety)
+  is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
+  return AffineNormalToricVariety(pm_object(v))
 end
 
 
@@ -207,35 +183,35 @@ end
 ######################
 
 function Base.show(io::IO, v::NormalToricVarietyType)
-    # initiate properties string
-    properties_string = ["Normal"]
-    
-    affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
-    
-    simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
-    push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
-    
-    projective = nothing
-    if isnothing(affine) || !affine
-        complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
-        projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
-    end
-    
-    q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-    gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
-    
-    push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
-    
-    if has_attribute(v, :dim)
-        push!(properties_string, string(dim(v))*"-dimensional")
-    end
-    
-    properties_string = [join(properties_string, ", ")]
-    push!(properties_string, "toric variety")
-    
-    push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
-    
-    join(io, properties_string, " ")
+  # initiate properties string
+  properties_string = ["Normal"]
+  
+  affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
+  
+  simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
+  push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
+  
+  projective = nothing
+  if isnothing(affine) || !affine
+    complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
+    projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
+  end
+  
+  q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
+  gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
+  
+  push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
+  
+  if has_attribute(v, :dim)
+    push!(properties_string, string(dim(v))*"-dimensional")
+  end
+  
+  properties_string = [join(properties_string, ", ")]
+  push!(properties_string, "toric variety")
+  
+  push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
+  
+  join(io, properties_string, " ")
 end
 
 Base.show(io::IO, ::MIME"text/plain", v::NormalToricVarietyType) = Base.show(pretty(io), v)
