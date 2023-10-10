@@ -13,7 +13,7 @@ class NCPolyRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="
 class Ring--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="Ring" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="46" x="821" y="179"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="40" x="824" y="196.8">Ring</text><!--MD5=[d9427b671d7d049aff2d6f2fe36a13b3]
 class Field--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="Field" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="56" x="761" y="437"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="50" x="764" y="454.8">Field</text><!--MD5=[d82769b5523c4ca2f36a57dfee73417a]
 class PolyRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="PolyRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="116" x="874" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="110" x="877" y="282.8">PolyRing{T}</text><!--MD5=[2d8accf6691e94c23cd5e6e74288677b]
-class LaurentPolynomialRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="LaurentPolynomialRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="246" x="842" y="351"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="240" x="845" y="368.8">LaurentPolynomialRing{T}</text><!--MD5=[b9d795d569a206fe0b5fabc1e98b0007]
+class LaurentPolyRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="LaurentPolyRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="246" x="842" y="351"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="240" x="845" y="368.8">LaurentPolyRing{T}</text><!--MD5=[b9d795d569a206fe0b5fabc1e98b0007]
 class SeriesRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="SeriesRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="1123" y="351"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="1126" y="368.8">SeriesRing{T}</text><!--MD5=[899b8bcbf1260018a5955ea06bbcb504]
 class ResidueRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="ResidueRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="106" x="1025" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="100" x="1028" y="282.8">ResidueRing{T}</text><!--MD5=[7fb534e95feb034fb595bde41408e682]
 class ResidueField{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="ResidueField{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="116" x="502" y="523"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="110" x="505" y="540.8">ResidueField{T}</text><!--MD5=[528eccac96f8f000fa47cb7e4ce5b262]
@@ -34,7 +34,7 @@ link NCRing to NCPolyRing{T}--><path codeLine="23" d="M589.11,119.23 C604.06,149
 link NCRing to Ring--><path codeLine="24" d="M616.06,117.64 C667.91,134.33 767.45,166.36 815.99,181.99 " fill="none" id="NCRing-to-Ring" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="820.81,183.54,813.4651,176.9785,816.0497,182.0104,811.0178,184.595,820.81,183.54" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[3f7eb00af51d06dd0583618c117d905b]
 link Ring to Field--><path codeLine="27" d="M841.42,205 C832.53,246.4 803.12,383.29 792.7,431.78 " fill="none" id="Ring-to-Field" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="791.64,436.72,797.4306,428.7533,792.6837,431.8302,789.6069,427.0833,791.64,436.72" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[6aafd22ffa1a38dbb34cc29fc1522473]
 link Ring to PolyRing{T}--><path codeLine="28" d="M856.61,205.04 C872.16,219.88 898.63,245.15 915.71,261.45 " fill="none" id="Ring-to-PolyRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="919.42,264.99,915.6811,255.8784,915.8068,261.5339,910.1513,261.6596,919.42,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[28664e9ea50f340fa152bbea15189065]
-link PolyRing{T} to LaurentPolynomialRing{T}--><path codeLine="29" d="M936.73,291.04 C942.41,305.51 951.99,329.88 958.4,346.2 " fill="none" id="PolyRing{T}-to-LaurentPolynomialRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="960.28,350.99,960.714,341.1507,958.4526,346.3359,953.2674,344.0745,960.28,350.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[dda6b58948578ade6de5a9381f775318]
+link PolyRing{T} to LaurentPolyRing{T}--><path codeLine="29" d="M936.73,291.04 C942.41,305.51 951.99,329.88 958.4,346.2 " fill="none" id="PolyRing{T}-to-LaurentPolyRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="960.28,350.99,960.714,341.1507,958.4526,346.3359,953.2674,344.0745,960.28,350.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[dda6b58948578ade6de5a9381f775318]
 link PolyRing{T} to SeriesRing{T}--><path codeLine="30" d="M969.11,291.04 C1016.71,306.47 1099.06,333.18 1148.94,349.36 " fill="none" id="PolyRing{T}-to-SeriesRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="1153.96,350.99,1146.633,344.4086,1149.2039,349.4475,1144.165,352.0183,1153.96,350.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[a75ca58436e9d315295ed38a4e0c65e4]
 link Ring to ResidueRing{T}--><path codeLine="31" d="M867.29,201.36 C907.53,215.8 990.43,245.56 1039.4,263.14 " fill="none" id="Ring-to-ResidueRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="1044.32,264.91,1037.1923,258.1133,1039.6119,263.2265,1034.4987,265.6462,1044.32,264.91" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[374a9b435c03f0301c5287d6c3b28b7f]
 link Field to ResidueField{T}--><path codeLine="34" d="M760.92,461.3 C719.9,476.35 643.49,504.38 597.64,521.19 " fill="none" id="Field-to-ResidueField{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="592.75,522.99,602.5775,523.6376,597.4427,521.2641,599.8161,516.1293,592.75,522.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[2cb8c24e136ce8a144127e401e20e3a6]
@@ -71,7 +71,7 @@ skinparam RoundCorner 15
 ' Rings
 "Ring" -down- - -> "Field"
 "Ring" -down-> "PolyRing{T}"
-"PolyRing{T}" -down-> "LaurentPolynomialRing{T}"
+"PolyRing{T}" -down-> "LaurentPolyRing{T}"
 "PolyRing{T}" -down-> "SeriesRing{T}"
 "Ring" -down-> "ResidueRing{T}"
 
@@ -111,7 +111,7 @@ skinparam RoundCorner 15
 
 "Ring" -down- - -> "Field"
 "Ring" -down-> "PolyRing{T}"
-"PolyRing{T}" -down-> "LaurentPolynomialRing{T}"
+"PolyRing{T}" -down-> "LaurentPolyRing{T}"
 "PolyRing{T}" -down-> "SeriesRing{T}"
 "Ring" -down-> "ResidueRing{T}"
 
