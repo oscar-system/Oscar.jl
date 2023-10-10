@@ -14,7 +14,7 @@ julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
 
 julia> underlying_morphism(blow_down_morphism)
-A toric morphism
+Toric morphism
 ```
 """
 underlying_morphism(bl::ToricBlowdownMorphism) = bl.toric_morphism
