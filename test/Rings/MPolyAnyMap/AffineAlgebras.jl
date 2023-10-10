@@ -66,3 +66,12 @@
     @test f(x) == x
   end
 end
+
+@testset "cross-type kernels" begin
+  R, (x, y) = QQ[:x, :y]
+  S, _ = grade(R)
+  A, _ = quo(R, ideal(R, zero(R)))
+  Q, _ = quo(S, ideal(S, zero(S)))
+  phi = hom(Q, A, gens(A))
+  @test iszero(kernel(phi))
+end
