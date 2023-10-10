@@ -43,7 +43,9 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> grid_morphism(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
@@ -61,7 +63,9 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^4 -> GrpAb: Z^4
+Map
+  from GrpAb: Z^4
+  to GrpAb: Z^4
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
@@ -92,7 +96,9 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^4 -> GrpAb: Z^4
+Map
+  from GrpAb: Z^4
+  to GrpAb: Z^4
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
@@ -117,7 +123,9 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
@@ -142,7 +150,9 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)

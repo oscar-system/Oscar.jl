@@ -67,7 +67,7 @@ function reps(K, G::Oscar.GAPGroup)
         @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(rh)
         l = Oscar.GModuleFromGap.hom_base(r, rh)
         @assert length(l) <= 1
-        Y = mat(action(r, preimage(ms, h^p)))
+        Y = matrix(action(r, preimage(ms, h^p)))
         if length(l) == 1
           # The representation extends from the subgroup,
           # all these extensions are pairwise inequivalent.
@@ -128,7 +128,7 @@ function reps(K, G::Oscar.GAPGroup)
             z = zero_matrix(K, dim(F), dim(F))
             for j=1:p
               Y = action(r, g)
-              m = mat(Y)
+              m = matrix(Y)
               z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = m
               push!(conjreps[j], hom(M, M, m))
               g = preimage(ms, ms(g)^h)
@@ -282,7 +282,7 @@ function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{ZZRingElem}, <:AbstractAlg
   A = domain(h)
   B = codomain(h)
   @assert is_free(A) && is_free(B)
-  return hom(B, A, transpose(mat(h)))
+  return hom(B, A, transpose(matrix(h)))
 end
 
 function coimage(h::Map)

@@ -237,7 +237,7 @@ end
 
 function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
   C = base_ring(f)
-  Qt, t = RationalFunctionField(QQ, symbols(C)[1], cached = false)
+  Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end

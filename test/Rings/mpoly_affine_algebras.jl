@@ -66,7 +66,7 @@ end
   R, (x, y) = polynomial_ring(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
 
-  R, (x, y) = polynomial_ring(RationalFunctionField(QQ, ["s", "t"])[1], ["x", "y"])
+  R, (x, y) = polynomial_ring(rational_function_field(QQ, ["s", "t"])[1], ["x", "y"])
   @test_throws NotImplementedError integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 

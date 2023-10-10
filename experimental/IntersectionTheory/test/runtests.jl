@@ -18,7 +18,7 @@ let pushforward = IntersectionTheory.pushforward
     # @test euler_characteristic(trivial_line_bundle(C)) == 1//2 * c
 
     # # generic abstract_variety with parameter
-    # F, (g,) = FunctionField(Singular.QQ, ["g"])
+    # F, (g,) = function_field(Singular.QQ, ["g"])
     # C = abstract_variety(1, base=F)
     # c = gens(C.ring)[1]
     # trim!(C.ring)
@@ -280,7 +280,7 @@ let pushforward = IntersectionTheory.pushforward
   #   @test integral(quad^2 * cubic) == 1
     
   #   # blowup twisted cubic, with parameters
-  #   F, (r, s, t) = FunctionField(Singular.QQ, ["r", "s", "t"])
+  #   F, (r, s, t) = function_field(Singular.QQ, ["r", "s", "t"])
   #   P1 = abstract_projective_space(1, base=F)
   #   P3 = abstract_projective_space(3, base=F)
   #   i = hom(P1, P3, [3P1.O1])
@@ -299,7 +299,7 @@ let pushforward = IntersectionTheory.pushforward
   #   @test simplify(e^5) != 0
     
   #   # blowup space curve of degree d and genus g
-  #   F, (r,s,t,d,g) = FunctionField(Singular.QQ, ["r", "s", "t", "d", "g"])
+  #   F, (r,s,t,d,g) = function_field(Singular.QQ, ["r", "s", "t", "d", "g"])
   #   P3 = abstract_projective_space(3, base=F)
   #   C = abstract_variety(1, base=F)
   #   trim!(C.ring)
