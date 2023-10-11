@@ -144,7 +144,21 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra
     n = length(M)
 
     # we start by computing the number of variables:
-    numVars = sum([length(intersect(c,B))-1 for c in circs])-(rk-1)+(length(connected_components(M))-1)
+    numVars = 0
+    unUsedRowsForOnes = collect(2:rk)
+    for col in 1:(n-rk)
+        for row in 1:rk
+            circ = circs[col]
+            if !(B[row] == minimum(circ)) && B[row] in circ
+                if row in unUsedRowsForOnes
+                    unUsedRowsForOnes = setdiff(unUsedRowsForOnes,[row])
+                else
+                    numVars += 1 
+                end
+            end
+        end
+    end
+
     
     if numVars > 0
         R, x = polynomial_ring(F, numVars)
