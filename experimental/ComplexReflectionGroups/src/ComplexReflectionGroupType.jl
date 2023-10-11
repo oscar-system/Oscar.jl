@@ -223,6 +223,18 @@ function is_primitive(G::ComplexReflectionGroupType)
     return !is_imprimitive(G)
 end
 
+function direct_product(X::Vector{ComplexReflectionGroupType})
+
+    type = reduce(vcat, [ G.type for G in X ]) #simply the flattened list of the types
+
+    return ComplexReflectionGroupType(type)
+
+end
+
+function direct_product(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
+    return direct_product([G1,G2])
+end
+
 function num_reflections(G::ComplexReflectionGroupType)
 
     N = ZZ(0)
