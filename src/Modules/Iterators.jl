@@ -60,16 +60,9 @@ function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, V
   i, mon_it, s = state
   res = iterate(mon_it, s)
   if res === nothing
-    i == ngens(F) && return nothing
-    i = i+1
+    i = findnext(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F), i + 1)
+    i === nothing && return nothing
     d_loc = d - Int(degree(F[i])[1])
-
-    while i < ngens(F) && d_loc < 0
-      i = i+1
-      d_loc = d - Int(degree(F[i])[1])
-    end
-
-    i == ngens(F) && d_loc < 0 && return nothing
 
     mon_it = all_monomials(R, d_loc)
     res_loc = iterate(mon_it, nothing)
