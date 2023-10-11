@@ -399,13 +399,13 @@ Projective space of dimension 2
 with homogeneous coordinates [x, y, z]
 
 julia> homogeneous_coordinates_on_affine_cone(P)
-3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x
  y
  z
 
 julia> gens(OO(affine_cone(P)[1])) # all coordinates on the affine cone
-5-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+5-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x
  y
  z
