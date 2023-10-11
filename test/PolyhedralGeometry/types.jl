@@ -15,8 +15,7 @@
   a = [1, 2, 3]
   b = [8, 6, 4]
 
-  NF, sr2 = quadratic_field(2)
-  ENF, sre2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+  (ENF, _) = _prepare_scalar_types()[2]
 
   @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
 
@@ -132,7 +131,7 @@
         
   end
     
-  for p in [QQ, NF]
+  for p in [QQ, ENF]
     U = elem_type(p)
     let A = linear_halfspace(p, a)
       @test invert(A) isa LinearHalfspace{U}
