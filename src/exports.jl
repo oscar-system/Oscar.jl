@@ -1009,7 +1009,6 @@ export mpoly_dec_ring_type
 export mpoly_dec_type
 export mpoly_ring_type
 export mpoly_type
-export mul
 export mul!
 export mult_set_type
 export multi_hilbert_function

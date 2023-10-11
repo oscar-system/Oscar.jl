@@ -5084,7 +5084,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
 
-  return mul(coords_wrt_groebner_basis,sparse_matrix(A))
+  return coords_wrt_groebner_basis * sparse_matrix(A)
 end
 
 @doc raw"""
