@@ -2165,8 +2165,8 @@ true
 
 julia> degrees_of_generators(M)
 2-element Vector{GrpAbFinGenElem}:
- Element of Z with components [8]
- Element of Z with components [8]
+ [8]
+ [8]
 ```
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -2247,8 +2247,8 @@ true
 
 julia> degrees_of_generators(M)
 2-element Vector{GrpAbFinGenElem}:
- Element of Z with components [9]
- Element of Z with components [10]
+ [9]
+ [10]
 ```
 """
 function image(F::FreeMod{R}, A::MatElem{R}) where R
