@@ -1,4 +1,4 @@
-@attributes mutable struct LieAlgebraModule{C<:RingElement}
+@attributes mutable struct LieAlgebraModule{C<:FieldElem}
   L::LieAlgebra{C}
   dim::Int
   transformation_matrices::Vector{MatElem{C}}
@@ -10,7 +10,7 @@
     transformation_matrices::Vector{<:MatElem{C}},
     s::Vector{Symbol};
     check::Bool=true,
-  ) where {C<:RingElement}
+  ) where {C<:FieldElem}
     @req dimV == length(s) "Invalid number of basis element names."
     @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
     @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
@@ -26,7 +26,7 @@
   end
 end
 
-struct LieAlgebraModuleElem{C<:RingElement}
+struct LieAlgebraModuleElem{C<:FieldElem}
   parent::LieAlgebraModule{C}
   mat::MatElem{C}
 end
@@ -37,9 +37,9 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:RingElement} = LieAlgebraModule{C}
+parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:FieldElem} = LieAlgebraModule{C}
 
-elem_type(::Type{LieAlgebraModule{C}}) where {C<:RingElement} = LieAlgebraModuleElem{C}
+elem_type(::Type{LieAlgebraModule{C}}) where {C<:FieldElem} = LieAlgebraModuleElem{C}
 
 parent(v::LieAlgebraModuleElem) = v.parent
 
@@ -104,7 +104,7 @@ function iszero(v::LieAlgebraModuleElem)
   return iszero(coefficients(v))
 end
 
-@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return (v.mat)::dense_matrix_type(C)
 end
 
@@ -141,7 +141,7 @@ end
 
 function check_parent(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   parent(v1) !== parent(v2) && error("Incompatible modules.")
 end
 
@@ -295,7 +295,7 @@ end
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:FieldElem}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
@@ -307,7 +307,7 @@ end
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:FieldElem}
   @req ncols(v) == dim(V) "Length of vector does not match dimension"
   @req nrows(v) == 1 "Not a vector in module constructor"
   return elem_type(V)(V, v)
@@ -318,7 +318,7 @@ end
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:FieldElem}
   mat = dense_row(v, dim(V))
   return elem_type(V)(V, mat)
 end
@@ -330,7 +330,7 @@ Return `v`. Fails, in general, if `v` is not an element of `V`.
 
 If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
-function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   if is_dual(V) && base_module(V) === parent(v)
     return V(coefficients(v))
   end
@@ -351,7 +351,7 @@ where _correct_ depends on the case above.
 """
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
   if is_direct_sum(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
     @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
@@ -375,11 +375,11 @@ end
 
 function (V::LieAlgebraModule{C})(
   a::Tuple{T,Vararg{T}}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
   return V(collect(a))
 end
 
-function (V::LieAlgebraModule{C})(_::Tuple{}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(_::Tuple{}) where {C<:FieldElem}
   return V(LieAlgebraModuleElem{C}[])
 end
 
@@ -389,47 +389,39 @@ end
 #
 ###############################################################################
 
-function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return parent(v)(-_matrix(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return parent(v1)(_matrix(v1) + _matrix(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return parent(v1)(_matrix(v1) - _matrix(v2))
 end
 
-function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
+function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
-  return parent(v)(_matrix(v) * c)
-end
-
-function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
+function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(c * _matrix(v))
 end
 
-function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(c * _matrix(v))
-end
-
-function Base.:*(c::ZZRingElem, v::LieAlgebraModuleElem{ZZRingElem})
+function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:RationalUnion}
   return parent(v)(c * _matrix(v))
 end
 
@@ -439,7 +431,7 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
+function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
   return V1.dim == V2.dim &&
          V1.s == V2.s &&
          V1.L == V2.L &&
@@ -457,7 +449,7 @@ end
 
 function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return coefficients(v1) == coefficients(v2)
 end
@@ -481,11 +473,11 @@ end
 
 Apply the action of `x` on `v`.
 """
-function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return action(x, v)
 end
 
-function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = coefficients(x)
@@ -499,7 +491,7 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Ring
   )
 end
 
-function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
+function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:FieldElem}
   return (V.transformation_matrices[i])::dense_matrix_type(C)
 end
 
@@ -577,7 +569,7 @@ end
 
 Returns the base module of `V`, if `V` has been constructed as a power module.
 """
-function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
+function base_module(V::LieAlgebraModule{C}) where {C<:FieldElem}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
   return get_attribute(V, :base_module)::LieAlgebraModule{C}
 end
@@ -588,7 +580,7 @@ end
 Returns the summands or tensor factors of `V`,
 if `V` has been constructed as a direct sum or tensor product of modules.
 """
-function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
+function base_modules(V::LieAlgebraModule{C}) where {C<:FieldElem}
   if is_tensor_product(V)
     return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
   elseif is_direct_sum(V)
@@ -626,7 +618,7 @@ function abstract_module(
   transformation_matrices::Vector{<:MatElem{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
@@ -653,7 +645,7 @@ function abstract_module(
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req dim(L) == size(struct_consts, 1) "Invalid structure constants dimensions."
   @req dimV == size(struct_consts, 2) "Invalid structure constants dimensions."
   @req dimV == length(s) "Invalid number of basis element names."
@@ -762,7 +754,7 @@ Dual module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
+function dual(V::LieAlgebraModule{C}) where {C<:FieldElem}
   L = base_lie_algebra(V)
   dim_dual_V = dim(V)
 
@@ -808,9 +800,7 @@ Direct sum module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function direct_sum(
-  V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
-) where {C<:RingElement}
+function direct_sum(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem}
   Vs = [V; Vs...]
 
   L = base_lie_algebra(Vs[1])
@@ -837,7 +827,7 @@ function direct_sum(
   return direct_sum_V
 end
 
-⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   direct_sum(V, Vs...)
 
 @doc raw"""
@@ -868,7 +858,7 @@ over special linear Lie algebra of degree 3 over QQ
 """
 function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
-) where {C<:RingElement}
+) where {C<:FieldElem}
   Vs = [V; Vs...]
   L = base_lie_algebra(Vs[1])
   @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
@@ -944,7 +934,7 @@ function tensor_product(
   return tensor_product_V
 end
 
-⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   tensor_product(V, Vs...)
 
 @doc raw"""
@@ -967,7 +957,7 @@ Exterior power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
@@ -1064,7 +1054,7 @@ Symmetric power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
@@ -1182,7 +1172,7 @@ Tensor power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
