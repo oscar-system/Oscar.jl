@@ -410,14 +410,18 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 ```
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
-      W=ones(Int, length(V)); ordering=:lex) where
+      W=ones(Int, length(V)); ordering=:lex, cached::Bool=true) where
       T<:VarName
-   return grade(polynomial_ring(C, V; ordering)[1], W)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, V; ordering, cached)[1], W)
 end
 
 function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
-      W=ones(Int, n); ordering=:lex)
-   return grade(polynomial_ring(C, n, s; ordering)[1], W)
+      W=ones(Int, n); ordering=:lex, cached::Bool=true)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, n, s; ordering, cached)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
