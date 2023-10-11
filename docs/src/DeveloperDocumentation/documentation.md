@@ -129,6 +129,7 @@ this failure by running `bibtool` locally as explained above.
 Please follow the additional guidelines below, that are not checked by bibtool:
 
 - Do not escape special characters like umlauts or accented characters. Instead, use the unicode character directly.
+- You do not need to use braces to preserve capitalization as `DocumenterCitations.jl` keeps entries as is (in contrast to `bibtex`). In some cases, braces can even be harmful, i.e., show up in the output.
 - If a DOI is available for your reference, please add it as a `doi` field to the BibTeX entry. In this case, please refrain from adding an additional `url` field.
 - If your reference has no DOI or the paper is not open-access, but is available as an arXiv preprint, you can add the arXiv link as a `eprint` field (even additionally to a `doi` field). For other preprint servers (e.g. HAL), please refer to the [DocumenterCitations.jl docs](https://juliadocs.org/DocumenterCitations.jl/stable/syntax/#Preprint-support).
 - Documents available only as an arXiv preprint should be added as `@Article` entries with, e.g., `arXiv:2003.10132` in the `journal` field, and, e.g., `10.48550/arxiv.2003.10132` in the `doi` field, but without an `eprint` field.
