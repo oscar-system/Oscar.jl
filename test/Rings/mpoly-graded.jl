@@ -2,7 +2,7 @@
   R, (x,) = graded_polynomial_ring(QQ, ["x"], [1])
   Q = quo(R, ideal([x^4]))[1];
   @test_throws ArgumentError ideal(R, [x-x^2])
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
   @test valtype(h) === elem_type(Q)
@@ -173,7 +173,7 @@ end
 end
 
 @testset "Coercion" begin
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
@@ -183,17 +183,17 @@ end
 end
 
 @testset "Evaluation" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x(y, x) == y
 end
 
 @testset "Promotion" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x + QQ(1//2) == x + 1//2
 end
 
 @testset "Degree" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test_throws ArgumentError degree(zero(R))
 
   Z = abelian_group(0)
@@ -202,7 +202,7 @@ end
 end
 
 @testset "Grading" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   D = grading_group(R)
   @test is_isomorphic(D, abelian_group([0]))
 end

@@ -201,11 +201,7 @@ or else
 
 # Examples
 ```jldoctest
-julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, [1,1,3,2]);
 
@@ -972,11 +968,7 @@ true
 ```
 
 ```jldoctest
-julia> R, _= polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, 3)
 Graded free module Rg^3([0]) of rank 3 over Rg
@@ -1842,11 +1834,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -2092,11 +2080,7 @@ by Submodule with 5 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -2159,11 +2143,7 @@ true
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, [8,8])
 Graded free module Rg^2([-8]) of rank 2 over Rg
@@ -2185,8 +2165,8 @@ true
 
 julia> degrees_of_generators(M)
 2-element Vector{GrpAbFinGenElem}:
- Element of Z with components [8]
- Element of Z with components [8]
+ [8]
+ [8]
 ```
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
@@ -2247,11 +2227,7 @@ true
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, [8,8])
 Graded free module Rg^2([-8]) of rank 2 over Rg
@@ -2271,8 +2247,8 @@ true
 
 julia> degrees_of_generators(M)
 2-element Vector{GrpAbFinGenElem}:
- Element of Z with components [9]
- Element of Z with components [10]
+ [9]
+ [10]
 ```
 """
 function image(F::FreeMod{R}, A::MatElem{R}) where R
@@ -2454,13 +2430,9 @@ true
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
-
-julia> F = graded_free_module(Rg,2);
+julia> F = graded_free_module(Rg, 2);
 
 julia> O1 = [x*F[1]+y*F[2],y*F[2]];
 
@@ -2586,13 +2558,9 @@ false
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1], Z[1], Z[1]]);
-
-julia> F = graded_free_module(Rg,2);
+julia> F = graded_free_module(Rg, 2);
 
 julia> O1 = [x*F[1]+y*F[2],y*F[2]];
 
@@ -2632,11 +2600,7 @@ Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 Return `false` if the ambient free modules are not isomorphic.
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
 julia> F1 = graded_free_module(Rg,[2,3, 4])
 Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
@@ -2687,11 +2651,7 @@ Moreover, if `M` and `N` are canonically isomorphic then return also the isomorp
 otherwise return the zero map.
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y) = grade(R, [Z[1], Z[1]]);
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
 
 julia> F1 = graded_free_module(Rg,[2,3, 4])
 Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
@@ -2843,11 +2803,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -2987,11 +2943,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -3128,11 +3080,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -4270,11 +4218,7 @@ julia> P = presentation(M)
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, [1,2,2]);
 
@@ -4409,11 +4353,7 @@ by Submodule with 5 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -4537,11 +4477,7 @@ If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -4786,11 +4722,7 @@ false
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -4973,11 +4905,7 @@ x*y^2*e[1]
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -5511,11 +5439,7 @@ true
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1)
 Graded free module Rg^1([0]) of rank 1 over Rg
@@ -5592,11 +5516,7 @@ Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [1,2,2])
 Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
@@ -5689,14 +5609,7 @@ Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> Z = abelian_group(0)
-GrpAb: Z
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -5788,14 +5701,7 @@ Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> Z = abelian_group(0)
-GrpAb: Z
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 3);
 
@@ -5952,14 +5858,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> Z = abelian_group(0)
-GrpAb: Z
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -6139,14 +6038,7 @@ by Submodule with 3 generators
 ```
 
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> Z = abelian_group(0)
-GrpAb: Z
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 

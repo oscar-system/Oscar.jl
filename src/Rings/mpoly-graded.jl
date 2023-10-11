@@ -410,14 +410,18 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 ```
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
-      W=ones(Int, length(V)); ordering=:lex) where
+      W=ones(Int, length(V)); ordering=:lex, cached::Bool=true) where
       T<:VarName
-   return grade(polynomial_ring(C, V; ordering)[1], W)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, V; ordering, cached)[1], W)
 end
 
 function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
-      W=ones(Int, n); ordering=:lex)
-   return grade(polynomial_ring(C, n, s; ordering)[1], W)
+      W=ones(Int, n); ordering=:lex, cached::Bool=true)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, n, s; ordering, cached)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -1740,10 +1744,9 @@ function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(base_ring(R), A)
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
-  S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
+  S, _ = graded_polynomial_ring(base_ring(R), A, [G(WH[:, i]) for i = 1:size(WH, 2)])
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
@@ -2057,8 +2060,7 @@ function homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing} 
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  L, _ = polynomial_ring(base_ring(R), A)
-  S, = grade(L)
+  S, _ = graded_polynomial_ring(base_ring(R), A)
   return _homogenization(f, S, pos)
 end
 # function homogenization(f::MPolyRingElem, var::VarName)
@@ -2081,8 +2083,7 @@ function homogenization(V::Vector{T}, var::VarName; pos::Union{Int,Nothing} = no
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  L, _ = polynomial_ring(base_ring(R), A)
-  S, = grade(L)
+  S, _ = graded_polynomial_ring(base_ring(R), A)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
