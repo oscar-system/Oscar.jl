@@ -40,13 +40,9 @@ function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
   d = degree(amm)
   R = base_ring(F)
 
+  i = findfirst(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F))
+  i === nothing && return nothing
   d_loc = d - Int(degree(F[i])[1])
-  while i < ngens(F) && d_loc < 0
-    i = i+1
-    d_loc = d - Int(degree(F[i])[1])
-  end
-  
-  i == ngens(F) && d_loc < 0 && return nothing
 
   mon_it = all_monomials(R, d_loc)
   res = iterate(mon_it, nothing)
