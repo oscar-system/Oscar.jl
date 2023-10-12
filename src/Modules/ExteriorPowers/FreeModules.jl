@@ -125,8 +125,8 @@ function koszul_homology(v::FreeModElem, i::Int; cached::Bool=true)
     return cokernel(phi)[1]
   end
 
-  ext_powers = [exterior_power(F, p, cached=cached)[1] for p in i-1:i+1]
-  boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
+  ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]
+  boundary_maps = [wedge_multiplication_map(ext_powers[p+1], ext_powers[p], v) for p in 2:-1:1]
   K = chain_complex(boundary_maps)
   return homology(K, 1)
 end
@@ -150,8 +150,8 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
     return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
   end
 
-  ext_powers = [exterior_power(F, p, cached=cached)[1] for p in i-1:i+1]
-  boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
+  ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]
+  boundary_maps = [wedge_multiplication_map(ext_powers[p+1], ext_powers[p], v) for p in 2:-1:1]
   K = chain_complex(boundary_maps)
   KM = tensor_product(K, M)
   return homology(KM, 1)
