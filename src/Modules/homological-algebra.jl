@@ -481,6 +481,8 @@ julia> depth(I, M)
 ```
 """
 function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem
+  R = base_ring(F)
+  R === base_ring(I) || error("rings are incompatible")
   f = gens(I)
   n = length(f)
   iszero(n) && return 0
