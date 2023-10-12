@@ -153,7 +153,8 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
   ext_powers = [exterior_power(F, p, cached=cached)[1] for p in i-1:i+1]
   boundary_maps = [wedge_multiplication_map(ext_powers[p], ext_powers[p+1], v) for p in 1:2]
   K = chain_complex(boundary_maps)
-  return homology(K, 1)
+  KM = tensor_product(K, M)
+  return homology(KM, 1)
 end
 
 function koszul_dual(F::FreeMod; cached::Bool=true)

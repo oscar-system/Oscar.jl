@@ -351,7 +351,7 @@ function koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRi
   end
 end
 
-function _koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+function _koszul_homology(V::Vector{T}, F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
   r = length(V)
   R = base_ring(F)
   if iszero(r)
@@ -363,7 +363,7 @@ function _koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyR
   return koszul_homology(v, F, i) # See src/Modules/ExteriorPowers/FreeMod.jl
 end
 
-function _koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+function _koszul_homology_graded(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
   r = length(V)
   R = base_ring(F)
   if iszero(r)
@@ -378,8 +378,7 @@ end
 # The old version invoking Singular is below. This proved to be slower in the assembly 
 # of the Koszul complex than the new one using the exterior powers of modules and 
 # the wedge product. We leave the code snippets here for reference.
-#=
-function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem{<:FieldElem}
+function _koszul_homology_from_singular(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem{<:FieldElem}
   R = base_ring(F)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @assert parent(V[1]) == R
@@ -395,7 +394,7 @@ function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRin
   return SubquoModule(UO)
 end
 
-function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
+function _koszul_homology_from_singular(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
  R = base_ring(M)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert parent(V[1]) == R
@@ -411,7 +410,6 @@ function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MP
  UO = SubModuleOfFreeModule(FFF, MG)
  return SubquoModule(UO)
 end
-=#
 
 ##############################################################################
 #
@@ -490,7 +488,26 @@ function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
  error("not implemented for the given type of module.")
 end
 
-function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
+function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem
+  f = gens(I)
+  n = length(f)
+  iszero(n) && return 0
+
+  i = 0
+  for k in n:-1:0
+    if !iszero(koszul_homology(f, F, k)) 
+      i = k
+      break
+    end
+  end
+
+  # findfirst doesn't seem to work with countdown ranges
+  #i = findfirst(k->!iszero(koszul_homology(f, F, k)), n:-1:0)
+  #i === nothing && return 0
+  return n - i
+end
+
+function _depth_from_singular(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(F)
@@ -501,7 +518,7 @@ function depth(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
  return Singular.LibHomolog.depth(SG, I.gens.S)
 end
 
-function depth(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: MPolyRingElem
+function _depth_from_singular(I::MPolyIdeal{T}, M::SubquoModule{T}) where T <: MPolyRingElem
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
  @assert base_ring(I) == base_ring(M)
@@ -561,8 +578,10 @@ function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
   Fip1, _ = exterior_power(Rr, i+1)
   phi = wedge_multiplication_map(Fi, Fip1, v)
   return matrix(phi)
+end
 
-  # Deprecated code below; left for reference for how to import things from Singular
+# Deprecated code below; left for reference for how to import things from Singular
+function _koszul_matrix_from_singular(V::Vector{T}, i::Int) where T <: MPolyRingElem
   @assert 1 <= i <= length(V)
   R = parent(V[1])
   @assert all(x->parent(x) == R, V)
@@ -610,12 +629,25 @@ function koszul_complex(V::Vector{T}) where T <: MPolyRingElem
   F = FreeMod(R, r)
   v = sum(x*e for (x, e) in zip(V, gens(F)); init=zero(F))
   return koszul_complex(v)
+end
 
-  # Deprecated code below; left for reference for how to import things from Singular
+function koszul_complex(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+  r = length(V)
+  iszero(r) && error("list must not be empty")
+  R = base_ring(M)
+  @assert all(x->parent(x)===R, V) "parent mismatch"
+
+  F = FreeMod(R, r)
+  v = sum(x*e for (x, e) in zip(V, gens(F)); init=zero(F))
+  return koszul_complex(v, M)
+end
+
+# Deprecated code below; left for reference for how to import things from Singular
+function _koszul_complex_from_singular(V::Vector{T}) where T <: MPolyRingElem
   R  = parent(V[1])
   @assert all(x->parent(x) == R, V)
   n = length(V)
-  KM = [koszul_matrix(V, i) for i=n:-1:1]
+  KM = [_koszul_matrix_from_singular(V, i) for i=n:-1:1]
   
   F = free_module(R, 0)
   G = free_module(R, 1)

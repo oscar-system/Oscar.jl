@@ -33,7 +33,9 @@ end
  R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
  V = gens(R)
  KM = koszul_matrix(V, 1)
- @test nrows(KM) == 2
+ KMS = Oscar._koszul_matrix_from_singular(V, 1)
+ @test nrows(KM) == nrows(KMS) == 2
+ @test ncols(KM) == ncols(KMS)
  #@test KM[1] == R[1] # Custom test for the deprecated Singular code
 end
 
@@ -41,8 +43,11 @@ end
  R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
  V = gens(R)
  K = koszul_complex(V)
+ KS = Oscar._koszul_complex_from_singular(V)
  KM = matrix(map(K, 2))
- @test ncols(KM) == 2
+ KMS = matrix(map(KS, 2))
+ @test nrows(KM) == nrows(KMS) == 1
+ @test ncols(KM) == ncols(KMS)
  #@test KM[1, 1] == -R[2]# Custom test for the deprecated Singular code
 end
 
@@ -53,7 +58,9 @@ end
  M = quo(F, U)[1]
  V =  [x, x*z-z]
  @test is_zero(koszul_homology(V, M, 0)) == false
+ @test is_zero(Oscar._koszul_homology_from_singular(V, M, 0)) == false
  @test is_zero(koszul_homology(V, M, 1)) == true
+ @test is_zero(Oscar._koszul_homology_from_singular(V, M, 1)) == true
 end
 
 @testset "mpoly_affine_homological-algebra.depth" begin
@@ -62,10 +69,10 @@ end
  U = matrix([x*y])
  M = quo(F, U)[1]
  I = ideal(R, gens(R))
- @test depth(I, M) == 1
+ @test depth(I, M) == Oscar._depth_from_singular(I, M) == 1
 
  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
  F = free_module(R, 1);
  I = ideal(R, [x*z-z, x*y-y, x])
- @test depth(I, F) == 3
+ @test depth(I, F) == Oscar._depth_from_singular(I, F) == 3
 end
