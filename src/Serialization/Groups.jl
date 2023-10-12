@@ -35,6 +35,31 @@
 #   elements family.
 #   In particular, we do not support the (de)serialization of GAP's
 #   family objects.)
+#
+# - Remark:
+#   In those cases where the object identity of `GAP.Globals.FamilyObj`
+#   objects must be preserved in the deserialization, we cannot simply
+#   leave it to the (de)serialization of Oscar objects to deal with "their"
+#   underlying GAP objects.
+#
+#   For example, serialize two subgroups `H`, `K` of a finitely presented
+#   group `G` in Oscar.
+#   In order to achieve that the deserialized `H` and `K` in a new Julia
+#   session are compatible (that is, elements of `H` and elements of `K`
+#   can be multiplied with each other), we have to make sure that
+#   `GAP.Globals.FamilyObj(H.X) === GAP.Globals.FamilyObj(K.X)` are
+#   identical.
+#   Since `H` and `K` know about these objects only via `H.X` and `K.X`,
+#   the mechanism that automatically takes care of object identity in the
+#   (de)serialization can be used only if (de)serialization methods for `H.X`
+#   and `K.X` are provided.
+#
+#   (The situation would be different if `H` and `K` would store references
+#   to the "full group" `G`.
+#   In this case, we could force that serializing `H` and `K` involves also
+#   a serialization of `G`, then deserializing `H` and `K` would recreate the
+#   common `G`, and the object identity of the GAP family object could be
+#   forced via `G`.)
 
 
 ##############################################################################
