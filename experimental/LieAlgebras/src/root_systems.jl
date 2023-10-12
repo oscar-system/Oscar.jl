@@ -2,7 +2,7 @@ mutable struct RootSystem
   roots::Vector{Vector{Int}}
   simple_roots::Vector{Vector{Int}}
   positive_roots::Vector{Vector{Int}}
-  root_system_type::Tuple{Symbol, Int64}
+  root_system_type::Tuple{Symbol,Int64}
   GAP_root_system::GAP.GapObj
   function RootSystem(S::Symbol, n::Int64)
     # S is a symbol detailing the type of the indecomposable root system 
@@ -69,8 +69,7 @@ end
 ###############################################################################
 
 function Base.:(==)(R1::RootSystem, R2::RootSystem)
-  return R1.roots == R2.roots &&
-         R1.root_system_type != R2.root_system_type
+  return R1.roots == R2.roots && R1.root_system_type != R2.root_system_type
 end
 
 function Base.hash(R::RootSystem, h::UInt)
@@ -108,7 +107,7 @@ end
 Return the Cartan matrix of the type of root system specified by `S`
   """
 function cartan_matrix(S::Symbol, n::Int64)
-  return cartan_matrix(root_system(S,n))
+  return cartan_matrix(root_system(S, n))
 end
 
 @doc raw"""
@@ -122,7 +121,7 @@ function cartan_matrix(R::RootSystem)
   C = matrix(QQ, CG)
   return C
 end
- 
+
 @doc raw"""
     dynkin_diagram(S::String)
 
@@ -132,59 +131,59 @@ function dynkin_diagram(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
   @req n >= 1 "We need a positive number of roots"
   D = ""
-   
+
   if S == :A
-    for i = 1:(n-1)
+    for i in 1:(n - 1)
       D = D * string(i) * " - "
     end
     D = D * string(n)
-    
+
   elseif S == :B
     if n == 1
       D = string(n)
     else
-      for i = 1:(n-2)
+      for i in 1:(n - 2)
         D = D * string(i) * " - "
       end
-      D = D * string(n-1) * " >=> " * string(n)
+      D = D * string(n - 1) * " >=> " * string(n)
     end
 
   elseif S == :C
     if n == 1
       D = string(n)
     else
-      for i = 1:(n-2)
+      for i in 1:(n - 2)
         D = D * string(i) * " - "
       end
-      D = D * string(n-1) * " <=< " * string(n)
+      D = D * string(n - 1) * " <=< " * string(n)
     end
-    
+
   elseif S == :D
     if n >= 4
-      for i = 1:4*n-10
+      for i in 1:(4 * n - 10)
         D = D * " "
       end
-      D = D * string(n-1) * "\n"
-      for i = 1:4*n-11
+      D = D * string(n - 1) * "\n"
+      for i in 1:(4 * n - 11)
         D = D * " "
       end
       D = D * "/\n"
-      for i = 1:n-3
+      for i in 1:(n - 3)
         D = D * string(i) * " - "
       end
-      D = D * string(n-2) * "\n"
-      for i = 1:4*n-12
+      D = D * string(n - 2) * "\n"
+      for i in 1:(4 * n - 12)
         D = D * " "
       end
       D = D * " \\ \n"
-      for i = 1:4*n-10
+      for i in 1:(4 * n - 10)
         D = D * " "
       end
       D = D * string(n)
     else
       error("This root system doesn't exist.")
     end
-    
+
   elseif S == :E
     if n == 6
       D = "1 - 3 - 4 - 5 - 6\n        |\n        2"
@@ -195,7 +194,7 @@ function dynkin_diagram(S::Symbol, n::Int64)
     else
       error("This root system doesn't exist.")
     end
-  
+
   elseif S == :F
     if n == 4
       D = "1 - 2 >=> 3 - 4"
@@ -221,5 +220,5 @@ Return the Dynkin diagram of the root system `R`
 """
 function dynkin_diagram(R::RootSystem)
   S = R.root_system_type
-  return dynkin_diagram(S[1],S[2])
+  return dynkin_diagram(S[1], S[2])
 end

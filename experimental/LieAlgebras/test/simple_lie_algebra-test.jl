@@ -7,12 +7,12 @@
       )
     end
 
-     @testset "A3(CF(4))" begin
-       L = lie_algebra(cyclotomic_field(4)[1], :A, 3)
-       lie_algebra_conformance_test(
-         L, SimpleLieAlgebra{nf_elem}, SimpleLieAlgebraElem{nf_elem}
-       )
-     end
+    @testset "A3(CF(4))" begin
+      L = lie_algebra(cyclotomic_field(4)[1], :A, 3)
+      lie_algebra_conformance_test(
+        L, SimpleLieAlgebra{nf_elem}, SimpleLieAlgebraElem{nf_elem}
+      )
+    end
   end
 
   @testset "constructors and basic properties" begin

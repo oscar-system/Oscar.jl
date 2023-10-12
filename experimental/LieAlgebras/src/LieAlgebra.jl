@@ -122,7 +122,6 @@ function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:Fi
   parent(x1) !== parent(x2) && error("Incompatible Lie algebras.")
 end
 
-
 ###############################################################################
 #
 #   String I/O

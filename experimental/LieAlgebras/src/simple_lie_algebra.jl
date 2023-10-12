@@ -1,5 +1,5 @@
-@attributes mutable struct SimpleLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
 #Construct a simple Lie algebra over a given field with a given root system
+@attributes mutable struct SimpleLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
   R::Field
   root_system::RootSystem
   dim::Int
@@ -9,7 +9,7 @@
   function SimpleLieAlgebra{C}(
     R::Field, S::Symbol, n::Int64; cached::Bool=true
   ) where {C<:FieldElem}
-    RS = root_system(S,n)
+    RS = root_system(S, n)
     dimL = number_of_roots(RS) + length(RS.simple_roots)
     s = [Symbol("e_$i") for i in 1:dimL]
     st = root_system_type(RS)
@@ -17,9 +17,7 @@
     #note that it is enough to do this over QQ, as we can later coerce the constants
     #into the field R
     coeffs_iso = inv(Oscar.iso_oscar_gap(QQ))
-    LG = GAP.Globals.SimpleLieAlgebra(
-      GAP.Obj(S), n, domain(coeffs_iso)
-    )
+    LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(S), n, domain(coeffs_iso))
     sc_table_G =
       (
         entry -> (entry[1], Vector{elem_type(QQ)}(map(coeffs_iso, entry[2])))
@@ -35,14 +33,12 @@
       )
     end
     return get_cached!(SimpleLieAlgebraDict, (R, RS), cached) do
-    new{C}(R, RS, dimL, s, st, struct_consts)
+      new{C}(R, RS, dimL, s, st, struct_consts)
     end::SimpleLieAlgebra{C}
   end
 end
 
-const SimpleLieAlgebraDict = CacheDictType{
-  Tuple{Field,RootSystem},SimpleLieAlgebra
-}()
+const SimpleLieAlgebraDict = CacheDictType{Tuple{Field,RootSystem},SimpleLieAlgebra}()
 
 mutable struct SimpleLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::SimpleLieAlgebra{C}
@@ -76,7 +72,7 @@ root_system_type(L::SimpleLieAlgebra) = L.root_system_type
 #    return f
 #  end
 
-function symbols(L::SimpleLieAlgebra) 
+function symbols(L::SimpleLieAlgebra)
   return L.s
 end
 
@@ -94,7 +90,10 @@ function Base.show(io::IO, ::MIME"text/plain", L::SimpleLieAlgebra)
   io = pretty(io)
   println(io, "Simple Lie algebra")
   println(
-    io, Indent(), "of type $(string(root_system_type(L)[1])*string(root_system_type(L)[2]))", Dedent()
+    io,
+    Indent(),
+    "of type $(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
+    Dedent(),
   )
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
   print(io, "over ")
@@ -104,16 +103,11 @@ end
 function Base.show(io::IO, L::SimpleLieAlgebra)
   if get(io, :supercompact, false)
     print(io, "Simple Lie algebra")
-    print(io,
-      "$(string_root_system(L))",
-    )
+    print(io, "$(string_root_system(L))")
   else
     io = pretty(io)
     print(io, "Simple Lie algebra")
-     print(io,
-      "$(string_root_system(L))",
-      Dedent(),
-    )
+    print(io, "$(string_root_system(L))", Dedent())
     print(io, "over ", Lowercase())
     print(IOContext(io, :supercompact => true), coefficient_ring(L))
   end
@@ -128,8 +122,7 @@ end
 # Binary operations
 
 function bracket(
-  x::SimpleLieAlgebraElem{C},
-  y::SimpleLieAlgebraElem{C},
+  x::SimpleLieAlgebraElem{C}, y::SimpleLieAlgebraElem{C}
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
@@ -178,4 +171,4 @@ function chevalley_basis(L::SimpleLieAlgebra)
   #basis for cartan algebra
   h = B[(2 * n + 1):dim(L)]
   return [r_plus, r_minus, h]
-end 
+end
