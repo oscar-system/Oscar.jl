@@ -34,7 +34,7 @@ end
  V = gens(R)
  KM = koszul_matrix(V, 1)
  @test nrows(KM) == 2
- @test KM[1] == R[1]
+ #@test KM[1] == R[1] # Custom test for the deprecated Singular code
 end
 
 @testset "mpoly_affine_homological-algebra.koszul_complex" begin
@@ -43,7 +43,7 @@ end
  K = koszul_complex(V)
  KM = matrix(map(K, 2))
  @test ncols(KM) == 2
- @test KM[1, 1] == -R[2]
+ #@test KM[1, 1] == -R[2]# Custom test for the deprecated Singular code
 end
 
 @testset "mpoly_affine_homological-algebra.koszul_homology" begin

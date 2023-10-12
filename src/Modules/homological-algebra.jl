@@ -339,20 +339,60 @@ function koszul_homology(V::Vector{T}, M::ModuleFP{T}, i::Int) where T <: MPolyR
  error("not implemented for the given type of module.")
 end
 
-function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem
- R = base_ring(F)
- @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
- @assert parent(V[1]) == R
- @assert all(x->parent(x) == R, V)
- I = ideal(R, V)
- singular_assure(I)
- MX = singular_module(F)
- SG = Singular.Module(base_ring(MX), MX(zero(F)))
- SU = Singular.LibHomolog.KoszulHomology(I.gens.S, SG, i)
- FFF = free_module(R, rank(SU))
- MG = ModuleGens(FFF, SU)
- UO = SubModuleOfFreeModule(FFF, MG)
- return SubquoModule(UO)
+function koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+  R = base_ring(F)
+  @assert all(x->parent(x)===R, V) "rings are incompatible"
+  if is_graded(F) && is_graded(R)
+    return _koszul_homology_graded(V, F, i)
+  elseif !is_graded(F) && !is_graded(R)
+    return _koszul_homology(V, F, i)
+  else
+    error("can not compute the koszul homology of a non-graded module over a graded ring")
+  end
+end
+
+function _koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+  r = length(V)
+  R = base_ring(F)
+  if iszero(r)
+    iszero(i) && return F
+    return FreeMod(R, 0)
+  end
+  Rr = FreeMod(R, r)
+  v = sum(x*e for (x, e) in zip(V, gens(Rr)); init=zero(Rr))
+  return koszul_homology(v, F, i) # See src/Modules/ExteriorPowers/FreeMod.jl
+end
+
+function _koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+  r = length(V)
+  R = base_ring(F)
+  if iszero(r)
+    iszero(i) && return F
+    return graded_free_module(R, 0)
+  end
+  Rr = graded_free_module(R, r)
+  v = sum(x*e for (x, e) in zip(V, gens(Rr)); init=zero(Rr))
+  return koszul_homology(v, F, i) # See src/Modules/ExteriorPowers/FreeMod.jl
+end
+
+# The old version invoking Singular is below. This proved to be slower in the assembly 
+# of the Koszul complex than the new one using the exterior powers of modules and 
+# the wedge product. We leave the code snippets here for reference.
+#=
+function koszul_homology(V::Vector{T},F::FreeMod{T}, i::Int) where T <: MPolyRingElem{<:FieldElem}
+  R = base_ring(F)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  @assert parent(V[1]) == R
+  @assert all(x->parent(x) == R, V)
+  I = ideal(R, V)
+  singular_assure(I)
+  MX = singular_module(F)
+  SG = Singular.Module(base_ring(MX), MX(zero(F)))
+  SU = Singular.LibHomolog.KoszulHomology(I.gens.S, SG, i)
+  FFF = free_module(R, rank(SU))
+  MG = ModuleGens(FFF, SU)
+  UO = SubModuleOfFreeModule(FFF, MG)
+  return SubquoModule(UO)
 end
 
 function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MPolyRingElem
@@ -371,6 +411,7 @@ function koszul_homology(V::Vector{T}, M::SubquoModule{T}, i::Int) where T <: MP
  UO = SubModuleOfFreeModule(FFF, MG)
  return SubquoModule(UO)
 end
+=#
 
 ##############################################################################
 #
@@ -509,6 +550,19 @@ julia> koszul_matrix(V, 1)
 ```
 """
 function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
+  r = length(V)
+  iszero(r) && error("list must not be empty")
+  R = parent(first(V))
+  @assert all(x->parent(x)===R, V) "parent mismatch"
+
+  Rr = FreeMod(R, r)
+  v = sum(x*e for (x, e) in zip(V, gens(Rr)); init=zero(Rr))
+  Fi, _ = exterior_power(Rr, i)
+  Fip1, _ = exterior_power(Rr, i+1)
+  phi = wedge_multiplication_map(Fi, Fip1, v)
+  return matrix(phi)
+
+  # Deprecated code below; left for reference for how to import things from Singular
   @assert 1 <= i <= length(V)
   R = parent(V[1])
   @assert all(x->parent(x) == R, V)
@@ -548,6 +602,16 @@ julia> matrix(map(Kd, 1))
 ```
 """
 function koszul_complex(V::Vector{T}) where T <: MPolyRingElem
+  r = length(V)
+  iszero(r) && error("list must not be empty")
+  R = parent(first(V))
+  @assert all(x->parent(x)===R, V) "parent mismatch"
+
+  F = FreeMod(R, r)
+  v = sum(x*e for (x, e) in zip(V, gens(F)); init=zero(F))
+  return koszul_complex(v)
+
+  # Deprecated code below; left for reference for how to import things from Singular
   R  = parent(V[1])
   @assert all(x->parent(x) == R, V)
   n = length(V)
