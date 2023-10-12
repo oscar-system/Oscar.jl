@@ -82,8 +82,9 @@ _images(f::MPolyAnyMap) = f.img_gens
 ################################################################################
 function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   io = pretty(io)
-  println(io, "Ring homomorphism")  # at least one new line is needed
-  println(io, Indent(),  "from ", Lowercase(), domain(f))
+  println(IOContext(io, :supercompact => true), f)
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(f))
   println(io, "to ", Lowercase(), codomain(f))
   println(io, Dedent(), "defined by", Indent())
   R = domain(f)

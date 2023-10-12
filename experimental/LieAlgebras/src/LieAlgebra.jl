@@ -4,9 +4,9 @@
 #
 #################################################
 
-abstract type LieAlgebra{C<:RingElement} end
+abstract type LieAlgebra{C<:FieldElem} end
 
-abstract type LieAlgebraElem{C<:RingElement} end
+abstract type LieAlgebraElem{C<:FieldElem} end
 
 # To be implemented by subtypes:
 # parent_type(::Type{MyLieAlgebraElem{C}})
@@ -76,7 +76,7 @@ function iszero(x::LieAlgebraElem)
   return iszero(coefficients(x))
 end
 
-@inline function _matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
+@inline function _matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return (x.mat)::dense_matrix_type(C)
 end
 
@@ -111,7 +111,7 @@ function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
   return parent(x)(deepcopy_internal(_matrix(x), dict))
 end
 
-function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   parent(x1) !== parent(x2) && error("Incompatible Lie algebras.")
 end
 
@@ -168,7 +168,7 @@ end
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(v::Vector{C}) where {C<:FieldElem}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
@@ -180,7 +180,7 @@ end
 Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
   @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
 end
@@ -190,7 +190,7 @@ end
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(v::SRow{C}) where {C<:FieldElem}
   mat = dense_row(v, dim(L))
   return elem_type(L)(L, mat)
 end
@@ -200,7 +200,7 @@ end
 
 Return `x`. Fails if `x` is not an element of `L`.
 """
-function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:FieldElem}
   @req L === parent(x) "Incompatible modules."
   return x
 end
@@ -211,47 +211,39 @@ end
 #
 ###############################################################################
 
-function Base.:-(x::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:-(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return parent(x)(-_matrix(x))
 end
 
-function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return parent(x1)(_matrix(x1) + _matrix(x2))
 end
 
-function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return parent(x1)(_matrix(x1) - _matrix(x2))
 end
 
-function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
+function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(x::LieAlgebraElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
-  return parent(x)(_matrix(x) * c)
-end
-
-function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
+function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(c::U, x::LieAlgebraElem) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(c::U, x::LieAlgebraElem) where {U<:RationalUnion}
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(c::ZZRingElem, x::LieAlgebraElem{ZZRingElem})
-  return parent(x)(c * _matrix(x))
-end
-
-function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:FieldElem}
   return bracket(x, y)
 end
 
@@ -261,7 +253,7 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return coefficients(x1) == coefficients(x2)
 end

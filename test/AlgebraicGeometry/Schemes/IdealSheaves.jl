@@ -186,3 +186,14 @@ end
 
   @test J == saturation(I*J, I)
 end
+
+@testset "pushforward of ideal sheaves" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  II = IdealSheaf(IP2, ideal(S, [x, y]))
+  bl = blow_up(II)
+  E = ideal_sheaf(exceptional_divisor(bl))
+  JJ = pushforward(bl, E)
+  @test JJ == II
+end

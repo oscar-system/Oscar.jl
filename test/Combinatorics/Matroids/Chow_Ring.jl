@@ -6,8 +6,8 @@
         @test A isa MPolyQuoRing
         proper_flats = flats(M)[2:size(flats(M))[1]-1]
         e = matroid_groundset(M)[1]
-        a = sum([A[i] for i in Oscar._select([e],[],proper_flats)])
-        b = sum([A[i] for i in Oscar._select([],[e],proper_flats)])
+        a = sum([A[i] for i in 1:length(proper_flats) if e in proper_flats[i]])
+        b = sum([A[i] for i in 1:length(proper_flats) if !(e in proper_flats[i])])
         list = [a^i*b^(rank(M)-i-1) for i in (0:rank(M)-1)]
         L1 = [abs(coeff(M.f,1)) for M in list]
         f = reduced_characteristic_polynomial(M)
@@ -28,11 +28,20 @@
     @test A[4]*A[5] == 0
     @test_throws ErrorException chow_ring(non_fano_matroid(), ring=R)
 
+    vol_map = volume_map(M,A)
+    @test [vol_map(A[i]) for i in 1:7] == [1,1,1,0,0,0,1]
+
+    M2 = fano_matroid()
+    A2 = chow_ring(M2)
+    vol_map2 = volume_map(M2,A2)
+    @test vol_map2(A2[1]*A2[8]) == 1
+    @test vol_map2(A2[1]*A2[1]) ==-2
+    @test vol_map2(A2[8]*A2[8]) ==-1
+
     A = augmented_chow_ring(M)
     @test nvars(base_ring(A)) == 8
     @test A[1]*A[2] == 0
     @test A[1]*A[3] != 0
     @test A[1]*A[3] == A[2]*A[4]
     @test A[5]*A[8] != 0
-
 end

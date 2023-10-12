@@ -229,7 +229,7 @@ Spectrum
     by ideal(x)
 
 julia> inc = ambient_embedding(Y)
-Morphism
+Affine scheme morphism
   from [x, y]  V(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
@@ -558,10 +558,10 @@ Spectrum
     at complement of maximal ideal of point (0, 0)
 
 julia> reduced_scheme(X)
-(V(x^2 - 2*x*y + y^2, x - y), Morphism: V(x^2 - 2*x*y + y^2, x - y) -> V(x^2 - 2*x*y + y^2))
+(V(x^2 - 2*x*y + y^2, x - y), Hom: V(x^2 - 2*x*y + y^2, x - y) -> V(x^2 - 2*x*y + y^2))
 
 julia> reduced_scheme(Y)
-(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Morphism: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
+(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Hom: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
 
 ```
 """
@@ -641,10 +641,10 @@ Spectrum
     by ideal(x^2 - y^2 + z^2)
 
 julia> singular_locus(A3)
-(V(1), Morphism: V(1) -> affine 3-space)
+(V(1), Hom: V(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(V(x^2 - y^2 + z^2, z, y, x), Morphism: V(x^2 - y^2 + z^2, z, y, x) -> V(x^2 - y^2 + z^2))
+(V(x^2 - y^2 + z^2, z, y, x), Hom: V(x^2 - y^2 + z^2, z, y, x) -> V(x^2 - y^2 + z^2))
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
 Complement
@@ -661,7 +661,7 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> singular_locus(Y)
-(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Morphism: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
+(Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal, Hom: Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal -> Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal)
 
 ```
 """
@@ -720,10 +720,10 @@ Spectrum
     by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> singular_locus_reduced(X)
-(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), Morphism: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
+(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), Hom: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
 
 julia> singular_locus(X)
-(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), Morphism: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
+(V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), Hom: V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2) -> V(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4))
 
 ```
 """

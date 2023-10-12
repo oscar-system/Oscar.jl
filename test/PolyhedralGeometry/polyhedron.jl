@@ -185,6 +185,13 @@ for f in (QQ, ENF)
             @test nrays(Q1) == 1
             @test lineality_dim(Q2) == 1
             @test relative_interior_point(Q0) == [1//3, 1//3]
+            @test facet_sizes(Q0)[1] == 2
+            @test sum(facet_sizes(Q1)) == 6
+            @test facet_sizes(Q2)[1] == 1
+            @test vertex_sizes(Q0)[1] == 2
+            @test vertex_sizes(Q1)[1] == 2
+            @test length(vertex_sizes(Q2)) == 0
+
         end
 
         @testset "volume" begin
@@ -479,6 +486,13 @@ for f in (QQ, ENF)
                 end
 
                 @test sum(zonotope_vertices_fukuda_matrix([4 4 2; 2 4 1])) == 0
+
+                @test_throws ArgumentError vertex_figure(cube(3),10)
+                let vf = vertex_figure(platonic_solid("octahedron"),1)
+                    @test vf isa Polyhedron{T}
+                    @test ambient_dim(vf) == 3
+                    @test sum(facet_sizes(vf)) == 8
+                end
             end
 
         end

@@ -128,7 +128,7 @@ function load_object(s::DeserializerState,
     # the order in the symbols reflects the grading
     return graded_polynomial_ring(base_ring, symbols)[1]
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
+    return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
   end
   return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
@@ -259,7 +259,7 @@ const IdealUnionType = Union{MPolyIdeal, LaurentMPolyIdeal, FreeAssAlgIdeal}
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    ref = save_as_ref(s, parent(gens(x)[1]))
+    ref = save_as_ref(s, base_ring(x))
     save_object(s, ref, :params)
   end
 end

@@ -67,7 +67,7 @@
   I = ideal(P2,G);
   PmodI, _ = quo(P2,I);
   num1, _ = hilbert_series(PmodI);
-  L, q = LaurentPolynomialRing(ZZ, "q");
+  L, q = laurent_polynomial_ring(ZZ, "q");
   num2, _ = hilbert_series(PmodI; parent=L);
   @test num2 == evaluate(num1, q)
 end
@@ -79,7 +79,7 @@ end
   I = homogenization(J, "w");
   A, _ = quo(base_ring(I), I);
   numer1, denom1 = hilbert_series(A);
-  S, t = LaurentPolynomialRing(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, "t");
   numer2, denom2 = hilbert_series(A; parent=S);
   Smult, (T,) = polynomial_ring(ZZ, ["t"]);
   numer3, denom3 = hilbert_series(A; parent=Smult);
@@ -91,7 +91,7 @@ end
   JJ = ideal(RR, X^2 - Y^2);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), _ = multi_hilbert_series(A);
-  S, t = LaurentPolynomialRing(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, "t");
   (numer2, denom2), _ = multi_hilbert_series(A; parent=S);
   Smult, (T,) = polynomial_ring(ZZ, ["t"]);
   @test_throws  DomainError  multi_hilbert_series(A; parent=Smult)
@@ -104,7 +104,7 @@ end
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), (H, iso) = multi_hilbert_series(A);
   @test is_free(H) && isone(rank(H))
-  S, t = LaurentPolynomialRing(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, "t");
   (numer2, denom2), (H, iso) = multi_hilbert_series(A; parent=S);
   @test is_free(H) && isone(rank(H))
   Smult, (T,) = polynomial_ring(ZZ, ["t"]);

@@ -56,14 +56,14 @@ with basis nf_elem[1, sqrt(-5)]
 
 julia> factorisations(zk(6))
 2-element Vector{Fac{NfOrdElem}}:
- -1 * (sqrt(-5) + 1) * (sqrt(-5) - 1)
- -1 * 2 * -3
+ -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
+ -1 * -3 * 2
 
 julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
-(Multivariate Polynomial Ring in x1, x2 over Rational Field, QQMPolyRingElem[x1, x2])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
 
 julia> R = grade(Qx, [1,2])[1]
-Multivariate Polynomial Ring in x1, x2 over Rational Field graded by
+Multivariate polynomial ring in 2 variables over QQ graded by
   x1 -> [1]
   x2 -> [2]
 
@@ -71,33 +71,37 @@ julia> f = R(x[1]^2+x[2])
 x1^2 + x2
 
 julia> degree(f)
-graded by [2]
+[2]
 
 julia> F = free_module(R, 1)
 Free module of rank 1 over R
 
-julia> s = sub(F, [f*F[1]])
+julia> s = sub(F, [f*F[1]])[1]
 Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
 represented as subquotient with no relations.
 
-julia> H, mH = hom(s, quo(F, s))
-(hom of (s, Subquotient of Submodule with 1 generator
+julia> H, mH = hom(s, quo(F, s)[1])
+(hom of (s, Subquotient of
 1 -> e[1]
-by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]), Map from
-H to Set of all homomorphisms from Submodule with 1 generator
+by
+1 -> (x1^2 + x2)*e[1]), Map: hom of (s, Subquotient of
+1 -> e[1]
+by
+1 -> (x1^2 + x2)*e[1]) -> set of all homomorphisms from Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
 represented as subquotient with no relations. to Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1] defined by a julia-function with inverse)
+1 -> (x1^2 + x2)*e[1])
 
 julia> mH(H[1])
 Map with following data
 Domain:
 =======
-s
+Submodule with 1 generator
+1 -> (x1^2 + x2)*e[1]
+represented as subquotient with no relations.
 Codomain:
 =========
 Subquotient of Submodule with 1 generator
@@ -118,7 +122,7 @@ pm::Vector<pm::Integer>
 julia> RP2 = Polymake.topaz.real_projective_plane();
 
 julia> RP2.HOMOLOGY
-PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
+pm::Array<topaz::HomologyGroup<pm::Integer> >
 ({} 0)
 ({(2 1)} 0)
 ({} 0)

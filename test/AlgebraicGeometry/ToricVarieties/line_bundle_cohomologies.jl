@@ -30,7 +30,7 @@
     @testset "Toric vanishing sets of dP3" begin
         @test is_projective_space(toric_variety(vs[1])) == false
         @test length(polyhedra(vs[1])) == 1
-        @test cohomology_index(vs[1]) == 0
+        @test cohomology_indices(vs[1]) == [0]
         @test contains(vs[1], structure_sheaf(dP3)) == false
         @test contains(vs[2], structure_sheaf(dP3)) == true
         @test contains(vs[3], structure_sheaf(dP3)) == true

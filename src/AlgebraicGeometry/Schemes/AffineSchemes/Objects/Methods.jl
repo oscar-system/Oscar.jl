@@ -41,26 +41,25 @@ function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
 end
 
 function Base.show(io::IO, X::AbsSpec)
-  io = pretty(io)
   if has_attribute(X, :name)
     print(io, name(X))
   elseif get(io, :supercompact, false)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
-    print(io, "Empty scheme")
+    print(io, "Empty affine scheme")
   else
     _show(io, X)
   end
 end
 
 function _show(io::IO, X::AbsSpec)
+  io = pretty(io)
   print(io, LowercaseOff(), "Spec of ")
   print(io, Lowercase(), OO(X))
 end
 
 function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
-  io = pretty(io)
-  print(io, "affine ",ngens(OO(X)),"-space")
+  print(io, "Affine ", ngens(OO(X)), "-space")
 end
 
 function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
@@ -90,8 +89,6 @@ function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:A
   join(io, denominators(S), ",")
   print(io, ")")
 end
-
-
 
 ########################################################
 # (3) Check for zero divisors in rings

@@ -46,7 +46,7 @@ The usual arithmetics, e.g. `+`, `-`, and `*` (scalar multiplication), are defin
 
 The module action is defined as `*`.
 ```@docs
-*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
 ```
 
 ## Module constructors
@@ -54,14 +54,14 @@ The module action is defined as `*`.
 ```@docs
 trivial_module(L::LieAlgebra, d::IntegerUnion=1)
 standard_module(::LinearLieAlgebra)
-dual(::LieAlgebraModule{C}) where {C<:RingElement}
-direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
-tensor_product(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
-exterior_power(::LieAlgebraModule{C}, ::Int) where {C<:RingElement}
-symmetric_power(::LieAlgebraModule{C}, ::Int) where {C<:RingElement}
-tensor_power(::LieAlgebraModule{C}, ::Int) where {C<:RingElement}
-abstract_module(::LieAlgebra{C}, ::Int, ::Vector{<:MatElem{C}}, ::Vector{<:VarName}; ::Bool) where {C<:RingElement}
-abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; ::Bool) where {C<:RingElement}
+dual(::LieAlgebraModule{C}) where {C<:FieldElem}
+direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:FieldElem}
+tensor_product(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:FieldElem}
+exterior_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
+symmetric_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
+tensor_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
+abstract_module(::LieAlgebra{C}, ::Int, ::Vector{<:MatElem{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
+abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
 ```
 
 # Type-dependent getters
@@ -74,6 +74,6 @@ is_tensor_product(::LieAlgebraModule)
 is_exterior_power(::LieAlgebraModule)
 is_symmetric_power(::LieAlgebraModule)
 is_tensor_power(::LieAlgebraModule)
-base_module(::LieAlgebraModule{C}) where {C<:RingElement}
-base_modules(::LieAlgebraModule{C}) where {C<:RingElement}
+base_module(::LieAlgebraModule{C}) where {C<:FieldElem}
+base_modules(::LieAlgebraModule{C}) where {C<:FieldElem}
 ```

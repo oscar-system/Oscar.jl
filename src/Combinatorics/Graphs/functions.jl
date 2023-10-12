@@ -276,6 +276,10 @@ function dst(e::Edge)
     return e.target
 end
 
+Vector{Int}(e::Edge) = [src(e), dst(e)]
+
+Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
+
 
 @doc raw"""
     reverse(e::Edge)

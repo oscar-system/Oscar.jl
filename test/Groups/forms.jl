@@ -1,6 +1,6 @@
 @testset "Definition forms" begin
    T,t = polynomial_ring(GF(3),"t")
-   F,z = FiniteField(t^2+1,"z")
+   F,z = finite_field(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
    @test is_alternating(B)
@@ -67,7 +67,7 @@
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
    T,t = polynomial_ring(GF(2),"t")
-   F,z = FiniteField(t^2+t+1,"z")
+   F,z = finite_field(t^2+t+1,"z")
    R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
@@ -82,7 +82,7 @@
 end
 
 @testset "Evaluating forms" begin
-   F,z = FiniteField(3,2,"z")
+   F,z = finite_field(3,2,"z")
    V=VectorSpace(F,6)
 
    x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
@@ -177,7 +177,7 @@ end
    @test z==nothing
 
    T,t = polynomial_ring(GF(3),"t")
-   F,a = FiniteField(t^2+1,"a")
+   F,a = finite_field(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
@@ -201,7 +201,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = FiniteField(2,3,"a")
+   F,a = finite_field(2,3,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=a; x[2,3]=a^2+1; x[3,4]=1; x[1,5]=a^2+a+1; x[5,6]=1; x=x-transpose(x)
    y = zero_matrix(F,6,6)
@@ -236,7 +236,7 @@ end
    @test_throws ArgumentError is_congruent(f,g)
 
    #hermitian
-   F,a = FiniteField(3,2,"a")
+   F,a = finite_field(3,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a-1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -253,7 +253,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = FiniteField(2,2,"a")
+   F,a = finite_field(2,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -297,7 +297,7 @@ end
    is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
-   F,a = FiniteField(2,2,"a")
+   F,a = finite_field(2,2,"a")
    R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]

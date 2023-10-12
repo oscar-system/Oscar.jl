@@ -853,11 +853,7 @@ Return the grading group of `base_ring(M)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -890,11 +886,7 @@ Return the degrees of the generators of `M`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -914,9 +906,9 @@ julia> M = subquotient(a1,a2);
 
 julia> degrees_of_generators(M)
 3-element Vector{GrpAbFinGenElem}:
- Element of Z with components [2]
- Element of Z with components [2]
- Element of Z with components [2]
+ [2]
+ [2]
+ [2]
 
 julia> gens(M)
 3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -940,11 +932,7 @@ Return  `true` if `m` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1017,11 +1005,7 @@ Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the 
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1043,7 +1027,7 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of Z with components [5]
+[5]
 
 julia> degree(Int, m)
 5
@@ -1052,7 +1036,7 @@ julia> m3 = x*M[1]+M[2]+x*M[3]
 (x*y + x + y)*e[1] + (x*z + y)*e[2]
 
 julia> degree(m3)
-Element of Z with components [2]
+[2]
 ```
 """
 function degree(el::SubquoModuleElem)
@@ -1102,11 +1086,7 @@ If `a` is graded, return the degree of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1127,7 +1107,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> degree(a)
-Element of Z with components [2]
+[2]
 ```
 """
 function degree(f::SubQuoHom)
@@ -1173,11 +1153,7 @@ Return `true` if `a` is graded, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1212,11 +1188,7 @@ If `a` is graded, return the grading group of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1254,11 +1226,7 @@ is graded of degree `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1721,7 +1689,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)

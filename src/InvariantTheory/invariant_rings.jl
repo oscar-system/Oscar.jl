@@ -53,7 +53,7 @@ in case an existing ring should be used.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -172,7 +172,7 @@ projecting onto `IR`.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -309,7 +309,7 @@ In case `chi` is a linear character, the returned polynomial, say `h`, fulfils
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -375,7 +375,7 @@ See also [`iterate_basis`](@ref).
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -449,7 +449,7 @@ See also [`iterate_basis`](@ref).
 
 # Examples
 ```
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -576,7 +576,7 @@ with respect to `chi`, see [Sta79](@cite).
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 

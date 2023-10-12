@@ -20,7 +20,7 @@ w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
 groebner_polyhedron(I,val_2,w)
 
-Kt,t = RationalFunctionField(QQ,"t")
+Kt,t = rational_function_field(QQ,"t")
 val_t = TropicalSemiringMap(Kt,t)
 Ktx,(x,y,z) = polynomial_ring(Kt,3)
 w = [0,0,0]

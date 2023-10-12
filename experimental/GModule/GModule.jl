@@ -271,7 +271,7 @@ function trivial_gmodule(G::Oscar.GAPGroup, M::Union{GrpAbFinGen, AbstractAlgebr
 end
 
 function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{nf_elem}})
-  k, mk = Hecke.subfield(base_ring(M), vec(collect(vcat(map(mat, M.ac)...))))
+  k, mk = Hecke.subfield(base_ring(M), vec(collect(vcat(map(matrix, M.ac)...))))
   if k != base_ring(M)
     F = free_module(k, dim(M))
     return gmodule(group(M), [hom(F, F, map_entries(pseudo_inv(mk), matrix(x))) for x = M.ac])
@@ -1059,6 +1059,7 @@ function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
   n = length(hb)
   b = dense_matrix_type(base_ring(C))[matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
+
 #  @show [matrix(C.ac[i])*b[1] == b[1]*matrix(D.ac[i]) for i=1:length(C.ac)]
   return b
 end
@@ -1126,8 +1127,8 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GMo
   p = Hecke.p_start
   p = 2^10
 #  p = 127
-  m_in = map(mat, C.ac)
-  m_out = map(mat, D.ac)
+  m_in = map(matrix, C.ac)
+  m_out = map(matrix, D.ac)
   local T
   pp = ZZRingElem(1)
   k = base_ring(C)
@@ -1195,8 +1196,8 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
   p = Hecke.p_start
   p = 2^10
   p = 127
-  m_in = map(mat, C.ac)
-  m_out = map(mat, D.ac)
+  m_in = map(matrix, C.ac)
+  m_out = map(matrix, D.ac)
   local T
   pp = ZZRingElem(1)
   k = base_ring(C)
@@ -1292,7 +1293,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
 end
 
 function gmodule(::ZZRing, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
-  ma = map(mat, C.ac)
+  ma = map(matrix, C.ac)
   M = identity_matrix(QQ, dim(C))
   if dim(C) == 0
     F = free_module(ZZ, 0)
@@ -1444,13 +1445,13 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
 end
 
 function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
-  return map(mat, action(C))
+  return map(matrix, action(C))
 end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
- m = map(mat, C.ac)
+ m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
  while true
    L, T = lll_gram_with_transform(f)

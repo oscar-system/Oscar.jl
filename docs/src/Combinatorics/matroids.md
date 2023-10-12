@@ -26,7 +26,7 @@ matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) wher
 matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
 matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true)
-cycle_matroid(g::Graph)
+cycle_matroid
 bond_matroid(g::Graph)
 cocycle_matroid(g::Graph)
 Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))

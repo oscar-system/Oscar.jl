@@ -136,7 +136,7 @@ Finite field of characteristic 170141183460469231731687303715884105727
 ### Finite fields $\mathbb{F}_{p^n}$ with $p^n$ elements, $p$ a prime
 
 ```jldoctest
-julia> FiniteField(2, 70, "a")
+julia> finite_field(2, 70, "a")
 (Finite field of degree 70 over GF(2), a)
 
 ```
@@ -156,7 +156,7 @@ Finite field of characteristic 3
 julia> T, t = polynomial_ring(F, "t")
 (Univariate polynomial ring in t over GF(3), t)
 
-julia> K, a = FiniteField(t^2 + 1, "a")
+julia> K, a = finite_field(t^2 + 1, "a")
 (Finite field of degree 2 over GF(3), a)
 
 ```

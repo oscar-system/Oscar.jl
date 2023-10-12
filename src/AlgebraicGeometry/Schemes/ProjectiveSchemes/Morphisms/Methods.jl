@@ -31,7 +31,7 @@ julia> I = ideal([x^3-y^2*z]);
 julia> Y = projective_scheme(P, I);
 
 julia> f = identity_map(Y)
-Morphism
+Projective scheme morphism
   from projective scheme in IP^2 over QQ
   to projective scheme in IP^2 over QQ
 
@@ -122,29 +122,22 @@ end
 ###############################################################################
 
 function Base.show(io::IO, f::AbsProjectiveSchemeMorphism)
-  if get(io, :supercompact, false)
-    print(io, "Morphism")
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, f)
+  elseif get(io, :supercompact, false)
+    print(io, "Projective scheme morphism")
   else
     io = pretty(io)
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 
 function Base.show(io::IO, ::MIME"text/plain", f::AbsProjectiveSchemeMorphism)
   io = pretty(io)
-  X = domain(f)
-  Y = codomain(f)
-  println(io, "Morphism")
-  print(io, Indent(), "from ")
-  if typeof(X) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # X is not a V(bla)
-    print(io, Lowercase())
-  end
-  println(io, X)
-  print(io, "to ")
-  if typeof(Y) <: AbsProjectiveScheme{<:Field, <:MPolyAnyRing} # same as above
-    print(io, Lowercase())
-  end
-  print(io, Y)
+  println(io, "Projective scheme morphism")
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(f))
+  print(io, "to ", Lowercase(), codomain(f))
   print(io, Dedent())
   if has_attribute(f, :covered_scheme_morphism)
     println(io)
@@ -157,7 +150,7 @@ end
 
 function _show_semi_compact(io::IO, f::AbsProjectiveSchemeMorphism)
   io = pretty(io)
-  print(io, "Morphism of projective schemes")
+  print(io, "Projective scheme morphism")
   if has_attribute(f, :covered_scheme_morphism)
     println(io, " defined by the map")
     print(io, Indent(), Lowercase())

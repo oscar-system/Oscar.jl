@@ -246,7 +246,7 @@ Admissible values of `R` and the corresponding `S` are currently as follows.
 | `Integers`                         | `ZZ`                       |
 | `Rationals`                        | `QQ`                       |
 | `mod(Integers, n)`                 | `residue_ring(ZZ, n)`      |
-| `GF(p, d)`                         | `FiniteField(p, d)[1]`     |
+| `GF(p, d)`                         | `finite_field(p, d)[1]`    |
 | `CF(n)`                            | `cyclotomic_field(n)[1]`   |
 | `AlgebraicExtension(Rationals, f)` | `number_field(g)[1]`       |
 | `Cyclotomics`                      | `abelian_closure(QQ)[1]`   |

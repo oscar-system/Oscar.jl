@@ -354,7 +354,7 @@ end
 
 function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::AbstractAlgebra.Generic.DirectSumModule{T}, mp::Vector{AbstractAlgebra.Generic.ModuleHomomorphism{T}})  where T
   @assert length(M.m) == length(mp) == length(N.m)
-  return hom(M, N, cat(map(mat, mp)..., dims = (1,2)))
+  return hom(M, N, cat(map(matrix, mp)..., dims = (1,2)))
 end
 
 function Oscar.direct_product(C::GModule...; task::Symbol = :none)
@@ -714,7 +714,7 @@ end
    - issubset yields (for GrpAb) only true/ false, not the map
    - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
-   - mat or matrix is used to get "the matrix" from a hom
+   - matrix is used to get "the matrix" from a hom
    - zero_hom/ zero_obj/ identity_hom is missing
    - Janko-Module-Homs have different types, they probably need to
      come under a common abstract type or be more selective

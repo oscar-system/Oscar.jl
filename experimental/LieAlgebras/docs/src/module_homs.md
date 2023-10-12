@@ -17,10 +17,10 @@ $h: V_1 \to V_2$ are constructed by providing either the images of the basis ele
 or a $\dim V_1 \times \dim V_2$ matrix.
 
 ```@docs
-hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleElem{C}}; check::Bool=true) where {C<:RingElement}
-hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::MatElem{C}; check::Bool=true) where {C<:RingElement}
+hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleElem{C}}; check::Bool=true) where {C<:FieldElem}
+hom(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::MatElem{C}; check::Bool=true) where {C<:FieldElem}
 identity_map(::LieAlgebraModule)
-zero_map(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:RingElement}
+zero_map(::LieAlgebraModule{C}, ::LieAlgebraModule{C}) where {C<:FieldElem}
 ```
 
 ## Functions
@@ -31,7 +31,7 @@ The following functions are available for `LieAlgebraModuleHom`s:
 For a homomorphism $h: V_1 \to V_2$, `domain(h)` and `codomain(h)` return $V_1$ and $V_2$ respectively.
 
 ```@docs
-matrix(::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}) where {C2<:RingElement}
+matrix(::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}) where {C2<:FieldElem}
 ```
 
 ### Image
@@ -58,7 +58,7 @@ canonical_injections(::LieAlgebraModule)
 canonical_injection(::LieAlgebraModule, ::Int)
 canonical_projections(::LieAlgebraModule)
 canonical_projection(::LieAlgebraModule, ::Int)
-hom_direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Matrix{<:LieAlgebraModuleHom}) where {C<:RingElement}
-hom_tensor(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleHom}) where {C<:RingElement}
-hom_power(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::LieAlgebraModuleHom) where {C<:RingElement}
+hom_direct_sum(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Matrix{<:LieAlgebraModuleHom}) where {C<:FieldElem}
+hom_tensor(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::Vector{<:LieAlgebraModuleHom}) where {C<:FieldElem}
+hom_power(::LieAlgebraModule{C}, ::LieAlgebraModule{C}, ::LieAlgebraModuleHom) where {C<:FieldElem}
 ```

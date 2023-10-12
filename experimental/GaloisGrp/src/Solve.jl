@@ -237,7 +237,7 @@ end
 
 function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{QQPolyRingElem}; cached::Bool, check::Bool)
   C = base_ring(f)
-  Qt, t = RationalFunctionField(QQ, symbols(C)[1], cached = false)
+  Qt, t = rational_function_field(QQ, symbols(C)[1], cached = false)
   ff = map_coefficients(x->x(t), f)
   return extension_field(ff, cached = cached, check = check)
 end
@@ -290,7 +290,7 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Permutation group of degree 3 and order 6, Galois Context for x^3 - 3*x + 17 and prime 7)
+(Permutation group of degree 3 and order 6, Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:

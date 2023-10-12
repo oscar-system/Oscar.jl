@@ -38,7 +38,7 @@ Ring of regular functions
 
 julia> one(OO(U))
 Regular function
-  on zariski open subset
+  on open subset
     of affine scheme with coordinates [x, y, z]
   complement to V(x^3 - y^2*z)
   covered by 1 affine patch
