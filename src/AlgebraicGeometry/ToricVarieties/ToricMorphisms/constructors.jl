@@ -51,7 +51,7 @@ julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
 
 julia> toric_morphism(domain, mapping_matrix, codomain)
-A toric morphism
+Toric morphism
 ```
 """
 function toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
@@ -101,7 +101,7 @@ Map
   to GrpAb: Z^2
 
 julia> toric_morphism(domain, grid_morphism, codomain)
-A toric morphism
+Toric morphism
 ```
 """
 function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
@@ -140,7 +140,7 @@ Construct the toric identity morphism from `variety` to `variety`.
 # Examples
 ```jldoctest
 julia> toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 2))
-A toric morphism
+Toric morphism
 ```
 """
 function toric_identity_morphism(variety::NormalToricVarietyType)
@@ -207,7 +207,7 @@ end
 ######################
 
 function Base.show(io::IO, tm::ToricMorphism)
-    join(io, "A toric morphism")
+    join(io, "Toric morphism")
 end
 
 Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)
