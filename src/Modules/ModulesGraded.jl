@@ -1501,7 +1501,7 @@ function Base.show(io::IO, table::sheafCohTable)
   chi_print =  [_shcoh_string_rep(v, val_space_length) for v in chi]
 
   # row labels
-  row_label_length = max(_ndigits(nrows - 1), 3) + 2
+  row_label_length = max(_ndigits(nrows - 1), 3) + 3
   for i in 1:nrows
     pushfirst!(print_rows[i], rpad("$(i-1): ", row_label_length, " "))
   end
@@ -1509,7 +1509,7 @@ function Base.show(io::IO, table::sheafCohTable)
 
   # header
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, rpad(".", row_label_length, " "))
+  pushfirst!(header, rpad("twist:", row_label_length, " "))
 
   println(io, header...)
   size_row = sum(length, first(print_rows))
@@ -1549,14 +1549,14 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology_bgg(M, -6, 2)
-.      -6  -5  -4  -3  -2  -1   0   1   2
------------------------------------------
-0:     70  36  15   4   -   -   -   -   *
-1:      *   -   -   -   -   -   -   -   -
-2:      *   *   -   -   -   -   1   -   -
-3:      *   *   *   -   -   -   -   -   6
------------------------------------------
-chi:    *   *   *   4   -   -   1   -   *
+twist:  -6  -5  -4  -3  -2  -1   0   1   2
+------------------------------------------
+0:      70  36  15   4   -   -   -   -   *
+1:       *   -   -   -   -   -   -   -   -
+2:       *   *   -   -   -   -   1   -   -
+3:       *   *   *   -   -   -   -   -   6
+------------------------------------------
+chi:     *   *   *   4   -   -   1   -   *
 
 julia> tbl[0, -6]
 70
@@ -1571,15 +1571,15 @@ julia> R, x = grade(R);
 julia> F = graded_free_module(R, 1);
 
 julia> sheaf_cohomology_bgg(F, -7, 2)
-.      -7  -6  -5  -4  -3  -2  -1   0   1   2
----------------------------------------------
-0:     15   5   1   -   -   -   *   *   *   *
-1:      *   -   -   -   -   -   -   *   *   *
-2:      *   *   -   -   -   -   -   -   *   *
-3:      *   *   *   -   -   -   -   -   -   *
-4:      *   *   *   *   -   -   -   1   5  15
----------------------------------------------
-chi:    *   *   *   *   -   -   *   *   *   *
+twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
+----------------------------------------------
+0:      15   5   1   -   -   -   *   *   *   *
+1:       *   -   -   -   -   -   -   *   *   *
+2:       *   *   -   -   -   -   -   -   *   *
+3:       *   *   *   -   -   -   -   -   -   *
+4:       *   *   *   *   -   -   -   1   5  15
+----------------------------------------------
+chi:     *   *   *   *   -   -   *   *   *   *
 ```
 """
 function sheaf_cohomology_bgg(M::ModuleFP{T},
