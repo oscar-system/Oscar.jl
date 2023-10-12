@@ -1678,7 +1678,7 @@ function Oscar.hom(V::Module, W::Module, v::MatElem; check::Bool = true)
   return Generic.ModuleHomomorphism(V, W, v)
 end
 function Oscar.inv(M::Generic.ModuleHomomorphism)
-  return hom(codomain(M), domain(M), inv(mat(M)))
+  return hom(codomain(M), domain(M), inv(matrix(M)))
 end
 
 function Oscar.direct_product(M::Module...; task::Symbol = :none)
@@ -1695,18 +1695,18 @@ function Oscar.direct_product(M::Module...; task::Symbol = :none)
   error("illegal task")
 end
 
-Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
-Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * mat(b))
-Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) + mat(b))
-Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), mat(a) - mat(b))
-Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -mat(a))
+Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
+Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
+Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) + matrix(b))
+Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) - matrix(b))
+Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -matrix(a))
 
-function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
+function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
 end
 
 function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism})
-  return mat(a) == mat(b)
+  return matrix(a) == matrix(b)
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)
