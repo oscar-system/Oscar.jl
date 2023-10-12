@@ -437,7 +437,8 @@ end
 @doc raw"""
     universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
 
-Return the universal enveloping algebra of `L` with the given monomial ordering.
+Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
+together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
