@@ -37,7 +37,7 @@ index_type(::Type{OrderedMultiIndex{T}}) where {T} = T
 
 # Internal function for "multiplication" of ordered multiindices.
 # 
-# The for i = (0 < i₁ < i₂ < … < iₚ ≤ n) and j = (0 < j₁ < j₂ < … < jᵣ ≤ n)
+# For i = (0 < i₁ < i₂ < … < iₚ ≤ n) and j = (0 < j₁ < j₂ < … < jᵣ ≤ n)
 # the result is a pair `(sign, a)` with `sign` either 0 in case that 
 # iₖ = jₗ for some k and l, or ±1 depending on the number of transpositions 
 # needed to put (i₁, …, iₚ, j₁, …, jᵣ) into a strictly increasing order 
@@ -46,7 +46,7 @@ function _mult(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
   @assert bound(a) == bound(b) "multiindices must have the same bounds"
 
   # in case of a double index return zero
-  any(x->(x in indices(b)), indices(a)) && return 0, a
+  any(x->(x in indices(b)), indices(a)) && return 0, indices(a)
 
   p = length(a)
   q = length(b)
@@ -91,8 +91,7 @@ function _wedge(a::Vector{T}) where {T <: OrderedMultiIndex}
 end
 
 function ==(a::OrderedMultiIndex{T}, b::OrderedMultiIndex{T}) where {T}
-  bound(a) == bound(b) || return false
-  return indices(a) == indices(b)
+  return bound(a) == bound(b) && indices(a) == indices(b)
 end
 
 ########################################################################
@@ -171,12 +170,16 @@ function ordered_multi_index(k::Int, p::Int, n::Int)
   (k < 1 || k > binomial(n, p)) && error("index out of range")
   iszero(p) && return OrderedMultiIndex(Int[], n)
   isone(p) && return OrderedMultiIndex([k], n)
-  i1 = 1
+  n == p && return OrderedMultiIndex([k for k in 1:n], n)
   bin = binomial(n, p)
-  while i1 <= n - p && !(bin - binomial(n - i1, p) > k - 1)
-    i1 = i1 + 1
+  i1 = findfirst(j->(bin - binomial(n - j, p) > k - 1), 1:n-p)
+  if i1 === nothing 
+    prev_res = ordered_multi_index(k - bin + 1, p-1, p-1)
+    k = n-p+1
+    return OrderedMultiIndex(pushfirst!(indices(prev_res).+k, k), n)
+  else
+    prev_res = ordered_multi_index(k - bin + binomial(n - i1 + 1, p), p-1, n - i1)
+    return OrderedMultiIndex(pushfirst!(indices(prev_res).+i1, i1), n)
   end
-  prev_res = ordered_multi_index(k - bin + binomial(n - i1 + 1, p), p-1, n - i1)
-  return OrderedMultiIndex(pushfirst!(indices(prev_res).+i1, i1), n)
 end
 
