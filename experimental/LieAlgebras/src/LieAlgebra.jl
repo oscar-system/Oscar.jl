@@ -384,7 +384,7 @@ Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 @attr Bool function is_abelian(L::LieAlgebra)
   b = basis(L)
   n = length(b)
-  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in (i + 1):n)
 end
 
 @doc raw"""
@@ -435,7 +435,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBEAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
 
 Return the universal enveloping algebra of `L` with the given monomial ordering.
 """
