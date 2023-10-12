@@ -1357,7 +1357,7 @@ export structure_tropical_jacobian
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
-export subgroup_property
+export subgroup_by_property
 export subgroup_reps
 export subquo_type
 export subquotient

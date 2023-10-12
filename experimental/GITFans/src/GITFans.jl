@@ -175,7 +175,7 @@ function symmetry_group_q_matrix(Q::QQMatrix)
     return can_solve(Q, Qimg)
   end
   G = symmetric_group(nrows(Q))
-  return subgroup_property(prop, G)
+  return subgroup_by_property(prop, G)
 end
 
 

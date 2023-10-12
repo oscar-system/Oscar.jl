@@ -1311,13 +1311,15 @@ end
 ################################################################################
 
 """
-    subgroup_property(prop::Function, G:: PermGroup)
+    subgroup_by_property(prop::Function, G::PermGroup)
 
 Return the subgroup of all those elements `g` in `G` for which `prop(g)`
 is `true`.
 
 For that, `prop(g)` must be `true` or `false` for each `g` in `G`,
 and the set of those `g` with `prop(g) == true` must form a group.
+However, this is *not* checked and if violated, results of operations
+with the resulting "group" object are unpredictable.
 
 # Examples
 ```jldoctest
@@ -1326,11 +1328,11 @@ julia> G = symmetric_group(4);  x = gen(G, 2)
 
 julia> prop = g -> g*x == x*g;  # centralizer of x
 
-julia> describe(subgroup_property(prop, G)[1])
+julia> describe(subgroup_by_property(prop, G)[1])
 "C2 x C2"
 ```
 """
-function subgroup_property(prop::Function, G:: PermGroup)
+function subgroup_by_property(prop::Function, G::PermGroup)
    gapprop = GAP.WrapJuliaFunc(gapelm -> prop(group_element(G, gapelm)))
    S = GAPWrap.SubgroupProperty(G.X, gapprop)
    return _as_subgroup(G, S)
