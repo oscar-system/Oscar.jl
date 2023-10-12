@@ -101,7 +101,7 @@ function koszul_complex(v::FreeModElem; cached::Bool=true)
   Z = is_graded(F) ? graded_free_module(R, []) : free_module(R, 0)
   pushfirst!(boundary_maps, hom(Z, domain(first(boundary_maps)), elem_type(domain(first(boundary_maps)))[]))
   push!(boundary_maps, hom(codomain(last(boundary_maps)), Z, [zero(Z) for i in 1:ngens(codomain(last(boundary_maps)))]))
-  return chain_complex(boundary_maps, seed=-1)
+  return chain_complex(boundary_maps, seed=-1, check=false)
 end
 
 function koszul_complex(v::FreeModElem, M::ModuleFP; cached::Bool=true)
@@ -127,7 +127,7 @@ function koszul_homology(v::FreeModElem, i::Int; cached::Bool=true)
 
   ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]
   boundary_maps = [wedge_multiplication_map(ext_powers[p+1], ext_powers[p], v) for p in 2:-1:1]
-  K = chain_complex(boundary_maps)
+  K = chain_complex(boundary_maps, check=false)
   return homology(K, 1)
 end
 
@@ -138,21 +138,21 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
   # Catch the edge cases
   if i == n # This captures the homological degree zero due to the convention of the chain_complex constructor
     phi = wedge_multiplication_map(exterior_power(F, 0, cached=cached)[1], F, v)
-    K = chain_complex([phi])
+    K = chain_complex([phi], check=false)
     KM = tensor_product(K, M)
     return kernel(map(KM, 1))[1]
   end
 
   if iszero(i) # Homology at the last entry of the complex.
     phi = wedge_multiplication_map(exterior_power(F, n-1)[1], exterior_power(F, n, cached=cached)[1], v)
-    K = chain_complex([phi])
+    K = chain_complex([phi], check=false)
     KM = tensor_product(K, M)
     return cokernel(map(K, 1)) # TODO: cokernel does not seem to return a map by default. Why?
   end
 
   ext_powers = [exterior_power(F, n-p, cached=cached)[1] for p in i-1:i+1]
   boundary_maps = [wedge_multiplication_map(ext_powers[p+1], ext_powers[p], v) for p in 2:-1:1]
-  K = chain_complex(boundary_maps)
+  K = chain_complex(boundary_maps, check=false)
   KM = tensor_product(K, M)
   return homology(KM, 1)
 end
