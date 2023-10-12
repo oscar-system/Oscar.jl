@@ -12,8 +12,7 @@ julia> I = ideal(R,[w,x^2+y^3+z^4])
 ideal(w, x^2 + y^3 + z^4)
 
 julia> Rq,_ = quo(R,I)
-(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map from
-Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> X = Spec(Rq)
 Spectrum
@@ -75,8 +74,7 @@ julia> I = ideal(R,[w,x^2+y^3+z^4])
 ideal(w, x^2 + y^3 + z^4)
 
 julia> Rq,_ = quo(R,I)
-(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map from
-Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)
@@ -150,8 +148,7 @@ julia> I = ideal(R,[w,x^2+y^3+z^4])
 ideal(w, x^2 + y^3 + z^4)
 
 julia> Rq,_ = quo(R,I)
-(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map from
-Multivariate polynomial ring in 4 variables over QQ to Rq defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(w, x^2 + y^3 + z^4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> J = ideal(R,[x,y,z,w])
 ideal(x, y, z, w)

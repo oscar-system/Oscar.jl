@@ -10,20 +10,17 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:M
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
-  io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Projective scheme")
   elseif get_attribute(P, :is_empty, false)
+    io = pretty(io)
     print(io, "Empty projective scheme over ")
     K = base_ring(P)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(IOContext(io, :supercompact => true), Lowercase(), K)
   else
+    io = pretty(io)
     print(io, "Projective scheme in ")
-    print(IOContext(io, :supercompact => true), ambient_space(P), " over ", base_ring(P))
+    print(IOContext(io, :supercompact => true), Lowercase(), ambient_space(P), " over ", Lowercase(), base_ring(P))
   end
 end
 
@@ -34,7 +31,7 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:M
   print(io, Indent(), "over ")
   println(io, Lowercase(), base_ring(P))
   print(io, Dedent(), "with homogeneous coordinate")
-  length(homogeneous_coordinates(P)) > 1 && print(io, "s")
+  length(homogeneous_coordinates(P)) != 1 && print(io, "s")
   print(io, " [")
   print(io, join(homogeneous_coordinates(P), ", "), "]")
 end
@@ -44,42 +41,30 @@ function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyDecRing})
   if get(io, :supercompact, false)
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
+      print(io, LowercaseOff(), "ℙ$(ltx["\\^$(relative_ambient_dimension(P))"])")
     else
-      print(io, "IP^$(relative_ambient_dimension(P))")
+      print(io, LowercaseOff(), "IP^$(relative_ambient_dimension(P))")
     end
   elseif get_attribute(P, :is_empty, false)
     print(io, "Empty projective space over ")
     K = base_ring(P)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(IOContext(io, :supercompact => true), Lowercase(), K)
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
-      print(io, "ℙ")
+      print(io, LowercaseOff(), "ℙ")
       n = relative_ambient_dimension(P)
       for d in reverse(digits(n))
         print(io, ltx["\\^$d"])
       end
       print(io, " over ")
-      if base_ring(P) == QQ
-        print(io, "QQ")
-      else
-        print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
-      end
+      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
     else
       print(io, "Projective $(relative_ambient_dimension(P))-space over ")
-      if base_ring(P) == QQ
-        print(io, "QQ")
-      else
-        print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
-      end
+      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(P))
       c = homogeneous_coordinates(P)
       print(io, " with coordinate")
-      length(c) > 1 && print(io, "s")
+      length(c) != 1 && print(io, "s")
       print(io, " [")
       print(io, join(c, ", "), "]")
     end
@@ -399,3 +384,35 @@ function issubset(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
   IYsat = saturation(IX, irrelevant_ideal)
   return issubset(IYsat, IXsat)
 end
+
+function Base.intersect(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
+  return intersect([X, Y])
+end
+
+function Base.intersect(comp::Vector{<:AbsProjectiveScheme})
+  @assert length(comp) > 0 "list of schemes must not be empty"
+  IP = ambient_space(first(comp))
+  @assert all(x->ambient_space(x)===IP, comp[2:end]) "schemes must have the same ambient space"
+  S = homogeneous_coordinate_ring(IP)
+  I = sum([defining_ideal(x) for x in comp])
+  result = subscheme(IP, I)
+  set_attribute!(result, :ambient_space, IP)
+  return result
+end
+
+function Base.union(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
+  return union([X, Y])
+end
+
+function Base.union(comp::Vector{<:AbsProjectiveScheme})
+  @assert length(comp) > 0 "list of schemes must not be empty"
+  IP = ambient_space(first(comp))
+  @assert all(x->ambient_space(x)===IP, comp[2:end]) "schemes must have the same ambient space"
+  S = homogeneous_coordinate_ring(IP)
+  I = intersect([defining_ideal(x) for x in comp])
+  result = subscheme(IP, I)
+  set_attribute!(result, :ambient_space, IP)
+  return result
+end
+
+

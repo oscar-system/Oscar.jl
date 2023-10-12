@@ -221,11 +221,10 @@ function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
 end
 
 function Base.show(io::IO, L::MPolyQuoLocRing)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Localized quotient of multivariate polynomial ring")
   else
-    io = pretty(IOContext(io, :supercompact=>true))
+    io = IOContext(pretty(io), :supercompact=>true)
     print(io, "Localization of ")
     print(io, Lowercase(), underlying_quotient(L))
     print(io, " at ", Lowercase(), inverted_set(L))
@@ -308,8 +307,9 @@ Localization
   at complement of prime ideal(y - 1, x - a)
 
 julia> iota
-Map from
-RQ to Localization of quotient of multivariate polynomial ring at complement of prime ideal defined by a julia-function
+Map defined by a julia-function
+  from quotient of multivariate polynomial ring by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+  to localization of quotient of multivariate polynomial ring at complement of prime ideal
 ```
 """ localization(A::MPolyQuoRing, U::AbsMPolyMultSet)
 
@@ -1117,48 +1117,38 @@ end
 
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
-  R = base_ring(domain(phi))
-  psi = restricted_map(phi)
   io = pretty(io)
-  println(io, "Ring homomorphism")
+  println(IOContext(io, :supercompact => true), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
-  println(io, "to   ", Lowercase(), codomain(phi))
-  print(io, Dedent())
-  println(io,"defined by")
-  print(io, Indent())
-  if is_unicode_allowed()
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) ↦ $(psi(R[i]))")
-    end
-    n = ngens(R)
-    println(io, "$(R[n]) ↦ $(psi(R[n]))")
-  else
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) -> $(psi(R[i]))")
-    end
-    n = ngens(R)
-    print(io, "$(R[n]) -> $(psi(R[n]))")
+  println(io, "to ", Lowercase(), codomain(phi))
+  println(io, Dedent(), "defined by", Indent())
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  to = is_unicode_allowed() ? " ↦ " : " -> "
+  for i in 1:ngens(R)-1
+    println(io, R[i], to, psi(R[i]))
   end
+  n = ngens(R)
+  print(io, R[n], to, psi(R[n]))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
-  R = base_ring(domain(phi))
-  psi = restricted_map(phi)
   if get(io, :supercompact, false)
     print(io, "Ring homomorphism")
   else
-    io = IOContext(io, :supercompact=>true)
+    R = base_ring(domain(phi))
+    psi = restricted_map(phi)
     io = pretty(io)
-    print(io, "hom: ")
-    print(IOContext(io, :supercompact=>true), domain(phi))
+    io = IOContext(io, :supercompact=>true)
+    print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
     else
       print(io, " -> ")
     end
-    print(IOContext(io, :supercompact=>true), codomain(phi))
+    print(io, codomain(phi))
   end
 end
 
@@ -1452,10 +1442,9 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   W = localized_ring(L)
   I = modulus(L)
   J = modulus(underlying_quotient(L))
-  singular_assure(J)
   R = base_ring(L)
   SR = singular_poly_ring(R)
-  SJ = J.gens.S
+  SJ = singular_generators(J)
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1508,10 +1497,9 @@ end
 
 function simplify(L::MPolyQuoRing)
   J = modulus(L)
-  singular_assure(J)
   R = base_ring(L)
   SR = singular_poly_ring(R)
-  SJ = J.gens.S
+  SJ = singular_generators(J)
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1768,7 +1756,7 @@ end
 ### printing
 function Base.show(io::IO,::MIME"text/plain", I::MPolyQuoLocalizedIdeal)
   n = ngens(I)
-  io = pretty(IOContext(io,:supercompact=>true))
+  io = IOContext(pretty(io), :supercompact=>true)
   println(io, "Ideal")
   println(io, Indent(), "of ", Lowercase(), base_ring(I))
   if n > 0
@@ -2256,3 +2244,6 @@ function small_generating_set(
   J = pre_image_ideal(I)
   return filter(!iszero, Q.(small_generating_set(J)))
 end
+
+dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
+

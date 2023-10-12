@@ -110,7 +110,7 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
   resolved_ambient_space = ambient_space(m)
-  R, gR = PolynomialRing(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
+  R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
   for center in centers
     @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
   end

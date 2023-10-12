@@ -70,15 +70,23 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
-
     # We want to use divrem w.r.t. degrevlex e.g. for the computation of
     # secondary invariants and fundamental invariants
     R, = grade(polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
-    PolyRingT = typeof(R)
-    PolyRingElemT = elem_type(R)
+    return InvRing(K, G, action, R)
+  end
+
+  function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}, poly_ring::PolyRingT) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT, PolyRingT <: MPolyDecRing}
+    @assert coefficient_ring(poly_ring) === K
+    @assert ngens(poly_ring) == degree(G)
+    # We want to use divrem w.r.t. degrevlex e.g. for the computation of
+    # secondary invariants and fundamental invariants
+    @assert ordering(poly_ring) == :degrevlex
+
+    PolyRingElemT = elem_type(poly_ring)
     z = new{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}()
     z.field = K
-    z.poly_ring = R
+    z.poly_ring = poly_ring
     z.group = G
     z.action = action
     z.modular = true

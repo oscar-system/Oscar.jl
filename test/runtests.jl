@@ -36,6 +36,18 @@ end
 @everywhere using Test
 @everywhere using Oscar
 @everywhere Oscar.set_seed!($seed)
+@everywhere Oscar.randseed!($seed)
+
+if VERSION >= v"1.8.0"
+  # Enable GC logging to help track down certain GC related issues.
+  # Note that several test files need to temporarily disable and then
+  # re-enable this. If we need to disable this globally, those files
+  # need to be adjusted as well.
+  @everywhere  GC.enable_logging(true)
+end
+
+@everywhere import Oscar.Nemo.AbstractAlgebra
+@everywhere include(joinpath(pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
 
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest

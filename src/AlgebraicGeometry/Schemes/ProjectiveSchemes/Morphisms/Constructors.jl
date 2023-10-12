@@ -44,7 +44,7 @@ function ProjectiveSchemeMor(
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a, check=false))
 end
 
-function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
+function compose(f::AbsProjectiveSchemeMorphism, g::AbsProjectiveSchemeMorphism)
   return ProjectiveSchemeMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
 end
 
@@ -149,3 +149,44 @@ identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         check=false
                                                        )
 
+function sub(P::AbsProjectiveScheme, I::Ideal)
+  @req base_ring(I) === homogeneous_coordinate_ring(P) "ideal must be defined in the homogeneous coordinate ring of the scheme"
+  inc = ProjectiveClosedEmbedding(P, I)
+  set_attribute!(domain(inc), :ambient_space, ambient_space(P))
+  return domain(inc), inc
+end
+  
+function sub(P::AbsProjectiveScheme, f::RingElem)
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
+function sub(P::AbsProjectiveScheme, f::Vector{<:RingElem})
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
+function compose(f::ProjectiveClosedEmbedding, g::ProjectiveClosedEmbedding)
+  X = domain(f)
+  Y = codomain(f)
+  Y === domain(g) || error("domain and codomain not compatible")
+  Z = codomain(g)
+  pb = compose(pullback(g), pullback(f))
+  Ig = image_ideal(g)
+  SY = homogeneous_coordinate_ring(Y)
+  SZ = homogeneous_coordinate_ring(Z)
+  If = image_ideal(f)
+  push_If = ideal(SZ, [preimage(pullback(g), x) for x in gens(If)])
+  J = push_If + Ig
+  return ProjectiveClosedEmbedding(compose(underlying_morphism(f), underlying_morphism(g)), J, check=false)
+end
+
+function ambient_embedding(X::AbsProjectiveScheme)
+  IP = ambient_space(X)
+  S = homogeneous_coordinate_ring(IP)
+  T = homogeneous_coordinate_ring(X)
+  I = defining_ideal(X)
+  pb = hom(S, T, gens(T))
+  inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
+  return ProjectiveClosedEmbedding(inc_sub, I, check=false)
+end

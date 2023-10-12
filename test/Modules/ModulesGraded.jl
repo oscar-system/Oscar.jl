@@ -7,7 +7,7 @@ RNG = Random.MersenneTwister(42)
 ##################################################################
 
 @testset "Graded free modules constructors" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
     Rg = grade(R,[Z[1], Z[1], Z[1]])[1]
     M1 = graded_free_module(Rg, 2)
@@ -970,7 +970,7 @@ end
 end
 
 @testset "Coordinates" begin
-    Z3, a = FiniteField(3,1,"a")
+    Z3, a = finite_field(3,1,"a")
     R, (x,y) = polynomial_ring(Z3, ["x", "y"])
     Z = abelian_group(0)
     Rg, (x, y) = grade(R, [Z[1],Z[1]])
@@ -1118,9 +1118,9 @@ end
   # To reproduce the string on the right hand side, evaluate 
   #   `"$(Oscar.minimal_betti_table(M))"` 
   # and insert the result here; after verification of the result!
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
 
-  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2  3  4\n---------------------\n0    : 1  -  -  -  -\n1    : -  -  -  -  -\n2    : -  7  10 5  1\n---------------------\ntotal: 1  7  10 5  1\n"
+  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
 
   @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
 

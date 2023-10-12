@@ -232,7 +232,7 @@ with default covering
     3: [(x//z), (y//z)]
 
 julia> I, s = singular_locus(Ycov)
-(Scheme over QQ covered with 1 patch, Morphism: scheme over QQ covered with 1 patch -> scheme over QQ covered with 3 patches)
+(Scheme over QQ covered with 1 patch, Hom: scheme over QQ covered with 1 patch -> scheme over QQ covered with 3 patches)
 
 julia> I # singular locus actually lives in the patch {z != 0}
 Scheme
@@ -244,10 +244,10 @@ with default covering
     1: [(x//z), (y//z)]
 
 julia> s
-Morphism
+Covered scheme morphism
   from scheme over QQ covered with 1 patch
     1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
-  to   scheme over QQ covered with 3 patches
+  to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
     3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)

@@ -85,10 +85,10 @@ galois_group(f::PolyRingElem{<:FieldElem})
 
 Over the rational function field, we can also compute the monodromy group:
 ```@meta
-DocTestFilters = r"Group\(.*\]\)"
+DocTestFilters = r"Galois context\(.*\]\)"
 ```
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
-julia> Qt, t = RationalFunctionField(QQ, "t");
+julia> Qt, t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 
@@ -102,10 +102,10 @@ julia> subfields(F)
  (Function Field over Rational field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
-(Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
+(Permutation group of degree 6 and order 6, Galois context for s^6 + 108*t^2 + 540*t + 675)
 
 julia> G, C, k = galois_group(F, overC = true)
-(Group([ (1,4,3)(2,6,5) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field of degree 2 over QQ)
+(Permutation group of degree 6 and order 3, Galois context for s^6 + 108*t^2 + 540*t + 675, Number field of degree 2 over QQ)
 
 ```
 So, while the splitting field over `Q(t)` has degree `6`, the galois group there
@@ -139,7 +139,7 @@ julia> Qx, x = QQ["x"];
 julia> f = (x^2-2)*(x^2-3);
 
 julia> G, C = galois_group(f)
-(Group([ (1,2), (3,4) ]), Galois Context for x^4 - 5*x^2 + 6 and prime 11)
+(Permutation group of degree 4 and order 4, Galois context for x^4 - 5*x^2 + 6 and prime 11)
 
 julia> r = roots(C, 5)
 4-element Vector{qadic}:
@@ -233,7 +233,7 @@ is now a polynomial with integer coefficients. Thus the bound needs
 to bound the degree as well as the coefficient size.
 
 ```jldoctest
-julia> Qt,t = RationalFunctionField(QQ, "t");
+julia> Qt,t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 

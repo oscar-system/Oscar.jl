@@ -2,7 +2,7 @@
   R, (x,) = graded_polynomial_ring(QQ, ["x"], [1])
   Q = quo(R, ideal([x^4]))[1];
   @test_throws ArgumentError ideal(R, [x-x^2])
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
   @test valtype(h) === elem_type(Q)
@@ -173,7 +173,7 @@ end
 end
 
 @testset "Coercion" begin
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
@@ -183,17 +183,17 @@ end
 end
 
 @testset "Evaluation" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x(y, x) == y
 end
 
 @testset "Promotion" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x + QQ(1//2) == x + 1//2
 end
 
 @testset "Degree" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test_throws ArgumentError degree(zero(R))
 
   Z = abelian_group(0)
@@ -202,7 +202,7 @@ end
 end
 
 @testset "Grading" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   D = grading_group(R)
   @test is_isomorphic(D, abelian_group([0]))
 end
@@ -289,7 +289,7 @@ end
   @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
 
   W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
-  S, _ = LaurentPolynomialRing(QQ, ["t₁", "t₂", "t₃"])
+  S, _ = laurent_polynomial_ring(QQ, ["t₁", "t₂", "t₃"])
   custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
   gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
   generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
@@ -342,7 +342,7 @@ end
 
 
 @testset "homogenization: ideal()" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -368,7 +368,7 @@ end
 end
 
 @testset "homogenization: ideal(0)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -394,7 +394,7 @@ end
 end
 
 @testset "homogenization: ideal(1)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -450,7 +450,7 @@ end
 
 
 @testset "homogenization: random ideal" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -506,7 +506,7 @@ end
 # expanding rational function
 
 let
-  Qx, x = PolynomialRing(QQ, "x", cached = false)
+  Qx, x = polynomial_ring(QQ, "x", cached = false)
   e = expand(1//(1 - x), 10)
   t = gen(parent(e))
   @test e == sum(t^i for i in 1:10; init = t^0)

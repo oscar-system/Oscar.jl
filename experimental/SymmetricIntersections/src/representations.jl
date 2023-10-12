@@ -323,7 +323,7 @@ Given a finite group `E`, return the representation ring over `E` over the
 """
 function representation_ring(E::T) where T <: Oscar.GAPGroup
   e = exponent(E)
-  F, _ = CyclotomicField(Int(e), cached = false)
+  F, _ = cyclotomic_field(Int(e), cached = false)
   return RepRing{typeof(F), T}(F, E)
 end
 

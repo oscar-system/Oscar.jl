@@ -29,11 +29,11 @@ julia> points(MOAE)
  [1, 1, 2]
 ```
 """
-function points(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{PointVector{QQFieldElem}}(SOP, _point, size(pm_object(SOP).POINTS, 1))
+function points(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
+  return SubObjectIterator{PointVector{T}}(SOP, _point, size(pm_object(SOP).POINTS, 1))
 end
 
-_point(::Type{PointVector{QQFieldElem}}, SOP::SubdivisionOfPoints, i::Base.Integer) = PointVector{QQFieldElem}(pm_object(SOP).POINTS[i, 2:end])
+_point(U::Type{PointVector{T}}, SOP::SubdivisionOfPoints{T}, i::Base.Integer) where T<:scalar_types = point_vector(coefficient_field(SOP), pm_object(SOP).POINTS[i, 2:end])::U
 
 _point_matrix(::Val{_point}, SOP::SubdivisionOfPoints; homogenized=false) = pm_object(SOP).POINTS[:, (homogenized ? 1 : 2):end]
 
@@ -185,7 +185,7 @@ julia> min_weights(SOP)
  0
 ```
 """
-min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types = Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
+min_weights(SOP::SubdivisionOfPoints) = Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
 
 
 @doc raw"""

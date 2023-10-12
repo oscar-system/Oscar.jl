@@ -91,10 +91,12 @@ end
 
 function Base.show(io::IO, f::CoveringMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    print(io, "Morphism")
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, f)
+  elseif get(io, :supercompact, false)
+    print(io, "Covering morphism")
   else
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 
@@ -151,7 +153,7 @@ end
 # aligned on the right, and their respective images are aligned on the left.
 function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
   io = pretty(io)
-  println(io, "Morphism")
+  println(io, "Covering morphism")
   print(io, Indent(), "from ", Lowercase(), domain(f))
   print(io, Indent())
   co_str = String[""]
@@ -172,7 +174,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
     print(io, " "^(lX-li)*"$(i)a: "*co_str[i+1]*" "^(k-kc+3), Lowercase(), U)
   end
   println(io, Dedent())
-  print(io, "to   ", Lowercase(), codomain(f))
+  print(io, "to ", Lowercase(), codomain(f))
   print(io, Indent())
   co_str = String[""]
   for i in 1:length(codomain(f))

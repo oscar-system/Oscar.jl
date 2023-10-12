@@ -445,3 +445,9 @@ function inv(
   return inverse(phi)(inv(a_flat))
 end
 
+# Declare the availability of RingFlattenings as a trait; see src/Rings/MPolyQuo.jl.
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyRing{<:FieldElem}} = HasRingFlattening()
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoRing{<:MPolyRingElem{<:FieldElem}}} = HasRingFlattening()
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
+

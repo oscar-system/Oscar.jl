@@ -57,14 +57,13 @@ function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
   io = pretty(io)
+  R = forget_decoration(W)
+  print(io, R)
   if is_filtered(W)
-    print(io, forget_decoration(W))
     println(io, " filtrated by ")
   else
-    print(io, "$(forget_decoration(W))")
     println(io, " graded by ")
   end
-  R = forget_decoration(W)
   g = gens(R)
   print(io, Indent())
   for i = 1:ngens(R)
@@ -411,14 +410,18 @@ julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 ```
 """
 function graded_polynomial_ring(C::Ring, V::Union{Tuple{Vararg{T}}, AbstractVector{T}},
-      W=ones(Int, length(V)); ordering=:lex) where
+      W=ones(Int, length(V)); ordering=:lex, cached::Bool=true) where
       T<:VarName
-   return grade(polynomial_ring(C, V; ordering)[1], W)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, V; ordering, cached)[1], W)
 end
 
 function graded_polynomial_ring(C::Ring, n::Int, s::VarName,
-      W=ones(Int, n); ordering=:lex)
-   return grade(polynomial_ring(C, n, s; ordering)[1], W)
+      W=ones(Int, n); ordering=:lex, cached::Bool=true)
+   # HACK: we pass 'cached' only to 'polynomial_ring', but it really should
+   # also affect whether the MPolyDecRing gets cached...
+   return grade(polynomial_ring(C, n, s; ordering, cached)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -1288,8 +1291,9 @@ homogeneous component of Graded multivariate polynomial ring in 5 variables over
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-S_[1 1] of dim 6 to S defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from s_[1 1] of dim 6
+  to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 x[2]*y[3]
@@ -1740,10 +1744,9 @@ function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}
        insert!(A, pos-1+i, _make_variable(var, i))
      end
   end
-  L, _ = polynomial_ring(base_ring(R), A)
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
-  S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
+  S, _ = graded_polynomial_ring(base_ring(R), A, [G(WH[:, i]) for i = 1:size(WH, 2)])
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
@@ -2057,8 +2060,7 @@ function homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing} 
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  L, _ = polynomial_ring(base_ring(R), A)
-  S, = grade(L)
+  S, _ = graded_polynomial_ring(base_ring(R), A)
   return _homogenization(f, S, pos)
 end
 # function homogenization(f::MPolyRingElem, var::VarName)
@@ -2081,8 +2083,7 @@ function homogenization(V::Vector{T}, var::VarName; pos::Union{Int,Nothing} = no
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  L, _ = polynomial_ring(base_ring(R), A)
-  S, = grade(L)
+  S, _ = graded_polynomial_ring(base_ring(R), A)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
@@ -2466,13 +2467,11 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # make sure to not recompute a GB from scratch on the singular
     # side if we have one
     G = first(values(I.gb))
-    singular_assure(G)
     G.gens.S.isGB = true
-    _, sing_min = Singular.mstd(G.gens.S)
+    _, sing_min = Singular.mstd(singular_generators(G, G.ord))
     return filter(!iszero, (R).(gens(sing_min)))
   else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    sing_gb, sing_min = Singular.mstd(singular_generators(I))
     ring = I.gens.Ox
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb

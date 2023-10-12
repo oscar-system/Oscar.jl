@@ -108,6 +108,14 @@ julia> print(IOContext(Base.stdout, :supercompact => true) ,R)
 supercompact printing of newring
 ```
 
+The `supercompact` printing uses an `IOContext` (see [IOContext](https://docs.julialang.org/en/v1/base/io-network/#Base.IOContext) from
+the Julia documentation) to pass information to other `show` methods invoked
+recursively (for example in nested printings). The same mechanism can be used to
+pass other context data. For instance, this is used by the `Scheme` code in
+some nested printings which invoke several objects whose printing depends on a
+given *covering*: we use `IOContext` to pass a fix covering to the printing
+of each sub-object for consistency and readability.
+
 #### The following is not working as expected and should not be used
 
 This example does not work correctly because the `detailed` printing does not
@@ -152,7 +160,15 @@ one line printing of newring with supercompact QQ
 ## Advanced printing functionality
 
 To facilitate printing of nested mathematical structures, we provide a modified
-`IOCustom` object, that supports indentation and decapitalization.
+`IOCustom` object. To create one, we use the following command:
+
+```@docs
+AbstractAlgebra.pretty(::IO)
+```
+
+The `IOCustom` object allows one to locally control:
+- indentation using `Indent()` and `Dedent()`,
+- capitalization using `Lowercase()` and `LowercaseOff()`.
 
 ### Example
 
@@ -193,6 +209,37 @@ Something of type A
 julia> A(B())
 Something of type A
   over Hilbert thing
+```
+
+Moreover, one can control the pluralization of nouns when printing a set of
+elements with a variable number of objects. For this, one can use `ItemQuantity`:
+
+### Example
+
+We illustrate this with an example
+
+```
+julia> struct C{T}
+       x::Vector{T}
+       end
+
+julia> function Base.show(io::IO, c::C{T}) where T
+       x = c.x
+       n = length(x)
+       print(io, "Something with ", AbstractAlgebra.ItemQuantity(n, "element"), " of type $T")
+       end
+```
+
+At the REPL, this will then be printed as follows:
+```
+julia> C(Int[2,3,4])
+Something with 3 elements of type Int64
+
+julia> C(Int[])
+Something with 0 elements of type Int64
+
+julia> C(Int[6])
+Something with 1 element of type Int64
 ```
 
 ## LaTeX and Unicode printing

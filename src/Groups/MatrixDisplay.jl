@@ -278,6 +278,10 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
       write(io, line, "\n")
     end
 
+    if TeX
+      print(io, "\$")
+    end
+
     separators_col = get(io, :separators_col, [])
     separators_row = map(x -> x+m1, get(io, :separators_row, []))
 
@@ -436,5 +440,11 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         end
       end
     end
+
+    if TeX
+      print(io, "\$")
+    end
+
+    return
 end
 

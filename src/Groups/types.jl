@@ -73,19 +73,19 @@ If `G` is a permutation group and `x` is a permutation,
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
 julia> G=symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 120
 
 julia> x=cperm([1,2,3])
 (1,2,3)
 
 julia> parent(x)
-Sym( [ 1 .. 3 ] )
+Permutation group of degree 3 and order 6
 
 julia> y=G(x)
 (1,2,3)
 
 julia> parent(y)
-Sym( [ 1 .. 5 ] )
+Permutation group of degree 5 and order 120
 ```
 
 If `G` is a permutation group and `x` is a vector of integers,
@@ -95,13 +95,13 @@ an exception is thrown if the element does not embed into `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(6)
-Sym( [ 1 .. 6 ] )
+Permutation group of degree 6 and order 720
 
 julia> x = G([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym( [ 1 .. 6 ] )
+Permutation group of degree 6 and order 720
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
@@ -127,6 +127,9 @@ Sym( [ 1 .. 6 ] )
      return z
    end
 end
+
+permutation_group(G::GapObj) = PermGroup(G)
+permutation_group(G::GapObj, deg::Int) = PermGroup(G, deg)
 
 """
     PermGroupElem
@@ -163,6 +166,8 @@ this presentation allows for efficient computations with the group elements.
     return z
   end
 end
+
+pc_group(G::GapObj) = PcGroup(G)
 
 """
     PcGroupElem
@@ -208,6 +213,8 @@ see [`free_group`](@ref).
     return z
   end
 end
+
+fp_group(G::GapObj) = FPGroup(G)
 
 """
 TODO: document this
@@ -276,7 +283,7 @@ function _oscar_group(obj::GapObj, G::PermGroup)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
-  return PermGroup(obj, N)
+  return permutation_group(obj, N)
 end
 
 # `MatrixGroup`: set dimension and ring of `G`

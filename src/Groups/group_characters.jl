@@ -37,7 +37,7 @@ julia> Oscar.with_unicode() do
        end;
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
-julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
+julia> atlas_irrationality(cyclotomic_field(5)[1], "r5")
 -2*z_5^3 - 2*z_5^2 - 1
 
 julia> Oscar.with_unicode() do
@@ -283,15 +283,15 @@ then `nothing` is returned.
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3)))
        end;
-Sym( [ 1 .. 3 ] )
+Character table of permutation group of degree 3 and order 6
 
  2  1  1  .
  3  1  .  1
-           
+
    1a 2a 3a
 2P 1a 1a 3a
 3P 1a 2a 1a
-           
+
 χ₁  1 -1  1
 χ₂  2  . -1
 χ₃  1  1  1
@@ -299,15 +299,15 @@ Sym( [ 1 .. 3 ] )
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3), 2))
        end;
-Sym( [ 1 .. 3 ] ) mod 2
+2-modular Brauer table of permutation group of degree 3 and order 6
 
  2  1  .
  3  1  1
-        
+
    1a 3a
 2P 1a 3a
 3P 1a 1a
-        
+
 χ₁  1  1
 χ₂  2 -1
 ```
@@ -646,11 +646,12 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     # nested printing allowed, preferably supercompact
     if isdefined(tbl, :group)
       if characteristic(tbl) == 0
-        print(io, "character table of group ")
+        print(io, "character table of ")
       else
-        print(io, "$(characteristic(tbl))-modular Brauer table of group ")
+        print(io, "$(characteristic(tbl))-modular Brauer table of ")
       end
-      print(IOContext(io, :supercompact => true), group(tbl))
+      io = pretty(io)
+      print(IOContext(io, :supercompact => true), Lowercase(), group(tbl))
     elseif characteristic(tbl) == 0
       print(io, "character table of ", identifier(tbl))
     else
@@ -663,9 +664,7 @@ end
 # Produce LaTeX output if `"text/latex"` is prescribed,
 # via the `:TeX` attribute of the io context.
 function Base.show(io::IO, ::MIME"text/latex", tbl::GAPGroupCharacterTable)
-  print(io, "\$")
   show(IOContext(io, :TeX => true), MIME("text/plain"), tbl)
-  print(io, "\$")
 end
 
 @doc raw"""
@@ -782,9 +781,9 @@ C3
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/latex"), tbl)
        end;
-$C3
+C3
 
-\begin{array}{rrrr}
+$\begin{array}{rrrr}
 3 & 1 & 1 & 1 \\
  &  &  &  \\
  & 1a & 3a & 3b \\
@@ -892,9 +891,11 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :group)
-      headerstring = string(group(tbl))
+      headerstring = lowercasefirst(string(group(tbl)))
       if characteristic(tbl) != 0
-        headerstring = "$headerstring mod $(characteristic(tbl))"
+        headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
+      else
+        headerstring = "Character table of $(headerstring)"
       end
     else
       headerstring = identifier(tbl)
@@ -1992,7 +1993,7 @@ The result is an instance of `Vector{T}`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> chi = natural_character(g);
 

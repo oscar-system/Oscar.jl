@@ -206,14 +206,14 @@ julia> normalized_volume(C)
 120
 ```
 """
-function cube(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+function cube(f::scalar_type_or_field, d::Int)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d), parent_field
   )
 end
 cube(d::Int) = cube(QQFieldElem, d)
-function cube(f::Union{Type{T},Field}, d::Int, l, u) where {T<:scalar_types}
+function cube(f::scalar_type_or_field, d::Int, l, u)
   parent_field, scalar_type = _determine_parent_and_scalar(f, l, u)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cube{_scalar_type_to_polymake(scalar_type)}(d, u, l), parent_field
@@ -250,7 +250,16 @@ Construct the `i`-th proper Johnson solid.
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
-johnson_solid(index::Int) = polyhedron(Polymake.polytope.johnson_solid(index));
+function johnson_solid(index::Int)
+  pmp = Polymake.polytope.johnson_solid(index)
+  # work around bug in polymake which returns an QE polytope
+  # where it is not necessary, will be fixed in polymake 4.11
+  if index == 3
+    pmp = Polymake.common.convert_to{Polymake.Rational}(pmp)
+    Polymake.remove_attachment(pmp, "REVERSE_TRANSFORMATION")
+  end
+  return polyhedron(pmp)
+end
 
 @doc raw"""
     regular_24_cell()
@@ -598,38 +607,38 @@ Polyhedron in ambient dimension 7
 
 julia> facets(s)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
--x₄ ≦ 0
--x₅ ≦ 0
--x₆ ≦ 0
--x₇ ≦ 0
-x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+-x_4 <= 0
+-x_5 <= 0
+-x_6 <= 0
+-x_7 <= 0
+x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 <= 1
 
 julia> t = simplex(7, 5)
 Polyhedron in ambient dimension 7
 
 julia> facets(t)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
--x₄ ≦ 0
--x₅ ≦ 0
--x₆ ≦ 0
--x₇ ≦ 0
-x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+-x_4 <= 0
+-x_5 <= 0
+-x_6 <= 0
+-x_7 <= 0
+x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 <= 5
 ```
 """
-function simplex(f::Union{Type{T},Field}, d::Int, n) where {T<:scalar_types}
+function simplex(f::scalar_type_or_field, d::Int, n)
   parent_field, scalar_type = _determine_parent_and_scalar(f, n)
   return Polyhedron{scalar_type}(
     Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
   )
 end
 simplex(d::Int, n) = simplex(QQFieldElem, d, n)
-function simplex(f::Union{Type{T},Field}, d::Int) where {T<:scalar_types}
+function simplex(f::scalar_type_or_field, d::Int)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.simplex{_scalar_type_to_polymake(scalar_type)}(d), parent_field
@@ -654,38 +663,38 @@ Polyhedron in ambient dimension 3
 
 julia> facets(C)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
-x₁ + x₂ + x₃ ≦ 1
--x₁ + x₂ + x₃ ≦ 1
-x₁ - x₂ + x₃ ≦ 1
--x₁ - x₂ + x₃ ≦ 1
-x₁ + x₂ - x₃ ≦ 1
--x₁ + x₂ - x₃ ≦ 1
-x₁ - x₂ - x₃ ≦ 1
--x₁ - x₂ - x₃ ≦ 1
+x_1 + x_2 + x_3 <= 1
+-x_1 + x_2 + x_3 <= 1
+x_1 - x_2 + x_3 <= 1
+-x_1 - x_2 + x_3 <= 1
+x_1 + x_2 - x_3 <= 1
+-x_1 + x_2 - x_3 <= 1
+x_1 - x_2 - x_3 <= 1
+-x_1 - x_2 - x_3 <= 1
 
 julia> D = cross_polytope(3, 2)
 Polyhedron in ambient dimension 3
 
 julia> facets(D)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
-x₁ + x₂ + x₃ ≦ 2
--x₁ + x₂ + x₃ ≦ 2
-x₁ - x₂ + x₃ ≦ 2
--x₁ - x₂ + x₃ ≦ 2
-x₁ + x₂ - x₃ ≦ 2
--x₁ + x₂ - x₃ ≦ 2
-x₁ - x₂ - x₃ ≦ 2
--x₁ - x₂ - x₃ ≦ 2
+x_1 + x_2 + x_3 <= 2
+-x_1 + x_2 + x_3 <= 2
+x_1 - x_2 + x_3 <= 2
+-x_1 - x_2 + x_3 <= 2
+x_1 + x_2 - x_3 <= 2
+-x_1 + x_2 - x_3 <= 2
+x_1 - x_2 - x_3 <= 2
+-x_1 - x_2 - x_3 <= 2
 ```
 """
-function cross_polytope(f::Union{Type{T},Field}, d::Int64, n) where {T<:scalar_types}
+function cross_polytope(f::scalar_type_or_field, d::Int64, n)
   parent_field, scalar_type = _determine_parent_and_scalar(f, n)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d, n), parent_field
   )
 end
 cross_polytope(d::Int64, n) = cross_polytope(QQFieldElem, d, n)
-function cross_polytope(f::Union{Type{T},Field}, d::Int64) where {T<:scalar_types}
+function cross_polytope(f::scalar_type_or_field, d::Int64)
   parent_field, scalar_type = _determine_parent_and_scalar(f)
   return Polyhedron{scalar_type}(
     Polymake.polytope.cross{_scalar_type_to_polymake(scalar_type)}(d), parent_field
@@ -1318,11 +1327,11 @@ julia> vertices(A)
 
 julia> facets(A)
 5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
--x₁ ≦ -1
--2*x₁ - 2*x₂ ≦ -10
--x₂ ≦ -1
--2*x₂ - 2*x₃ ≦ -10
--x₃ ≦ -1
+-x_1 <= -1
+-2*x_1 - 2*x_2 <= -10
+-x_2 <= -1
+-2*x_2 - 2*x_3 <= -10
+-x_3 <= -1
 ```
 """
 function associahedron(d::Int)
@@ -1517,10 +1526,10 @@ julia> f = fractional_knapsack_polytope([10,-2,-3,-5])
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(f)
-2*x₁ + 3*x₂ + 5*x₃ ≦ 10
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
+2*x_1 + 3*x_2 + 5*x_3 <= 10
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
 ```
 """
 fractional_knapsack_polytope(b::AbstractVector{<:Base.Number}) = Polyhedron{QQFieldElem}(
@@ -1547,17 +1556,17 @@ Polyhedron in ambient dimension 4
 
 julia> facets(G)
 4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
-x₄ ≦ 1
-x₃ ≦ 1
--x₁ - x₃ - x₄ ≦ -2
-x₁ ≦ 1
+x_4 <= 1
+x_3 <= 1
+-x_1 - x_3 - x_4 <= -2
+x_1 <= 1
 
 julia> facets(H)
 4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
-x₄ ≦ 1
-x₃ ≦ 1
--x₁ - x₃ - x₄ ≦ -2
-x₁ ≦ 1
+x_4 <= 1
+x_3 <= 1
+-x_1 - x_3 - x_4 <= -2
+x_1 <= 1
 ```
 """
 function hypersimplex(
@@ -1700,15 +1709,15 @@ julia> H = hypertruncated_cube(3,2,3)
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(H)
--x₁ ≦ 0
--x₂ ≦ 0
--x₃ ≦ 0
-x₁ ≦ 1
-x₂ ≦ 1
-x₃ ≦ 1
-5*x₁ - 2*x₂ - 2*x₃ ≦ 3
--2*x₁ + 5*x₂ - 2*x₃ ≦ 3
--2*x₁ - 2*x₂ + 5*x₃ ≦ 3
+-x_1 <= 0
+-x_2 <= 0
+-x_3 <= 0
+x_1 <= 1
+x_2 <= 1
+x_3 <= 1
+5*x_1 - 2*x_2 - 2*x_3 <= 3
+-2*x_1 + 5*x_2 - 2*x_3 <= 3
+-2*x_1 - 2*x_2 + 5*x_3 <= 3
 ```
 """
 function hypertruncated_cube(d::Int, k::Number, lambda::Number)
@@ -1760,12 +1769,12 @@ julia> k = klee_minty_cube(3,1//8)
 Polyhedron in ambient dimension 3
 
 julia> print_constraints(k)
--x₁ ≦ 0
-x₁ ≦ 1
-1//8*x₁ - x₂ ≦ 0
-1//8*x₁ + x₂ ≦ 1
-1//8*x₂ - x₃ ≦ 0
-1//8*x₂ + x₃ ≦ 1
+-x_1 <= 0
+x_1 <= 1
+1//8*x_1 - x_2 <= 0
+1//8*x_1 + x_2 <= 1
+1//8*x_2 - x_3 <= 0
+1//8*x_2 + x_3 <= 1
 ```
 """
 function klee_minty_cube(d::Int, e::Number)
@@ -1833,6 +1842,7 @@ Create an $8$-dimensional polytope without rational realizations due to Perles. 
 ```jldoctest
 julia> perles_nonrational_8_polytope()
 Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
+```
 """
 perles_nonrational_8_polytope() =
   polyhedron(Polymake.polytope.perles_irrational_8_polytope())
@@ -2146,15 +2156,15 @@ julia> vertices(a)
 
 julia> facets(a) 
 9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^5 described by:
-x₁ - x₂ ≦ -1
-x₁ - x₃ ≦ -4
-x₁ - x₄ ≦ -9
-x₂ - x₃ ≦ -1
-x₂ - x₄ ≦ -4
-x₂ - x₅ ≦ -9
-x₃ - x₄ ≦ -1
-x₃ - x₅ ≦ -4
-x₄ - x₅ ≦ -1
+x_1 - x_2 <= -1
+x_1 - x_3 <= -4
+x_1 - x_4 <= -9
+x_2 - x_3 <= -1
+x_2 - x_4 <= -4
+x_2 - x_5 <= -9
+x_3 - x_4 <= -1
+x_3 - x_5 <= -4
+x_4 - x_5 <= -1
 ```
 """
 function rss_associahedron(n::Int)
@@ -2300,5 +2310,50 @@ function zonotope_vertices_fukuda_matrix(M::Union{MatElem,AbstractMatrix})
   end
   return Oscar.dehomogenize(
     Polymake.polytope.zonotope_vertices_fukuda(Oscar.homogenized_matrix(A, 1))
+  )
+end
+
+@doc raw"""
+    vertex_figure(P::Polyhedron, n::Int; cutoff=1//2)
+
+Construct the vertex figure of the vertex `n` of a bounded polytope. The vertex figure is dual to a facet of the dual polytope. 
+
+# Optional Arguments
+- `cutoff::Number`: controls the exact location of the cutting hyperplane. It should lie in the open Interval $(0,1)$. 
+  Value $0$ would let the hyperplane go through the chosen vertex, thus degenerating the vertex figure to a single point. 
+  Value $1$ would let the hyperplane touch the nearest neighbor vertex of a polyhedron. Default value is $\frac{1}{2}$. 
+
+# Example
+To produce a triangular vertex figure of a $3$-dimensional cube in the positive orthant, do: 
+```jldoctest
+julia> T = vertex_figure(cube(3), 8) 
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 0]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> T = vertex_figure(cube(3), 8, cutoff = 1/4)
+Polyhedron in ambient dimension 3
+
+julia> vertices(T)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 1//2]
+ [1, 1//2, 1]
+ [1//2, 1, 1]
+```
+
+"""
+function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scalar_types}
+  @req 1 <= n <= nvertices(P) "There is no vertex $n in this polyhedron"
+  opts = Dict{Symbol,Any}()
+  if !isnothing(cutoff)
+    @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"
+    opts[:cutoff] = convert(Polymake.PolymakeType, cutoff)
+  end
+  return Polyhedron{T}(
+    Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
   )
 end

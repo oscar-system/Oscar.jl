@@ -20,13 +20,13 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   kY = length(str)
   push!(co_str, str)
   k = max(length.(co_str)...)
-  println(io, "Morphism")
+  println(io, "Spec open morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2), Lowercase())
-  show(io, domain(f), false)
+  show(IOContext(io, :show_coordinates => false), domain(f))
   println(io)
   print(io, "to   ", co_str[2]*" "^(k-kY+2), Lowercase())
-  show(io, codomain(f), false)
+  show(IOContext(io, :show_coordinates => false), codomain(f))
   mop = maps_on_patches(f)
   if length(mop) > 0
     println(io)
@@ -46,11 +46,11 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
 end
 
 function Base.show(io::IO, f::SpecOpenMor)
-  io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Spec open morphism")
   else
-    print(io, "Morphism: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+    io = pretty(io)
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

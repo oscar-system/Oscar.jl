@@ -4,7 +4,7 @@ NF, sr2 = quadratic_field(2)
 Qx, x = QQ["x"]
 K, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
 
-for f in (QQ, NF, K)
+for f in (QQ, K)
     
     T = elem_type(f)
 
@@ -132,6 +132,10 @@ for f in (QQ, NF, K)
             @test f_vector(Cone2) == [0, 2]
             @test lineality_dim(Cone5) == 0
             @test lineality_dim(Cone2) == 1
+            @test facet_degrees(Cone5)[1] == 2
+            @test facet_degrees(Cone6)[1] == 1
+            @test ray_degrees(Cone5)[1] == 2
+            @test ray_degrees(Cone6)[1] == 1
 
             @test nfacets(Cone5) == 4
             @test relative_interior_point(Cone1) == f.([1//2, 1//2])

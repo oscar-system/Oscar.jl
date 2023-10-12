@@ -119,7 +119,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyPowersOfElement)
 end
 
 function Base.show(io::IO, S::MPolyPowersOfElement)
-  io = pretty(io)
   # no need for supercompact printing
   if get(io, :supercompact, false)
     print(io, "Products of ")
@@ -253,7 +252,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfPrimeIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Complement of prime ideal")
   else
@@ -465,7 +463,6 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfKPointIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Complement of maximal ideal")
   else
@@ -598,15 +595,15 @@ end
 function Base.show(io::IO, S::MPolyProductOfMultSets)
   io = pretty(io)
   if get(io, :supercompact, false)
-    println("Product of multiplicatively closed subsets")
+    print(io, "Product of multiplicatively closed subsets")
   else
     print(io, "Product of the multiplicative subsets [")
     for s in sets(S)
       print(IOContext(io, :supercompact=>true), Lowercase(), s)
       s !== last(sets(S)) && print(io, ", ")
     end
+    print(io, "]")
   end
-  print(io, "]")
 end
 
 ### generation of random elements 
@@ -694,12 +691,12 @@ function Base.show(io::IO,::MIME"text/plain", S::MPolyLeadingMonOne)
 end
 
 function Base.show(io::IO, S::MPolyLeadingMonOne)
-  io = pretty(IOContext(io, :supercompact=>true))
+  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Elements with leading monomial 1")
   else
     print(io, "Elements with leading monomial 1 w.r.t. ")
-    print(io, ordering(S))
+    print(IOContext(io, :supercompact=>true), ordering(S))
   end
 end
 
@@ -2330,20 +2327,14 @@ julia> (I,)
 """
 function Base.show(io::IO,::MIME"text/plain", I::MPolyLocalizedIdeal)
   n = ngens(I)
-  io = pretty(IOContext(io,:supercompact=>true))
+  io = pretty(io)
   println(io, "Ideal")
-  println(io, Indent(), "of ", Lowercase(), base_ring(I))
+  println(IOContext(io,  :supercompact=>true), Indent(), "of ", Lowercase(), base_ring(I))
   if n > 0
     print(io, Dedent())
     println(io, "with ", ItemQuantity(ngens(I),"generator"))
     print(io, Indent())
-    for i in 1:n
-      if i < n
-        println(io, gen(I, i))
-      else
-        print(io, gen(I, i))
-      end
-    end
+    join(IOContext(io,  :supercompact=>true), gens(I), "\n")
   else
     print(io, Dedent())
     print(io, "with ", ItemQuantity(ngens(I),"generator"))
@@ -2721,7 +2712,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
 
@@ -2731,46 +2722,38 @@ julia> (PSI, )
 ```
 """
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
-  R = base_ring(domain(phi))
-  psi = restricted_map(phi)
   io = pretty(io)
-  println(io, "Ring homomorphism")
+  println(IOContext(io, :supercompact => true), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
-  println(io, "to   ", Lowercase(), codomain(phi))
-  print(io, Dedent())
-  println(io,"defined by")
-  print(io, Indent())
-  if is_unicode_allowed()
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) ↦ $(psi(R[i]))")
-    end
-    n = ngens(R)
-    println(io, "$(R[n]) ↦ $(psi(R[n]))")
-  else
-    for i in 1:ngens(R)-1
-      println(io, "$(R[i]) -> $(psi(R[i]))")
-    end
-    n = ngens(R)
-    print(io, "$(R[n]) -> $(psi(R[n]))")
+  println(io, "to ", Lowercase(), codomain(phi))
+  println(io, Dedent(), "defined by", Indent())
+  R = base_ring(domain(phi))
+  psi = restricted_map(phi)
+  to = is_unicode_allowed() ? " ↦ " : " -> "
+  for i in 1:ngens(R)-1
+    println(io, R[i], to, psi(R[i]))
   end
+  n = ngens(R)
+  print(io, R[n], to, psi(R[n]))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, phi::MPolyLocalizedRingHom)
-  io = pretty(io)
   if get(io, :supercompact, false)
-    println("Ring homomorphism")
+    print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
-    print(IOContext(io,:supercompact=>true), "hom: ", domain(phi))
+    io = pretty(io)
+    io = IOContext(io, :supercompact=>true)
+    print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
     else
       print(io, " -> ")
     end
-    print(IOContext(io,:supercompact=>true), codomain(phi))
+    print(io, codomain(phi))
   end
 end
 
@@ -2827,7 +2810,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]))
 Ring homomorphism
   from localization of quotient of multivariate polynomial ring at complement of maximal ideal
-  to   localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
+  to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
 defined by
   x -> t
   y -> t^2
@@ -2836,7 +2819,7 @@ defined by
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to   localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
 defined by
   t -> x
 
@@ -3130,9 +3113,8 @@ julia> minimal_generating_set(I)
     # use available gb for shifted ideal is available
     G = first(values(I_shift.gb))
     is_local(G.ord) || error("inconsistent data: local ring, but global ordering for I_shift")
-    singular_assure(G)
     G.gens.S.isGB = true
-    _, I_shift_min = Singular.mstd(G.gens.S)
+    _, I_shift_min = Singular.mstd(singular_generators(G, G.ord))
   else
 
     # no gb for shifted ideal available
@@ -3200,3 +3182,6 @@ function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:F
   I_min = L.(small_generating_set(saturated_ideal(I)))
   return filter(!iszero, I_min)
 end
+
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+

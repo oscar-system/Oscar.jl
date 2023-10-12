@@ -162,35 +162,13 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   kY = length(str)                                  # Length coordinates codomain
   push!(co_str, str)
   k = max(length.(co_str)...)                       # Maximum to estimate offsets
-  println(io, "Morphism")
+  println(io, "Affine scheme morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2))                 # Consider offset for alignment
-  if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}} # Take care of the case where the domain is not given as a V(bla)
-    print(io, Lowercase())
-    if typeof(X) <: AffineVariety{<:Field, <:MPolyRing}
-      show(io, X, false)        # The false here indicates that we do not
-                                # print the coordinates, in the case of affine
-                                # spaces (since the coordinates already appear
-                                # before)
-    else
-      print(io, X)
-    end
-    println(io)
-  else
-    println(io, X)
-  end
+  println(IOContext(io, :show_coordinates => false), Lowercase(), X)
   print(io, "to   ")
   print(io, co_str[2]*" "^(k-kY+2))                 # Consider offset for alignment
-  if typeof(Y) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}   # same as before but for the codomain
-    print(io, Lowercase())
-    if typeof(Y) <: AffineVariety{<:Field, <:MPolyRing}
-      show(io, Y, false)            # same as before but for the codomain
-    else
-      print(io, Y)
-    end
-  else
-    print(io, Y)
-  end
+  print(IOContext(io, :show_coordinates => false), Lowercase(), Y)
   x = coordinates(codomain(f))
   # If there are no coordinates, we do not print anything (since the target is
   # empty then)
@@ -208,22 +186,12 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
 end
 
 function Base.show(io::IO, f::AbsSpecMor)
-  io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Morphism")
+    print(io, "Affine scheme morphism")
   else
-    X = domain(f)
-    Y = codomain(f)
-    print(io, "Morphism: ")
-    if typeof(X) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the domain is not given as a V(bla)
-      print(io, Lowercase())
-    end
-    print(io, X)
-    print(io, " -> ")
-    if typeof(Y) <: Union{PrincipalOpenSubset, AffineVariety{ <:Field, <: MPolyAnyRing}, <:Spec{<:Field, <:MPolyAnyRing}}  # Take care of the case where the codomain is not given as a V(bla)
-      print(io, Lowercase())
-    end
-    print(io, Y)
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(io, Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
   end
 end
 

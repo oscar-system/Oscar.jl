@@ -17,8 +17,8 @@ from other objects in OSCAR.
 ### Intersecting halfspaces: $H$-representation
 
 ```@docs
-polyhedron(::Type{T}, A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
-polyhedron(::Type{T}, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
+polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)
@@ -29,13 +29,13 @@ Polyhedron in ambient dimension 2
 
 julia> facets(P)
 2-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
--x₁ ≦ 0
-x₁ ≦ 1
+-x_1 <= 0
+x_1 <= 1
 
 
 julia> affine_hull(P)
 1-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^2 described by:
-x₂ = 0
+x_2 = 0
 
 
 julia> Q0 = polyhedron(facets(P))
@@ -54,7 +54,7 @@ true
 ### Computing convex hulls: $V$-representation
 
 ```@docs
-convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar_types
+convex_hull(::Oscar.scalar_type_or_field, ::AnyVecOrMat; non_redundant::Bool=false)
 ```
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and
@@ -196,6 +196,7 @@ a new polyhedron.
 bipyramid
 intersect(::Polyhedron...)
 pyramid
+vertex_figure
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.

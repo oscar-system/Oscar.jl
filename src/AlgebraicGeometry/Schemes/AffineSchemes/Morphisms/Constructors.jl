@@ -28,7 +28,7 @@ Affine space of dimension 3
 with coordinates [x1, x2, x3]
 
 julia> SpecMor(X, Y, gens(OO(X)))
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -83,7 +83,7 @@ Affine space of dimension 3
 with coordinates [x1, x2, x3]
 
 julia> identity_map(X)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -128,7 +128,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(Y, X)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -176,7 +176,7 @@ Spectrum
     by ideal(x1)
 
 julia> m1 = inclusion_morphism(Y, X)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -185,7 +185,7 @@ given by the pullback function
   x3 -> x3
 
 julia> m2 = identity_map(X)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -194,7 +194,7 @@ given by the pullback function
   x3 -> x3
 
 julia> m3 = identity_map(Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  V(x1)
 given by the pullback function

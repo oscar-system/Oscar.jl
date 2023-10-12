@@ -9,7 +9,7 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> morphism_from_cox_variety(F4)
-A toric morphism
+Toric morphism
 ```
 """
 @attr ToricMorphism function morphism_from_cox_variety(variety::NormalToricVarietyType)

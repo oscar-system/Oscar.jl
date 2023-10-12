@@ -276,7 +276,7 @@ end
 function Base.show(io::IO, S::EllipticSurface)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Elliptic surface")
   else
     E = generic_fiber(S)
     print(io, "Elliptic surface with generic fiber ", equation(E))
@@ -1376,13 +1376,6 @@ end
 #
 ################################################################################
 
-
-# Disable simplification for the usage of (decorated) quotient rings within the
-# schemes framework (speedup of ~2).
-function simplify(f::MPolyQuoRingElem{<:Union{<:MPolyRingElem, <:MPolyQuoLocRingElem,
-                                              <:MPolyQuoRingElem, <:MPolyLocRingElem}})
-  return f
-end
 
 ########################################################################
 # Internal functionality for Weierstrass transformation 

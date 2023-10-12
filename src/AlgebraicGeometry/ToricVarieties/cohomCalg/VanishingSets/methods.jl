@@ -19,9 +19,9 @@ julia> all_cohomologies(l)
 
 julia> vs = vanishing_sets(dP1)
 3-element Vector{ToricVanishingSet}:
- Toric vanishing set for cohomology index 0
- Toric vanishing set for cohomology index 1
- Toric vanishing set for cohomology index 2
+ Toric vanishing set for cohomology indices [0]
+ Toric vanishing set for cohomology indices [1]
+ Toric vanishing set for cohomology indices [2]
 
 julia> contains(vs[1], l)
 false

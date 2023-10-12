@@ -129,7 +129,7 @@ end
     end
     @test_throws ErrorException iso(GAP.Globals.Z(2))
     @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-    @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
+    @test_throws ErrorException preimage(iso, cyclotomic_field(2)[2])
   end
 end
 
@@ -216,7 +216,7 @@ end
   end
   @test_throws ErrorException iso(GAP.Globals.Z(2))
   @test_throws ErrorException image(iso, GAP.Globals.Z(2))
-  @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
+  @test_throws ErrorException preimage(iso, cyclotomic_field(2)[2])
 end
 
 @testset "univariate polynomial rings" begin

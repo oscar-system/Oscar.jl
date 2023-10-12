@@ -13,13 +13,14 @@ for `name` is available, and `MatrixGroup` otherwise.
 # Examples
 ```jldoctest
 julia> atlas_group("A5")  # alternating group A5
-Group([ (1,2)(3,4), (1,3,5) ])
+Permutation group of degree 5 and order 60
 
 julia> atlas_group(MatrixGroup, "A5")
-Matrix group of degree 4 over Finite field of degree 1 over GF(2)
+Matrix group of degree 4
+  over finite field of degree 1 over GF(2)
 
 julia> atlas_group("M11")  # Mathieu group M11
-Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
+Permutation group of degree 11 and order 7920
 
 julia> atlas_group("M")  # Monster group M
 ERROR: ArgumentError: the group atlas does not provide a representation for M
@@ -58,7 +59,7 @@ julia> info = all_atlas_group_infos("A5", degree => 5)
  Dict(:repname => "A5G1-p5B0", :degree => 5, :name => "A5")
 
 julia> atlas_group(info[1])
-Group([ (1,2)(3,4), (1,3,5) ])
+Permutation group of degree 5 and order 60
 
 ```
 """
@@ -110,21 +111,22 @@ thrown.
 julia> g = atlas_group("M11");  # Mathieu group M11
 
 julia> h1, emb = atlas_subgroup(g, 1);  h1
-Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+Permutation group of degree 11 and order 720
 
 julia> order(h1)  # largest maximal subgroup of M11
 720
 
 julia> h2, emb = atlas_subgroup("M11", 1);  h2
-Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+Permutation group of degree 11 and order 720
 
 julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
-Matrix group of degree 10 over Finite field of degree 1 over GF(2)
+Matrix group of degree 10
+  over finite field of degree 1 over GF(2)
 
 julia> info = all_atlas_group_infos("M11", degree => 11);
 
 julia> h4, emb = atlas_subgroup(info[1], 1);  h4
-Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+Permutation group of degree 11 and order 720
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
@@ -186,14 +188,15 @@ julia> info = all_atlas_group_infos("A5", degree => [5, 6])
  Dict(:repname => "A5G1-p6B0", :degree => 6, :name => "A5")
 
 julia> atlas_group(info[1])
-Group([ (1,2)(3,4), (1,3,5) ])
+Permutation group of degree 5 and order 60
 
 julia> info = all_atlas_group_infos("A5", dim => 4, characteristic => 3)
 1-element Vector{Dict{Symbol, Any}}:
  Dict(:dim => 4, :repname => "A5G1-f3r4B0", :name => "A5")
 
 julia> atlas_group(info[1])
-Matrix group of degree 4 over Finite field of degree 1 over GF(3)
+Matrix group of degree 4
+  over finite field of degree 1 over GF(3)
 
 ```
 """

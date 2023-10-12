@@ -327,3 +327,19 @@ end
   @test length(minJ) == 1
   @test ideal(L,minJ) == J
 end
+
+@testset "dimensions of localizations at prime ideals" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+  A, pr = quo(R, ideal(R, [x^2 + 1]))
+  U = complement_of_prime_ideal(modulus(A) + ideal(R, y))
+  L, loc = localization(A, U)
+  @test dim(L) == 1
+
+  U = complement_of_prime_ideal(modulus(A))
+  L, loc = localization(A, U)
+  @test dim(L) == 0
+
+  U = complement_of_prime_ideal(modulus(A) + ideal(R, [y, z]))
+  L, loc = localization(A, U)
+  @test dim(L) == 2
+end

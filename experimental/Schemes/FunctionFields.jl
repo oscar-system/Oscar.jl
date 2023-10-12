@@ -1,4 +1,3 @@
-export FunctionField
 export function_field
 export representative
 export representative_field
@@ -77,15 +76,6 @@ represented by
 ```
 """
 @attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
-
-@doc raw"""
-    FunctionField(X::AbsCoveredScheme; kw...)
-
-Return the function field of the irreducible variety `X`.
-
-See [`function_field(X::AbsCoveredScheme)`](@ref).
-"""
-FunctionField(X::AbsCoveredScheme; kw... ) = function_field(X; kw...)
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #
@@ -388,9 +378,9 @@ canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface tha
 function Base.show(io::IO, KK::VarietyFunctionField)
   io = pretty(io)
   if get(io, :supercompact, false)
-    print(io, "Field")
+    print(io, "Field of rational functions")
   else
-    print(io, "Function field of ", Lowercase(), variety(KK))
+    print(io, "Field of rational functions on ", Lowercase(), variety(KK))
   end
 end
 
@@ -403,7 +393,7 @@ function Base.show(io::IO, ::MIME"text/plain", KK::VarietyFunctionField)
   cov = default_covering(X)
   println(io, "Field of rational functions")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
   j = findfirst(U -> representative_patch(KK) === U, collect(cov))
   println(io, Dedent())
   println(io, "represented by")
@@ -413,8 +403,13 @@ end
 
 function Base.show(io::IO, f::VarietyFunctionFieldElem)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    print(io, "Field element")
+  X = variety(parent(f))
+  if get(io, :show_semi_compact, false)
+    cov = Oscar._covering_for_printing(io, X)
+    k = get(io, :offset, 0)
+    _show_semi_compact(io, f, cov, k)
+  elseif get(io, :supercompact, false)
+    print(io, "Rational function")
   else
     print(io, "Rational function on ", Lowercase(), variety(parent(f)))
   end
@@ -422,7 +417,7 @@ end
 
 # Needed in nested printings where we already know the parent, but need only a
 # description of the rational function on the appropriate charts
-function _show_semi_compact(io::IO, f::VarietyFunctionFieldElem, cov::Covering = get_attribute(variety(parent(f)), :simplified_covering, default_covering(variety(parent(f)))), k::Int = 0)
+function _show_semi_compact(io::IO, f::VarietyFunctionFieldElem, cov::Covering, k::Int)
   io = pretty(io)
   j = findfirst(U -> representative_patch(parent(f)) === U, collect(cov))
   print(io, "Rational function represented by ", representative(f), " "^k, " on patch $j")
@@ -437,7 +432,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::VarietyFunctionFieldElem)
   j = findfirst(U -> representative_patch(KK) === U, collect(cov))
   println(io, "Rational function")
   print(io, Indent(), "on ", Lowercase())
-  Oscar._show_semi_compact(io, X, cov)
+  show(IOContext(io, :show_semi_compact => true, :covering => cov), X)
   println(io, Dedent())
   println(io, "represented by")
   print(io, Indent(), "patch $j: ", representative(f))

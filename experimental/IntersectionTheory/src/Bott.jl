@@ -125,7 +125,7 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
-    R, _ = grade(PolynomialRing(QQ, _parse_symbol("c", 1:r))[1], collect(1:r))
+    R, _ = grade(polynomial_ring(QQ, _parse_symbol("c", 1:r))[1], collect(1:r))
     set_attribute!(R, :abstract_variety_dim => F.parent.dim)
     set_attribute!(F, :R => R)
   end
@@ -168,7 +168,7 @@ end
 # utility function that parses the weight specification
 function _parse_weight(n::Int, w)
   w == :int && return ZZ.(collect(1:n))
-  w == :poly && return PolynomialRing(QQ, ["u$i" for i in 1:n])[2]
+  w == :poly && return polynomial_ring(QQ, ["u$i" for i in 1:n])[2]
   if (w isa AbstractUnitRange) w = collect(w) end
   w isa Vector && length(w) == n && return w
   error("incorrect specification for weights")
