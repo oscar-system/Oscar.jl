@@ -1459,6 +1459,7 @@ export vertices_and_rays
 export vf_group
 export visualize
 export volume
+export volume_map
 export volume_form
 export walls
 export wdeglex
