@@ -289,23 +289,27 @@ julia> V =  [x*y, x*z, y*z]
  y*z
 
 julia> koszul_homology(V, F, 0)
-Submodule with 3 generators
-1 -> y*z*e[1]
-2 -> x*z*e[1]
-3 -> x*y*e[1]
-represented as subquotient with no relations.
+Subquotient of Submodule with 1 generator
+1 -> e[1]∧e[2]∧e[3]
+by Submodule with 3 generators
+1 -> y*z*e[1]∧e[2]∧e[3]
+2 -> -x*z*e[1]∧e[2]∧e[3]
+3 -> x*y*e[1]∧e[2]∧e[3]
 
 julia> koszul_homology(V, F, 1)
-Submodule with 3 generators
-1 -> -z*e[1] + z*e[2]
-2 -> y*e[2]
-3 -> x*e[1]
-represented as subquotient with no relations.
+Subquotient of Submodule with 2 generators
+1 -> y*e[1]∧e[3] \otimes e[1] + z*e[2]∧e[3] \otimes e[1]
+2 -> x*e[1]∧e[2] \otimes e[1] - z*e[2]∧e[3] \otimes e[1]
+by Submodule with 3 generators
+1 -> -x*z*e[1]∧e[2] \otimes e[1] - y*z*e[1]∧e[3] \otimes e[1]
+2 -> x*y*e[1]∧e[2] \otimes e[1] - y*z*e[2]∧e[3] \otimes e[1]
+3 -> x*y*e[1]∧e[3] \otimes e[1] + x*z*e[2]∧e[3] \otimes e[1]
 
 julia> koszul_homology(V, F, 2)
-Submodule with 1 generator
-1 -> 0
-represented as subquotient with no relations.
+Subquotient of Submodule with 1 generator
+1 -> x*y*e[1] \otimes e[1] + x*z*e[2] \otimes e[1] + y*z*e[3] \otimes e[1]
+by Submodule with 1 generator
+1 -> x*y*e[1] \otimes e[1] + x*z*e[2] \otimes e[1] + y*z*e[3] \otimes e[1]
 ```
 
 ```jldoctest
@@ -316,23 +320,27 @@ julia> TC = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 julia> F = free_module(R, 1);
 
 julia> koszul_homology(gens(TC), F, 0)
-Submodule with 3 generators
-1 -> (-x*z + y^2)*e[1]
-2 -> (-w*z + x*y)*e[1]
-3 -> (-w*y + x^2)*e[1]
-represented as subquotient with no relations.
+Subquotient of Submodule with 1 generator
+1 -> e[1]∧e[2]∧e[3]
+by Submodule with 3 generators
+1 -> (w*y - x^2)*e[1]∧e[2]∧e[3]
+2 -> (-w*z + x*y)*e[1]∧e[2]∧e[3]
+3 -> (x*z - y^2)*e[1]∧e[2]∧e[3]
 
 julia> koszul_homology(gens(TC), F, 1)
-Submodule with 3 generators
-1 -> y*e[1] - z*e[2]
-2 -> x*e[1] - y*e[2]
-3 -> w*e[1] - x*e[2]
-represented as subquotient with no relations.
+Subquotient of Submodule with 2 generators
+1 -> z*e[1]∧e[2] \otimes e[1] + y*e[1]∧e[3] \otimes e[1] + x*e[2]∧e[3] \otimes e[1]
+2 -> y*e[1]∧e[2] \otimes e[1] + x*e[1]∧e[3] \otimes e[1] + w*e[2]∧e[3] \otimes e[1]
+by Submodule with 3 generators
+1 -> (-w*z + x*y)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[1]∧e[3] \otimes e[1]
+2 -> (x*z - y^2)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[2]∧e[3] \otimes e[1]
+3 -> (x*z - y^2)*e[1]∧e[3] \otimes e[1] + (w*z - x*y)*e[2]∧e[3] \otimes e[1]
 
 julia> koszul_homology(gens(TC), F, 2)
-Submodule with 1 generator
-1 -> 0
-represented as subquotient with no relations.
+Subquotient of Submodule with 1 generator
+1 -> (-x*z + y^2)*e[1] \otimes e[1] + (-w*z + x*y)*e[2] \otimes e[1] + (-w*y + x^2)*e[3] \otimes e[1]
+by Submodule with 1 generator
+1 -> (x*z - y^2)*e[1] \otimes e[1] + (w*z - x*y)*e[2] \otimes e[1] + (w*y - x^2)*e[3] \otimes e[1]
 ```
 """
 function koszul_homology(V::Vector{T}, F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
@@ -480,31 +488,43 @@ julia> depth(I, M)
 1
 ```
 """
-function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem
+function depth(I::Ideal{T}, F::ModuleFP{T}) where T <: RingElem
+  # One truely generic method not bound to polynomial rings
   R = base_ring(F)
   R === base_ring(I) || error("rings are incompatible")
-  f = gens(I)
+  f = small_generating_set(I)
   n = length(f)
   iszero(n) && return 0
 
-  i = 0
-  for k in n:-1:0
-    if !iszero(koszul_homology(f, F, k)) 
-      i = k
-      break
-    end
-  end
-
-  # findfirst doesn't seem to work with countdown ranges
-  #i = findfirst(k->!iszero(koszul_homology(f, F, k)), n:-1:0)
-  #i === nothing && return 0
-  return n - i
+  i = findfirst(k->!iszero(koszul_homology(f, F, k)), n:-1:0)
+  i === nothing && return 0
+  return i - 1
 end
+
+# The heuristic over units in the syzygy matrix works generically.
+# However, we can not assume that this has been implemented for all 
+# kinds of ideals, so here's a backup.
+small_generating_set(I::Ideal) = gens(I)
 
 # It turned out that despite the quick assembly of the Koszul complex 
 # in Oscar the computation of depth is much faster in singular:
 function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem{<:FieldElem}
   return _depth_from_singular(I, F)
+end
+
+# The Singular implementation suggests that one can compute the depth 
+# also from below and finding the first vanishing Koszul homology.
+function _depth_from_below(I::Ideal{T}, F::ModuleFP{T}) where T <: RingElem
+  R = base_ring(F)
+  R === base_ring(I) || error("rings are incompatible")
+  f = small_generating_set(I)
+  n = length(f)
+  iszero(n) && return 0
+
+  i = findfirst(j->iszero(koszul_homology(f, F, j)), 0:n)
+  i === nothing && return 0
+  # i is the first entry of [0, 1, 2, ..., n] for which...
+  return n - i + 2
 end
 
 function _depth_from_singular(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
@@ -553,17 +573,17 @@ julia> V = gens(R)
  z
 
 julia> koszul_matrix(V, 3)
-[z   -y   x]
+[x   y   z]
 
 julia> koszul_matrix(V, 2)
-[-y    x   0]
-[-z    0   x]
-[ 0   -z   y]
+[-y   -z    0]
+[ x    0   -z]
+[ 0    x    y]
 
 julia> koszul_matrix(V, 1)
-[x]
-[y]
-[z]
+[ z]
+[-y]
+[ x]
 ```
 """
 function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
@@ -574,9 +594,9 @@ function koszul_matrix(V::Vector{T}, i::Int) where T <: MPolyRingElem
 
   Rr = FreeMod(R, r)
   v = sum(x*e for (x, e) in zip(V, gens(Rr)); init=zero(Rr))
-  Fi, _ = exterior_power(Rr, i)
-  Fip1, _ = exterior_power(Rr, i+1)
-  phi = wedge_multiplication_map(Fi, Fip1, v)
+  Ci, _ = exterior_power(Rr, r-i)
+  Cip1, _ = exterior_power(Rr, r-i+1)
+  phi = wedge_multiplication_map(Ci, Cip1, v)
   return matrix(phi)
 end
 
@@ -608,16 +628,16 @@ julia> V = gens(R)
 julia> K = koszul_complex(V);
 
 julia> matrix(map(K, 2))
-[-y    x   0]
-[-z    0   x]
-[ 0   -z   y]
+[-y   -z    0]
+[ x    0   -z]
+[ 0    x    y]
 
 julia> Kd = hom(K, free_module(R, 1));
 
 julia> matrix(map(Kd, 1))
-[-y   -z    0]
-[ x    0   -z]
-[ 0    x    y]
+[-y    x   0]
+[-z    0   x]
+[ 0   -z   y]
 ```
 """
 function koszul_complex(V::Vector{T}) where T <: MPolyRingElem
