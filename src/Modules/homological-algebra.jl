@@ -335,11 +335,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 ```
 """
-function koszul_homology(V::Vector{T}, M::ModuleFP{T}, i::Int) where T <: MPolyRingElem
- error("not implemented for the given type of module.")
-end
-
-function koszul_homology(V::Vector{T},F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
+function koszul_homology(V::Vector{T}, F::ModuleFP{T}, i::Int) where T <: MPolyRingElem
   R = base_ring(F)
   @assert all(x->parent(x)===R, V) "rings are incompatible"
   if is_graded(F) && is_graded(R)
@@ -484,10 +480,6 @@ julia> depth(I, M)
 1
 ```
 """
-function depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
- error("not implemented for the given type of module.")
-end
-
 function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem
   f = gens(I)
   n = length(f)
@@ -505,6 +497,12 @@ function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem
   #i = findfirst(k->!iszero(koszul_homology(f, F, k)), n:-1:0)
   #i === nothing && return 0
   return n - i
+end
+
+# It turned out that despite the quick assembly of the Koszul complex 
+# in Oscar the computation of depth is much faster in singular:
+function depth(I::MPolyIdeal{T}, F::ModuleFP{T}) where T <: MPolyRingElem{<:FieldElem}
+  return _depth_from_singular(I, F)
 end
 
 function _depth_from_singular(I::MPolyIdeal{T}, F::FreeMod{T}) where T <: MPolyRingElem
