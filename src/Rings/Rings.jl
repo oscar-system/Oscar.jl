@@ -19,6 +19,7 @@ include("MPolyMap/MPolyAnyMap.jl")
 include("MPolyMap/MPolyRing.jl")
 include("MPolyMap/MPolyQuo.jl")
 include("MPolyMap/AffineAlgebras.jl")
+include("MPolyMap/DecoratedRings.jl")
 
 include("mpoly-local.jl")
 include("localization_interface.jl")
