@@ -62,7 +62,7 @@ end
 
 Return the characteristic of the base ring of the Lie algebra `L`.
 """
-characteristic(L::LieAlgebra{C}) where {C<:RingElement} = characteristic(base_ring(L))
+characteristic(L::LieAlgebra) = characteristic(base_ring(L))
 
 @doc raw"""
     zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
