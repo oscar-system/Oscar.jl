@@ -18,6 +18,8 @@ function lie_algebra_conformance_test(
     @test coefficient_ring(x) === coefficient_ring(L)
     @test elem_type(coefficient_ring(L)) == C
 
+    @test characteristic(L) == characteristic(coefficient_ring(L))
+
     # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
     @test dim(L) == ngens(L)
     @test basis(L) == gens(L)
