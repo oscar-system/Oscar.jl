@@ -76,3 +76,33 @@ end
  I = ideal(R, [x*z-z, x*y-y, x])
  @test depth(I, F) == Oscar._depth_from_singular(I, F) == 3
 end
+
+@testset "singular vs oscar comparison" begin
+  n = 3
+  R, _ = polynomial_ring(QQ, "x"=>1:n)
+  FR = FreeMod(R, 1)
+  IR = ideal(R, gens(R))
+  IR = IR*IR
+  f = gens(IR)
+  K0 = koszul_complex(f)
+  K1 = koszul_complex(f, FR)
+  HK0 = [homology(K0, i) for i in 0:ngens(IR)]
+  HK1 = [homology(K1, i) for i in 0:ngens(IR)]
+  HK2 = [koszul_homology(f, FR, i) for i in 0:ngens(IR)]
+  @test iszero.(HK1) == iszero.(HK2) == iszero.(HK0)
+end
+
+@testset "generic depth routine" begin
+  P, _ = QQ[:u, :v]
+  R, (x, y) = polynomial_ring(P, ["x", "y"]);
+  F = free_module(R, 1)
+  U = matrix([x*y])
+  M = quo(F, U)[1]
+  I = ideal(R, gens(R))
+  @test depth(I, M) == 1
+
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  F = free_module(R, 1);
+  I = ideal(R, [x*z-z, x*y-y, x])
+  @test depth(I, F) == 3
+end
