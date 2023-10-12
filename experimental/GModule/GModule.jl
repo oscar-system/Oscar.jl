@@ -1058,7 +1058,7 @@ function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:
   h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
   n = length(hb)
-  b = [matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
+  b = dense_matrix_type(base_ring(C))[matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
 #  @show [matrix(C.ac[i])*b[1] == b[1]*matrix(D.ac[i]) for i=1:length(C.ac)]
   return b
 end
@@ -1082,6 +1082,36 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:A
     return h
   end
   return map(x->map_entries(base_ring(C), x), h)
+end
+
+#TODO: in ctx of MeatAxe & Gap: we're mostly having a rref,
+#      but for a different ordering of entries
+function _rref!(V::Vector{<:MatElem{<:FieldElem}})
+  @show :in, V
+  @assert all(x->size(x) == size(V[1]), V)
+  n = nrows(V[1])
+  @assert ncols(V[1]) == n
+
+  o = 1
+  for i = CartesianIndices((1:n, 1:n))
+    j = findall(x->!iszero(x[i]), V)
+    isempty(j) && continue
+    if j[1] != o
+      V[o], V[j[1]] = V[j[1]], V[o]
+      j[1] = o
+    end
+    if !isone(V[o][i])
+      V[o] *= inv(V[o][i])
+    end
+    for k=o+1:length(V)
+      iszero(V[k][i]) && continue
+      V[k] -= V[k][i] * V[o]
+    end
+    o += 1
+    if o>length(V)
+      return
+    end
+  end
 end
 
 """
@@ -1115,7 +1145,12 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GMo
     end
     t = []
     for i=1:length(z1)
-      push!(t, hom_base(z1[i], z2[i]))
+      mp = hom_base(z1[i], z2[i])
+      if isempty(mp)
+        return dense_matrix_type(base_ring(C))[]
+      end
+      _rref!(mp)
+      push!(t, mp)
     end
     #should actually compute an rref of the hom base to make sure
     if any(x->length(x) != length(t[1]), t)
@@ -1180,10 +1215,10 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
       z2 = gmodule(GF(p), D)
     end
     
-    t = hom_base(z1, z2)  #TODO: here and elsewhere: get a rref of the hom
-                          #base to combine!!!!
-                          #(replaced by using fault tolerant lifting)
-                          #should use vector reconstruction - once we have it
+    t = hom_base(z1, z2) 
+                      
+    isempty(t) && return QQMatrix[]
+    _rref!(t)
     tt = [lift(s)  for s=t]
     @assert base_ring(tt[1]) == ZZ
     if isone(pp)
