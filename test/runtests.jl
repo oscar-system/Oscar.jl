@@ -90,6 +90,41 @@ end
 sort!(testlist)
 Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
+# tests with the highest number of allocations / runtime / compilation time
+# more or less sorted by allocations
+test_large = [
+              "experimental/FTheoryTools/test/weierstrass.jl",
+              "test/PolyhedralGeometry/timing.jl",
+              "experimental/GITFans/test/runtests.jl",
+              "test/AlgebraicGeometry/ToricVarieties/toric_schemes.jl",
+              "test/AlgebraicGeometry/Schemes/WeilDivisor.jl",
+              "test/Rings/NumberField.jl",
+              "test/Serialization/PolynomialsSeries.jl",
+              "test/AlgebraicGeometry/Schemes/K3.jl",
+              "test/Groups/forms.jl",
+              "test/Modules/UngradedModules.jl",
+              "test/GAP/oscarinterface.jl",
+              "test/AlgebraicGeometry/Schemes/CoveredProjectiveSchemes.jl",
+              "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
+              "experimental/QuadFormAndIsom/test/runtests.jl",
+              "experimental/GModule/test/runtests.jl",
+              "test/Modules/ModulesGraded.jl",
+              "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
+             ]
+
+test_subset = get(ENV, "OSCAR_TEST_SUBSET", "")
+if haskey(ENV, "JULIA_PKGEVAL")
+  test_subset = "short"
+end
+
+if test_subset == "short"
+  filter!(x-> !in(relpath(x, Oscar.oscardir), test_large), testlist)
+elseif test_subset == "long"
+  testlist = joinpath.(Oscar.oscardir, test_large)
+  filter!(isfile, testlist)
+end
+
+
 @everywhere testlist = $testlist
 
 # this is to check for obsolete include statements in the tests
@@ -107,7 +142,7 @@ stats = merge(pmap(x -> Oscar.test_module(x; new=false, timed=true), testlist)..
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
-if numprocs == 1
+if numprocs == 1 && test_subset != "short"
    push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
 end
 
