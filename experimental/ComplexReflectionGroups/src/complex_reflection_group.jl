@@ -1,20 +1,31 @@
 # This file implements explicit models of complex reflection groups.
 #
-# Ulrich Thiel, 2023 
+# References:
+#
+# * Lehrer, G. I., & Taylor, D. E. (2009). Unitary reflection groups (Vol. 20, p. viii). Cambridge University Press, Cambridge.
+# 
+# * Thiel, U. (2014). On restricted rational Cherednik algebras. TU Kaiserslautern.
+#
+# [Ulrich Thiel](https://ulthiel.com/math), 2023 
 
 export complex_reflection_group
 export is_complex_reflection_group
 export complex_reflection_group_type
+export complex_reflection_group_model
 
-function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
+function complex_reflection_group(G::ComplexReflectionGroupType; model=nothing)
     
     # this will be the list of matrix groups corresponding to the components of G
     component_groups = MatrixGroup[]
 
+    # list of models
+    modellist = []
+
     for C in components(G)
 
         t = C.type[1]
-        gens = false
+        gens = nothing
+        Cmodel = nothing
 
         # we now create the list "gens" of matrix generators for C in the selected model
         if length(t) == 1
@@ -24,7 +35,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
             # Symmetric group case needs special care
             if m == 1 && p == 1
-                if model == :CHEVIE
+                if model === nothing
+                    Cmodel = :CHEVIE
+                else
+                    Cmodel = model
+                end
+                if Cmodel === :CHEVIE
                     # the generators correspond to the transpositions r_i=(i,i+1)
                     # but note that we consider the irreducible representation of 
                     # dimension n-1, so it's not simply the transposition matrix
@@ -43,9 +59,15 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     end
                 end
             else
-                if model == :Magma
+                if model === nothing
+                    Cmodel = :Magma
+                else
+                    Cmodel = model
+                end
+                if Cmodel === :Magma
                     # See Lehrer & Taylor (2009), p 35-36
-                    # What's implemented in Magma deviates slightly
+                    # What's implemented in Magma deviates slightly from Lehrer & Taylor, 
+                    # see the remarks below.
                     K, z = cyclotomic_field(m)
                     matspace = matrix_space(K, n, n)
 
@@ -83,8 +105,8 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
         end
 
         # create matrix group from the generators
-        if typeof(gens) == Bool
-            throw(ArgumentError("Model not found"))
+        if gens === nothing
+            throw(ArgumentError("Specified model not found"))
         end
         matgrp = matrix_group(gens)
 
@@ -92,9 +114,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
         set_attribute!(matgrp, :order, order(C))
         set_attribute!(matgrp, :is_complex_reflection_group, true)
         set_attribute!(matgrp, :complex_reflection_group_type, C)
+        set_attribute!(matgrp, :complex_reflection_group_model, Cmodel)
 
         # add to list
         push!(component_groups, matgrp)
+        push!(modellist, Cmodel)
     end
 
     if length(component_groups) == 1
@@ -105,25 +129,25 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
         set_attribute!(matgrp, :order, order(G))
         set_attribute!(matgrp, :is_complex_reflection_group, true)
         set_attribute!(matgrp, :complex_reflection_group_type, G)
-
+        set_attribute!(matgrp, :complex_reflection_group_model, modellist)
     end
 
 end
 
 # Convenience constructors
-function complex_reflection_group(i::Int; model=:CHEVIE)
+function complex_reflection_group(i::Int; model=nothing)
     return complex_reflection_group(ComplexReflectionGroupType(i); model=model)
 end
 
-function complex_reflection_group(t::Tuple{Int}; model=:CHEVIE)
+function complex_reflection_group(t::Tuple{Int}; model=nothing)
     return complex_reflection_group(ComplexReflectionGroupType(t); model=model)
 end
 
-function complex_reflection_group(m::Int, p::Int, n::Int; model=:CHEVIE)
+function complex_reflection_group(m::Int, p::Int, n::Int; model=nothing)
     return complex_reflection_group(ComplexReflectionGroupType(m,p,n); model=model)
 end
 
-function complex_reflection_group(t::Tuple{Int,Int,Int}; model=:CHEVIE)
+function complex_reflection_group(t::Tuple{Int,Int,Int}; model=nothing)
     return complex_reflection_group(ComplexReflectionGroupType(t); model=model)
 end
 
@@ -139,5 +163,13 @@ function complex_reflection_group_type(G::MatrixGroup)
     if has_attribute(G, :complex_reflection_group_type)
         return get_attribute(G, :complex_reflection_group_type)
     end
+    return nothing
     # this should be upgraded later to work with a general matrix group
+end
+
+function complex_reflection_group_model(G::MatrixGroup)
+    if has_attribute(G, :complex_reflection_group_model)
+        return get_attribute(G, :complex_reflection_group_model)
+    end
+    return nothing
 end
