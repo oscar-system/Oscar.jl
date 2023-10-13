@@ -66,6 +66,9 @@ key.format =
 rewrite.rule {"^\" *\"$"}
 rewrite.rule {"^{ *}$"}
 
+# Unify page range separator
+rewrite.rule {pages "\([0-9]+\) *\(-\|---\|–\) *\([0-9]+\)" "\1--\3"}
+
 # Check that 1800<=year<=2029
 check.rule { year "^[\"{]1[89][0-9][0-9][\"}]$" }
 check.rule { year "^[\"{]20[0-2][0-9][\"}]$" }
