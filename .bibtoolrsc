@@ -62,8 +62,11 @@ key.format =
     { %2d(year) }
 }
 
+# Enforce "{...}" around fields
+rewrite.rule {"^\"\([^#]*\)\"$" "{\1}"}
+rewrite.rule {"^ *\([0-9]*\) *$" "{\1}"}
+
 # Remove empty fields
-rewrite.rule {"^\" *\"$"}
 rewrite.rule {"^{ *}$"}
 
 # Unify page range separator
