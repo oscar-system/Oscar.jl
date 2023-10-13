@@ -60,10 +60,10 @@ julia&gt; m2 = rand(M, -10:10)
 (4, 4, -7)
 
 julia&gt; S, f = sub(M, [m1, m2])
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -&gt; Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -&gt; free module of rank 3 over integers)
 
 julia&gt; I, g = image(f)
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -&gt; Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -&gt; free module of rank 3 over integers)
 
 julia&gt; is_isomorphic(S, I)
 true
@@ -77,20 +77,18 @@ julia&gt; m2 = rand(M, -10:10)
 (4, 4, -7)
 
 julia&gt; S, f = sub(M, [m1, m2])
-(Submodule over Integers with 2 generators and no relations, Hom: Submodule over Integers with 2 generators and no relations -&gt; Free module of rank 3 over integers)
+(Submodule over Integers with 2 generators and no relations, Hom: submodule over Integers with 2 generators and no relations -&gt; free module of rank 3 over integers)
 
 julia&gt; Q, g = quo(M, S)
 (Quotient module over Integers with 2 generators and relations:
-[16 -21], Hom: Free module of rank 3 over integers -&gt; Quotient module over Integers with 2 generators and relations:
+[16 -21], Hom: free module of rank 3 over integers -&gt; quotient module over Integers with 2 generators and relations:
 [16 -21])
 
 julia&gt; I, f = snf(Q)
-(Invariant factor decomposed module over Integers with invariant factors BigInt[0], Module isomorphism with
-Domain: Invariant factor decomposed module over Integers with invariant factors BigInt[0]
-Codomain: Quotient module over Integers with 2 generators and relations:
+(Invariant factor decomposed module over Integers with invariant factors BigInt[0], Hom: invariant factor decomposed module over Integers with invariant factors BigInt[0] -&gt; quotient module over Integers with 2 generators and relations:
 [16 -21])
 
 julia&gt; invs = invariant_factors(Q)
 1-element Vector{BigInt}:
  0
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../matrix_algebras/">« Generic matrix algebras</a><a class="docs-footer-nextpage" href="../free_module/">Free Modules and Vector Spaces »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 10 October 2023 05:26">Tuesday 10 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../matrix_algebras/">« Generic matrix algebras</a><a class="docs-footer-nextpage" href="../free_module/">Free Modules and Vector Spaces »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 11 October 2023 19:55">Wednesday 11 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

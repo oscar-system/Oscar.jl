@@ -6,9 +6,9 @@ julia&gt; k4, x4 = finite_field(19, 4, &quot;x4&quot;)
 (Finite field of degree 4 over GF(19), x4)
 
 julia&gt; f = embed(k2, k4)
-Morphism of finite fields from
-  from finite field of degree 2 over gF(19)
-  to finite field of degree 4 over gF(19)
+Morphism of finite fields
+  from finite field of degree 2 over GF(19)
+  to finite field of degree 4 over GF(19)
 
 julia&gt; y = f(x2)
 6*x4^3 + 5*x4^2 + 9*x4 + 17
@@ -21,7 +21,9 @@ julia&gt; k21, x21 = finite_field(13, 21, &quot;x21&quot;)
 (Finite field of degree 21 over GF(13), x21)
 
 julia&gt; s = preimage_map(k7, k21)
-Preimage of the morphism from Finite field of degree 7 over GF(13) to Finite field of degree 21 over GF(13)
+Preimage of a morphism
+  from finite field of degree 7 over GF(13)
+  to finite field of degree 21 over GF(13)
 
 julia&gt; y = k21(x7);
 
@@ -29,4 +31,4 @@ julia&gt; z = s(y)
 x7
 
 julia&gt; t = k7(y)
-x7</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 10 October 2023 05:26">Tuesday 10 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+x7</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 11 October 2023 19:55">Wednesday 11 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
