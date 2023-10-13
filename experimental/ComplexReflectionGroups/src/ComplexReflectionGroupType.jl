@@ -4,7 +4,13 @@
 # Moreover, we implement data that is known (or can be computed) just from the isomorphism
 # type.
 #
-# Ulrich Thiel, 2023 
+# References:
+#
+# * Lehrer, G. I., & Taylor, D. E. (2009). Unitary reflection groups (Vol. 20, p. viii). Cambridge University Press, Cambridge.
+# 
+# * Thiel, U. (2014). On restricted rational Cherednik algebras. TU Kaiserslautern.
+#
+# [Ulrich Thiel](https://ulthiel.com/math), 2023 
 
 export ComplexReflectionGroupType
 
