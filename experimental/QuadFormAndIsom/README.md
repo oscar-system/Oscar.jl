@@ -15,6 +15,7 @@ forms.
 We introduce two new structures
 * `QuadSpaceWithIsom`
 * `ZZLatWithIsom`
+
 The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
 and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
 $L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
@@ -40,7 +41,7 @@ Among the possible improvements and extensions:
 * Implement extra methods for lattices with isometries of infinite order;
 * Extend existing methods for equivariant primitive embeddings/extensions.
 
-## Currently application of this project
+## Current applications of this project
 
 The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use

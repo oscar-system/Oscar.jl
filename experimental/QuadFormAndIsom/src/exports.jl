@@ -4,6 +4,7 @@ export ZZLatWithIsom
 export admissible_equivariant_primitive_extensions
 export admissible_triples
 export ambient_isometry
+export discriminant_representation
 export enumerate_classes_of_lattices_with_isometry
 export image_centralizer_in_Oq
 export integer_lattice_with_isometry
@@ -16,6 +17,7 @@ export is_of_type
 export is_hermitian
 export order_of_isometry
 export primitive_embeddings
+export primitive_extensions
 export quadratic_space_with_isometry
 export representatives_of_hermitian_type
 export splitting_of_hermitian_prime_power
