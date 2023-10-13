@@ -61,3 +61,8 @@ key.format =
     { %+8.1n(author) }
     { %2d(year) }
 }
+
+# Check that 1800<=year<=2029
+check.rule { year "^[\"{]1[89][0-9][0-9][\"}]$" }
+check.rule { year "^[\"{]20[0-2][0-9][\"}]$" }
+check.error.rule { year "" "\@ \$: Year has to be a suitable number" }
