@@ -1141,7 +1141,9 @@ function show_homo_comp(io::IO, M)
   if n !== nothing
     print(io, "$(n)_$(d.coeff) of dim $(dim(M))")
   else
-    print(io, "homogeneous component of $W of degree $d")
+    io = pretty(io)
+    print(io, "homogeneous component of ", Lowercase(), W, " of degree ")
+    print(IOContext(io, :compact => true), d)
   end
 end
 
@@ -1263,7 +1265,7 @@ GrpAb: Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
+homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
 
 julia> FG = gens(L[1]);
 

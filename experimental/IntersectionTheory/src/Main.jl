@@ -210,7 +210,7 @@ Return the abstract variety and the list of classes.
 """
 function abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
   @assert length(symbols) > 0
-  R, x = grade(polynomial_ring(base, symbols)[1], degs)
+  R, x = graded_polynomial_ring(base, symbols, degs)
   return AbstractVariety(n, R), x
 end
 
@@ -533,7 +533,7 @@ function *(X::AbstractVariety, Y::AbstractVariety)
   A, B = X.ring, Y.ring
   symsA, symsB = string.(gens(A)), string.(gens(B))
   a = length(symsA)
-  R, x = grade(polynomial_ring(base, vcat(symsA, symsB))[1], vcat(gradings(A), gradings(B)))
+  R, x = graded_polynomial_ring(base, vcat(symsA, symsB), vcat(gradings(A), gradings(B)))
   # TODO: fails with check = true
   AtoR = hom(A, R, x[1:a], check = false)
   BtoR = hom(B, R, x[a+1:end], check = false)
@@ -860,7 +860,7 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   R = parent(x)
   iszero(x) && return R(1)
   n = get_attribute(R, :abstract_variety_dim)
-  R, (t,) = grade(polynomial_ring(QQ, ["t"])[1])
+  R, (t,) = graded_polynomial_ring(QQ, ["t"])
   set_attribute!(R, :abstract_variety_dim, n)
   lg = _logg(R(sum(taylor[i+1] * t^i for i in 0:n)))
   comps = lg[1:n]
@@ -896,7 +896,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   _g = Symbol("_", g)
   @eval function $g(n::Int)
     n == 0 && return QQ(1)
-    R, p = grade(polynomial_ring(QQ, _parse_symbol($s, 1:n))[1], collect(1:n))
+    R, p = graded_polynomial_ring(QQ, _parse_symbol($s, 1:n), collect(1:n))
     set_attribute!(R, :abstract_variety_dim, n)
     $_g(_logg(R(1+sum(p))))[n]
   end
@@ -1014,7 +1014,7 @@ end
 Construct a point as an abstract abstract_variety.
 """
 function point(; base::Ring=QQ)
-  R, (p,) = grade(polynomial_ring(base, ["p"])[1])
+  R, (p,) = graded_polynomial_ring(base, ["p"])
   I = ideal([p])
   pt = AbstractVariety(0, quo(R, I)[1])
   pt.point = pt(1)
@@ -1032,7 +1032,7 @@ Construct an abstract projective space of dimension $n$, parametrizing
 1-dimensional *subspaces* of a vector space of dimension $n+1$.
 """
 function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
-  R, (h,) = grade(polynomial_ring(base, [symbol])[1])
+  R, (h,) = graded_polynomial_ring(base, [symbol])
   I = ideal([h^(n+1)])
   AP = quo(R, I)[1]
   P = AbstractVariety(n, AP)
@@ -1068,7 +1068,7 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
   # ord = ordering_dp(1) * R.R.ord
   # construct the ring
   w = vcat([1], gradings(R))
-  R1, (h,) = grade(polynomial_ring(X.base, syms)[1], w)
+  R1, (h,) = graded_polynomial_ring(X.base, syms, w)
   # TODO: why does this fail with check = true
   pback = hom(R, R1, gens(R1)[2:end], check = false)
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
@@ -1115,7 +1115,7 @@ function abs_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
   @assert k < n
  
   d = k*(n-k)
-  R, c = grade(polynomial_ring(base, _parse_symbol(symbol, 1:k))[1], collect(1:k))
+  R, c = graded_polynomial_ring(base, _parse_symbol(symbol, 1:k), collect(1:k))
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
@@ -1164,7 +1164,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
   # FIXME ordering
   # ord = prod(ordering_dp(r) for r in ranks)
-  R = grade(polynomial_ring(base, syms)[1], vcat([collect(1:r) for r in ranks]...))[1]
+  R = graded_polynomial_ring(base, syms, vcat([collect(1:r) for r in ranks]...))[1]
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
@@ -1218,7 +1218,7 @@ function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::Str
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(R.R)))
   # ord = prod(ordering_dp(r) for r in ranks) * ordering(X.ring.R.R)
   w = vcat([collect(1:r) for r in ranks]..., gradings(R))
-  R1 = grade(polynomial_ring(X.base, syms)[1], w)[1]
+  R1 = graded_polynomial_ring(X.base, syms, w)[1]
   pback = hom(R, R1, gens(R1)[n+1:end])
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
   

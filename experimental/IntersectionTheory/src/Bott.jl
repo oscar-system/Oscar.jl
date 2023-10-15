@@ -125,7 +125,7 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
-    R, _ = grade(polynomial_ring(QQ, _parse_symbol("c", 1:r))[1], collect(1:r))
+    R, _ = graded_polynomial_ring(QQ, _parse_symbol("c", 1:r), collect(1:r))
     set_attribute!(R, :abstract_variety_dim => F.parent.dim)
     set_attribute!(F, :R => R)
   end
