@@ -3,5 +3,5 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 
 [compat]
-Documenter = "0.27.0"
+Documenter = "1.1"
 DocumenterCitations = "~1.1, ~1.2"
