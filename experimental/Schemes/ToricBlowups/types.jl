@@ -11,7 +11,7 @@
   center::IdealSheaf
   exceptional_divisor::ToricDivisor
 
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, set_attributes::Bool)
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String)
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
     new_vars = Vector{String}(undef, nrays(v) + 1)
@@ -22,14 +22,14 @@
         j == nothing && (index_of_new_ray = i)
     end
     @assert index_of_new_ray !==nothing "New ray not found -- some error in blow-up of toric variety"
-    set_attributes && set_attribute!(new_variety, :coordinate_names, new_vars)
+    set_attribute!(new_variety, :coordinate_names, new_vars)
     bl = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
     return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, index_of_new_ray)
   end
 end
 
 toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf) = ToricBlowdownMorphism(bl, new_ray, center)
-toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String, set_attributes::Bool) = ToricBlowdownMorphism(Y, new_ray, coordinate_name, set_attributes)
+toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String) = ToricBlowdownMorphism(Y, new_ray, coordinate_name)
 
 
 

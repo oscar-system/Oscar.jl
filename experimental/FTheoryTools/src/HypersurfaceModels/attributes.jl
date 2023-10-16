@@ -38,7 +38,7 @@ julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
 julia> base_space(h)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 function base_space(h::HypersurfaceModel)
@@ -76,7 +76,7 @@ julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
 julia> fiber_ambient_space(h)
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 fiber_ambient_space(h::HypersurfaceModel) = h.fiber_ambient_space

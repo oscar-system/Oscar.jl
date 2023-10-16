@@ -179,7 +179,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base
 
 julia> fiber_ambient_space(t)
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 fiber_ambient_space(t::GlobalTateModel) = t.fiber_ambient_space

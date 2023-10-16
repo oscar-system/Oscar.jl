@@ -1,5 +1,5 @@
 @doc raw"""
-    blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
 
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. Note that this ray must be a primitive element in the
@@ -13,7 +13,7 @@ a custom variable name.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
@@ -30,12 +30,12 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
-  return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, new_ray)), coordinate_name, set_attributes)
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
+  return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, new_ray)), coordinate_name)
 end
 
 @doc raw"""
-    blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e")
 
 Blow up the toric variety by subdividing the n-th cone in the list
 of *all* cones of the fan of `v`. This cone need not be maximal.
@@ -48,7 +48,7 @@ a custom variable name.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, 5)
 Toric blowdown morphism
@@ -65,12 +65,12 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
-  return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, n)), coordinate_name, set_attributes)
+function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e")
+  return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, n)), coordinate_name)
 end
 
 @doc raw"""
-    blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+    blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e")
 
 Blow up the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -83,7 +83,7 @@ a custom variable name.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1,x2,x3,x4) = gens(cox_ring(P3))
 4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -115,7 +115,7 @@ julia> codomain(b2P3) == P3
 true
 ```
 """
-function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e")
     @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     if length(indices) == ngens(I) && !(nothing in indices)
@@ -123,7 +123,7 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Stri
       rs = matrix(ZZ, rays(v))
       new_ray = vec(sum([rs[i,:] for i in indices]))
       new_ray = new_ray ./ gcd(new_ray)
-      return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, new_ray)), coordinate_name, set_attributes)
+      return ToricBlowdownMorphism(v, normal_toric_variety(star_subdivision(v, new_ray)), coordinate_name)
     else
       # We rely on advanced techniques to conduct this blowup (if available).
       return _generic_blow_up(v, I)

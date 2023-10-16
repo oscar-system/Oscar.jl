@@ -7,6 +7,7 @@ module BuildDoc
 using Documenter, DocumenterCitations
 
 include("documenter_helpers.jl")
+include("citation_style.jl")
 
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
@@ -135,7 +136,7 @@ function doit(
 
   # Load the bibliography
   bib = CitationBibliography(
-    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); sorting=:nyt
+    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra

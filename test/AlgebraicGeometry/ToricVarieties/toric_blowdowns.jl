@@ -1,9 +1,6 @@
-using Oscar
-using Test
-
-@testset "Toric blowdowns (set_attributes = $set_attributes)" for set_attributes in [true, false]
+@testset "Toric blowdowns" begin
   
-  P2 = projective_space(NormalToricVariety, 2; set_attributes)
+  P2 = projective_space(NormalToricVariety, 2)
   bl = blow_up(P2, [1, 1])
 
   @testset "Basic tests for simple toric blowdown" begin

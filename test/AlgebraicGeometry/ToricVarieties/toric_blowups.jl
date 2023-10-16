@@ -1,10 +1,7 @@
-using Oscar
-using Test
-
-@testset "Blowup of toric varieties (set_attributes = $set_attributes)" for set_attributes in [true, false]
+@testset "Blowup of toric varieties" begin
   
-  P2 = projective_space(NormalToricVariety, 2; set_attributes)
-  BP2 = domain(blow_up(P2, 1; coordinate_name = "e", set_attributes = set_attributes))
+  P2 = projective_space(NormalToricVariety, 2)
+  BP2 = domain(blow_up(P2, 1; coordinate_name = "e"))
   
   @testset "Basic properties of BP2" begin
     @test is_normal(BP2) == true

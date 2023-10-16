@@ -15,17 +15,18 @@ forms.
 We introduce two new structures
 * [`QuadSpaceWithIsom`](@ref)
 * [`ZZLatWithIsom`](@ref)
+
 The former parametrizes pairs $(V, f)$ where $V$ is a rational quadratic form
 and $f$ is an isometry of $V$. The latter parametrizes pairs $(L, f)$ where
 $L$ is an integral quadratic form, also known as $\mathbb Z$-lattice and $f$
 is an isometry of $L$. One of the main features of this project is the
 enumeration of isomorphism classes of pairs $(L, f)$, where $f$ is an isometry
 of finite order with at most two prime divisors. The methods we resort to
-for this purpose are developed in the paper [BH23].
+for this purpose are developed in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
 embeddings of even lattices following Nikulin's theory. More precisely, the
-function `primitive_embeddings` offers, under certain conditions,
+function [`primitive_embeddings`](@ref) offers, under certain conditions,
 the possibility to compute representatives of primitive embeddings and classify
 them in different ways. Note nonetheless that these functions are not efficient
 in the case were the discriminant groups have a large number of subgroups.
@@ -40,7 +41,7 @@ Among the possible improvements and extensions:
 * Implement extra methods for lattices with isometries of infinite order;
 * Extend existing methods for equivariant primitive embeddings/extensions.
 
-## Currently application of this project
+## Current applications of this project
 
 The project was initiated by S. Brandhorst and T. Hofmann for classifying
 finite subgroups of automorphisms of K3 surfaces. Our current goal is to use

@@ -104,7 +104,7 @@ small_group_identification
 ## Atlas of Group Representations
 
 The functions in this section give access to data in the
-Atlas of Group Representations [WWTSPNNLBA](@cite).
+Atlas of Group Representations [ATLAS](@cite).
 The isomorphism types of the groups in question are specified via
 names for the groups, which coincide with the names of the
 corresponding character tables in the library of character tables,
