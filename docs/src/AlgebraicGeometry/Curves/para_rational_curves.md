@@ -43,11 +43,11 @@ curves only once. Its individual steps are interesting in their own right:
 !!! note
     The defining property of an adjoint curve is that it passes with “sufficiently high” multiplicity through the singularities of $C$.
     There are several concepts of making this precise. For each such concept, there is a corresponding  *adjoint ideal* of $C$,
-	namely the homogeneous ideal formed by the defining polynomials of the adjoint curves. In OSCAR, we follow
-	the concept of Gorenstein which leads to the largest possible adjoint ideal.
-	
+    namely the homogeneous ideal formed by the defining polynomials of the adjoint curves. In OSCAR, we follow
+    the concept of Gorenstein which leads to the largest possible adjoint ideal.
+
 See [Bhm99](@cite) and [BDLP17](@cite) for details and further references.
- 
+
 ## Creating Projective Plane Curves
 
 The data structures for algebraic curves in OSCAR are still under development

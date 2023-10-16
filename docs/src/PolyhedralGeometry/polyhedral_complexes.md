@@ -24,7 +24,7 @@ along with an `IncidenceMatrix` encoding which points generate which
 polyhedron.
 
 ```@docs
-PolyhedralComplex
+polyhedral_complex
 ```
 
 

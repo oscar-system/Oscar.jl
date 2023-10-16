@@ -51,32 +51,32 @@ function saturate(I::Singular.sideal,J::Singular.sideal)
 	#output: array with two entries: the first is the saturation of I with respect to J
 	#the second is an integer k for which I:J^k=I:J^(k+1)=I:J^\infty
 
-	check_parent(I,J)
-	flag=true
-	k=0
-	If=I
-	Iff=I
-	while flag
-		Iff = Singular.quotient(If, J)
-		if isSubset(Iff,If)==true
-			flag =false
-			return [If,k]
-		else
-			k=k+1
-		end
-		If=Iff
-	end
+  check_parent(I,J)
+  flag=true
+  k=0
+  If=I
+  Iff=I
+  while flag
+    Iff = Singular.quotient(If, J)
+    if isSubset(Iff,If)==true
+      flag =false
+      return [If,k]
+    else
+      k=k+1
+    end
+    If=Iff
+  end
 end
 function is_binomial(f::MPolyRingElem)
   return length(f) <= 2
 end
 function isBinomial(f::Singular.spoly)
-	#check if the input polynomial is a binomial
-	if Singular.length(f)<=2
-		return(true)
-	else
-		return(false)
-	end
+  #check if the input polynomial is a binomial
+  if Singular.length(f)<=2
+    return(true)
+  else
+    return(false)
+  end
 end
 function is_binomial(I::MPolyIdeal)
   singular_assure(I)
@@ -143,9 +143,7 @@ function markov4ti2(L::ZZMatrix)
 
 	#now we have the file julia4ti2.lat in the current working directory
 	#can run 4ti2 with this input file to get a markov basis
-        lib4ti2_jll.exe4ti2gmp() do x
-          run(ignorestatus(`$x markov -q $name`))
-        end
+	run(ignorestatus(`$(lib4ti2_jll.exe4ti2gmp()) markov -q $name`))
 	#this creates the file julia4ti2.mar with the markov basis
 
 	#now we have to get the matrix from julia4ti2.mat in julia
@@ -1075,9 +1073,9 @@ function associated_primes(I::MPolyIdeal)
   return [MPolyIdeal(I.gens.Ox, x) for x = a]
 end
 
-function decomposition(I::MPolyIdeal; algo::Symbol = :auto)
+function decomposition(I::MPolyIdeal; algorithm::Symbol = :auto)
   singular_assure(I)
-  if algo == :auto
+  if algorithm == :auto
     C = cellularDecomp(I.gens.S)
   else
     C = cellularDecompMacaulay(I.gens.S)

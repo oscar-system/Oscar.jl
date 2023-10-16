@@ -29,7 +29,7 @@
   @test IE*Iweak == Ictrl1
 
   C2strict = strict_transform(bl,C2sheaf)
-  bl2 = blow_up(C2strict,covering=oscar.simplified_covering(W2),var_name="t")
+  bl2 = blow_up(C2strict,covering=Oscar.simplified_covering(W2),var_name="t")
 
   E2 = strict_transform(bl2,E)
 end

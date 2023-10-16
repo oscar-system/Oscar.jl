@@ -8,7 +8,7 @@
   set_name!(C, "C")
   WC = cotangent_sheaf(C)
   @test is_locally_free(WC)
-  V = oscar.trivializing_covering(WC)
+  V = Oscar.trivializing_covering(WC)
   U = affine_charts(C)
   @test WC(U[1], V[1]) isa ModuleFPHom
   W = PrincipalOpenSubset(V[2], first(gens(OO(V[2]))))
@@ -17,7 +17,7 @@
   @test coordinates(v)[1] == -inv(first(gens(OO(W))))^2
 
   TC = tangent_sheaf(C)
-  @test oscar.trivializing_covering(TC) isa Covering
+  @test Oscar.trivializing_covering(TC) isa Covering
 
   IP4 = projective_space(QQ, 4)
   S = homogeneous_coordinate_ring(IP4)
@@ -28,11 +28,11 @@
   X = covered_scheme(IPX)
   set_name!(X, "X")
   WX = cotangent_sheaf(X)
-  C = oscar.trivializing_covering(WX)
+  C = Oscar.trivializing_covering(WX)
   @test WX(C[1]) isa FreeMod
   @test !any(x->x===ambient_scheme(C[1]), affine_charts(X)) # codimension 2 means recursion depth >= 2.
   TX = tangent_sheaf(X)
-  CC = oscar.trivializing_covering(TX)
+  CC = Oscar.trivializing_covering(TX)
 
   # Testing transitions across charts while going down in the trees.
   @test all(x->TX(x) isa FreeMod, patches(CC))
@@ -42,7 +42,7 @@
   UUU = PrincipalOpenSubset(UU, one(OO(UU)))
   @test TX(CC[1], UUU) isa ModuleFPHom
   B = PrincipalOpenSubset(CC[2], one(OO(CC[2])))
-  @test oscar.is_open_func(TX)(A, B)
+  @test Oscar.is_open_func(TX)(A, B)
   @test WX(B, A) isa ModuleFPHom
   @test TX(B, A) isa ModuleFPHom
   @test TX(B, UU) == compose(TX(B, A), TX(A, UU))

@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar 
+CurrentModule = Oscar
 DocTestSetup = quote
   using Oscar
 end
@@ -37,7 +37,7 @@ multiplicatively closed subsets of quotients.
 !!! note
     Most functions described here rely on the computation of standard bases. Recall that OSCAR
     supports standard bases for multivariate polynomial rings over fields (exact fields supported by OSCAR) and
-	for multivariate polynomial rings over the integers.	
+    for multivariate polynomial rings over the integers.
 
 ## Types
 
@@ -51,7 +51,7 @@ For multiplicatively closed subsets of multivariate polynomial rings, there are 
 
 The general abstract type for localizations of rings is `AbsLocalizedRing`. For localizations of multivariate
 polynomial rings, there is the concrete subtype `MPolyLocRing`. For localizations of quotients of
-multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRing`. 
+multivariate polynomial rings, there is the concrete subtype `MPolyQuoLocRing`.
 
 
 ## Constructors
@@ -88,7 +88,7 @@ localization(R::MPolyRing, U::AbsMPolyMultSet)
 ```@docs
 localization(RQ::MPolyQuoRing, U::AbsMPolyMultSet)
 ```
-	
+
 ## Data associated to Localized Rings
 
 If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multiplicatively closed subset
@@ -114,7 +114,9 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = localization(U);
 
@@ -139,7 +141,9 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(y - 1, x - a)
+Complement
+  of prime ideal(y - 1, x - a)
+  in multivariate polynomial ring in 2 variables over number field
 
 julia> RQ, _ = quo(R, I);
 
@@ -164,7 +168,7 @@ For elements of localizations of quotients of multivariate polynomial rings, the
 
 If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multiplicatively closed subset
 `U` of `R`, then elements of `Rloc` are created as (fractions of) images of elements of `R` under
-the localization map or by coercing (pairs of) elements of `R` into fractions. 
+the localization map or by coercing (pairs of) elements of `R` into fractions.
 
 If `RQ` is a quotient of a multivariate polynomial ring `R`, `p` : `R` ``\to`` `RQ` is the projection map, `U`  is a
 multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at `p(U)`, then elements of
@@ -174,13 +178,15 @@ multiplicatively closed subset of `R`, and `RQL` is the localization of `RQ` at 
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(U);
 
@@ -225,7 +231,9 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(y - 1, x - a)
+Complement
+  of prime ideal(y - 1, x - a)
+  in multivariate polynomial ring in 2 variables over number field
 
 julia> RQ, p = quo(R, I);
 
@@ -263,7 +271,7 @@ x^2/y^2
 ### Data Associated to Elements of Localized Rings
 
 If `Rloc` is a localization of a multivariate polynomial ring `R`, and `f` is an element of `Rloc`, internally
-represented by a pair `(r, u)` of elements of `R`, then 
+represented by a pair `(r, u)` of elements of `R`, then
 - `parent(f)` refers to `Rloc`,
 - `numerator(f)` to `r`, and
 - `denominator(f)` to `u`.
@@ -284,7 +292,9 @@ julia> P = ideal(R, [x])
 ideal(x)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(x)
+Complement
+  of prime ideal(x)
+  in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(U);
 
@@ -292,7 +302,10 @@ julia> f = iota(x)/iota(y)
 x/y
 
 julia> parent(f)
-localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+Localization
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+  at complement of prime ideal(x)
 
 julia> g = iota(y)/iota(z)
 y/z
@@ -321,7 +334,9 @@ julia> P = ideal(R, [y-1, x-a])
 ideal(y - 1, x - a)
 
 julia> U = complement_of_prime_ideal(P)
-complement of ideal(y - 1, x - a)
+Complement
+  of prime ideal(y - 1, x - a)
+  in multivariate polynomial ring in 2 variables over number field
 
 julia> RQ, p = quo(R, I);
 
@@ -333,7 +348,12 @@ julia> f = phi(x)
 x
 
 julia> parent(f)
-Localization of Quotient of Multivariate Polynomial Ring in x, y over Number field over Rational Field with defining polynomial 2*t^2 - 1 by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(y - 1, x - a)
+Localization
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over number field of degree 2 over QQ
+    by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+  at complement of prime ideal(y - 1, x - a)
 
 julia> g = f/phi(y)
 x/y
@@ -389,7 +409,7 @@ restricted_map(PHI::MPolyLocalizedRingHom)
 ```
 
 ## Ideals in Localized Rings
-	  
+
 ### Types
 
 The general abstract type for ideals in localized rings is `AbsLocalizedIdeal`. For ideals in  localizations of multivariate polynomial rings,
@@ -421,7 +441,11 @@ julia> U = complement_of_point_ideal(R, [0, 0]);
 julia> Rloc, _ = localization(R, U);
 
 julia> MI = ideal(Rloc, V)
-ideal in localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of maximal ideal corresponding to point with coordinates QQFieldElem[0, 0] generated by [3*x^2, 4*y^3]
+Ideal
+  of localized ring
+with 2 generators
+  3*x^2
+  4*y^3
 ```
 
 ### Data Associated to Ideals
@@ -439,7 +463,7 @@ Similarly, if `I` is an ideal of a localized quotient of a multivariate polynomi
 
 If `I`,  `J` are ideals of a localized multivariate polynomial ring  `Rloc`, then
 
-- `I^k` refers to the `k`-th  power of `I`, 
+- `I^k` refers to the `k`-th  power of `I`,
 - `I+J`, `I*J`,  and `intersect(I, J)` to the sum, product, and intersection of `I` and  `J`, and
 - `quotient(I, J)` as well as `I:J` to the ideal quotient of `I` by `J`.
 

@@ -1,650 +1,744 @@
+using Documenter
+
+# Make sure that the tests start without cached character tables.
+# (Running the tests will store information that changes some test outputs,
+# thus running the tests twice needs these calls.)
+GAP.Globals.UnloadCharacterTableData()
+empty!(Oscar.character_tables_by_id)
+
+#
+# This module only exists to "host" a doctest used by the test suite.
+#
+module AuxDocTest_GroupCharacters
+@doc raw"""
+```jldoctest group_characters.test
+julia> using Oscar
+
+julia> t_a4 = character_table(alternating_group(4));
+
+julia> t_a5 = character_table("A5");
+
+julia> t_a4_2 = mod(t_a4, 2);
+
+julia> t_a5_2 = mod(t_a5, 2);
+```
+
+`print` shows an abbrev. form
+
+```jldoctest group_characters.test
+julia> print(t_a4)
+character table of permutation group
+
+julia> print(t_a5)
+character table of A5
+
+julia> print(t_a4_2)
+2-modular Brauer table of permutation group
+
+julia> print(t_a5_2)
+2-modular Brauer table of A5
+```
+
+`show` uses the abbrev. form for nested objects
+
+```jldoctest group_characters.test
+julia> show([t_a4])
+Oscar.GAPGroupCharacterTable[character table of permutation group]
+
+julia> show([t_a5])
+Oscar.GAPGroupCharacterTable[character table of A5]
+
+julia> show([t_a4_2])
+Oscar.GAPGroupCharacterTable[2-modular Brauer table of permutation group]
+
+julia> show([t_a5_2])
+Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
+```
+
+supercompact printing
+```jldoctest group_characters.test
+julia> print(IOContext(stdout, :supercompact => true), t_a4)
+character table of a group
+
+julia> print(IOContext(stdout, :supercompact => true), t_a5)
+character table of a group
+
+julia> print(IOContext(stdout, :supercompact => true), t_a4_2)
+2-modular Brauer table of a group
+
+julia> print(IOContext(stdout, :supercompact => true), t_a5_2)
+2-modular Brauer table of a group
+```
+
+default `show` with unicode
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(stdout, MIME("text/plain"), t_a4)
+       end
+Character table of permutation group of degree 4 and order 12
+
+ 2  2  2       .       .
+ 3  1  .       1       1
+
+   1a 2a      3a      3b
+2P 1a 1a      3b      3a
+3P 1a 2a      1a      1a
+
+χ₁  1  1       1       1
+χ₂  1  1 -ζ₃ - 1      ζ₃
+χ₃  1  1      ζ₃ -ζ₃ - 1
+χ₄  3 -1       .       .
+```
+
+default `show` without unicode
+
+```jldoctest group_characters.test
+julia> show(stdout, MIME("text/plain"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+  2  2  2        .        .
+  3  1  .        1        1
+
+    1a 2a       3a       3b
+ 2P 1a 1a       3b       3a
+ 3P 1a 2a       1a       1a
+
+X_1  1  1        1        1
+X_2  1  1 -z_3 - 1      z_3
+X_3  1  1      z_3 -z_3 - 1
+X_4  3 -1        .        .
+```
+
+LaTeX format
+
+```jldoctest group_characters.test
+julia> show(stdout, MIME("text/latex"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+$\begin{array}{rrrrr}
+2 & 2 & 2 & . & . \\
+3 & 1 & . & 1 & 1 \\
+ &  &  &  &  \\
+ & 1a & 2a & 3a & 3b \\
+2P & 1a & 1a & 3b & 3a \\
+3P & 1a & 2a & 1a & 1a \\
+ &  &  &  &  \\
+\chi_{1} & 1 & 1 & 1 & 1 \\
+\chi_{2} & 1 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
+\chi_{3} & 1 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
+\chi_{4} & 3 & -1 & . & . \\
+\end{array}
+$
+
+```
+
+show a legend of irrationalities instead of self-explanatory values,
+in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
+       end
+Character table of permutation group of degree 4 and order 12
+
+ 2  2  2  .  .
+ 3  1  .  1  1
+
+   1a 2a 3a 3b
+2P 1a 1a 3b 3a
+3P 1a 2a 1a 1a
+
+χ₁  1  1  1  1
+χ₂  1  1  A  A̅
+χ₃  1  1  A̅  A
+χ₄  3 -1  .  .
+
+A = -ζ₃ - 1
+A̅ = ζ₃
+```
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+  2  2  2  .  .
+  3  1  .  1  1
+
+    1a 2a 3a 3b
+ 2P 1a 1a 3b 3a
+ 3P 1a 2a 1a 1a
+
+X_1  1  1  1  1
+X_2  1  1  A /A
+X_3  1  1 /A  A
+X_4  3 -1  .  .
+
+A = -z_3 - 1
+/A = z_3
+```
+
+... and in LaTeX format
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+$\begin{array}{rrrrr}
+2 & 2 & 2 & . & . \\
+3 & 1 & . & 1 & 1 \\
+ &  &  &  &  \\
+ & 1a & 2a & 3a & 3b \\
+2P & 1a & 1a & 3b & 3a \\
+3P & 1a & 2a & 1a & 1a \\
+ &  &  &  &  \\
+\chi_{1} & 1 & 1 & 1 & 1 \\
+\chi_{2} & 1 & 1 & A & \overline{A} \\
+\chi_{3} & 1 & 1 & \overline{A} & A \\
+\chi_{4} & 3 & -1 & . & . \\
+\end{array}
+
+\begin{array}{l}
+A = -\zeta_{3} - 1 \\
+\overline{A} = \zeta_{3} \\
+\end{array}
+$
+```
+
+Show the screen format for a table with real and non-real irrationalities.
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :with_legend => true),
+              MIME("text/plain"), character_table("L2(11)"))
+       end
+L2(11)
+
+  2  2  2  1  .  .  1   .   .
+  3  1  1  1  .  .  1   .   .
+  5  1  .  .  1  1  .   .   .
+ 11  1  .  .  .  .  .   1   1
+
+    1a 2a 3a 5a 5b 6a 11a 11b
+ 2P 1a 1a 3a 5b 5a 3a 11b 11a
+ 3P 1a 2a 1a 5b 5a 2a 11a 11b
+ 5P 1a 2a 3a 1a 1a 6a 11a 11b
+11P 1a 2a 3a 5a 5b 6a  1a  1a
+
+ χ₁  1  1  1  1  1  1   1   1
+ χ₂  5  1 -1  .  .  1   B   B̅
+ χ₃  5  1 -1  .  .  1   B̅   B
+ χ₄ 10 -2  1  .  .  1  -1  -1
+ χ₅ 10  2  1  .  . -1  -1  -1
+ χ₆ 11 -1 -1  1  1 -1   .   .
+ χ₇ 12  .  .  A A*  .   1   1
+ χ₈ 12  .  . A*  A  .   1   1
+
+A = -ζ₅³ - ζ₅² - 1
+A* = ζ₅³ + ζ₅²
+B = ζ₁₁⁹ + ζ₁₁⁵ + ζ₁₁⁴ + ζ₁₁³ + ζ₁₁
+B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
+```
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :with_legend => true),
+            MIME("text/plain"), character_table("L2(11)"))
+L2(11)
+
+  2  2  2  1  .  .  1   .   .
+  3  1  1  1  .  .  1   .   .
+  5  1  .  .  1  1  .   .   .
+ 11  1  .  .  .  .  .   1   1
+
+    1a 2a 3a 5a 5b 6a 11a 11b
+ 2P 1a 1a 3a 5b 5a 3a 11b 11a
+ 3P 1a 2a 1a 5b 5a 2a 11a 11b
+ 5P 1a 2a 3a 1a 1a 6a 11a 11b
+11P 1a 2a 3a 5a 5b 6a  1a  1a
+
+X_1  1  1  1  1  1  1   1   1
+X_2  5  1 -1  .  .  1   B  /B
+X_3  5  1 -1  .  .  1  /B   B
+X_4 10 -2  1  .  .  1  -1  -1
+X_5 10  2  1  .  . -1  -1  -1
+X_6 11 -1 -1  1  1 -1   .   .
+X_7 12  .  .  A A*  .   1   1
+X_8 12  .  . A*  A  .   1   1
+
+A = -z_5^3 - z_5^2 - 1
+A* = z_5^3 + z_5^2
+B = z_11^9 + z_11^5 + z_11^4 + z_11^3 + z_11
+/B = -z_11^9 - z_11^5 - z_11^4 - z_11^3 - z_11 - 1
+```
+
+Show some separating lines, in the screen format ...
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :separators_col => [0,5],
+                                :separators_row => [0,5]),
+              MIME("text/plain"), t_a5)
+       end
+A5
+
+ 2│ 2  2  .             .             .│
+ 3│ 1  .  1             .             .│
+ 5│ 1  .  .             1             1│
+  │                                    │
+  │1a 2a 3a            5a            5b│
+2P│1a 1a 3a            5b            5a│
+3P│1a 2a 1a            5b            5a│
+5P│1a 2a 3a            1a            1a│
+  │                                    │
+──┼────────────────────────────────────┼
+χ₁│ 1  1  1             1             1│
+χ₂│ 3 -1  . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²│
+χ₃│ 3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1│
+χ₄│ 4  .  1            -1            -1│
+χ₅│ 5  1 -1             .             .│
+──┼────────────────────────────────────┼
+```
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0,5],
+                          :separators_row => [0,5]),
+            MIME("text/plain"), t_a5)
+A5
+
+  2| 2  2  .                 .                 .|
+  3| 1  .  1                 .                 .|
+  5| 1  .  .                 1                 1|
+   |                                            |
+   |1a 2a 3a                5a                5b|
+ 2P|1a 1a 3a                5b                5a|
+ 3P|1a 2a 1a                5b                5a|
+ 5P|1a 2a 3a                1a                1a|
+   |                                            |
+---+--------------------------------------------+
+X_1| 1  1  1                 1                 1|
+X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2|
+X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1|
+X_4| 4  .  1                -1                -1|
+X_5| 5  1 -1                 .                 .|
+---+--------------------------------------------+
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0,5],
+                          :separators_row => [0,5]),
+            MIME("text/latex"), t_a5)
+A5
+
+$\begin{array}{r|rrrrr|}
+2 & 2 & 2 & . & . & . \\
+3 & 1 & . & 1 & . & . \\
+5 & 1 & . & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ & 1a & 2a & 3a & 5a & 5b \\
+2P & 1a & 1a & 3a & 5b & 5a \\
+3P & 1a & 2a & 1a & 5b & 5a \\
+5P & 1a & 2a & 3a & 1a & 1a \\
+ &  &  &  &  &  \\
+\hline
+\chi_{1} & 1 & 1 & 1 & 1 & 1 \\
+\chi_{2} & 3 & -1 & . & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 & -\zeta_{5}^{3} - \zeta_{5}^{2} \\
+\chi_{3} & 3 & -1 & . & -\zeta_{5}^{3} - \zeta_{5}^{2} & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 \\
+\chi_{4} & 4 & . & 1 & -1 & -1 \\
+\chi_{5} & 5 & 1 & -1 & . & . \\
+\hline
+\end{array}
+$
+```
+
+distribute the table into column portions, in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :separators_col => [0],
+                            :separators_row => [0],
+                            :portions_col => [2,3]),
+              MIME("text/plain"), t_a5)
+       end
+A5
+
+ 2│ 2  2
+ 3│ 1  .
+ 5│ 1  .
+  │
+  │1a 2a
+2P│1a 1a
+3P│1a 2a
+5P│1a 2a
+  │
+──┼─────
+χ₁│ 1  1
+χ₂│ 3 -1
+χ₃│ 3 -1
+χ₄│ 4  .
+χ₅│ 5  1
+
+ 2│ .             .             .
+ 3│ 1             .             .
+ 5│ .             1             1
+  │
+  │3a            5a            5b
+2P│3a            5b            5a
+3P│1a            5b            5a
+5P│3a            1a            1a
+  │
+──┼──────────────────────────────
+χ₁│ 1             1             1
+χ₂│ . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²
+χ₃│ .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
+χ₄│ 1            -1            -1
+χ₅│-1             .             .
+```
+
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0],
+                     :separators_row => [0],
+                     :portions_col => [2,3]),
+       MIME("text/plain"), t_a5)
+A5
+
+  2| 2  2
+  3| 1  .
+  5| 1  .
+   |
+   |1a 2a
+ 2P|1a 1a
+ 3P|1a 2a
+ 5P|1a 2a
+   |
+---+-----
+X_1| 1  1
+X_2| 3 -1
+X_3| 3 -1
+X_4| 4  .
+X_5| 5  1
+
+  2| .                 .                 .
+  3| 1                 .                 .
+  5| .                 1                 1
+   |
+   |3a                5a                5b
+ 2P|3a                5b                5a
+ 3P|1a                5b                5a
+ 5P|3a                1a                1a
+   |
+---+--------------------------------------
+X_1| 1                 1                 1
+X_2| . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
+X_3| .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
+X_4| 1                -1                -1
+X_5|-1                 .                 .
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0],
+                     :separators_row => [0],
+                     :portions_col => [2,3]),
+       MIME("text/latex"), t_a5)
+A5
+
+$\begin{array}{r|rr}
+2 & 2 & 2 \\
+3 & 1 & . \\
+5 & 1 & . \\
+ &  &  \\
+ & 1a & 2a \\
+2P & 1a & 1a \\
+3P & 1a & 2a \\
+5P & 1a & 2a \\
+ &  &  \\
+\hline
+\chi_{1} & 1 & 1 \\
+\chi_{2} & 3 & -1 \\
+\chi_{3} & 3 & -1 \\
+\chi_{4} & 4 & . \\
+\chi_{5} & 5 & 1 \\
+\end{array}
+
+\begin{array}{r|rrr}
+2 & . & . & . \\
+3 & 1 & . & . \\
+5 & . & 1 & 1 \\
+ &  &  &  \\
+ & 3a & 5a & 5b \\
+2P & 3a & 5b & 5a \\
+3P & 1a & 5b & 5a \\
+5P & 3a & 1a & 1a \\
+ &  &  &  \\
+\hline
+\chi_{1} & 1 & 1 & 1 \\
+\chi_{2} & . & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 & -\zeta_{5}^{3} - \zeta_{5}^{2} \\
+\chi_{3} & . & -\zeta_{5}^{3} - \zeta_{5}^{2} & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 \\
+\chi_{4} & 1 & -1 & -1 \\
+\chi_{5} & -1 & . & . \\
+\end{array}
+$
+```
+
+distribute the table into row portions,
+in the screen format (perhaps not relevant) ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :separators_col => [0],
+                            :separators_row => [0],
+                            :portions_row => [2,3]),
+              MIME("text/plain"), t_a5)
+       end
+A5
+
+ 2│ 2  2  .             .             .
+ 3│ 1  .  1             .             .
+ 5│ 1  .  .             1             1
+  │
+  │1a 2a 3a            5a            5b
+2P│1a 1a 3a            5b            5a
+3P│1a 2a 1a            5b            5a
+5P│1a 2a 3a            1a            1a
+  │
+──┼────────────────────────────────────
+χ₁│ 1  1  1             1             1
+χ₂│ 3 -1  . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²
+
+ 2│ 2  2  .             .             .
+ 3│ 1  .  1             .             .
+ 5│ 1  .  .             1             1
+  │
+  │1a 2a 3a            5a            5b
+2P│1a 1a 3a            5b            5a
+3P│1a 2a 1a            5b            5a
+5P│1a 2a 3a            1a            1a
+  │
+──┼────────────────────────────────────
+χ₃│ 3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
+χ₄│ 4  .  1            -1            -1
+χ₅│ 5  1 -1             .             .
+```
+
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0],
+                          :separators_row => [0],
+                          :portions_row => [2,3]),
+            MIME("text/plain"), t_a5)
+A5
+
+  2| 2  2  .                 .                 .
+  3| 1  .  1                 .                 .
+  5| 1  .  .                 1                 1
+   |
+   |1a 2a 3a                5a                5b
+ 2P|1a 1a 3a                5b                5a
+ 3P|1a 2a 1a                5b                5a
+ 5P|1a 2a 3a                1a                1a
+   |
+---+--------------------------------------------
+X_1| 1  1  1                 1                 1
+X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
+
+  2| 2  2  .                 .                 .
+  3| 1  .  1                 .                 .
+  5| 1  .  .                 1                 1
+   |
+   |1a 2a 3a                5a                5b
+ 2P|1a 1a 3a                5b                5a
+ 3P|1a 2a 1a                5b                5a
+ 5P|1a 2a 3a                1a                1a
+   |
+---+--------------------------------------------
+X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
+X_4| 4  .  1                -1                -1
+X_5| 5  1 -1                 .                 .
+```
+
+... and in LaTeX format (may be interesting)
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :separators_col => [0],
+                          :separators_row => [0],
+                          :portions_row => [2,3]),
+            MIME("text/latex"), t_a5)
+A5
+
+$\begin{array}{r|rrrrr}
+2 & 2 & 2 & . & . & . \\
+3 & 1 & . & 1 & . & . \\
+5 & 1 & . & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ & 1a & 2a & 3a & 5a & 5b \\
+2P & 1a & 1a & 3a & 5b & 5a \\
+3P & 1a & 2a & 1a & 5b & 5a \\
+5P & 1a & 2a & 3a & 1a & 1a \\
+ &  &  &  &  &  \\
+\hline
+\chi_{1} & 1 & 1 & 1 & 1 & 1 \\
+\chi_{2} & 3 & -1 & . & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 & -\zeta_{5}^{3} - \zeta_{5}^{2} \\
+\end{array}
+
+\begin{array}{r|rrrrr}
+2 & 2 & 2 & . & . & . \\
+3 & 1 & . & 1 & . & . \\
+5 & 1 & . & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ & 1a & 2a & 3a & 5a & 5b \\
+2P & 1a & 1a & 3a & 5b & 5a \\
+3P & 1a & 2a & 1a & 5b & 5a \\
+5P & 1a & 2a & 3a & 1a & 1a \\
+ &  &  &  &  &  \\
+\hline
+\chi_{3} & 3 & -1 & . & -\zeta_{5}^{3} - \zeta_{5}^{2} & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 \\
+\chi_{4} & 4 & . & 1 & -1 & -1 \\
+\chi_{5} & 5 & 1 & -1 & . & . \\
+\end{array}
+$
+```
+
+show indicators in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
+       end
+Character table of permutation group of degree 4 and order 12
+
+    2  2  2       .       .
+    3  1  .       1       1
+
+      1a 2a      3a      3b
+   2P 1a 1a      3b      3a
+   3P 1a 2a      1a      1a
+    2
+χ₁  +  1  1       1       1
+χ₂  o  1  1 -ζ₃ - 1      ζ₃
+χ₃  o  1  1      ζ₃ -ζ₃ - 1
+χ₄  +  3 -1       .       .
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+$\begin{array}{rrrrrr}
+ & 2 & 2 & 2 & . & . \\
+ & 3 & 1 & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ &  & 1a & 2a & 3a & 3b \\
+ & 2P & 1a & 1a & 3b & 3a \\
+ & 3P & 1a & 2a & 1a & 1a \\
+ & 2 &  &  &  &  \\
+\chi_{1} & + & 1 & 1 & 1 & 1 \\
+\chi_{2} & o & 1 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
+\chi_{3} & o & 1 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
+\chi_{4} & + & 3 & -1 & . & . \\
+\end{array}
+$
+```
+
+ordinary table:
+show character field degrees in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
+       end
+Character table of permutation group of degree 4 and order 12
+
+    2  2  2       .       .
+    3  1  .       1       1
+
+      1a 2a      3a      3b
+   2P 1a 1a      3b      3a
+   3P 1a 2a      1a      1a
+    d
+χ₁  1  1  1       1       1
+χ₂  2  1  1 -ζ₃ - 1      ζ₃
+χ₃  2  1  1      ζ₃ -ζ₃ - 1
+χ₄  1  3 -1       .       .
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
+Character table of permutation group of degree 4 and order 12
+
+$\begin{array}{rrrrrr}
+ & 2 & 2 & 2 & . & . \\
+ & 3 & 1 & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ &  & 1a & 2a & 3a & 3b \\
+ & 2P & 1a & 1a & 3b & 3a \\
+ & 3P & 1a & 2a & 1a & 1a \\
+ & d &  &  &  &  \\
+\chi_{1} & 1 & 1 & 1 & 1 & 1 \\
+\chi_{2} & 2 & 1 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
+\chi_{3} & 2 & 1 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
+\chi_{4} & 1 & 3 & -1 & . & . \\
+\end{array}
+$
+```
+
+Brauer table:
+show character field degrees in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
+       end
+2-modular Brauer table of permutation group of degree 4 and order 12
+
+    2  2       .       .
+    3  1       1       1
+
+      1a      3a      3b
+   2P 1a      3b      3a
+   3P 1a      1a      1a
+    d
+χ₁  1  1       1       1
+χ₂  2  1 -ζ₃ - 1      ζ₃
+χ₃  2  1      ζ₃ -ζ₃ - 1
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
+2-modular Brauer table of permutation group of degree 4 and order 12
+
+$\begin{array}{rrrrr}
+ & 2 & 2 & . & . \\
+ & 3 & 1 & 1 & 1 \\
+ &  &  &  &  \\
+ &  & 1a & 3a & 3b \\
+ & 2P & 1a & 3b & 3a \\
+ & 3P & 1a & 1a & 1a \\
+ & d &  &  &  \\
+\chi_{1} & 1 & 1 & 1 & 1 \\
+\chi_{2} & 2 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
+\chi_{3} & 2 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
+\end{array}
+$
+```
+"""
+function dummy_placeholder end
+
+end
+
+
 @testset "show and print character tables" begin
-  io = IOBuffer();
-
-  t_a4 = character_table(alternating_group(4))
-  t_a5 = character_table("A5")
-
-  # `print` shows an abbrev. form
-  print(io, t_a4)
-  @test String(take!(io)) == "character_table(Alt( [ 1 .. 4 ] ))"
-
-  # default `show`
-  Oscar.with_unicode() do
-    show(io, t_a4)
-  end
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-  
-   2  2  2       .       .
-   3  1  .       1       1
-                          
-     1a 2a      3a      3b
-  2P 1a 1a      3b      3a
-  3P 1a 2a      1a      1a
-                          
-  χ₁  1  1       1       1
-  χ₂  1  1 -ζ₃ - 1      ζ₃
-  χ₃  1  1      ζ₃ -ζ₃ - 1
-  χ₄  3 -1       .       .
-  """
-
-  show(io, t_a4)
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-  
-    2  2  2        .        .
-    3  1  .        1        1
-                             
-      1a 2a       3a       3b
-   2P 1a 1a       3b       3a
-   3P 1a 2a       1a       1a
-                             
-  X_1  1  1        1        1
-  X_2  1  1 -z_3 - 1      z_3
-  X_3  1  1      z_3 -z_3 - 1
-  X_4  3 -1        .        .
-  """
-
-  # LaTeX format
-  show(io, MIME("text/latex"), t_a4)
-  @test String(take!(io)) ==
-  """
-  \$Alt( [ 1 .. 4 ] )
-
-  \\begin{array}{rrrrr}
-  2 & 2 & 2 & . & . \\\\
-  3 & 1 & . & 1 & 1 \\\\
-   &  &  &  &  \\\\
-   & 1a & 2a & 3a & 3b \\\\
-  2P & 1a & 1a & 3b & 3a \\\\
-  3P & 1a & 2a & 1a & 1a \\\\
-   &  &  &  &  \\\\
-  \\chi_{1} & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
-  \\chi_{3} & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
-  \\chi_{4} & 3 & -1 & . & . \\\\
-  \\end{array}
-  \$"""
-
-  # show a legend of irrationalities instead of self-explanatory values,
-  # in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :with_legend => true), t_a4)
-  end
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-
-   2  2  2  .  .
-   3  1  .  1  1
-                
-     1a 2a 3a 3b
-  2P 1a 1a 3b 3a
-  3P 1a 2a 1a 1a
-                
-  χ₁  1  1  1  1
-  χ₂  1  1  A  A̅
-  χ₃  1  1  A̅  A
-  χ₄  3 -1  .  .
-
-  A = -ζ₃ - 1
-  A̅ = ζ₃
-  """
-
-  show(IOContext(io, :with_legend => true), t_a4)
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-  
-    2  2  2  .  .
-    3  1  .  1  1
-                 
-      1a 2a 3a 3b
-   2P 1a 1a 3b 3a
-   3P 1a 2a 1a 1a
-                 
-  X_1  1  1  1  1
-  X_2  1  1  A /A
-  X_3  1  1 /A  A
-  X_4  3 -1  .  .
-  
-  A = -z_3 - 1
-  /A = z_3
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :with_legend => true), MIME("text/latex"), t_a4)
-  @test String(take!(io)) ==
-  """
-  \$Alt( [ 1 .. 4 ] )
-
-  \\begin{array}{rrrrr}
-  2 & 2 & 2 & . & . \\\\
-  3 & 1 & . & 1 & 1 \\\\
-   &  &  &  &  \\\\
-   & 1a & 2a & 3a & 3b \\\\
-  2P & 1a & 1a & 3b & 3a \\\\
-  3P & 1a & 2a & 1a & 1a \\\\
-   &  &  &  &  \\\\
-  \\chi_{1} & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 1 & 1 & A & \\overline{A} \\\\
-  \\chi_{3} & 1 & 1 & \\overline{A} & A \\\\
-  \\chi_{4} & 3 & -1 & . & . \\\\
-  \\end{array}
-
-  A = -\\zeta_{3} - 1
-  \\overline{A} = \\zeta_{3}
-  \$"""
-
-  # show the screen format for a table with real and non-real irrationalities
-  Oscar.with_unicode() do
-    show(IOContext(io, :with_legend => true), character_table("L2(11)"))
-  end
-  @test String(take!(io)) ==
-  """
-  L2(11)
-
-    2  2  2  1  .  .  1   .   .
-    3  1  1  1  .  .  1   .   .
-    5  1  .  .  1  1  .   .   .
-   11  1  .  .  .  .  .   1   1
-                               
-      1a 2a 3a 5a 5b 6a 11a 11b
-   2P 1a 1a 3a 5b 5a 3a 11b 11a
-   3P 1a 2a 1a 5b 5a 2a 11a 11b
-   5P 1a 2a 3a 1a 1a 6a 11a 11b
-  11P 1a 2a 3a 5a 5b 6a  1a  1a
-                               
-   χ₁  1  1  1  1  1  1   1   1
-   χ₂  5  1 -1  .  .  1   B   B̅
-   χ₃  5  1 -1  .  .  1   B̅   B
-   χ₄ 10 -2  1  .  .  1  -1  -1
-   χ₅ 10  2  1  .  . -1  -1  -1
-   χ₆ 11 -1 -1  1  1 -1   .   .
-   χ₇ 12  .  .  A A*  .   1   1
-   χ₈ 12  .  . A*  A  .   1   1
-
-  A = -ζ₅³ - ζ₅² - 1
-  A* = ζ₅³ + ζ₅²
-  B = ζ₁₁⁹ + ζ₁₁⁵ + ζ₁₁⁴ + ζ₁₁³ + ζ₁₁
-  B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
-  """
-
-  show(IOContext(io, :with_legend => true), character_table("L2(11)"))
-  @test String(take!(io)) ==
-  """
-  L2(11)
-  
-    2  2  2  1  .  .  1   .   .
-    3  1  1  1  .  .  1   .   .
-    5  1  .  .  1  1  .   .   .
-   11  1  .  .  .  .  .   1   1
-                               
-      1a 2a 3a 5a 5b 6a 11a 11b
-   2P 1a 1a 3a 5b 5a 3a 11b 11a
-   3P 1a 2a 1a 5b 5a 2a 11a 11b
-   5P 1a 2a 3a 1a 1a 6a 11a 11b
-  11P 1a 2a 3a 5a 5b 6a  1a  1a
-                               
-  X_1  1  1  1  1  1  1   1   1
-  X_2  5  1 -1  .  .  1   B  /B
-  X_3  5  1 -1  .  .  1  /B   B
-  X_4 10 -2  1  .  .  1  -1  -1
-  X_5 10  2  1  .  . -1  -1  -1
-  X_6 11 -1 -1  1  1 -1   .   .
-  X_7 12  .  .  A A*  .   1   1
-  X_8 12  .  . A*  A  .   1   1
-  
-  A = -z_5^3 - z_5^2 - 1
-  A* = z_5^3 + z_5^2
-  B = z_11^9 + z_11^5 + z_11^4 + z_11^3 + z_11
-  /B = -z_11^9 - z_11^5 - z_11^4 - z_11^3 - z_11 - 1
-  """
-
-  # show some separating lines, in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :separators_col => [0,5],
-                       :separators_row => [0,5]), t_a5)
-  end
-  @test String(take!(io)) ==
-  """
-  A5
-
-   2│ 2  2  .             .             .│
-   3│ 1  .  1             .             .│
-   5│ 1  .  .             1             1│
-    │                                    │
-    │1a 2a 3a            5a            5b│
-  2P│1a 1a 3a            5b            5a│
-  3P│1a 2a 1a            5b            5a│
-  5P│1a 2a 3a            1a            1a│
-    │                                    │
-  ──┼────────────────────────────────────┼
-  χ₁│ 1  1  1             1             1│
-  χ₂│ 3 -1  . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²│
-  χ₃│ 3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1│
-  χ₄│ 4  .  1            -1            -1│
-  χ₅│ 5  1 -1             .             .│
-  ──┼────────────────────────────────────┼
-  """
-
-  show(IOContext(io, :separators_col => [0,5],
-                     :separators_row => [0,5]), t_a5)
-  @test String(take!(io)) ==
-  """
-  A5
-  
-    2| 2  2  .                 .                 .|
-    3| 1  .  1                 .                 .|
-    5| 1  .  .                 1                 1|
-     |                                            |
-     |1a 2a 3a                5a                5b|
-   2P|1a 1a 3a                5b                5a|
-   3P|1a 2a 1a                5b                5a|
-   5P|1a 2a 3a                1a                1a|
-     |                                            |
-  ---+--------------------------------------------+
-  X_1| 1  1  1                 1                 1|
-  X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2|
-  X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1|
-  X_4| 4  .  1                -1                -1|
-  X_5| 5  1 -1                 .                 .|
-  ---+--------------------------------------------+
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :separators_col => [0,5],
-                     :separators_row => [0,5]),
-                     MIME("text/latex"), t_a5)
-  @test String(take!(io)) ==
-  """
-  \$A5
-
-  \\begin{array}{r|rrrrr|}
-  2 & 2 & 2 & . & . & . \\\\
-  3 & 1 & . & 1 & . & . \\\\
-  5 & 1 & . & . & 1 & 1 \\\\
-   &  &  &  &  &  \\\\
-   & 1a & 2a & 3a & 5a & 5b \\\\
-  2P & 1a & 1a & 3a & 5b & 5a \\\\
-  3P & 1a & 2a & 1a & 5b & 5a \\\\
-  5P & 1a & 2a & 3a & 1a & 1a \\\\
-   &  &  &  &  &  \\\\
-  \\hline
-  \\chi_{1} & 1 & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 3 & -1 & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\
-  \\chi_{3} & 3 & -1 & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\
-  \\chi_{4} & 4 & . & 1 & -1 & -1 \\\\
-  \\chi_{5} & 5 & 1 & -1 & . & . \\\\
-  \\hline
-  \\end{array}
-  \$"""
-
-  # distribute the table into column portions, in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :separators_col => [0],
-                       :separators_row => [0],
-                       :portions_col => [2,3]), t_a5)
-  end
-  @test String(take!(io)) ==
-  """
-  A5
-
-   2│ 2  2
-   3│ 1  .
-   5│ 1  .
-    │     
-    │1a 2a
-  2P│1a 1a
-  3P│1a 2a
-  5P│1a 2a
-    │     
-  ──┼─────
-  χ₁│ 1  1
-  χ₂│ 3 -1
-  χ₃│ 3 -1
-  χ₄│ 4  .
-  χ₅│ 5  1
-
-   2│ .             .             .
-   3│ 1             .             .
-   5│ .             1             1
-    │                              
-    │3a            5a            5b
-  2P│3a            5b            5a
-  3P│1a            5b            5a
-  5P│3a            1a            1a
-    │                              
-  ──┼──────────────────────────────
-  χ₁│ 1             1             1
-  χ₂│ . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²
-  χ₃│ .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
-  χ₄│ 1            -1            -1
-  χ₅│-1             .             .
-  """
-
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_col => [2,3]), t_a5)
-  @test String(take!(io)) ==
-  """
-  A5
-  
-    2| 2  2
-    3| 1  .
-    5| 1  .
-     |     
-     |1a 2a
-   2P|1a 1a
-   3P|1a 2a
-   5P|1a 2a
-     |     
-  ---+-----
-  X_1| 1  1
-  X_2| 3 -1
-  X_3| 3 -1
-  X_4| 4  .
-  X_5| 5  1
-  
-    2| .                 .                 .
-    3| 1                 .                 .
-    5| .                 1                 1
-     |                                      
-     |3a                5a                5b
-   2P|3a                5b                5a
-   3P|1a                5b                5a
-   5P|3a                1a                1a
-     |                                      
-  ---+--------------------------------------
-  X_1| 1                 1                 1
-  X_2| . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
-  X_3| .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
-  X_4| 1                -1                -1
-  X_5|-1                 .                 .
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_col => [2,3]), MIME("text/latex"), t_a5)
-  @test String(take!(io)) ==
-  """
-  \$A5
-
-  \\begin{array}{r|rr}
-  2 & 2 & 2 \\\\
-  3 & 1 & . \\\\
-  5 & 1 & . \\\\
-   &  &  \\\\
-   & 1a & 2a \\\\
-  2P & 1a & 1a \\\\
-  3P & 1a & 2a \\\\
-  5P & 1a & 2a \\\\
-   &  &  \\\\
-  \\hline
-  \\chi_{1} & 1 & 1 \\\\
-  \\chi_{2} & 3 & -1 \\\\
-  \\chi_{3} & 3 & -1 \\\\
-  \\chi_{4} & 4 & . \\\\
-  \\chi_{5} & 5 & 1 \\\\
-  \\end{array}
-
-  \\begin{array}{r|rrr}
-  2 & . & . & . \\\\
-  3 & 1 & . & . \\\\
-  5 & . & 1 & 1 \\\\
-   &  &  &  \\\\
-   & 3a & 5a & 5b \\\\
-  2P & 3a & 5b & 5a \\\\
-  3P & 1a & 5b & 5a \\\\
-  5P & 3a & 1a & 1a \\\\
-   &  &  &  \\\\
-  \\hline
-  \\chi_{1} & 1 & 1 & 1 \\\\
-  \\chi_{2} & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\
-  \\chi_{3} & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\
-  \\chi_{4} & 1 & -1 & -1 \\\\
-  \\chi_{5} & -1 & . & . \\\\
-  \\end{array}
-  \$"""
-
-  # distribute the table into row portions,
-  # in the screen format (perhaps not relevant) ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :separators_col => [0],
-                       :separators_row => [0],
-                       :portions_row => [2,3]), t_a5)
-  end
-  @test String(take!(io)) ==
-  """
-  A5
-
-   2│ 2  2  .             .             .
-   3│ 1  .  1             .             .
-   5│ 1  .  .             1             1
-    │                                    
-    │1a 2a 3a            5a            5b
-  2P│1a 1a 3a            5b            5a
-  3P│1a 2a 1a            5b            5a
-  5P│1a 2a 3a            1a            1a
-    │                                    
-  ──┼────────────────────────────────────
-  χ₁│ 1  1  1             1             1
-  χ₂│ 3 -1  . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²
-
-   2│ 2  2  .             .             .
-   3│ 1  .  1             .             .
-   5│ 1  .  .             1             1
-    │                                    
-    │1a 2a 3a            5a            5b
-  2P│1a 1a 3a            5b            5a
-  3P│1a 2a 1a            5b            5a
-  5P│1a 2a 3a            1a            1a
-    │                                    
-  ──┼────────────────────────────────────
-  χ₃│ 3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
-  χ₄│ 4  .  1            -1            -1
-  χ₅│ 5  1 -1             .             .
-  """
-
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_row => [2,3]), t_a5)
-  @test String(take!(io)) ==
-  """
-  A5
-  
-    2| 2  2  .                 .                 .
-    3| 1  .  1                 .                 .
-    5| 1  .  .                 1                 1
-     |                                            
-     |1a 2a 3a                5a                5b
-   2P|1a 1a 3a                5b                5a
-   3P|1a 2a 1a                5b                5a
-   5P|1a 2a 3a                1a                1a
-     |                                            
-  ---+--------------------------------------------
-  X_1| 1  1  1                 1                 1
-  X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
-  
-    2| 2  2  .                 .                 .
-    3| 1  .  1                 .                 .
-    5| 1  .  .                 1                 1
-     |                                            
-     |1a 2a 3a                5a                5b
-   2P|1a 1a 3a                5b                5a
-   3P|1a 2a 1a                5b                5a
-   5P|1a 2a 3a                1a                1a
-     |                                            
-  ---+--------------------------------------------
-  X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
-  X_4| 4  .  1                -1                -1
-  X_5| 5  1 -1                 .                 .
-  """
-
-  # ... and in LaTeX format (may be interesting)
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_row => [2,3]), MIME("text/latex"), t_a5)
-  @test String(take!(io)) ==
-  """\$A5
-
-  \\begin{array}{r|rrrrr}
-  2 & 2 & 2 & . & . & . \\\\
-  3 & 1 & . & 1 & . & . \\\\
-  5 & 1 & . & . & 1 & 1 \\\\
-   &  &  &  &  &  \\\\
-   & 1a & 2a & 3a & 5a & 5b \\\\
-  2P & 1a & 1a & 3a & 5b & 5a \\\\
-  3P & 1a & 2a & 1a & 5b & 5a \\\\
-  5P & 1a & 2a & 3a & 1a & 1a \\\\
-   &  &  &  &  &  \\\\
-  \\hline
-  \\chi_{1} & 1 & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 3 & -1 & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\
-  \\end{array}
-
-  \\begin{array}{r|rrrrr}
-  2 & 2 & 2 & . & . & . \\\\
-  3 & 1 & . & 1 & . & . \\\\
-  5 & 1 & . & . & 1 & 1 \\\\
-   &  &  &  &  &  \\\\
-   & 1a & 2a & 3a & 5a & 5b \\\\
-  2P & 1a & 1a & 3a & 5b & 5a \\\\
-  3P & 1a & 2a & 1a & 5b & 5a \\\\
-  5P & 1a & 2a & 3a & 1a & 1a \\\\
-   &  &  &  &  &  \\\\
-  \\hline
-  \\chi_{3} & 3 & -1 & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\
-  \\chi_{4} & 4 & . & 1 & -1 & -1 \\\\
-  \\chi_{5} & 5 & 1 & -1 & . & . \\\\
-  \\end{array}
-  \$"""
-
-  # show indicators in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :indicator => [2]), t_a4)
-  end
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-
-      2  2  2       .       .
-      3  1  .       1       1
-                             
-        1a 2a      3a      3b
-     2P 1a 1a      3b      3a
-     3P 1a 2a      1a      1a
-      2                      
-  χ₁  +  1  1       1       1
-  χ₂  o  1  1 -ζ₃ - 1      ζ₃
-  χ₃  o  1  1      ζ₃ -ζ₃ - 1
-  χ₄  +  3 -1       .       .
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :indicator => [2]), MIME("text/latex"), t_a4)
-  @test String(take!(io)) ==
-  """\$Alt( [ 1 .. 4 ] )
-
-  \\begin{array}{rrrrrr}
-   & 2 & 2 & 2 & . & . \\\\
-   & 3 & 1 & . & 1 & 1 \\\\
-   &  &  &  &  &  \\\\
-   &  & 1a & 2a & 3a & 3b \\\\
-   & 2P & 1a & 1a & 3b & 3a \\\\
-   & 3P & 1a & 2a & 1a & 1a \\\\
-   & 2 &  &  &  &  \\\\
-  \\chi_{1} & + & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & o & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
-  \\chi_{3} & o & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
-  \\chi_{4} & + & 3 & -1 & . & . \\\\
-  \\end{array}
-  \$"""
-
-  # ordinary table:
-  # show character field degrees in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :character_field => true), t_a4)
-  end
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] )
-  
-      2  2  2       .       .
-      3  1  .       1       1
-                             
-        1a 2a      3a      3b
-     2P 1a 1a      3b      3a
-     3P 1a 2a      1a      1a
-      d                      
-  χ₁  1  1  1       1       1
-  χ₂  2  1  1 -ζ₃ - 1      ζ₃
-  χ₃  2  1  1      ζ₃ -ζ₃ - 1
-  χ₄  1  3 -1       .       .
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :character_field => true), MIME("text/latex"), t_a4)
-  @test String(take!(io)) ==
-  """\$Alt( [ 1 .. 4 ] )
-
-  \\begin{array}{rrrrrr}
-   & 2 & 2 & 2 & . & . \\\\
-   & 3 & 1 & . & 1 & 1 \\\\
-   &  &  &  &  &  \\\\
-   &  & 1a & 2a & 3a & 3b \\\\
-   & 2P & 1a & 1a & 3b & 3a \\\\
-   & 3P & 1a & 2a & 1a & 1a \\\\
-   & d &  &  &  &  \\\\
-  \\chi_{1} & 1 & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 2 & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
-  \\chi_{3} & 2 & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
-  \\chi_{4} & 1 & 3 & -1 & . & . \\\\
-  \\end{array}
-  \$"""
-
-  # Brauer table:
-  # show character field degrees in the screen format ...
-  Oscar.with_unicode() do
-    show(IOContext(io, :character_field => true), mod(t_a4, 2))
-  end
-  @test String(take!(io)) ==
-  """
-  Alt( [ 1 .. 4 ] ) mod 2
-  
-      2  2       .       .
-      3  1       1       1
-                          
-        1a      3a      3b
-     2P 1a      3b      3a
-     3P 1a      1a      1a
-      d                   
-  χ₁  1  1       1       1
-  χ₂  2  1 -ζ₃ - 1      ζ₃
-  χ₃  2  1      ζ₃ -ζ₃ - 1
-  """
-
-  # ... and in LaTeX format
-  show(IOContext(io, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-  @test String(take!(io)) ==
-  """\$Alt( [ 1 .. 4 ] ) mod 2
-  
-  \\begin{array}{rrrrr}
-   & 2 & 2 & . & . \\\\
-   & 3 & 1 & 1 & 1 \\\\
-   &  &  &  &  \\\\
-   &  & 1a & 3a & 3b \\\\
-   & 2P & 1a & 3b & 3a \\\\
-   & 3P & 1a & 1a & 1a \\\\
-   & d &  &  &  \\\\
-  \\chi_{1} & 1 & 1 & 1 & 1 \\\\
-  \\chi_{2} & 2 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
-  \\chi_{3} & 2 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
-  \\end{array}
-  \$"""
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
+  doctest(nothing, [AuxDocTest_GroupCharacters])
+  #doctest(nothing, [AuxDocTest_GroupCharacters]; fix=true)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
 end
 
 @testset "create character tables" begin
@@ -679,6 +773,42 @@ end
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
+end
+
+@testset "attributes of character tables" begin
+  ordtbl = character_table("A5")
+  modtbl = mod(ordtbl, 2)
+
+  @test modtbl === rem(ordtbl, 2)
+  @test modtbl === ordtbl % 2
+
+  @test characteristic(ordtbl) == 0
+  @test characteristic(modtbl) == 2
+  @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
+  @test character_parameters(modtbl) == nothing
+  @test class_lengths(ordtbl) == [1, 15, 20, 12, 12]
+  @test class_lengths(modtbl) == [1, 20, 12, 12]
+  @test class_names(ordtbl) == ["1a", "2a", "3a", "5a", "5b"]
+  @test class_names(modtbl) == ["1a", "3a", "5a", "5b"]
+  @test class_parameters(ordtbl) == [[1, 1, 1, 1, 1], [2, 2, 1], [3, 1, 1], [[5], '+'], [[5], '-']]
+  @test class_parameters(modtbl) == [[1, 1, 1, 1, 1], [3, 1, 1], [[5], '+'], [[5], '-']]
+  @test decomposition_matrix(modtbl) == matrix(ZZ, [1 0 0 0; 1 0 1 0; 1 1 0 0; 0 0 0 1; 1 1 1 0])
+  @test identifier(ordtbl) == "A5"
+  @test identifier(modtbl) == "A5mod2"
+  @test !is_duplicate_table(ordtbl)
+  @test maxes(ordtbl) == ["a4", "D10", "S3"]
+  @test maxes(modtbl) == nothing
+  @test "D10" in names_of_fusion_sources(ordtbl)
+  @test order(ordtbl) == 60
+  @test order(modtbl) == 60
+  @test ordinary_table(modtbl) === ordtbl
+  @test_throws ArgumentError ordinary_table(ordtbl)
+  @test orders_centralizers(ordtbl) == [60, 4, 3, 5, 5]
+  @test orders_centralizers(modtbl) == [60, 3, 5, 5]
+  @test orders_class_representatives(ordtbl) == [1, 2, 3, 5, 5]
+  @test orders_class_representatives(modtbl) == [1, 3, 5, 5]
+  @test trivial_character(ordtbl)[1] == 1
+  @test trivial_character(modtbl)[1] == 1
 end
 
 @testset "characters" begin
@@ -726,6 +856,20 @@ end
   scp = scalar_product(t[1], t[2])
   @test scp == 0
   @test scp isa QQFieldElem
+  res = coordinates(chi)
+  @test res == [0, 0, 1, 0, 0]
+  @test res isa Vector{QQFieldElem}
+  @test coordinates(Int, chi) isa Vector{Int}
+
+  orders = orders_class_representatives(t)
+  pos = findfirst(x -> x == 4, orders)
+  chi = filter(x -> x[1] == 2, collect(t))[1]
+  ev = multiplicities_eigenvalues(chi, pos)
+  @test ev == [0, 1, 0, 1]
+  @test ev isa Vector{Int}
+  ev = multiplicities_eigenvalues(ZZRingElem, chi, pos)
+  @test ev == [0, 1, 0, 1]
+  @test ev isa Vector{ZZRingElem}
 
   # conjugate characters
   h = pcore(g, 2)[1]
@@ -832,21 +976,103 @@ end
     G = matrix_group(mats)
     chi = Oscar.natural_character(G)
     @test degree(chi) == degree(G)
+    @test chi == natural_character(hom(G, G, gens(G)))
   end
+
+  G = symmetric_group(3)
+  @test values(natural_character(hom(G, G, gens(G)))) == [3, 1, 0]
+
+  K, a = cyclotomic_field(8, "a")
+  o = one(K)
+  z = zero(K)
+  G = general_linear_group(2, 3)
+  @test values(natural_character(hom(G, G, gens(G)))) ==
+        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+
+  G = small_group(4, 1)  # pc group
+  @test_throws MethodError natural_character(G)
+  @test_throws ArgumentError natural_character(hom(G, G, gens(G)))
 end
 
-@testset "character fields" begin
+@testset "class fusions" begin
+  subtbl = character_table("A5")
+  tbl = character_table("A6")
+  fus1 = possible_class_fusions(subtbl, tbl)
+  fus2 = possible_class_fusions(subtbl, tbl, decompose = false)
+  @test fus1 == fus2
+  fus3 = possible_class_fusions(subtbl, tbl, fusionmap = fus1[1])
+  @test length(fus3) == 1 && fus3[1] == fus1[1]
+  @test approximate_class_fusion(subtbl, tbl) == [1, 2, [3, 4], [6, 7], [6, 7]]
+  @test approximate_class_fusion(tbl, subtbl) == []
+end
+
+@testset "normal subgroups" begin
+  tbl = character_table("2.A5.2")
+  @test class_positions_of_center(tbl) == [1, 2]
+  @test class_positions_of_derived_subgroup(tbl) == [1, 2, 3, 4, 5, 6, 7]
+  @test class_positions_of_pcore(tbl, 2) == [1, 2]
+  @test class_positions_of_pcore(tbl, 3) == [1]
+  @test class_positions_of_solvable_residuum(tbl) == [1, 2, 3, 4, 5, 6, 7]
+end
+
+@testset "character fields of ordinary characters" begin
+  tbl = character_table("A5")
+  @test [degree(character_field(chi)[1]) for chi in tbl] == [1, 2, 2, 1, 1]
+  @test characteristic(character_field(tbl[1])[1]) == 0
+
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)
-      F, phi = character_field(chi)
+      F1, phi = character_field(chi)
+      F2, _ = number_field(QQ, chi)
+      F3, _ = QQ[chi]
+      @test degree(F1) == degree(F2)
+      @test degree(F1) == degree(F3)
       for i in 1:length(chi)
         x = chi[i]
         xF = preimage(phi, x)
-        @test parent(xF) == F
+        @test parent(xF) == F1
         @test phi(xF) == x
       end
     end
   end
+
+  # embeddings of abelian number fields into the abelian closure
+  # - for cyclotomic character fields
+  t = character_table("A4")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
+  end
+
+  # - for non-cyclotomic character fields
+  t = character_table("A5")
+  chi = t[2]
+  F, emb = character_field(chi)
+  @test ! Hecke.is_cyclotomic_type(F)[1]
+  for elm in [gen(F), one(F)]
+    img = emb(elm)
+    @test preimage(emb, img) == elm
+    @test has_preimage(emb, img) == (true, elm)
+    z5 = gen(parent(img))(5)
+    @test has_preimage(emb, z5)[1] == false
+    @test_throws ErrorException preimage(emb, z5)
+  end
+end
+
+@testset "character fields of Brauer characters" begin
+  ordtbl = character_table("A5")
+  modtbl = mod(ordtbl, 2)
+  @test [order_field_of_definition(chi) for chi in modtbl] == [2, 4, 4, 2]
+  @test [order(character_field(chi)[1]) for chi in modtbl] == [2, 4, 4, 2]
+  @test order_field_of_definition(Int, modtbl[1]) isa Int
+  @test_throws ArgumentError order_field_of_definition(ordtbl[1])
 end
 
 @testset "Schur index" begin
@@ -885,6 +1111,10 @@ end
       @test msg == "cannot determine the Schur index with the currently used criteria"
     end
   end
+
+  # The function is defined only for ordinary characters.
+  t = mod(t, 2)
+  @test_throws ArgumentError schur_index(t[1])
 end
 
 @testset "specialized generic tables" begin
@@ -1002,7 +1232,7 @@ end
     end
 
     # a corresponding Brauer table
-    tmod2 = mod(tbl1, 2);
+    tmod2 = mod(tbl1, 2)
     @test tmod2 isa Oscar.GAPGroupCharacterTable
     n = ncols(tmod2)
     chi = tmod2[1]

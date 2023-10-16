@@ -4,13 +4,24 @@ CurrentModule = Oscar
 
 # Introduction
 
-In this chapter, we introduce structures and functionality for algebraic geometry. Among others, we support:
-* schemes,
+The algebraic geometry part of OSCAR provides functionality for dealing with
+
+* affine algebraic sets and varieties
+* projective algebraic sets and varieties
+* schemes
 * toric varieties,
 * toric schemes,
 * tropical geometry.
 
-We refer to the individual sections for more details.
+Computations in affine and projective algebraic geometry rely on [Commutative Algebra](@ref).
+
+
+Similarly, most algorithms for toric varieties and schemes are are based on
+[Polyhedral Geometry](@ref).
+
+General textbooks offering details on the theory of varieties and schemes include:
+- [Har77](@cite)
+- [The Stacks Project](https://stacks.math.columbia.edu)
 
 
 ## Conventions

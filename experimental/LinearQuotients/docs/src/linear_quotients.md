@@ -26,7 +26,7 @@ linear_quotient(G::MatrixGroup)
 
 ## Class group
 
-The divisor class group of a linear quotient $V/G$ is controlled by the reflections
+The divisor class group of a linear quotient $V/G$ is controlled by the pseudo-reflections
 contained in the group $G$, see [Ben93](@cite).
 ```@docs
 class_group(L::LinearQuotient)

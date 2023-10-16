@@ -1,4 +1,3 @@
-export AbsPrePreSheaf
 export PreSheafOnScheme
 export StructureSheafOfRings
 export restriction_map
@@ -413,28 +412,111 @@ end
 
 underlying_presheaf(S::StructureSheafOfRings) = S.OO
 
+@doc raw"""
+    OO(X::AbsCoveredScheme) -> StructureSheafOfRings
+
+Given a covered scheme `X`, return the structure sheaf of rings `𝒪(X)` of `X`.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = projective_scheme(P, I);
+
+julia> Ycov = covered_scheme(Y)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: V(-(y//x)^2*(z//x) + 1)
+    2: V((x//y)^3 - (z//y))
+    3: V((x//z)^3 - (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> OO(Ycov)
+Structure sheaf of rings of regular functions
+  on scheme over QQ covered with 3 patches
+    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+```
+"""
 @attr StructureSheafOfRings function OO(X::AbsCoveredScheme)
   return StructureSheafOfRings(X)
 end
 
 function Base.show(io::IO, R::StructureSheafOfRings)
-  print(io, "𝒪_{$(space(R))}")
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, "Structure sheaf of rings")
+  else
+    if is_unicode_allowed()
+      print(io, "𝒪_{")
+      print(IOContext(io, :supercompact => true), space(R), "}")
+    else
+      print(io, "Structure sheaf of ", Lowercase(), space(R))
+    end
+  end
 end
+
+function Base.show(io::IO, ::MIME"text/plain", R::StructureSheafOfRings)
+  io = pretty(io)
+  println(io, "Structure sheaf of rings of regular functions")
+  print(io, Indent(), "on ", Lowercase())
+  show(IOContext(io, :show_semi_compact => true), space(R))
+  print(io, Dedent())
+end
+
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
-    a::Union{MPolyRingElem, MPolyQuoRingElem, 
-             MPolyLocRingElem, MPolyQuoLocRingElem}, 
-    U::PrincipalOpenSubset)
-  parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
+    a::MPolyRingElem,
+    U::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  parent(a) === OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a, check=false)
+end
+
+function restrict(
+    a::MPolyLocRingElem,
+    U::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  parent(a) === OO(ambient_scheme(U)) || return OO(U)(a)
+  return OO(U)(a, check=check)
+end
+
+function restrict(
+    a::MPolyQuoRingElem, 
+    U::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  return OO(U)(a, check=check)
+end
+
+function restrict(
+    a::MPolyQuoLocRingElem, 
+    U::PrincipalOpenSubset;
+    check::Bool=true
+  )
+  parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  return OO(U)(a, check=check)
 end
 
 function restrict(
     a::Union{MPolyRingElem, MPolyQuoRingElem, 
              MPolyLocRingElem, MPolyQuoLocRingElem}, 
-    U::SpecOpen)
-  parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
-  return OO(U)(a)
+    U::SpecOpen;
+    check::Bool=true
+  )
+  parent(a) === OO(ambient_scheme(U)) || return OO(U)(a)
+  return OO(U)(a, check=check)
 end
 
 ########################################################################

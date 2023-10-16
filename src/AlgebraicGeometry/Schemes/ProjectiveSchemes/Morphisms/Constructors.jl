@@ -41,27 +41,31 @@ function ProjectiveSchemeMor(
   Q = homogeneous_coordinate_ring(X)
   all(x->parent(x)===Q, a) || return ProjectiveSchemeMor(X, Y, Q.(a))
   P = homogeneous_coordinate_ring(Y)
-  return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
+  return ProjectiveSchemeMor(X, Y, hom(P, Q, a, check=false))
 end
 
-function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
+function compose(f::AbsProjectiveSchemeMorphism, g::AbsProjectiveSchemeMorphism)
   return ProjectiveSchemeMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
 end
 
 ### additional constructors
 
-function fiber_product(f::Hecke.Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
+function fiber_product(f::Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
   R = base_ring(P) 
-  R == domain(f) || error("rings not compatible")
+  R === domain(f) || error("rings not compatible")
   Rnew = codomain(f)
   S = ambient_coordinate_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
   Snew = ambient_coordinate_ring(Qambient)
-  phi = hom(S, Snew, f, gens(Snew))
+  phi = hom(S, Snew, f, gens(Snew), check=false)
   Q = subscheme(Qambient, ideal(homogeneous_coordinate_ring(Qambient), phi.(gens(defining_ideal(P)))))
   return Q, ProjectiveSchemeMor(Q, P, hom(homogeneous_coordinate_ring(P), 
                                           homogeneous_coordinate_ring(Q), 
-                                          f, gens(homogeneous_coordinate_ring(Q))))
+                                          f, gens(homogeneous_coordinate_ring(Q)),
+                                          check=false
+                                         ),
+                                check=false
+                               )
 end
 
 function fiber_product(
@@ -75,7 +79,8 @@ function fiber_product(
   help_map = hom(ambient_coordinate_ring(P),
                  ambient_coordinate_ring(Q_ambient),
                  pullback(f),
-                 gens(ambient_coordinate_ring(Q_ambient))
+                 gens(ambient_coordinate_ring(Q_ambient)),
+                 check=false
                 )
   SQ = homogeneous_coordinate_ring(Q_ambient)
   I = ideal(SQ, SQ.(help_map.(gens(defining_ideal(P)))))
@@ -86,7 +91,8 @@ function fiber_product(
                                     pullback(f),
                                     gens(homogeneous_coordinate_ring(Q)), 
                                     check=false
-                                   )
+                                   ),
+                                check=false
                                )
 end
 
@@ -113,8 +119,10 @@ function inclusion_morphism(
                              hom(homogeneous_coordinate_ring(Q),
                                  homogeneous_coordinate_ring(P),
                                  pullback(f), 
-                                 gens(homogeneous_coordinate_ring(P))
-                                )
+                                 gens(homogeneous_coordinate_ring(P)),
+                                 check=false
+                                ),
+                             check=false
                             )
 end
 
@@ -125,15 +133,60 @@ function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:Abstract
   return ProjectiveSchemeMor(P, Q, 
                              hom(homogeneous_coordinate_ring(Q),
                                  homogeneous_coordinate_ring(P),
-                                 gens(homogeneous_coordinate_ring(P))
-                                )
+                                 gens(homogeneous_coordinate_ring(P)),
+                                 check=false
+                                ),
+                             check=false
                             )
 end
 
 identity_map(P::AbsProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                         hom(homogeneous_coordinate_ring(P),
                                                             homogeneous_coordinate_ring(P),
-                                                            gens(homogeneous_coordinate_ring(P))
-                                                           )
+                                                            gens(homogeneous_coordinate_ring(P)),
+                                                            check=false
+                                                           ),
+                                                        check=false
                                                        )
 
+function sub(P::AbsProjectiveScheme, I::Ideal)
+  @req base_ring(I) === homogeneous_coordinate_ring(P) "ideal must be defined in the homogeneous coordinate ring of the scheme"
+  inc = ProjectiveClosedEmbedding(P, I)
+  set_attribute!(domain(inc), :ambient_space, ambient_space(P))
+  return domain(inc), inc
+end
+  
+function sub(P::AbsProjectiveScheme, f::RingElem)
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
+function sub(P::AbsProjectiveScheme, f::Vector{<:RingElem})
+  I = ideal(homogeneous_coordinate_ring(P), f)
+  return sub(P, I)
+end
+
+function compose(f::ProjectiveClosedEmbedding, g::ProjectiveClosedEmbedding)
+  X = domain(f)
+  Y = codomain(f)
+  Y === domain(g) || error("domain and codomain not compatible")
+  Z = codomain(g)
+  pb = compose(pullback(g), pullback(f))
+  Ig = image_ideal(g)
+  SY = homogeneous_coordinate_ring(Y)
+  SZ = homogeneous_coordinate_ring(Z)
+  If = image_ideal(f)
+  push_If = ideal(SZ, [preimage(pullback(g), x) for x in gens(If)])
+  J = push_If + Ig
+  return ProjectiveClosedEmbedding(compose(underlying_morphism(f), underlying_morphism(g)), J, check=false)
+end
+
+function ambient_embedding(X::AbsProjectiveScheme)
+  IP = ambient_space(X)
+  S = homogeneous_coordinate_ring(IP)
+  T = homogeneous_coordinate_ring(X)
+  I = defining_ideal(X)
+  pb = hom(S, T, gens(T))
+  inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
+  return ProjectiveClosedEmbedding(inc_sub, I, check=false)
+end

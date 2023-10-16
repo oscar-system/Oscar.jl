@@ -1,5 +1,7 @@
 @testset "LieAlgebras.Combinatorics" begin
   @testset "combinations" begin
+    combinations = Oscar.LieAlgebras.combinations
+
     for n in 1:8, k in 1:n
       @test collect(combinations(n, k)) == collect(combinations(1:n, k))
     end
@@ -11,9 +13,13 @@
     @test collect(combinations(["1", "2", "3", "4"], 3)) ==
       [["1", "2", "3"], ["1", "2", "4"], ["1", "3", "4"], ["2", "3", "4"]]
     @test collect(combinations(["1", "2", "3", "4"], 4)) == [["1", "2", "3", "4"]]
+    @test collect(combinations(["1", "2", "3", "4"], 5)) == String[]
+    @test collect(combinations(["1", "2", "3", "4"], 6)) == String[]
   end
 
   @testset "multicombinations" begin
+    multicombinations = Oscar.LieAlgebras.multicombinations
+
     for n in 1:8, k in 1:n
       @test collect(multicombinations(n, k)) == collect(multicombinations(1:n, k))
     end
@@ -58,6 +64,8 @@
   end
 
   @testset "permutations" begin
+    permutations = Oscar.LieAlgebras.permutations
+
     for n in 1:6
       @test collect(permutations(n)) == collect(permutations(1:n))
     end
@@ -73,6 +81,8 @@
   end
 
   @testset "permutations_with_sign" begin
+    permutations_with_sign = Oscar.LieAlgebras.permutations_with_sign
+
     for n in 1:6
       @test collect(permutations_with_sign(n)) == collect(permutations_with_sign(1:n))
     end

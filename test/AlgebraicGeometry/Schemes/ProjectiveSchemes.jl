@@ -70,7 +70,7 @@ end
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
-  oscar.intersect_in_covering(U,V,Fc[1])
+  Oscar.intersect_in_covering(U,V,Fc[1])
 end
 
 @testset "Fermat lines" begin
@@ -81,7 +81,7 @@ end
   Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
-  oscar.intersect_in_covering(U,V,Fc[1]);
+  Oscar.intersect_in_covering(U,V,Fc[1]);
   SF = homogeneous_coordinate_ring(F)
   line = subscheme(F, ideal(SF, [SF[1]+a*SF[2],SF[3]+a*SF[4]]))
   groebner_basis(defining_ideal(line))
@@ -254,7 +254,7 @@ end
   @test compose(UYtoY, YtoX) == UYtoX
 
   WW = hypersurface_complement(ambient_scheme(W), [x-y])
-  phi = MapFromFunc(restriction_map(W, WW), OO(W), OO(WW))
+  phi = MapFromFunc(OO(W), OO(WW), restriction_map(W, WW))
   IP2_WW, map = fiber_product(phi, IP2_W)
   @test base_scheme(IP2_WW) == WW
   @test !(base_scheme(IP2_WW) === WW)
@@ -294,3 +294,54 @@ end
   @test is_geometrically_reduced(Y)
 end
 
+@testset "simple projective spaces" begin
+  # Make sure we don't find complicated qoutient rings if not necessary
+  P = projective_space(QQ, 1)
+  X = covered_scheme(P)
+  @test all(U->(OO(U) isa MPolyRing), affine_charts(X))
+end
+
+@testset "equality of projective schemes" begin
+  P2 = projective_space(GF(17), 2)
+  (x0,x1,x2) = homogeneous_coordinates(P2)
+  R = homogeneous_coordinate_ring(P2)
+  X1 = subscheme(P2, ideal(R, [x0*x1]))
+  X2 = subscheme(P2, ideal(R, [x0^2*x1,x0*x1^2,x0*x1*x2]))
+  X3 = subscheme(P2, ideal(R,[x0]))
+  @test X1 == X2
+  @test issubset(X1, P2)
+  @test issubset(X1, X2)
+end
+
+@testset "closed embeddings" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, [x^2 + y^2 + z^2])
+  X, inc = sub(IP2, I)
+  X, inc = sub(IP2, gens(I))
+
+  J = ideal(S, [x+y+z])
+  X2, inc2 = sub(IP2, J)
+  inc_cov = covered_scheme_morphism(inc)
+  inc2_cov = covered_scheme_morphism(inc2)
+  j1, j2 = fiber_product(inc_cov, inc2_cov)
+  @test pushforward(inc_cov)(image_ideal(j2)) == pushforward(inc2_cov)(image_ideal(j1))
+  
+  @test X === domain(inc)
+  @test IP2 === codomain(inc)
+  T = homogeneous_coordinate_ring(X)
+  Y, inc_Y = sub(X, T[1]*T[2] - T[3]^2)
+  @test domain(inc_Y) === Y
+  @test codomain(inc_Y) === X
+  @test image_ideal(inc_Y) == ideal(T, T[1]*T[2] - T[3]^2)
+  map_on_affine_cones(inc_Y)
+  inc_comp = compose(inc_Y, inc)
+  @test inc_comp isa Oscar.ProjectiveClosedEmbedding
+  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)), 
+            homogeneous_coordinate_ring(domain(inc_comp)),
+            pullback(inc_comp).(gens(homogeneous_coordinate_ring(codomain(inc_comp))))
+           )
+  K = kernel(phi)
+  @test K == I + ideal(S, S[1]*S[2] - S[3]^2)
+end

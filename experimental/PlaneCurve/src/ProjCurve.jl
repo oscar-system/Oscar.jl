@@ -79,14 +79,10 @@ Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, QQMPolyRingElem[x, y, z, t])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -96,7 +92,7 @@ Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 
 julia> PP = proj_space(QQ, 3)
-(Projective space of dim 3 over Rational Field
+(Projective space of dim 3 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2], x[3]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
@@ -139,14 +135,10 @@ Return `true` if `C` is irreducible, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, QQMPolyRingElem[x, y, z, t])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -173,14 +165,10 @@ Return the projective curve defined by the radical of the defining ideal of `C`.
 # Examples
 ```jldoctest
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, QQMPolyRingElem[x, y, z, t])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -207,14 +195,10 @@ Return the Jacobian ideal of the defining ideal of `C`.
 # Examples
 ```jldoctest
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, QQMPolyRingElem[x, y, z, t])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
 julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)

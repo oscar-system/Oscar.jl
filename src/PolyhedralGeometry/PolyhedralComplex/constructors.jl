@@ -4,31 +4,36 @@
 ###############################################################################
 ###############################################################################
 
-struct PolyhedralComplex{T}
+struct PolyhedralComplex{T} <: PolyhedralObject{T}
     pm_complex::Polymake.BigObject
+    parent_field::Field
     
-     PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+    PolyhedralComplex{T}(pm::Polymake.BigObject, p::Field) where T<:scalar_types = new{T}(pm, p)
+    PolyhedralComplex{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
 end
 
-# default scalar type: `QQFieldElem`
-PolyhedralComplex(x...) = PolyhedralComplex{QQFieldElem}(x...)
 
-PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
+function polyhedral_complex(p::Polymake.BigObject)
+    T, f = _detect_scalar_and_field(PolyhedralComplex, p)
+    return PolyhedralComplex{T}(p, f)
+end
 
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 
 @doc raw"""
-    PolyhedralComplex{T}(polyhedra, vr, far_vertices, L) where T<:scalar_types
+    polyhedral_complex(::T, polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments
+- `T`: `Type` or parent `Field` of scalar to use, defaults to `QQFieldElem`.
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
   (i,j) if the ith polytope contains point j and 0 otherwise.
-- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up the polyhedral
-  complex. This matrix also contains the far vertices.
+- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up
+  the polyhedral complex. This matrix also contains the far vertices.
 - `far_vertices::Vector{Int}`: Vector containing the indices of the rows
   corresponding to the far vertices in `vr`.
-- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the polyhedral complex.
+- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the
+  polyhedral complex.
 
 A polyhedral complex formed from points, rays, and lineality combined into
 polyhedra indicated by an incidence matrix, where the columns represent the
@@ -49,7 +54,7 @@ julia> vr = [0 0; 1 0; 1 1; 0 1]
  1  1
  0  1
 
-julia> PC = PolyhedralComplex(IM, vr)
+julia> PC = polyhedral_complex(IM, vr)
 Polyhedral complex in ambient dimension 2
 ```
 
@@ -63,51 +68,63 @@ julia> far_vertices = [2,3,4];
 
 julia> L = [0 0 1];
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices, L)
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
 Polyhedral complex in ambient dimension 3
 
 julia> lineality_dim(PC)
 1
 ```
 """
-function PolyhedralComplex{T}(
-                polyhedra::IncidenceMatrix, 
+function polyhedral_complex(f::scalar_type_or_field,
+                            polyhedra::IncidenceMatrix, 
+                            vr::AbstractCollection[PointVector], 
+                            far_vertices::Union{Vector{Int}, Nothing} = nothing, 
+                            L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                            non_redundant::Bool = false
+                            )
+  parent_field, scalar_type = _determine_parent_and_scalar(f, vr, L)
+  points = homogenized_matrix(vr, 1)
+  LM = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points, 2)) : homogenized_matrix(L, 0)
+
+  # Rays and Points are homogenized and combined and
+  # If some vertices are far vertices, give them a leading 0
+  if !isnothing(far_vertices)
+    points[far_vertices,1] .= 0
+  end
+
+  if non_redundant
+    return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
+      VERTICES = points,
+      LINEALITY_SPACE = LM,
+      MAXIMAL_CONES = polyhedra,
+    ), parent_field)
+  else
+    return PolyhedralComplex{scalar_type}(Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(scalar_type)}(
+      POINTS = points,
+      INPUT_LINEALITY = LM,
+      INPUT_CONES = polyhedra,
+    ), parent_field)
+  end
+end
+# default scalar type: `QQFieldElem`
+polyhedral_complex(polyhedra::IncidenceMatrix, 
                 vr::AbstractCollection[PointVector], 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
                 L::Union{AbstractCollection[RayVector], Nothing} = nothing;
-                non_redundant::Bool = false
-            ) where T<:scalar_types
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L
+                non_redundant::Bool = false) =
+  polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
 
-    # Rays and Points are homogenized and combined and
-    points = homogenize(vr, 1)
-    # If some vertices are far vertices, give them a leading 0
-    if !isnothing(far_vertices)
-        points[far_vertices,1] .= 0
-    end
-
-    # Lineality is homogenized
-    lineality = homogenize(LM, 0)
-
-    if non_redundant
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
-            VERTICES = points,
-            LINEALITY_SPACE = lineality,
-            MAXIMAL_CONES = polyhedra,
-        ))
-    else
-        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
-            POINTS = points,
-            INPUT_LINEALITY = lineality,
-            INPUT_CONES = polyhedra,
-        ))
-    end
+function polyhedral_complex(f::scalar_type_or_field, v::AbstractCollection[PointVector], vi::IncidenceMatrix, r::AbstractCollection[RayVector], ri::IncidenceMatrix, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false)
+  vr = [unhomogenized_matrix(v); unhomogenized_matrix(r)]
+  far_vertices = collect((size(v, 1) + 1):size(vr, 1))
+  polyhedra = hcat(vi, ri)
+  return polyhedral_complex(f, polyhedra, vr, far_vertices, L; non_redundant = non_redundant)
 end
 
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`
 # Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
-# This makes sure that PolyhedralComplex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
-PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
+# This makes sure that polyhedral_complex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
+polyhedral_complex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
 
 ###############################################################################
 ###############################################################################

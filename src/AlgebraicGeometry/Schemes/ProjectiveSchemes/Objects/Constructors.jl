@@ -22,6 +22,7 @@ function subscheme(P::AbsProjectiveScheme, f::RingElem)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -39,6 +40,7 @@ function subscheme(
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -52,6 +54,7 @@ function subscheme(P::AbsProjectiveScheme,
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -69,21 +72,19 @@ where `x₀,…,xₙ` is a list of variable names.
 ```jldoctest
 julia> projective_space(QQ, [:x, :PPP, :?])
 Projective space of dimension 2
-  with homogeneous coordinates x PPP ?
-  over Rational Field
+  over rational field
+with homogeneous coordinates [x, PPP, ?]
 
 julia> homogeneous_coordinate_ring(ans)
-Multivariate Polynomial Ring in x, PPP, ? over Rational Field graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   PPP -> [1]
   ? -> [1]
-
 ```
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  R, _ = polynomial_ring(A, Symbol.(var_symb))
-  S, _ = grade(R, [1 for i in 1:n ])
+  S, _ = graded_polynomial_ring(A, Symbol.(var_symb))
   return projective_scheme(S)
 end
 
@@ -94,8 +95,7 @@ Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A`
 where `s` is a string for the variable names.  
 """
 function projective_space(A::Ring, r::Int; var_name::VarName=:s)
-  R, _ = polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
-  S, _ = grade(R, [1 for i in 0:r ])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
   return projective_scheme(S)
 end
 
@@ -128,4 +128,8 @@ function reduced_scheme(X::AbsProjectiveScheme)
   Xred = subscheme(ambient_space(X), Irad)
   set_attribute!(Xred, :is_reduced=>true)
   return Xred
+end
+
+function reduced_scheme(X::AbsProjectiveScheme{S,T}) where {S, T<:MPolyDecRing}
+  return X
 end

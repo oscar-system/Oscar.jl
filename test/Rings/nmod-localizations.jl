@@ -76,7 +76,7 @@ inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extension of the localization function
 function Localization(S::NmodComplementOfPrimeIdeal) 
   L = NmodLocalizedRing(S)
-  return L, MapFromFunc(x->(L(x)), base_ring(L), L)
+  return L, MapFromFunc(base_ring(L), L, x->(L(x)))
 end
 
 
@@ -95,9 +95,9 @@ mutable struct NmodLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{zzModR
   denominator::zzModRingElem
   W::NmodLocalizedRing{MultSetType} # the parent ring
 
-  function NmodLocalizedRingElem(W::NmodLocalizedRing{MultSetType}, a::zzModRingElem, b::zzModRingElem) where {MultSetType} 
+  function NmodLocalizedRingElem(W::NmodLocalizedRing{MultSetType}, a::zzModRingElem, b::zzModRingElem; check::Bool=true) where {MultSetType} 
     base_ring(W) == parent(a) == parent(b) || error("elements do not belong to the original ring")
-    b in inverted_set(W) || error("the given denominator is not an admissible unit in this ring")
+    @check b in inverted_set(W) "the given denominator is not an admissible unit in this ring"
     return new{MultSetType}(a, b, W)
   end
 end
@@ -108,8 +108,8 @@ numerator(f::NmodLocalizedRingElem) = f.numerator
 denominator(f::NmodLocalizedRingElem) = f.denominator
 
 ### required conversions
-(W::NmodLocalizedRing)(a::zzModRingElem, b::zzModRingElem) = NmodLocalizedRingElem(W, a, b)
-(W::NmodLocalizedRing)(a::zzModRingElem) = NmodLocalizedRingElem(W, a, one(parent(a)))
+(W::NmodLocalizedRing)(a::zzModRingElem, b::zzModRingElem; check::Bool=true) = NmodLocalizedRingElem(W, a, b, check=check)
+(W::NmodLocalizedRing)(a::zzModRingElem) = NmodLocalizedRingElem(W, a, one(parent(a)), check=false)
 
 ### required implementation of the arithmetic
 Base.:(//)(a::Oscar.IntegerUnion, b::NmodLocalizedRingElem) = ((parent(b)(a))//b)
@@ -123,11 +123,11 @@ function Base.:(//)(a::T, b::T) where {T<:NmodLocalizedRingElem}
 end
 
 ### additional conversions
-(W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
-(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
-(W::NmodLocalizedRing)(q::QQFieldElem) = W(numerator(q), denominator(q))
-(W::NmodLocalizedRing)(i::Int64) = W(base_ring(W)(i), one(base_ring(W)))
-(W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
+(W::NmodLocalizedRing)(a::T, b::T; check::Bool=true) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b), check=check)
+(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)), check=false)
+(W::NmodLocalizedRing)(q::QQFieldElem; check::Bool=true) = W(numerator(q), denominator(q), check=check)
+(W::NmodLocalizedRing)(i::Int64) = W(base_ring(W)(i), one(base_ring(W)), check=false)
+(W::NmodLocalizedRing)(q::Rational{T}; check::Bool=true) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q), check=check)
 
 ### implementation of Oscar's general ring interface
 one(W::NmodLocalizedRing) = W(1)

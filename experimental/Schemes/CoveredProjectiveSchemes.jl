@@ -1,8 +1,5 @@
 export CoveredProjectiveScheme
 export ProjectiveGlueing
-export _non_degeneration_cover
-export as_smooth_lci_of_cod
-export as_smooth_local_complete_intersection
 export base_covering
 export base_glueing
 export base_scheme
@@ -10,11 +7,9 @@ export blow_up
 export controlled_transform
 export covered_scheme
 export empty_covered_projective_scheme
-export glueing_type
-export prepare_smooth_center
+#export glueing_type
 export projective_patches
 export strict_transform
-export total_transform
 export weak_transform
 
 abstract type AbsProjectiveGlueing{
@@ -29,6 +24,11 @@ glueing_domains(PG::AbsProjectiveGlueing) = glueing_domains(underlying_glueing(P
 patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
 glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
 
 @doc raw"""
   LazyProjectiveGlueing(
@@ -112,14 +112,16 @@ over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjective
 """
 mutable struct ProjectiveGlueing{
                                  GlueingType<:AbsGlueing,
-                                 IsoType<:ProjectiveSchemeMor,
-                                 IncType<:ProjectiveSchemeMor
+                                 IsoType1<:ProjectiveSchemeMor,
+                                 IncType1<:ProjectiveSchemeMor,
+                                 IsoType2<:ProjectiveSchemeMor,
+                                 IncType2<:ProjectiveSchemeMor,
                                 } <: AbsProjectiveGlueing{GlueingType}
   G::GlueingType # the underlying glueing of the base schemes
-  inc_to_P::IncType
-  inc_to_Q::IncType
-  f::IsoType
-  g::IsoType
+  inc_to_P::IncType1
+  inc_to_Q::IncType2
+  f::IsoType1
+  g::IsoType2
 
   ### 
   # Given two relative projective schemes and a glueing 
@@ -133,12 +135,16 @@ mutable struct ProjectiveGlueing{
   # and isomorphisms over the glueing G in the base schemes.
   function ProjectiveGlueing(
       G::GlueingType, 
-      incP::IncType, incQ::IncType,
-      f::IsoType, g::IsoType;
+      incP::IncType1, incQ::IncType2,
+      f::IsoType1, g::IsoType2;
       check::Bool=true
-    ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
+    ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
+    @vprint :Glueing 1 "computing projective glueing\n"
+    @vprint :Glueing 2 "$(X), coordinates $(ambient_coordinates(X))\n"
+    @vprint :Glueing 2 "and\n"
+    @vprint :Glueing 2 "$(Y) coordinates $(ambient_coordinates(X))\n"
     (fb, gb) = glueing_morphisms(G)
     (PX, QY) = (codomain(incP), codomain(incQ))
     (PU, QV) = (domain(incP), domain(incQ))
@@ -146,7 +152,7 @@ mutable struct ProjectiveGlueing{
     domain(f) == codomain(g) == PU && domain(g) == codomain(f) == QV || error("maps are not compatible")
     SPU = homogeneous_coordinate_ring(domain(f))
     SQV = homogeneous_coordinate_ring(codomain(f))
-    if check
+    @check begin
       # check the commutativity of the pullbacks
       all(y->(pullback(f)(SQV(OO(V)(y))) == SPU(pullback(fb)(OO(V)(y)))), gens(base_ring(OO(Y)))) || error("maps do not commute")
       all(x->(pullback(g)(SPU(OO(U)(x))) == SQV(pullback(gb)(OO(U)(x)))), gens(base_ring(OO(X)))) || error("maps do not commute")
@@ -161,15 +167,40 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
-    return new{GlueingType, IsoType, IncType}(G, incP, incQ, f, g)
+    @vprint :Glueing 1 "done computing the projective gluing\n"
+    return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end
 
-### type getters
+function Base.show(io::IO, PG::LazyProjectiveGlueing)
+  print(io, "Glueing of projective patches (not yet computed)")
+end
 
+function Base.show(io::IO, PG::ProjectiveGlueing)
+  print(io, "Glueing of projective patches")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
+  io = pretty(io)
+  f = glueing_morphisms(PG)[1]
+  PX, PY = pacthes(PG)
+  PU, PV = glueing_domains(PG)
+  println(io, "Glueing")
+  println(io, Indent(), "of  ", Lowercase(), PX)
+  println(io, "and ", Lowercase(), PY)
+  println(io, Dedent(), "along the open subsets")
+  println(io, Indent(), Lowercase(), PU)
+  println(io, Lowercase(), PV)
+  print(io, Dedent(), "defined by ", Lowercase())
+  show(IOContext(io, :show_semi_compact => true), f)
+end
+
+### type getters
+#=
+TODO: Do we need these?
 glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
 glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
-
+=#
 ### essential getters
 
 base_glueing(PG::ProjectiveGlueing) = PG.G
@@ -227,15 +258,76 @@ projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
 getindex(P::CoveredProjectiveScheme, U::AbsSpec) = (P.patches)[U]
 getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.glueings)[(U, V)]
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  n = length(projective_patches(CPS))
+  K = base_ring(base_scheme(CPS))
+  if get(io, :supercompact, false)
+    print(io, "Relative projective scheme")
+  else
+    if length(projective_patches(CPS)) == 0
+      print(io, "Empty relative projective scheme over ")
+    else
+      print(io, "Relative projective scheme over ")
+    end
+    print(io, Lowercase(), base_scheme(CPS))
+    if n != 0
+      print(io, " covered with ", ItemQuantity(n, "projective patch"))
+    end
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
+  io = pretty(io)
+  pp = projective_patches(CPS)
+  n = length(pp)
+  println(io, "Relative projective scheme")
+  print(io, Indent(), "over ", Lowercase())
+  show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
+  println(io)
+  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch"))
+  print(io, Indent())
+  l = ndigits(n)
+  for i in 1:n
+    li = ndigits(i)
+    println(io)
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), PU)
+  end
+  print(io, Dedent())
+end
+
+@doc raw"""
+    empty_covered_projective_scheme(R::T) where T <: Ring
+                                                  -> CoveredProjectiveScheme{T}
+
+Given a ring `R`, return the empty relative projective scheme over the
+empty covered scheme over `R`.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> empty_covered_projective_scheme(R)
+Relative projective scheme
+  over empty covered scheme over multivariate polynomial ring
+covered with 0 projective patches
+```
+"""
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   Y = empty_covered_scheme(R)
   C = default_covering(Y)
   #U = C[1]
   #ST = affine_patch_type(Y)
-  pp = Dict{AbsSpec, AbsProjectiveScheme}()
+  pp = IdDict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = Dict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
   #tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
@@ -283,15 +375,37 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
-    for i in 1:length(gens(I))
+    for i in 1:ngens(I)
       U = affine_charts(Y)[i]
       p_res = p_cov[U]
       W === codomain(p_res) || error("codomain not correct")
-      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
+
+    # Prepare the decomposition data
+    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    for k in 1:ngens(I)
+      U = affine_charts(Y)[i]
+      decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+    end
+
+    # Cache the isomorphism on the complement of the center
+    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for i in 1:ngens(I)
+      UW = PrincipalOpenSubset(W, gen(I, i))
+      V = affine_charts(Y)[i]
+      VW = PrincipalOpenSubset(V, E(V))
+      p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+      g = OO(UW).(gens(I))
+      set_attribute!(p_res_dict[VW], :inverse, 
+                     SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                    )
+    end
+    set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
+    set_decomposition_info!(default_covering(Y), decomp_dict)
     return IPY
   else
     # construct the blowup by elimination.
@@ -301,8 +415,8 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     kk = coefficient_ring(R)
     A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
     t = last(x_ext) 
-    inc = hom(R, A, x_ext[1:end-1])
-    phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], )) # the homogeneous variables come first
+    inc = hom(R, A, x_ext[1:end-1], check=false)
+    phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
     J = kernel(phi)
     pb = inverse(pullback_to_cone)
     Jh = ideal(homogeneous_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
@@ -312,15 +426,37 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
-    for i in 1:length(gens(I))
+    for i in 1:ngens(I)
       U = affine_charts(Y)[i]
       p_res = p_cov[U]
       W === codomain(p_res) || error("codomain not correct")
-      ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+      ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
+    # Cache the isomorphism on the complement of the center
+    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    for i in 1:ngens(I)
+      UW = PrincipalOpenSubset(W, gen(I, i))
+      V = affine_charts(Y)[i]
+      VW = PrincipalOpenSubset(V, E(V))
+      p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+      g = OO(UW).(gens(I))
+      set_attribute!(p_res_dict[VW], :inverse, 
+                     SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                    )
+    end
+    
+    # Prepare the decomposition data
+    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    for k in 1:ngens(I)
+      U = affine_charts(Y)[k]
+      decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+    end
+
+    set_decomposition_info!(default_covering(Y), decomp_dict)
+    set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
     return IPY
   end
 end
@@ -334,7 +470,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   R = OO(W)
   T, (t,) = polynomial_ring(R, ["t"])
   S, s = grade(polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])[1])
-  phi = hom(S, T, [t*g for g in gens(I)])
+  phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
   Bl_W = ProjectiveScheme(S, K)
@@ -344,15 +480,38 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   Y = covered_scheme(Bl_W)
   p = covered_projection_to_base(Bl_W)
   p_cov = covering_morphism(p)
-  for i in 1:length(gens(I))
+  for i in 1:ngens(I)
     U = affine_charts(Y)[i]
     p_res = p_cov[U]
     W === codomain(p_res) || error("codomain not correct")
-    ID[affine_charts(Y)[i]] = pullback(p_res)(gens(I)[i])
+    ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
   end
-  E = oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
+  E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
+  
+  # Cache the isomorphism on the complement of the center
+  p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for i in 1:ngens(I)
+    UW = PrincipalOpenSubset(W, gen(I, i))
+    V = affine_charts(Y)[i]
+    VW = PrincipalOpenSubset(V, E(V))
+    p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
+    g = OO(UW).(gens(I))
+    set_attribute!(p_res_dict[VW], :inverse, 
+                   SpecMor(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                  )
+  end
+  set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
+
+  # Prepare the decomposition data
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  for k in 1:ngens(I)
+    U = affine_charts(Y)[k]
+    decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
+  end
+  set_decomposition_info!(default_covering(Y), decomp_dict)
+
   return Bl_W
 end
 
@@ -401,9 +560,9 @@ end
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
 #    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v))
-#    n = length(gens(R))
+#    n = ngens(R)
 #    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
-#    return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+#    return ext_R, phi, gens(ext_R)[(ngens(R)+1):ngens(ext_R)]
 #  end
 #
 #  A = OO(W)
@@ -420,7 +579,7 @@ end
 #    At, embeddingAt, T =  _add_variables(R,[:t])
 #    t = T[1]
 #
-#    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+#    #@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
 #    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
 #
 #    Imod = modulus(A)
@@ -545,14 +704,13 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   UV, VU = glueing_domains(G)
   f, g = glueing_morphisms(G)
 
-  PUV, PUVtoP = fiber_product(OX(U, UV), P)
-  QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
-
   # to construct the identifications of PUV with QVU we need to 
   # express the generators of I(U) in terms of the generators of I(V)
   # on the overlap U ∩ V. 
   !(G isa Glueing) || error("method not implemented for this type of glueing")
 
+  QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
+  PUV, PUVtoP = fiber_product(OX(U, UV), P)
   # The problem is that on a SpecOpen U ∩ V
   # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
   # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
@@ -570,8 +728,10 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
   # sᵢ the variables for the homogeneous ring over U
   # tⱼ the variables for the homogenesous ring over V
-  A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
-  B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+  #A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+  A = [coordinates(OX(U, VU)(f), ideal(OO(VU), OX(V, VU).(gens(I(V))))) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+  #B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
+  B = [coordinates(OX(V, UV)(g), ideal(OO(UV), OX(U, UV).(gens(I(U))))) for g in gens(I(V))] # B[j][i] = bⱼᵢ
   SQVU = homogeneous_coordinate_ring(QVU)
   SPUV = homogeneous_coordinate_ring(PUV)
   # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
@@ -614,8 +774,17 @@ function blow_up(
   )
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
+  comp_iso_dict = IdDict{AbsSpec, AbsSpecMor}()
   for U in patches(covering)
     local_blowups[U] = blow_up_chart(U, I(U), var_name=var_name)
+    # Gather the information on the isomorphism on the complement
+    p = covered_projection_to_base(local_blowups[U])
+    isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
+    # manual merge because `merge` does not preserve IdDicts.
+    for x in keys(isos_on_complement_of_center)
+      comp_iso_dict[x] = isos_on_complement_of_center[x]
+    end
+    #comp_iso_dict = merge(comp_iso_dict, isos_on_complement_of_center)
   end
   projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
 
@@ -644,6 +813,8 @@ function blow_up(
     ID[U] = first(E_loc(U))
   end
   pr = BlowupMorphism(Bl_I, I)
+  # Store the information for the isomorphism on the complement
+  set_attribute!(pr, :isos_on_complement_of_center, comp_iso_dict)
   pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   return pr
 end
@@ -693,11 +864,10 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   T = homogeneous_coordinate_ring(P[V])
   i = P[U][UW][2]
   j = P[V][VW][2]
-  s_i = gens(S)[i]
-  t_j = gens(T)[j]
+  s_i = gen(S, i)
+  t_j = gen(T, j)
   AW = affine_charts(Oscar.covered_scheme(UD))[i]
   BW = affine_charts(Oscar.covered_scheme(VD))[j]
-
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
@@ -718,10 +888,12 @@ function _compute_glueing(gd::ProjectiveGlueingData)
 
   ptbUD = covered_projection_to_base(UD)
   ptbVD = covered_projection_to_base(VD)
-  hhU = lifted_numerator(pullback(ptbUD[AW])(complement_equation(A)))
+  phi1 = pullback(ptbUD[AW])
+  hhU = lifted_numerator(phi1(domain(phi1)(complement_equation(A), check=false)))
   hhU = hhU * lifted_numerator(hU)
   AAW = PrincipalOpenSubset(UW, OO(UW)(hhU))
-  hhV = lifted_numerator(pullback(ptbVD[BW])(complement_equation(B)))
+  phi2 = pullback(ptbVD[BW])
+  hhV = lifted_numerator(phi2(domain(phi2)(complement_equation(B), check=false)))
   hhV = hhV * lifted_numerator(hV)
   BBW = PrincipalOpenSubset(VW, OO(VW)(hhV))
 
@@ -736,8 +908,11 @@ function _compute_glueing(gd::ProjectiveGlueingData)
 
   phi = dehomogenization_map(VD, BW)
   psi = dehomogenization_map(UD, AW) 
-  yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
-  ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
+
+  pb_AW_to_AAW = hom(OO(AW), OO(AAW), gens(OO(AAW)), check=false)
+  pb_BW_to_BBW = hom(OO(BW), OO(BBW), gens(OO(BBW)), check=false)
+  yimgs = [pb_AW_to_AAW(psi(pp))*inv(pb_AW_to_AAW(psi(qq))) for (pp, qq) in yhh]
+  ximgs = [pb_BW_to_BBW(phi(pp))*inv(pb_BW_to_BBW(phi(qq))) for (pp, qq) in xhh]
   ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
   gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
@@ -767,7 +942,7 @@ end
     end
   end
   result_covering = Covering(result_patches, result_glueings, check=false)
-
+  
   # Now we need to add glueings
   for U in patches(C)
     for V in patches(C)
@@ -791,14 +966,34 @@ end
     p = covered_projection_to_base(PP)
     cov_mor = covering_morphism(p)
     cov_mor_dict = morphisms(cov_mor)
-    for V in keys(cov_mor_dict)
-      projection_dict[V] = cov_mor_dict[V]
+    for (V, phi) in cov_mor_dict
+      projection_dict[V] = phi
     end
   end
 
+  # Assemble the decomposition information if applicable
+  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  if has_decomposition_info(C)
+    for V in patches(C)
+      cov_part = default_covering(parts[V])
+      if has_decomposition_info(cov_part)
+        for U in patches(cov_part)
+          pr = projection_dict[U]
+          decomp_dict[U] = vcat(decomposition_info(cov_part)[U], 
+                                elem_type(OO(U))[pullback(pr)(a) for a in decomposition_info(C)[V]]
+                               )
+        end
+      end
+    end
+  end
+  if length(keys(decomp_dict)) == length(patches(result_covering))
+    set_decomposition_info!(result_covering, decomp_dict)
+  end
+
   # TODO: Remove the internal checks in the constructors below
-  covering_map = CoveringMorphism(result_covering, C, projection_dict) 
+  covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false) 
   set_attribute!(P, :covering_projection_to_base, covering_map)
+
   return result
 end
 
@@ -812,35 +1007,35 @@ end
 
 
 # function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-	#(IOw: Exc Div ^\infty)
-	
+#(IOw: Exc Div ^\infty)
+
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
-#	while true
+#
+#        while true
 #          Inew = quotient(Iold, Excdiv)
 #          Iold == Inew && break
 #          Iold = Inew
-#	end
+#        end
 #        return gens(Iold)
 #end
 #
 #
 #
 #function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
-#	#IOw
-#	
+#        #IOw
+#
 #        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #        return gens(Iold)
 #end
@@ -849,43 +1044,43 @@ end
 #### NOT TESTED YET
 #function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 #
-#	while true
-#		Inew = quotient(Iold, Excdiv)
-#		!(Iold == Excdiv * Inew) && break
-#		Iold = Inew 
-#	end
-#	return gens(Iold)
-#	#(IOw : Exc Div ^k), k maximal
+#        while true
+#           Inew = quotient(Iold, Excdiv)
+#           !(Iold == Excdiv * Inew) && break
+#           Iold = Inew 
+#        end
+#        return gens(Iold)
+#        #(IOw : Exc Div ^k), k maximal
 #end
 #
 #### NOT TESTED YET
 #function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
-#	#(IOw : Exc Div ^i)
+#        #(IOw : Exc Div ^i)
 #
-#	X = domain(f)
+#        X = domain(f)
 #        Y = codomain(f)
 #        R = base_ring(OO(X))
-#	Excdiv = ideal(h)
+#        Excdiv = ideal(h)
 #
-#	Pf = pullback(f)
+#        Pf = pullback(f)
 #        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
-#	
 #
-#	for j in 1:i
-#		Inew = quotient(Iold,Excdiv)
-#		Inew == 1 && break
-#		Iold = Inew
-#	end
-#	
-#	return gens(Iold)
+#
+#        for j in 1:i
+#          Inew = quotient(Iold,Excdiv)
+#          Inew == 1 && break
+#          Iold = Inew
+#        end
+#
+#        return gens(Iold)
 #
 #end
 #
@@ -1547,10 +1742,45 @@ end
 #
 #
 
-########################################################################
-# Printing                                                             #
-########################################################################
-function Base.show(io::IO, X::CoveredProjectiveScheme)
-  print(io, "relative projective scheme over $(base_scheme(X))")
-end
+function fiber_product(
+    i1::CoveredClosedEmbedding,
+    i2::CoveredClosedEmbedding
+  )
+  X1 = domain(i1)
+  X2 = domain(i2)
+  Y = codomain(i1)
+  Y === codomain(i2) || error("codomains do not coincide")
+  i1_cov = covering_morphism(i1)
+  i2_cov = covering_morphism(i2)
+  codomain(i1_cov) === codomain(i2_cov) || error("case of different coverings in codomain not implemented")
+  cod_cov = codomain(i1_cov)
+  #=
+  cod_ref, ref1, ref2 = common_refinement(codomain(i1_cov), codomain(i2_cov))
+  dom_ref1, i1_res = fiber_product(i1, ref1)
+  dom_ref2, i2_res = fiber_product(i1, ref2)
+  # etc. etc.... This is roughly the generic code to come.
+  =#
+  I1 = image_ideal(i1)
+  pb_I1 = pullback(i2, I1)
+  I2 = image_ideal(i2)
+  pb_I2 = pullback(i1, I2)
 
+  j1 = Oscar.CoveredClosedEmbedding(domain(i2), pb_I1)
+  Z = domain(j1)
+  morphism_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  for U in affine_charts(Z)
+    V2 = codomain(j1[U])
+    W = codomain(i2[V2])
+    V1_candidates = maps_with_given_codomain(i1, W)
+    @assert length(V1_candidates) == 1 "not the correct number of patches found"
+    V1 = domain(first(V1_candidates))
+    x = gens(OO(V1))
+    lift_x = [preimage(pullback(i1[V1]), f) for f in x]
+    pb_x = pullback(i2[V2]).(lift_x)
+    pb_x = pullback(j1[U]).(pb_x)
+    morphism_dict[U] = ClosedEmbedding(SpecMor(U, V1, pb_x, check=false), pb_I2(V1), check=false)
+  end
+  j2_cov = CoveringMorphism(default_covering(Z), domain(i1_cov), morphism_dict, check=false)
+  j2 = Oscar.CoveredClosedEmbedding(Z, X1, j2_cov)
+  return j1, j2
+end

@@ -9,8 +9,6 @@ CurrentModule = Oscar
 By a theorem of Arzhantsev and Gaifullin [AG10](@cite), the Cox ring of a linear
 quotient $V/G$ is graded isomorphic to the invariant ring $K[V]^{[G,G]}$, where
 $[G,G]$ is the derived subgroup of $G$.
-This functionality is so far only available if the group does not contain any
-reflections.
 ```@docs
 cox_ring(L::LinearQuotient)
 ```

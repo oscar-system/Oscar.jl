@@ -1,0 +1,109 @@
+{
+    "arxiv_data": {
+        "id": "1212.2949",
+        "doi": "10.48550/arXiv.1212.2949",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1212.2949v2",
+        "model_location": {
+            "section": "4.2",
+            "equation": "4.23",
+            "page": "44"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1007/JHEP04(2013)061",
+        "report_numbers": ["KCL-MTH-12-14"],
+        "journal": "JHEP",
+        "volume": "04",
+        "pages": "061",
+        "year": "2013",
+        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
+    },
+    "paper_metadata": {
+        "authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"],
+        "title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+        "description": "Systematic classification of ADE Tate models and their resolutions",
+        "buzzwords": ["Tate", "classification", "resolution"]
+    },
+    "model_descriptors": {
+        "type": "tate",
+        "description": "SO(4k+4)xU(1) Tate model",
+        "comment": "The paper only states that this is an SO(4k+4) model, but setting a6 = 0 also introduces an additional generating section, so there is additionally a U(1) factor, which may not have been relevant for the authors' purposes.",
+        "gauge_algebra": ["so(4k+4)", "u(1)"]
+    },
+    "model_parameters": ["k"],
+    "model_data": {
+        "base_dim": 3,
+        "base_coordinates": ["Kbar", "b1", "b2", "b3", "b4", "ζ0"],
+        "a1": "b1*ζ0",
+        "a2": "b2*ζ0",
+        "a3": "b3*ζ0^(k + 1)",
+        "a4": "b4*ζ0^(k + 1)",
+        "a6": "0",
+        "auxiliary_base_grading": [
+            [1, 1, 2, 3, 4, 0],
+            [0, -1, -1, "-(k + 1)", "-(k + 1)", 1]
+        ],
+        "generating_sections": [["0", "0", "1"]],
+        "resolutions": [
+            [
+                [
+                    [
+                        ["x", "y", ["ζ", "index"]],
+                        ["index", 0, "k"]
+                    ],
+                    [
+                        ["y", ["ζ", "index"]],
+                        ["index", 1, "k"]
+                    ],
+                    [
+                        [
+                            ["ζ", "index"],
+                            ["δ", "index"]
+                        ],
+                        ["index", 1, "k"]
+                    ],
+                    [
+                        [
+                            ["ζ", "i + 1"],
+                            ["δ", "index"]
+                        ],
+                        ["index", 1, "k - 1"]
+                    ]
+                ],
+                [
+                    [
+                        ["ζ", "index"],
+                        ["index", 1, "k + 1"]
+                    ],
+                    [
+                        ["δ", "index"],
+                        ["index", 1, "k"]
+                    ],
+                    [
+                        ["κ", "index"],
+                        ["index", 1, "k"]
+                    ],
+                    [
+                        ["ϵ", "index"],
+                        ["index", 1, "k"]
+                    ]
+                ]
+            ]
+        ]
+    },
+    "related_models": [
+        "model1212_2949-1.json",
+        "model1212_2949-2.json",
+        "model1212_2949-3.json",
+        "model1212_2949-5.json",
+        "model1212_2949-6.json",
+        "model1212_2949-7.json"
+    ]
+}

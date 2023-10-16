@@ -69,7 +69,7 @@ julia> I = two_sided_ideal(A, [x^2, y^2, z^2]);
 julia> Q, q = quo(A, I);
 
 julia> base_ring(Q)
-PBW-algebra over Rational Field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
+PBW-algebra over Rational field in x, y, z with relations y*x = -x*y, z*x = -x*z, z*y = -y*z
 
 julia> modulus(Q)
 two_sided_ideal(x^2, y^2, z^2)

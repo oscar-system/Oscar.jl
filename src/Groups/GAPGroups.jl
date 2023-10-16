@@ -261,7 +261,74 @@ Return the identity of the parent group of `x`.
 Base.one(x::GAPGroupElem) = one(parent(x))
 
 Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(x.X)))
-Base.show(io::IO, x::GAPGroup) = print(io, String(GAPWrap.StringViewObj(x.X)))
+
+# Printing GAP groups
+function Base.show(io::IO, G::GAPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  print(io, "Group")
+  if !get(io, :supercompact, false)
+    if has_order(G)
+      if is_finite(G)
+        print(io, " of order ", order(G))
+      else
+        print(io, " of infinite order")
+      end
+    end
+  end
+end
+
+function Base.show(io::IO, G::FPGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  if GAPWrap.IsFreeGroup(G.X)
+    print(io, "Free group")
+    if !get(io, :supercompact, false) && GAP.Globals.HasRankOfFreeGroup(G.X)::Bool
+      print(io, " of rank ", GAP.Globals.RankOfFreeGroup(G.X)::Int)
+    end
+  else
+    print(io, "Finitely presented group")  # FIXME: actually some of these groups are *not* finitely presented
+    if !get(io, :supercompact, false)
+    if has_order(G)
+      if is_finite(G)
+        print(io, " of order ", order(G))
+      else
+        print(io, " of infinite order")
+      end
+    end
+    end
+  end
+end
+
+function Base.show(io::IO, G::PermGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  print(io, "Permutation group")
+  if !get(io, :supercompact, false)
+    print(io, " of degree ", degree(G))
+    if has_order(G)
+      if is_finite(G)
+        print(io, " and order ", order(G))
+      else
+        print(io, " and infinite order")
+      end
+    end
+  end
+end
+
+function Base.show(io::IO, G::PcGroup)
+  @show_name(io, G)
+  @show_special(io, G)
+  print(io, "Pc group")
+  if !get(io, :supercompact, false)
+    if isfinite(G)
+      print(io, " of order ", order(G))
+    else
+      print(io, " of infinite order")
+    end
+  end
+end
+
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(x.X)
 
@@ -269,7 +336,7 @@ Base.inv(x::GAPGroupElem) = group_element(parent(x), GAPWrap.Inverse(x.X))
 
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
-Base.:^(x::GAPGroupElem, y::ZZRingElem) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
+Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 
@@ -371,13 +438,13 @@ Return whether generators for the group `G` are known.
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-<free group on the generators [ f1, f2 ]>
+Free group of rank 2
 
 julia> has_gens(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Group(<free, no generators known>)
+Free group
 
 julia> has_gens(H)
 false
@@ -435,26 +502,40 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
    return res
 end
 
+"""
+    minimal_generating_set(G::GAPGroup)
+
+Return a vector of minimal length of elements in `G` that generate `G`.
+
+# Examples
+```jldoctest
+julia> length(minimal_generating_set(abelian_group(PcGroup, [2,3,4])))
+2
+
+julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
+2
+
+julia> minimal_generating_set(symmetric_group(5))
+2-element Vector{PermGroupElem}:
+ (1,2,3,4,5)
+ (1,2)
+```
+"""
+@gapattribute function minimal_generating_set(G::GAPGroup)
+   L = GAP.Globals.MinimalGeneratingSet(G.X)::GapObj
+   res = Vector{elem_type(G)}(undef, length(L))
+   for i = 1:length(res)
+     res[i] = group_element(G, L[i]::GapObj)
+   end
+   return res
+end
+
 
 ################################################################################
 #
 #   Conjugacy Classes
 #
 ################################################################################
-
-"""
-    GroupConjClass{T, S}
-
-It can be either the conjugacy class of an element or of a subgroup of type `S`
-in a group `G` of type `T`.
-It is displayed as
-```
-     cc = x ^ G
-```
-where `G` is a group and `x` = `representative`(`cc`) is either an element
-or a subgroup of `G`.
-"""
-abstract type GroupConjClass{T, S} end
 
 struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
    X::T
@@ -575,21 +656,21 @@ i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
-     return representative_action_in_gl_or_sl(G, x, y)[1]
+     return is_conjugate_with_data_in_gl_or_sl(G, x, y)[1]
    end
    return GAPWrap.IsConjugate(G.X, x.X, y.X)
 end
 
 """
-    representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+    is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
 return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
 """
-function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
-     return representative_action_in_gl_or_sl(G, x, y)
+     return is_conjugate_with_data_in_gl_or_sl(G, x, y)
    end
    conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)::GapObj
    if conj != GAP.Globals.fail
@@ -626,7 +707,7 @@ Return the vector of all conjugacy classes of subgroups of G.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Sym( [ 1 .. 3 ] )
+Permutation group of degree 3 and order 6
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -654,14 +735,14 @@ julia> G = symmetric_group(3);
 
 julia> subgroup_reps(G)
 4-element Vector{PermGroup}:
- Group(())
- Group([ (2,3) ])
- Group([ (1,2,3) ])
- Group([ (1,2,3), (2,3) ])
+ Permutation group of degree 3 and order 1
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 3
+ Permutation group of degree 3 and order 6
 
 julia> subgroup_reps(G, order = ZZRingElem(2))
 1-element Vector{PermGroup}:
- Group([ (2,3) ])
+ Permutation group of degree 3 and order 2
 
 ```
 """
@@ -705,9 +786,9 @@ subgroups of `G`.
 ```jldoctest
 julia> maximal_subgroup_reps(symmetric_group(4))
 3-element Vector{PermGroup}:
- Group([ (2,4,3), (1,4)(2,3), (1,3)(2,4) ])
- Group([ (3,4), (1,4)(2,3), (1,3)(2,4) ])
- Group([ (3,4), (2,4,3) ])
+ Permutation group of degree 4
+ Permutation group of degree 4 and order 8
+ Permutation group of degree 4 and order 6
 
 ```
 """
@@ -727,9 +808,9 @@ julia> G = symmetric_group(5);
 
 julia> low_index_subgroup_reps(G, 5)
 3-element Vector{PermGroup}:
- Sym( [ 1 .. 5 ] )
- Alt( [ 1 .. 5 ] )
- Sym( [ 1 .. 4 ] )
+ Permutation group of degree 5 and order 120
+ Permutation group of degree 5 and order 60
+ Permutation group of degree 5 and order 24
 
 ```
 """
@@ -748,10 +829,10 @@ Return the group `G^x` that consists of the elements `g^x`, for `g` in `G`.
 julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
-Group([ (1,2,3) ])
+Permutation group of degree 4 and order 3
 
 julia> conjugate_group(H, gen(G, 1))
-Group([ (2,3,4) ])
+Permutation group of degree 4 and order 3
 
 ```
 """
@@ -776,16 +857,16 @@ Return whether `H` and `K` are conjugate subgroups in `G`.
 julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
-Group([ (1,2) ])
+Permutation group of degree 4
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
-Group([ (3,4) ])
+Permutation group of degree 4
 
 julia> is_conjugate(G, H, K)
 true
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
-Group([ (1,2)(3,4) ])
+Permutation group of degree 4
 
 julia> is_conjugate(G, H, K)
 false
@@ -795,7 +876,7 @@ false
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
-    representative_action(G::Group, H::Group, K::Group)
+    is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `true, z`
 where `H^z = K`; otherwise, return `false, nothing`.
@@ -805,23 +886,23 @@ where `H^z = K`; otherwise, return `false, nothing`.
 julia> G = symmetric_group(4);
 
 julia> H = sub(G, [G([2, 1, 3, 4])])[1]
-Group([ (1,2) ])
+Permutation group of degree 4
 
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
-Group([ (3,4) ])
+Permutation group of degree 4
 
-julia> representative_action(G, H, K)
+julia> is_conjugate_with_data(G, H, K)
 (true, (1,3)(2,4))
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
-Group([ (1,2)(3,4) ])
+Permutation group of degree 4
 
-julia> representative_action(G, H, K)
+julia> is_conjugate_with_data(G, H, K)
 (false, nothing)
 
 ```
 """
-function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+function is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)
    conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
@@ -840,16 +921,16 @@ Return whether a conjugate of `V` by some element in `G` is a subgroup of `U`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Alt( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 12
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
-Group([ (1,2) ])
+Permutation group of degree 4
 
 julia> is_conjugate_subgroup(G, U, V)
 (false, ())
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
-Group([ (1,2)(3,4) ])
+Permutation group of degree 4
 
 julia> is_conjugate_subgroup(G, U, V)
 (true, ())
@@ -887,7 +968,7 @@ such that `H^g` contains the element `s`.
 julia> G = symmetric_group(4);
 
 julia> H = sylow_subgroup(G, 3)[1]
-Group([ (1,2,3) ])
+Permutation group of degree 4 and order 3
 
 julia> short_right_transversal(G, H, G([2, 1, 3, 4]))
 PermGroupElem[]
@@ -912,7 +993,7 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
 
   R = PermGroupElem[]
   for c in can
-    success, d = representative_action(G, c, s)
+    success, d = is_conjugate_with_data(G, c, s)
     if success
       push!(R, d)
       @assert c^R[end] == s
@@ -1181,10 +1262,10 @@ julia> G = symmetric_group(3);
 
 julia> complement_class_reps(G, derived_subgroup(G)[1])
 1-element Vector{PermGroup}:
- Group([ (2,3) ])
+ Permutation group of degree 3
 
 julia> G = dihedral_group(8)
-<pc group of size 8 with 3 generators>
+Pc group of order 8
 
 julia> complement_class_reps(G, center(G)[1])
 PcGroup[]
@@ -1438,28 +1519,82 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
   set__prime_of_pgroup(G, GAP.Obj(p))
 end
 
+# TODO/FIXME: the rank method below is disabled because it conflicts
+# with semantics of  the `rank` method for GrpAbFinGen. We'll have
+# to resolve this first; afterwards we can uncomment this code,
+# and possibly rename it to whatever we agreed on (if it is different from `rank`)
+#"""
+#    rank(G::GAPGroup)
+#
+#Return the rank of the group `G`, i.e., the minimal size of a generating set.
+#
+## Examples
+#```jldoctest
+#julia> rank(symmetric_group(5))
+#2
+#
+#julia> rank(free_group(5))
+#5
+#```
+#`"""
+#function rank(G::GAPGroup)
+#  is_trivial(G) && return 0
+#  is_cyclic(G) && return 1
+#  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
+#    return GAP.Globals.Rank(G.X)::Int
+#  end
+#  has_is_finite(G) && is_finite(G) && return length(minimal_generating_set(G))
+#  error("not yet supported")
+#end
 
 """
-    is_finitelygenerated(G)
+    is_finitelygenerated(G::GAPGroup)
 
 Return whether `G` is a finitely generated group.
 
 # Examples
 ```jldoctest
 julia> F = free_group(2)
-<free group on the generators [ f1, f2 ]>
+Free group of rank 2
 
 julia> is_finitelygenerated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
-Group(<free, no generators known>)
+Free group
 
 julia> is_finitelygenerated(H)
 false
 ```
 """
 @gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+
+
+# TODO/FIXME: is_free is disabled for now as it is not universal; it only
+# really works for fp groups, and then also only for those without relators;
+# it returns `false` for a the quotient of the free group on x,y by y, which
+# is mathematically a free group, but maybe not in a pure "technical" sense
+#@doc raw"""
+#    is_free(G::GAPGroup)
+#
+#Return whether `G` is a free group.
+#
+## Examples
+#```jldoctest
+#julia> F = free_group(2)
+#<free group on the generators [ f1, f2 ]>
+#
+#julia> is_free(F)
+#true
+#
+#julia> H = derived_subgroup(F)[1]
+#Group(<free, no generators known>)
+#
+#julia> is_free(H)
+#true
+#```
+#"""
+#@gapattribute is_free(G::GAPGroup) = GAP.Globals.IsFreeGroup(G.X)::Bool
 
 
 @doc raw"""
@@ -1775,7 +1910,7 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
      end
    end
    famG = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))
-   if GAP.Globals.IsFreeGroup(G.X)
+   if GAPWrap.IsFreeGroup(G.X)
      w = GAPWrap.ObjByExtRep(famG, GapObj(ll))::GapObj
    else
      # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.

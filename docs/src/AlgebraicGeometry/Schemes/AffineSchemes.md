@@ -105,7 +105,9 @@ issubset(X::AbsSpec, Y::AbsSpec)
 
 
 ## Methods
-
+```@docs
+tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+```
 ### Comparison
 
 Two schemes ``X`` and ``Y`` can be compared if their ambient affine spaces are equal.

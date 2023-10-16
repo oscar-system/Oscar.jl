@@ -74,10 +74,10 @@ the projective plane as follows, where `K` is the base ring:
 
 ```jldoctest plane_curves
 julia> K = QQ
-Rational Field
+Rational field
 
 julia> PP = proj_space(K, 2)
-(Projective space of dim 2 over Rational Field
+(Projective space of dim 2 over Rational field
 , MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 ```

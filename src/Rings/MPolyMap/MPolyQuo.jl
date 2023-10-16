@@ -66,13 +66,13 @@ julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 julia> S, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 
 julia> F = hom(A, S, [s, s^2, s^3])
-Map with following data
-Domain:
-=======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
-Codomain:
-=========
-Multivariate Polynomial Ring in s, t over Rational Field
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z)
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> s
+  y -> s^2
+  z -> s^3
 ```
 """
 function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
@@ -80,7 +80,7 @@ function hom(R::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool 
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
   end
@@ -93,7 +93,7 @@ function hom(R::MPolyQuoRing, S::NCRing, images::Vector; check::Bool = true)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
-  if check
+  @check begin
     _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end

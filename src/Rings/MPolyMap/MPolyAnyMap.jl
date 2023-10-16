@@ -35,7 +35,7 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
     D <: _DomainTypes,
     C <: NCRing,
     U,
-    V} <: Map{D, C, Hecke.Hecke.Map, MPolyAnyMap}
+    V} <: Map{D, C, Map, MPolyAnyMap}
 
   domain::D
   codomain::C
@@ -80,10 +80,40 @@ _images(f::MPolyAnyMap) = f.img_gens
 #  String I/O
 #
 ################################################################################
+function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
+  io = pretty(io)
+  println(IOContext(io, :supercompact => true), f)
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(f))
+  println(io, "to ", Lowercase(), codomain(f))
+  println(io, Dedent(), "defined by", Indent())
+  R = domain(f)
+  g = gens(R)
+  for i in 1:(ngens(R)-1)
+    println(io, g[i], " -> ", f(g[i]))
+  end
+  print(io, g[end], " -> ", f(g[end]), Dedent())
+  # the last print statement must not add a new line
+  phi = coefficient_map(f)
+  if !(phi isa Nothing)
+    println(io)
+    println(io, "with map on coefficients")
+    print(io, Indent(), phi, Dedent())
+  end
+end
 
-# There is some default printing for maps.
-# We might want to hijack this if we want to indicate whether there is
-# a non-trivial coefficient ring map.
+function Base.show(io::IO, f::MPolyAnyMap)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Ring homomorphism")
+  else
+    # nested printing allowed, preferably supercompact
+    print(io, "Hom: ")
+    print(IOContext(io, :supercompact => true), Lowercase(), domain(f), " -> ")
+    print(IOContext(io, :supercompact => true), Lowercase(), codomain(f))
+  end
+end
 
 ################################################################################
 #
@@ -205,7 +235,7 @@ function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, 
   g = coefficient_map(G)
   if typeof(codomain(f)) === typeof(domain(g))
     newcoeffmap = compose(f, g)
-    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)))
+    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
     return Generic.CompositeMap(F, G)
   end
@@ -214,13 +244,13 @@ end
 # No coefficient maps in both maps
 function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), G.(_images(F)))
+  return hom(domain(F), codomain(G), G.(_images(F)), check=false)
 end
 
 # Julia functions in both maps
 function compose(F::MPolyAnyMap{D, C, <: Function}, G::MPolyAnyMap{C, E, <: Function}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)))
+  return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)), check=false)
 end
 
 # Now compose with arbitrary maps
@@ -233,7 +263,7 @@ function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: M
   f = coefficient_map(F)
   if typeof(codomain(f)) === C
     newcoeffmap = compose(f, G)
-    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)))
+    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
     return Generic.CompositeMap(F, G)
   end

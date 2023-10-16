@@ -1,4 +1,5 @@
 @testset "simplified spectra" begin
+  @test Oscar.SimplifiedSpec <: AbsSpec
   IP = projective_space(QQ, 2)
   S = ambient_coordinate_ring(IP)
   (x,y,z) = gens(S)

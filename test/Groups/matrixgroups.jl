@@ -31,7 +31,7 @@
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = polynomial_ring(GF(3) ,"t")
-   F,z = FiniteField(t^2+1,"z")
+   F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
@@ -66,7 +66,7 @@
 end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
-   fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
+   fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, QQ(1)))
    F, z = abelian_closure(QQ)
    push!(fields, (F, z(5)))
@@ -109,8 +109,8 @@ end
    M = matrix(QQ, [ 2 0; 0 2 ])
    @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
 
-   K, a = CyclotomicField(5, "a")
-   L, b = CyclotomicField(3, "b")
+   K, a = cyclotomic_field(5, "a")
+   L, b = cyclotomic_field(3, "b")
 
    inputs = [
      #[ matrix(ZZ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],
@@ -139,7 +139,7 @@ end
      @test order(G) == GAP.Globals.Order(H)
    end
 
-   G = matrix_group(2, QQ, dense_matrix_type(QQ)[])
+   G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
@@ -155,7 +155,7 @@ end
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    @test G isa MatrixGroup
@@ -219,14 +219,14 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
-   G = matrix_group(nrows(x), F)
+   G = matrix_group(F, nrows(x))
    @test one(G) == one(x)
 
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
 
-   G = MatrixGroup(4,F)
+   G = matrix_group(F, 4)
    @test_throws ErrorException G.X
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
@@ -311,6 +311,11 @@ end
    @testset for x in gens(G)
        @test iseven(rank(matrix(x)-1))
    end
+
+   G = matrix_group(matrix(QQ, 2, 2, [ -1 0 ; 0 -1 ]))
+   K, _ = cyclotomic_field(4)
+   H = change_base_ring(K, G)
+   @test H == matrix_group(matrix(K, 2, 2, [ -1 0 ; 0 -1 ]))
 end
 
 
@@ -322,7 +327,7 @@ end
    x2 = G([2,0,0,0,3,0,0,0,1])
    @test x1==G([4,0,1,4,0,0,0,4,0])
    @test x1==G([4 0 1; 4 0 0; 0 4 0])
-   @test matrix_group(x1,x2) == matrix_group(3,base_ring(x1),[x1,x2])
+   @test matrix_group(x1,x2) == matrix_group(base_ring(x1), 3, [x1,x2])
    @test matrix_group(x1,x2) == matrix_group([x1,x2])
    H = matrix_group([x1,x2])
    @test isdefined(H,:gens)
@@ -372,7 +377,7 @@ end
 
 @testset "Membership" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    S = SL(2,F)
@@ -423,7 +428,7 @@ end
 
 @testset "Methods on elements" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    x = G([1,z,0,1])
@@ -466,7 +471,7 @@ end
 
 @testset "Subgroups" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    s1 = G([2,1,2,0])
@@ -491,7 +496,7 @@ end
 
 @testset "Cosets and conjugacy classes" begin
    T,t=polynomial_ring(GF(3),"t")
-   F,z=FiniteField(t^2+1,"z")
+   F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
    H = GO(-1,2,F)
@@ -568,7 +573,7 @@ end
    x = one(G)
    @test is_semisimple(x) && is_unipotent(x)
 
-   F,z = FiniteField(5,3,"z")
+   F,z = finite_field(5,3,"z")
    G = GL(6,F)
    R,t = polynomial_ring(F,"t")
    f = t^3+t*z+1
@@ -674,7 +679,7 @@ end
      T = elem_type(R)
      mat = matrix(R, [1 0; 0 1])
      G = matrix_group([mat])
-     h = gens(G)[1]
+     h = gen(G, 1)
      v = [R(x) for x in [1, 1]]
      @test v * h isa Vector{T}
      @test v * h == v * mat

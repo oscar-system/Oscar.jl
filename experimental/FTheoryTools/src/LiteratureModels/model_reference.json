@@ -1,0 +1,68 @@
+{
+    "arxiv_data": {
+        "id": "",
+        "doi": "",
+        "version": "",
+        "discipline": "",
+        "link": "",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
+    },
+    "journal_data": {
+        "doi": "",
+        "report_numbers": [""],
+        "journal": "",
+        "volume": "",
+        "pages": "",
+        "year": "",
+        "link": "",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
+    },
+    "paper_metadata": {
+        "authors": [""],
+        "title": "",
+        "description": "",
+        "buzzwords": [""]
+    },
+    "model_descriptors": {
+        "type": "",
+        "description": "",
+        "comment": "",
+        "gauge_algebra": [""],
+        "global_gauge_quotients": [""],
+        "discrete_factors": [""]
+    },
+    "model_parameters": [""],
+    "model_data": {
+        "base_dim": 3,
+        "base_coordinates": [""],
+        "a1": "",
+        "a2": "",
+        "a3": "",
+        "a4": "",
+        "a6": "",
+        "f": "",
+        "g": "",
+        "auxiliary_base_grading": [[]],
+        "fiber_coordinates": [""],
+        "fiber_ambient_space": "",
+        "hypersurface_equation": "",
+        "zero_section": ["", "", ""],
+        "generating_sections": [["", "", ""]],
+        "resolutions": [[[[""]], [""]]],
+        "resolution_zero_sections": [[["", "", ""]]],
+        "resolution_generating_sections": [[[["", "", ""]]]],
+        "weighted_resolutions": [[[[[""], []]], [""]]],
+        "weighted_resolution_zero_sections": [[["", "", ""]]],
+        "weighted_resolution_generating_sections": [[[["", "", ""]]]]
+    },
+    "associated_models": [""],
+    "related_models": [""]
+}

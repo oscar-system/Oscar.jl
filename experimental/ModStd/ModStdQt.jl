@@ -591,10 +591,12 @@ julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
  (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1, 1)
 
 julia> parent(f[3][1])
-Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
+Multivariate polynomial ring in 2 variables X[1], X[2]
+  over fraction field of multivariate polynomial ring
 
 julia> parent(f[2][1])
-Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
+Multivariate polynomial ring in 2 variables X[1], X[2]
+  over residue field of univariate polynomial ring modulo t^2 + a[1]
 ```  
 """
 function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})

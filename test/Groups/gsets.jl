@@ -71,7 +71,7 @@
   G = symmetric_group(4)
   omega = [1, 2]
   Omega = gset(G, Set([omega]))  # action on ordered pairs
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -81,7 +81,7 @@
 
   omega = [0,1,0,1]
   Omega = gset(G, permuted, Set([omega]))
-  g = gens(G)[1]
+  g = gen(G, 1)
   x = Omega(omega)
   @test x in Omega
   @test unwrap(x) == omega
@@ -110,7 +110,7 @@
   # permutation
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
@@ -131,13 +131,13 @@
   @test is_conjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
   @test ! is_conjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
 
-  # representative_action
+  # is_conjugate_with_data
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  rep = representative_action(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  rep = is_conjugate_with_data(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
   @test rep[1]
   @test permuted([0,1,0,1,0,1], rep[2]) == [1,0,1,0,1,0]
-  rep = representative_action(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+  rep = is_conjugate_with_data(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
   @test ! rep[1]
 
 end
@@ -249,7 +249,7 @@ end
 
   # permutation
   Omega = gset(G)
-  g = gens(G)[1]
+  g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
@@ -266,12 +266,12 @@ end
   @test isconjugate(Omega, gen(V, 1), gen(V, 2))
   @test ! isconjugate(Omega, zero(V), gen(V, 1))
 
-  # representative_action
+  # is_conjugate_with_data
   Omega = gset(G)
-  rep = representative_action(Omega, gens(V)...)
+  rep = is_conjugate_with_data(Omega, gens(V)...)
   @test rep[1]
   @test gen(V, 1) * rep[2] == gen(V, 2)
-  rep = representative_action(Omega, zero(V), gen(V, 1))
+  rep = is_conjugate_with_data(Omega, zero(V), gen(V, 1))
   @test ! rep[1]
 
 end

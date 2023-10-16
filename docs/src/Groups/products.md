@@ -17,8 +17,6 @@ number_of_factors(G::DirectProductGroup)
 cartesian_power(G::GAPGroup, n::Int)
 inner_cartesian_power(G::T, n::Int; morphisms=false) where T<: GAPGroup
 factor_of_direct_product(G::DirectProductGroup, j::Int)
-as_perm_group(G::DirectProductGroup)
-as_polycyclic_group(G::DirectProductGroup)
 embedding(G::DirectProductGroup, j::Int)
 projection(G::DirectProductGroup, j::Int)
 write_as_full(G::DirectProductGroup)

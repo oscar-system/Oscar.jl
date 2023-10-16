@@ -10,11 +10,9 @@
   SQR::Singular.PolyRing # Singular quotient ring
   SQRGB::Singular.sideal # Singular Groebner basis defining quotient ring
 
-  #= ordering, gb assure =#
-  #= the current design decision is to fix the ordering to be default_ordering(R) =#
-  #= that is, the user is not allowed to change this with the outer constructor quo =#
   function MPolyQuoRing(R::MPolyRing, I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(R))
-    @assert base_ring(I) === R
+    @req base_ring(I) === R "Base rings must be the same."
+    @req is_global(ordering) "Ordering must be global."
     r = new{elem_type(R)}()
     r.I = I
     r.ordering = ordering
@@ -22,25 +20,39 @@
   end
 end
 
-function groebner_assure(r::MPolyQuoRing)
+function groebner_basis(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
   ordering = r.ordering
-  groebner_assure(r.I, ordering)
+  groebner_basis(r.I, ordering=ordering)
   oscar_assure(r.I.gb[ordering])
-  singular_assure(r.I.gb[ordering])
-  SG = r.I.gb[ordering].gens.S
+  SG = singular_generators(r.I.gb[ordering], ordering)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
 end
 
-function show(io::IO, Q::MPolyQuoRing)
-  Hecke.@show_name(io, Q)
-  Hecke.@show_special(io, Q)
-  io = IOContext(io, :compact => true)
-  print(io, "Quotient of $(base_ring(Q)) by $(modulus(Q))")
+function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
+   io = pretty(io)
+   println(io, "Quotient")
+   print(io, Indent(), "of ", Lowercase())
+   show(io, MIME("text/plain"), base_ring(Q))
+   println(io)
+   print(io, "by ", modulus(Q))
+   print(io, Dedent())
+end
+
+function Base.show(io::IO, Q::MPolyQuoRing)
+  @show_name(io, Q)
+  @show_special(io, Q)
+  if get(io, :supercompact, false)
+    # no nested printing
+    print(io, "Quotient of multivariate polynomial ring")
+  else
+    # nested printing allowed
+    print(io, "Quotient of multivariate polynomial ring by ", modulus(Q))
+  end
 end
 
 gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
@@ -50,11 +62,12 @@ Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_assure(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_assure(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing) = singular_quotient_ring(Q)
+oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
+singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
+singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
@@ -88,6 +101,119 @@ end
 function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
   return MPolyQuoRingElem(Base.deepcopy_internal(a.f, dict), a.P, a.simplified)
 end
+
+########################################################################
+# Representatives of elements in quotient rings and normal forms 
+#
+# Elements [a] ∈ P/I in quotients of polynomial rings 
+# P = 𝕜[x₁,…,xₙ] by ideals I = ⟨f₁,…,fᵣ⟩ admit unique representatives 
+# a ∈ P whenever a normal form algorithm exists for the polynomial 
+# ring P. This is really a question about the ring of coefficients 𝕜. 
+#
+# In general, we can not expect a normal form algorithm to exist and, 
+# in particular, that it is implemented in Singular. However, we wish 
+# to use Singular as a default backend and this also drives the design 
+# of the quotient rings to begin with. 
+#
+# To make sure that the data structure for quotient rings can 
+# nevertheless also accomodate more exotic coefficient rings we 
+# provide the following functionality to decide the existence and use 
+# of a Singular backend depending on the type.
+#
+# Since the concept of traits in Julia is not uniform, we briefly 
+# describe how to set up your own type of coefficients with this
+# framework. 
+#
+# Say you have a new type `MyType` for the `coefficient_ring` of a 
+# polynomial ring `P` and you would like to make the `MPolyQuo` 
+# structure useful for quotients of the form `P/I`. Then you would 
+# declare 
+#
+#   HasGroebnerAlgorithmTrait(::Type{MyType}) = HasSingularGroebnerAlgorithm()
+#
+# in case you are sure that the generic code to use Singular as a 
+# backend can also digest polynomial rings whose coefficient ring 
+# is of type `MyType`. 
+#
+# If you need to implement your own backend, you do the following.
+# You declare
+#
+#   HasGroebnerAlgorithmTrait(::Type{MyType}) = HasMyCustomBackend()
+#
+# where `HasMyCustomBackend` is a name of your choice and then implement
+#
+# function _simplify(::HasMyCustomBackend, f::MPolyQuoRingElem)
+#   # Do whatever has to be done to achieve a unique representative
+#   ...
+# end
+#
+# function _hash(::HasMyCustomBackend, f::MPolyQuoRingElem, u::UInt)
+#   # Implement a hash which is unique for the class, NOT the 
+#   # representative!
+#   ...
+# end
+#
+# function _is_equal(::HasMyCustomBackend, f::MPolyRingElem, g::MPolyQuoRingElem)
+#   # Implement an equality check.
+#   ...
+# end
+#
+########################################################################
+
+# The trait of the coefficient ring and its elements to decide 
+# which backend to use for Groebner basis and normal form computations.
+abstract type HasGroebnerAlgorithmTrait end
+# Having a normal form algorithm available is strictly stronger than 
+# having a Grobner basis algorithm. Thus we derive one type from the
+# other here. 
+abstract type HasNormalFormTrait <: HasGroebnerAlgorithmTrait end
+
+# A normal form algorithm (for possibly non-global orderings) requires 
+# strictly more, so we make it a subcase.
+struct HasSingularNormalForm <: HasNormalFormTrait end
+struct HasNoNormalForm <: HasNormalFormTrait end
+
+struct HasSingularGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
+struct HasRingFlattening <: HasGroebnerAlgorithmTrait end
+struct HasNoGroebnerAlgorithm <: HasGroebnerAlgorithmTrait end
+
+# By default we do not expect the Singular backend to be able to compute normal forms
+HasNormalFormTrait(::Type{T}) where {T} = HasNoNormalForm()
+
+# for convenience, allow passing in rings, ring elements or ring element types
+HasNormalFormTrait(a::Ring) = HasNormalFormTrait(typeof(a))
+HasNormalFormTrait(a::RingElem) = HasNormalFormTrait(parent_type(a))
+HasNormalFormTrait(::Type{T}) where {T <: RingElem} = HasNormalFormTrait(parent_type(T))
+
+# Same for the Groebner bases. But if a normal form algorithm exists, then 
+# Groebner bases can be computed, too.
+HasGroebnerAlgorithmTrait(a::Ring) = HasGroebnerAlgorithmTrait(typeof(a))
+HasGroebnerAlgorithmTrait(a::RingElem) = HasGroebnerAlgorithmTrait(parent_type(a))
+HasGroebnerAlgorithmTrait(::Type{T}) where {T <: RingElem} = HasGroebnerAlgorithmTrait(parent_type(T))
+
+function HasGroebnerAlgorithmTrait(::Type{T}) where {T}
+  HasNormalFormTrait(T) isa HasSingularNormalForm && return HasSingularGroebnerAlgorithm()
+  return HasNoGroebnerAlgorithm()
+end
+
+# For polynomial rings over fields we expect Singular to be able to compute normal forms
+HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
+
+# For polynomial rings over the integers we can compute Gröbner bases but
+# in general can not compute normal forms.
+HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
+
+# This list can (and should) be extended by eventual new types which 
+# are supposed to make use of the Singular backend; see above.
+
+# In particular, it is decided based on this trait whether a reasonable 
+# hash function for elements in the quotient ring exists.
+
+# In some cases it is useful to know that we can do a RingFlattening 
+# and carry out certain operations in the de-nested ring
+# These declarations happen in the file src/Rings/MPolyMap/flattenings.jl
+# and need to be postponed due to limitations in inclusion orders.
 
 ##############################################################################
 #
@@ -157,7 +283,10 @@ julia> a = ideal(Q, [x, y])
 ideal(x, y)
 
 julia> base_ring(a)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Quotient
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+  by ideal(-x^2 + y, -x^3 + z)
 ```
 """
 function base_ring(a::MPolyQuoIdeal)
@@ -172,22 +301,18 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function singular_assure(a::MPolyQuoIdeal)
-  if isdefined(a.gens.gens, :S)
-    return a.gens.S
-  end
-  a.gens.Sx = singular_poly_ring(base_ring(a))
-  a.gens.S  = Singular.Ideal(a.gens.Sx, (a.gens.Sx).(gens(a)))
-end
-
-function groebner_assure(a::MPolyQuoIdeal)
+function groebner_basis(a::MPolyQuoIdeal)
   if !isdefined(a, :gb)
-    singular_assure(a)
-    a.gb = IdealGens(base_ring(a), Singular.std(a.gens.S))
+    a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
   end
 end
 
+function singular_groebner_generators(a::MPolyQuoIdeal)
+  groebner_basis(a)
+
+  return a.gb.S
+end
 
 @doc raw"""
     gens(a::MPolyQuoIdeal)
@@ -197,11 +322,10 @@ Return the generators of `a`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -216,7 +340,7 @@ function gens(a::MPolyQuoIdeal)
   return map(a.gens.Ox, a.gens.O)
 end
 
-gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
 getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
@@ -227,11 +351,10 @@ Return the number of generators of `a`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -241,7 +364,8 @@ julia> ngens(a)
 ```
 """
 function ngens(a::MPolyQuoIdeal)
-  return length(gens(a))
+  oscar_assure(a)
+  return length(a.gens.O)
 end
 
 
@@ -266,8 +390,7 @@ ideal(x^2 + 2*x*y + y^2)
 ```
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
-  singular_assure(a)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S^m)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens)^m)
 end
 
 @doc raw"""
@@ -293,9 +416,7 @@ ideal(x + y, x^2 + y^2)
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S + b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) + singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -321,9 +442,7 @@ ideal(x^3 + x^2*y + x*y^2 + y^3, x^2 + 2*x*y + y^2)
 """
 function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), a.gens.S * b.gens.S)
+  return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) * singular_generators(b.gens))
 end
 
 @doc raw"""
@@ -352,13 +471,10 @@ ideal(x*y)
 ```
 """
 function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
-  singular_assure(a)
-  as = a.gens.S
   for g in b
     @req base_ring(g) == base_ring(a) "base rings must match"
-    singular_assure(g)
   end
-  as = Singular.intersection(as, [g.gens.S for g in b]...)
+  as = Singular.intersection(singular_generators(a.gens), [singular_generators(g.gens) for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
 end
 
@@ -394,16 +510,19 @@ ideal(y)
 """
 function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-
-  singular_assure(a)
-  singular_assure(b)
-  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.gens.S, b.gens.S))
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(singular_generators(a.gens), singular_generators(b.gens)))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
 # TODO: replace by a more efficient method!
 @attr function is_prime(I::MPolyQuoIdeal)
   return is_prime(saturated_ideal(I))
+end
+
+@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
 end
 
 # The following is to streamline the programmer's
@@ -416,6 +535,11 @@ end
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J
+end
+
+# TODO: Replace by a more efficient method!
+@attr Bool function is_radical(I::MPolyQuoIdeal)
+  return is_radical(saturated_ideal(I))
 end
 
 @doc raw"""
@@ -444,8 +568,7 @@ true
 """
 @attr Bool function is_zero(a::MPolyQuoIdeal)
   R = base_ring(a)
-  singular_assure(a)
-  return Singular.iszero(Singular.reduce(a.gens.S, singular_quotient_groebner_basis(R)))
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_quotient_groebner_basis(R)))
 end
 
 @doc raw"""
@@ -536,7 +659,13 @@ end
 
 *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
 
-^(a::MPolyQuoRingElem, b::Base.Integer) = simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
+  if b >= 0
+    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
+  else
+    return inv(a)^(-b)
+  end
+end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
 
@@ -595,8 +724,7 @@ julia> gens(a)
 function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
-  singular_assure(a)
-  red  = reduce(a.gens.S, singular_quotient_groebner_basis(Q))
+  red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
   SQ   = singular_poly_ring(Q)
   si   = Singular.Ideal(SQ, unique!(gens(red)))
   a.gens.S = si
@@ -629,10 +757,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  groebner_assure(b)
   SR = singular_poly_ring(base_ring(b))
-  as = simplify(a)
-  return Singular.iszero(Singular.reduce(SR(as), b.gb.gens.S))
+  return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
 end
 
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
@@ -664,9 +790,8 @@ true
 """
 function is_subset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
-  as = simplify(a)
-  groebner_assure(b)
-  return Singular.iszero(Singular.reduce(as.gens.S, b.gb.gens.S))
+  simplify(a)
+  return Singular.iszero(Singular.reduce(singular_generators(a.gens), singular_groebner_generators(b)))
 end
 
 @doc raw"""
@@ -695,7 +820,7 @@ function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 end
 
 @doc raw"""
-    simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+    simplify(f::MPolyQuoRingElem)
 
 If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
 replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
@@ -721,7 +846,14 @@ julia> f
 x^3 + x
 ```
 """
-function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+function simplify(f::MPolyQuoRingElem)
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _simplify(HasGroebnerAlgorithmTrait(kk), f)
+end
+
+function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
@@ -733,23 +865,7 @@ function simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}
   return f::elem_type(R)
 end
 
-# Extra method for quotients of graded rings. 
-# TODO: Could this be simplified if the type-parameter signature of decorated rings 
-# was consistent with the one for polynomial rings? I.e. if the first type parameter 
-# was the one for the coefficient rings and not the one for the underlying polynomial ring?
-function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}})
-  f.simplified && return f
-  R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
-  G  = singular_origin_groebner_basis(R)
-  g  = f.f
-  f.f = OR(reduce(SR(g), G))
-  f.simplified = true
-  return f::elem_type(R)
-end
-
-# The above methods for `simplify` assume that there is a singular backend which 
+# The above method for `simplify` assume that there is a singular backend which 
 # can be used. However, we are using (graded) quotient rings also with coefficient 
 # rings R which can not be translated to Singular; for instance when R is again 
 # a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
@@ -762,7 +878,7 @@ end
 # but it nevertheless reduces the element to zero in case its representative is 
 # contained in the modulus. This allows for both, the use of `RingFlattening`s and 
 # the potential speedup of `iszero` tests. 
-function simplify(f::MPolyQuoRingElem)
+function _simplify(::HasRingFlattening, f::MPolyQuoRingElem)
   f.simplified && return f
   if f.f in modulus(parent(f))
     f.f = zero(f.f)
@@ -771,6 +887,13 @@ function simplify(f::MPolyQuoRingElem)
   return f::elem_type(parent(f))
 end
 
+# Having the simplify method do nothing still allows for arithmetic to operate 
+# (simplify is automatically called for multiplications), but further functionality 
+# like equality and hashing will throw an error.
+function _simplify(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem)
+  return f
+  # error("no groebner backend available for simplification; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
+end
 
 @doc raw"""
     ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
@@ -795,16 +918,35 @@ true
 """
 function ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
   check_parent(f, g)
+  Q = parent(f)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _is_equal(HasGroebnerAlgorithmTrait(kk), f, g)
+end
+
+function _is_equal(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  f.f == g.f && return true
   simplify(f)
   simplify(g)
   return f.f == g.f
 end
 
+# By default we refer to the generic ideal membership routine which 
+# might be implemented by other means, for instance via a `RingFlattening`.
+function _is_equal(::HasRingFlattening, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  return f.f - g.f in modulus(parent(f))
+end
+
+function _is_equal(::HasNoGroebnerAlgorithm, f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
+  error("no groebner backend available for equality check; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(f)))))`")
+end
+
 @doc raw"""
-    quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
 Create the quotient ring `R/I` and return the new
-ring as well as the projection map `R` $\to$ `R/I`.
+ring as well as the projection map `R` $\to$ `R/I`. Computations inside `R/I` are
+done w.r.t. `ordering`.
 
     quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
 
@@ -817,7 +959,10 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> A
-Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y)
+Quotient
+  of multivariate polynomial ring in 2 variables x, y
+    over rational field
+  by ideal(x^2 - y^3, x - y)
 
 julia> typeof(A)
 MPolyQuoRing{QQMPolyRingElem}
@@ -826,8 +971,9 @@ julia> typeof(x)
 QQMPolyRingElem
 
 julia> p
-Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from multivariate polynomial ring in 2 variables over QQ
+  to quotient of multivariate polynomial ring by ideal(x^2 - y^3, x - y)
 
 julia> p(x)
 x
@@ -839,24 +985,14 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x^2*z - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
 ```
 """
-function quo(R::MPolyRing, I::MPolyIdeal)
-  q = MPolyQuoRing(R, I)
+function quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R))
+  q = MPolyQuoRing(R, I, ordering)
   function im(a::MPolyRingElem)
     parent(a) !== R && error("Element not in the domain of the map")
     return MPolyQuoRingElem(a, q)
@@ -864,22 +1000,23 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   function pr(a::MPolyQuoRingElem)
     return a.f
   end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, MapFromFunc(R, q, im, pr)
 end
 
-function quo(R::MPolyRing, I::Vector{<:MPolyRingElem})
-  return quo(R, ideal(I))
+function quo(R::MPolyRing, I::Vector{<:MPolyRingElem}; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(I); ordering)
 end
 
-function quo(R::MPolyRing, f::MPolyRingElem...)
-  return quo(R, ideal(collect(f)))
+function quo(R::MPolyRing, f::MPolyRingElem...; ordering::MonomialOrdering = default_ordering(R))
+  return quo(R, ideal(collect(f)); ordering)
 end
 
 lift(a::MPolyQuoRingElem) = a.f
 
+
 (Q::MPolyQuoRing)() = MPolyQuoRingElem(base_ring(Q)(), Q)
 
-function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
+function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   if parent(a) === Q
     return a
   else
@@ -887,12 +1024,18 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem)
   end
 end
 
-function (Q::MPolyQuoRing{S})(a::S) where {S <: MPolyRingElem}
-  @req base_ring(Q) === parent(a) "Parent mismatch"
+function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
+  @req base_ring(parent(a)) === Q "parent mismatch"
+  return lift(a)
+end
+
+
+function (Q::MPolyQuoRing{S})(a::S; check::Bool=false) where {S <: MPolyRingElem}
+  @req base_ring(Q) === parent(a) "parent mismatch"
   return MPolyQuoRingElem(a, Q)
 end
 
-function (Q::MPolyQuoRing)(a::MPolyRingElem)
+function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
 end
 
@@ -907,7 +1050,7 @@ function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
   return S(a.f)
 end
 
-(Q::MPolyQuoRing)(a) = MPolyQuoRingElem(base_ring(Q)(a), Q)
+(Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
 one(Q::MPolyQuoRing) = Q(1)
 
@@ -958,7 +1101,7 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::UnitRange)
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
@@ -975,7 +1118,7 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
+function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
   S = sparse_matrix(R)
   for g = 1:Singular.ngens(M)
     (g in V) || continue
@@ -1013,17 +1156,46 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   J = oscar_groebner_basis(Q)
 
   BS = IdealGens([a.f], keep_ordering = false)
-  singular_assure(BS)
 
   J = vcat(J, [b.f])
   BJ = IdealGens(J, keep_ordering = false)
-  singular_assure(BJ)
 
-  s, rest = Singular.lift(BJ.S, BS.S)
+  s, rest = Singular.lift(singular_generators(BJ), singular_generators(BS))
   if !iszero(rest)
     return false, a
   end
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
+end
+
+### 
+# The following two functions below provide a hotfix to make sure that the preferred 
+# ordering provided to the constructor of the quotient ring is actually used for the 
+# groebner basis computations.
+function ordering(A::MPolyQuoRing)
+  return A.ordering
+end
+
+function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  check_parent(a, b)
+  iszero(a) && iszero(b) && return (true, zero(parent(a)))
+  iszero(b) && error("cannot divide by zero")
+
+  A = parent(a)
+  R = base_ring(A)
+  mod = modulus(A)
+  o = ordering(A)
+  # Take a groebner basis for the preferred ordering, hoping that it will speed up things
+  gb_mod = gens(groebner_basis(mod, ordering=o))
+  I = ideal(R, push!(gb_mod, lift(b)))
+  # Make sure that the singular side of this ideal is filled with the correct ordering
+  # Get our hands on the actual singular ideal
+  Ising = singular_generators(I.gens, o)
+  # ...and the ring
+  Rsing = base_ring(Ising)
+  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  u_sing, rem = Singular.lift(Ising, a_ideal)
+  !iszero(rem) && return false, a
+  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
 end
 
 #TODO: find a more descriptive, meaningful name
@@ -1031,13 +1203,11 @@ function _kbase(Q::MPolyQuoRing)
   G = singular_origin_groebner_basis(Q)
   s = Singular.kbase(G)
   if iszero(s)
-    error("ideal was no zero-dimensional")
+    error("ideal is not zero-dimensional")
   end
   return [base_ring(Q)(x) for x = gens(s)]
 end
 
-#TODO: the reverse map...
-# problem: the "canonical" reps are not the monomials.
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   R = base_ring(Q)
   @assert K == base_ring(R)
@@ -1046,15 +1216,36 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   function im(a::Generic.FreeModuleElem)
     @assert parent(a) == V
     b = R(0)
-    for i=1:length(l)
-      c = a[i]
+    for k=1:length(l)
+      c = a[k]
       if !iszero(c)
-        b += c*l[i]
+        b += c*l[k]
       end
     end
     return Q(b)
   end
-  return V, MapFromFunc(im, V, Q)
+
+  # The inverse function. We use the fact that for a chosen monomial ordering 
+  # the monomials which are not in the leading ideal, form a basis for the 
+  # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
+  function prim(a::MPolyQuoRingElem)
+    @assert parent(a) === Q
+    b = lift(a)::MPolyElem
+    o = default_ordering(R)
+    # TODO: Make sure the ordering is the same as the one used for the _kbase above
+    @assert is_global(o) "ordering must be global"
+    b = normal_form(b, modulus(Q), ordering=o)
+    result = zero(V)
+    while !iszero(b)
+      m = leading_monomial(b, ordering=o)
+      c = leading_coefficient(b, ordering=o)
+      j = findfirst(n->n==m, l)
+      result = result + c * V[j]
+      b = b - c * m
+    end
+    return result
+  end
+  return V, MapFromFunc(V, Q, im, prim)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
@@ -1102,23 +1293,13 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
 julia> degree(f)
-graded by [4]
+[4]
 
 julia> typeof(degree(f))
 GrpAbFinGenElem
@@ -1268,8 +1449,19 @@ function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
 end
 
 function hash(w::MPolyQuoRingElem, u::UInt)
+  Q = parent(w)::MPolyQuoRing
+  P = base_ring(Q)::MPolyRing
+  kk = coefficient_ring(P)::Ring
+  return _hash(HasGroebnerAlgorithmTrait(kk), w, u)
+end
+
+function _hash(::HasSingularGroebnerAlgorithm, w::MPolyQuoRingElem, u::UInt)
   simplify(w)
   return hash(w.f, u)
+end
+
+function _hash(::HasGroebnerAlgorithmTrait, w::MPolyQuoRingElem, u::UInt)
+  error("hash function not implemented due to lack of unique representatives; you can specify a groebner backend by implementing the `HasGroebnerAlgorithmTrait(::Type{T}) = MyBackend()` for `T = $(typeof(coefficient_ring(base_ring(parent(w)))))`")
 end
 
 ################################################################
@@ -1304,28 +1496,16 @@ Additionally, return the embedding of the component into `A`.
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
 julia> L = homogeneous_component(R, 2);
 
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-homogeneous component of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] of degree graded by [2]
- to Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from r_[2] of dim 10
+  to graded multivariate polynomial ring in 4 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1348,13 +1528,10 @@ julia> L = homogeneous_component(A, 2);
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-Quotient space over:
-Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2) defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from quotient space over:
+  Rational field with 7 generators and no relations
+  to quotient of multivariate polynomial ring by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1374,12 +1551,8 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
+ Element of G with components [1 0]
+ Element of G with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -1390,21 +1563,10 @@ julia> L = homogeneous_component(S, [2,1]);
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] of degree Element of
-GrpAb: Z^2
-with components [2 1]
- to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree Element of G with components [2 1]
+
+  to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1426,14 +1588,10 @@ julia> L = homogeneous_component(A, [2,1]);
 julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
-Map from
-Quotient space over:
-Rational Field with 7 generators and no relations to Quotient of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
-  x[1] -> [1 0]
-  x[2] -> [1 0]
-  y[1] -> [0 1]
-  y[2] -> [0 1]
-  y[3] -> [0 1] by ideal(x[1]*y[1] - x[2]*y[2]) defined by a julia-function with inverse
+Map defined by a julia-function with inverse
+  from quotient space over:
+  Rational field with 7 generators and no relations
+  to quotient of multivariate polynomial ring by ideal(x[1]*y[1] - x[2]*y[2])
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1472,7 +1630,7 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinG
   s, ms = sub(H, collect(q))
   Q, mQ = quo(H, s)
 #  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)), Q, W)
+  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
 end
 
 function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
@@ -1507,8 +1665,7 @@ function dim(a::MPolyQuoIdeal)
   if a.dim > -1
     return a.dim
   end
-  groebner_assure(a)
-  a.dim = Singular.dimension(a.gb.S)
+  a.dim = Singular.dimension(singular_groebner_generators(a))
   return a.dim
 end
 
@@ -1537,8 +1694,8 @@ end
 @doc raw"""
     minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
-Given a homogeneous ideal `a` of a graded affine algebra over a field,
-return an array containing a minimal set of generators of `a`. If `I`
+Given a homogeneous ideal `I` of a graded affine algebra over a field,
+return an array containing a minimal set of generators of `I`. If `I`
 is the zero ideal an empty list is returned.
 
 # Examples
@@ -1573,17 +1730,71 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
   @req coefficient_ring(Q) isa AbstractAlgebra.Field "The coefficient ring must be a field"
 
   if isdefined(I, :gb)
-    singular_assure(I.gb)
-    _, sing_min = Singular.mstd(I.gb.gens.S)
+    _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
     return filter(!iszero, (Q).(gens(sing_min)))
   else
-    singular_assure(I)
-    sing_gb, sing_min = Singular.mstd(I.gens.gens.S)
+    sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(I.gens.Ox, sing_gb, true)
     I.gb.gens.S.isGB = I.gb.isGB = true
     return filter(!iszero, (Q).(gens(sing_min)))
   end
 end
+
+@doc raw"""
+    small_generating_set(I::MPolyIdeal)
+
+Given a ideal `I` of an affine algebra over a field, return an array
+containing set of generators of `I`, which is usually smaller than the
+original one. If `I` is the zero ideal an empty list is returned.
+
+!!! note
+   Minimal generating sets exist only in the local and the homogeneous case. Beyond these cases, the best one can hope for is some small set of generators.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [x-y]));
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> a = ideal(A, V);
+
+julia> small_generating_set(a)
+2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
+ y
+ z^2
+
+```
+"""
+function small_generating_set(I::MPolyQuoIdeal)
+  # For non-homogeneous ideals, we do not have a notion of minimal generating
+  # set, but Singular.mstd still provides a good heuristic to find a small
+  # generating set.
+  Q = base_ring(I)
+
+  @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
+
+  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
+  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
+  if !isdefined(I, :gb)
+    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
+    I.gb.gens.S.isGB = I.gb.isGB = true
+  end
+
+  # we do not have a notion of minimal generating set in this context!
+  # If we are unlucky, mstd can even produce a larger generating set
+  # than the original one!!!
+  return_value = filter(!iszero, (Q).(gens(sing_min)))
+  if length(return_value) <= ngens(I)
+    return return_value
+  else
+    return gens(I)
+  end
+end
+
+# in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
+small_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
 
 ################################################################################
 #

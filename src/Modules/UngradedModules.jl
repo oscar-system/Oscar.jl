@@ -38,7 +38,7 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> x*FR[1]
 x*e[1]
@@ -50,7 +50,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
+Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -58,7 +58,7 @@ x*f[1]
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
 julia> FRQ =  free_module(RQ, 2, "g")
-Free module of rank 2 over Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+Free module of rank 2 over RQ
 
 julia> RQ(x)*FRQ[1]
 x*g[1]
@@ -66,7 +66,7 @@ x*g[1]
 julia> RQL, _ = Localization(RQ, U);
 
 julia> FRQL =  free_module(RQL, 2, "h")
-Free module of rank 2 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+Free module of rank 2 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
 
 julia> RQL(x)*FRQL[1]
 x*h[1]
@@ -165,7 +165,10 @@ ngens(F::AbstractFreeMod) = rank(F)
 
 Return  `true` if `F` and `G` are equal, `false` otherwise.
 
-Here, `F` and `G` are equal iff their base rings, ranks, and names for printing the basis elements are equal.
+Here, `F` and `G` are equal iff either 
+- both modules are ungraded and their base rings, ranks, and names for printing the basis elements are equal, 
+or else 
+- both modules are graded, the above holds, and for each $i$, the degrees of the $i$-th basis elements are equal.
 """
 function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
@@ -178,16 +181,40 @@ function (==)(F::FreeMod, G::FreeMod)
 end
 
 function hash(F::FreeMod, h::UInt)
-  is_graded(F) && return hash((base_ring(F), rank(F), F.S, F.d), h)
-  return hash((base_ring(F), rank(F), F.S), h)
+  b = is_graded(F) ? (0x2d55d561d3f7e215 % UInt) : (0x62ca4181ff3a12f4 % UInt)
+  h = hash(base_ring(F), h)
+  h = hash(rank(F), h)
+  h = hash(F.S, h)
+  is_graded(F) && (h = hash(F.d, h))
+  return xor(h, b)
 end
 
 @doc raw"""
     is_isomorphic(F::FreeMod, G::FreeMod)
 
-Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
+Return  `true` if `F` and `G` are isomorphic as (graded) modules, `false` otherwise.
 
-Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
+That is, either 
+- both modules are ungraded and their base rings and ranks are equal, 
+or else 
+- both modules are graded, the above holds, and the multisets of the degrees of the basis elements are equal.
+
+# Examples
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, [1,1,3,2]);
+
+julia> G1 = graded_free_module(Rg, [1,1,2,3]);
+
+julia> is_isomorphic(F, G1)
+true
+
+julia> G2 = graded_free_module(Rg, [1,1,5,6]);
+
+julia> is_isomorphic(F, G2)
+false
+```
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
   is_graded(F) == is_graded(G) || return false
@@ -327,10 +354,10 @@ Return the entries (with respect to the standard basis) of `v` as a sparse row.
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]
@@ -398,7 +425,7 @@ function basis(F::AbstractFreeMod)
   bas = elem_type(F)[]
   for i=1:dim(F)
     s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-    push!(bas, FreeModElem(s, F))
+    push!(bas, F(s))
   end
   return bas
 end
@@ -421,7 +448,7 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-  return FreeModElem(s, F)
+  return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
@@ -440,18 +467,18 @@ base_ring(F::FreeMod) = F.R
 #TODO: Parent - checks everywhere!!!
 
 # the negative of a free module element
--(a::AbstractFreeModElem) = FreeModElem(-coordinates(a), parent(a))
+-(a::AbstractFreeModElem) = parent(a)(-coordinates(a))
 
 # Addition of free module elements
 function +(a::AbstractFreeModElem, b::AbstractFreeModElem)
    check_parent(a, b)
-   return FreeModElem(coordinates(a)+coordinates(b), parent(a))
+   return parent(a)(coordinates(a)+coordinates(b))
 end
 
 # Subtraction of free module elements
 function -(a::AbstractFreeModElem, b::AbstractFreeModElem)
     check_parent(a,b)
-    return FreeModElem(coordinates(a)-coordinates(b), parent(a))
+    return parent(a)(coordinates(a)-coordinates(b))
 end
 
 # Equality of free module elements
@@ -463,38 +490,47 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return hash(tuple(parent(a), coordinates(a)), h)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  h = hash(coordinates(a), h)
+  return xor(h, b)
+end
+
+function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
+  return parent(a)(deepcopy_internal(coordinates(a), dict))
 end
 
 # scalar multiplication with polynomials, integers
 function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
-  end
-  return FreeModElem(a*coordinates(b), parent(b))
+  @req parent(a) === base_ring(parent(b)) "elements not compatible"
+  return parent(b)(a*coordinates(b))
 end
+
 function *(a::MPolyRingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coordinates(b), parent(b))
+  return parent(b)(a*coordinates(b))
 end
+
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coordinates(b), parent(b))
+  return parent(b)(a*coordinates(b))
 end
-*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coordinates(b), parent(b))
-*(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
-*(a::QQFieldElem, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
+
+*(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
+*(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+*(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 
 @doc raw"""
     zero(F::AbstractFreeMod)
 
 Return the zero element of  `F`.
 """
-zero(F::AbstractFreeMod) = FreeModElem(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]), F)
+zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]))
 
 @doc raw"""
     parent(a::AbstractFreeModElem)
@@ -700,7 +736,11 @@ are computed, given the Oscar side.
 """
 function singular_assure(F::ModuleGens)
   if !isdefined(F, :S) || !isdefined(F, :SF)
-    SF = singular_module(F.F)
+    if isdefined(F, :ordering)
+      SF = singular_module(F.F, F.ordering)
+    else
+      SF = singular_module(F.F)
+    end
     sr = base_ring(SF)
     F.SF = SF
     if length(F) == 0
@@ -806,11 +846,11 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+@attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+@attr Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 
@@ -824,13 +864,13 @@ return a matrix `A` over `base_ring(M)` with `rank(F)` rows and
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -874,16 +914,22 @@ Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
 homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
 the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 
+!!! note
+    The module `M` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `F` and `M` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -895,10 +941,10 @@ julia> a = hom(F, G, V)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> a(F[2])
 x*e[1] + y*e[2]
@@ -912,12 +958,69 @@ julia> b = hom(F, G, B)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> a == b
+true
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = graded_free_module(Rg, 3)
+Graded free module Rg^3([0]) of rank 3 over Rg
+
+julia> G1 = graded_free_module(Rg, 2)
+Graded free module Rg^2([0]) of rank 2 over Rg
+
+julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a1 = hom(F1, G1, V1)
+F1 -> G1
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> F2 = graded_free_module(Rg, [1,1,1])
+Graded free module Rg^3([-1]) of rank 3 over Rg
+
+julia> G2 = graded_free_module(Rg, [0,0])
+Graded free module Rg^2([0]) of rank 2 over Rg
+
+julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> a2 = hom(F2, G2, V2)
+F2 -> G2
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> B = Rg[y 0; x+y y; 0 z]
+[    y   0]
+[x + y   y]
+[    0   z]
+
+julia> b = hom(F2, G2, B)
+F2 -> G2
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 == b
 true
 ```
 """
@@ -931,19 +1034,27 @@ function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T
 end
 
 @doc raw"""
-    hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType}
+    hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
 
 Given a vector `V` of `rank(F)` elements of `M` and a ring map `h`
 from `base_ring(F)` to `base_ring(M)`, return the 
 `base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th
-basis vector of `F` to the `i`-th entry of `V`.
+basis vector of `F` to the `i`-th entry of `V`, and the scalars in 
+`base_ring(F)` to their images under `h`.
 
     hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType}
 
 Given a matrix `A` over `base_ring(M)` with `rank(F)` rows and `ngens(M)` columns
 and a ring map `h` from `base_ring(F)` to `base_ring(M)`, return the
 `base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
-the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
+the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`, and the 
+scalars in `base_ring(F)` to their images under `h`.
+
+!!! note
+    The module `M` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `F` and `M` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
@@ -987,6 +1098,11 @@ function morphism_type(
   return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
+function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
+  # HACK
+  show(io, fmh)
+end
+
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
@@ -1016,7 +1132,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
     println(io, domain(fmh))
     println(io, "Codomain:")
     println(io, "=========")
-    println(io, codomain(fmh))
+    print(io, codomain(fmh))
   end
 end
 
@@ -1432,7 +1548,7 @@ function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeM
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end
 
-#+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
+Base.:+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 ###############################################################################
 # SubquoModule constructors
@@ -1475,10 +1591,10 @@ The elements of `O` must live in `F`.
 # Examples
 ```jldoctest
 julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 2 variables over QQ
 
 julia> O = [x*F[1]+F[2],y*F[2]]
 2-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -1557,7 +1673,7 @@ return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -1623,7 +1739,7 @@ free module homomorphisms with codomain `F` represented by `A` and `B`.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AR = R[x; y]
 [x]
@@ -1650,7 +1766,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = Localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x, y, z)
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -1673,7 +1789,7 @@ by Submodule with 3 generators
 julia> RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
 
 julia> FRQ = free_module(RQ, 1)
-Free module of rank 1 over Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5)
+Free module of rank 1 over RQ
 
 julia> ARQ = RQ[x; y]
 [x]
@@ -1696,7 +1812,7 @@ by Submodule with 3 generators
 julia> RQL, _ = Localization(RQ, U);
 
 julia> FRQL = free_module(RQL, 1)
-Free module of rank 1 over Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 - y^3, 2*x^2 - y^5) at the multiplicative set complement of ideal(x, y, z)
+Free module of rank 1 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
 
 julia> ARQL = RQL[x; y]
 [x]
@@ -1715,6 +1831,67 @@ by Submodule with 3 generators
 1 -> 0
 2 -> 0
 3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = graded_free_module(Rg, [2,2,2]);
+
+julia> F2 = graded_free_module(Rg, [2]);
+
+julia> G = graded_free_module(Rg, [1,1]);
+
+julia> V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia> V2 = [z*G[2]+y*G[1]]
+1-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1] + z*e[2]
+
+julia> a1 = hom(F1, G, V1)
+F1 -> G
+e[1] -> y*e[1]
+e[2] -> (x + y)*e[1] + y*e[2]
+e[3] -> z*e[2]
+Homogeneous module homomorphism
+
+julia> a2 = hom(F2, G, V2)
+F2 -> G
+e[1] -> y*e[1] + z*e[2]
+Homogeneous module homomorphism
+
+julia> V = subquotient(a1,a2)
+Graded subquotient of submodule of G generated by
+1 -> y*e[1]
+2 -> (x + y)*e[1] + y*e[2]
+3 -> z*e[2]
+by submodule of G generated by
+1 -> y*e[1] + z*e[2]
+
+julia> A1 = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+
+julia> A2 = Rg[x^3 x^2*y; (2*x^2+x*y)*x (2*y^3+y*x^2)]
+[          x^3           x^2*y]
+[2*x^3 + x^2*y   x^2*y + 2*y^3]
+
+julia> B = Rg[4*x*y^3 (2*x+y)^4]
+[4*x*y^3   16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4]
+
+julia> F2 = graded_free_module(Rg,[0,0])
+Graded free module Rg^2([0]) of rank 2 over Rg
+
+julia> M1 = SubQuo(F2, A1, B)
+Graded subquotient of submodule of F2 generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+by submodule of F2 generated by
+1 -> 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]
 ```
 """
 function subquotient(a::FreeModuleHom, b::FreeModuleHom)
@@ -1777,16 +1954,16 @@ function show_subquo(SQ::SubquoModule)
       else
         println("Cokernel of")
       end
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     else
       if is_graded(SQ)
         println("Graded subquotient of")
       else
         println("Subquotient of")
       end
-      display(generator_matrix(SQ.sub))
-      println("by image of")
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.sub))
+      println("\nby image of")
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     end
   else
     if is_graded(SQ)
@@ -1794,9 +1971,9 @@ function show_subquo(SQ::SubquoModule)
     else
       println("Image of")
     end
-    display(generator_matrix(SQ.sub))
+    show(stdout, "text/plain", generator_matrix(SQ.sub))
   end
-  print(io_compact, "with ambient free module ", SQ.F)
+  print(io_compact, "\nwith ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
@@ -1901,23 +2078,203 @@ by Submodule with 5 generators
 4 -> x*y^2*e[1]
 5 -> x*y*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> W = Rg[y 0; x y; 0 z]
+[y   0]
+[x   y]
+[0   z]
+
+julia> a = hom(F, G, W)
+F -> G
+e[1] -> y*e[1]
+e[2] -> x*e[1] + y*e[2]
+e[3] -> z*e[2]
+Graded module homomorphism of degree [1]
+
+julia> M = cokernel(a)
+Graded subquotient of submodule of G generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of G generated by
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+
+```
 """
 function cokernel(f::ModuleFPHom)
   return quo(codomain(f), image(f)[1], :module)
 end
 
+@doc raw"""
+    cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the cokernel of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Rg^2([-8]) of rank 2 over Rg
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(F, A)
+Graded subquotient of submodule of F generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of F generated by
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ [8]
+ [8]
+```
+"""
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
   return is_graded(F) ? cokernel(graded_map(F, A)) : cokernel(map(F, A))
 end
 
+@doc raw"""
+    cokernel(A::MatElem)
+
+Return the cokernel of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = cokernel(A)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+
+```
+"""
 function cokernel(A::MatElem)
   return cokernel(map(A))
 end
 
+@doc raw"""
+    image(F::FreeMod{R}, A::MatElem{R}) where R
+
+Return the image of `A` as an object of type `SubquoModule` with ambient free module `F`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+
+julia> ambient_free_module(M) === F
+true
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, [8,8])
+Graded free module Rg^2([-8]) of rank 2 over Rg
+
+julia> A = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(F, A)
+Graded submodule of F
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations
+
+julia> ambient_free_module(M) === F
+true
+
+julia> degrees_of_generators(M)
+2-element Vector{GrpAbFinGenElem}:
+ [9]
+ [10]
+```
+"""
 function image(F::FreeMod{R}, A::MatElem{R}) where R
   return is_graded(F) ? image(graded_map(F, A))[1] : image(map(F, A))[1]
 end
 
+@doc raw"""
+    image(A::MatElem)
+
+Return the image of `A` as an object of type `SubquoModule`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+ 
+julia> M = image(A)
+Submodule with 2 generators
+1 -> x*e[1] + y*e[2]
+2 -> 2*x^2*e[1] + 3*y^2*e[2]
+represented as subquotient with no relations.
+```
+"""
 function image(A::MatElem)
   return image(map(A))[1]
 end
@@ -2014,7 +2371,7 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
 end
 
 function leading_module(M::SubquoModule, ord::ModuleOrdering = default_ordering(M))
-  @assert !isdefined(M, :quo)
+  @assert (!isdefined(M, :quo) || length(relations(M)) == 0)
   return SubquoModule(leading_module(M.sub, ord))
 end
 
@@ -2029,10 +2386,10 @@ of the common ambient module.
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AM = R[x;]
 [x]
@@ -2069,6 +2426,43 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> is_subset(M, N)
+true
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of F generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of F generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> is_subset(M1,M2)
+true
+
+julia> is_subset(M2,M1)
+true
+
+julia> M1 == M2
 true
 ```
 """
@@ -2120,10 +2514,10 @@ Here, `ambient_module(M) == ambient_module(N)` if
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AM = R[x;]
 [x]
@@ -2162,6 +2556,37 @@ by Submodule with 3 generators
 julia> M == N
 false
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 2);
+
+julia> O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia> O1a = [x*F[1],y*F[2]];
+
+julia> O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia> M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1] + y*e[2]
+2 -> y*e[2]
+by submodule of F generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[2]
+by submodule of F generated by
+1 -> x^2*e[1] + y^2*e[2]
+2 -> y^2*e[2]
+
+julia> M1 == M2
+true
+```
 """
 function (==)(M::SubquoModule{T}, N::SubquoModule{T}) where {T} # TODO replace implementation by two inclusion checks?
   return compare_helper(M, N, (==))
@@ -2173,6 +2598,40 @@ end
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Return `false` if the ambient free modules are not isomorphic.
+
+```jldoctest
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of F1
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Rg^1([-2]) + Rg^1([-4]) + Rg^1([-3]) of rank 3 over Rg
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of F2
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic(M1, M2)
+true
+
+```
 """
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
@@ -2190,6 +2649,43 @@ Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
 Moreover, if `M` and `N` are canonically isomorphic then return also the isomorphism, 
 otherwise return the zero map.
+
+```jldoctest
+julia> Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> F1 = graded_free_module(Rg,[2,3, 4])
+Graded free module Rg^1([-2]) + Rg^1([-3]) + Rg^1([-4]) of rank 3 over Rg
+
+julia> A1 = Rg[x^3 x^2 x; (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
+[          x^3             x^2     x]
+[2*x^4 + x^3*y   x^3 + 2*x*y^2   x^2]
+
+julia> M1 = image(F1, A1)
+Graded submodule of F1
+1 -> x^3*e[1] + x^2*e[2] + x*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3]
+represented as subquotient with no relations
+
+julia> F2 = graded_free_module(Rg,[2,4, 3])
+Graded free module Rg^1([-2]) + Rg^1([-4]) + Rg^1([-3]) of rank 3 over Rg
+
+julia> A2 = Rg[x^3 x x^2; (2*x^2+x*y)*x^2 x^2 (2*y^2+x^2)*x]
+[          x^3     x             x^2]
+[2*x^4 + x^3*y   x^2   x^3 + 2*x*y^2]
+
+julia> M2 = image(F2, A2)
+Graded submodule of F2
+1 -> x^3*e[1] + x*e[2] + x^2*e[3]
+2 -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+represented as subquotient with no relations
+
+julia> is_canonically_isomorphic_with_map(M1, M2)
+(true, M1 -> M2
+x^3*e[1] + x^2*e[2] + x*e[3] -> x^3*e[1] + x*e[2] + x^2*e[3]
+(2*x^4 + x^3*y)*e[1] + (x^3 + 2*x*y^2)*e[2] + x^2*e[3] -> (2*x^4 + x^3*y)*e[1] + x^2*e[2] + (x^3 + 2*x*y^2)*e[3]
+Homogeneous module homomorphism)
+
+```
 """
 function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   is_canonically_iso = is_canonically_isomorphic(M, N)
@@ -2217,10 +2713,10 @@ Additionally, return the inclusion maps `M` $\to$ `M + N` and `N` $\to$ `M + N`.
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AM = R[x;]
 [x]
@@ -2305,6 +2801,62 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> sum(M, N)
+(Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], M -> Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+x*e[1] -> x*e[1]
+Homogeneous module homomorphism, N -> Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
@@ -2343,10 +2895,10 @@ return the sum of `M` and `N` regarded as submodules of the common ambient modul
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AM = R[x;]
 [x]
@@ -2389,6 +2941,46 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> M + N
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+```
 """
 function +(M::SubquoModule{T},N::SubquoModule{T}) where T
   return sum(M,N)[1]
@@ -2406,10 +2998,10 @@ Additionally, return the inclusion maps `M` $\cap$ `N` $\to$ `M` and `M` $\cap$ 
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> AM = R[x;]
 [x]
@@ -2467,8 +3059,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1]
-, Map with following data
+3 -> z^4*e[1], Map with following data
 Domain:
 =======
 Subquotient of Submodule with 2 generators
@@ -2485,8 +3076,65 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
+3 -> z^4*e[1])
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> AM = Rg[x;];
+
+julia> BM = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
 3 -> z^4*e[1]
-)
+
+julia> AN = Rg[y;];
+
+julia> BN = Rg[x^2; y^3; z^4];
+
+julia> N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> intersect(M, N)
+(Graded subquotient of submodule of F generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of F generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> M
+-x*y*e[1] -> -x*y*e[1]
+x*z^4*e[1] -> x*z^4*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of F generated by
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> N
+-x*y*e[1] -> x*y*e[1]
+x*z^4*e[1] -> 0
+Homogeneous module homomorphism)
+
 ```
 """
 function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
@@ -2607,6 +3255,13 @@ Return a free module element that is a representative of `v`.
 """
 function repres(v::SubquoModuleElem)
   return v.repres
+end
+
+#######################################################
+
+function simplify(el::SubquoModuleElem)
+  reduced = reduce(repres(el), parent(el).quo)
+  return SubquoModuleElem(reduced, parent(el))
 end
 
 #######################################################
@@ -2812,7 +3467,7 @@ function index_of_gen(v::SubquoModuleElem)
   return coordinates(v).pos[1]
 end
 
-# function to check whether a free module element is in a particular free module
+# function to check whether two module elements are in the same module
 function check_parent(a::Union{AbstractFreeModElem,SubquoModuleElem}, b::Union{AbstractFreeModElem,SubquoModuleElem})
   if parent(a) !== parent(b)
     error("elements not compatible")
@@ -2823,32 +3478,39 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
 end
+
 function -(a::SubquoModuleElem, b::SubquoModuleElem) 
   check_parent(a,b)
   return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
 end
+
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
+
 function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::MPolyRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 function *(a::RingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return SubquoModuleElem(a*coordinates(b), b.parent)
 end
+
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
+
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
   if parent(a) !== parent(b)
     return false
@@ -2856,10 +3518,18 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
+function Base.hash(a::SubquoModuleElem, h::UInt)
+  error("not implemented")
+end
+
+function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
+  return SubquoModuleElem(deepcopy_internal(coordinates(a), dict), a.parent)
+end
+
 @doc raw"""
     sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `F`, return the submodule of `F` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `F`, return the (graded) submodule of `F` generated by these elements.
 
 Put more precisely, return the submodule as an object of type `SubquoModule`. 
 
@@ -2881,7 +3551,7 @@ end
 @doc raw"""
     sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T} 
 
-Given a matrix `A`, return the submodule of `F` generated by the rows of `A`.
+Given a (homogeneous) matrix `A`, return the (graded) submodule of `F` generated by the rows of `A`.
 
 Put more precisely, return this submodule as an object of type `SubquoModule`. 
 
@@ -2941,7 +3611,7 @@ end
 @doc raw"""
     sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `M`, return the submodule of `M` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule of `M` generated by these elements.
 
 Put more precisely, return this submodule as an object of type `SubquoModule`. 
 
@@ -2968,7 +3638,7 @@ end
 @doc raw"""
     sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `M`, return the submodule of `M` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule of `M` generated by these elements.
 
 Put more precisely, return this submodule as an object of type `SubquoModule`. 
 
@@ -3008,7 +3678,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
@@ -3032,7 +3702,7 @@ end
 @doc raw"""
     quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `F`, return the quotient of `F` by the submodule of `F` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `F`, return the quotient of `F` by the (graded) submodule of `F` which is generated by these elements.
 
 Put more precisely, return this quotient as an object of type `SubquoModule`. 
 
@@ -3054,7 +3724,7 @@ end
 @doc raw"""
     quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
 
-Given a matrix `A`, return the quotient of `F` by the submodule of `F` which is generated by 
+Given a (homogeneous) matrix `A`, return the quotient of `F` by the graded submodule of `F` which is generated by 
 the rows of `A`.
 
 Put more precisely, return this quotient as an object of type `SubquoModule`. 
@@ -3121,7 +3791,7 @@ end
 @doc raw"""
     quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `M`, return the quotient of `M` by the submodule of `M` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the quotient of `M` by the (graded) submodule of `M` which is generated by these elements.
 
 Put more precisely, return the quotient as an object of type `SubquoModule`. 
 
@@ -3140,7 +3810,7 @@ end
 @doc raw"""
     quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 
-Given a vector `V` of elements of `M`, return the quotient of `M` by the submodule of `M` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the quotient of `M` by the (graded) submodule of `M` which is generated by these elements.
 
 Put more precisely, return the quotient as an object of type `SubquoModule`. 
 
@@ -3174,7 +3844,7 @@ julia> proj
 Map with following data
 Domain:
 =======
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
 Subquotient of Submodule with 1 generator
@@ -3307,10 +3977,10 @@ Return `true` if `M` is the zero module, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x^2+y^2;]
 [x^2 + y^2]
@@ -3443,7 +4113,11 @@ function presentation(SQ::SubquoModule)
     F = FreeMod(R, ngens(SQ.sub))
     h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
   end
-  set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
+  br_name = AbstractAlgebra.find_name(R)
+  if br_name === nothing
+    br_name = "br"
+  end
+  set_attribute!(F,  :name => "$br_name^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -3490,7 +4164,11 @@ function presentation(SQ::SubquoModule)
     G = FreeMod(R, length(q))
     h_G_F = hom(G, F, q)
   end
-  set_attribute!(G, :name => "br^$(length(q))")
+  br_name = AbstractAlgebra.find_name(F.R)
+  if br_name === nothing
+    br_name = "br"
+  end
+  set_attribute!(G, :name => "$br_name^$(length(q))")
   if is_graded(SQ)
     Z = graded_free_module(F.R, 0)
   else
@@ -3498,13 +4176,15 @@ function presentation(SQ::SubquoModule)
   end
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
+  set_attribute!(M, :show => Hecke.pres_show)
+  return M
 end
 
 @doc raw"""
     presentation(F::FreeMod)
 
-Return a free presentation of $F$.
+Return a free presentation of `F`.
 """
 function presentation(F::FreeMod)
   if is_graded(F)
@@ -3513,13 +4193,15 @@ function presentation(F::FreeMod)
     Z = FreeMod(F.R, 0)
   end
   set_attribute!(Z, :name => "0")
-  return Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
+  set_attribute!(M, :show => Hecke.pres_show)
+  return M
 end
 
 @doc raw"""
     presentation(M::ModuleFP)
 
-Return a free presentation of $M$.
+Return a free presentation of `M`.
 
 # Examples
 ```jldoctest
@@ -3531,13 +4213,97 @@ julia> B = R[x^2; y^3; z^4];
 
 julia> M = SubquoModule(A, B);
 
-julia> P = presentation(M);
+julia> P = presentation(M)
+0 <---- M <---- R^2 <---- R^5
+```
 
-julia> rank(P[1])
-5
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
-julia> rank(P[0])
-2
+julia> F = graded_free_module(Rg, [1,2,2]);
+
+julia> p = presentation(F)
+0 <---- F <---- F <---- 0
+
+julia> p[-2]
+Graded free module Rg^0 of rank 0 over Rg
+
+julia> p[-1]
+Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
+
+julia> p[0]
+Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
+
+julia> p[1]
+Graded free module Rg^0 of rank 0 over Rg
+
+julia> map(p,-1)
+F -> 0
+e[1] -> 0
+e[2] -> 0
+e[3] -> 0
+Homogeneous module homomorphism
+
+julia> map(p,0)
+F -> F
+e[1] -> e[1]
+e[2] -> e[2]
+e[3] -> e[3]
+Homogeneous module homomorphism
+
+julia> map(p,1)
+0 -> F
+Homogeneous module homomorphism
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> P = presentation(M)
+0 <---- M <---- Rg^2 <---- Rg^5
+
+julia> P[-2]
+Graded free module Rg^0 of rank 0 over Rg
+
+julia> P[-1]
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> P[0]
+Graded free module Rg^2([-1]) of rank 2 over Rg
+
+julia> P[1]
+Graded free module Rg^2([-2]) + Rg^1([-3]) + Rg^2([-5]) of rank 5 over Rg
+
+julia> map(P,-1)
+M -> 0
+x*e[1] -> 0
+y*e[1] -> 0
+Homogeneous module homomorphism
+
+julia> map(P,0)
+Rg^2 -> M
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism
+
+julia> map(P,1)
+Rg^5 -> Rg^2
+e[1] -> x*e[1]
+e[2] -> -y*e[1] + x*e[2]
+e[3] -> y^2*e[2]
+e[4] -> z^4*e[1]
+e[5] -> z^4*e[2]
+Homogeneous module homomorphism
 ```
 """
 function presentation(M::ModuleFP)
@@ -3545,16 +4311,80 @@ function presentation(M::ModuleFP)
 end
 
 @doc raw"""
-    present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
+    present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 
-Return a subquotient $M = R^n / im(f) $, i.e. $M = \text{coker}(f)$, such that
-$M \cong SQ$.
-If `task` is set to `:with_morphism` or to `:both` then return also an isomorphism $M \to SQ$. Calling `inv()`
-on this isomorphism is cheap.
-If `task` is set to `:cache_morphism` then the isomorphism is cached.
-If `task` is set to `:only_morphism` then return only the isomorphism.
+Return a subquotient `C` which is isomorphic to `M`, and whose generators are the standard unit vectors of its ambient free module.
+
+Additionally,
+
+- return an isomorphism `M` $\to$ `C` if `task = :with_morphism`,
+- return and cache an isomorphism `M` $\to$ `C` if `task = :cache_morphism`,
+- do none of the above if `task = :none` (default).
+
+If `task = :only_morphism`, return only an isomorphism.
 
 # Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y];
+
+julia> B = R[x^2; y^3; z^4];
+
+julia> M = SubquoModule(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> C = present_as_cokernel(M)
+Subquotient of Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+by Submodule with 5 generators
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2]
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> present_as_cokernel(M, :with_morphism)
+(Graded subquotient of submodule of Rg^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Rg^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2], Graded subquotient of submodule of Rg^2 generated by
+1 -> e[1]
+2 -> e[2]
+by submodule of Rg^2 generated by
+1 -> x*e[1]
+2 -> -y*e[1] + x*e[2]
+3 -> y^2*e[2]
+4 -> z^4*e[1]
+5 -> z^4*e[2] -> M
+e[1] -> x*e[1]
+e[2] -> y*e[1]
+Homogeneous module homomorphism)
+```
 """
 function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   chainComplex = presentation(SQ)
@@ -3582,12 +4412,87 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
 end
 
 @doc raw"""
+    present_as_cokernel(F::FreeMod, task::Symbol = :none)
+
+Represent `F` as the quotient `C` of itself with no relations. This method exists for compatibility reasons with `present_as_cokernel(M::SubQuoModule, task::Symbol = :none)`. 
+
+Additionally,
+
+- return an isomorphism `F` $\to$ `C` if `task = :with_morphism`,
+- return and cache an isomorphism `F` $\to$ `C` if `task = :cache_morphism`,
+- do none of the above if `task = :none` (default).
+
+If `task = :only_morphism`, return only an isomorphism.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> present_as_cokernel(F)
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+
+julia> present_as_cokernel(F, :only_morphism)
+Map with following data
+Domain:
+=======
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Submodule with 2 generators
+1 -> e[1]
+2 -> e[2]
+represented as subquotient with no relations.
+```
+"""
+function present_as_cokernel(F::FreeMod, task::Symbol = :none)
+  presentation_module, isomorphism = quo(F, [zero(F)])
+  inverse_isomorphism = hom(presentation_module, F, gens(F))
+
+  if task == :none
+    return presentation_module
+  end
+
+  if task == :cache_morphism
+    register_morphism!(isomorphism)
+    register_morphism!(inverse_isomorphism)
+  end
+  task == :only_morphism && return isomorphism
+  
+  return presentation_module, isomorphism
+end
+
+@doc raw"""
     is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
 
 If $M = N$ (mathematically, but with (possibly) different generating systems), return $\phi : M \to N$ 
 which is mathematically the identity. 
 If `task == :inverse` also the inverse map is computed and cached (in the morphism).
 If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
+
+# Examples
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> is_equal_with_morphism(M, M)
+M -> M
+x*e[1] -> x*e[1]
+y*e[1] -> y*e[1]
+Homogeneous module homomorphism
+```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
   @assert M == N
@@ -3639,6 +4544,23 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
   end
 end
 
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if C isa FreeMod
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  # HACK
+  show(io, fmh)
+end
+
 function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
   compact = get(io, :compact, false)
   io_compact = IOContext(io, :compact => true)
@@ -3669,7 +4591,7 @@ function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: Abs
     println(io, domain(fmh))
     println(io, "Codomain:")
     println(io, "=========")
-    println(io, codomain(fmh))
+    print(io, codomain(fmh))
   end
 end
 
@@ -3689,6 +4611,12 @@ Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
 homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
 the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 
+!!! note
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
 !!! warning
     The functions do not check whether the resulting homomorphism is well-defined,
     that is, whether it sends the relations of `M` into the relations of `N`. 
@@ -3703,10 +4631,10 @@ Return `true` if `a` is well-defined, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -3769,10 +4697,10 @@ true
 
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y];
 
@@ -3792,10 +4720,106 @@ julia> c = hom(M, N, W);
 julia> is_welldefined(c)
 false
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_welldefined(a)
+true
+
+julia> W = Rg[y^2 0; 0 x^2]
+[y^2     0]
+[  0   x^2]
+
+julia> b = hom(M, N, W)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> a == b
+true
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> c = hom(M, N, W)
+M -> M
+x*e[1] -> x*y*e[1]
+y*e[1] -> x*y*e[1]
+Graded module homomorphism of degree [1]
+
+julia> is_welldefined(c)
+false
+```
 """
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
 hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+
+
+@doc raw"""
+    hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+
+Given a vector `V` of `ngens(M)` elements of `N`, 
+return the homomorphism `M` $\to$ `N` which sends the `i`-th
+generator `M[i]` of `M` to the `i`-th entry of `V`, and the 
+scalars in `base_ring(M)` to their images under `h`.
+
+    hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+
+Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`,
+and the scalars in `base_ring(M)` to their images under `h`.
+
+!!! note
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
+!!! warning
+    The functions do not check whether the resulting homomorphism is well-defined,
+    that is, whether it sends the relations of `M` into the relations of `N`. 
+
+If you are uncertain with regard to well-definedness, use the function below.
+Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
+
+    is_welldefined(a::ModuleFPHom)
+
+Return `true` if `a` is well-defined, and `false` otherwise.
+
+"""
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h)
+hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
+
 function is_welldefined(H::ModuleFPHom)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
     return true
@@ -3822,6 +4846,15 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   end
   return true
 end
+
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
 ###################################################################
 
 @doc raw"""
@@ -3834,10 +4867,10 @@ and codomain `N`, return a matrix `A` with `ngens(M)` rows and
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -3870,6 +4903,40 @@ julia> A = matrix(a)
 julia> a(M[1])
 x*y^2*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> matrix(a)
+[y^2     0]
+[  0   x^2]
+
+```
 """
 function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
@@ -3886,11 +4953,11 @@ function matrix(f::SubQuoHom)
 end
 
 function show_morphism(f::ModuleFPHom)
-  display(matrix(f))
+  show(stdout, "text/plain", matrix(f))
 end
 
 @doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
 say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
@@ -3923,8 +4990,8 @@ end
 @doc raw"""
     hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
 
-Given modules `M`, `N` which are products with the same number of factors,  
-say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^r N_j$, and given a matrix 
+Given modules `M` and `N` which are products with `r` respective `s` factors,  
+say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
@@ -3936,7 +5003,7 @@ function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
   @assert length(tM) == size(A, 1) && length(tN) == size(A, 2)
   @assert all(ij -> domain(A[ij[1],ij[2]]) === tM[ij[1]] && codomain(A[ij[1],ij[2]]) === tN[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
-  return hom(M,N,Vector{elem_type(N)}([sum([Hecke.canonical_injection(N,j)(sum([A[i,j](Hecke.canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
+  return hom(M,N,Vector{elem_type(N)}([sum([canonical_injection(N,j)(sum([A[i,j](canonical_projection(M,i)(g)) for i=1:length(tM)])) for j=1:length(tN)]) for g in gens(M)]))
 end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
@@ -4341,10 +5408,10 @@ Return `true` if `m` is zero, `false` otherwise.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
@@ -4370,6 +5437,38 @@ false
 julia> is_zero(x*M[1])
 true
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1)
+Graded free module Rg^1([0]) of rank 1 over Rg
+
+julia> A = Rg[x; y]
+[x]
+[y]
+
+julia> B = Rg[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> is_zero(M[1])
+false
+
+julia> is_zero(x*M[1])
+true
+
+```
 """
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
@@ -4389,12 +5488,57 @@ end
 @doc raw"""
     hom(F::FreeMod, G::FreeMod)
 
-Return a subquotient $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
+Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
 that converts elements from $S$ into morphisms $F \to G$.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = free_module(R, 3)
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> F2 = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ to Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+
+julia> f(V[1])
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = graded_free_module(Rg, [1,2,2])
+Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
+
+julia> F2 = graded_free_module(Rg, [3,5])
+Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg to Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg)
+
+julia> f(V[1])
+F1 -> F2
+e[1] -> e[1]
+e[2] -> 0
+e[3] -> 0
+Graded module homomorphism of degree [2]
+
+```
 """
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
-  @assert is_graded(F) == is_graded(G)
+  ###@assert is_graded(F) == is_graded(G)
   if is_graded(F)
     d = [y - x for x in degrees(F) for y in degrees(G)]
     GH = graded_free_module(F.R, d)
@@ -4423,7 +5567,7 @@ function hom(F::FreeMod, G::FreeMod)
     end
     return FreeModElem(s, GH)
   end
-  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = MapFromFunc(GH, X, im, pre)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
@@ -4438,13 +5582,13 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -4461,8 +5605,29 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
-)
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> kernel(a)
+(Graded submodule of F
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Graded submodule of F
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> F
+x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+Homogeneous module homomorphism)
+
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -4505,13 +5670,13 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -4532,8 +5697,35 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 3);
+
+julia> G = graded_free_module(Rg, 2);
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> image(a)
+(Graded submodule of G
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations, Graded submodule of G
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations -> G
+y*e[1] -> y*e[1]
+x*e[1] + y*e[2] -> x*e[1] + y*e[2]
+z*e[2] -> z*e[2]
+Homogeneous module homomorphism)
+
 ```
 """
 function image(h::FreeModuleHom)
@@ -4597,7 +5789,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 ```
 
 ```jldoctest
@@ -4664,6 +5856,53 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> image(a)
+(Graded subquotient of submodule of F generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of F generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> M
+x*y^2*e[1] -> x*y^2*e[1]
+x^2*y*e[1] -> x^2*y*e[1]
+Homogeneous module homomorphism)
+```
 """
 function image(a::ModuleFPHom)
  error("image is not implemented for the given types.")
@@ -4679,7 +5918,7 @@ Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `do
 function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
-  F = FreeMod(R, ngens(D))
+  is_graded(h) ? F = graded_free_module(R, degrees_of_generators(D)) : F = FreeMod(R, ngens(D))
   hh = hom(F, codomain(h), Vector{elem_type(codomain(h))}(map(h, gens(D))))
   k = kernel(hh)
   @assert domain(k[2]) === k[1]
@@ -4728,7 +5967,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
 ```
 
 ```jldoctest
@@ -4797,6 +6036,57 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 ```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> kernel(a)
+(Graded subquotient of submodule of F generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of F generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> M
+-y*e[1] -> -y*e[1]
+(x^2 - y^2)*e[1] -> (x^2 - y^2)*e[1]
+-x*y*e[1] -> -x*y*e[1]
+Homogeneous module homomorphism)
+
+```
 """
 function kernel(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
@@ -4806,16 +6096,86 @@ function map(FR::FreeResolution, i::Int)
   return map(FR.C, i)
 end
 
+function free_show(io::IO, C::ComplexOfMorphisms)
+  Cn = get_attribute(C, :name)
+  if Cn === nothing
+    Cn = "F"
+  end
+
+  name_mod = String[]
+  rank_mod = Int[]
+
+  rng = range(C)
+  rng = first(rng):-1:0
+  arr = ("<--", "--")
+
+  R = Nemo.base_ring(C[first(rng)])
+  R_name = get_attribute(R, :name)
+  if R_name === nothing
+    R_name = AbstractAlgebra.find_name(R)
+    if R_name === nothing
+      R_name = "$R"
+    end
+  end
+ 
+  for i=reverse(rng)
+    M = C[i]
+    if get_attribute(M, :name) !== nothing
+      push!(name_mod, get_attribute(M, :name))
+    elseif AbstractAlgebra.find_name(M) !== nothing
+      push!(name_mod, AbstractAlgebra.find_name(M) )
+    else
+      push!(name_mod, "$R_name^$(rank(M))")
+    end
+    push!(rank_mod, rank(M))
+  end
+
+  io = IOContext(io, :compact => true)
+  N = get_attribute(C, :free_res)
+  if N !== nothing
+    print(io, "Free resolution")
+    print(io, " of ", N)
+  end
+  print(io, "\n")
+
+  pos = 0
+  pos_mod = Int[]
+  
+  for i=1:length(name_mod)
+    print(io, name_mod[i])
+    push!(pos_mod, pos)
+    pos += length(name_mod[i])
+    if i < length(name_mod)
+      print(io, " ", arr[1], arr[2], " ")
+      pos += length(arr[1]) + length(arr[2]) + 2
+    end
+  end
+
+  print(io, "\n")
+  len = 0
+  for i=1:length(name_mod)
+    if i>1
+      print(io, " "^(pos_mod[i] - pos_mod[i-1]-len))
+    end
+    print(io, reverse(rng)[i])
+    len = length("$(reverse(rng)[i])")
+  end
+#  print(io, "\n")
+end
+
+
 @doc raw"""
     free_resolution(F::FreeMod)
 
-Return a free resolution of `F`.
+Return a free resolution of `F`. The `length` and `algorithm`
+keywords are here only for compatibility reasons with the other `free_resolution`
+methods and have no effect on the computation.
 
 # Examples
 """
-function free_resolution(F::FreeMod)
+function free_resolution(F::FreeMod; length::Int=0, algorithm::Symbol=:fres)
   res = presentation(F)
-  #set_attribute!(res, :show => Hecke.free_show, :free_res => F)
+  set_attribute!(res, :show => free_show, :free_res => F)
   return FreeResolution(res)
 end
 
@@ -4827,7 +6187,7 @@ Return `true` if the free resolution `fr` is complete, otherwise return `false`.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -4850,19 +6210,17 @@ by Submodule with 4 generators
 4 -> z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
-
-rank   | 6  2
--------|------
-degree | 1  0
+Free resolution of M
+R^2 <---- R^6
+0         1
 
 julia> is_complete(fr)
 false
 
 julia> fr = free_resolution(M)
-
-rank   | 0  2  6  6  2
--------|---------------
-degree | 4  3  2  1  0
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 
 julia> is_complete(fr)
 true
@@ -4893,7 +6251,7 @@ function _get_last_map_key(cc::Hecke.ComplexOfMorphisms)
   return last(Hecke.map_range(cc))
 end
 
-function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorithm::Symbol=:fres)
+function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 # assuming a free res is a chain_complex, then it will be
 # M_1 -> M_0 -> S -> 0
 #the range is 1:-1:-2 or so
@@ -4902,6 +6260,11 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
 # - extending lift is repeated pushfirst
 # - the idx is only used to see how many maps are missing
 
+  algorithm = get_attribute(cc, :algorithm)
+  if algorithm == nothing
+    algorithm = :fres
+    set_attribute!(cc, :algorithm, :fres)
+  end
   r = Hecke.map_range(cc)
   if idx < last(r)
     error("extending past the final zero not supported")
@@ -4909,7 +6272,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   len_missing = idx - first(r)
   @assert len_missing > 0
   if cc.complete == true
-    error("complex is complete, cannot extend")
+    return map(cc, first(r))
   end
 
   kernel_entry          = image(cc.maps[1])[1]
@@ -4922,10 +6285,12 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, len)
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+  elseif algorithm == :mres
+    res = Singular.mres(singular_kernel_entry, len)
+  elseif algorithm == :nres
+    res = Singular.nres(singular_kernel_entry, len)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -4934,16 +6299,19 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
   j   = 2
 
   while j <= Singular.length(res)
+    rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
       map = graded_map(codom, SM.matrix)
       dom = domain(map)
+      set_attribute!(dom, :name => "R^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
+      set_attribute!(dom, :name => "R^$rk")
       generator_matrix(SM)
       map = hom(dom, codom, SM.matrix)
     end
@@ -4957,7 +6325,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int; algorit
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
     cc.complete = true
   end
-  return map(cc, idx)
+  set_attribute!(cc, :show => free_show)
+  maxidx = min(idx, first(Hecke.map_range(cc)))
+  return map(cc, maxidx)
 end
 
 @doc raw"""
@@ -4969,12 +6339,13 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-`algorithm` can be set to `:sres` or `:fres`.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, QQMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
 [x]
@@ -4997,40 +6368,36 @@ by Submodule with 4 generators
 4 -> z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
-
-rank   | 6  2
--------|------
-degree | 1  0
+Free resolution of M
+R^2 <---- R^6
+0         1
 
 julia> is_complete(fr)
 false
 
 julia> fr[4]
-Free module of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Free module of rank 0 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> fr
-
-rank   | 0  2  6  6  2
--------|---------------
-degree | 4  3  2  1  0
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 
 julia> is_complete(fr)
 true
 
-julia> fr = free_resolution(M, algorithm=:sres)
-
-rank   | 0  2  6  6  2
--------|---------------
-degree | 4  3  2  1  0
+julia> fr = free_resolution(M, algorithm=:fres)
+Free resolution of M
+R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
 ```
 
 **Note:** Over rings other than polynomial rings, the method will default to a lazy, 
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-    ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres
-  )
+                         ordering::ModuleOrdering = default_ordering(M),
+                         length::Int=0, algorithm::Symbol=:fres)
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -5039,13 +6406,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
 
   #= Start with presentation =#
   pm = presentation(M)
-  maps = [map(pm, j) for j in Hecke.map_range(pm)]
+  maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -5055,15 +6422,19 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
-  singular_kernel_entry.isGB = true
-
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
-    res = Singular.fres(singular_kernel_entry, length, "complete")
-  elseif algorithm == :sres
-    res = Singular.fres(singular_kernel_entry, length)
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
+    gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
+  elseif algorithm == :mres
+    gbpres = singular_kernel_entry
+    res = Singular.mres(gbpres, length)
+  elseif algorithm == :nres
+    gbpres = singular_kernel_entry
+    res = Singular.nres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -5072,28 +6443,32 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     cc_complete = true
   end
 
+  br_name = AbstractAlgebra.find_name(base_ring(M))
+  if br_name === nothing
+    br_name = "R"
+  end
+
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
-  dom = domain(pm.maps[1])
-  j   = 2
+  j   = 1
   while j <= Singular.length(res)
-    if is_graded(dom)
-      codom = dom
+    if is_graded(M)
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
       ff = graded_map(codom, SM.matrix)
       dom = domain(ff)
-      set_attribute!(dom, :name => "br^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
       insert!(maps, 1, ff)
       j += 1
     else
-      codom = dom
+      codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
       generator_matrix(SM)
-      set_attribute!(dom, :name => "br^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
       insert!(maps, 1, hom(dom, codom, SM.matrix))
       j += 1
     end
@@ -5112,6 +6487,8 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
+  set_attribute!(cc, :show => free_show, :free_res => M)
+  set_attribute!(cc, :algorithm, algorithm)
 
   return FreeResolution(cc)
 end
@@ -5187,12 +6564,12 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     insert!(mp, 1, g)
   end
   C = Hecke.ComplexOfMorphisms(ModuleFP, mp, check = false, seed = -2)
-  #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
+  #set_attribute!(C, :show => free_show, :free_res => M) # doesn't work
   return FreeResolution(C)
 end
 
 function Hecke.ring(I::MPolyIdeal)
-  return parent(gen(I, 1))
+  return base_ring(I)
 end
 
 # We can not use the signature with T because the MPolyQuoIdeals are 
@@ -5225,46 +6602,45 @@ function ideal_to_module(I::MPolyIdeal)
 end
 
 @doc raw"""
-    free_resolution(I::MPolyIdeal)
+    free_resolution(I::MPolyIdeal; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `I`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(I::MPolyIdeal)
-  if is_graded(I)
-    F = graded_free_module(Hecke.ring(I), 1)
-  else
-    F = free_module(Hecke.ring(I), 1)
-  end
-  S = sub(F, [x * gen(F, 1) for x = gens(I)], :module)
+function free_resolution(I::MPolyIdeal;
+                         length::Int=0, algorithm::Symbol=:fres)
+  S = ideal_as_module(I)
   n = Hecke.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
   end
-  return free_resolution(S)
+  return free_resolution(S, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
-    free_resolution(Q::MPolyQuoRing)
+    free_resolution(Q::MPolyQuoRing; length::Int=0, algorithm::Symbol=:fres)
 
 Compute a free resolution of `Q`.
 
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+At the moment, options for `algorithm` are `:fres`, `:mres` and `:nres`. With `:mres` or `:nres`,
+minimal free resolutions are returned.
+
 # Examples
 """
-function free_resolution(Q::MPolyQuoRing)
-  br = base_ring(Q)
-  if is_graded(Q)
-    F = graded_free_module(br, 1)
-  else
-    F = free_module(br, 1)
-  end
-  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)], :module)
+function free_resolution(Q::MPolyQuoRing;
+                         length::Int=0, algorithm::Symbol=:fres)
+  q = quotient_ring_as_module(Q)
   n = Hecke.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
   end
-  return free_resolution(q)
+  return free_resolution(q, length = length, algorithm = algorithm)
 end
 
 @doc raw"""
@@ -5300,17 +6676,7 @@ by Submodule with 2 generators
 2 -> y^2*e[2]
 
 julia> H = hom(M, M)[1]
-hom of (Subquotient of
-1 -> e[1]
-2 -> e[2]
-by
-1 -> x*e[1]
-2 -> y^2*e[2], Subquotient of
-1 -> e[1]
-2 -> e[2]
-by
-1 -> x*e[1]
-2 -> y^2*e[2])
+hom of (M, M)
 
 julia> gens(H)
 2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
@@ -5325,9 +6691,9 @@ julia> relations(H)
  y^2*(e[2] -> e[2])
 ```
 """
-function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  if alg == :matrices && M isa SubquoModule && N isa SubquoModule
+  if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
     if is_graded(M) && is_graded(N)
       error("This algorithm is not implemented for graded modules.")
     end
@@ -5376,7 +6742,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
 
     return s_proj(SubquoModuleElem(repres(preimage(mH_s0_t0, g)), H))
   end
-  to_hom_map = MapFromFunc(im, pre, H_simplified, Hecke.MapParent(M, N, "homomorphisms"))
+  to_hom_map = MapFromFunc(H_simplified, Hecke.MapParent(M, N, "homomorphisms"), im, pre)
   set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
   return H_simplified, to_hom_map
 end
@@ -5556,7 +6922,7 @@ function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) whe
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
-function *(h::ModuleFPHom{T1, T2, <:Hecke.Map}, g::ModuleFPHom{T2, T3, <:Hecke.Map}) where {T1, T2, T3}
+function *(h::ModuleFPHom{T1, T2, <:Map}, g::ModuleFPHom{T2, T3, <:Map}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
 end
@@ -5565,9 +6931,9 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), 
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
-             Hecke.MapFromFunc(x->(base_ring_map(g)(base_ring_map(h)(x))), 
-                                   base_ring(domain(h)), 
-                                   base_ring(codomain(g)))
+             MapFromFunc(base_ring(domain(h)), 
+                         base_ring(codomain(g)),
+                         x->(base_ring_map(g)(base_ring_map(h)(x))))
             )
 
 end
@@ -5846,45 +7212,64 @@ end
 
 ⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
+@doc raw"""
+    canonical_injections(G::ModuleFP)
+
+Return the canonical injections from all components into $G$
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_injections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_injection(G, i) for i in 1:length(H)]
+end
 
 @doc raw"""
-    Hecke.canonical_injection(G::ModuleFP, i::Int)
+    canonical_injection(G::ModuleFP, i::Int)
 
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_injection(G::ModuleFP, i::Int)
+function canonical_injection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   injection_dictionary = get_attribute(G, :injection_morphisms)
   if haskey(injection_dictionary, i)
     return injection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1)
-  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l = 1:ngens(H[i])]))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]))
   injection_dictionary[i] = emb
   return emb
 end
 
 @doc raw"""
-    Hecke.canonical_projection(G::ModuleFP, i::Int)
+    canonical_projections(G::ModuleFP)
+
+Return the canonical projections from $G$ to all components
+where $G = G_1 \oplus \cdot \oplus G_n$.
+"""
+function canonical_projections(G::ModuleFP)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_projection(G, i) for i in 1:length(H)]
+end
+
+@doc raw"""
+    canonical_projection(G::ModuleFP, i::Int)
 
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
-function Hecke.canonical_projection(G::ModuleFP, i::Int)
+function canonical_projection(G::ModuleFP, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
+  @req H !== nothing "module not a direct product"
   projection_dictionary = get_attribute(G, :projection_morphisms)
   if haskey(projection_dictionary, i)
     return projection_dictionary[i]
   end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)])))
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
+  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])))
   projection_dictionary[i] = pro
   return pro
 end
@@ -5960,7 +7345,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return F
   end
 
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
@@ -6150,7 +7535,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   end
 
-  return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
+  return s, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), s, pure)
 end
 
 #############################
@@ -6606,7 +7991,7 @@ Subquotient of Submodule with 1 generator
 by Submodule with 3 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
-3 -> -y*(e[1] -> e[1])
+3 -> -x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
@@ -6750,7 +8135,7 @@ end
 #TODO move to Hecke
 #  re-evaluate and use or not
 
-function getindex(r::Hecke.SRow, u::UnitRange)
+function getindex(r::Hecke.SRow, u::AbstractUnitRange)
   R = base_ring(r)
   s = sparse_row(R)
   shift = 1-first(u)
@@ -6763,7 +8148,7 @@ function getindex(r::Hecke.SRow, u::UnitRange)
   return s
 end
 
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
+function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
   for (p,v) = r
@@ -6788,34 +8173,6 @@ function getindex(a::Hecke.SRow, b::AbstractVector{Int})
     end
   end
   return b
-end
-
-@doc raw"""
-    sparse_row(A::MatElem)
-
-Convert `A` to a sparse row. 
-`nrows(A) == 1` must hold.
-"""
-function sparse_row(A::MatElem)
-  @assert nrows(A) == 1
-  if ncols(A) == 0
-    return sparse_row(base_ring(A))
-  end
-  return Hecke.sparse_matrix(A)[1]
-end
-
-@doc raw"""
-    dense_row(r::Hecke.SRow, n::Int)
-
-Convert `r[1:n]` to a dense row, that is an AbstractAlgebra matrix.
-"""
-function dense_row(r::Hecke.SRow, n::Int)
-  R = base_ring(r)
-  A = zero_matrix(R, 1, n)
-  for i in intersect(r.pos, 1:n)
-    A[1,i] = r[i]
-  end
-  return A
 end
 
 function default_ordering(F::FreeMod)
@@ -7262,7 +8619,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       return p(SQ(v))
     end
 
-    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
+    to_hom_map = MapFromFunc(SQ2, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
     set_attribute!(SQ2, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ2, to_hom_map
@@ -7278,7 +8635,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       return SubQuoHom(M,N,A)
     end
 
-    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ, Hecke.MapParent(M, N, "homomorphisms"))
+    to_hom_map = MapFromFunc(SQ, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
     set_attribute!(SQ, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ, to_hom_map
@@ -7289,11 +8646,11 @@ function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
   FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
   return FS, map
 end
 
-function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {DomType<:Ring, CodType<:Ring}
+function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:Ring, CodType<:Ring}
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
@@ -7309,11 +8666,11 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(x->S(x), R, S))
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)))
   return MS, map
 end
 
-function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
+function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomType<:Ring, CodType<:Ring}
   domain(f) == base_ring(M) || error("ring map not compatible with the module")
   S = codomain(f)
   F = ambient_free_module(M)
@@ -7423,3 +8780,261 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
               for phi in gens(N_dual)])
 end
 
+##########################################################################
+## Functionality for modules happening to be finite dimensional vector
+## spaces
+##########################################################################
+@doc raw"""
+    vector_space_dimension(M::SubquoModule, d::Int)
+
+Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
+Then the command returns the dimension of the ``k``-vectorspace corresponding to the
+degree ``d`` slice of ``M``, where the degree of each variable of ``R`` is counted as one and
+the one of each generator of the ambient free module of ``M`` as zero.
+
+    vector_space_dimension(M::SubquoModule)
+
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns its dimension; otherwise, it returns -1.
+
+# Examples:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_dimension(M,1)
+2
+
+julia> vector_space_dimension(M,2)
+2
+
+julia> vector_space_dimension(M,3)
+1
+
+julia> vector_space_dimension(M)
+6
+
+```
+"""
+function vector_space_dimension(M::SubquoModule)
+  
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  has_monomials_on_all_axes(LM) || return Int64(-1)
+  
+  d = 0
+  sum_dim = 0
+  tempdim = vector_space_dimension(M,0)
+
+  while tempdim > 0
+    sum_dim = sum_dim + tempdim
+    d = d+1
+    tempdim = vector_space_dimension(M,d)
+  end
+ 
+  return sum_dim
+end
+
+function vector_space_dimension(M::SubquoModule,d::Int64)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  return count(t->!(t[1]*t[2] in LM), Iterators.product(all_monomials(R, d), gens(F)))
+end
+  
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1])
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  LM = leading_module(M_shift,o)
+  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1],d)
+end
+
+function vector_space_dimension(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_dimension(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+@doc raw"""
+    vector_space_basis(M::SubquoModule, d::Int)
+
+Let ``R`` be a `MPolyAnyRing` over a field ``k`` and let ``M`` be a subquotient module over ``R``.
+Then the command returns a monomial basis of the ``k``-vectorspace corresponding to the
+degree ``d`` slice of ``M``, where the degree of each generator of ``R`` is counted as one and
+the one of each generator of the ambient free module of ``M`` as zero.
+
+    vector_space_basis(M::SubquoModule)
+
+If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a monomial basis of it; otherwise it throws an error.
+
+# Examples:
+```jldoctest
+julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+
+julia> F = free_module(R,2);
+
+julia> M,_ = quo(F,[1*gen(F,1),x^2*gen(F,2),y^3*gen(F,2),z*gen(F,2),w*gen(F,2)]);
+
+julia> vector_space_basis(M,2)
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
+ x*y*e[2]
+ y^2*e[2]
+
+julia> vector_space_basis(M,0)
+1-element Vector{FreeModElem{QQMPolyRingElem}}:
+ e[2]
+
+julia> vector_space_basis(M)
+6-element Vector{Any}:
+ e[2]
+ x*e[2]
+ y*e[2]
+ x*y*e[2]
+ y^2*e[2]
+ x*y^2*e[2]
+
+```
+"""
+function vector_space_basis(M::SubquoModule)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  has_monomials_on_all_axes(LM) || error("not a finite dimensional vector space")
+  
+  d = 0
+  all_mons=[]
+  temp_mons = vector_space_basis(M,0)
+
+  while length(temp_mons) > 0
+    append!(all_mons,temp_mons)
+    d = d+1
+    temp_mons=vector_space_basis(M,d)
+  end
+
+  return all_mons
+end
+
+function vector_space_basis(M::SubquoModule,d::Int64)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  ambient_representatives_generators(M) == gens(F) || error("not implemented for M/N with non-trivial M")
+
+  o = default_ordering(M)
+  LM = leading_module(Mq,o)
+
+  return [x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
+                               <:MPolyComplementOfKPointIdeal}}
+  F = ambient_free_module(M)
+  Mq,_ = sub(F,rels(M))
+
+  M_shift,_,_ = shifted_module(Mq)
+  if isdefined(F,:ordering) && is_local(F.ordering)
+    o = F.ordering
+  else
+    o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  end
+  LM = leading_module(M_shift,o)
+
+  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
+end
+
+function vector_space_basis(M::SubquoModule{T}
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+function vector_space_basis(M::SubquoModule{T},d::Int64
+  ) where {T<:MPolyLocRingElem}
+  error("only available in global case and for localization at a point")
+end
+
+@doc raw"""
+    has_monomials_on_all_axes(M::SubquoModule)
+
+Internal function to test whether M is finite-dimensional vector space. Do not use directly
+"""
+function has_monomials_on_all_axes(M::SubquoModule)
+  R = base_ring(M)
+
+  length(rels(M)) == 0 || error("not implemented for quotients")
+  
+  ambient_rank = ngens(ambient_free_module(M))
+  genlist = ambient_representatives_generators(M)
+  explist = Tuple{Vector{Int64}, Int64, Int}[]
+  for x in genlist
+    tempexp = leading_exponent(x)
+    tempdeg = sum(tempexp[1])
+    push!(explist,(tempexp[1],tempexp[2],tempdeg))
+  end
+  for i in 1:ngens(R), j in 1:ambient_rank
+    if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
+      return false
+    end
+  end
+  return true
+end

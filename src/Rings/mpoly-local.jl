@@ -9,10 +9,10 @@ end
 @doc raw"""
     MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebra.FieldElem
 
-The localization Pₘ = { f/g : f, g ∈ R, g ∉ 𝔪 } of a polynomial ring P = 𝕜[x₁,…,xₙ] over a 
-base ring 𝕜 at a maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩ with coefficients aᵢ∈ 𝕜. 
+The localization Pₘ = { f/g : f, g ∈ R, g ∉ 𝔪 } of a polynomial ring P = 𝕜[x₁,…,xₙ] over a
+base ring 𝕜 at a maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩ with coefficients aᵢ∈ 𝕜.
 
-The data being stored consists of 
+The data being stored consists of
   * a multivariate polynomial ring P = 𝕜[x₁,…,xₙ] with 𝕜 of type T;
   * the maximal ideal 𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ P;
   * the number of variables n.
@@ -40,7 +40,7 @@ end
 
 An element f/g in an instance of `MPolyRingLoc{T}`.
 
-The data being stored consists of 
+The data being stored consists of
   * the fraction f/g as an instance of `AbstractAlgebra.Generic.Frac`;
   * the parent instance of `MPolyRingLoc{T}`.
 """
@@ -88,7 +88,7 @@ function Base.deepcopy_internal(a::MPolyRingElemLoc{T}, dict::IdDict) where T
 end
 
 function Base.show(io::IO, W::MPolyRingLoc)
-  print("Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
+  print(io, "Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
 end
 
 function Base.show(io::IO, w::MPolyRingElemLoc)
@@ -192,7 +192,7 @@ in `R`.
 """
 function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) where T
   return Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(base_ring(R))),
-              [string(x) for x = Nemo.symbols(R)],
+              _variables_for_singular(symbols(R));
               ordering = ord,
               cached = false)[1]
 end
@@ -200,8 +200,8 @@ end
 @doc raw"""
     IdealGensLoc{S}
 
-The main workhorse for translation of localizations of polynomial algebras at 
-maximal ideals (i.e. instances of `MPolyRingLoc`) to the singular ring with 
+The main workhorse for translation of localizations of polynomial algebras at
+maximal ideals (i.e. instances of `MPolyRingLoc`) to the singular ring with
 local orderings in the backend.
 
 This struct stores the following data:
@@ -245,7 +245,7 @@ end
 
 An ideal I in an instance of `MPolyRingLoc{S}`.
 
-The data being stored consists of 
+The data being stored consists of
   * an instance of `IdealGensLoc{S}` for the set of generators of I
 and some further fields used for caching.
 """
@@ -356,26 +356,26 @@ function singular_assure(I::IdealGensLoc)
   end
 end
 
+function singular_generators(I::MPolyIdealLoc)
+  singular_assure(I.gens)
+  return I.gens.S
+end
+
 ###############################################################################
 # Ideal arithmetic                                                            #
 ###############################################################################
 
 function Base.:*(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S * J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) * singular_generators(J))
 end
 
 function Base.:+(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S + J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) + singular_generators(J))
 end
 Base.:-(I::MPolyIdealLoc, J::MPolyIdealLoc) = I+J
 
 function Base.:^(I::MPolyIdealLoc, j::Int)
-  singular_assure(I)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S^j)
+  return MPolyIdealLoc(I.gens.Ox, (singular_generators(I))^j)
 end
 
 ###############################################################################
@@ -416,9 +416,7 @@ end
 ###############################################################################
 
 function Base.:(==)(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
+  return Singular.equal(singular_generators(I), singular_generators(J))
 end
 
 function dim(I::MPolyIdealLoc)

@@ -11,10 +11,12 @@ CurrentModule = Oscar
 ### Generic constructors
 
 ```@docs
-toric_line_bundle(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
-toric_line_bundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
-toric_line_bundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
+toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
 toric_line_bundle(d::ToricDivisor)
+toric_line_bundle(v::NormalToricVarietyType, dc::ToricDivisorClass)
+toric_line_bundle(dc::ToricDivisorClass)
 ```
 
 ### Tensor products
@@ -26,9 +28,9 @@ the inverse by invoking `inv`.
 ### Special line bundles
 
 ```@docs
-anticanonical_bundle(v::AbstractNormalToricVariety)
-canonical_bundle(v::AbstractNormalToricVariety)
-structure_sheaf(v::AbstractNormalToricVariety)
+anticanonical_bundle(v::NormalToricVarietyType)
+canonical_bundle(v::NormalToricVarietyType)
+structure_sheaf(v::NormalToricVarietyType)
 ```
 
 
@@ -39,8 +41,9 @@ Equality of toric line bundles can be tested via `==`.
 To check if a toric line bundle is trivial, one can invoke `is_trivial`. Beyond this,
 we support the following properties of toric line bundles:
 ```@docs
-is_basepoint_free(l::ToricLineBundle)
 is_ample(l::ToricLineBundle)
+is_basepoint_free(l::ToricLineBundle)
+is_immaculate(l::ToricLineBundle)
 is_very_ample(l::ToricLineBundle)
 ```
 
@@ -49,8 +52,9 @@ is_very_ample(l::ToricLineBundle)
 
 ```@docs
 degree(l::ToricLineBundle)
-divisor_class(l::ToricLineBundle)
+picard_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
+toric_divisor_class(l::ToricLineBundle)
 toric_variety(l::ToricLineBundle)
 ```
 

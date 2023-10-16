@@ -2,7 +2,7 @@
 module SLPTest
 using ..Test
 using ..Oscar
-using ..Oscar: SLP
+const SLP = Oscar.StraightLinePrograms
 
 include("setup.jl")
 include("straightline.jl")

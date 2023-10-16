@@ -31,6 +31,37 @@ end
 # (2) The direct product of two affine schemes
 ###########################################################
 
+# First the product of the ambient spaces. Documented below.
+function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
+    change_var_names_to::Vector{String}=["", ""]
+  ) where {BRT, RT<:MPolyRing}
+  K = OO(X)
+  L = OO(Y)
+  # V = localized_ring(K)
+  # W = localized_ring(L)
+  k = base_ring(K)
+  k == base_ring(L) || error("varieties are not defined over the same base ring")
+
+  m = ngens(K)
+  n = ngens(L)
+  new_symb = Symbol[]
+  if length(change_var_names_to[1]) == 0
+    new_symb = symbols(K)
+  else
+    new_symb = Symbol.([change_var_names_to[1]*"$i" for i in 1:ngens(L)])
+  end
+  if length(change_var_names_to[2]) == 0
+    new_symb = vcat(new_symb, symbols(L))
+  else
+    new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
+  end
+  KL, z = polynomial_ring(k, new_symb)
+  XxY = Spec(KL)
+  pr1 = SpecMor(XxY, X, gens(KL)[1:m], check=false)
+  pr2 = SpecMor(XxY, Y, gens(KL)[m+1:m+n], check=false)
+  return XxY, pr1, pr2
+end
+
 @doc raw"""
     product(X::AbsSpec, Y::AbsSpec)
     
@@ -41,13 +72,20 @@ the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 function product(X::AbsSpec, Y::AbsSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
+  # take the product of the ambient spaces and restrict
   base_ring(X) == base_ring(Y) || error("schemes are not defined over the same base ring")
-  Xstd = standard_spec(X)
-  Ystd = standard_spec(Y)
-  XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)))), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd))))
+  A = ambient_space(X)
+  B = ambient_space(Y)
+  AxB,prA, prB  = product(A, B, change_var_names_to=change_var_names_to)
+  XxY = intersect(preimage(prA, X, check=false), preimage(prB, Y,check=false))
+  prX = restrict(prA, XxY, X, check=false)
+  prY = restrict(prB, XxY, Y, check=false)
+  return XxY, prX, prY
 end
 
+
+
+#=
 function product(X::StdSpec, Y::StdSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
@@ -60,8 +98,8 @@ function product(X::StdSpec, Y::StdSpec;
   k = base_ring(R)
   k == base_ring(S) || error("varieties are not defined over the same field")
 
-  m = length(gens(R))
-  n = length(gens(S))
+  m = ngens(R)
+  n = ngens(S)
   new_symb = Symbol[]
   if length(change_var_names_to[1]) == 0
     new_symb = symbols(R)
@@ -74,8 +112,8 @@ function product(X::StdSpec, Y::StdSpec;
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(S)]))
   end
   RS, z = polynomial_ring(k, new_symb)
-  inc1 = hom(R, RS, gens(RS)[1:m])
-  inc2 = hom(S, RS, gens(RS)[m+1:m+n])
+  inc1 = hom(R, RS, gens(RS)[1:m], check=false)
+  inc2 = hom(S, RS, gens(RS)[m+1:m+n], check=false)
   IX = ideal(RS, inc1.(gens(modulus(underlying_quotient(OO(X))))))
   IY = ideal(RS, inc2.(gens(modulus(underlying_quotient(OO(Y))))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
@@ -85,6 +123,9 @@ function product(X::StdSpec, Y::StdSpec;
   pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
+=#
+
+
 
 
 ########################################
@@ -105,17 +146,116 @@ end
 # (5) Display
 ########################################
 
-function Base.show(io::IO, f::AbsSpecMor)
-  println(io, "morphism from\n")
-  println(io, "\t$(domain(f))\n")
-  println(io, "to\n")
-  println(io, "\t$(codomain(f))\n")
-  println(io, "with coordinates\n")
+# Since the morphism is given in terms of pullback on the local coordinates,
+# we need to adapt the printing to have everything aligned.
+function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
+  io = pretty(io)
+  X = domain(f)
+  cX = coordinates(X)
+  Y = codomain(f)
+  cY = coordinates(Y)
+  co_str = String[]
+  str = "["*join(cX, ", ")*"]"
+  kX = length(str)                                  # Length coordinates domain
+  push!(co_str, str)
+  str = "["*join(cY, ", ")*"]"
+  kY = length(str)                                  # Length coordinates codomain
+  push!(co_str, str)
+  k = max(length.(co_str)...)                       # Maximum to estimate offsets
+  println(io, "Affine scheme morphism")
+  print(io, Indent(), "from ")
+  print(io, co_str[1]*" "^(k-kX+2))                 # Consider offset for alignment
+  println(IOContext(io, :show_coordinates => false), Lowercase(), X)
+  print(io, "to   ")
+  print(io, co_str[2]*" "^(k-kY+2))                 # Consider offset for alignment
+  print(IOContext(io, :show_coordinates => false), Lowercase(), Y)
   x = coordinates(codomain(f))
-  print(io,"\t")
-  for i in 1:length(x)-1
-    print(io, "$(pullback(f)(x[i])), ")
+  # If there are no coordinates, we do not print anything (since the target is
+  # empty then)
+  if length(x) > 0
+    println(io)
+    print(io, Dedent(), "given by the pullback function")
+    pf = pullback(f)
+    print(io, Indent())
+    for i in 1:length(x)
+      println(io)
+      print(io, "$(x[i]) -> $(pf(x[i]))")
+    end
   end
-  print(io, "$(pullback(f)(last(x)))")
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::AbsSpecMor)
+  if get(io, :supercompact, false)
+    print(io, "Affine scheme morphism")
+  else
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(io, Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
+end
+
+########################################################################
+# (6) Base change
+########################################################################
+
+@doc raw"""
+    base_change(phi::Any, f::AbsSpecMor)
+        domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+        codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+      )
+
+For a morphism ``f : X → Y`` between two schemes over a `base_ring` ``𝕜`` 
+and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple 
+`(b₁, F, b₂)` consisting of the maps in the commutative diagram 
+```
+             f
+    X        →    Y
+    ↑ b₁          ↑ b₂
+  X×ₖSpec(𝕂) → Y×ₖSpec(𝕂)
+             F
+
+The optional arguments `domain_map` and `codomain_map` can be used 
+to specify the morphisms `b₁` and `b₂`, respectively. 
+```
+"""
+function base_change(phi::Any, f::AbsSpecMor; 
+    domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+  )
+  X = domain(f)
+  Y = codomain(f)
+  XX = domain(domain_map)
+  YY = domain(codomain_map)
+  pbf = pullback(f)
+  pb1 = pullback(domain_map)
+  pb2 = pullback(codomain_map)
+
+  R = OO(Y)
+  S = OO(X)
+  RR = OO(YY)
+  SS = OO(XX)
+
+  img_gens = [pb1(pbf(x)) for x in gens(R)]
+  # For the pullback of F no explicit coeff_map is necessary anymore 
+  # since both rings in domain and codomain have the same (extended/reduced)
+  # coefficient ring by now.
+  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
+
+  return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+end
+
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor, ginv::AbsSpecMor)
+  set_attribute!(g, :inverse, ginv)
+  set_attribute!(ginv, :inverse, g)
+  return _register_birationality(f, g)
+end
+
+function _register_birationality!(f::AbsSpecMor, 
+    g::AbsSpecMor
+  )
+  set_attribute!(f, :is_birational, true)
+  set_attribute!(f, :iso_on_open_subset, g)
 end
 

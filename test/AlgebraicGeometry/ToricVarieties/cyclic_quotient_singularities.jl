@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 @testset "Cyclic Quotient Singularities" begin
     
     cyc = cyclic_quotient_singularity(2, 1)

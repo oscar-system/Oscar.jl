@@ -26,15 +26,15 @@ end
 function __init_group_libraries()
   props = [
     is_abelian => GAP.Globals.IsAbelian,
-    is_almostsimple => GAP.Globals.IsAlmostSimpleGroup,
+    is_almostsimple => GAP.Globals.IsAlmostSimple,
     is_cyclic => GAP.Globals.IsCyclic,
-    is_nilpotent => GAP.Globals.IsNilpotentGroup,
-    is_perfect => GAP.Globals.IsPerfectGroup,
+    is_nilpotent => GAP.Globals.IsNilpotent,
+    is_perfect => GAP.Globals.IsPerfect,
     is_quasisimple => GAP.Globals.IsQuasisimple,
-    is_simple => GAP.Globals.IsSimpleGroup,
+    is_simple => GAP.Globals.IsSimple,
     is_sporadic_simple => GAP.Globals.IsSporadicSimple,
-    is_solvable => GAP.Globals.IsSolvableGroup,
-    is_supersolvable => GAP.Globals.IsSupersolvableGroup,
+    is_solvable => GAP.Globals.IsSolvable,
+    is_supersolvable => GAP.Globals.IsSupersolvable,
   ]
 
   empty!(_group_filter_attrs)
@@ -42,6 +42,7 @@ function __init_group_libraries()
     _add_bool_attr(_group_filter_attrs, k, v)
   end
 
+  _group_filter_attrs[exponent] = (_IntOrIntVec, GAP.Globals.Exponent, nothing)
   _group_filter_attrs[order] = (_IntOrIntVec, GAP.Globals.Size, nothing)
   _group_filter_attrs[number_conjugacy_classes] = (_IntOrIntVec, GAP.Globals.NrConjugacyClasses, nothing)
 
@@ -65,6 +66,8 @@ function __init_group_libraries()
   _atlas_group_filter_attrs[character] = (Oscar.GroupClassFunction, GAP.Globals.Character, nothing)
   _atlas_group_filter_attrs[characteristic] = (_IntOrIntVec, GAP.Globals.Characteristic, nothing)
   _atlas_group_filter_attrs[dim] = (_IntOrIntVec, GAP.Globals.Dimension, nothing)
+
+  __init_extraperfect()
 end
 
 # return the output of the function f and the corresponding GAP function

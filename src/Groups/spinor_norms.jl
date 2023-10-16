@@ -1,11 +1,11 @@
 @doc raw"""
-    sigma_sharp(L::ZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
+    sigma_sharp(L::ZZLat, p) -> Vector{Tuple{ZZRingElem, QQFieldElem}}
 
 Return generators for $\Sigma^\#(L\otimes \ZZ_p)$ of a lattice `L`.
 
 - a list of tuples `(det_p, spin_p)` with `det = +- 1`.
 """
-function sigma_sharp(L::ZLat, p)
+function sigma_sharp(L::ZZLat, p)
   T = primary_part(discriminant_group(L), p)[1]
   q = Hecke.gram_matrix_quadratic(normal_form(T)[1])
   res = _sigma_sharp(rank(L), det(L), q, p)
@@ -259,7 +259,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   #@assert infinity
   K, _ = Hecke.rationals_as_number_field()
   # f : QQ -> K
-  f = MapFromFunc(x -> K(x), x -> coeff(x, 0), QQ, K)
+  f = MapFromFunc(QQ, K, x -> K(x), x -> coeff(x, 0))
   OK = maximal_order(K)
   primes_as_ideals = [prime_decomposition(OK, p)[1][1] for p in primes]
   stuff = [Hecke.local_multiplicative_group_modulo_squares(P) for P in primes_as_ideals]
@@ -267,7 +267,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   maps = Any[s[2] for s in stuff]
   if infinity
     Ainf = abelian_group(2)
-    minf = MapFromFunc(x -> iszero(x[1]) ? one(K) : -one(K), x -> coeff(x, 0) > 0 ? Ainf([0]) : Ainf([1]), Ainf, K)
+    minf = MapFromFunc(Ainf, K, x -> iszero(x[1]) ? one(K) : -one(K), x -> coeff(x, 0) > 0 ? Ainf([0]) : Ainf([1]))
     push!(grps, Ainf)
     push!(maps, minf)
   end
@@ -299,7 +299,7 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   grps_det = [abelian_group(2) for i in 1:length(primes)]
   push!(grps_det, A)
   D, projD, injD = direct_product(grps_det...,task=:both)
-  maps_det = [(primes[i],MapFromFunc(x-> isone(x) ? zero(grps_det[i]) : grps_det[i][1], ZZ, grps_det[i])*injD[i]) for i in 1:length(primes)]
+  maps_det = [(primes[i],MapFromFunc(ZZ, grps_det[i], x-> isone(x) ? zero(grps_det[i]) : grps_det[i][1])*injD[i]) for i in 1:length(primes)]
   maps_det = Dict(maps_det)
   projd = Any[(primes[i],projD[end]*proj[i]*maps[i]*inv(f)) for i in 1:length(primes)]
   injd = Any[(primes[i],f*inv(maps[i])*inj[i]*injD[end]) for i in 1:length(primes)]
@@ -309,20 +309,20 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   end
   projd = Dict(projd)
   injd = Dict(injd)
-  diagonal_morphism = MapFromFunc(forwardmap, backwardmap, A, QQ)
+  diagonal_morphism = MapFromFunc(A, QQ, forwardmap, backwardmap)
   return D, inv(diagonal_morphism)*injD[end], projd, injd, maps_det
 end
 
 @doc raw"""
-    det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
+    det_spin_homomorphism(L::ZZLat) -> GAPGroupHomomorphism
 
 Return the det spin homomorphism.
 """
-function det_spin_homomorphism(L::ZLat; signed=false)
+function det_spin_homomorphism(L::ZZLat; signed=false)
   T = discriminant_group(L)
   Oq = orthogonal_group(T)
   S = prime_divisors(2 * order(domain(Oq)))
-  A, diagonal, proj,inj,det_hom = _det_spin_group(S, infinity=false)
+  A, diagonal, _, inj, det_hom = _det_spin_group(S, infinity=false)
 
   # \Sigma^\#(L)
   # This is the the image of K under `(det, spin)` where `K` is the kernel
@@ -414,7 +414,7 @@ function det_spin_homomorphism(L::ZLat; signed=false)
       g = u * fp * inv(u)
       while true
         R = residue_ring(ZZ, p^(prec+3))
-        conv = MapFromFunc(x -> R(numerator(x)) * R(denominator(x)^(-1)), QQ, R)
+        conv = MapFromFunc(QQ, R, x -> R(numerator(x)) * R(denominator(x)^(-1)))
         _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
         g = change_base_ring(ZZ, _g)
         gg = t*M*g*inv(t*M)
@@ -434,7 +434,7 @@ end
 
 
 @doc raw"""
-    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
+    image_in_Oq(L::ZZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.
 
@@ -458,7 +458,7 @@ julia> gram = ZZ[0 2 0; 2 0 0; 0 0 4]
 [2   0   0]
 [0   0   4]
 
-julia> L = Zlattice(gram=gram)
+julia> L = integer_lattice(gram=gram)
 Quadratic lattice of rank 3 and degree 3 over the rationals
 
 julia> Oq, inj = image_in_Oq(L);
@@ -468,7 +468,7 @@ julia> order(Oq)
 
 ```
 """
-@attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   if rank(L) > 2 && !is_definite(L)
     # use strong approximation
@@ -478,10 +478,10 @@ julia> order(Oq)
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
-  return sub(Oq, [Oq(g, check=false) for g in gens(G)])
+  return sub(Oq, unique!([Oq(g, check=false) for g in gens(G)]))
 end
 
-@attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   # use strong approximation

@@ -181,7 +181,7 @@ end
 
 function homogenize(i::MPolyIdeal)
   R = base_ring(i)
-  S, _ = polynomial_ring(base_ring(R), push!([string(x) for x = symbols(R)], "H"))
+  S, _ = polynomial_ring(base_ring(R), vcat(symbols(R), [:H]))
   return homogenize(i, S)
 end
 

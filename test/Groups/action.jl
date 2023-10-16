@@ -32,7 +32,6 @@
 end
 
 @testset "natural stabilizers in matrix groups" begin
-
   n = 3
   F = GF(2)
   G = general_linear_group(n, F)
@@ -75,6 +74,21 @@ end
   @test I^gen(g, 1) == on_indeterminates(I, gen(g, 1))
 end
 
+@testset "action on elements of free assoc. algebras: permutations" begin
+  g = symmetric_group(3)
+  R, vars = free_associative_algebra(QQ, 3);
+  (x1, x2, x3) = vars
+  f = x1*x2 + x2*x3
+
+  for p in [g(cperm(1:3)), g(cperm(1:2))]
+    @test f^p == evaluate(f, permuted(vars, p^-1))
+  end
+
+  for x in gens(g), y in gens(g)
+    @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
+  end
+end
+
 @testset "action on multivariate polynomials: matrices" begin
   g = general_linear_group(3, 5)
   R, vars = polynomial_ring(base_ring(g), degree(g))
@@ -104,4 +118,19 @@ end
   II = intersect(collect(orb)...)
   @test length(orbit(g, on_indeterminates, II)) == 1
   @test I^gen(g, 1) == on_indeterminates(I, gen(g, 1))
+end
+
+@testset "projective action on lines" begin
+  n = 3
+  F = GF(5)
+  G = general_linear_group(n, F)
+  V = AbstractAlgebra.Generic.FreeModule(F, n)
+  v = gen(V, 1)
+  v = on_lines(v, one(G))  # make sure that `v` is normalized
+  @test on_lines(2*v, one(G)) == v
+  orb = orbit(G, on_lines, v)
+  @test length(orb) == 31
+  epi = action_homomorphism(orb)
+  @test (order(F) - 1) * order(image(epi)[1]) == order(G)
+  @test_throws AssertionError on_lines(zero(V), one(G))
 end

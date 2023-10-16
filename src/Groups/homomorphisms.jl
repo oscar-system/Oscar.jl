@@ -1,12 +1,21 @@
 function Base.show(io::IO, x::GAPGroupHomomorphism)
-  print(io, "Group homomorphism from \n")
-  show(IOContext(io, :compact => true), domain(x))
-  print(io, "\nto\n")
-  show(IOContext(io, :compact => true), codomain(x))
+  if get(io, :supercompact, false)
+    print(io, "Group homomorphism")
+  else
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(IOContext(io, :supercompact => true), Lowercase(), domain(x), " -> ", Lowercase(), codomain(x))
+  end
 end
 
+
 function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
-   return f.map == g.map
+  return f.map == g.map
+end
+
+function Base.hash(f::GAPGroupHomomorphism{S,T}, h::UInt) where S where T
+  b = 0xdc777737af4c0c7b % UInt
+  return xor(hash(f.map, hash((S, T), h)), b)
 end
 
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(f, g)
@@ -361,10 +370,7 @@ homomorphism.
 # Examples
 ```jldoctest
 julia> is_isomorphic_with_map(symmetric_group(3), dihedral_group(6))
-(true, Group homomorphism from
-Sym( [ 1 .. 3 ] )
-to
-<pc group of size 6 with 2 generators>)
+(true, Hom: permutation group -> pc group)
 ```
 """
 function is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
@@ -433,10 +439,9 @@ Otherwise throw an exception.
 # Examples
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
-Group homomorphism from
-Sym( [ 1 .. 3 ] )
-to
-<pc group of size 6 with 2 generators>
+Group homomorphism
+  from permutation group of degree 3 and order 6
+  to pc group of order 6
 ```
 """
 function isomorphism(G::GAPGroup, H::GAPGroup)
@@ -486,16 +491,15 @@ If only the image of such an isomorphism is needed, use `T(G)`.
 # Examples
 ```jldoctest
 julia> G = dihedral_group(6)
-<pc group of size 6 with 2 generators>
+Pc group of order 6
 
 julia> iso = isomorphism(PermGroup, G)
-Group homomorphism from
-<pc group of size 6 with 2 generators>
-to
-Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+Group homomorphism
+  from pc group of order 6
+  to permutation group of degree 6 and order 6
 
-julia> PermGroup(G)
-Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+julia> permutation_group(G)
+Permutation group of degree 6 and order 6
 
 julia> codomain(iso) === ans
 true
@@ -543,7 +547,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
        return group_element(G, res)
      end
 
-     return GroupIsomorphismFromFunc(f, finv, G, A)
+     return GroupIsomorphismFromFunc(G, A, f, finv)
    end::GroupIsomorphismFromFunc{typeof(G), GrpAbFinGen}
 end
 
@@ -562,12 +566,11 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        exponents = diagonal(rels(A))
        A2 = A
        A2_to_A = identity_map(A)
-       A_to_A2 = identity_map(A)
      else
        exponents = elementary_divisors(A)
        A2, A2_to_A = snf(A)
-       A_to_A2 = inv(A2_to_A)
      end
+     A_to_A2 = inv(A2_to_A)
      # the isomorphic gap group
      G = abelian_group(T, exponents)
      # `GAPWrap.GeneratorsOfGroup(G.X)` consists of independent elements
@@ -585,7 +588,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
                length(exponents)
        o = one(G).X
-       newGgens = []
+       newGgens = Vector{GapObj}()
        pos = 1
        for i in 1:length(exponents)
          if exponents[i] == 1
@@ -619,7 +622,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
        return Aindep_to_A(Aindep(exp))
      end
 
-     return GroupIsomorphismFromFunc(f, finv, A, G)
+     return GroupIsomorphismFromFunc(A, G, f, finv)
    end::GroupIsomorphismFromFunc{GrpAbFinGen, T}
 end
 
@@ -628,12 +631,12 @@ mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFr
     map::MapFromFunc{R, T}
 end
 
-function GroupIsomorphismFromFunc{R, T}(f, g, D::R, C::T) where {R, T}
-  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(f, g, D, C))
+function GroupIsomorphismFromFunc{R, T}(D::R, C::T, f, g) where {R, T}
+  return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end
 
-function GroupIsomorphismFromFunc(f, g, D, C)
-  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(f, g, D, C)
+function GroupIsomorphismFromFunc(D, C, f, g)
+  return GroupIsomorphismFromFunc{typeof(D), typeof(C)}(D, C, f, g)
 end
 
 # install the same methods as for `MapFromFunc`,
@@ -726,19 +729,22 @@ function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
       @assert is_finite(A) == is_finite(F)
       is_finite(A) && @assert order(A) == order(F)
       return MapFromFunc(
+        A, F,
         y->F([i => y[i] for i=1:ngens(A)]),
-        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),
-        A, F)
+        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)))
    end::MapFromFunc{GrpAbFinGen, FPGroup}
 end
 
 """
     FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    fp_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
     GrpAbFinGen(G::T) where T <: GAPGroup
     PcGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    pc_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
     PermGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    permutation_group(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
 
-Return a group of type `T` that is isomorphic with `G`.
+Return a group of the requested type that is isomorphic to `G`.
 If one needs the isomorphism then
 [isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}](@ref)
 can be used instead.
@@ -750,6 +756,10 @@ end
 function (::Type{T})(G::GrpAbFinGen) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
+
+fp_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = FPGroup(G)
+pc_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = PcGroup(G)
+permutation_group(G::T) where {T <: Union{GrpAbFinGen, GAPGroup, GrpGen}} = PermGroup(G)
 
 # Now for GrpGen
 
@@ -765,7 +775,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
      newgens = elem_type(S)[]
      for g in gensA
        j = g.i
-       p = S(A.mult_table[j, :])
+       p = S(A.mult_table[:, j])
        push!(newgens, p)
      end
 
@@ -788,7 +798,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
        finv = function(g)
          return bwd[g]
        end
-       return MapFromFunc(f, finv, A, GP)
+       return MapFromFunc(A, GP, f, finv)
      else
        m = isomorphism(T, GP)
 
@@ -800,7 +810,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
          return bwd[preimage(m, g)]
        end
 
-       return MapFromFunc(f, finv, A, codomain(m))
+       return MapFromFunc(A, codomain(m), f, finv)
      end
    end::MapFromFunc{GrpGen, T}
 end
@@ -821,13 +831,13 @@ generators, the number of relators, and the relator lengths.
 # Examples
 ```jldoctest
 julia> F = free_group(3)
-<free group on the generators [ f1, f2, f3 ]>
+Free group of rank 3
 
 julia> G = quo(F, [gen(F,1)])[1]
-<fp group of size infinity on the generators [ f1, f2, f3 ]>
+Finitely presented group of infinite order
 
 julia> simplified_fp_group(G)[1]
-<fp group of size infinity on the generators [ f2, f3 ]>
+Finitely presented group of infinite order
 ```
 """
 function simplified_fp_group(G::FPGroup)
@@ -857,7 +867,7 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Sym( [ 1 .. 3 ] )
+Permutation group of degree 3 and order 6
 
 julia> typeof(S)
 PermGroup
@@ -874,7 +884,7 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -896,7 +906,7 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -918,16 +928,15 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
-Group homomorphism from 
-Sym( [ 1 .. 4 ] )
-to
-Sym( [ 1 .. 4 ] )
+Group homomorphism
+  from permutation group of degree 4 and order 24
+  to permutation group of degree 4 and order 24
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -971,16 +980,15 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Sym( [ 1 .. 4 ] )
+Permutation group of degree 4 and order 24
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
 
 julia> g = hom(S,S,x->x^S[1])
-Group homomorphism from 
-Sym( [ 1 .. 4 ] )
-to
-Sym( [ 1 .. 4 ] )
+Group homomorphism
+  from permutation group of degree 4 and order 24
+  to permutation group of degree 4 and order 24
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )

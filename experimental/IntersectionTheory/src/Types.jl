@@ -66,11 +66,11 @@ mutable struct AbstractVarietyMap{V1 <: AbstractVarietyT, V2 <: AbstractVarietyT
       # - all algebraic classes for Y are known
       f_is_alg = fₓ == :alg || dim(X) == 0 || dim(Y) ≤ 1 || get_attribute(Y, :alg) == true
       fₓ = x -> (
-	if !f_is_alg
-	  @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
-	end;
-	sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
-	    if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
+        if !f_is_alg
+          @warn "assuming that all algebraic classes are known for\n$Y\notherwise the result may be wrong"
+        end;
+        sum(integral(xi*fˣ(yi))*di for (i, xi) in zip(dim(Y):-1:0, x[dim(X)-dim(Y):dim(X)])
+            if xi !=0 for (yi, di) in zip(basis(Y, i), dual_basis(Y, i))))
       fₓ = map_from_func(fₓ, X.ring, Y.ring)
     end
     f = new{V1, V2}(X, Y, X.dim-Y.dim, fˣ)

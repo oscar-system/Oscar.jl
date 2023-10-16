@@ -16,7 +16,7 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
     SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
 
 Construct an abstract simplicial complex from a set of faces.
-While arbitrary nonnegative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
+While arbitrary non-negative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
 
 # Examples
 ```jldoctest
@@ -305,8 +305,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
-(Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4), Map from
-Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x1*x4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
@@ -325,8 +324,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quo
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
-(Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map from
-Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring to Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
@@ -359,7 +357,7 @@ function fundamental_group(K::SimplicialComplex)
         for (i, relation) in enumerate(relations)
             relem = one(F)
             for term in relation
-                relem *= F[first(term) + 1]^last(term)
+                relem *= F[first(term) + 1]^Int(last(term))
             end
             rvec[i] = relem
         end

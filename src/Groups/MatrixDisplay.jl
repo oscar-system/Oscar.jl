@@ -278,6 +278,10 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
       write(io, line, "\n")
     end
 
+    if TeX
+      print(io, "\$")
+    end
+
     separators_col = get(io, :separators_col, [])
     separators_row = map(x -> x+m1, get(io, :separators_row, []))
 
@@ -419,8 +423,28 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     end
 
     # footer (vector of strings)
-    for line in footer
-      write(io, line, "\n")
+    if length(footer) > 0
+      if TeX
+        write(io, "\n\\begin{array}{l}\n")
+        # Omit a separating empty line.
+        if footer[1] != ""
+          write(io, footer[1], " \\\\\n")
+        end
+        for line in footer[2:end]
+          write(io, line, " \\\\\n")
+        end
+        write(io, "\\end{array}\n")
+      else
+        for line in footer
+          write(io, line, "\n")
+        end
+      end
     end
+
+    if TeX
+      print(io, "\$")
+    end
+
+    return
 end
 

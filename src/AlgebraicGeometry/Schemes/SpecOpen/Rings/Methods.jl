@@ -208,17 +208,17 @@ function restriction_map(
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
-    return MapFromFunc(mymap, OO(U), OO(X))
+    return MapFromFunc(OO(U), OO(X), mymap)
   end
 
   # do the checks
-  if check
+  @check begin
     X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
-  d = gens(U)
+  d = complement_equations(U)
   I = complement_ideal(U)
   # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with 
   # k the minimal exponent such that the property P(h^k) returns `true`.
@@ -290,7 +290,7 @@ function restriction_map(
     dk = [dk for (p, q, dk, k) in sep]
     return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=false)*OO(X)(1//poh^m, check=false)
   end
-  return Hecke.MapFromFunc(mysecondmap, OO(U), OO(X))
+  return MapFromFunc(OO(U), OO(X), mysecondmap)
 end
 
 # Automatically find a hypersurface equation h such that X = D(h) in 
@@ -302,7 +302,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -326,7 +326,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -341,7 +341,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
   Y = ambient_scheme(U)
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
-  if check
+  @check begin
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
@@ -372,46 +372,42 @@ end
 
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   Y = ambient_scheme(U)
-  if check
-    all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
-  end
+  @check all(V->issubset(V, X), affine_patches(U)) "$U is not a subset of $X"
   function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
-  return Hecke.MapFromFunc(mymap, OO(X), OO(U))
+  return MapFromFunc(OO(X), OO(U), mymap)
 end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  if check
-    issubset(V, U) || error("$V is not a subset of $U")
-  end
+  @check issubset(V, U) "$V is not a subset of $U"
 
   if U === V
     function mymap(f::SpecOpenRingElem)
       return f
     end
-    return Hecke.MapFromFunc(mymap, OO(U), OO(V))
+    return MapFromFunc(OO(U), OO(V), mymap)
   end
 
   if ambient_scheme(U) === ambient_scheme(V)
-    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
+    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), complement_equations(V))]
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
     end
-    return Hecke.MapFromFunc(mysecondmap, OO(U), OO(V))
+    return MapFromFunc(OO(U), OO(V), mysecondmap)
   end
   
   g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
   function mythirdmap(f::SpecOpenRingElem)
     return SpecOpenRingElem(OO(V), [g(f) for g in g], check=false)
   end
-  return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
+  return MapFromFunc(OO(U), OO(V), mythirdmap)
 end
 
 ########################################################################
 # Maps of SpecOpenRings                                                #
 ########################################################################
-function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
+function is_identity_map(f::Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
   domain(f) === codomain(f) || return false
   R = ambient_coordinate_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
@@ -422,7 +418,7 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   Y = scheme(T)
   R = ambient_coordinate_ring(X)
   R == ambient_coordinate_ring(Y) || error("rings can not be canonically compared")
-  if check
+  @check begin
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
   end
 
@@ -434,7 +430,7 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   function myinvmap(b::SpecOpenRingElem)
     return SpecOpenRingElem(S, [g(b) for g in pb_to_Us], check=false)
   end
-  return Hecke.MapFromFunc(mymap, myinvmap, S, T)
+  return MapFromFunc(S, T, mymap, myinvmap)
 end
 
 # Special override for a case where even ideal membership and ring flattenings 
@@ -443,3 +439,65 @@ function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
   return f
 end
 
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, R::SpecOpenRing)
+  if get(io, :supercompact, false)
+    print(io, "Ring of regular functions")
+  else
+    io = pretty(io)
+    print(io, "Ring of regular functions on ", Lowercase(), domain(R))
+  end
+end
+
+# Here we just need some details on the domain `U`.
+function Base.show(io::IO, ::MIME"text/plain", R::SpecOpenRing)
+  io = pretty(io)
+  println(io, "Ring of regular functions")
+  print(io, Indent(), "on ", Lowercase())
+  show(io, domain(R))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, a::SpecOpenRingElem)
+  if get(io, :supercompact, false)
+    print(io, "Reguler function")
+  else
+    io = pretty(io)
+    print(io, "Regular function on ", Lowercase(), domain(parent(a)))
+  end
+end
+
+# Since regular functions are described on each affine patches of the domain `U`
+# on which they are defined, we need to extract details about the affine patches
+# on `U` and label them so that one can see how the regular function is defined
+# on each patch
+function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
+  io = pretty(io)
+  R = parent(a)
+  U = domain(R)
+  println(io, "Regular function")
+  print(io, Indent(), "on ", Lowercase())
+  show(IOContext(io, :show_semi_compact => true), domain(R))
+  print(io, Dedent())
+  r = restrictions(a)
+  ap = affine_patches(a)
+  if length(r) > 0
+    l = ndigits(length(r))
+    println(io)
+    print(io, "with restriction")
+    length(r) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(r)
+      li = ndigits(i)
+      println(io)
+      print(io, "patch", " "^(l-li+1)*"$(i): ", r[i])
+    end
+    print(io, Dedent())
+  end
+end
+  

@@ -1,5 +1,14 @@
+### generic getters
+domain(f::AbsProjectiveSchemeMorphism) = domain(underlying_morphism(f))
+codomain(f::AbsProjectiveSchemeMorphism) = codomain(underlying_morphism(f))
+pullback(f::AbsProjectiveSchemeMorphism) = pullback(underlying_morphism(f))
+base_ring_morphism(f::AbsProjectiveSchemeMorphism) = base_ring_morphism(underlying_morphism(f))
+base_map(f::AbsProjectiveSchemeMorphism) = base_map(underlying_morphism(f))
+map_on_affine_cones(f::AbsProjectiveSchemeMorphism) = map_on_affine_cones(underlying_morphism(f))
 
-### getters
+underlying_morphism(f::AbsProjectiveSchemeMorphism) = error("no underlying morphism for morphisms of type $(typeof(f))")
+
+### getters for the minimal concrete type
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 @doc raw"""
@@ -61,7 +70,7 @@ function map_on_affine_cones(
                              <:AbsProjectiveScheme{<:Union{MPolyRing, MPolyQuoRing, 
                                                            MPolyQuoLocRing, MPolyLocRing
                                                           }},
-                             <:Hecke.Map,
+                             <:Map,
                              Nothing # This indicates the same base scheme for domain and codomain.
                             };
     check::Bool=true
@@ -122,7 +131,7 @@ end
 
 function map_on_affine_cones(
     phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Field}, <:AbsProjectiveScheme{<:Field},
-                            <:Hecke.Map, Nothing};
+                            <:Map, Nothing};
     check::Bool=true
   )
   if !isdefined(phi, :map_on_affine_cones)
@@ -157,4 +166,12 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Sp
   end
   return phi.map_on_affine_cones::SpecOpenMor
 end
+
+
+########################################################################
+# Special implementations for closed embeddings
+########################################################################
+
+underlying_morphism(f::ProjectiveClosedEmbedding) = f.underlying_morphism
+image_ideal(f::ProjectiveClosedEmbedding) = f.ideal_of_image 
 

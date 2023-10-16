@@ -20,13 +20,13 @@ end
 # and I is the modulus.
 function modulus_matrix(L::MPolyQuoLocRing, n::Int)
   I = modulus(underlying_quotient(L))
-  m = length(gens(I))
+  m = ngens(I)
   R = base_ring(L)
   B = zero_matrix(R, 0, n)
   for j in 1:n
     A = zero_matrix(R, m, n)
     for i in 1:m
-      A[i, j] = gens(I)[i]
+      A[i, j] = gen(I, i)
     end
     B = vcat(B, A)
   end

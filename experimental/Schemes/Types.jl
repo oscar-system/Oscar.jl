@@ -4,8 +4,6 @@ export EmptyScheme
 export IdealSheaf
 export ProjectiveScheme
 export ProjectiveSchemeMor
-export ToricCoveredScheme
-export ToricSpec
 export VarietyFunctionField
 export VarietyFunctionFieldElem
 
@@ -29,7 +27,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
       check::Bool=true,
       representative_patch::AbsSpec=default_covering(X)[1]
     )
-    check && (is_irreducible(X) || error("variety is not irreducible"))
+    @check is_irreducible(X) "variety is not irreducible"
     representative_patch in default_covering(X) || error("representative patch not found")
     KK = fraction_field(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
@@ -132,7 +130,7 @@ end
 ########################################################################
 # Simplified Spectra                                                   #
 ########################################################################
-@attributes mutable struct SimplifiedSpec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} 
+@attributes mutable struct SimplifiedSpec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
   X::AbsSpec
   Y::AbsSpec
   f::AbsSpecMor
@@ -146,14 +144,12 @@ end
     domain(g) === Y || error("map is not compatible")
     codomain(g) === X || error("map is not compatible")
 
-    if check
-      is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
+    @check is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) "maps are not inverse to each other"
 
     result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
     # We need to rewrap the identification maps so that the (co-)domains match
-    fwrap = SpecMor(result, Y, pullback(f))
-    gwrap = SpecMor(Y, result, pullback(g))
+    fwrap = SpecMor(result, Y, pullback(f), check=false)
+    gwrap = SpecMor(Y, result, pullback(g), check=false)
     set_attribute!(fwrap, :inverse, gwrap)
     set_attribute!(gwrap, :inverse, fwrap)
     result.f = fwrap
@@ -205,10 +201,10 @@ identifications given by the glueings in the `default_covering`.
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
                     OpenType=AbsSpec, OutputType=Ring,
-                    RestrictionType=Hecke.Map,
+                    RestrictionType=Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
   end
 
   ### Structure sheaf on covered schemes
@@ -246,7 +242,9 @@ identifications given by the glueings in the `default_covering`.
         pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) === OV || error("element does not belong to the correct domain")
-          return pullback(incU)(restrict(pbg(domain(pbg)(x)), U_flat)) # should probably be tuned to avoid checks.
+          y = pbg(domain(pbg)(x, check=false))
+          yy = restrict(y, U_flat, check=false)
+          return pullback(incU)(yy)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
@@ -306,21 +304,21 @@ identifications given by the glueings in the `default_covering`.
 
       if A === B
         return hom(OV, OU, 
-                   pullback(inc_U_flat).(pullback(inclusion_morphism(U_flat, V_flat)).(pullback(inverse(inc_V_flat)).(gens(OV)))), check=false
+                   pullback(inc_U_flat).(pullback(inclusion_morphism(U_flat, V_flat, check=false)).(pullback(inverse(inc_V_flat)).(gens(OV)))), check=false
                   )
       else
         G = default_covering(X)[A, B]
         f, g = glueing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
-        VU = preimage(f, VV_flat)
+        VU = preimage(f, VV_flat, check=false)
         fres = restrict(f, VU, VV_flat, check=false)
         inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
           y = pullback(inverse(inc_V_flat))(x)
-          y = restrict(y, VV_flat)
+          y = restrict(y, VV_flat, check=false)
           y = pullback(fres)(y)
-          y = restrict(y, U_flat)
+          y = restrict(y, U_flat, check=false)
           return pullback(inc_U_flat)(y)
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
@@ -334,15 +332,15 @@ identifications given by the glueings in the `default_covering`.
       V in default_covering(X) || return false
       ambient_scheme(W) in default_covering(X) || return false
       if V === ambient_scheme(W)
-        return MapFromFunc(x->(OW(x)), OV, OW)
+        return MapFromFunc(OV, OW, x->(OW(x)))
       else
         G = default_covering(X)[V, ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
-          return restrict(pullback(g)(OO(domain(f))(a)), W)
+          return restrict(pullback(g)(OO(domain(f))(a)), W, check=false)
         end
-        return MapFromFunc(rho_func, OV, OW)
+        return MapFromFunc(OV, OW, rho_func)
       end
     end
 
@@ -359,46 +357,45 @@ identifications given by the glueings in the `default_covering`.
           parent(a) === OV || error("element does not belong to the correct ring")
           return OW(a)
         end
-        return MapFromFunc(rho_func, OV, OW)
+        return MapFromFunc(OV, OW, rho_func)
       else
         G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
-        preV = preimage(g, VG)
+        preV = preimage(g, VG, check=false)
         gres = restriction(g, preV, VG, check=false)
-        inc = inclusion_morphism(W, preV)
+        inc = inclusion_morphism(W, preV, check=false)
         function rho_func2(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return pullback(inc)(pullback(gres)(OO(preV)(a)))
         end
-        return MapFromFunc(rho_func2, OV, OW)
+        return MapFromFunc(OV, OW, rho_func2)
       end
     end
     function restriction_func(F::AbsPreSheaf, V::SpecOpen, W::SpecOpen)
       OV = F(V)
       OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
-        inc = inclusion_morphism(W, V)
-        return MapFromFunc(pullback(inc), OV, OW)
+        inc = inclusion_morphism(W, V, check=false)
+        return MapFromFunc(OV, OW, pullback(inc))
       else
         G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
-        inc0 = inclusion_morphism(VG, V)
-        preV = preimage(g, VG)
+        inc0 = inclusion_morphism(VG, V, check=false)
+        preV = preimage(g, VG, check=false)
         gres = restrict(g, preV, VG, check=false)
-        inc = inclusion_morphism(W, preV)
-        return MapFromFunc(x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))),
-                           OV, OW)
+        inc = inclusion_morphism(W, preV, check=false)
+        return MapFromFunc(OV, OW, x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))))
       end
     end
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring,
-                      RestrictionType=Hecke.Map,
+                      RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes(X)
                      )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
   end
 end
 
@@ -424,7 +421,7 @@ identifications given by the glueings in the `default_covering`.
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
-  ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
+  ID::IdDict{AbsSpec, Ideal} # the ideals on the patches of some covering of X
   OOX::StructureSheafOfRings # the structure sheaf on X
   I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 
@@ -454,9 +451,10 @@ identifications given by the glueings in the `default_covering`.
       length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
                                                         # Just return the unit ideal so that the 
                                                         # associated subscheme is empty.
-      result = ideal(OO(U), zero(OO(U)))
+      result = ideal(OO(U), one(OO(U)))
+      V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
       for VV in V
-        result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+        result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
       end
       return result
     end
@@ -479,9 +477,10 @@ identifications given by the glueings in the `default_covering`.
         length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
         # Just return the unit ideal so that the 
         # associated subscheme is empty.
-        result = ideal(OO(U), zero(OO(U)))
+        result = ideal(OO(U), one(OO(U)))
+        V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
         for VV in V
-          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+          result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
         end
         return result
       end
@@ -510,9 +509,10 @@ identifications given by the glueings in the `default_covering`.
         length(V) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
         # Just return the unit ideal so that the 
         # associated subscheme is empty.
-        result = ideal(OO(U), zero(OO(U)))
+        result = ideal(OO(U), one(OO(U)))
+        V = filter!(x->(x isa PrincipalOpenSubset && ambient_scheme(x) === U), V)
         for VV in V
-          result = result + ideal(OO(U), lifted_numerator.(gens(ID[VV])))
+          result = intersect(result, ideal(OO(U), gens(saturated_ideal(production_func(F, VV)))))
         end
         return result
       end
@@ -531,11 +531,11 @@ identifications given by the glueings in the `default_covering`.
 
     Ipre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=Ideal,
-                      RestrictionType=Hecke.Map,
+                      RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
-    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
-    if check
+    I = new{typeof(X), AbsSpec, Ideal, Map}(ID, OOX, Ipre)
+    @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is
@@ -545,10 +545,10 @@ identifications given by the glueings in the `default_covering`.
         for V in basic_patches(default_covering(X))
           G = C[U, V]
           A, B = glueing_domains(G)
-          for i in 1:ngens(A)
+          for i in 1:number_of_complement_equations(A)
             I(A[i]) == ideal(OOX(A[i]), I(V, A[i]).(gens(I(V)))) || error("ideals do not coincide on overlap")
           end
-          for i in 1:ngens(B)
+          for i in 1:number_of_complement_equations(B)
             I(B[i]) == ideal(OOX(B[i]), I(U, B[i]).(gens(I(U)))) || error("ideals do not coincide on overlap")
           end
         end

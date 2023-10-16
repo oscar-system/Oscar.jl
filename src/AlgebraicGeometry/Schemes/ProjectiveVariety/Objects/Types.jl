@@ -12,7 +12,7 @@
       set_attribute!(X, :is_reduced => true)
     end
     Y = ProjectiveAlgebraicSet(X, check=false)
-    new{typeof(base_ring(Y)), typeof(homogeneous_coordinate_ring(Y))}(Y)
+    new{S, T}(Y)
   end
 
   function ProjectiveVariety(X::ProjectiveAlgebraicSet{S, T}; check::Bool=true) where {S, T}
@@ -25,6 +25,6 @@
       set_attribute!(X, :is_geometrically_reduced => true)
       set_attribute!(X, :is_reduced => true)
     end
-    new{typeof(base_ring(X)), typeof(homogeneous_coordinate_ring(X))}(X)
+    new{S, T}(X)
   end
 end

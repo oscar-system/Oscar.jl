@@ -19,10 +19,10 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
-	basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-	to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
-	OSCAR). Once computed, the Gröbner basis is cached for later reuse.
-	
+    basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
+    to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
+    OSCAR). Once computed, the Gröbner basis is cached for later reuse.
+
 !!! note
     Recall that Gröbner basis methods are implemented for multivariate polynomial rings over fields (exact fields supported by
     OSCAR) and, where not indicated otherwise, for multivariate polynomial rings over the integers.
@@ -30,22 +30,22 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
-	with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
-	Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
-	reduced representatives. 
+    with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
+    Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
+    reduced representatives.
 
 !!! note
     Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
     (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous).
     Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly.
-	This applies, in particular, to the functions `ìs_graded`, `ìs_standard_graded`, `ìs_z_graded`, `ìs_zm_graded`,
-	and `ìs_positively_graded` which will not be discussed again here. 
+    This applies, in particular, to the functions [`is_graded`](@ref),  [`is_standard_graded`](@ref), [`is_z_graded`](@ref),
+    [`is_zm_graded`](@ref), and [`is_positively_graded`](@ref) which will not be discussed again here.
 
 ## Types
 
 The OSCAR type for quotients of  multivariate polynomial rings is of parametrized form `MPolyQuoRing{T}`,
 with elements of type `MPolyQuoRingElem{T}`. Here, `T` is the element type of the polynomial ring.
-    
+
 ## Constructors
 
 ```@docs
@@ -72,7 +72,8 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> base_ring(A)
-Multivariate Polynomial Ring in x, y, z over Rational Field
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
 
 julia> modulus(A)
 ideal(-x^2 + y, -x^3 + z)
@@ -98,6 +99,10 @@ grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
 ```@docs
+monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+```
+
+```@docs
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
 ```
 
@@ -108,7 +113,11 @@ dim(A::MPolyQuoRing)
 ```
 
 ```@docs
-vdim(A::MPolyQuoRing)
+vector_space_dimension(A::MPolyQuoRing)
+```
+
+```@docs
+monomial_basis(A::MPolyQuoRing)
 ```
 
 ## Elements of Affine Algebras
@@ -147,7 +156,7 @@ true
 ### Reducing Polynomial Representatives
 
 ```@docs
-simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+simplify(f::MPolyQuoRingElem)
 ```
 
 ### Tests on Elements of Affine Algebras
@@ -164,7 +173,7 @@ is_homogeneous(f::MPolyQuoRingElem{<:MPolyDecRingElem})
 
 ### Data associated to Elements of Affine Algebras
 
-Given an element `f` of an affine algebra `A`, 
+Given an element `f` of an affine algebra `A`,
 
 - `parent(f)` refers to `A`.
 
@@ -218,7 +227,10 @@ julia> a = ideal(A, [x-y, z^4])
 ideal(x - y, z^4)
 
 julia> base_ring(a)
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Quotient
+  of multivariate polynomial ring in 3 variables x, y, z
+    over rational field
+  by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
 2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
@@ -328,7 +340,7 @@ refer to `R` and `S`, respectively. Given ring homomorphisms `F` : `R` $\to$ `S`
 The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
 the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
 `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in what follows.
-       
+
 ### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
@@ -346,19 +358,14 @@ julia> C1, (s,t) = graded_polynomial_ring(QQ, ["s", "t"]);
 julia> V1 = [s^3, s^2*t, s*t^2, t^3];
 
 julia> para = hom(D1, C1, V1)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1]
-Codomain:
-=========
-Multivariate Polynomial Ring in s, t over Rational Field graded by
-  s -> [1]
-  t -> [1]
+Ring homomorphism
+  from graded multivariate polynomial ring in 4 variables over QQ
+  to graded multivariate polynomial ring in 2 variables over QQ
+defined by
+  w -> s^3
+  x -> s^2*t
+  y -> s*t^2
+  z -> t^3
 
 julia> twistedCubic = kernel(para)
 ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
@@ -370,20 +377,13 @@ julia> D2, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"]);
 julia> V2 = [p2(w-y), p2(x), p2(z)];
 
 julia> proj = hom(D2, C2, V2)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in a, b, c over Rational Field graded by
-  a -> [1]
-  b -> [1]
-  c -> [1]
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
-  w -> [1]
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+Ring homomorphism
+  from graded multivariate polynomial ring in 3 variables over QQ
+  to quotient of multivariate polynomial ring by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+defined by
+  a -> w - y
+  b -> x
+  c -> z
 
 julia> nodalCubic = kernel(proj)
 ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)
@@ -398,13 +398,13 @@ julia> C3, x = polynomial_ring(QQ, "x" => 1:3);
 julia> V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 
 julia> F3 = hom(D3, C3, V3)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in y[1], y[2], y[3] over Rational Field
-Codomain:
-=========
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to multivariate polynomial ring in 3 variables over QQ
+defined by
+  y[1] -> x[1]*x[2]
+  y[2] -> x[1]*x[3]
+  y[3] -> x[2]*x[3]
 
 julia> sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
 ideal(x[1]^3 + x[2]^3 + x[3]^3 - 1)
@@ -436,13 +436,13 @@ julia> C, p = quo(S, ideal(S, [c-b^3]));
 julia> V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 
 julia> F = hom(D, C, V)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in x, y, z over Rational Field
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to quotient of multivariate polynomial ring by ideal(-b^3 + c)
+defined by
+  x -> 2*a + c^2
+  y -> -a^2 + 7*b
+  z -> c^2
 
 julia> is_surjective(F)
 true
@@ -464,13 +464,13 @@ julia> C, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 julia> V = [s*t, t, s^2];
 
 julia> paraWhitneyUmbrella = hom(R, C, V)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in x, y, z over Rational Field
-Codomain:
-=========
-Multivariate Polynomial Ring in s, t over Rational Field
+Ring homomorphism
+  from multivariate polynomial ring in 3 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> s*t
+  y -> t
+  z -> s^2
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
@@ -482,6 +482,12 @@ true
 
 ```@docs
 inverse(F::AffAlgHom)
+```
+
+## Algebraic Independence
+
+```@docs
+are_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 ```
 
 ## Subalgebras
@@ -519,22 +525,22 @@ julia> L[1]
  -5*y + z
 
 julia> L[2]
-Map with following data
-Domain:
-=======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal(x*y, x*z)
+  to quotient of multivariate polynomial ring by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+defined by
+  x -> x
+  y -> 2*x + y
+  z -> 10*x + 5*y + z
 
 julia> L[3]
-Map with following data
-Domain:
-=======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
+Ring homomorphism
+  from quotient of multivariate polynomial ring by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
+  to quotient of multivariate polynomial ring by ideal(x*y, x*z)
+defined by
+  x -> x
+  y -> -2*x + y
+  z -> -5*y + z
 
 ```
 ## Normalization
@@ -585,7 +591,7 @@ well-defined *Hilbert function* of $A$,
 
 $H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
 
-The *Hilbert series* of $A$ is the generating function 
+The *Hilbert series* of $A$ is the generating function
 
 $H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
 
@@ -599,7 +605,7 @@ By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is th
 ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
 equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
 Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
-the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem 
+the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem
 of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)).
 The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expanded`,
 `hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
@@ -628,7 +634,7 @@ $H_A(t)=\sum_{d\geq 0} H(A, d) t^d\in\mathbb Z[[t]].$
 
 The Hilbert series can be written as a rational function $p(t)/q(t)$, with denominator
 
-$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$ 
+$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$
 
 In the standard $\mathbb Z$-graded case, where the weights on the variables are all 1, the Hilbert function is of polynomial nature: There exists
  a unique polynomial $P_A(t)\in\mathbb{Q}[t]$, the *Hilbert polynomial*, which satisfies $H(M,d)=P_M(d)$
@@ -647,7 +653,13 @@ degree(A::MPolyQuoRing)
 ### Positive Gradings in General
 
 ```@docs
-multi_hilbert_series(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
-multi_hilbert_series_reduced(A::MPolyQuoRing; alg::Symbol=:BayerStillmanA)
+multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
+multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
+```
+
+## Affine Algebras as Modules
+
+```@docs
+quotient_ring_as_module(A::MPolyQuoRing)
 ```

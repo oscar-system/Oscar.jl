@@ -19,7 +19,16 @@ function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
 end
 
+function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
+  K = coefficient_ring(R)
+  return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
+end
+
 invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+
+function invariant_ring(R::MPolyDecRing, matrices::MatrixElem{T}...) where {T}
+  return invariant_ring(R, collect(matrices))
+end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
@@ -28,18 +37,23 @@ end
 @doc raw"""
     invariant_ring(G::MatrixGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
+    invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+    invariant_ring(R::MPolyDecRing, G::PermGroup)
 
 Return the invariant ring of the finite matrix group or permutation group `G`.
 
 In the latter case, use the specified field `K` as the coefficient field. 
 The default value for `K` is `QQ`.
 
+The polynomial ring `R` on which `G` acts can be supplied as a first argument,
+in case an existing ring should be used.
+
 !!! note
     The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -49,18 +63,18 @@ julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring of
-Sym( [ 1 .. 3 ] )
+  Permutation group of degree 3 and order 6
 with generators
-PermGroupElem[(1,2,3), (1,2)]
+  PermGroupElem[(1,2,3), (1,2)]
 
 julia> coefficient_ring(IRp)
-Rational Field
+Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)
@@ -68,15 +82,23 @@ function invariant_ring(G::MatrixGroup)
   return InvRing(base_ring(G), G, action)
 end
 
+function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  return InvRing(base_ring(G), G, action, R)
+end
+
 invariant_ring(K::Field, G::PermGroup) = InvRing(K, G, gens(G))
 
 invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
+invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
+
 function Base.show(io::IO, IR::InvRing)
-  print(io, "Invariant ring of\n")
-  print(io, group(IR), "\n")
-  print(io, "with generators\n")
-  print(io, action(IR))
+  io = pretty(io)
+  println(io, "Invariant ring of")
+  println(io, Indent(), group(IR), Dedent())
+  println(io, "with generators")
+  print(io, Indent(), action(IR))
 end
 
 # Return a map performing the right action of M on the ring R
@@ -98,7 +120,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
 
   right_action_by_M = (f::MPolyRingElem{T}) -> evaluate(f, vars)
 
-  return MapFromFunc(right_action_by_M, R, R)
+  return MapFromFunc(R, R, right_action_by_M)
 end
 
 right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
@@ -111,7 +133,7 @@ function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
 
   right_action_by_p = (f::MPolyRingElem{T}) -> on_indeterminates(f, p)
 
-  return MapFromFunc(right_action_by_p, R, R)
+  return MapFromFunc(R, R, right_action_by_p)
 end
 
 right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
@@ -138,7 +160,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  IR.reynolds_operator = MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
   return IR.reynolds_operator
 end
 
@@ -150,7 +172,7 @@ projecting onto `IR`.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -164,16 +186,17 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -196,16 +219,17 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3
+  over finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+  Matrix group of degree 3 over GF(3)
 with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
+Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -264,7 +288,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
     return g*base_ring(f)(1//order(group(IR)))
   end
 
-  return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return MapFromFunc(polynomial_ring(IR), polynomial_ring(IR), reynolds)
 end
 
 @doc raw"""
@@ -285,7 +309,7 @@ In case `chi` is a linear character, the returned polynomial, say `h`, fulfils
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -315,8 +339,8 @@ julia> x = gens(R);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -338,20 +362,20 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::InvRing, d::Int, algo::Symbol = :default)
+     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -365,13 +389,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> basis(IR, 6)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -386,13 +411,14 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3
+  over finite field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
+  Matrix group of degree 3 over GF(3)
 with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
 2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
@@ -405,7 +431,7 @@ julia> basis(IR, 3)
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
 
 @doc raw"""
     basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
@@ -423,7 +449,7 @@ See also [`iterate_basis`](@ref).
 
 # Examples
 ```
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -446,8 +472,8 @@ julia> R = invariant_ring(QQ, S2);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -483,17 +509,12 @@ basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(I
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)
   n = degree(G)
-  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{QQFieldElem, ZZRingElem, nf_elem}
-    Gp, GtoGp = isomorphic_group_over_finite_field(G)
-  else
-    Gp, GtoGp = (G, id_hom(G))
-  end
   K = coefficient_ring(I)
   Kt, _ = polynomial_ring(K, "t", cached = false)
-  C = conjugacy_classes(Gp)
+  C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
-    g = (GtoGp\(representative(c)))::elem_type(G)
+    g = representative(c)
     if g isa MatrixGroupElem
       f = charpoly(Kt, g.elm)
     elseif g isa PermGroupElem
@@ -503,7 +524,7 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
     end
     res = res + length(c)::ZZRingElem * 1//reverse(f)
   end
-  res = divexact(res, order(Gp)::ZZRingElem)
+  res = divexact(res, order(ZZRingElem, G))
   num = change_coefficient_ring(coefficient_ring(S),
                                 numerator(res), parent = S)
   den = change_coefficient_ring(coefficient_ring(S),
@@ -555,7 +576,7 @@ with respect to `chi`, see [Sta79](@cite).
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -569,16 +590,21 @@ julia> MS = molien_series(IR)
 (-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
 
 julia> parent(MS)
-Fraction field of Univariate Polynomial Ring in t over Rational Field
+Fraction field
+  of univariate polynomial ring in t over QQ
 
+julia> expand(MS, 10)
+1 + 2*t^3 + 4*t^6 + 7*t^9 + O(t^11)
+```
+```jldoctest
 julia> S2 = symmetric_group(2);
 
 julia> IR = invariant_ring(QQ, S2);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)

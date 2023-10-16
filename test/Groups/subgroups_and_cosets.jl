@@ -291,7 +291,7 @@ end
    @test is_isomorphic(P,dihedral_group(8))
    P = sylow_subgroup(G,3)[1]
    @test order(P)==3
-   @test representative_action(G, P, sub(G, [cperm(1:3)])[1])[1]
+   @test is_conjugate_with_data(G, P, sub(G, [cperm(1:3)])[1])[1]
    P = sylow_subgroup(G,5)[1]
    @test P==sub(G,[one(G)])[1]
    @test_throws ArgumentError P=sylow_subgroup(G,4)

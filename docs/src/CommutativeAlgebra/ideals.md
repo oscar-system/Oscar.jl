@@ -33,13 +33,14 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, QQMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
 
 julia> base_ring(I)
-Multivariate Polynomial Ring in x, y over Rational Field
+Multivariate polynomial ring in 2 variables x, y
+  over rational field
 
 julia> gens(I)
 3-element Vector{QQMPolyRingElem}:
@@ -66,12 +67,25 @@ dim(I::MPolyIdeal)
 ```@docs
 codim(I::MPolyIdeal)
 ```
-### Minimal Sets of Generators
 
-In the graded case, we have:
+In the graded case, we additionally have:
+
+### Minimal Sets of Generators
 
 ```@docs
 minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
+```
+
+### Castelnuovo-Mumford Regularity
+
+```@docs
+cm_regularity(I::MPolyIdeal)
+```
+
+### Degree
+
+```@docs
+degree(I::MPolyIdeal)
 ```
     
 ## Operations on Ideals
@@ -99,7 +113,6 @@ minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
-intersect(V::Vector{MPolyIdeal{T}}) where T
 ```
 
 ### Ideal Quotients
@@ -127,6 +140,12 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 ```@docs
 eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
+```
+
+### Truncation
+
+```@docs
+truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
 ```
 
 ## Tests on Ideals
@@ -196,7 +215,7 @@ radical(I::MPolyIdeal)
 ### Primary Decomposition
 
 ```@docs
-primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+primary_decomposition(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Absolute Primary Decomposition
@@ -208,7 +227,7 @@ absolute_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
 ### Minimal Associated Primes
 
 ```@docs
-minimal_primes(I::MPolyIdeal; alg = :GTZ)
+minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
 ```
 
 ### Weak Equidimensional Decomposition
@@ -240,19 +259,32 @@ equidimensional_hull_radical(I::MPolyIdeal)
 Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
 
 ```@docs
-homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName, pos::Int = 1)
+homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs
-homogenization(f::MPolyRingElem, var::VarName, pos::Int=1)
+homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing}=nothing)
 ```
 
 ```@docs
 dehomogenization(F::MPolyDecRingElem, pos::Int)
 ```
 
+## Ideals as Modules
+
+```@docs
+ideal_as_module(I::MPolyIdeal)
+```
 
 ## Generating Special Ideals
+
+### Katsura-n
+
+These systems appeared in a problem of magnetism in physics.
+For a given $n$ `katsura(n)` has $2^n$ solutions and is defined in a
+polynomial ring with $n+1$ variables over the rational numbers. For a
+given polynomial ring `R` with $n$ variables `katsura(R)` defines the
+corresponding system with $2^{n-1}$ solutions.
 
 ```@docs
 katsura(n::Int)

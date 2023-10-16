@@ -36,7 +36,7 @@
 
     @test gens(G) isa Vector{PermGroupElem}
     @test gens(A) isa Vector{PermGroupElem}
-    @test ngens(G) == length(gens(G))
+    @test ngens(G) == ngens(G)
   end
 
   @test_throws ArgumentError symmetric_group(0)

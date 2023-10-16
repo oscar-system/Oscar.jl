@@ -21,10 +21,10 @@ AbsProjectiveVariety
 
 ## Constructors
 ```@docs
-projective_variety(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
-projective_variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
-projective_variety(R::Ring; check::Bool=true)
-projective_variety(f::MPolyDecRingElem; check=true)
+variety(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true)
+variety(X::AbsProjectiveScheme{<:Field}; check::Bool=true)
+variety(R::Ring; check::Bool=true)
+variety(f::MPolyDecRingElem; check=true)
 ```
 
 ## Attributes

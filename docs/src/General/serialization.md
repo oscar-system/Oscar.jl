@@ -14,7 +14,6 @@ threefold:
 ```@docs
 save
 load
-is_basic_serialization_type
 ```
 
 ## Objects that can be serialized

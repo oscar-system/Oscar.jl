@@ -62,4 +62,16 @@
   @test val(x[2]) == 1
   @test val(x[1] + x[2]) == 4
   @test val(x[1] - x[2]) == 1
+
+  # An example containing pseudo-reflections
+  K, a = cyclotomic_field(6, "a")
+  g1 = matrix(K, 3, 3, [ -1 0 0; 0 1 0; 0 0 1 ])
+  g2 = matrix(K, 3, 3, [ 0 0 1; 1 0 0; 0 1 0 ])
+  G = matrix_group(g1, g2)
+  L = linear_quotient(G)
+  A, GtoA = class_group(L)
+  @test is_snf(A)
+  @test A.snf == ZZRingElem[ 3 ]
+  @test is_zero(GtoA(G(g1)))
+  @test GtoA(G(g2)) == A([ 1 ])
 end

@@ -30,8 +30,8 @@
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
   Y = Ct[3]
-  x = gens(base_ring(OO(X)))
-  y = gens(base_ring(OO(Y)))
+  x = gens(OO(X))
+  y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
@@ -59,7 +59,7 @@ end
   I = IdealSheaf(IP2, Ihom)
   @test is_prime(I)
   I2 = IdealSheaf(IP2, gens(Ihom))
-  I3 = IdealSheaf(IP2, gens(Ihom)[1])
+  I3 = IdealSheaf(IP2, gen(Ihom, 1))
   @test I == I2 == I3
   U = patches(default_covering(X))
   @test I(U[1]) isa Oscar.Ideal 
@@ -102,7 +102,7 @@ end
   g = ProjectiveSchemeMor(P, P, psi)
   g_cov = covered_scheme_morphism(g)
 
-  II = IdealSheaf(Q, [gens(SQ)[1]+gens(SQ)[2]])
+  II = IdealSheaf(Q, [gen(SQ, 1)+gen(SQ, 2)])
   pbII = pullback(f_cov)(II)
   X = covered_scheme(P)
   U = affine_charts(X)
@@ -112,28 +112,88 @@ end
   @test haskey(pbII.I.obj_cache, U[2])
 end
 
-@testset "primary decomposition of ideal sheaves" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
-  S = homogeneous_coordinate_ring(IP2)
-  (x,y,z) = gens(S)
-  I = ideal(S, x^2*y^3*(x+y+z))
-  II = IdealSheaf(IP2, I)
-  X = scheme(II)
-  l = primary_decomposition(II)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->ngens(l[i][j](x))==1, affine_charts(X))
-    end
+@testset "colength of ideal sheaves" begin
+  P3 = projective_space(QQ, 3)
+  X = covered_scheme(P3)
+  S = homogeneous_coordinate_ring(P3)
+  (x,y, z, w) = gens(S)
+  I = ideal(S, [x^3+y^3+z^3+w^3, x+y+z+w, 37*x^2-x*z+4*w^2-5*w*z])
+  II = ideal_sheaf(P3, I)
+  @test Oscar.colength(II) == 6
+  @test Oscar.colength(II, covering=Oscar.simplified_covering(X)) == 6
+  J = ideal(S, [x, y, z^4])
+  JJ = ideal_sheaf(P3, J)
+  @test Oscar.colength(JJ) == 4
+  @test Oscar.colength(JJ, covering=Oscar.simplified_covering(X)) == 4
+end
+
+@testset "separation of ideal sheaves" begin
+  P2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P2)
+  (x, y, z) = gens(S)
+  I = Vector{Ideal}()
+  push!(I, ideal(S, [x, y]))
+  push!(I, ideal(S, [y, z]))
+  push!(I, ideal(S, [x, z]))
+  push!(I, ideal(S, [x+y, z]))
+  push!(I, ideal(S, [x+z, y]))
+  push!(I, ideal(S, [y+z, x]))
+  push!(I, ideal(S, [y+2*z, x]))
+
+  II = [IdealSheaf(P2, a) for a in I]
+  X = covered_scheme(P2)
+  C = Oscar._separate_disjoint_components(II, covering=Oscar.simplified_covering(X))
+  for U in patches(C)
+    @test sum(isone(I(U)) for I in II) == 6
+  end
+  C = Oscar._separate_disjoint_components(II)
+  for U in patches(C)
+    @test sum(isone(I(U)) for I in II) == 6
   end
 
-  J = ideal(S, [y^2*(x+y+z), x*(x+y+z), x*y^2])
-  JJ = IdealSheaf(IP2, J)
-  l = primary_decomposition(JJ)
-  @test length(l) == 3
-  for i in 1:3
-    for j in 1:2
-      @test all(x->dim(l[i][j](x))<=0, affine_charts(X))
-    end
+  P3 = projective_space(QQ, 3)
+
+  S = homogeneous_coordinate_ring(P3)
+  (x, y, z, w) = gens(S)
+  I = ideal(S, x^4 + y^4 + z^4 + w^4)
+  X = subscheme(P3, I)
+  S = homogeneous_coordinate_ring(X)
+  (x, y, z, w) = gens(S)
+  J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, x+y+z+w])
+  J = J*ideal(S, [5*x + 9*y - 5*z + 3*w, x+8*y+z+w])
+  J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
+  #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
+  JJ = Oscar.maximal_associated_points(ideal_sheaf(X, J))
+  X = covered_scheme(X)
+  C = Oscar._separate_disjoint_components(JJ, covering=Oscar.simplified_covering(X))
+  for U in patches(C)
+    @test sum(!isone(I(U)) for I in JJ) == 1
   end
+
+  CC = Oscar._one_patch_per_component(C, JJ)
+  for P in JJ
+    @test isone(sum(!isone(P(U)) for U in patches(CC)))
+  end
+end
+
+@testset "saturation of ideal sheaves" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+
+  I = IdealSheaf(IP2, [x+y])
+  J = IdealSheaf(IP2, [z^2])
+
+  @test J == saturation(I*J, I)
+end
+
+@testset "pushforward of ideal sheaves" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  II = IdealSheaf(IP2, ideal(S, [x, y]))
+  bl = blow_up(II)
+  E = ideal_sheaf(exceptional_divisor(bl))
+  JJ = pushforward(bl, E)
+  @test JJ == II
 end

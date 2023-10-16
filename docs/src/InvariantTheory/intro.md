@@ -12,7 +12,7 @@ $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{G
 The induced action on the dual vector space $V^\ast$,
 
 $V^\ast  \times G \to V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
- 
+
 extends to an action of $G$ on the graded symmetric algebra
 
 $K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
@@ -22,7 +22,7 @@ which preserves the grading.
 The *invariants* of $G$ are the fixed points of this action, its *invariant ring* is the graded subalgebra
 
 $K[V]^G:=\{f\in K[V] \mid f \;\!   . \;\! \pi =f {\text { for any }} \pi\in G\} \subset K[V].$
-       	   
+
 Explicitly, the choice of a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$
 gives rise to isomorphisms $\text{GL}(V) \cong \text{GL}_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
 After identifying $\text{GL}(V)$ with $\text{GL}_n(K)$ and $K[V]$ with $K[x_1, \dots, x_n]$ by means of

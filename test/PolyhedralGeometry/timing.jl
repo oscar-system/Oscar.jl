@@ -4,10 +4,14 @@
     # to avoid unnecessary failures we skip the timing tests
     haskey(ENV, "JULIA_PKGEVAL") && return
 
-    using Oscar
+    # If running multiple workers, and many OMP threads, CPU oversubscription may occur
+    # which fails the timing tests. In this situation, skip instead.
+    if isdefined(Main, :Distributed) && nworkers() > 1
+        get(ENV, "OMP_NUM_THREADS", "") == "1" || return
+    end
 
     # macos on github actions is very slow
-    factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 5.0 : 1.0
+    factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 8.0 : 2.0
 
     lp_provide = ["FACETS", "VERTICES", "VERTICES_IN_FACETS", "LATTICE", "BOUNDED"]
 
@@ -20,7 +24,7 @@
             end
         end
         Polymake.setname!(p, "matching($n)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -32,7 +36,7 @@
             end
         end
         Polymake.setname!(p, "rand_box($d,$n,5)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -52,7 +56,7 @@
             end
         end
         Polymake.setname!(p, "knapsack($d,$b)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -65,7 +69,7 @@
         #end
         p = Polymake.polytope.Polytope(POINTS=points, BOUNDED=true, POINTED=true)
         Polymake.setname!(p, "knapsack_pts($d,$b)")
-        return Polyhedron(p)
+        return polyhedron(p)
     end
 
 
@@ -84,7 +88,7 @@
         Polymake.give(c,"N_RAYS | N_INPUT_RAYS")
         Polymake.give(c,"POINTED")
         Polymake.setname!(c,"non-sym-cutpoly($n)")
-        return Polyhedron(c);
+        return polyhedron(c);
     end
 
 
@@ -94,7 +98,7 @@
         p = Polymake.polytope.VoronoiPolyhedron(SITES=r.POINTS);
         Polymake.give(p,"FACETS")
         Polymake.setname!(p, "rand-voronoi($d,$n)");
-        return Polyhedron(p);
+        return polyhedron(p);
     end
     
 
@@ -106,7 +110,8 @@
             result = 10
             for i in 1:repeat
                 copy = deepcopy(poly)
-                result = min(@elapsed fun(copy), result)
+                stats = @timed fun(copy)
+                result = min(stats.time - stats.gctime, result)
                 if result <= bound*factor
                     return true
                 else

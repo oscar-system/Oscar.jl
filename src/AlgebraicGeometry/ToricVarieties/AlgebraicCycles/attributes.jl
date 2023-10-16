@@ -11,8 +11,8 @@ equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -21,7 +21,7 @@ julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> toric_variety(ac)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal, simplicial toric variety
 ```
 """
 toric_variety(ac::RationalEquivalenceClass) = ac.v
@@ -37,8 +37,8 @@ rational equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -66,8 +66,8 @@ ring if desired.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -76,7 +76,7 @@ julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> R, _ = polynomial_ring(QQ, 5)
-(Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, QQMPolyRingElem[x1, x2, x3, x4, x5])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x1, x2, x3, x4, x5])
 
 julia> (x1, x2, x3, x4, x5) = gens(R)
 5-element Vector{QQMPolyRingElem}:
@@ -90,7 +90,10 @@ julia> sr_and_linear_relation_ideal = ideal([x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, 
 ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> R_quo = quo(R, sr_and_linear_relation_ideal)[1]
-Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
+Quotient
+  of multivariate polynomial ring in 5 variables x1, x2, x3, x4, x5
+    over rational field
+  by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
 julia> polynomial(R_quo, ac)
 6*x3 + x4 + 7*x5
@@ -121,8 +124,8 @@ Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -154,8 +157,8 @@ Return the coefficients of `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -189,8 +192,8 @@ class is identical to the one given to this method.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -227,8 +230,8 @@ equilvalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo_surface(2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+julia> dP2 = del_pezzo_surface(NormalToricVariety, 2)
+Normal toric variety
 
 julia> d = toric_divisor(dP2, [1, 2, 3, 4, 5])
 Torus-invariant, non-prime divisor on a normal toric variety

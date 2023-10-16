@@ -270,16 +270,19 @@ end
    end
 
    @testset "GrpGen to GAPGroups" begin
-      G = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
-      for T in [FPGroup, PcGroup, PermGroup]
-         iso = @inferred isomorphism(T, G)
-         for x in gens(G), y in gens(G)
-            z = x * y
-            @test iso(x) * iso(y) == iso(z)
-            @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+      for G in [Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB()),
+                Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())]
+         for T in [FPGroup, PcGroup, PermGroup]
+            iso = @inferred isomorphism(T, G)
+            for x in gens(G), y in gens(G)
+               z = x * y
+               @test iso(x) * iso(y) == iso(z)
+               @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+            end
          end
-      end
+      end   
 
+      G  = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
       H = small_group(64, 14)
       @test isisomorphic(G, H)
       f = isomorphism(G, H)
@@ -324,8 +327,12 @@ end
 
    @testset "Group types as constructors" begin
       G = symmetric_group(4)
-      for T in [FPGroup, PcGroup, PermGroup]
+      for (T, f) in [(FPGroup, fp_group), (PcGroup, pc_group), (PermGroup, permutation_group)]
         H = T(G)
+        @test H isa T
+        @test is_isomorphic(G, H)[1]
+
+        H = f(G)
         @test H isa T
         @test is_isomorphic(G, H)[1]
       end
@@ -336,6 +343,9 @@ end
       @test H isa T
       @test order(H) == order(G)
       K = PermGroup(H)
+      @test K isa PermGroup
+      @test order(K) == order(H)
+      K = permutation_group(H)
       @test K isa PermGroup
       @test order(K) == order(H)
    end
@@ -389,7 +399,8 @@ end
 
        G = symmetric_group(4)
        @test PermGroup(G) isa PermGroup
-       @test PcGroup(G) isa PcGroup
+       @test permutation_group(G) isa PermGroup
+       @test pc_group(G) isa PcGroup
        @test FPGroup(G) isa FPGroup
        @test_throws ArgumentError GrpAbFinGen(G)
    end

@@ -27,9 +27,9 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 !!! note
     - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
     - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
-	   $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
        Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
-	   (global, local, mixed) monomial ordering on $\N^n$.
+       (global, local, mixed) monomial ordering on $\N^n$.
 
 !!! note
     By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.
@@ -37,7 +37,7 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 !!! note
     The lexicograpical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
     The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering  and the degree reverse lexicographical
-	ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+    ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 In this section, we show how to create monomial orderings in OSCAR. 
 
@@ -51,7 +51,7 @@ Here are some illustrating examples:
 
 ```jldoctest
 julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
-(Multivariate Polynomial Ring in w, x over Rational Field, QQMPolyRingElem[w, x])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
 lex([w, x])
@@ -61,7 +61,7 @@ julia> canonical_matrix(o)
 [0   1]
 
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
 degrevlex([w, x])
@@ -108,7 +108,7 @@ cmp(ord::MonomialOrdering, a::MPolyRingElem, b::MPolyRingElem)
 
 Given a matrix $M\in \text{Mat}(k\times n,\mathbb R)$ of rank $n$, with rows $m_1,\dots,m_k$,
 the *matrix ordering* defined by $M$ is obtained by setting
-         
+     
 $x^\alpha>_M x^\beta  \Leftrightarrow  \;\exists\; 1\leq i\leq k:  m_1\alpha=m_1\beta,\ldots, 
 m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
 
@@ -286,7 +286,7 @@ weight_ordering(W::Vector{Int}, ord::MonomialOrdering)
 
 The concept of block orderings (product orderings) allows one to construct new monomial orderings from already given ones: If $>_1$ and $>_2$ are monomial orderings on $\text{Mon}_s(x_1, \ldots, x_s)$ and $\text{Mon}_{n-s}(x_{s+1}, \ldots, x_n)$, respectively, then the *block ordering*
 $> \; = \; (>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
-          
+      
 $x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 x_1^{\beta_1}\cdots x_s^{\beta_s} \;\text{ or }\;
 \bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
 x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
@@ -295,7 +295,7 @@ x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
     The ordering  $(>_1, >_2)$
     - is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing one of $>_1$ and $>_2$ global and the other one local,
     - is an elimination ordering for the first block of variables iff $>_1$ is global.
-	
+
 !!! note
     - The definition of a block ordering above subdivides $x$ into a block of initial variables and its complementary block of variables. 
        Block orderings for a subdivision of $x$ into any block of variables and its complementary block are defined similarly and have similar properties.
@@ -307,7 +307,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
-(Multivariate Polynomial Ring in w, x, y, z over Rational Field, QQMPolyRingElem[w, x, y, z])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
 degrevlex([w, x])*degrevlex([y, z])
@@ -349,7 +349,7 @@ is_local(ord::MonomialOrdering)
 is_mixed(ord::MonomialOrdering)
 ```
 
-## Transfering an ordering from another ring
+## Transferring an ordering from another ring
 
 ```@docs
 induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)
@@ -400,7 +400,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
 julia> o1 = degrevlex(R)*revlex(gens(F))
 degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])

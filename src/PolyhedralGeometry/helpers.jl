@@ -1,19 +1,89 @@
 import Polymake: IncidenceMatrix
 
+@doc raw"""
+     IncidenceMatrix
+
+A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
+
+# Examples
+Note that the input and print of an `IncidenceMatrix` lists the non-zero indices for each row.
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> IM[1, 2]
+true
+
+julia> IM[2, 3]
+false
+
+julia> IM[:, 4]
+2-element SparseVectorBool
+[2]
+```
+"""
+IncidenceMatrix
+
 nrows(i::IncidenceMatrix) = Polymake.nrows(i)
 ncols(i::IncidenceMatrix) = Polymake.ncols(i)
 
-const nf_scalar = Union{nf_elem, QQFieldElem}
+nrows(A::Polymake.Matrix) = Polymake.nrows(A)
+ncols(A::Polymake.Matrix) = Polymake.ncols(A)
+
+@doc raw"""
+     row(i::IncidenceMatrix, n::Int)
+
+Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> row(IM, 2)
+Set{Int64} with 3 elements:
+  5
+  4
+  6
+```
+"""
+row(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
+
+@doc raw"""
+     column(i::IncidenceMatrix, n::Int)
+
+Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+2×6 IncidenceMatrix
+[1, 2, 3]
+[4, 5, 6]
+
+
+julia> column(IM, 5)
+Set{Int64} with 1 element:
+  2
+```
+"""
+column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
         t = typeof(m[i])
-        if t <: Union{values(scalar_type_to_polymake)...}
+        if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
-            m = Polymake.Matrix{scalar_type_to_polymake[t]}(m)
+            m = Polymake.Matrix{_scalar_type_to_polymake(t)}(m)
         end
     else
         m = Polymake.Matrix{Polymake.Rational}(undef, a, b)
@@ -21,21 +91,23 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     return m
 end
 
-assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.QuadraticExtension{Polymake.Rational}}(m)
+assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
-assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}}) = m
+assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+
+assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
 assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rational, Polymake.QuadraticExtension, Float64}, U, V, W} = Polymake.Matrix{T}(m)
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
-    v = Polymake.Vector{scalar_type_to_polymake[typeof(v[i])]}(v)
+    v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
     return v
 end
 
-assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
+assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}) = v
 
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
@@ -58,35 +130,19 @@ function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatr
     return res
 end
 
+function Polymake.Matrix{Polymake.OscarNumber}(x::Union{MatElem, AbstractMatrix{<:FieldElem}})
+    res = Polymake.Matrix{Polymake.OscarNumber}(size(x)...)
+    for i in eachindex(x)
+        res[i] = x[i]
+    end
+    return res
+end
+
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-Base.zero(::Type{nf_scalar}) = QQFieldElem()
-# Base.one(::Type{nf_scalar}) = QQFieldElem(1)
-
-Base.convert(::Type{nf_scalar}, x::Number) = convert(QQFieldElem, x)
-Base.convert(::Type{nf_scalar}, x::nf_elem) = x
-
-nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
-
-function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
-    isq = Hecke.is_quadratic_type(parent(x))
-    @req isq[1] && isq[2] >= 0 "Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'"
-    r = convert(Polymake.Rational, isq[2])
-    c = coordinates(x)
-    return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
-end
 
 Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::QQFieldElem) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
-
-function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake.Rational})
-    g = Polymake.generating_field_elements(x)
-    if g.r == 0 || g.b == 0
-        return convert(QQFieldElem, g.a)
-    end
-    R, a = quadratic_field(convert(ZZRingElem,  g.r))
-    return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
-end
 
 Base.convert(T::Type{<:Polymake.Matrix}, x::Union{ZZMatrix,QQMatrix}) = Base.convert(T, Matrix(x))
 
@@ -122,12 +178,36 @@ function Base.convert(::Type{ZZRingElem}, x::Polymake.Rational)
     return res
 end
 
+Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(x)
+
+(::Type{T})(x::Polymake.OscarNumber) where T<:FieldElem = convert(T, Polymake.unwrap(x))
+
+Base.convert(::Type{Polymake.Matrix{Polymake.OscarNumber}}, x::MatElem{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(x)
+
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
+(Z::ZZRing)(x::Polymake.Rational) = convert(ZZRingElem, x)
+
+function (NF::Hecke.EmbeddedNumField)(x::Polymake.QuadraticExtension{Polymake.Rational})
+    g = Polymake.generating_field_elements(x)
+    if g.r == 0 || g.b == 0
+        return NF(convert(QQFieldElem, g.a))
+    end
+    isq = Hecke.is_quadratic_type(number_field(NF))
+    @req isq[1] "Can not construct non-trivial QuadraticExtension in non-quadratic number field."
+    @req isq[2] == base_field(number_field(NF))(g.r) "Source and target fields do not match."
+    a = NF(basis(number_field(NF))[2])
+    return convert(QQFieldElem, g.a) + convert(QQFieldElem, g.b) * a
+end
+
+(F::Field)(x::Polymake.Rational) = F(QQ(x))
+(F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
 Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.Rational}
 Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
 Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
+Polymake.convert_to_pm_type(::Type{T}) where T<:FieldElem = Polymake.OscarNumber
+Polymake.convert_to_pm_type(::Type{<:Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
@@ -263,3 +343,245 @@ end
 
 # TODO: different printing within oscar? if yes, implement the following method
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))
+
+####################################################################
+# Prepare interface for objects to be defined later
+####################################################################
+
+abstract type PolyhedralObject{T} end
+
+# several toric types need to inherit from abstract schemes and thus cannot
+# inherit from PolyhedralObject, but they still need to behave like polyhedral objects
+# for some operations.
+const PolyhedralObjectUnion = Union{PolyhedralObject, NormalToricVarietyType}
+
+@doc raw"""
+    coefficient_field(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}) where T<:scalar_types
+
+Return the parent `Field` of the coefficients of `P`.
+
+# Examples
+```jldoctest
+julia> c = cross_polytope(2)
+Polyhedron in ambient dimension 2
+
+julia> coefficient_field(c)
+Rational field
+```
+"""
+coefficient_field(x::PolyhedralObject) =  x.parent_field
+coefficient_field(x::PolyhedralObject{QQFieldElem}) = QQ
+
+_get_scalar_type(::PolyhedralObject{T}) where T = T
+_get_scalar_type(::NormalToricVarietyType) = QQFieldElem
+
+################################################################################
+######## Scalar types
+################################################################################
+const scalar_types = Union{FieldElem, Float64}
+
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("Float", Float64)])
+
+const scalar_types_extended = Union{scalar_types, ZZRingElem}
+
+const scalar_type_or_field = Union{Type{<:scalar_types}, Field}
+
+_scalar_type_to_polymake(::Type{QQFieldElem}) = Polymake.Rational
+_scalar_type_to_polymake(::Type{<:FieldElem}) = Polymake.OscarNumber
+_scalar_type_to_polymake(::Type{Float64}) = Float64
+
+####################################################################
+# Parent Fields
+####################################################################
+
+function _embedded_quadratic_field(r::ZZRingElem)
+    if iszero(r)
+        R, = rationals_as_number_field()
+        return Hecke.embedded_field(R, real_embeddings(R)[])
+    else
+        R, = quadratic_field(r)
+        return Hecke.embedded_field(R, real_embeddings(R)[2])
+    end
+end
+
+function _find_parent_field(::Type{T}, x, y...) where T <: scalar_types
+    f = _find_parent_field(T, x)
+    elem_type(f) == T && return f
+    return _find_parent_field(T, y...)
+end
+function _find_parent_field(::Type{T}, x::AbstractArray{<:FieldElem}) where T <: scalar_types
+    for el in x
+        el isa T && return parent(el)
+    end
+    return QQ
+end
+function _find_parent_field(::Type{T}, x::MatElem{<:FieldElem}) where T <: scalar_types
+    f = base_ring(x)
+    elem_type(f) == T && return f
+    return QQ
+end
+_find_parent_field(::Type{T}, x::Tuple{<:AnyVecOrMat, <:Any}) where T <: scalar_types = _find_parent_field(T, x...)
+_find_parent_field(::Type{T}, x::FieldElem) where T <: scalar_types = x isa T ? parent(x) : QQ
+_find_parent_field(::Type{T}, x::Number) where T <: scalar_types = QQ
+_find_parent_field(::Type{T}) where T <: scalar_types = QQ
+# _find_parent_field() = QQ
+_find_parent_field(::Type{T}, x::AbstractArray{<:AbstractArray}) where T <: scalar_types = _find_parent_field(T, x...)
+function _find_parent_field(::Type{T}, x::AbstractArray) where T <: scalar_types
+    for el in x
+        el isa T && return parent(el)
+    end
+    return QQ
+end
+
+_determine_parent_and_scalar(f::Union{Field, ZZRing}, x...) = (f, elem_type(f))
+# isempty(x) => standard/trivial field?
+function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
+    if T == QQFieldElem
+        f = QQ
+    elseif T == Float64
+        f = AbstractAlgebra.Floats{Float64}()
+    else
+        pf = _find_parent_field(T, x...)
+        f = pf == QQ ? throw(ArgumentError("Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data.")) : pf
+    end
+    return (f, T)
+end
+
+function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
+    # we only want to check existing properties
+    f = x -> Polymake.exists(p, string(x))
+    propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
+    i = findfirst(f, propnames)
+    # find first QuadraticExtension with root != 0
+    # or first OscarNumber wrapping an embedded number field element
+    while !isnothing(i)
+        prop = getproperty(p, propnames[i])
+        if eltype(prop) <: Polymake.QuadraticExtension
+            for el in prop
+                r = Polymake.generating_field_elements(el).r
+                iszero(r) || return _embedded_quadratic_field(ZZ(r))[1]
+            end
+        elseif eltype(prop) <: Polymake.OscarNumber
+            for el in prop
+                on = Polymake.unwrap(el)
+                if on isa Hecke.EmbeddedNumFieldElem{nf_elem}
+                    return parent(on)
+                end
+            end
+        end
+        i = findnext(f, propnames, i + 1)
+    end
+    return _embedded_quadratic_field(ZZ(0))[1]
+end
+
+_detect_default_field(::Type{QQFieldElem}, p::Polymake.BigObject) = QQ
+_detect_default_field(::Type{Float64}, p::Polymake.BigObject) = AbstractAlgebra.Floats{Float64}()
+
+function _detect_default_field(::Type{T}, p::Polymake.BigObject) where T<:FieldElem
+  # we only want to check existing properties
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
+  # find first OscarNumber wrapping a FieldElem
+  for pn in propnames
+    prop = getproperty(p, convert(String, pn))
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa T
+        return parent(on)
+      end
+    end
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
+end
+
+function _detect_wrapped_type_and_field(p::Polymake.BigObject)
+  # we only want to check existing properties
+  propnames = intersect(Polymake.list_properties(p), ["INPUT_RAYS", "POINTS", "RAYS", "VERTICES", "VECTORS", "INPUT_LINEALITY", "LINEALITY_SPACE", "FACETS", "INEQUALITIES", "EQUATIONS", "LINEAR_SPAN", "AFFINE_HULL"])
+  # find first OscarNumber wrapping a FieldElem
+  for pn in propnames
+    prop = getproperty(p, convert(String, pn))
+    for el in prop
+      on = Polymake.unwrap(el)
+      if on isa FieldElem
+        f = parent(on)
+        T = elem_type(f)
+        return (T, f)
+      end
+    end
+  end
+  throw(ArgumentError("BigObject does not contain information about a parent Field"))
+end
+
+function _detect_scalar_and_field(::Type{U}, p::Polymake.BigObject) where U<:PolyhedralObject
+  T = detect_scalar_type(U, p)
+  if isnothing(T)
+    return _detect_wrapped_type_and_field(p)
+  else
+    return (T, _detect_default_field(T, p))
+  end
+end
+
+# promotion helpers
+function _promote_scalar_field(f::Union{Field, ZZRing}...)
+  try
+    x = sum([g(0) for g in f])
+    p = parent(x)
+    return (elem_type(p), p)
+  catch e
+    throw(ArgumentError("Can not find a mutual parent field for $f."))
+    end
+end
+
+function _promote_scalar_field(a::AbstractArray{<:FieldElem})
+    isempty(a) && return (QQFieldElem, QQ)
+    return _promote_scalar_field(parent.(a)...)
+end
+
+_parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}) = parent(r.x)
+
+_parent_or_coefficient_field(v::AbstractVector{T}) where T<:Union{FieldElem, ZZRingElem} = _determine_parent_and_scalar(T, v)[1]
+
+function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
+  T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))
+end
+
+# oscarnumber helpers
+
+function Polymake._fieldelem_to_rational(e::EmbeddedElem)
+   return Rational{BigInt}(QQ(e))
+end
+
+function Polymake._fieldelem_is_rational(e::EmbeddedElem)
+   return is_rational(e)
+end
+
+function Polymake._fieldelem_to_float(e::EmbeddedElem)
+   return Float64(real(embedding(parent(e))(data(e), 32)))
+end
+
+# convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
+
+function _polyhedron_qe_to_on(x::Polymake.BigObject, f::Field)
+  res = Polymake.polytope.Polytope{Polymake.OscarNumber}()
+  for pn in Polymake.list_properties(x)
+    prop = Polymake.give(x, pn)
+    Polymake.take(res, string(pn), _property_qe_to_on(prop, f))
+  end
+  return res
+end
+
+_property_qe_to_on(x::Polymake.BigObject, f::Field) = Polymake.BigObject(Polymake.bigobject_type(x), x)
+
+_property_qe_to_on(x::Polymake.PropertyValue, f::Field) = x
+
+_property_qe_to_on(x::Polymake.QuadraticExtension{Polymake.Rational}, f::Field) = f(x)
+
+function _property_qe_to_on(x, f::Field)
+  if hasmethod(length, (typeof(x),)) && eltype(x) <: Polymake.QuadraticExtension{Polymake.Rational}
+    return f.(x)
+  else
+    return x
+  end
+end

@@ -7,33 +7,85 @@ import Base: parent
 import Oscar: direct_sum
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
-export local_index
+export local_index, units_mod_ideal
 
 
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
+_can_cache_aut(::FlintPadicField) = nothing
+function _can_cache_aut(k) 
+  a = get_attribute(k, :AutGroup)
+  if a === nothing
+    a = Dict{Tuple, Map}()
+    set_attribute!(k, :AutGroup => a)
+  end
+  return a
+end
 #not type restricted: used for number fields as well as
 #LocalFields
 #could be extended to allow more group types
 function Oscar.automorphism_group(::Type{PermGroup}, k)
+  a = _can_cache_aut(k)
+  if a !== nothing && haskey(a, (PermGroup, ))
+    mG = a[(PermGroup, )]
+    return domain(mG), mG
+  end
   G, mG = automorphism_group(k)
   mH = isomorphism(PermGroup, G)
-  return codomain(mH), inv(mH)*mG
+  mmH = inv(mH)*mG
+  if a !== nothing 
+    a[(PermGroup, )] = mmH
+  end
+  return codomain(mH), mmH
 end
 
 function Oscar.automorphism_group(::Type{PermGroup}, K, k)
+  a = _can_cache_aut(k)
+  if a !== nothing && haskey(a, (PermGroup, k))
+    mG = a[(PermGroup, k)]
+    return domain(mG), mG
+  end
+
   G, mG = automorphism_group(K, k)
+  mH = isomorphism(PermGroup, G)
+  mmH = inv(mH)*mG
+  if a !== nothing 
+    a[(PermGroup, k)] = mmH
+  end
+  return codomain(mH), mmH
+end
+
+function Oscar.absolute_automorphism_group(::Type{PermGroup}, k)
+  G, mG = absolute_automorphism_group(k)
   mH = isomorphism(PermGroup, G)
   return codomain(mH), inv(mH)*mG
 end
 
+"""
+    units_mod_ideal(I::NfOrdIdl; n_quo::Int = 0) -> GrpAbFinGen, Map{Grp, NfOrd}
+
+Computes the unit group of the order modulo `I`. If `n_quo` is non-zero, the quotient
+modulo `n_quo` is computed.
+"""
+function units_mod_ideal(I::NfOrdIdl; n_quo::Int = 0)
+  #TODO: add places for sign condition (RatResidueRing in Magma)
+  #      use the n_quo already in the creation.
+  R, mR = quo(order(I), I)
+  U, mU = unit_group(R)
+  if n_quo != 0
+    u, mu = quo(U, n_quo)
+    U = u
+    mU = pseudo_inv(mu)*mU
+  end
+  return U, mU*pseudo_inv(mR)
+end
 
 """
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, nf(order(codomain((mR)))))[2])
   k = nf(order(codomain(mR)))
   G = domain(mG)
 
@@ -45,11 +97,17 @@ end
 The natural `ZZ[G]` module where `G`, the
   automorphism group, acts on the ideal group defining the class field.
 """
-function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2])
+function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2]; check::Bool = true)
   k = base_field(R)
   G = domain(mG)
   mR = R.rayclassgroupmap
   mq = R.quotientmap
+  if check
+    c, mc = conductor(R)
+    @req all(x -> c == Hecke.induce_image(mG(x), c), gens(G)) "field is not normal"
+    s1 = Set(mc)
+    @req all(x -> s1 == Set(Hecke.induce_image(mG(x), y) for y = s1), gens(G)) "field is not normal"
+  end
 
   ac = Hecke.induce_action(mR, [image(mG, g) for g = gens(G)], mq)
   return GModule(G, ac)
@@ -84,7 +142,7 @@ function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumber
   return _gmodule(base_ring(codomain(mu)), H, mu, mG)
 end
 
-function Oscar.gmodule(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd}, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mu::Map{GrpAbFinGen, NfOrd}, mG = automorphism_group(PermGroup, nf(codomain(mu)))[2])
   #TODO: preimage for sunits can fail (inf. loop) if
   # (experimentally) the ideals in S are not coprime or include 1
   # or if the s-unit is not in the image (eg. action and not closed set S)
@@ -295,7 +353,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
       mG,
-      MapFromFunc(x->pi^x[1], y->Int(e*valuation(y))*A[1], A, K)
+      MapFromFunc(A, K, x->pi^x[1], y->Int(e*valuation(y))*A[1])
   end
 
   if e % prime(K) != 0 && !full #tame!
@@ -321,12 +379,12 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
     end
     return gmodule(G, h),
       mG,
-      MapFromFunc(x->pi^x[1] * gk^x[2],
+      MapFromFunc(A, K, x->pi^x[1] * gk^x[2],
         function(y)
           v = Int(e*valuation(y))
           y *= pi^-v
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
-        end, A, K)
+        end)
   end
  
 #  @show :wild
@@ -580,7 +638,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AnticNumberFiel
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, a))
   end
-  return MapFromFunc(to, from, L, codomain(m))
+  return MapFromFunc(L, codomain(m), to, from)
 end
 
 function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticNumberField})
@@ -606,7 +664,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AnticN
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, mu(a)))
   end
-  return MapFromFunc(to, from, L, domain(mu))
+  return MapFromFunc(L, domain(mu), to, from)
 end
 
 
@@ -636,7 +694,7 @@ mutable struct IdelParent
   mU::Map #S-unit group map
   M::GrpAbFinGen  # the big module, direct product from
     # infinite gmodule x finite ones
-  mq::Map # "projection" of M -> the acutal module in the end
+  mq::Map # "projection" of M -> the actual module in the end
 
   data
 
@@ -655,8 +713,13 @@ or Ali,
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
 of the idel-class group. The primes in `s` will always be used.
 """
-function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
-  @vprint :GaloisCohomology 1 "Ideal class group cohomology for $k\n"
+function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::Bool=false)
+  @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
+  I = get_attribute(k, :IdelClassGmodule)
+  if !redo && I !== nothing
+    return I
+  end
+
   I = IdelParent()
   I.k = k
   G, mG = automorphism_group(PermGroup, k)
@@ -707,7 +770,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @vprint :GaloisCohomology 2 " .. S-units (for all) ..\n"
   U, mU = sunit_group_fac_elem(S)
   I.mU = mU
-  z = MapFromFunc(x->evaluate(x), y->FacElem(y), codomain(mU), k)
+  z = MapFromFunc(codomain(mU), k, x->evaluate(x), y->FacElem(y))
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology -1 is_consistent(E)
@@ -720,6 +783,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     @hassert :GaloisCohomology 1 is_consistent(Et)
     iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, id_hom(U))
   else
+    #TODO: failing on x^8 + 70*x^4 + 15625
     @vprint :GaloisCohomology 2 " .. complex field, hard case ..\n"
     mG_inf = Oscar.decomposition_group(k, complex_embeddings(k)[1], mG)
     G_inf = domain(mG_inf)
@@ -743,8 +807,6 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     #theta:
     theta = U[1] #should be a generator for torsion, torsion is even,
                  #hence this elem cannot be a square
-    T = abelian_group([order(U[1]), 0])             
-    ac_T = hom(T, T, [sigma(U[1])[1]*T[1], T[1]+T[2]])
 
     x = [preimage(mq, i) for i = x]
     y = [preimage(mq, i) for i = y]
@@ -767,13 +829,14 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
         push!(not_inv, i)
       end
     end
-    
+
     @assert length(not_inv) > 0
     @assert length(not_inv) + length(inv) == length(x)
     x = vcat(x[not_inv], x[inv]) #reordering
     theta_i = vcat(theta_i[not_inv], theta_i[inv])
     
     U_t, mU_t = sub(U, [U[1]])
+    
     sm1 = hom(U_t, U, [sigma(mU_t(g)) - mU_t(g) for g = gens(U_t)])
     eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
 
@@ -782,10 +845,12 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
     im_psi = [U[1], x[1]+ eta_i[1]]
     for i=2:length(not_inv)
       push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
+      @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
     end
     for i=length(not_inv)+1:length(x)
       push!(im_psi, x[i])
+      @assert sigma(im_psi[end]) == im_psi[end]
       #should be chosen to be pos. at place, flip signs...
     end
     for i=1:length(y)
@@ -793,13 +858,16 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
       push!(im_psi, sigma(y[i]))
     end
     psi = hom(V, U, im_psi)
+    @assert all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
     @assert is_bijective(psi)
     F = abelian_group([0 for i=2:length(x)])
     Hecke.assure_has_hnf(F)
     W, pro, inj = direct_product(V, F, task = :both)
     @assert isdefined(W, :hnf)
 
-    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1])+ GrpAbFinGenMap(pro[2]*hom(F, W, [inj[1](preimage(psi, x[i])) - inj[2](F[i-1]) for i=2:length(x)]))
+    ac = GrpAbFinGenMap(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1]) +
+         GrpAbFinGenMap(pro[2]*hom(F, W, GrpAbFinGenElem[inj[1](V[i+1]) - inj[2](F[i-1]) for i=2:length(x)]))
+
     Et = gmodule(G_inf, [ac])
     @assert is_consistent(Et)
     mq = pseudo_inv(psi)*inj[1]
@@ -857,6 +925,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[])
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
   I.data = (q, F[1])
+  set_attribute!(k, :IdelClassGmodule=>I)
   return I
 end
 
@@ -905,6 +974,12 @@ end
 function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl, Nothing})
   a = preimage(I.mq, a)
   zk = maximal_order(I.k)
+  o_zk = zk
+  if coprime !== nothing && order(coprime) !== zk
+    o_zk = order(coprime)
+    coprime = zk*coprime
+    @assert order(coprime) === zk
+  end
   id = 1*zk
   for p = I.S
     lp = prime_decomposition(zk, minimum(p))
@@ -922,11 +997,11 @@ function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl,
       end
     end
   end
-  return id
+  return o_zk*id
 end
 
 function Oscar.galois_group(A::ClassField)
-  return PermGroup(codomain(A.quotientmap))
+  return permutation_group(codomain(A.quotientmap))
 end
 
 """
@@ -957,22 +1032,38 @@ julia> [describe(x[1]) for x = b]
 
 ```
 """    
-function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
+function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelParent,Nothing} = nothing) 
 
   m0, m_inf = defining_modulus(A)
   @assert length(m_inf) == 0
+  if !is_normal(A)
+    A = normal_closure(A)
+  end
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
+  @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
+  if gcd(degree(A), degree(base_field(A))) == 1
+    s, ms = split_extension(gmodule(A))
+    return permutation_group(s), ms
+  end
+  if idel_parent === nothing
+    idel_parent = idel_class_gmodule(base_field(A))
+  end
+
   qI = cohomology_group(idel_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
+  @assert Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idel_parent.mG)
   qA = cohomology_group(gA, 2)
+  n = degree(nf(zk))
   aa = map_entries(a, parent = gA) do x
+    x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
     J = ideal(idel_parent, x, coprime = m0)
     mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
   end
+  @assert Oscar.GrpCoh.istwo_cocycle(aa)
   return permutation_group(aa), (aa, gA)
 end
 
@@ -990,15 +1081,15 @@ function Oscar.completion(I::IdelParent, P::NfAbsOrdIdl)
   mUp = I.L[p]
   mGp = I.D[p]
 
-  inj = Hecke.canonical_injection(I.M, p+1) #units are first
-  pro = Hecke.canonical_projection(I.M, p+1)
+  inj = canonical_injection(I.M, p+1) #units are first
+  pro = canonical_projection(I.M, p+1)
 
 
   @assert domain(inj) == codomain(pro)
 
   J = components(I.M)[p+1]
   if mKp.P == P #easy case
-    return Kp, mKp, mGp, mUp,  pro * Hecke.canonical_projection(J, 1) ,  Hecke.canonical_injection(J, 1)*inj
+    return Kp, mKp, mGp, mUp, pro * canonical_projection(J, 1), canonical_injection(J, 1)*inj
   end
 
   prm = get_attribute(J, :induce)[2]
@@ -1007,9 +1098,9 @@ function Oscar.completion(I::IdelParent, P::NfAbsOrdIdl)
   z = findall(pr -> mG(pr)(mKp.P) == P, prm)
   pr = inv(prm[z[1]])
   
-  nKp = MapFromFunc(x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)), I.k, Kp)
+  nKp = MapFromFunc(I.k, Kp, x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)))
 
-  return Kp, nKp, mGp, mUp, pro * Hecke.canonical_projection(J, z[1]), Hecke.canonical_injection(J, z[1])*inj 
+  return Kp, nKp, mGp, mUp, pro * canonical_projection(J, z[1]), canonical_injection(J, z[1])*inj 
 end
 
 function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M}; parent::GModule) where {N, G, M}
@@ -1232,7 +1323,7 @@ mutable struct RelativeBrauerGroup
 end
 
 function Base.show(io::IO, B::RelativeBrauerGroup)
-  print(io, "Relative Brauer group for $(B.K) over $(B.k)\n")
+  print(io, "Relative Brauer group for $(B.K) over $(B.k)")
 end
 
 """
@@ -1254,6 +1345,9 @@ mutable struct RelativeBrauerGroupElem
     return r
   end
 end
+
+Oscar.elem_type(::Type{RelativeBrauerGroup}) = RelativeBrauerGroupElem
+Oscar.parent_type(::Type{RelativeBrauerGroupElem}) = RelativeBrauerGroup
 
 Oscar.parent(a::RelativeBrauerGroupElem) = a.parent
 
@@ -1295,6 +1389,10 @@ end
 
 function Base.show(io::IO, a::RelativeBrauerGroupElem)
   print(io, a.data)
+end
+
+function Base.show(io::IO, m::MIME"text/plain",a::RelativeBrauerGroupElem)
+  show(io, m, a.data)
 end
 
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
@@ -1412,7 +1510,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     G = s
     mG = ms*mG
   else
-    mp = MapFromFunc(x -> K(x), y-> QQ(y), QQ, K)
+    mp = MapFromFunc(QQ, K, x -> K(x), y-> QQ(y))
   end
   B = RelativeBrauerGroup(mp)
   B.mG = mG
@@ -1444,7 +1542,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     S, mS = sunit_group(lP)
 
     MC = Oscar.GrpCoh.MultGrp(K)
-    mMC = MapFromFunc(x->MC(x), y->y.data, K, MC)
+    mMC = MapFromFunc(K, MC, x->MC(x), y->y.data)
 
     mG = B.mG
     G = domain(mG)
@@ -1494,9 +1592,9 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
     return b
   end
 
-  B.map =  MapFromFunc(x->elem_to_cocycle(x), 
-                       y->cocycle_to_elem(y),
-                       B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}}())
+  B.map =  MapFromFunc(B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{nf_elem}}(),
+                       x->elem_to_cocycle(x), 
+                       y->cocycle_to_elem(y))
   return B, B.map
 end
 
@@ -1635,11 +1733,11 @@ end
 function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
   C = A.data[1]
   t = findfirst(isequal(ZZ(P)), [minimum(x) for x = A.S])
-  Inj = Hecke.canonical_injection(A.M, t+1)
-  Pro = Hecke.canonical_projection(A.M, t+1)
+  Inj = canonical_injection(A.M, t+1)
+  Pro = canonical_projection(A.M, t+1)
 
-  inj = Hecke.canonical_injection(domain(Inj), 1)
-  pro = Hecke.canonical_projection(domain(Inj), 1)
+  inj = canonical_injection(domain(Inj), 1)
+  pro = canonical_projection(domain(Inj), 1)
 
   Kp, mKp, mGp, mUp, _, _ = completion(A, A.S[t])
   @assert domain(inj) == domain(mUp) 
@@ -1683,7 +1781,7 @@ end
 Tries to find the canonical generator of `H^2(C)` the  2nd
 cohomology group of the idel-class group.
 
-Currently only works if this can be infered from the local data in
+Currently only works if this can be inferred from the local data in
 the field, ie. if the `lcm` of the degrees of the completions is the
 full field degree.
 """    
@@ -1739,26 +1837,16 @@ function Oscar.cohomology_group(A::IdelParent, i::Int)
   return Oscar.cohomology_group(A.data[1], i)
 end
 
-function Oscar.orbit(C::GModule{PermGroup, GrpAbFinGen}, o::GrpAbFinGenElem)
-  or = Set([o])
-  done = false
-  while !done
-    sz = length(or)
-    done = true
-    for f = C.ac
-      while true
-        or = union(or, [f(x) for x = or])
-        if length(or) == sz
-          break
-        end
-        done = false
-        sz = length(or)
-      end
-    end
-  end
-  return collect(or)
+"""
+For a C a G-module with operation on M and an element o of M,
+compute the G-orbit (not the Z[G] orbit!) of o.
+"""
+function Oscar.orbit(C::GModule, o)
+  @assert parent(o) == C.M
+  return orbit(C.G, (x,y) -> action(C, y, x), o)
 end
 
+#TODO: reduce torsion: the part coprime to |G| can go...
 """
     shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
 
@@ -1767,7 +1855,7 @@ Returns a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
-  local mq
+  mq = hom(C.M, C.M, gens(C.M))
   q = C
   first = true
   while true
@@ -1775,9 +1863,9 @@ function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
     for i=1:attempts
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        s, ms = sub(q.M, o)
+        s, ms = sub(q.M, collect(o), false)
         if rank(s) == length(o)
-          q, _mq = quo(q, ms)
+          q, _mq = quo(q, ms, false)
           if first
             mq = _mq
             first = false
@@ -1834,5 +1922,5 @@ end
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
-export is_coboundary, idel_class_gmodule, relative_brauer_group
+export is_coboundary, idel_class_gmodule, relative_brauer_group, units_mod_ideal
 

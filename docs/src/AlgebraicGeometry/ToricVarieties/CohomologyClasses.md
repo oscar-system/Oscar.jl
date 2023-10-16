@@ -11,7 +11,7 @@ CurrentModule = Oscar
 ### General constructors
 
 ```@docs
-cohomology_class(v::AbstractNormalToricVariety, p::MPolyQuoRingElem)
+cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 cohomology_class(d::ToricDivisor)
 cohomology_class(c::ToricDivisorClass)
 cohomology_class(l::ToricLineBundle)
@@ -61,7 +61,7 @@ integrate(c::CohomologyClass)
 ## Special attributes of toric varieties
 
 ```@docs
-cohomology_ring(v::AbstractNormalToricVariety)
+cohomology_ring(v::NormalToricVarietyType)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
 ```

@@ -25,8 +25,7 @@
 function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
   n = ncols(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
-  ind, val = _block_indices_vals(G, p)
+  ind, val = Hecke._block_indices_vals(G, p)
   # add a virtual even block at the end
   push!(ind, n+1)
   push!(val, val[end] - 1)
@@ -42,7 +41,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
     Ek = identity_matrix(R, ni)
     Zk = zero_matrix(R, ni, ni)
     if p == 2 && a == 1
-      genskmodp = _solve_X_ker(Zk, zeros(R, ni), diagonal(Gk_inv))
+      genskmodp = Hecke._solve_X_ker(Zk, zeros(R, ni), diagonal(Gk_inv))
       gensk = [change_base_ring(R,lift(g)) for g in genskmodp]
     else
       # basis for the space of anti-symmetric matrices
@@ -57,7 +56,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
       end
     end
     for h in gensk
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i1:i2-1, i1:i2-1] = Ek + p^a*h*Gk_inv
       push!(gens, g)
     end
@@ -65,7 +64,7 @@ function _mod_p_to_a_kernel(G::Union{zzModMatrix, ZZModMatrix}, a, p)
   # generators below the block diagonal.
   for i in 1:n
     for j in 1:i
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i,j] = p^a
       flag = true
       for k in 1:(length(ind)-1)
@@ -97,14 +96,14 @@ end
 #
 function _normal(G::Union{ZZModMatrix, zzModMatrix}, p)
   if p == 2
-    D1, B1 = _jordan_2_adic(G)
-    D2, B2 = _normalize(D1, p)
-    D3, B3 = _two_adic_normal_forms(D2, p)
+    D1, B1 = Hecke._jordan_2_adic(G)
+    D2, B2 = Hecke._normalize(D1, p)
+    D3, B3 = Hecke._two_adic_normal_forms(D2, p)
     B = B3 * B2 * B1
     return D3, B
   else
-    D1, B1 = _jordan_odd_adic(G, p)
-    D2, B2 = _normalize(D1, p)
+    D1, B1 = Hecke._jordan_odd_adic(G, p)
+    D2, B2 = Hecke._normalize(D1, p)
     B = B2 * B1
     return D2, B
   end
@@ -178,21 +177,20 @@ function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
     gens_1 = _gens_af(G[1:r-1, 1:r-1], 2)
     E1 = identity_matrix(R, 1)
     gens_1 = [diagonal_matrix([g, E1]) for g in gens_1]
-  elseif _val(G[r, r], 2) == 0
+  elseif Hecke._val(G[r, r], 2) == 0
     # the space of points of 0 square is degenerate with kernel of dim 1
     # the quotient by the kernel is again sympletic
     # but we obtain several possible lifts
     gens_1 = _gens_af(G[1:end-2,1:end-2], 2)
     gens_1 = [diagonal_matrix(g, identity_matrix(R, 2)) for g in gens_1]
-    E = identity_matrix(R, r)
     for i in 1:r-2
-      g = deepcopy(E)
+      g = identity_matrix(R, r)
       g[i, r-1] = 1
       g[i, r] = 1
       g[r-1:end, 1:r-1] = transpose(g[1:r-1, r-1:end]) * G[1:r-1, 1:r-1]
       push!(gens_1, g)
     end
-    g = deepcopy(E)
+    g = identity_matrix(R, r)
     g[end-1:end, end-1:end] = matrix(R, 2, 2, [0, 1, 1, 0])
     push!(gens_1, g)
   else
@@ -203,7 +201,7 @@ function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
   # check that generators are isometries
   for g in gens_1
     err = g*G*transpose(g) - G
-    @assert _min_val(err, 2) >= 1
+    @assert Hecke._min_val(err, 2) >= 1
   end
   return gens_1
 end
@@ -227,18 +225,18 @@ function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
   if r == 0
     return typeof(G)[]
   end
-  v = _min_val(G, 2)
+  v = Hecke._min_val(G, 2)
   G = divexact(G, 2^v)
   if r <= 1
     gens1 = typeof(G)[]
   elseif r == 2
-    if _val(G[end,end], 2) == 0
+    if Hecke._val(G[end,end], 2) == 0
       if mod(lift(G[end,end] + G[end-1,end-1]), 4) == 0
         gens1 = typeof(G)[]
       else
         gens1 = [matrix(R, 2, 2, [0, 1, 1, 0])]
       end
-    elseif _val(G[end,end], 2) == 1
+    elseif Hecke._val(G[end,end], 2) == 1
       gens1 = [matrix(R, 2, 2, [0, 1, 1, 0]),
               matrix(R,2,2, [0, 1, 1, 1])]
     else
@@ -254,7 +252,7 @@ function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
     # continue the isometry as the identity there
     E1 = identity_matrix(R, 1)
     gens1 = [diagonal_matrix([g, E1]) for g in gens1]
-  elseif _val(G[end,end],2) == 0  # now r % 2 == 0
+  elseif Hecke._val(G[end,end],2) == 0  # now r % 2 == 0
     # odd case
     # the space of points of even square is preserved
     # but it is degenerate
@@ -290,8 +288,8 @@ function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
   # check that generators are isometries
   for g in gens1
     err = g*G*transpose(g)-G
-    @assert _min_val(err, 2) >= 1
-    @assert all(_val(d,2)>=2 for d in diagonal(err))
+    @assert Hecke._min_val(err, 2) >= 1
+    @assert all(Hecke._val(d,2)>=2 for d in diagonal(err))
   end
   return gens1
 end
@@ -382,8 +380,8 @@ function _lift(q::T, f::T, a) where T <: Union{ZZModMatrix, zzModMatrix}
   end
   err = g*qb*transpose(g)-qb
   # check that lifting succeeded
-  @assert _min_val(err, 2) >= 1
-  @assert all(_val(d,2)>=2 for d in diagonal(err))
+  @assert Hecke._min_val(err, 2) >= 1
+  @assert all(Hecke._val(d,2)>=2 for d in diagonal(err))
   return inv(b) * g * b
 end
 
@@ -443,8 +441,7 @@ end
 function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
   n = ncols(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
-  indices, valuations = _block_indices_vals(G, p)
+  indices, valuations = Hecke._block_indices_vals(G, p)
   push!(indices, n+1)
   gens1 = typeof(G)[]
   for k in 1:length(indices)-1
@@ -453,7 +450,7 @@ function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
     Gi = divexact(G[i1:i2, i1:i2], R(p)^valuations[k])
     gens_homog = _orthogonal_grp_gens_odd(Gi, p)
     for f in gens_homog
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i1:i2, i1:i2] = f
       push!(gens1, g)
     end
@@ -461,7 +458,7 @@ function _gens_mod_p(G::Union{ZZModMatrix, zzModMatrix}, p)
   # generators below the block diagonal.
   for i in 1:n
     for j in 1:i-1
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[i,j] = 1
       flag = true
       for k in 1:(length(indices)-1)
@@ -494,14 +491,13 @@ end
 function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
     n = ncols(G)
     R = base_ring(G)
-    E = identity_matrix(R, n)
     p = ZZ(2)
-    ind0, val0 = _block_indices_vals(G, 2)
+    ind0, val0 = Hecke._block_indices_vals(G, 2)
     par0 = Int[]
     push!(ind0, n+1)
     for k in 1:length(ind0)-1
         i = ind0[k+1] - 1    # last index of block i
-        if _val(G[i,i], 2)>  val0[k]
+        if Hecke._val(G[i,i], 2)>  val0[k]
           pa = 0
         else
           pa = 1
@@ -548,13 +544,13 @@ function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
         end
 
         for h in gens_k
-            g = deepcopy(E)
+            g = identity_matrix(R, n)
             g[i1:i3,i1:i3] = h
             push!(gens, g)
         end
     end
     # a change in convention
-    trafo = deepcopy(E)
+    trafo = identity_matrix(R, n)
     for k in 2:length(ind)-1
         if par[k] == 1 && mod(ind[k][2]-ind[k][1],2) == 1
            i = ind[k][2]
@@ -585,11 +581,10 @@ function _gens_pair(G::Union{ZZModMatrix, zzModMatrix}, k, on_second)
   G1 = G[1:k,1:k]  # 2^1 - modular
   G1inv = inv(divexact(G1, 2))
   G2 = G[k+1:end,k+1:end]  # 2^0 - modular
-  E = identity_matrix(R, n)
   if on_second
     for f in _orthogonal_gens_bilinear(G2)
       a = diagonal(divexact(f*G2*transpose(f)-G2, 2))
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[k+1:end, k+1:end] = f
       g[k+1:end, k] = a
       push!(gen, g)
@@ -597,7 +592,7 @@ function _gens_pair(G::Union{ZZModMatrix, zzModMatrix}, k, on_second)
   else
     for f in _orthogonal_gens_bilinear(divexact(G1, 2))
       a = [divexact(x,2) for x in diagonal(f*G1*transpose(f) - G1)]
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       g[1:k,1:k] = f
       g[1:k,end] = a
       g[k+1:end,1:k] = - G2 * transpose(divexact(g[1:k,k+1:end],2)) * transpose(inv(f)) * G1inv
@@ -614,7 +609,6 @@ end
 function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
   n = nrows(G)
   R = base_ring(G)
-  E = identity_matrix(R, n)
   gens = typeof(G)[]
   e = n - 1
   if parity[3]==1 && mod(n - i2, 2)==0
@@ -622,7 +616,7 @@ function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
   end
   for i in i2+1:n
     for j in 1:i2
-      g = deepcopy(E)
+      g = identity_matrix(R, n)
       if parity == [0,0,0] || parity == [1,0,0]
         g[i,j] = 1
       elseif parity == [0,0,1]
@@ -758,7 +752,7 @@ function _compute_gens(T::TorQuadModule)
   # normal form gens for the different primes
   blocks = []
   gensT_orders = [order(t) for t in gens(T)]
-  n = length(gens(T))
+  n = ngens(T)
   P = prime_divisors(exponent(T))
   for p in P
     indices = Int[]

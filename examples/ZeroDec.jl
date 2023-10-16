@@ -206,7 +206,7 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
   function indexOfVarN(I::Singular.sideal, n::Int64)
      m = 1
      while div( Singular.leading_term(I[m]),
-		Singular.gen(I.base_ring, n)^(Singular.total_degree(leading_term(I[m])))) == 0
+                Singular.gen(I.base_ring, n)^(Singular.total_degree(leading_term(I[m])))) == 0
        m+=1;
      end
      return m
@@ -308,7 +308,7 @@ function vdim_internal(I::Singular.sideal, usefglm::Bool = false)
   primary = Vector{Singular.sideal}(undef, 0)
 
   #Compute ideal I without the first element for easier computation
-  I_without_I1 = Singular.Ideal(R, gens(I)[2:length(gens(I))])
+  I_without_I1 = Singular.Ideal(R, gens(I)[2:end])
   for k in 1:length(gi)
        I_without_I1 = Singular.deepcopy(I_without_I1)
        prm = addGenerator(I_without_I1, gi[k]^g[gi[k]])

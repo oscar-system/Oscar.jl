@@ -60,18 +60,31 @@ end
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
     @test sprint(show, "text/plain", K) == "Abelian closure of Q"
-    @test get_variable(K) == "ζ"
+
+    orig = get_variable(K)
+    @test orig == "zeta"
     s = sprint(show, "text/plain", z)
 
     a = z(1)
     sprint(show, "text/plain", a) == "1"
     a = z(4)
-    sprint(show, "text/plain", a) == "ζ(4)"
-
-    t = set_variable!(K, "z")
-    @test t == "ζ"
-    @test get_variable(K) == "z"
     sprint(show, "text/plain", a) == "z(4)"
+    Oscar.with_unicode() do
+      # The following holds only if `set_variable!`
+      # has not been called before for `K`.
+      @test get_variable(K) == "ζ"
+      s = sprint(show, "text/plain", z)
+
+      a = z(1)
+      sprint(show, "text/plain", a) == "1"
+      a = z(4)
+      sprint(show, "text/plain", a) == "ζ(4)"
+    end
+
+    t = set_variable!(K, "zz")
+    @test t == "zeta"
+    @test get_variable(K) == "zz"
+    sprint(show, "text/plain", a) == "zz(4)"
 
     zz = gen(K, "ω")
     @test get_variable(K) == "ω"
@@ -81,7 +94,7 @@ end
     @test isone(a^4) && !isone(a) && !isone(a^2)
 
     # reset variable for any subsequent (doc-)tests
-    set_variable!(K, "ζ")
+    @test set_variable!(K, orig) == "ω"
   end
 
   @testset "Coercion" begin
@@ -94,6 +107,7 @@ end
     fb = minpoly(Oscar.AbelianClosure.data(b))
     fc = minpoly(Oscar.AbelianClosure.data(c))
     fd = minpoly(Oscar.AbelianClosure.data(d))
+    @test fa == minpoly(a)
     @test iszero(fa(c)) && iszero(fc(a))
     @test iszero(fb(d)) && iszero(fd(b))
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
@@ -144,6 +158,31 @@ end
       @test a^10 == reduce(*, fill(a, 10))
       @test a^ZZRingElem(10) == reduce(*, fill(a, 10))
     end
+  end
+
+  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo._GF]
+    K, z = abelian_closure(QQ)
+    F = gf_fun(2, 1)
+    @test reduce(z(2), F) == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
+    @test_throws ErrorException reduce(z(4), F)
+    F = gf_fun(2, 2)
+    red = reduce(z(3), F)
+    @test red != one(F) && red^3 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(7), F)
+    F = gf_fun(2, 3)
+    red = reduce(z(7), F)
+    @test red != one(F) && red^7 == one(F)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    F = gf_fun(3, 2)
+    @test reduce(one(K), F) == one(F)
+    @test reduce(zero(K), F) == zero(F)
+    @test_throws ErrorException reduce(z(3), F)
   end
 
   @testset "Unsafe operations" begin
@@ -314,4 +353,28 @@ end
   K, z = abelian_closure(QQ)
   S = [z(3)]
   @test degree(number_field(QQ, S)[1]) == 2
+
+  @testset "Syntax to create number fields from QabElem" begin
+    K, z = abelian_closure(QQ)
+    F, a = QQ[z(5)]
+    @test F isa AnticNumberField
+    @test dim(F) == 4
+    F, a = QQ[[z(5), z(3)]]
+    @test F isa AnticNumberField
+    @test dim(F) == 8
+    F, a = QQ[z(5), z(3)]
+    @test F isa AnticNumberField
+    @test dim(F) == 8
+  end
+
+  @testset "Atlas irrationalities" begin
+    K, z = abelian_closure(QQ)
+    vals = [z(7) + z(7)^2 + z(7)^4,
+            z(8) + z(8)^3,
+            z(9) + z(9)^-1,
+            z(3) - z(3)^2]
+    for val in vals
+      @test atlas_irrationality(atlas_description(val)) == val
+    end
+  end
 end

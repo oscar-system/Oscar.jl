@@ -3,19 +3,6 @@
 #
 LoadPackage("alnuth"); # HACK
 
-BindGlobal("ReplaceGapFunc", function(name, func)
-  local orig_name;
-  # Store a copy of the original value, but only if that copy does not yet
-  # exist. This ensures we don't overwrite it during a call to `Reread`.
-  orig_name := Concatenation("_ORIG_", name);
-  if not IsBoundGlobal(orig_name) then
-    BindGlobal(orig_name, ValueGlobal(name));
-  fi;
-  MakeReadWriteGlobal(name);
-  UnbindGlobal(name);
-  BindGlobal(name, func);
-end);
-
 # store isomorphism between GAP and OSCAR univariate polynomial ring over the
 # rationals as we need it a lot
 BindGlobal("_PolyRingIso", Oscar.iso_gap_oscar(PolynomialRing(Rationals)));
@@ -127,14 +114,12 @@ BindGlobal("NormCosetsDescriptionOscar", function(F, norm)
   return rec(units := units, creps := creps);
 end);
 
-BindGlobal("_Vector_nf_elem", Oscar.eval(Julia.Meta.parse(GAPToJulia("Vector{nf_elem}"))));
-
 BindGlobal("PolynomialFactorsDescriptionOscar", function(F, coeffs)
   local K, cf, poly, facs, result, f, g, i;
 
   K := _OscarField(F);
 
-  cf := _Vector_nf_elem(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
+  cf := Oscar.Alnuth._Vector_nf_elem(Reversed(List(coeffs, x -> K(GAPToJulia(x)))));
   poly := Oscar.polynomial(K, cf);
   facs := Oscar.factor(poly);
   Assert(0, Oscar.is_one(facs.unit));

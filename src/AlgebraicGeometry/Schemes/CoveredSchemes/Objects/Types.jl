@@ -2,13 +2,15 @@
 ########################################################################
 # Abstract type for covered schemes                                    #
 ########################################################################
-@doc raw"""
-    AbsCoveredScheme{BaseRingType}
-
-An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
-`BaseRingType`, given by means of affine charts and their glueings.
-"""
-abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
+#@doc raw"""
+#    AbsCoveredScheme{BaseRingType}
+#
+#An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
+#`BaseRingType`, given by means of affine charts and their glueings.
+#"""
+#abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
+#
+# Moved to src/forward_declarations.jl
 
 ########################################################################
 # A minimal implementation of AbsCoveredScheme                         #

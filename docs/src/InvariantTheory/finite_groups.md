@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Invariants of Finite Groups
@@ -16,7 +14,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
           $\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$
          
          Moreover, $K[V]^G$ is finitely generated as a $K$-algebra.
-		   
+
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
        $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(f \;\!   . \;\! \pi).$
@@ -77,7 +75,7 @@ Moreover, `is_modular(IR)` returns `true` in the modular case, and
 ###### Examples
 
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -91,22 +89,25 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> group(IR)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> coefficient_ring(IR)
-Cyclotomic field of order 3
+Number field with defining polynomial _$^2 + _$ + 1
+  over rational field
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
@@ -133,13 +134,13 @@ reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) 
 ## Invariants of a Given Degree
 
 ```@docs
-basis(IR::InvRing, d::Int, algo::Symbol = :default)
+basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ```@docs
-iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
@@ -166,10 +167,14 @@ secondary_invariants(IR::InvRing)
 irreducible_secondary_invariants(IR::InvRing)
 ```
 
+```@docs
+module_syzygies(RG::InvRing)
+```
+
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
+fundamental_invariants(IR::InvRing, algorithm::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras

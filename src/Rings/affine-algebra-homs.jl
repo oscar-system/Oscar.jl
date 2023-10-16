@@ -8,7 +8,7 @@ export AlgebraHomomorphism, codomain, compose, domain, hom,
 #
 ###############################################################################
 
-struct IdAlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
+struct IdAlgHom{T} <: Map{Ring, Ring,
          AbstractAlgebra.IdentityMap, IdAlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
 
    domain::Union{MPolyRing, MPolyQuo}
@@ -79,7 +79,7 @@ end
 #
 ###############################################################################
 
-mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
+mutable struct AlgHom{T} <: Map{Ring, Ring,
          AbstractAlgebra.SetMap, AlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
    domain::Union{MPolyRing, MPolyQuo}
    codomain::Union{MPolyRing, MPolyQuo}
@@ -115,7 +115,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
       Dx = singular_ring(D)
       Cx = singular_ring(C)
       
-      z = new(D, C, V, MapFromFunc(x->evaluate(x, V), D, C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
+      z = new(D, C, V, MapFromFunc(D, C, x->evaluate(x, V)), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
    end
 
@@ -130,7 +130,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
 
       Dx = singular_ring(D)
       Cx = singular_ring(C)
-      z = new(D, C, V, MapFromFunc(x->evaluate(x, V), base_ring(D), C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
+      z = new(D, C, V, MapFromFunc(base_ring(D), C, x->evaluate(x, V)), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
    end
 
@@ -144,7 +144,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
 
       Dx = singular_ring(D)
       Cx = singular_ring(C)
-      z = new(D, C, V, MapFromFunc(x->evaluate(x, V), D.R, C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
+      z = new(D, C, V, MapFromFunc(D.R, C, x->evaluate(x, V)), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
    end
 end
@@ -184,10 +184,10 @@ Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 
 # Examples
 ```jldoctest
-julia> D, (t,) = PolynomialRing(QQ, ["t"])
+julia> D, (t,) = polynomial_ring(QQ, ["t"])
 (Multivariate Polynomial Ring in t over Rational Field, fmpq_mpoly[t])
 
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> C, _ = quo(R,  ideal(R, [x*y-1]))

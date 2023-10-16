@@ -25,16 +25,16 @@ function pullback(f::SpecOpenMor)
     U = codomain(f)
     V = domain(f)
     # First check whether we are in an easy case where we only have a restriction
-    if ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f)) && gens(V) == gens(U)
+    if ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f)) && complement_equations(V) == complement_equations(U)
       function my_restr(a::SpecOpenRingElem)
         return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:ngens(V)])
       end
-      f.pullback = Hecke.MapFromFunc(my_restr, OO(U), OO(V))
-      return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+      f.pullback = MapFromFunc(OO(U), OO(V), my_restr)
+      return f.pullback::Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
     end
 
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
-    d = [pullback(f[i]).(gens(U)) for i in 1:ngens(V)]
+    d = [pullback(f[i]).(complement_equations(U)) for i in 1:ngens(V)]
     W = [SpecOpen(V[i], ideal(OO(V[i]), d[i]), check=false) for i in 1:ngens(V)]
     # Not every element of d needs to be non-zero. But zero elements will be 
     # discarded by the constructor for the SpecOpen! So we need to manually 
@@ -66,7 +66,7 @@ function pullback(f::SpecOpenMor)
       return SpecOpenRingElem(OO(V), b, check=false)
 
       # shortcut for regular elements on the ambient variety
-      # Does not work because of parent check done by the Hecke.Map
+      # Does not work because of parent check done by the Map
       # function mymap(a::RingElem)
       #   parent(a) === OO(ambient(U)) || return mymap(OO(ambient(U))(a))
       #   return SpecOpenRingElem(OO(V), 
@@ -74,8 +74,8 @@ function pullback(f::SpecOpenMor)
       #                           check=false)
       # end
     end
-    f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
+    f.pullback = MapFromFunc(OO(U), OO(V), mymap)
   end
-  return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+  return f.pullback::Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
 end
 

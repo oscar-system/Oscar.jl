@@ -45,12 +45,13 @@ function (F::FinField)(x::GAP.FFE)
         # value fits into an Int; telling Julia about this via a type assertion
         # results in slightly better code
         val = GAPWrap.INT_FFE_DEFAULT(x)
-        return F(val)
+        return F(val)::elem_type(F)
     end
 
-    # HACK: use `iso_oscar_gap` for now, until `iso_gap_oscar` becomes available
+    # Use `iso_oscar_gap` not `iso_gap_oscar` in order to make sure
+    # that the result is in `F`, and in order to cache the isomorphism in `F`.
     iso = iso_oscar_gap(F)
-    return preimage(iso, x)
+    return preimage(iso, x)::elem_type(F)
 end
 
 # test code for producing a gap finite field element not stored as FFE:  `GAP.Globals.Z(65537)`

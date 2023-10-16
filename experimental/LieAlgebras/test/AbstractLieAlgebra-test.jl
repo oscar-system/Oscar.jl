@@ -1,5 +1,5 @@
 @testset "LieAlgebras.AbstractLieAlgebra" begin
-  function sl2_struct_consts(R::Ring)
+  function sl2_struct_consts(R::Field)
     sc = zeros(R, 3, 3, 3)
     sc[1, 2, 3] = R(1)
     sc[2, 1, 3] = R(-1)
@@ -11,6 +11,14 @@
   end
 
   @testset "conformance tests" begin
+    @testset "0-dim Lie algebra /QQ" begin
+      L = lie_algebra(QQ, Matrix{SRow{QQFieldElem}}(undef, 0, 0), Symbol[])
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "sl_2(QQ) using structure constants" begin
       L = lie_algebra(QQ, sl2_struct_consts(QQ), ["e", "f", "h"])
       lie_algebra_conformance_test(
@@ -24,6 +32,14 @@
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
       )
+    end
+
+    @testset "4-dim abelian Lie algebra /QQ" begin
+      L = abelian_lie_algebra(AbstractLieAlgebra, QQ, 4)
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
     end
 
     @testset "A_4(QQ)" begin

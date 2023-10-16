@@ -77,7 +77,7 @@ end
   R0 = F(U[1])
   yx, zx = gens(R0)
   W = PrincipalOpenSubset(U[1], yx)
-  @test F(U[1], W)(gens(R0)[1]) == OO(W)(gens(R0)[1])
+  @test F(U[1], W)(gen(R0, 1)) == OO(W)(gen(R0, 1))
   rho = F(U[2], W)
   @test rho === F(U[2], W)
   R1 = F(U[2])

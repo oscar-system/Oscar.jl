@@ -283,7 +283,7 @@ function Localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
     end
     return c
   end
-  return L, MapFromFunc(func, func_inv, A, L)
+  return L, MapFromFunc(A, L, func, func_inv)
 end
 
 function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
@@ -304,7 +304,7 @@ function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
     i, o = ppio(denominator(a), d)
     return A(divexact(numerator(f), i), o, check=false)
   end
-  return L, MapFromFunc(func, func_inv, A, L)
+  return L, MapFromFunc(A, L, func, func_inv)
 end
 
 function Localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
@@ -330,6 +330,6 @@ function Localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
     end
     return A(lift(c), o, check=false)
   end
-  return L, MapFromFunc(func, func_inv, A, L)
+  return L, MapFromFunc(A, L, func, func_inv)
 end
 

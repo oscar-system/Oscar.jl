@@ -437,12 +437,12 @@ function find_good_basis_heuristically(M::Matroid)
 end
 
 
-#returns the factors of f, but not the exponents
+# Return the factors of f, but not the exponents
 function poly_2_factors(f::RingElem)
     return collect(keys(Dict(factor(f))))
 end
 
-# returns the unique factors of the elements of Sgen, again no exponents. 
+# Return the unique factors of the elements of Sgen, again no exponents. 
 function gens_2_factors(Sgens::Vector{<:RingElem})
     return unique!(vcat([poly_2_factors(f) for f in Sgens]...))
 end

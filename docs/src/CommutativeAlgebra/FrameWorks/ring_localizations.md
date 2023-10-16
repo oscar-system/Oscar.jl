@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar 
+CurrentModule = Oscar
 DocTestSetup = quote
   using Oscar
 end
@@ -36,14 +36,14 @@ Coercing (pairs of) elements of `R` into fractions in `Rloc` must be possible as
    (Rloc::AbsLocalizedRing)(f::RingElem)
    (Rloc::AbsLocalizedRing)(f::RingElem, g::RingElem; check::Bool=true)
 ```
-   
+
 The first constructor maps the element `f` of `R` to the fraction `f//1` in `Rloc`.
 The second constructor takes a pair `f, g` of elements of `R` to the fraction `f//g`
 in `Rloc`. The default `check = true` stands for testing whether `g` is an admissible
 denominator. As this test is often expensive, it may be convenient
 to set `check = false`.
 
-For any concrete instance of type `AbsLocalizedRingElem`, methods for the functions 
+For any concrete instance of type `AbsLocalizedRingElem`, methods for the functions
 `parent`, `numerator`, and `denominator` must be provided. Moreover,
 if a cancellation function for the type of fractions under consideration is
 not yet available, such a function should be implemented and named

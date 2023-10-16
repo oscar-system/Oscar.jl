@@ -21,28 +21,18 @@ morphisms are exactly the toric morphisms.
 
 ## Constructors
 
-### Generic constructors without specified codomain
-
-```@docs
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap)
-```
 
 ### Generic constructors with specified codomain
 
 ```@docs
-toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-toric_morphism(v1::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, v2::AbstractNormalToricVariety) where {T <: IntegerUnion}
-toric_morphism(domain::AbstractNormalToricVariety, mapping_matrix::ZZMatrix, codomain::AbstractNormalToricVariety)
-toric_morphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap, codomain::AbstractNormalToricVariety)
+toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
+toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
 ```
 
 ### Special constructors
 
 ```@docs
-toric_identity_morphism(variety::AbstractNormalToricVariety)
+toric_identity_morphism(variety::NormalToricVarietyType)
 ```
 
 
@@ -59,6 +49,7 @@ morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
 morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 morphism_on_class_group(tm::ToricMorphism)
 morphism_on_picard_group(tm::ToricMorphism)
+covering_morphism(f::ToricMorphism)
 ```
 
 ### Special attributes of toric varieties
@@ -73,6 +64,6 @@ of $\mathbb{R}^N$ and the maximal cones are one to one to the maximal cones of
 the fan of $v$.
 
 ```@docs
-morphism_from_cox_variety(variety::AbstractNormalToricVariety)
-cox_variety(variety::AbstractNormalToricVariety)
+morphism_from_cox_variety(variety::NormalToricVarietyType)
+cox_variety(variety::NormalToricVarietyType)
 ```

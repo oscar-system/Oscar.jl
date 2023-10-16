@@ -18,10 +18,10 @@ modules which naturally  includes both submodules and quotients of free modules.
 !!! note
     Most functions in this section rely on Gröbner (standard) bases techniques. Thus, the functions
     should not be applied to modules over rings other than those from the list above. See the Linear
-	Algebra chapter for module types which are designed to handle modules over Euclidean
-	domains.
+    Algebra chapter for module types which are designed to handle modules over Euclidean
+    domains.
 
 !!! note
     For simplicity of the presentation in what follows, functions are often only illustrated by examples  
     with focus on modules over multivariate polynomial rings, but work similarly for modules over
-	a ring of any of the above types.
+    a ring of any of the above types.

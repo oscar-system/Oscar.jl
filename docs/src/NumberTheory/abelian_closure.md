@@ -21,6 +21,8 @@ Given the abelian closure, the generator can be recovered as follows:
 
 ```@docs
 gen(::QQAbField)
+atlas_irrationality
+atlas_description
 ```
 
 ## Printing
@@ -47,4 +49,10 @@ Generator of abelian closure of Q
 
 julia> ζ(5) + ζ(3)
 ζ(15)^5 + ζ(15)^3
+```
+
+## Reduction to characteristic ``p``
+
+```@docs
+reduce(val::QQAbElem, F::FinField)
 ```

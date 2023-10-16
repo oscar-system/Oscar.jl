@@ -43,16 +43,18 @@ julia> matrix(QQ, rays(NF))
 [ 0    0   -1]
 ```
 """
-rays(PF::_FanLikeType{T}) where T<:scalar_types = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{T}, pm_object(PF))
-_rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, _nrays(PF))
+rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
 
-_ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.RAYS, i, :))
+_ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
+  ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
 
-_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.RAYS, 0) : PF.RAYS
+_vector_matrix(::Val{_ray_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).RAYS, 0) : pm_object(PF).RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
-_maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(PF, i - 1))
+_maximal_cone(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
+  Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1), coefficient_field(PF))
 
 
 @doc raw"""                                                 
@@ -87,14 +89,20 @@ julia> rays(NF)
 0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
-rays_modulo_lineality(F::_FanLikeType{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, F) 
-function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where T<:scalar_types
+rays_modulo_lineality(F::_FanLikeType) =
+  rays_modulo_lineality(
+    NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{_get_scalar_type(F)}}, SubObjectIterator{RayVector{_get_scalar_type(F)}}}},
+    F
+  )
+
+function rays_modulo_lineality(::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, F::_FanLikeType) where {T<:scalar_types}
     return (
         rays_modulo_lineality = _rays(F),
         lineality_basis = lineality_space(F)
     )
 end
-rays_modulo_lineality(as::Type{RayVector}, F::_FanLikeType) = _rays(F)
+
+rays_modulo_lineality(::Type{<:RayVector}, F::_FanLikeType) = _rays(F)
     
 
 
@@ -120,9 +128,11 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{Cone{T}}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
 
-_ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
+_ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
+
+_incidencematrix(::Val{_maximal_cone}) = _ray_indices
 
 @doc raw"""
     cones(PF::PolyhedralFan, cone_dim::Int)
@@ -150,17 +160,22 @@ julia> cones(PF, 2)
  Polyhedral cone in ambient dimension 3
 ```
 """
-function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
+function cones(PF::_FanLikeType, cone_dim::Int)
     l = cone_dim - length(lineality_space(PF))
     l < 1 && return nothing
-    return SubObjectIterator{Cone{T}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
+    return SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
-function _cone_of_dim(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
-    return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
+function _cone_of_dim(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
+  R = pm_object(PF).RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(pm_object(PF), c_dim), i)), :]
+  L = pm_object(PF).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T)
+  return Cone{T}(Polymake.polytope.Cone{PT}(RAYS = R, LINEALITY_SPACE = L), coefficient_field(PF))
 end
 
-_ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
+_ray_indices(::Val{_cone_of_dim}, PF::_FanLikeType; c_dim::Int = 0) = Polymake.fan.cones_of_dim(pm_object(PF), c_dim)
+
+_incidencematrix(::Val{_cone_of_dim}) = _ray_indices
 
 
 @doc raw"""
@@ -215,7 +230,7 @@ Return the dimension of `PF`.
 This fan in the plane contains a 2-dimensional cone and is thus 2-dimensional
 itself.
 ```jldoctest
-julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
 
 julia> dim(PF)
 2
@@ -232,7 +247,7 @@ Return the number of maximal cones of `PF`.
 The cones given in this construction are non-redundant. Thus there are two
 maximal cones.
 ```jldoctest
-julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
 
 julia> n_maximal_cones(PF)
 2
@@ -249,7 +264,7 @@ Return the number of cones of `PF`.
 The cones given in this construction are non-redundant. There are six
 cones in this fan.
 ```jldoctest
-julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]))
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]))
 Polyhedral fan in ambient dimension 2
 
 julia> n_cones(PF)
@@ -371,7 +386,7 @@ This fan consists of two cones, one containing all the points with $y ≤ 0$ and
 one containing all the points with $y ≥ 0$. The fan's lineality is the common
 lineality of these two cones, i.e. in $x$-direction.
 ```jldoctest
-julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3, 4, 1]]))
+julia> PF = polyhedral_fan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3, 4, 1]]))
 Polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
@@ -379,11 +394,11 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _lineality_fan, lineality_dim(PF))
 
-_lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.LINEALITY_SPACE, i, :))
+_lineality_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} = ray_vector(coefficient_field(PF), view(pm_object(PF).LINEALITY_SPACE, i, :))::U
 
-_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.LINEALITY_SPACE, 0) : PF.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_fan}, PF::_FanLikeType; homogenized=false) = homogenized ? homogenize(pm_object(PF).LINEALITY_SPACE, 0) : pm_object(PF).LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 
@@ -426,13 +441,13 @@ Determine whether `PF` is smooth.
 Even though the cones of this fan cover the positive orthant together, one of
 these und thus the whole fan is not smooth.
 ```jldoctest
-julia> PF = PolyhedralFan([0 1; 2 1; 1 0], IncidenceMatrix([[1, 2], [2, 3]]));
+julia> PF = polyhedral_fan([0 1; 2 1; 1 0], IncidenceMatrix([[1, 2], [2, 3]]));
 
 julia> is_smooth(PF)
 false
 ```
 """
-is_smooth(PF::_FanLikeType{QQFieldElem}) = pm_object(PF).SMOOTH_FAN::Bool
+is_smooth(PF::_FanLikeTypeQQ) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc raw"""
     is_regular(PF::PolyhedralFan)
@@ -442,13 +457,47 @@ Determine whether `PF` is regular, i.e. the normal fan of a polytope.
 # Examples
 This fan is not complete and thus not regular.
 ```jldoctest
-julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
 
 julia> is_regular(PF)
 false
 ```
 """
 is_regular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
+
+
+@doc raw"""
+    is_pure(PF::PolyhedralFan)
+
+Determine whether `PF` is pure, i.e. all maximal cones have the same dimension.
+
+# Examples
+```jldoctest
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+
+julia> is_pure(PF)
+false
+```
+"""
+is_pure(PF::_FanLikeType) = pm_object(PF).PURE::Bool
+
+
+@doc raw"""
+    is_fulldimensional(PF::PolyhedralFan)
+
+Determine whether `PF` is fulldimensional, i.e. at least one maximal cone has maximal
+dimension.
+
+# Examples
+```jldoctest
+julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+
+julia> is_fulldimensional(PF)
+true
+```
+"""
+is_fulldimensional(PF::_FanLikeType) = pm_object(PF).FULL_DIM::Bool
+
 
 @doc raw"""
     is_complete(PF::PolyhedralFan)

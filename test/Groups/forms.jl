@@ -1,29 +1,29 @@
 @testset "Definition forms" begin
    T,t = polynomial_ring(GF(3),"t")
-   F,z = FiniteField(t^2+1,"z")
+   F,z = finite_field(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
-   @test is_skewsymmetric_matrix(B)
+   @test is_alternating(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
    @test !is_symmetric(B)
-   @test !is_hermitian_matrix(B)
-   @test is_alternating_form(f)
-   @test !is_quadratic_form(f)
-   @test !is_symmetric_form(f)
-   @test !is_hermitian_form(f)
+   @test !is_hermitian(B)
+   @test is_alternating(f)
+   @test !is_quadratic(f)
+   @test !is_symmetric(f)
+   @test !is_hermitian(f)
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
-   @test is_hermitian_matrix(B)
+   @test is_hermitian(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test is_hermitian_form(f)
+   @test is_hermitian(f)
    @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
@@ -35,8 +35,8 @@
    f = symmetric_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test is_symmetric_form(f)
-   @test !is_hermitian_form(f)
+   @test is_symmetric(f)
+   @test !is_hermitian(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
    R = polynomial_ring(F,4)[1]
@@ -61,20 +61,20 @@
    R,x = polynomial_ring(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
-   @test is_quadratic_form(Q)
+   @test is_quadratic(Q)
    f = corresponding_bilinear_form(Q)
-   @test is_symmetric_form(f)
+   @test is_symmetric(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
    T,t = polynomial_ring(GF(2),"t")
-   F,z = FiniteField(t^2+t+1,"z")
+   F,z = finite_field(t^2+t+1,"z")
    R = polynomial_ring(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
-   @test is_quadratic_form(Q)
+   @test is_quadratic(Q)
    @test gram_matrix(Q)==matrix(F,4,4,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
    f = corresponding_bilinear_form(Q)
-   @test is_alternating_form(f)
+   @test is_alternating(f)
    @test gram_matrix(f)==matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
    @test_throws ArgumentError corresponding_quadratic_form(f)
 
@@ -82,7 +82,7 @@
 end
 
 @testset "Evaluating forms" begin
-   F,z = FiniteField(3,2,"z")
+   F,z = finite_field(3,2,"z")
    V=VectorSpace(F,6)
 
    x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
@@ -129,7 +129,7 @@ end
    f = symmetric_form(x+transpose(x))
    @test radical(f)[1]==sub(V,[V[1],V[2]])[1]
    @test f*F(3)==F(3)*f;
-   @test is_symmetric_form(f*F(3))
+   @test is_symmetric(f*F(3))
    @test gram_matrix(f*F(3))==F(3)*(x+transpose(x))
    @test is_degenerate(f)
    x[1,2]=1;
@@ -177,7 +177,7 @@ end
    @test z==nothing
 
    T,t = polynomial_ring(GF(3),"t")
-   F,a = FiniteField(t^2+1,"a")
+   F,a = finite_field(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
@@ -201,7 +201,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = FiniteField(2,3,"a")
+   F,a = finite_field(2,3,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=a; x[2,3]=a^2+1; x[3,4]=1; x[1,5]=a^2+a+1; x[5,6]=1; x=x-transpose(x)
    y = zero_matrix(F,6,6)
@@ -236,7 +236,7 @@ end
    @test_throws ArgumentError is_congruent(f,g)
 
    #hermitian
-   F,a = FiniteField(3,2,"a")
+   F,a = finite_field(3,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a-1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -253,7 +253,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = FiniteField(2,2,"a")
+   F,a = finite_field(2,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -297,7 +297,7 @@ end
    is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
-   F,a = FiniteField(2,2,"a")
+   F,a = finite_field(2,2,"a")
    R = polynomial_ring(F,6)[1]
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
@@ -473,7 +473,7 @@ end
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test is_skewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+      @test is_alternating(g.elm*B*transpose(g.elm)-B)
    end
 
    G = GU(4,5)
@@ -629,15 +629,15 @@ end
   N,_ = direct_sum(N1,N2)
   @test order(orthogonal_group(N))==144
 
-  L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
+  L = integer_lattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
   G = orthogonal_group(L)
   @test order(G)==32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
-  @test order(oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
+  @test order(Oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
 
   gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
-  L = Zlattice(gram=gram)
+  L = integer_lattice(gram=gram)
   @test order(orthogonal_group(L)) == 267544166400
 
   H = hyperbolic_plane_lattice()

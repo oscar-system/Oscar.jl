@@ -25,7 +25,7 @@ To construct a polyhedral fan, you must pass the rays of each cone in the fan,
 along with an `IncidenceMatrix` encoding which rays generate which cones.
 
 ```@docs
-PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+polyhedral_fan
 polyhedral_fan_from_rays_action
 ```
 
@@ -46,16 +46,17 @@ is_regular(PF::PolyhedralFan)
 is_simplicial(PF::PolyhedralFan)
 is_smooth(PF::PolyhedralFan{QQFieldElem})
 lineality_dim(PF::PolyhedralFan)
-lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
-maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types
-cones(PF::PolyhedralFan{T}, cone_dim::Int) where T<:scalar_types
+lineality_space(PF::PolyhedralFan)
+maximal_cones(PF::PolyhedralFan)
+cones(PF::PolyhedralFan, cone_dim::Int)
 cones(PF::PolyhedralFan)
 n_maximal_cones(PF::PolyhedralFan)
 n_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
-rays(PF::PolyhedralFan{T}) where T<:scalar_types
-rays_modulo_lineality(PF::PolyhedralFan{T}) where T<:scalar_types
+rays(PF::PolyhedralFan)
+rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
-star_subdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
-*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+star_subdivision(PF::PolyhedralFan, n::Int)
+star_subdivision(PF::PolyhedralFan, new_ray::AbstractVector{<:IntegerUnion})
+*(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 ```

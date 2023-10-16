@@ -1,0 +1,537 @@
+@attributes mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
+                           Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
+  header::MapHeader{T1,T2}
+  matrix::MatElem
+
+  inverse_isomorphism::LieAlgebraModuleHom{T2,T1}
+
+  function LieAlgebraModuleHom(
+    V1::LieAlgebraModule,
+    V2::LieAlgebraModule,
+    imgs::Vector{<:LieAlgebraModuleElem};
+    check::Bool=true,
+  )
+    @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
+    @req all(x -> parent(x) === V2, imgs) "Images must lie in the codomain"
+    @req length(imgs) == dim(V1) "Number of images must match dimension of domain"
+
+    mat = zero_matrix(coefficient_ring(V2), dim(V1), dim(V2))
+    for (i, img) in enumerate(imgs)
+      mat[i, :] = _matrix(img)
+    end
+    return LieAlgebraModuleHom(V1, V2, mat; check)
+  end
+
+  function LieAlgebraModuleHom(
+    V1::LieAlgebraModule, V2::LieAlgebraModule, mat::MatElem; check::Bool=true
+  )
+    @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
+    @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
+    h = new{typeof(V1),typeof(V2)}()
+    h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
+    h.header = MapHeader(V1, V2)
+    if check
+      @req is_welldefined(h) "Not a homomorphism"
+    end
+    return h
+  end
+end
+
+###############################################################################
+#
+#   Basic properties
+#
+###############################################################################
+
+@doc raw"""
+    matrix(h::LieAlgebraModuleHom) -> MatElem
+    
+Return the transformation matrix of `h` w.r.t. the bases of the domain and codomain.
+
+Note: The matrix operates on the coefficient vectors from the right.
+"""
+function matrix(
+  h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
+) where {C2<:FieldElem}
+  return (h.matrix)::dense_matrix_type(C2)
+end
+
+@doc raw"""
+    is_welldefined(h::LieAlgebraModuleHom) -> Bool
+
+Return `true` if `h` is a well-defined homomorphism of Lie algebra modules.
+This function is used internally when calling `hom` with `check=true`.
+"""
+function is_welldefined(h::LieAlgebraModuleHom)
+  V1 = domain(h)
+  for x in basis(base_lie_algebra(V1)), v in basis(V1)
+    x * h(v) == h(x * v) || return false
+  end
+  return true
+end
+
+###############################################################################
+#
+#   String I/O
+#
+###############################################################################
+
+function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
+  io = pretty(io)
+  println(IOContext(io, :supercompact => true), h)
+  print(io, Indent())
+  println(io, "from ", Lowercase(), domain(h))
+  print(io, "to ", Lowercase(), codomain(h))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, h::LieAlgebraModuleHom)
+  io = pretty(io)
+  if get(io, :supercompact, false)
+    print(io, LowercaseOff(), "Lie algebra module morphism")
+  else
+    print(io, LowercaseOff(), "Lie algebra module morphism: ")
+    print(io, Lowercase(), domain(h), " -> ", Lowercase(), codomain(h))
+  end
+end
+
+###############################################################################
+#
+#   Comparison
+#
+###############################################################################
+
+function Base.:(==)(h1::LieAlgebraModuleHom, h2::LieAlgebraModuleHom)
+  return domain(h1) === domain(h2) &&
+         codomain(h1) === codomain(h2) &&
+         matrix(h1) == matrix(h2)
+end
+
+function Base.hash(f::LieAlgebraModuleHom, h::UInt)
+  b = 0x7b887214521c25b7 % UInt
+  h = hash(objectid(domain(f)), h)
+  h = hash(objectid(codomain(f)), h)
+  h = hash(matrix(f), h)
+  return xor(h, b)
+end
+
+###############################################################################
+#
+#   Image and kernel
+#
+###############################################################################
+
+@doc raw"""
+    image(h::LieAlgebraModuleHom, v::LieAlgebraModuleElem) -> LieAlgebraModuleElem
+
+Return the image of `v` under `h`.
+"""
+function image(
+  h::LieAlgebraModuleHom{T1,T2}, v::LieAlgebraModuleElem
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+  @req parent(v) === domain(h) "Domain mismatch"
+  return codomain(h)(_matrix(v) * matrix(h))
+end
+
+# TODO: image and kernel, once submodules are implemented
+
+###############################################################################
+#
+#   Map operations
+#
+###############################################################################
+
+@doc raw"""
+    compose(f::LieAlgebraModuleHom, g::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Return the composition of `f` and `g`, i.e. the homomorphism `h` such that
+`h(x) = g(f(x))` for all `x` in the domain of `f`.
+The codomain of `f` must be identical to the domain of `g`.
+"""
+function compose(
+  f::LieAlgebraModuleHom{T1,T2}, g::LieAlgebraModuleHom{T2,T3}
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule,T3<:LieAlgebraModule}
+  @req codomain(f) === domain(g) "Composition: Maps are not compatible"
+  h = LieAlgebraModuleHom(domain(f), codomain(g), matrix(f) * matrix(g); check=false)
+  if isdefined(f, :inverse_isomorphism) && isdefined(g, :inverse_isomorphism)
+    h.inverse_isomorphism = LieAlgebraModuleHom(
+      codomain(g),
+      domain(f),
+      matrix(g.inverse_isomorphism) * matrix(f.inverse_isomorphism);
+      check=false,
+    )
+    h.inverse_isomorphism.inverse_isomorphism = h
+  end
+  return h
+end
+
+@doc raw"""
+    inv(h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Return the inverse of `h`.
+Requires `h` to be an isomorphism.
+"""
+function inv(h::LieAlgebraModuleHom)
+  @req is_isomorphism(h) "Homomorphism must be invertible"
+  return h.inverse_isomorphism
+end
+
+@doc raw"""
+    is_isomorphism(h::LieAlgebraModuleHom) -> Bool
+
+Return `true` if `h` is an isomorphism.
+This function tries to invert the transformation matrix of `h` and caches the result.
+The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this function.
+"""
+@attr Bool function is_isomorphism(h::LieAlgebraModuleHom)
+  isdefined(h, :inverse_isomorphism) && return true
+  fl, invmat = is_invertible_with_inverse(matrix(h))
+  fl || return false
+  h.inverse_isomorphism = LieAlgebraModuleHom(codomain(h), domain(h), invmat; check=false)
+  h.inverse_isomorphism.inverse_isomorphism = h
+  return true
+end
+
+###############################################################################
+#
+#   Constructor
+#
+###############################################################################
+
+@doc raw"""
+    hom(V1::LieAlgebraModule, V2::LieAlgebraModule, imgs::Vector{<:LieAlgebraModuleElem}; check::Bool=true) -> LieAlgebraModuleHom
+
+Construct the homomorphism from `V1` to `V2` by sending the `i`-th basis element of `V1` 
+to `imgs[i]` and extending linearly.
+All elements of `imgs` must lie in `V2`.
+Currently, `V1` and `V2` must be modules over the same Lie algebra.
+
+By setting `check=false`, the linear map is not checked to be compatible with the module action.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> V1 = standard_module(L);
+
+julia> V3 = trivial_module(L, 3);
+
+julia> V2 = direct_sum(V1, V3);
+
+julia> h = hom(V1, V2, [V2([v, zero(V3)]) for v in basis(V1)])
+Lie algebra module morphism
+  from standard module of dimension 2 over sl_2
+  to direct sum module of dimension 5 over sl_2
+
+julia> [(v, h(v)) for v in basis(V1)]
+2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+ (v_1, v_1^(1))
+ (v_2, v_2^(1))
+```
+"""
+function hom(
+  V1::LieAlgebraModule{C},
+  V2::LieAlgebraModule{C},
+  imgs::Vector{<:LieAlgebraModuleElem{C}};
+  check::Bool=true,
+) where {C<:FieldElem}
+  return LieAlgebraModuleHom(V1, V2, imgs; check)
+end
+
+@doc raw"""
+    hom(V1::LieAlgebraModule, V2::LieAlgebraModule, mat::MatElem; check::Bool=true) -> LieAlgebraModuleHom
+
+Construct the homomorphism from `V1` to `V2` by acting with the matrix `mat`
+from the right on the coefficient vector w.r.t. the basis of `V1`.
+`mat` must be a matrix of size `dim(V1) \times dim(V2)` over `coefficient_ring(V2)`.
+Currently, `V1` and `V2` must be modules over the same Lie algebra.
+
+By setting `check=false`, the linear map is not checked to be compatible with the module action.
+
+# Examples
+```jldoctest
+julia> L = general_linear_lie_algebra(QQ, 3);
+
+julia> V1 = standard_module(L);
+
+julia> V2 = trivial_module(L);
+
+julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
+Lie algebra module morphism
+  from standard module of dimension 3 over gl_3
+  to abstract Lie algebra module of dimension 1 over gl_3
+  
+julia> [(v, h(v)) for v in basis(V1)]
+3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
+ (v_1, 0)
+ (v_2, 0)
+ (v_3, 0)
+```
+"""
+function hom(
+  V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}, mat::MatElem{C}; check::Bool=true
+) where {C<:FieldElem}
+  return LieAlgebraModuleHom(V1, V2, mat; check)
+end
+
+@doc raw"""
+    identity_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Construct the identity map on `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = standard_module(L)
+Standard module
+  of dimension 3
+over special linear Lie algebra of degree 3 over QQ
+
+julia> identity_map(V)
+Lie algebra module morphism
+  from standard module of dimension 3 over sl_3
+  to standard module of dimension 3 over sl_3
+```
+"""
+function identity_map(V::LieAlgebraModule)
+  return hom(V, V, basis(V); check=false)
+end
+
+@doc raw"""
+    zero_map(V1::LieAlgebraModule, V2::LieAlgebraModule) -> LieAlgebraModuleHom
+    zero_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Construct the zero map from `V1` to `V2` or from `V` to `V`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 3);
+
+julia> V = standard_module(L)
+Standard module
+  of dimension 3
+over special linear Lie algebra of degree 3 over QQ
+
+julia> zero_map(V)
+Lie algebra module morphism
+  from standard module of dimension 3 over sl_3
+  to standard module of dimension 3 over sl_3
+```
+"""
+function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
+  return hom(V1, V2, zero_matrix(coefficient_ring(V2), dim(V1), dim(V2)); check=false)
+end
+
+function zero_map(V::LieAlgebraModule)
+  return zero_map(V, V)
+end
+
+###############################################################################
+#
+#   Hom constructions
+#
+###############################################################################
+
+function Base.:-(h::LieAlgebraModuleHom)
+  return hom(domain(h), codomain(h), -matrix(h); check=false)
+end
+
+function Base.:+(
+  h1::LieAlgebraModuleHom{T1,T2}, h2::LieAlgebraModuleHom{T1,T2}
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+  @req domain(h1) === domain(h2) "Maps must have the same domain"
+  @req codomain(h1) === codomain(h2) "Maps must have the same codomain"
+  return hom(domain(h1), codomain(h1), matrix(h1) + matrix(h2); check=false)
+end
+
+function Base.:-(
+  h1::LieAlgebraModuleHom{T1,T2}, h2::LieAlgebraModuleHom{T1,T2}
+) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
+  @req domain(h1) === domain(h2) "Maps must have the same domain"
+  @req codomain(h1) === codomain(h2) "Maps must have the same codomain"
+  return hom(domain(h1), codomain(h1), matrix(h1) - matrix(h2); check=false)
+end
+
+@doc raw"""
+    canonical_injections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
+
+Return the canonical injections from all components into $V$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_injections(V::LieAlgebraModule)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  return [canonical_injection(V, i) for i in 1:length(base_modules(V))]
+end
+
+@doc raw"""
+    canonical_injection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
+
+Return the canonical injection $V_i \to V$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_injection(V::LieAlgebraModule, i::Int)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  Vs = base_modules(V)
+  @req 0 < i <= length(Vs) "Index out of bound"
+  j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
+  emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])]; check=false)
+  return emb
+end
+
+@doc raw"""
+    canonical_projections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
+
+Return the canonical projections from $V$ to all components
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_projections(V::LieAlgebraModule)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  return [canonical_projection(V, i) for i in 1:length(base_modules(V))]
+end
+
+@doc raw"""
+    canonical_projection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
+
+Return the canonical projection $V \to V_i$
+where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+"""
+function canonical_projection(V::LieAlgebraModule, i::Int)
+  @req is_direct_sum(V) "Module must be a direct sum"
+  Vs = base_modules(V)
+  @req 0 < i <= length(Vs) "Index out of bound"
+  j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
+  proj = hom(
+    V,
+    Vs[i],
+    [
+      [zero(Vs[i]) for l in 1:j]
+      basis(Vs[i])
+      [zero(Vs[i]) for l in (j + dim(Vs[i]) + 1):dim(V)]
+    ];
+    check=false,
+  )
+  return proj
+end
+
+@doc raw"""
+    hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+    hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are direct sums with `r` respective `s` summands,  
+say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix 
+`hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
+$V \to W$ with $ij$-components $h_{ij}$.
+
+If `hs` is a vector, then it is interpreted as a diagonal matrix.
+"""
+function hom_direct_sum(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
+) where {C<:FieldElem}
+  @req is_direct_sum(V) "First module must be a direct sum"
+  @req is_direct_sum(W) "Second module must be a direct sum"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+  @req length(Vs) == size(hs, 1) "Length mismatch"
+  @req length(Ws) == size(hs, 2) "Length mismatch"
+  @req all(
+    domain(hs[i, j]) === Vs[i] && codomain(hs[i, j]) === Ws[j] for i in 1:size(hs, 1),
+    j in 1:size(hs, 2)
+  ) "Domain/codomain mismatch"
+
+  Winjs = canonical_injections(W)
+  Vprojs = canonical_projections(V)
+  function map_basis(v)
+    return sum(
+      Winjs[j](sum(hs[i, j](Vprojs[i](v)) for i in 1:length(Vs); init=zero(Ws[j]))) for
+      j in 1:length(Ws);
+      init=zero(W),
+    )
+  end
+  return hom(V, W, map(map_basis, basis(V)); check=false)
+end
+
+function hom_direct_sum(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
+) where {C<:FieldElem}
+  @req is_direct_sum(V) "First module must be a direct sum"
+  @req is_direct_sum(W) "Second module must be a direct sum"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+  @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
+  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+
+  return hom(V, W, diagonal_matrix(matrix.(hs)); check=false)
+end
+
+@doc raw"""
+    hom_tensor(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are tensor products with the same number of factors,
+say $V = V_1 \otimes \cdots \otimes V_r$, $W = W_1 \otimes \cdots \otimes W_r$,
+and given a vector `hs` of homomorphisms $a_i : V_i \to W_i$, return 
+$a_1 \otimes \cdots \otimes a_r$.
+
+This works for $r$th tensor powers as well.
+"""
+function hom_tensor(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
+) where {C<:FieldElem}
+  @req is_tensor_product(V) || is_tensor_power(V) "First module must be a tensor product or power"
+  @req is_tensor_product(W) || is_tensor_power(W) "Second module must be a tensor product or power"
+  Vs = base_modules(V)
+  Ws = base_modules(W)
+  @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
+  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+
+  mat = reduce(
+    kronecker_product,
+    [matrix(hi) for hi in hs];
+    init=identity_matrix(coefficient_ring(W), 1),
+  )
+  return hom(V, W, mat; check=false)
+end
+
+@doc raw"""
+    hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
+say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
+$S^k h: V \to W$ (analogous for other types of powers).
+"""
+function hom_power(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
+) where {C<:FieldElem}
+  if is_exterior_power(V)
+    @req is_exterior_power(W) "First module is an exterior power, but second module is not"
+    type = :ext
+  elseif is_symmetric_power(V)
+    @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
+    type = :sym
+  elseif is_tensor_power(V)
+    @req is_tensor_power(W) "First module is a tensor power, but second module is not"
+    type = :tensor
+  else
+    throw(ArgumentError("First module must be a power module"))
+  end
+  @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
+  @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
+
+  TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
+  TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
+
+  mat = reduce(
+    kronecker_product,
+    [matrix(h) for _ in 1:get_attribute(V, :power)];
+    init=identity_matrix(coefficient_ring(W), 1),
+  )
+  TV_to_TW = hom(TV, TW, mat; check=false)
+
+  if type == :tensor
+    return TV_to_TW
+  else
+    V_to_TV = get_attribute(V, :embedding_tensor_power_embedding)
+    TW_to_W = get_attribute(W, :embedding_tensor_power_projection)
+    return V_to_TV * TV_to_TW * TW_to_W
+  end
+end

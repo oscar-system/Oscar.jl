@@ -1,32 +1,67 @@
 using Oscar
 using Test
-using Documenter
+using Distributed
 
 import Random
 
+numprocs_str = get(ENV, "NUMPROCS", "1")
+
+oldWorkingDirectory = pwd()
+cd(joinpath(pkgdir(Oscar), "test"))
+
+if !isempty(ARGS)
+  jargs = [arg for arg in ARGS if startswith(arg, "-j")]
+  if !isempty(jargs)
+    numprocs_str = split(jargs[end], "-j")[end]
+  end
+end
+
+const numprocs = parse(Int, numprocs_str)
+
+if numprocs >= 2
+  println("Adding worker processes")
+  addprocs(numprocs)
+end
+
 if haskey(ENV, "JULIA_PKGEVAL") ||
-    get(ENV, "CI", "") == "true" ||
-    haskey(ENV, "OSCAR_RANDOM_SEED")
+  get(ENV, "CI", "") == "true" ||
+  haskey(ENV, "OSCAR_RANDOM_SEED")
   seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
   @info string(@__FILE__)*" -- fixed SEED $seed"
 else
   seed = rand(UInt32)
   @info string(@__FILE__)*" -- SEED $seed"
 end
-Oscar.set_seed!(seed)
 
-import Oscar.Nemo.AbstractAlgebra
-include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+@everywhere using Test
+@everywhere using Oscar
+@everywhere Oscar.set_seed!($seed)
+@everywhere Oscar.randseed!($seed)
+
+if VERSION >= v"1.8.0"
+  # Enable GC logging to help track down certain GC related issues.
+  # Note that several test files need to temporarily disable and then
+  # re-enable this. If we need to disable this globally, those files
+  # need to be adjusted as well.
+  @everywhere  GC.enable_logging(true)
+end
+
+@everywhere import Oscar.Nemo.AbstractAlgebra
+@everywhere include(joinpath(pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
+# hotfix, otherwise StraightLinePrograms returns something which then leads to an error
+module SLPTest
+end
 
 # some helpers
-import Printf
-import PrettyTables
+@everywhere import Printf
+@everywhere import PrettyTables
 
 # the current code for extracting the compile times does not work on earlier
 # julia version
-const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
+@everywhere const compiletimes = @static VERSION >= v"1.9.0-DEV" ? true : false
 
-const stats_dict = Dict{String,NamedTuple}()
+@everywhere const stats_dict = Dict{String,NamedTuple}()
 
 function print_stats(io::IO; fmt=PrettyTables.tf_unicode, max=50)
   sorted = sort(collect(stats_dict), by=x->x[2].time, rev=true)
@@ -45,9 +80,9 @@ end
 
 # we only want to print stats for files that run tests and not those that just
 # include other files
-const innermost = Ref(true)
+@everywhere const innermost = Ref(true)
 # redefine include to print and collect some extra stats
-function include(str::String)
+@everywhere function include(str::String)
   innermost[] = true
   # we pass the identity to avoid recursing into this function again
   @static if compiletimes
@@ -78,63 +113,59 @@ function include(str::String)
 end
 
 @static if compiletimes
-  Base.cumulative_compile_timing(true);
-end
-# Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
-const SLP = Oscar.StraightLinePrograms
-include("printing.jl")
-
-include("PolyhedralGeometry/runtests.jl")
-include("Combinatorics/runtests.jl")
-
-include("GAP/runtests.jl")
-include("Groups/runtests.jl")
-
-include("Rings/runtests.jl")
-
-include("NumberTheory/nmbthy-test.jl")
-
-if Oscar.is_dev
-  include("Experimental/GITFans-test.jl")
+  Base.cumulative_compile_timing(true)
 end
 
-# Will automatically include all experimental packages following our
-# guidelines.
-include("../experimental/runtests.jl")
+testlist = [
+  "Aqua.jl",
+  "printing.jl",
 
-include("Experimental/galois-test.jl")
-include("Experimental/gmodule-test.jl")
-include("Experimental/ModStdQt-test.jl")
-include("Experimental/ModStdNF-test.jl")
-include("Experimental/MPolyRingSparse-test.jl")
-include("Experimental/MatrixGroups-test.jl")
-include("Experimental/JuLie-test.jl")
-include("Experimental/SymmetricIntersections-test.jl")
-include("Experimental/ExteriorAlgebra-test.jl")
+  "PolyhedralGeometry/runtests.jl",
+  "Combinatorics/runtests.jl",
+  "GAP/runtests.jl",
+  "Groups/runtests.jl",
+  "Rings/runtests.jl",
+  "NumberTheory/runtests.jl",
+  "Modules/runtests.jl",
+  "InvariantTheory/runtests.jl",
 
-include("Rings/ReesAlgebra.jl")
+  "AlgebraicGeometry/Schemes/runtests.jl",
+  "AlgebraicGeometry/ToricVarieties/runtests.jl",
+  "AlgebraicGeometry/Surfaces/runtests.jl",
 
-include("Modules/runtests.jl")
+  "TropicalGeometry/runtests.jl",
 
-include("InvariantTheory/runtests.jl")
+  "Serialization/runtests.jl",
+  "Serialization/polymake/runtests.jl",
+  "Serialization/upgrades/runtests.jl",
 
-include("AlgebraicGeometry/Schemes/runtests.jl")
-include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
-include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+  # Automatically include tests of all experimental packages following our
+  # guidelines.
+  "../experimental/runtests.jl",
 
-include("Serialization/runtests.jl")
+  "Data/runtests.jl",
+  "StraightLinePrograms/runtests.jl",
+]
 
-include("StraightLinePrograms/runtests.jl")
+# if many workers, distribute tasks across them
+# otherwise, is essentially a serial loop
+pmap(include, testlist)
 
 @static if compiletimes
   Base.cumulative_compile_timing(false);
 end
 
-if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
-  open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
-    print_stats(io, fmt=PrettyTables.tf_markdown)
+#currently, print_stats will fail when running tests with external workers
+#TODO: potentially rewrite include as well as print_stats 
+#      to comply with parallel decisions
+if numprocs == 1
+  if haskey(ENV, "GITHUB_STEP_SUMMARY") && compiletimes
+    open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
+      print_stats(io, fmt=PrettyTables.tf_markdown)
+    end
+  else
+    print_stats(stdout; max=10)
   end
-else
-  print_stats(stdout; max=10)
 end
+
+cd(oldWorkingDirectory)

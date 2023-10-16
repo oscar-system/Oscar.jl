@@ -24,7 +24,11 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
+
 gens(R::SpecOpenRing) = R.(gens(ambient_coordinate_ring(scheme(R))))
+ngens(R::SpecOpenRing) = ngens(ambient_coordinate_ring(scheme(R)))
+gen(R::SpecOpenRing, i::Int) = R(gen(ambient_coordinate_ring(scheme(R)), i))
+
 
 @doc raw"""
     domain(R::SpecOpenRing)

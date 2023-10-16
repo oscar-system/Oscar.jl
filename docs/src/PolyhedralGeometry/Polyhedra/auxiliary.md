@@ -32,8 +32,10 @@ relative_interior_point(P::Polyhedron{T}) where T<:scalar_types
 nfacets(P::Polyhedron)
 nvertices(P::Polyhedron)
 f_vector(P::Polyhedron)
+facet_sizes(P::Polyhedron)
 g_vector(P::Polyhedron)
 h_vector(P::Polyhedron)
+vertex_sizes(P::Polyhedron)
 ```
 
 ## Groups
@@ -64,11 +66,11 @@ is_smooth(P::Polyhedron{QQFieldElem})
 is_very_ample(P::Polyhedron{QQFieldElem})
 lattice_points(P::Polyhedron{QQFieldElem})
 lattice_volume(P::Polyhedron{QQFieldElem})
-normalized_volume(P::Polyhedron{T}) where T<:scalar_types
+normalized_volume(P::Polyhedron)
 polarize(P::Polyhedron{T}) where T<:scalar_types
 project_full(P::Polyhedron{T}) where T<:scalar_types
-print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
-print_constraints(P::Polyhedron; trivial::Bool = false)
+print_constraints(io::IO, A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, cmp = :lte)
+print_constraints(io::IO, P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
 regular_triangulations
 regular_triangulation
 secondary_polytope

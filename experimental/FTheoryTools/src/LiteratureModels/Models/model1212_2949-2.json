@@ -1,0 +1,85 @@
+{
+    "arxiv_data": {
+        "id": "1212.2949",
+        "doi": "10.48550/arXiv.1212.2949",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1212.2949v2",
+        "model_location": {
+            "section": "3.2",
+            "equation": "3.42",
+            "page": "31"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1007/JHEP04(2013)061",
+        "report_numbers": ["KCL-MTH-12-14"],
+        "journal": "JHEP",
+        "volume": "04",
+        "pages": "061",
+        "year": "2013",
+        "link": "https://www.sciencedirect.com/science/article/pii/S0550321311007115",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
+    },
+    "paper_metadata": {
+        "authors": ["Craig Lawrie", "Sakura Schäfer-Nameki"],
+        "title": "The Tate Form on Steroids: Resolution and Higher Codimension Fibers",
+        "description": "Systematic classification of ADE Tate models and their resolutions",
+        "buzzwords": ["Tate", "classification", "resolution"]
+    },
+    "model_descriptors": {
+        "type": "tate",
+        "description": "SU(2k) Tate model",
+        "gauge_algebra": ["su(2k)"]
+    },
+    "model_parameters": ["k"],
+    "model_data": {
+        "base_dim": 3,
+        "base_coordinates": ["b1", "b2", "b3", "b4", "b6", "z0"],
+        "a1": "b1",
+        "a2": "b2*ζ0",
+        "a3": "b3*ζ0^k",
+        "a4": "b4*ζ0^k",
+        "a6": "b6*ζ0^(2*k)",
+        "auxiliary_base_grading": [
+            [1, 2, 3, 4, 6, 0],
+            [0, -1, "-k", "-k", "-2*k", 1]
+        ],
+        "resolutions": [
+            [
+                [
+                    [
+                        ["x", "y", ["ζ", "index"]],
+                        ["index", 0, "k - 1"]
+                    ],
+                    [
+                        ["y", ["ζ", "index"]],
+                        ["index", 1, "k - 1"]
+                    ]
+                ],
+                [
+                    [
+                        ["ζ", "index"],
+                        ["index", 1, "k"]
+                    ],
+                    [
+                        ["δ", "index"],
+                        ["index", 1, "k - 1"]
+                    ]
+                ]
+            ]
+        ]
+    },
+    "related_models": [
+        "model1212_2949-1.json",
+        "model1212_2949-3.json",
+        "model1212_2949-4.json",
+        "model1212_2949-5.json",
+        "model1212_2949-6.json",
+        "model1212_2949-7.json"
+    ]
+}

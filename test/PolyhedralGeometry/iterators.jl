@@ -6,14 +6,14 @@
         # This context is very specific and probably not meaningful from a mathematical point of view,
         # but it serves well for abstractly testing this type.
         c = cube(2)
-        function _testSOI(::Type{Pair{Matrix{QQFieldElem}, QQFieldElem}}, obj::Polymake.BigObject, i::Base.Integer)
-            x = obj.VERTICES[i, 2:end]
+        function _testSOI(::Type{Pair{Matrix{QQFieldElem}, QQFieldElem}}, obj::Polyhedron{QQFieldElem}, i::Base.Integer)
+            x = Oscar.pm_object(obj).VERTICES[i, 2:end]
             # x = PointVector{QQFieldElem}(obj.VERTICES[i, 2:end])
-            a, b = Oscar.decompose_hdata(obj.FACETS)
+            a, b = Oscar.decompose_hdata(Oscar.pm_object(obj).FACETS)
             # y = AffineHalfspace{QQFieldElem}(a[i, :], b[i])
             return Pair{Matrix{QQFieldElem}, QQFieldElem}(convert(Matrix{QQFieldElem}, hcat(x, x)), b[i])
         end
-        soi = SubObjectIterator{Pair{Matrix{QQFieldElem}, QQFieldElem}}(Oscar.pm_object(c), _testSOI, 4)
+        soi = SubObjectIterator{Pair{Matrix{QQFieldElem}, QQFieldElem}}(c, _testSOI, 4)
         @test soi isa AbstractVector{Pair{Matrix{QQFieldElem}, QQFieldElem}}
         @test length(soi) == 4
         @test firstindex(soi) == 1
@@ -30,7 +30,7 @@
         @test_throws ArgumentError Oscar.linear_matrix_for_polymake(soi)
         @test_throws ArgumentError Oscar.affine_matrix_for_polymake(soi)
         @test_throws ArgumentError Oscar.matrix_for_polymake(soi)
-        soi2 = SubObjectIterator{PointVector{QQFieldElem}}(Oscar.pm_object(c), _testSOI, 4)
+        soi2 = SubObjectIterator{PointVector{QQFieldElem}}(c, _testSOI, 4)
         @test_throws ArgumentError point_matrix(soi2)
     end
 

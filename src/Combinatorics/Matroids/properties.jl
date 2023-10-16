@@ -857,7 +857,7 @@ julia> tutte_connectivity(fano_matroid())
 3
 
 julia> tutte_connectivity(uniform_matroid(2,4))
-PosInf()
+infinity
 
 ```
 """

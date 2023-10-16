@@ -7,7 +7,7 @@ RNG = Random.MersenneTwister(42)
 ##################################################################
 
 @testset "Graded free modules constructors" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
     Rg = grade(R,[Z[1], Z[1], Z[1]])[1]
     M1 = graded_free_module(Rg, 2)
@@ -540,11 +540,9 @@ end
     B = Rg[x^2; x*y; y^2; z^4]
     M = SubquoModule(F, A, B)
     free_res1 = free_resolution(M, length=1)
-    free_res1a = free_resolution(M)
-    free_res2 = free_resolution(M, algorithm=:sres)
+    free_res2 = free_resolution(M)
     free_res3 = free_resolution_via_kernels(M)
     @test first(chain_range(free_res1)) == 1
-    @test first(chain_range(free_res1a)) == 4
     @test first(chain_range(free_res2)) == 4
     @test first(chain_range(free_res3)) == 4
 end
@@ -587,7 +585,7 @@ end
     M = quo(F, V1)[1]
     free_res0 = free_resolution(M)
     @test is_graded(free_res0)
-    @test_broken all(iszero, homology(free_res0.C))
+    @test all(iszero, homology(free_res0.C))
     free_res0a = free_resolution_via_kernels(M)
     @test is_graded(free_res0a)
     @test all(iszero, homology(free_res0a.C))
@@ -599,10 +597,7 @@ end
     # Free resolution via Singular gives wrong result 
     free_res1 = free_resolution(M)
     @test is_graded(free_res1)
-    @test_broken all(iszero, homology(free_res1.C))
-    free_res2 = free_resolution(M, algorithm=:sres)
-    @test is_graded(free_res2)
-    @test_broken all(iszero, homology(free_res2.C))
+    @test all(iszero, homology(free_res1.C))
     free_res3 = free_resolution_via_kernels(M)
     @test is_graded(free_res3)
     B = betti(free_res3)
@@ -621,24 +616,24 @@ end
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
     F = graded_free_module(Rg, 1)
-	A = Rg[x; y]
-	B = Rg[x^2; x*y; y^2; z^4]
-	M = SubquoModule(F, A, B)
+    A = Rg[x; y]
+    B = Rg[x^2; x*y; y^2; z^4]
+    M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
-	N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
-	tensor_resolution = tensor_product(N,free_res)
-	@test chain_range(tensor_resolution) == chain_range(free_res)
-	for i in Hecke.map_range(tensor_resolution)
-    	f = map(free_res,i)
-		M_i = domain(f)
-		tensored_f = map(tensor_resolution,i)
-		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
-		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
-		for (n,mi) in zip(gens(N),gens(M_i))
- 			@test tensored_f(to_pure_tensors_i((n,mi))) == to_pure_tensors_i_plus_1(n,f(mi))
-		end
-	end
+    N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
+    tensor_resolution = tensor_product(N,free_res)
+    @test chain_range(tensor_resolution) == chain_range(free_res)
+    for i in Hecke.map_range(tensor_resolution)
+      f = map(free_res,i)
+      M_i = domain(f)
+      tensored_f = map(tensor_resolution,i)
+      to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+      to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+      for (n,mi) in zip(gens(N),gens(M_i))
+        @test tensored_f(to_pure_tensors_i((n,mi))) == to_pure_tensors_i_plus_1(n,f(mi))
+      end
+    end
 end
 
 @testset "Tensor resolution module" begin
@@ -646,9 +641,9 @@ end
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
     F = graded_free_module(Rg, 1)
-	A = Rg[x; y]
-	B = Rg[x^2; x*y; y^2; z^4]
-	M = SubquoModule(F, A, B)
+    A = Rg[x; y]
+    B = Rg[x^2; x*y; y^2; z^4]
+    M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x+2*x^2*z; x+y-z], Rg[z^4;])
@@ -671,9 +666,9 @@ end
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
     F = graded_free_module(Rg, 1)
-	A = Rg[x; y]
-	B = Rg[x^2; x*y; y^2; z^4]
-	M = SubquoModule(F, A, B)
+    A = Rg[x; y]
+    B = Rg[x^2; x*y; y^2; z^4]
+    M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
@@ -708,83 +703,83 @@ end
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
     F = graded_free_module(Rg, 1)
-	A = Rg[x; y]
-	B = Rg[x^2; x*y; y^2; z^4]
-	M = SubquoModule(F, A, B)
+    A = Rg[x; y]
+    B = Rg[x^2; x*y; y^2; z^4]
+    M = SubquoModule(F, A, B)
     free_res = free_resolution_via_kernels(M)
     F1 = graded_free_module(Rg, 1)
     N = SubquoModule(F1, Rg[x*y+2*x^2; x+y], Rg[z^4;])
-	hom_resolution = hom(free_res,N)
-	@test last(chain_range(hom_resolution)) == first(chain_range(free_res))
-	@test first(chain_range(hom_resolution)) == last(chain_range(free_res))
-	for i in Hecke.map_range(hom_resolution)
-                f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
-                hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
-		hom_M_i_N = domain(hom_f)
-		for v in gens(hom_M_i_N)
-			@test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
-		end
-	end
-	hom_hom_resolution = hom(hom_resolution,N)
-	@test chain_range(hom_hom_resolution) == chain_range(free_res)
-	hom_resolution = hom_without_reversing_direction(free_res,N)
-	@test last(chain_range(hom_resolution)) == -first(chain_range(free_res))
-	@test first(chain_range(hom_resolution)) == -last(chain_range(free_res))
-	for i in Hecke.map_range(hom_resolution)
-		f = map(free_res,-i+1)
-		hom_f = map(hom_resolution,i)
-		hom_M_i_N = domain(hom_f)
-		for v in gens(hom_M_i_N)
-			@test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
-		end
-	end
-	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
-	@test chain_range(hom_hom_resolution) == chain_range(free_res)
+    hom_resolution = hom(free_res,N)
+    @test last(chain_range(hom_resolution)) == first(chain_range(free_res))
+    @test first(chain_range(hom_resolution)) == last(chain_range(free_res))
+    for i in Hecke.map_range(hom_resolution)
+      f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
+      hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
+      hom_M_i_N = domain(hom_f)
+      for v in gens(hom_M_i_N)
+        @test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
+      end
+    end
+    hom_hom_resolution = hom(hom_resolution,N)
+    @test chain_range(hom_hom_resolution) == chain_range(free_res)
+    hom_resolution = hom_without_reversing_direction(free_res,N)
+    @test last(chain_range(hom_resolution)) == -first(chain_range(free_res))
+    @test first(chain_range(hom_resolution)) == -last(chain_range(free_res))
+    for i in Hecke.map_range(hom_resolution)
+      f = map(free_res,-i+1)
+      hom_f = map(hom_resolution,i)
+      hom_M_i_N = domain(hom_f)
+      for v in gens(hom_M_i_N)
+        @test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
+      end
+    end
+    hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
+    @test chain_range(hom_hom_resolution) == chain_range(free_res)
 end
 
 @testset "Tor and Ext" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
- 	A = Rg[x; y]
-	B = Rg[x^2; x*y; y^2; z^4]
-	F = graded_free_module(Rg, 1)
-	M = SubquoModule(F, A, B)
-	Q, _ = quo(F, [x*F[1]])
-	G = free_module(Rg, 2)
-	M_coker = present_as_cokernel(M)
+  R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
+  Z = abelian_group(0)
+  Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+  A = Rg[x; y]
+  B = Rg[x^2; x*y; y^2; z^4]
+  F = graded_free_module(Rg, 1)
+  M = SubquoModule(F, A, B)
+  Q, _ = quo(F, [x*F[1]])
+  G = free_module(Rg, 2)
+  M_coker = present_as_cokernel(M)
 
-	T0 = tor(Q, M, 0)
-	T1 = tor(Q, M, 1)
-	T2 =  tor(Q, M, 2)
-	@test is_canonically_isomorphic(T0, M)
-	@test ngens(present_as_cokernel(T1)) == ngens(M_coker)
-    # Todo twist
-	@test iszero(T2)
-	T0 = tor(M, Q, 0)
-	T1 = tor(M, Q, 1)
-	T2 = tor(M, Q, 2)
-	@test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
-    # todo simplify
-	@test iszero(T2)
+  T0 = tor(Q, M, 0)
+  T1 = tor(Q, M, 1)
+  T2 =  tor(Q, M, 2)
+  @test is_canonically_isomorphic(T0, M)
+  @test ngens(present_as_cokernel(T1)) == ngens(M_coker)
+  # Todo twist
+  @test iszero(T2)
+  T0 = tor(M, Q, 0)
+  T1 = tor(M, Q, 1)
+  T2 = tor(M, Q, 2)
+  @test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+  # todo simplify
+  @test iszero(T2)
 
-	E0 = ext(Q, M, 0)
-	E1 = ext(Q, M, 1)
-	E2 = ext(Q, M, 2)
-	@test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
-	@test ngens(present_as_cokernel(E1)) == ngens(M_coker)
-	@test iszero(E2)
-	E0 = ext(M, Q, 0)
-	E1 = ext(M, Q, 1)
-	E2 = ext(M, Q, 2)
-	E3 = ext(M, Q, 3)
-	E4 = ext(M, Q, 4)
-	@test iszero(E0)
-	@test iszero(E1)
-    # Todo simplify
-	@test ngens(E3) == ngens(M_coker)
-    # Todo twist
-	@test iszero(E4)
+  E0 = ext(Q, M, 0)
+  E1 = ext(Q, M, 1)
+  E2 = ext(Q, M, 2)
+  @test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+  @test ngens(present_as_cokernel(E1)) == ngens(M_coker)
+  @test iszero(E2)
+  E0 = ext(M, Q, 0)
+  E1 = ext(M, Q, 1)
+  E2 = ext(M, Q, 2)
+  E3 = ext(M, Q, 3)
+  E4 = ext(M, Q, 4)
+  @test iszero(E0)
+  @test iszero(E1)
+  # Todo simplify
+  @test ngens(E3) == ngens(M_coker)
+  # Todo twist
+  @test iszero(E4)
 end
 
 @testset "Groebner bases graded" begin
@@ -832,191 +827,206 @@ end
     R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
-	F2 = graded_free_module(Rg,2)
-	F3 = graded_free_module(Rg,3)
-	F4 = graded_free_module(Rg,4)
-	A1 = Rg[6*x*y^2*z^2 + 4*y*z^4 + 12*y^2*z^3 6*x^2*y^2*z + 11*x^2*z^3; x y;  y*z   3*x*z + 3*x*y + 5*y*z]
-	B1 = Rg[12*z^2   x*y]
+    F2 = graded_free_module(Rg,2)
+    F3 = graded_free_module(Rg,3)
+    F4 = graded_free_module(Rg,4)
+    A1 = Rg[6*x*y^2*z^2 + 4*y*z^4 + 12*y^2*z^3 6*x^2*y^2*z + 11*x^2*z^3; x y;  y*z   3*x*z + 3*x*y + 5*y*z]
+    B1 = Rg[12*z^2   x*y]
     A2 = Rg[8*x^2*y*z         6*x^2*z^2       4*y^4;
             9*x*z^5   3*x^2*y^2*z^2    11*y*z^5;
             8*x*y*z            15*y^3   9*x*z^2]
     B2 = Rg[0   14*x*y   6*x^2]
-	M1 = SubquoModule(F2,A1,B1)
-	M2 = SubquoModule(F3,A2,B2)
-	M, pure_M = tensor_product(M1,M2, task=:map)
+    M1 = SubquoModule(F2,A1,B1)
+    M2 = SubquoModule(F3,A2,B2)
+    M, pure_M = tensor_product(M1,M2, task=:map)
     @test is_graded(M)
-	phi = hom_tensor(M, M, [identity_map(M1), identity_map(M2)])
+    phi = hom_tensor(M, M, [identity_map(M1), identity_map(M2)])
     @test is_homogeneous(phi)
-	v = M[1]
-	@test phi(v) == v
-	A3 = Rg[7*x^2*y^2   11*x^2*y*z;
+    v = M[1]
+    @test phi(v) == v
+    A3 = Rg[7*x^2*y^2   11*x^2*y*z;
             6*x^2*y        4*x^2*z]
-	M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
-	N,pure_N = tensor_product(M3,F4, task=:map)
+    M3 = SubquoModule(Oscar.SubModuleOfFreeModule(F2, A3))
+    N,pure_N = tensor_product(M3,F4, task=:map)
     @test is_graded(N)
     M3_to_M1 = SubQuoHom(M3, M1, [M1[1], x^3*M1[2]])
-	@test is_welldefined(M3_to_M1)
-	F4_to_M2 = FreeModuleHom(F4,M2, [x^2*M2[1], M2[2], y^3*M2[3], z^3*M2[3]])
-	phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
-	u1 = M3[1]
-	u2 = F4[1]
-	@test phi(pure_N((u1,u2))) == pure_M((M3_to_M1(u1),F4_to_M2(u2)))
+    @test is_welldefined(M3_to_M1)
+    F4_to_M2 = FreeModuleHom(F4,M2, [x^2*M2[1], M2[2], y^3*M2[3], z^3*M2[3]])
+    phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
+    u1 = M3[1]
+    u2 = F4[1]
+    @test phi(pure_N((u1,u2))) == pure_M((M3_to_M1(u1),F4_to_M2(u2)))
 end
 
 @testset "direct product graded" begin
     R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
     Z = abelian_group(0)
     Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
-	F2 = graded_free_module(Rg, 2)
-	F3 = graded_free_module(Rg, 3)
-	A1 = Rg[6*x*y^2*z^2 + 4*y*z^4 + 12*y^2*z^3 6*x^2*y^2*z + 11*x^2*z^3; x y;  y*z   3*x*z + 3*x*y + 5*y*z]
-	B1 = Rg[12*z^2   x*y]
+    F2 = graded_free_module(Rg, 2)
+    F3 = graded_free_module(Rg, 3)
+    A1 = Rg[6*x*y^2*z^2 + 4*y*z^4 + 12*y^2*z^3 6*x^2*y^2*z + 11*x^2*z^3; x y;  y*z   3*x*z + 3*x*y + 5*y*z]
+    B1 = Rg[12*z^2   x*y]
     A2 = Rg[8*x^2*y*z         6*x^2*z^2       4*y^4;
             9*x*z^5   3*x^2*y^2*z^2    11*y*z^5;
             8*x*y*z            15*y^3   9*x*z^2]
     B2 = Rg[0   14*x*y   6*x^2]
-	M1 = SubquoModule(F2, A1, B1)
-	M2 = SubquoModule(F3, A2, B2)
-	sum_M, emb = direct_sum(M1, M2)
+    M1 = SubquoModule(F2, A1, B1)
+    M2 = SubquoModule(F3, A2, B2)
+    sum_M, emb = direct_sum(M1, M2)
     @test is_graded(sum_M)
     @test is_homogeneous(emb[1])
     @test is_homogeneous(emb[2])
-	@test domain(emb[1]) === M1
-	@test domain(emb[2]) === M2
-	@test codomain(emb[1]) === sum_M
-	@test codomain(emb[2]) === sum_M
-	sum_M, proj = direct_sum(M1,M2, task=:prod)
+    @test domain(emb[1]) === M1
+    @test domain(emb[2]) === M2
+    @test codomain(emb[1]) === sum_M
+    @test codomain(emb[2]) === sum_M
+    sum_M, proj = direct_sum(M1,M2, task=:prod)
     @test is_graded(sum_M)
     @test is_homogeneous(proj[1])
     @test is_homogeneous(proj[2])
-	@test codomain(proj[1]) === M1
-	@test codomain(proj[2]) === M2
-	@test domain(proj[1]) === sum_M
-	@test domain(proj[2]) === sum_M
-	prod_M, emb, proj = direct_sum(M1,M2,task=:both)
+    @test codomain(proj[1]) === M1
+    @test codomain(proj[2]) === M2
+    @test domain(proj[1]) === sum_M
+    @test domain(proj[2]) === sum_M
+    prod_M, emb, proj = direct_sum(M1,M2,task=:both)
     @test is_graded(sum_M)
     @test is_homogeneous(emb[1])
     @test is_homogeneous(emb[2])
     @test is_homogeneous(proj[1])
     @test is_homogeneous(proj[2])
-	@test length(proj) == length(emb) == 2
-	@test ngens(prod_M) == ngens(M1) + ngens(M2)
-	for g in gens(prod_M)
-		@test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
-	end
-	for g in gens(M1)
-		@test g == proj[1](emb[1](g))
-	end
-	for g in gens(M2)
-		@test g == proj[2](emb[2](g))
-	end
-	A1 = Rg[4*x*y^2*z^2 + 6*x*z^4               9*x^2*z^3;
-            5*x^2*y*z + 12*x*y^3   8*x^2*y^2 + z^4;
-            11*x^2*z^2          8*y^4 + 4*y*z^3]
-	B1 = Rg[10*x^2*y*z    15*y^2*z^2 + 3*y*z^3]
-	N1 = SubquoModule(F2,A1,B1)
-	A2 = Rg[   14*x^4   4*x*y^2*z   8*x^2*y^2;
-     2*x*y^2*z   4*x^2*z^2        15*y^4]
-	B2 = Rg[12*x*y*z^2   13*x^2*z^2   11*x*z^3]
-	N2 = SubquoModule(F3,A2,B2)
-	prod_N = direct_product(N1,N2,task=:none)
+    @test length(proj) == length(emb) == 2
+    @test ngens(prod_M) == ngens(M1) + ngens(M2)
+    for g in gens(prod_M)
+      @test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
+    end
+    for g in gens(M1)
+      @test g == proj[1](emb[1](g))
+    end
+    for g in gens(M2)
+      @test g == proj[2](emb[2](g))
+    end
+    A1 = Rg[4*x*y^2*z^2 + 6*x*z^4               9*x^2*z^3;
+              5*x^2*y*z + 12*x*y^3   8*x^2*y^2 + z^4;
+              11*x^2*z^2          8*y^4 + 4*y*z^3]
+    B1 = Rg[10*x^2*y*z    15*y^2*z^2 + 3*y*z^3]
+    N1 = SubquoModule(F2,A1,B1)
+    A2 = Rg[   14*x^4   4*x*y^2*z   8*x^2*y^2;
+       2*x*y^2*z   4*x^2*z^2        15*y^4]
+    B2 = Rg[12*x*y*z^2   13*x^2*z^2   11*x*z^3]
+    N2 = SubquoModule(F3,A2,B2)
+    prod_N = direct_product(N1,N2,task=:none)
     @test is_graded(prod_N)
-	@test ngens(prod_M) == ngens(M1) + ngens(M2)
-	for g in gens(prod_N)
-		@test g == sum([Hecke.canonical_injection(prod_N,i)(Hecke.canonical_projection(prod_N,i)(g)) for i=1:2])
-	end
-	for g in gens(N1)
-		@test g == Hecke.canonical_projection(prod_N,1)(Hecke.canonical_injection(prod_N,1)(g))
-	end
-	for g in gens(N2)
-		@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
-	end
+    @test ngens(prod_M) == ngens(M1) + ngens(M2)
+    for g in gens(prod_N)
+        @test g == sum([canonical_injection(prod_N,i)(canonical_projection(prod_N,i)(g)) for i=1:2])
+    end
+    for g in gens(N1)
+        @test g == canonical_projection(prod_N,1)(canonical_injection(prod_N,1)(g))
+    end
+    for g in gens(N2)
+        @test g == canonical_projection(prod_N,2)(canonical_injection(prod_N,2)(g))
+    end
 
-	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(Rg,3,3))
+    M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(Rg,3,3))
     @test is_homogeneous(M1_to_N1)
-	H12 = hom(M1,N2)[1]
+    H12 = hom(M1,N2)[1]
     @test is_graded(H12)
-	H21 = hom(M2,N1)[1]
+    H21 = hom(M2,N1)[1]
     @test is_graded(H21)
-	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
-	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(x^3*H21[1])
- 	M2_to_N2 = SubQuoHom(M2, N2, [0*N2[1],0*N2[1],0*N2[1]])
-	@assert degree(M1_to_N1) == Z[0]
-	@assert degree(M1_to_N2) == 6*Z[1]
-	@assert degree(M2_to_N1) == 6*Z[1]
-	@assert degree(M2_to_N2) == Z[0]
-	@assert is_welldefined(M1_to_N1)
-	@assert is_welldefined(M1_to_N2)
-	@assert is_welldefined(M2_to_N1)
-	@assert is_welldefined(M2_to_N2)
+    M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
+    M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(x^3*H21[1])
+    M2_to_N2 = SubQuoHom(M2, N2, [0*N2[1],0*N2[1],0*N2[1]])
+    @assert degree(M1_to_N1) == Z[0]
+    @assert degree(M1_to_N2) == 6*Z[1]
+    @assert degree(M2_to_N1) == 6*Z[1]
+    @assert degree(M2_to_N2) == Z[0]
+    @assert is_welldefined(M1_to_N1)
+    @assert is_welldefined(M1_to_N2)
+    @assert is_welldefined(M2_to_N1)
+    @assert is_welldefined(M2_to_N2)
 
-	phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+    phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
     @test degree(phi) == 6*Z[1]
-	for g in gens(M1)
-		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
-		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
-	end
-	for g in gens(M2)
-		@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
-		@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
-	end
-	prod_FN,prod,emb = direct_product(F2,N2,task=:both)
+    for g in gens(M1)
+        @test M1_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[1](g)))
+        @test M1_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[1](g)))
+    end
+    for g in gens(M2)
+        @test M2_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[2](g)))
+        @test M2_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[2](g)))
+    end
+    prod_FN,prod,emb = direct_product(F2,N2,task=:both)
     @test is_graded(prod_FN)
-	@test ngens(prod_FN) == ngens(F2) + ngens(N2)
-	for g in gens(prod_FN)
-		@test g == sum([emb[i](prod[i](g)) for i=1:2])
-	end
-	for g in gens(F2)
-		@test g == prod[1](emb[1](g))
-	end
-	for g in gens(N2)
-		@test g == prod[2](emb[2](g))
-	end
+    @test ngens(prod_FN) == ngens(F2) + ngens(N2)
+    for g in gens(prod_FN)
+      @test g == sum([emb[i](prod[i](g)) for i=1:2])
+    end
+    for g in gens(F2)
+      @test g == prod[1](emb[1](g))
+    end
+    for g in gens(N2)
+      @test g == prod[2](emb[2](g))
+    end
 end
 
 @testset "Coordinates" begin
-	Z3, a = FiniteField(3,1,"a")
-	R, (x,y) = polynomial_ring(Z3, ["x", "y"])
+    Z3, a = finite_field(3,1,"a")
+    R, (x,y) = polynomial_ring(Z3, ["x", "y"])
     Z = abelian_group(0)
     Rg, (x, y) = grade(R, [Z[1],Z[1]])
-	coeffs = [Z3(i) for i=0:1]
-	A = Rg[x*y x^2+y^2; y^2 x*y; x^2+y^2 y^2]
-	B = Rg[2*x^2 (x+y)^2; x^2+y^2 x^2+2*x*y]
-	F = graded_free_module(Rg, 2)
-	M = SubquoModule(F, A, B)
+    coeffs = [Z3(i) for i=0:1]
+    A = Rg[x*y x^2+y^2; y^2 x*y; x^2+y^2 y^2]
+    B = Rg[2*x^2 (x+y)^2; x^2+y^2 x^2+2*x*y]
+    F = graded_free_module(Rg, 2)
+    M = SubquoModule(F, A, B)
 
-	monomials = [x,y]
-	coeff_generator = ([c1,c2] for c1 in coeffs for c2 in coeffs)
-	for coefficients in ([c1,c2,c3] for c1 in coeff_generator for c2 in coeff_generator for c3 in coeff_generator)
-		v = sparse_row(Rg, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
-		v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
-		elem1 = SubquoModuleElem(v_as_FreeModElem,M) 
-		elem2 = SubquoModuleElem(v,M)
-		@test elem1 == elem2
-	end
+    monomials = [x,y]
+    coeff_generator = ([c1,c2] for c1 in coeffs for c2 in coeffs)
+    for coefficients in ([c1,c2,c3] for c1 in coeff_generator for c2 in coeff_generator for c3 in coeff_generator)
+      v = sparse_row(Rg, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
+      v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
+      elem1 = SubquoModuleElem(v_as_FreeModElem,M) 
+      elem2 = SubquoModuleElem(v,M)
+      @test elem1 == elem2
+    end
 end
 
+
+@testset "Presentations 3" begin
+    R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+    Z = abelian_group(0);
+    Rg, (x, y, z) = grade(R, [-Z[1],Z[1],-Z[1]]);
+    F = graded_free_module(Rg, 1);
+    B = Rg[x^2; y^3; z^4];
+    M,inc = sub(F,B)
+    M = cokernel(inc)
+    fr = free_resolution(M)
+    phi = map(fr,4)
+    N = cokernel(phi)
+    f = present_as_cokernel(N)
+    @test ngens(f) == 1
+end
 
 ######################################################################
 # Tests filtrated modules
 ######################################################################
 
 """
-	randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
+    randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
 
 > Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
 > with exponents between `0` and `max_exp` und between `0` and `max_terms` terms
 """
 function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
-	n = nvars(R)
-	K = base_ring(R)
-	E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
-	C = [K(Random.rand(RNG,coeffs)) for i=1:max_terms]
-	M = MPolyBuildCtx(R)
-	for i=1:max_terms
-		push_term!(M,C[i],E[i])
-	end
-	return finish(M)
+    n = nvars(R)
+    K = base_ring(R)
+    E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
+    C = [K(Random.rand(RNG,coeffs)) for i=1:max_terms]
+    M = MPolyBuildCtx(R)
+    for i=1:max_terms
+      push_term!(M,C[i],E[i])
+    end
+    return finish(M)
 end
 
 @testset "Basic degree and homogeneity tests for free modules" begin
@@ -1094,3 +1104,75 @@ end
     v = x[1]*F[1] + F[2]
     @test degree(phi) == degree(element_to_homomorphism(phi)(v)) - degree(v)
 end
+
+@testset "minimal Betti tables" begin
+  # The Veronese surface in IP^4 due to Wolfram 
+  F = GF(31991)
+  R, (x,y,z,u,v) = graded_polynomial_ring(F, ["x", "y", "z", "u", "v"])
+  I = ideal([F(45)/16*x^3-8565*x^2*y-7937*x*y^2+14060*x^2*z+F(53)/113*x*y*z-F(125)/17*x*z^2-15712*x^2*u-5990*x*y*u-F(71)/88*x*z*u-6141*x*u^2+F(49)/104*x^2*v-194*x*y*v+F(63)/103*y^2*v+F(74)/103*x*z*v+11618*y*z*v+F(41)/111*z^2*v+14387*x*u*v-F(64)/9*y*u*v+13097*z*u*v+F(84)/101*u^2*v+12211*x*v^2+F(85)/63*y*v^2-F(119)/100*z*v^2-6247*u*v^2-F(74)/51*v^3,-F(45)/16*x^2*y+8565*x*y^2+7937*y^3-14060*x*y*z-F(53)/113*y^2*z+F(125)/17*y*z^2+15712*x*y*u+5990*y^2*u+F(71)/88*y*z*u+6141*y*u^2-x^2*v+3340*x*y*v+F(111)/40*y^2*v+F(22)/37*x*z*v-F(110)/29*y*z*v-F(71)/25*z^2*v-F(71)/87*x*u*v+F(112)/55*y*u*v+F(103)/80*z*u*v-F(100)/7*u^2*v-5013*x*v^2+15010*y*v^2+F(52)/51*z*v^2+F(126)/5*u*v^2-6580*v^3,-F(45)/16*x^2*z+8565*x*y*z+7937*y^2*z-14060*x*z^2-F(53)/113*y*z^2+F(125)/17*z^3+15712*x*z*u+5990*y*z*u+F(71)/88*z^2*u+6141*z*u^2+F(41)/79*x^2*v+F(121)/48*x*y*v+9621*y^2*v+F(105)/83*x*z*v+F(27)/26*y*z*v-649*z^2*v-12278*x*u*v+14655*y*u*v+10594*z*u*v+10462*u^2*v+F(76)/13*x*v^2+F(97)/50*y*v^2-7761*z*v^2+F(52)/31*u*v^2-6636*v^3,-F(45)/16*x^2*u+8565*x*y*u+7937*y^2*u-14060*x*z*u-F(53)/113*y*z*u+F(125)/17*z^2*u+15712*x*u^2+5990*y*u^2+F(71)/88*z*u^2+6141*u^3-F(40)/31*x^2*v+13297*x*y*v+F(126)/113*y^2*v-F(51)/100*x*z*v-F(97)/38*y*z*v+10372*z^2*v-F(4)/31*x*u*v+F(32)/9*y*u*v-F(1)/7*z*u*v+15473*u^2*v+F(101)/36*x*v^2+F(97)/109*y*v^2-14100*z*v^2+F(109)/32*u*v^2-F(5)/111*v^3,-F(40)/31*x^3+13297*x^2*y+F(126)/113*x*y^2-F(51)/100*x^2*z-F(97)/38*x*y*z+10372*x*z^2+F(26)/105*x^2*u-3745*x*y*u+F(63)/103*y^2*u-F(98)/61*x*z*u+11618*y*z*u+F(41)/111*z^2*u+F(26)/15*x*u^2-F(64)/9*y*u^2+13097*z*u^2+F(84)/101*u^3+F(101)/36*x^2*v+F(97)/109*x*y*v-14100*x*z*v-14778*x*u*v+F(85)/63*y*u*v-F(119)/100*z*u*v-6247*u^2*v-F(5)/111*x*v^2-F(74)/51*u*v^2,F(40)/31*x^2*y-13297*x*y^2-F(126)/113*y^3+F(51)/100*x*y*z+F(97)/38*y^2*z-10372*y*z^2-x^2*u+F(103)/30*x*y*u+2754*y^2*u+F(22)/37*x*z*u+F(126)/95*y*z*u-F(71)/25*z^2*u-F(71)/87*x*u^2-F(109)/7*y*u^2+F(103)/80*z*u^2-F(100)/7*u^3-F(101)/36*x*y*v-F(97)/109*y^2*v+14100*y*z*v-5013*x*u*v+10008*y*u*v+F(52)/51*z*u*v+F(126)/5*u^2*v+F(5)/111*y*v^2-6580*u*v^2,F(40)/31*x^2*z-13297*x*y*z-F(126)/113*y^2*z+F(51)/100*x*z^2+F(97)/38*y*z^2-10372*z^3+F(41)/79*x^2*u+F(121)/48*x*y*u+9621*y^2*u+5671*x*z*u-F(42)/71*y*z*u-5219*z^2*u-12278*x*u^2+14655*y*u^2+F(58)/59*z*u^2+10462*u^3-F(101)/36*x*z*v-F(97)/109*y*z*v+14100*z^2*v+F(76)/13*x*u*v+F(97)/50*y*u*v-12763*z*u*v+F(52)/31*u^2*v+F(5)/111*z*v^2-6636*u*v^2,F(41)/79*x^3+F(121)/48*x^2*y+9621*x*y^2-F(22)/109*x^2*z+F(25)/19*x*y*z+F(63)/103*y^2*z+F(23)/45*x*z^2+11618*y*z^2+F(41)/111*z^3-12278*x^2*u+14655*x*y*u+F(126)/73*x*z*u-F(64)/9*y*z*u+13097*z^2*u+10462*x*u^2+F(84)/101*z*u^2+F(76)/13*x^2*v+F(97)/50*x*y*v-F(106)/115*x*z*v+F(85)/63*y*z*v-F(119)/100*z^2*v+F(52)/31*x*u*v-6247*z*u*v-6636*x*v^2-F(74)/51*z*v^2,-F(41)/79*x^2*y-F(121)/48*x*y^2-9621*y^3-x^2*z-F(22)/89*x*y*z-F(32)/17*y^2*z+F(22)/37*x*z^2-F(86)/111*y*z^2-F(71)/25*z^3+12278*x*y*u-14655*y^2*u-F(71)/87*x*z*u+F(74)/47*y*z*u+F(103)/80*z^2*u-10462*y*u^2-F(100)/7*z*u^2-F(76)/13*x*y*v-F(97)/50*y^2*v-5013*x*z*v-9220*y*z*v+F(52)/51*z^2*v-F(52)/31*y*u*v+F(126)/5*z*u*v+6636*y*v^2-6580*z*v^2,x^3+11117*x^2*y+991*x*y^2-F(63)/103*y^3-F(22)/37*x^2*z-F(35)/13*x*y*z-11618*y^2*z+F(71)/25*x*z^2-F(41)/111*y*z^2+F(71)/87*x^2*u+F(68)/115*x*y*u+F(64)/9*y^2*u-F(103)/80*x*z*u-13097*y*z*u+F(100)/7*x*u^2-F(84)/101*y*u^2+5013*x^2*v-F(67)/114*x*y*v-F(85)/63*y^2*v-F(52)/51*x*z*v+F(119)/100*y*z*v-F(126)/5*x*u*v+6247*y*u*v+6580*x*v^2+F(74)/51*y*v^2])
+  I = ideal(R, minimal_generating_set(I))
+  F = graded_free_module(R, 1)
+  sub_F, inc = sub(F, [g*F[1] for g in gens(I)])
+  M = cokernel(inc)
+  A, _ = quo(R, I)
+  # To reproduce the string on the right hand side, evaluate 
+  #   `"$(Oscar.minimal_betti_table(M))"` 
+  # and insert the result here; after verification of the result!
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
+
+  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
+
+  @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
+
+  # small example due to Janko
+  R, x = polynomial_ring(QQ, :x => 1:7)
+  R, x = grade(R)
+  I = ideal(R, [x[1]*x[2]*x[5], x[1]*x[2]*x[6], x[3]*x[4]*x[6], x[3]*x[4]*x[7], x[5]*x[7]])
+  A, _ = quo(R, I)
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
+
+  # another example due to Wolfram
+  R, _ = polynomial_ring(QQ, [:x, :y, :z, :w])
+  R, (x, y, z, w) = grade(R)
+  I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
+  A, _ = quo(R, I)
+  @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
+end
+
+@testset "sheaf cohomology" begin
+  R, x = polynomial_ring(QQ, "x" => 1:4)
+  S, _ = grade(R)
+  I = ideal(S, gens(S))
+  FI = free_resolution(I)
+  M = cokernel(map(FI, 2))
+  tbl = sheaf_cohomology_bgg(M, -6, 2)
+  @test tbl[0, -6] == 70
+  @test tbl[2, 0] == 1
+  @test iszero(tbl[2, -2])
+
+  F = free_module(S, 1)
+  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+
+  R, x = polynomial_ring(QQ, "x" => 1:4)
+  S, _ = grade(R, [1,2,3,4])
+  F = graded_free_module(S, 1)
+  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+
+  R, x = polynomial_ring(QQ, "x" => 1:5)
+  S, _ = grade(R)
+  F = graded_free_module(S, 1)
+  tbl = sheaf_cohomology_bgg(F, -7, 2)
+  a = tbl.values
+  b = transpose(a) * a
+  @test is_symmetric(b)
+end
+
+@testset "twist" begin
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1 0; 0 1]);
+  I = ideal(R, [x, y])
+  M = quotient_ring_as_module(I)
+  N = twist(M, [1, 2])
+  @test Int(degree(gen(N, 1))[1]) == -1
+  @test Int(degree(gen(N, 1))[2]) == -2
+end
+

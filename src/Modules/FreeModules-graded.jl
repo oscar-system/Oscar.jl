@@ -681,7 +681,7 @@ function syzygie_module(F::BiModArray; sub = 0)
   if sub !== 0
     G = sub
   else
-  	[F[Val(:O), i] for i = 1:length(F.O)]
+    [F[Val(:O), i] for i = 1:length(F.O)]
     z = grading_group(base_ring(F.F))[0]
     G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end
@@ -990,7 +990,7 @@ function hom(F::FreeModule_dec, G::FreeModule_dec)
     end
     return FreeModuleElem_dec(s, GH)
   end
-  return GH, Hecke.MapFromFunc(im, pre, GH, X)
+  return GH, MapFromFunc(GH, X, im, pre)
 end
 
 function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
@@ -1066,7 +1066,7 @@ function free_resolution(S::SubquoDecModule, limit::Int = -1)
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gens(k)[nz]])
+    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gen(k, nz)])
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end
@@ -1129,7 +1129,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
     return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
     return SubquoDecModuleElem(emb[1](preimage(mH_s0_t0, g)), H)
   end
-  return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  return H, MapFromFunc(H, Hecke.MapParent(M, N, "homomorphisms"), im, pr)
 end
 
 #TODO
@@ -1214,25 +1214,32 @@ function direct_product(G::ModuleFP_dec...; task::Symbol = :none)
 end
 ⊕(M::ModuleFP_dec...) = direct_product(M..., task = :none)
 
-
-function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
+function canonical_injections(G::ModuleFP_dec)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
-  return hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
+  @req H !== nothing "module not a direct product"
+  return [canonical_injection(G, i) for i in 1:length(H)]
 end
 
-function Hecke.canonical_projection(G::ModuleFP_dec, i::Int)
+function canonical_injection(G::ModuleFP_dec, i::Int)
   H = get_attribute(G, :direct_product)
-  if H === nothing
-    error("module not a direct product")
-  end
-  0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  return hom(G, H[i], vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)]))
+  @req H !== nothing "module not a direct product"
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+  return hom(H[i], G, [G[l+j] for l in 1:ngens(H[i])])
+end
+
+function canonical_projections(G::ModuleFP_dec)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  return [canonical_projection(G, i) for i in 1:length(H)]
+end
+
+function canonical_projection(G::ModuleFP_dec, i::Int)
+  H = get_attribute(G, :direct_product)
+  @req H !== nothing "module not a direct product"
+  @req 0 < i <= length(H) "index out of bound"
+  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
+  return hom(G, H[i], vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)]))
 end
     
 ##################################################
@@ -1287,7 +1294,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
   end
 
-  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)
@@ -1396,5 +1403,5 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
     end
     return z
   end
-  return X, Hecke.MapFromFunc(im, pr, X, F)
+  return X, MapFromFunc(X, F, im, pr)
 end

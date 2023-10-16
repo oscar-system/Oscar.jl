@@ -25,13 +25,15 @@ module AbelianClosure
 
 using ..Oscar
 
-import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
+import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
+             deepcopy_internal, hash, reduce
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
-                root, divexact, mul!, roots, is_root_of_unity, promote_rule,
-                AbstractAlgebra, parent
+import ..Oscar: AbstractAlgebra, addeq!, elem_type, divexact, gen,
+                has_preimage, is_root_of_unity, is_unit, mul!, parent,
+                parent_type, promote_rule, root, root_of_unity, roots
+
 using Hecke
 import Hecke: conductor, data
 
@@ -42,21 +44,22 @@ import Hecke: conductor, data
 ################################################################################
 
 @attributes mutable struct QQAbField{T} <: Nemo.Field # union of cyclotomic fields
-  s::String
   fields::Dict{Int, T} # Cache for the cyclotomic fields
+  s::String
 
-  function QQAbField{T}(s::String, fields::Dict{Int, T}) where T
-    return new(s, fields)
+  function QQAbField{T}(fields::Dict{Int, T}) where T
+    return new(fields)
   end
 end
 
-const _QQAb = QQAbField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
-const _QQAb_sparse = QQAbField{NfAbsNS}("ζ", Dict{Int, NfAbsNS}())
+const _QQAb = QQAbField{AnticNumberField}(Dict{Int, AnticNumberField}())
+const _QQAb_sparse = QQAbField{NfAbsNS}(Dict{Int, NfAbsNS}())
 
 mutable struct QQAbElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
+#T test that data really belongs to a cyclotomic field!
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
@@ -89,12 +92,12 @@ or slower.
 julia> K, z = abelian_closure(QQ);
 
 julia> z(36)
-ζ(36)
+zeta(36)
 
 julia> K, z = abelian_closure(QQ, sparse = true);
 
 julia> z(36)
--ζ(36, 9)*ζ(36, 4)^4 - ζ(36, 9)*ζ(36, 4)
+-zeta(36, 9)*zeta(36, 4)^4 - zeta(36, 9)*zeta(36, 4)
 
 ```
 """
@@ -150,14 +153,23 @@ parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 #
 ################################################################################
 
-_variable(K::QQAbField) = K.s
+function _variable(K::QQAbField)
+  if isdefined(K, :s)
+    return K.s
+  elseif Oscar.is_unicode_allowed()
+    return "ζ"
+  else
+    return "zeta"
+  end
+end
+
 _variable(b::QQAbElem{nf_elem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
 
 function _variable(b::QQAbElem{NfAbsNSElem}) 
   k = parent(b.data)
   lc = get_attribute(k, :decom)
   n = get_attribute(k, :cyclo)
-  return [Expr(:call, Symbol(_variable(_QQAb)), n, divexact(n, i)) for i = lc]
+  return [Expr(:call, Symbol(_variable(parent(b))), n, divexact(n, i)) for i = lc]
 end
 
 function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
@@ -165,7 +177,7 @@ function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
     k = K.fields[c]
     return k, gen(k)
   else
-    k, z = CyclotomicField(c, string(K.s, "(", c, ")"), cached = false)
+    k, z = cyclotomic_field(c, string("\$", "(", c, ")"), cached = false)
     K.fields[c] = k
     return k, z
   end
@@ -186,7 +198,7 @@ function Hecke.cyclotomic_field(K::QQAbField{NfAbsNS}, c::Int)
     k = K.fields[c]
     return k, ns_gen(k)
   else
-    k, _ = cyclotomic_field(NonSimpleNumField, c, string(K.s))
+    k, _ = cyclotomic_field(NonSimpleNumField, c, "\$")
     K.fields[c] = k
     return k, ns_gen(k)
   end
@@ -311,6 +323,7 @@ end
 function Base.show(io::IO, a::QQAbField{NfAbsNS})
   print(io, "(Sparse) abelian closure of Q")
 end
+
 function Base.show(io::IO, a::QQAbField{AnticNumberField})
   print(io, "Abelian closure of Q")
 end
@@ -330,7 +343,7 @@ Change the printing of the primitive n-th root of the abelian closure of the
 rationals to `s(n)`, where `s` is the supplied string.
 """
 function set_variable!(K::QQAbField, s::String)
-  ss = K.s
+  ss = _variable(K)
   K.s = s
   return ss
 end
@@ -475,6 +488,40 @@ conductor(a::QQAbElem) = conductor(data(a))
 is_unit(a::QQAbElem) = !iszero(a)
 
 canonical_unit(a::QQAbElem) = a
+
+################################################################################
+#
+#  Minimal polynomial
+#
+################################################################################
+
+Hecke.minpoly(a::QQAbElem) = minpoly(data(a))
+
+################################################################################
+#
+#  Syntactic sugar
+#
+################################################################################
+
+function Hecke.number_field(::QQField, a::QQAbElem; cached::Bool = false)
+  f = minpoly(a)
+  k, b = number_field(f, check = false, cached = cached)
+  return k, b
+end
+
+function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
+  if length(a) == 0
+    return Hecke.rationals_as_number_field()[1]
+  end
+  f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = a])
+  K = cyclotomic_field(f)[1]
+  k, mkK = Hecke.subfield(K, [K(data(x)) for x = a])
+  return k, gen(k)
+end
+
+Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQAbElem{T}}) where T = number_field(QQ, a)
+Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x in a])
 
 ################################################################################
 #
@@ -799,6 +846,86 @@ function Oscar.order(a::QQAbElem)
   return o
 end
 
+
+###############################################################################
+#
+#   Embeddings of subfields of cyclotomic fields
+#   (works for proper subfields of cycl. fields only if these fields
+#   have been constructed as such)
+#
+
+# Construct the map from `F` to an abelian closure `K` such that `gen(F)`
+# is mapped to `x`.
+# If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
+# is mapped to `QQAbElem(gen(F), N)`.
+# (Use that the powers of this element form a basis of the field.)
+function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
+                    x::QQAbElem{nf_elem})
+  R, = polynomial_ring(QQ, "x")
+  fl, n = Hecke.is_cyclotomic_type(F)
+  if fl
+    # This is cheaper.
+    f = function(x::nf_elem)
+      return QQAbElem(x, n)
+    end
+
+    finv = function(x::QQAbElem; check::Bool = false)
+      if n % conductor(x) == 0
+        return Hecke.force_coerce_cyclo(F, data(x))
+      elseif check
+        return
+      else
+        error("element has no preimage")
+      end
+    end
+  else
+    # `F` is expected to be a proper subfield of a cyclotomic field.
+    n = conductor(x)
+    x = data(x)
+    Kn, = AbelianClosure.cyclotomic_field(K, n)
+    powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
+              for i in 0:degree(F)-1]
+    c = transpose(matrix(QQ, powers))
+
+    f = function(z::nf_elem)
+      return QQAbElem(evaluate(R(z), x), n)
+    end
+
+    finv = function(x::QQAbElem; check::Bool = false)
+      n % conductor(x) == 0 || return false, zero(F)
+      # Write `x` w.r.t. the n-th cyclotomic field ...
+      g = gcd(x.c, n)
+      Kg, = AbelianClosure.cyclotomic_field(K, g)
+      x = Hecke.force_coerce_cyclo(Kg, data(x))
+      x = Hecke.force_coerce_cyclo(Kn, x)
+      # ... and then w.r.t. `F`
+      a = Hecke.coefficients(x)
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      if fl
+        b = transpose(sol)
+        b = [b[i] for i in 1:length(b)]
+        return F(b)
+      elseif check
+        return
+      else
+        error("element has no preimage")
+      end
+    end
+  end
+  return MapFromFunc(F, K, f, finv)
+end
+
+# The following works only if `mp.g` admits a second argument,
+# which is the case if `mp` has been constructed by `_embedding` above.
+function has_preimage(mp::MapFromFunc{AnticNumberField, QQAbField{AnticNumberField}}, x::QQAbElem{nf_elem})
+  pre = mp.g(x, check = true)
+  if isnothing(pre)
+    return false, zero(domain(mp))
+  else
+    return true, pre
+  end
+end
+
 ###############################################################################
 #
 #   Galois automorphisms of QQAb
@@ -1026,6 +1153,34 @@ function quadratic_irrationality_info(a::QQAbElem)
 
     return (x, y, m)
 end
+
+@doc raw"""
+    reduce(val::QQAbElem, F::FinField)
+
+Return the element of `F` that is the $p$-modular reduction of `val`,
+where $p$ is the characteristic of `F`.
+An exception is thrown if `val` cannot be reduced modulo $p$
+or if the reduction does not lie in `F`.
+
+# Examples
+```jldocstring
+julia> K, z = abelian_closure(QQ);
+
+julia> F = GF(2, 3);
+
+julia> reduce(z(7), F)
+o
+```
+"""
+function reduce(val::QQAbElem, F::FinField)
+  p = characteristic(F)
+  iso_0 = Oscar.iso_oscar_gap(parent(val))
+  iso_p = Oscar.iso_oscar_gap(F)
+  val_p = GAP.Globals.FrobeniusCharacterValue(iso_0(val), GAP.Obj(p))::GAP.Obj
+  return preimage(iso_p, val_p)
+end
+
+#TODO: add reduction to alg. closure as soon as this is available!
 
 end # module AbelianClosure
 

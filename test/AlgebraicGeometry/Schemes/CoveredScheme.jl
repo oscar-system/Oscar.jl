@@ -3,7 +3,7 @@
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = homogeneous_coordinate_ring(P)
-  (u, v) = gens(S)[1], gens(S)[2]
+  (u, v) = gen(S, 1), gen(S, 2)
   h = u^3 
   h = u^3 + u^2
   h = u^3 + (u^2)*v 
@@ -216,4 +216,38 @@ end
   for k in keys(glueings(dom_cov))
       @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
   end
+end
+
+@testset "base change" begin
+  kk, pr = quo(ZZ, 5)
+  IP1 = covered_scheme(projective_space(ZZ, 1))
+  IP1_red, red_map = base_change(pr, IP1)
+  
+  IP2 = projective_space(ZZ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, x^2 + y^2 + z^2)
+  IP2_cov = covered_scheme(IP2)
+  II = IdealSheaf(IP2, I)
+
+  inc_X = Oscar.CoveredClosedEmbedding(IP2_cov, II)
+  (a, b, c) = base_change(pr, inc_X)
+  @test compose(a, inc_X) == compose(b, c)
+end
+
+@testset "decomposition info" begin
+  P3 = projective_space(ZZ, 3)
+  X = covered_scheme(P3)
+  kk = GF(29)
+  X29, f = base_change(kk, X)
+  @test Oscar.has_decomposition_info(default_covering(X29))
+  orig_cov = default_covering(X)
+  U = first(patches(orig_cov))
+  x, y, z = gens(OO(U))
+  V2 = PrincipalOpenSubset(U, x)
+  V1 = PrincipalOpenSubset(U, x-1)
+  new_cov = Covering(append!(AbsSpec[V1, V2], patches(orig_cov)[2:end]))
+  Oscar.inherit_glueings!(new_cov, orig_cov)
+  Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
+  @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
 end

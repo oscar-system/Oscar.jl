@@ -65,13 +65,14 @@ function ngens(a::FreeAssAlgIdeal)
   return length(a.gens)
 end
 
-function gens(a::FreeAssAlgIdeal{T}) where T
-  return T[a.gens[Val(:O), i] for i in 1:ngens(I)]
-end
-
 function gen(a::FreeAssAlgIdeal{T}, i::Int) where T
   return a.gens[Val(:O), i]
 end
+
+function gens(a::FreeAssAlgIdeal{T}) where T
+  return T[gen(a,i) for i in 1:ngens(a)]
+end
+
 
 function Base.:+(a::FreeAssAlgIdeal{T}, b::FreeAssAlgIdeal{T}) where T
   R = base_ring(a)
@@ -124,7 +125,7 @@ function singular_assure(I::IdealGens{T}, deg_bound::Int) where T <: FreeAssAlgE
       deg_bound = max(deg_bound, mapreduce(total_degree, max, I.O, init = deg_bound))
     end
     I.Sx = Singular.FreeAlgebra(singular_coeff_ring(coefficient_ring(I.Ox)),
-                                map(String, symbols(I.Ox)),
+                                symbols(I.Ox),
                                 deg_bound)[1]
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x in I.O])
   end

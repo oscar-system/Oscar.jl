@@ -34,11 +34,12 @@ This method checks if a morphism is the identity map.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational Field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
 
 julia> (x1,x2,x3) = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -47,10 +48,19 @@ julia> (x1,x2,x3) = gens(R)
  x3
 
 julia> Y = subscheme(X, x1)
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal(x1)
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false
 ```
 """
 is_identity_map(f::AbsSpecMor) = (domain(f) == codomain(f)) && all(x->(pullback(f)(x) == x), gens(OO(domain(f))))
+
+@attr Bool function is_birational(f::AbsSpecMor)
+  error("verification of birationality not implemented")
+end
+

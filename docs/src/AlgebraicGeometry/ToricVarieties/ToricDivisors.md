@@ -17,8 +17,8 @@ correspond to the rays of the underlying fan.
 ### General constructors
 
 ```@docs
-divisor_of_character(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
-toric_divisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+divisor_of_character(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion}
+toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Addition, subtraction and scalar multiplication
@@ -30,9 +30,9 @@ for scalars which are integers or of type `ZZRingElem`.
 ### Special divisors
 
 ```@docs
-trivial_divisor(v::AbstractNormalToricVariety)
-anticanonical_divisor(v::AbstractNormalToricVariety)
-canonical_divisor(v::AbstractNormalToricVariety)
+trivial_divisor(v::NormalToricVarietyType)
+anticanonical_divisor(v::NormalToricVarietyType)
+canonical_divisor(v::NormalToricVarietyType)
 ```
 
 

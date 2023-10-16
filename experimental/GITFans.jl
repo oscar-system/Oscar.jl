@@ -1,1 +1,0 @@
-include("GITFans/GITFans.jl")

@@ -28,6 +28,7 @@ mutable struct Covering{BaseRingType}
   glueing_graph::Graph{Undirected}
   transition_graph::Graph{Undirected}
   edge_dict::Dict{Tuple{Int, Int}, Int}
+  decomp_info::IdDict{<:AbsSpec, <:Vector{<:RingElem}}
 
   function Covering(
       patches::Vector{<:AbsSpec},
@@ -51,12 +52,10 @@ mutable struct Covering{BaseRingType}
       end
     end
     for (X, Y) in keys(glueings)
-      X in patches || error("glueings are not compatible with the patches")
-      Y in patches || error("glueings are not compatible with the patches")
+      any(x->x===X, patches) || error("glueings are not compatible with the patches")
+      any(y->y===Y, patches) || error("glueings are not compatible with the patches")
       if haskey(glueings, (Y, X))
-        if check
-          inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
-        end
+        @check inverse(glueings[(X, Y)]) == glueings[(Y, X)] "glueings are not inverse of each other"
       else
         glueings[(Y, X)] = inverse(glueings[(X, Y)])
       end
@@ -66,10 +65,8 @@ mutable struct Covering{BaseRingType}
     for U in keys(affine_refinements)
       for (V, a) in affine_refinements[U]
         ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
-        U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
-        if check
-          isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
-        end
+        any(u->u===U, patches) && error("the ambient scheme of the refinement can not be found in the affine patches")
+        @check isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) "the patch $V does not cover $U"
       end
     end
     return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)

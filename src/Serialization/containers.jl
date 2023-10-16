@@ -1,152 +1,220 @@
 ################################################################################
+# Helper functions
+get_nested_entry(x::Any) = x
+get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
+
+################################################################################
 # Saving and loading vectors
 
-@registerSerializationType(Vector)
+@register_serialization_type Vector uses_params
 
-@doc raw"""
-    is_basic_serialization_type(::Type)
+const MatVecType{T} = Union{Matrix{T}, Vector{T}}
 
-During the serialization of types of the form `Vector{T}`, entries
-of type `T` will either be serialized as strings if `is_basic_serialization_type`
-returns `true`, or serialized as a dict provided the serialization for such a `T`
-exists. If `Vector{T}` is serialized with `is_basic_serialization_type(T) = true`
-then the `entry_type` keyword is used to store the type `T` as a property of
-the vector.
-
-# Examples
-
-```jldoctest
-julia> is_basic_serialization_type(ZZRingElem)
-true
-```
-"""
-is_basic_serialization_type(::Type) = false
-is_basic_serialization_type(::Type{ZZRingElem}) = true
-is_basic_serialization_type(::Type{QQFieldElem}) = true
-is_basic_serialization_type(::Type{Bool}) = true
-is_basic_serialization_type(::Type{Symbol}) = true
-is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
-
-function save_internal(s::SerializerState, vec::Vector{T}) where T
-    d = Dict{Symbol, Any}(
-        :vector => [save_type_dispatch(s, x) for x in vec]
-    )
-    if is_basic_serialization_type(T)
-        d[:entry_type] = encodeType(T)
+function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
+  save_data_dict(s) do
+    save_object(s, encode_type(S), :name)
+    if serialize_with_params(T)
+      if hasmethod(parent, (T,))
+        parents = map(parent, obj)
+        parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
+        @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
+      end
+      save_type_params(s, obj[1], :params)
+    else
+      save_object(s, encode_type(T), :params)
     end
-    return d
+  end
 end
 
-# deserialize with specific content type
-function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
-    if isconcretetype(T)
-      return Vector{T}([load_type_dispatch(s, T, x) for x in dict[:vector]])
-    end
-    return Vector{T}([load_unknown_type(s, x) for x in dict[:vector]])
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::String)
+  return decode_type(str)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Vector{T}},
-                                   dict::Dict,
-                                   parent) where T
-    if isconcretetype(T)
-        return Vector{T}([load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]])
-    end
-    return Vector{T}([load_unknown_type(s, x; parent=parent) for x in dict[:vector]])
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, dict::Dict)
+  T = decode_type(dict[:name])
+  params = load_type_params(s, T, dict[:params])
+  return (T, params)
 end
 
-# deserialize without specific content type
-function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
-    if haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
-        
-        return [load_type_dispatch(s, T, x) for x in dict[:vector]]
-    end
-    return [load_unknown_type(s, x) for x in dict[:vector]]
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
+  return (elem_type(override_params), override_params)
 end
 
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Vector},
-                                   dict::Dict,
-                                   parent)
-    if haskey(dict, :entry_type)
-        T = decodeType(dict[:entry_type])
-        
-        return [load_type_dispatch(s, T, x; parent=parent) for x in dict[:vector]]
+function save_object(s::SerializerState, x::Vector)
+  save_data_array(s) do
+    for elem in x
+      save_object(s, elem)
     end
-    return [load_unknown_type(s, x; parent=parent) for x in dict[:vector]]
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Type)
+  loaded_v = params[load_object(s, params, x) for x in v]
+  return loaded_v
+end
+
+# handles nested Vectors
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                                 v::Vector, params::Tuple)
+  T = params[1]
+  return T[load_object(s, T, x, params[2]) for x in v]
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector},
+                     v::Vector, params::Ring)
+  T = elem_type(params)
+  return T[load_object(s, T, x, params) for x in v]
 end
 
 ################################################################################
 # Saving and loading Tuple
-@registerSerializationType(Tuple)
+@register_serialization_type Tuple uses_params
 
-function save_internal(s::SerializerState, tup::T) where T <: Tuple
+function save_type_params(s::SerializerState, tup::T) where T <: Tuple
+  save_data_dict(s) do
+    save_object(s, encode_type(Tuple), :name)
     n = fieldcount(T)
-    return Dict(
-        :field_types => [encodeType(fieldtype(T, i)) for i in 1:n],
-        :content => [save_type_dispatch(s, x) for x in tup]
-    )
+    save_data_array(s, :params) do 
+      for i in 1:n
+        U = fieldtype(T, i)
+        if serialize_with_params(U)
+          save_type_params(s, tup[i])
+        else
+          save_object(s, encode_type(U))
+        end
+      end
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
-    field_types = map(decodeType, dict[:field_types])
-    n = length(field_types)
-    content = dict[:content]
-    @assert length(content) == n  "Wrong length of tuple, data may be corrupted."
-    return T(load_type_dispatch(s, field_types[i], content[i]) for i in 1:n)
+function load_type_params(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
+  loaded_params = Any[]
+  for param in params
+    if param isa String
+      push!(loaded_params, decode_type(param))
+    else
+      T = decode_type(param[:name])
+      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+    end
+  end
+  return loaded_params
+end
+
+function save_object(s::SerializerState, obj::Tuple)
+  save_data_array(s) do 
+    for entry in obj
+      save_object(s, entry)
+    end
+  end
+end
+
+function get_nested_type(params::Vector)
+  if params[2] isa Type
+    return params[1]{params[2]}
+  end
+  nested_type = get_nested_type(params[2])
+  return params[1]{nested_type}
+end
+
+function get_tuple_type(params::Vector)
+  type_vector = Type[]
+
+  for t in params
+    if t isa Type
+      push!(type_vector, t)
+    else
+      push!(type_vector, get_nested_type(t))
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:Tuple},
+                                 v::Vector{Any}, params::Vector)
+  return Tuple(
+    params[i] isa Type ? load_object(s, params[i], v[i]) :
+      load_object(s, params[i][1], v[i], params[i][2]) for i in 1:length(v)
+  )
 end
 
 ################################################################################
 # Saving and loading NamedTuple
-@registerSerializationType(NamedTuple)
+@register_serialization_type NamedTuple uses_params
 
-function save_internal(s::SerializerState, n_tup:: NamedTuple)
-    return Dict(
-        :keys => save_type_dispatch(s, keys(n_tup)),
-        :content => save_type_dispatch(s, values(n_tup))
-    )
+function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
+  save_data_dict(s) do
+    save_object(s, encode_type(NamedTuple), :name)
+    save_data_dict(s, :params) do
+      save_data_array(s, :tuple_params) do 
+        for (i, value) in enumerate(values(obj))
+          U = fieldtype(T, i)
+          if serialize_with_params(U)
+            save_type_params(s, value)
+          else
+            save_object(s, encode_type(U))
+          end
+        end
+      end
+      save_object(s, keys(obj), :names)
+    end
+  end
 end
 
-function load_internal(s::DeserializerState, ::Type{<:NamedTuple}, dict::Dict)
-    tup = load_unknown_type(s, dict[:content])
-    keys = load_type_dispatch(s, Tuple, dict[:keys])
-    return NamedTuple{keys}(tup)
+function save_object(s::SerializerState, obj::NamedTuple)
+  save_object(s, values(obj))
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Dict)
+  loaded_params = Any[]
+  for param in params[:tuple_params]
+    if param isa String
+      push!(loaded_params, decode_type(param))
+    else
+      T = decode_type(param[:name])
+      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+    end
+  end
+  return (params[:names], loaded_params)
+end
+
+function load_object(s::DeserializerState, ::Type{<: NamedTuple},
+                                 v::Vector, params::Tuple)
+  keys, tuple_params = params
+  tuple = load_object(s, Tuple, v, tuple_params)
+  keys = map(Symbol, keys)
+  return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
 
 
 ################################################################################
 # Saving and loading matrices
-
-@registerSerializationType(Matrix)
-
-function save_internal(s::SerializerState, mat::Matrix{T}) where T
-    m, n = size(mat)
-    return Dict(
-        :matrix => [save_type_dispatch(s, [mat[i, j] for j in 1:n]) for i in 1:m]
-    )
+@register_serialization_type Matrix uses_params
+  
+function save_object(s::SerializerState, mat::Matrix)
+  m, n = size(mat)
+  save_data_array(s) do
+    for i in 1:m
+      save_object(s, [mat[i, j] for j in 1:n])
+    end
+  end
 end
 
-# deserialize with specific content type
-function load_internal(s::DeserializerState, ::Type{Matrix{T}}, dict::Dict) where T
-    x = dict[:matrix]
-    y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector{T}, x[i])) for i in 1:length(x)])
-    return Matrix{T}(y)
+function load_object(s::DeserializerState, ::Type{<:Matrix},
+                     entries::Vector, params::Type)
+  if isempty(entries)
+    return zero_matrix(parent_type(params)(), 0, 0)
+  end
+  m = reduce(vcat, [
+    permutedims(load_object(s, Vector, v, params)) for v in entries
+      ])
+
+  return Matrix{params}(m)
 end
 
-# deserialize without specific content type
-function load_internal(s::DeserializerState, ::Type{Matrix}, dict::Dict)
-    x = dict[:matrix]
-    y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector, x[i])) for i in 1:length(x)])
-    return Matrix(y)
-end
-
-# deserialize without specific content type
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Matrix}, dict::Dict, parent)
-    x = dict[:matrix]
-    y = reduce(vcat, [
-        permutedims(load_type_dispatch(s, Vector, x[i], parent=parent)) for i in 1:length(x)
-            ])
-    return Matrix(y)
+function load_object(s::DeserializerState, ::Type{<:Matrix},
+                     entries::Vector, params::Tuple)
+  m = reduce(vcat, [
+    permutedims(load_object(s, Vector, v, params)) for v in entries
+      ])
+  return Matrix{params[1]}(m)
 end

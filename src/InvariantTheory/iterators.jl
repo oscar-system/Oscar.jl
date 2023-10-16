@@ -93,15 +93,15 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
 end
 
 @doc raw"""
-     iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
-Setting `algo = :linear_algebra` means that plain linear algebra is used.
-The default option `algo = :default` asks to select the heuristically best algorithm.
+The optional argument `algorithm` specifies the algorithm to be used.
+If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 When using the Reynolds operator, the basis is constructed element-by-element.
 With linear algebra, this is not possible and the basis will be constructed
@@ -111,7 +111,7 @@ See also [`basis`](@ref).
 
 # Examples
 ```
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -174,12 +174,12 @@ julia> collect(B)
  x[3]^2
 ```
 """
-function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
+function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
   @assert d >= 0 "Degree must be non-negative"
 
-  if algo == :default
+  if algorithm == :default
     if is_modular(R)
-      algo = :linear_algebra
+      algorithm = :linear_algebra
     else
       # Use the estimate in KS99, Section 17.2
       # We use the "worst case" estimate, so 2d|G|/s instead of sqrt(2d|G|/s)
@@ -195,19 +195,19 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
       n = degree(group(R))
       k = binomial(n + d - 1, n - 1)
       if k > d*g/s
-        algo = :reynolds
+        algorithm = :reynolds
       else
-        algo = :linear_algebra
+        algorithm = :linear_algebra
       end
     end
   end
 
-  if algo == :reynolds
+  if algorithm == :reynolds
     return iterate_basis_reynolds(R, d)
-  elseif algo == :linear_algebra
+  elseif algorithm == :linear_algebra
     return iterate_basis_linear_algebra(R, d)
   else
-    error("Unsupported argument :$(algo) for algo.")
+    error("Unsupported argument :$(algorithm) for algorithm")
   end
 end
 
@@ -227,7 +227,7 @@ See also [`basis`](@ref).
 
 # Examples
 ```
-julia> K, a = CyclotomicField(3, "a");
+julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
@@ -258,8 +258,8 @@ julia> R = invariant_ring(QQ, S2);
 
 julia> F = abelian_closure(QQ)[1];
 
-julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3 of

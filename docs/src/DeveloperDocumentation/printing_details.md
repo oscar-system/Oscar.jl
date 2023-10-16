@@ -5,21 +5,23 @@ Oscar's 2+1 printing modes. The specifications and a minimal example may be
 found in the [Developer Style Guide](@ref).
 
 
-### Implementing show functions
+## Implementing show functions
 
-Here is the translation between `:detail`, `one line` and `:supercompact`.
+Here is the translation between `:detail`, `one line` and `:supercompact`,
+where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
 
 ```
-print(io, "text/plain", x)                 # detailed printing
-print(io, x)                               # one line printing
-print(IOContext(:supercompact => true), x) # supercompact printing
+show(io, MIME"text/plain"(), x)                # detailed printing
+print(io, x)                                   # one line printing
+print(IOContext(io, :supercompact => true), x) # supercompact printing
 ```
 
-For reference, string interpolation `"$(x)"` will also use `print(io, x)`.
+For reference, string interpolation `"$(x)"` uses one line printing via `print(io, x)`,
+while on the REPL detailed printing is used to show top level objects.
 
-#### Mockup
+### Mockup
 
-##### Detailed printing with a new line.
+#### Detailed printing with a new line
 
 ```julia
 struct NewRing
@@ -67,7 +69,7 @@ julia> [R,R]
 
 ```
 
-##### Detailed printing in a single line.
+#### Detailed printing in a single line
 
 This version needs to be used in case the detailed
 printing does not contain newlines.
@@ -106,7 +108,15 @@ julia> print(IOContext(Base.stdout, :supercompact => true) ,R)
 supercompact printing of newring
 ```
 
-##### The following is not working as expected and should not be used
+The `supercompact` printing uses an `IOContext` (see [IOContext](https://docs.julialang.org/en/v1/base/io-network/#Base.IOContext) from
+the Julia documentation) to pass information to other `show` methods invoked
+recursively (for example in nested printings). The same mechanism can be used to
+pass other context data. For instance, this is used by the `Scheme` code in
+some nested printings which invoke several objects whose printing depends on a
+given *covering*: we use `IOContext` to pass a fix covering to the printing
+of each sub-object for consistency and readability.
+
+#### The following is not working as expected and should not be used
 
 This example does not work correctly because the `detailed` printing does not
 include a newline, which is expected by the Julia printing system. To correctly
@@ -145,6 +155,91 @@ julia> [R,R]  # one line printing is ignored
 
 julia> print(Base.stdout, R)
 one line printing of newring with supercompact QQ
+```
+
+## Advanced printing functionality
+
+To facilitate printing of nested mathematical structures, we provide a modified
+`IOCustom` object. To create one, we use the following command:
+
+```@docs
+AbstractAlgebra.pretty(::IO)
+```
+
+The `IOCustom` object allows one to locally control:
+- indentation using `Indent()` and `Dedent()`,
+- capitalization using `Lowercase()` and `LowercaseOff()`.
+
+### Example
+
+We illustrate this with an example
+
+```
+struct A{T}
+  x::T
+end
+
+function Base.show(io::IO, a::A)
+  io = AbstractAlgebra.pretty(io)
+  println(io, "Something of type A")
+  print(io, AbstractAlgebra.Indent(), "over ", AbstractAlgebra.Lowercase(), a.x)
+  print(io, AbstractAlgebra.Dedent()) # don't forget to undo the indentation!
+end
+
+struct B
+end
+
+function Base.show(io::IO, b::B)
+  io = AbstractAlgebra.pretty(io)
+  print(io, AbstractAlgebra.LowercaseOff(), "Hilbert thing")
+end
+```
+
+At the REPL, this will then be printed as follows:
+```
+julia> A(2)
+Something of type A
+  over 2
+
+julia> A(A(2))
+Something of type A
+  over something of type A
+    over 2
+
+julia> A(B())
+Something of type A
+  over Hilbert thing
+```
+
+Moreover, one can control the pluralization of nouns when printing a set of
+elements with a variable number of objects. For this, one can use `ItemQuantity`:
+
+### Example
+
+We illustrate this with an example
+
+```
+julia> struct C{T}
+       x::Vector{T}
+       end
+
+julia> function Base.show(io::IO, c::C{T}) where T
+       x = c.x
+       n = length(x)
+       print(io, "Something with ", AbstractAlgebra.ItemQuantity(n, "element"), " of type $T")
+       end
+```
+
+At the REPL, this will then be printed as follows:
+```
+julia> C(Int[2,3,4])
+Something with 3 elements of type Int64
+
+julia> C(Int[])
+Something with 0 elements of type Int64
+
+julia> C(Int[6])
+Something with 1 element of type Int64
 ```
 
 ## LaTeX and Unicode printing

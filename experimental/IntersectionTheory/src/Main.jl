@@ -5,6 +5,7 @@
 @doc raw"""
     abstract_bundle(X::AbstractVariety, ch)
     abstract_bundle(X::AbstractVariety, r, c)
+
 Construct a bundle on $X$ by specifying its Chern character, or its rank and
 total Chern class.
 """
@@ -15,7 +16,9 @@ abstract_bundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: Abstr
 
 @doc raw"""
     chern_character(F::AbstractBundle)
-Return the Chern character."""
+
+Return the Chern character.
+"""
 chern_character(F::AbstractBundle) = (
   if !isdefined(F, :ch) F.ch = F.rank + _logg(F.chern) end;
   F.ch)
@@ -23,6 +26,7 @@ chern_character(F::AbstractBundle) = (
 @doc raw"""
     total_chern_class(F::AbstractBundle)
     total_chern_class(F::TnBundle)
+
 Compute the total Chern class.
 """
 total_chern_class(F::AbstractBundle) = (
@@ -32,6 +36,7 @@ total_chern_class(F::AbstractBundle) = (
 @doc raw"""
     chern_class(F::AbstractBundle, k::Int)
     chern_class(F::TnBundle, k::Int)
+
 Compute the $k$-th Chern class.
 """
 chern_class(F::AbstractBundle, k::Int) = (
@@ -41,28 +46,37 @@ chern_class(F::AbstractBundle, k::Int) = (
 @doc raw"""
     top_chern_class(F::AbstractBundle)
     top_chern_class(F::TnBundle)
+
 Compute the top Chern class.
 """
 top_chern_class(F::AbstractBundle) = chern_class(F, F.rank)
 
 @doc raw"""
     segre_class(F::AbstractBundle)
-Compute the total Segre class."""
+
+Compute the total Segre class.
+"""
 segre_class(F::AbstractBundle) = inv(total_chern_class(F))
 
 @doc raw"""
     segre_class(F::AbstractBundle, k::Int)
-Compute the $k$-th Segre class."""
+
+Compute the $k$-th Segre class.
+"""
 segre_class(F::AbstractBundle, k::Int) = segre_class(F)[k]
 
 @doc raw"""
     todd_class(F::AbstractBundle)
-Compute the Todd class."""
+
+Compute the Todd class.
+"""
 todd_class(F::AbstractBundle) = _todd_class(chern_character(F))
 
 @doc raw"""
     total_pontryagin_class(F::AbstractBundle)
-Compute the total Pontryagin class."""
+
+Compute the total Pontryagin class.
+"""
 function total_pontryagin_class(F::AbstractBundle)
   n = F.parent.dim
   x = total_chern_class(F) * total_chern_class(dual(F))
@@ -72,12 +86,15 @@ end
 
 @doc raw"""
     pontryagin_class(F::AbstractBundle, k::Int)
-Compute the $k$-th Pontryagin class."""
+
+Compute the $k$-th Pontryagin class.
+"""
 pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 
 @doc raw"""
     euler_characteristic(F::AbstractBundle)
     euler_pairing(F::AbstractBundle, G::AbstractBundle)
+
 Compute the holomorphic Euler characteristic $\chi(F)$, or the Euler pairing
 $\chi(F,G)$.
 """
@@ -112,27 +129,36 @@ end
 
 @doc raw"""
     dim(f::AbstractVarietyMap)
-Return the relative dimension."""
+
+Return the relative dimension.
+"""
 dim(f::AbstractVarietyMap) = f.dim
 
 @doc raw"""
     tangent_bundle(f::AbstractVarietyMap)
-Return the relative tangent bundle."""
+
+Return the relative tangent bundle.
+"""
 tangent_bundle(f::AbstractVarietyMap) = f.T
 
 @doc raw"""
     cotangent_bundle(f::AbstractVarietyMap)
-Return the relative cotangent bundle."""
+
+Return the relative cotangent bundle.
+"""
 cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
 
 @doc raw"""
     todd_class(f::AbstractVarietyMap)
-Compute the Todd class of the relative tangent bundle."""
+
+Compute the Todd class of the relative tangent bundle.
+"""
 todd_class(f::AbstractVarietyMap) = todd_class(f.T)
 
 @doc raw"""
     pullback(f::AbstractVarietyMap, x::MPolyDecRingElem)
     pullback(f::AbstractVarietyMap, F::AbstractBundle)
+
 Compute the pullback of a Chow ring element $x$ or a bundle $F$ by a morphism $f$.
 """
 pullback(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pullback(x)
@@ -141,6 +167,7 @@ pullback(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.domain, f.
 @doc raw"""
     pushforward(f::AbstractVarietyMap, x::MPolyDecRingElem)
     pushforward(f::AbstractVarietyMap, F::AbstractBundle)
+
 Compute the pushforward of a Chow ring element $x$ or a bundle $F$ by a
 morphism $f$. For abstract bundles, the pushforward is derived, e.g., for a
 bundle $F$ it is understood as the alternating sum of all direct images.
@@ -154,6 +181,7 @@ end
 
 @doc raw"""
     *(f::AbstractVarietyMap, g::AbstractVarietyMap)
+
 Construct the composition morphism $g\circ f: X\to Z$ for $f: X\to Y$ and $g:Y\to Z$.
 """
 function *(f::AbstractVarietyMap, g::AbstractVarietyMap)
@@ -182,7 +210,7 @@ Return the abstract variety and the list of classes.
 """
 function abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
   @assert length(symbols) > 0
-  R, x = grade(PolynomialRing(base, symbols)[1], degs)
+  R, x = grade(polynomial_ring(base, symbols)[1], degs)
   return AbstractVariety(n, R), x
 end
 
@@ -222,12 +250,18 @@ function abstract_variety(n::Int; base::Ring=QQ)
   return X
 end
 
+##TODO docstring
+function abstract_variety(n::Int, R::MPolyDecRingOrQuo)
+  return AbstractVariety(n::Int, R::MPolyDecRingOrQuo)
+end
+
 (X::AbstractVariety)(f::RingElement) = X.ring(f)
 gens(X::AbstractVariety) = gens(X.ring)
 
 @doc raw"""
     trivial_line_bundle(X::AbstractVariety)
     trivial_line_bundle(X::TnVariety)
+
 Return the trivial bundle $\mathcal O_X$ on $X$.
 """
 trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
@@ -235,6 +269,7 @@ trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
 @doc raw"""
     line_bundle(X::AbstractVariety, n)
     line_bundle(X::AbstractVariety, D)
+
 Return the line bundle $\mathcal O_X(n)$ on $X$ if $X$ has been given a
 polarization, or a line bundle $\mathcal O_X(D)$ with first Chern class $D$.
 """
@@ -243,12 +278,15 @@ line_bundle(X::AbstractVariety, D::MPolyDecRingElem) = AbstractBundle(X, 1, 1+D[
 
 @doc raw"""
     degree(X::AbstractVariety)
-Compute the degree of $X$ with respect to its polarization."""
+
+Compute the degree of $X$ with respect to its polarization.
+"""
 degree(X::AbstractVariety) = integral(X.O1^X.dim)
 
 @doc raw"""
     tangent_bundle(X::AbstractVariety)
     tangent_bundle(X::TnVariety)
+
 Return the tangent bundle of a abstract_variety $X$. Same as `X.T`.
 """
 tangent_bundle(X::AbstractVariety) = X.T
@@ -256,23 +294,29 @@ tangent_bundle(X::AbstractVariety) = X.T
 @doc raw"""
     cotangent_bundle(X::AbstractVariety)
     cotangent_bundle(X::TnVariety)
+
 Return the cotangent bundle of a abstract_variety $X$.
 """
 cotangent_bundle(X::AbstractVariety) = dual(X.T)
 
 @doc raw"""
     canonical_class(X::AbstractVariety)
-Return the canonical class of a abstract_variety $X$."""
+
+Return the canonical class of a abstract_variety $X$.
+"""
 canonical_class(X::AbstractVariety) = -chern_class(X.T, 1)
 
 @doc raw"""
     canonical_bundle(X::AbstractVariety)
-Return the canonical bundle of a abstract_variety $X$."""
+
+Return the canonical bundle of a abstract_variety $X$.
+"""
 canonical_bundle(X::AbstractVariety) = det(cotangent_bundle(X))
 
 @doc raw"""
     bundles(X::AbstractVariety)
     bundles(X::TnVariety)
+
 Return the tautological bundles of a abstract_variety $X$. Same as `X.bundles`.
 """
 bundles(X::AbstractVariety) = X.bundles
@@ -280,6 +324,7 @@ bundles(X::AbstractVariety) = X.bundles
 @doc raw"""
     total_chern_class(X::AbstractVariety)
     total_chern_class(X::TnVariety)
+
 Compute the total Chern class of the tangent bundle of $X$.
 """
 total_chern_class(X::AbstractVariety) = total_chern_class(X.T)
@@ -287,6 +332,7 @@ total_chern_class(X::AbstractVariety) = total_chern_class(X.T)
 @doc raw"""
     chern_class(X::AbstractVariety, k::Int)
     chern_class(X::TnVariety, k::Int)
+
 Compute the $k$-th Chern class of the tangent bundle of $X$.
 """
 chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
@@ -294,23 +340,30 @@ chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
 @doc raw"""
     euler(X::AbstractVariety)
     euler(X::TnVariety)
+
 Compute the Euler number of a abstract_variety $X$.
 """
 euler(X::AbstractVariety) = integral(total_chern_class(X.T))
 
 @doc raw"""
     todd_class(X::AbstractVariety)
-Compute the Todd class of the tangent bundle of $X$."""
+
+Compute the Todd class of the tangent bundle of $X$.
+"""
 todd_class(X::AbstractVariety) = todd_class(X.T)
 
 @doc raw"""
     total_pontryagin_class(X::AbstractVariety)
-Compute the total Pontryagin class of the tangent bundle of $X$."""
+
+Compute the total Pontryagin class of the tangent bundle of $X$.
+"""
 total_pontryagin_class(X::AbstractVariety) = total_pontryagin_class(X.T)
 
 @doc raw"""
     pontryagin_class(X::AbstractVariety, k::Int)
-Compute the $k$-th Pontryagin class of the tangent bundle of $X$."""
+
+Compute the $k$-th Pontryagin class of the tangent bundle of $X$.
+"""
 pontryagin_class(X::AbstractVariety, k::Int) = pontryagin_class(X.T, k)
 
 chi(p::Int, X::AbstractVariety) = chi(exterior_power(dual(X.T), p)) # generalized Todd genus
@@ -325,6 +378,7 @@ end
     chern_number(X::AbstractVariety, λ::Int...)
     chern_number(X::AbstractVariety, λ::Vector{Int})
     chern_number(X::AbstractVariety, λ::Partition)
+
 Compute the Chern number $c_\lambda (X):=\int_X c_{\lambda_1}(X)\cdots
 c_{\lambda_k}(X)$, where $\lambda:=(\lambda_1,\dots,\lambda_k)$ is a partition
 of the dimension of $X$.
@@ -339,6 +393,7 @@ end
 
 @doc raw"""
     chern_numbers(X::AbstractVariety)
+
 Compute all the Chern numbers of $X$ as a list of pairs $\lambda\Rightarrow
 c_\lambda(X)$.
 """
@@ -363,32 +418,43 @@ end
 
 @doc raw"""
     a_hat_genus(k::Int, X::AbstractVariety)
-Compute the $k$-th $\hat A$ genus of a abstract_variety $X$."""
+
+Compute the $k$-th $\hat A$ genus of a abstract_variety $X$.
+"""
 a_hat_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     l_genus(k::Int, X::AbstractVariety)
-Compute the $k$-th L genus of a abstract_variety $X$."""
+
+Compute the $k$-th L genus of a abstract_variety $X$.
+"""
 l_genus(k::Int, X::AbstractVariety)
 
 @doc raw"""
     a_hat_genus(X::AbstractVariety)
-Compute the top $\hat A$ genus of a abstract_variety $X$ of even dimension."""
+
+Compute the top $\hat A$ genus of a abstract_variety $X$ of even dimension.
+"""
 a_hat_genus(X::AbstractVariety)
 
 @doc raw"""
     l_genus(X::AbstractVariety)
-Compute the top L genus of a abstract_variety $X$ of even dimension."""
+
+Compute the top L genus of a abstract_variety $X$ of even dimension.
+"""
 l_genus(X::AbstractVariety)
 
 @doc raw"""
     signature(X::AbstractVariety)
-Compute the signature of a abstract_variety $X$ of even dimension."""
+
+Compute the signature of a abstract_variety $X$ of even dimension.
+"""
 signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 
 @doc raw"""
     hilbert_polynomial(F::AbstractBundle)
     hilbert_polynomial(X::AbstractVariety)
+
 Compute the Hilbert polynomial of a bundle $F$ or the Hilbert polynomial of $X$
 itself, with respect to the polarization $\mathcal O_X(1)$ on $X$.
 """
@@ -397,7 +463,7 @@ function hilbert_polynomial(F::AbstractBundle)
   X, O1 = F.parent, F.parent.O1
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
-  Qt, t = PolynomialRing(QQ, "t")
+  Qt, t = polynomial_ring(QQ, "t")
   @assert X.ring isa MPolyQuoRing
   R = parent(change_base_ring(Qt, base_ring(X.ring).R()))
   GR = grade(R, gradings(base_ring(X.ring)))[1]
@@ -438,7 +504,9 @@ end
 # morphisms for points are convenient, but are not desired when doing coercion
 @doc raw"""
     hom(X::AbstractVariety, Y::AbstractVariety)
-Return a canonicallly defined morphism from $X$ to $Y$."""
+
+Return a canonicallly defined morphism from $X$ to $Y$.
+"""
 function hom(X::AbstractVariety, Y::AbstractVariety)
   get_attribute(Y, :point) !== nothing && return hom(X, Y, [X(0)]) # Y is a point
   get_attribute(X, :point) !== nothing && return hom(X, Y, repeat([X(0)], length(gens(Y.ring)))) # X is a point
@@ -448,6 +516,7 @@ end
 # product abstract_variety
 @doc raw"""
     *(X::AbstractVariety, Y::AbstractVariety)
+
 Construct the product abstract_variety $X\times Y$. If both $X$ and $Y$ have a
 polarization, $X\times Y$ will be endowed with the polarization of the Segre
 embedding.
@@ -464,7 +533,7 @@ function *(X::AbstractVariety, Y::AbstractVariety)
   A, B = X.ring, Y.ring
   symsA, symsB = string.(gens(A)), string.(gens(B))
   a = length(symsA)
-  R, x = grade(PolynomialRing(base, vcat(symsA, symsB))[1], vcat(gradings(A), gradings(B)))
+  R, x = grade(polynomial_ring(base, vcat(symsA, symsB))[1], vcat(gradings(A), gradings(B)))
   # TODO: fails with check = true
   AtoR = hom(A, R, x[1:a], check = false)
   BtoR = hom(B, R, x[a+1:end], check = false)
@@ -494,6 +563,7 @@ end
 
 @doc raw"""
     graph(f::AbstractVarietyMap)
+
 Given a morphism $f: X\to Y$, construct $i:\Gamma_f\to X\times Y$, the
 inclusion of the graph into the product.
 """
@@ -516,6 +586,7 @@ end
 @doc raw"""
     dual(F::AbstractBundle)
     dual(F::TnBundle)
+
 Return the dual bundle.
 """
 function dual(F::AbstractBundle)
@@ -535,6 +606,7 @@ end
 @doc raw"""
     det(F::AbstractBundle)
     det(F::TnBundle)
+
 Return the determinant bundle.
 """
 det(F::AbstractBundle) = AbstractBundle(F.parent, 1, 1 + chern_class(F, 1))
@@ -562,6 +634,7 @@ hom(F::AbstractBundle, G::AbstractBundle) = dual(F) * G
 @doc raw"""
     exterior_power(F::AbstractBundle, k::Int)
     exterior_power(F::TnBundle, k::Int)
+
 Return the $k$-th exterior power.
 """
 function exterior_power(F::AbstractBundle, k::Int)
@@ -573,8 +646,9 @@ function exterior_power(F::AbstractBundle)
 end
 
 @doc raw"""
-    symmetric_power(k, F::AbstractBundle)
-    symmetric_power(k::Int, F::TnBundle)
+    symmetric_power(F::AbstractBundle, k)
+    symmetric_power(F::TnBundle, k::Int)
+
 Return the $k$-th symmetric power. For an `AbstractBundle`, $k$ can contain parameters.
 """
 function symmetric_power(F::AbstractBundle, k::Int)
@@ -591,6 +665,7 @@ end
 @doc raw"""
     schur_functor(F::AbstractBundle, λ::Vector{Int})
     schur_functor(F::AbstractBundle, λ::Partition)
+
 Return the result of the Schur functor $\mathbf S^\lambda$.
 """
 function schur_functor(F::AbstractBundle, λ::Vector{Int}) schur_functor(F, Partition(λ)) end
@@ -598,7 +673,7 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   λ = conjugate(λ)
   X = F.parent
   w = _wedge(sum(λ), chern_character(F))
-  S, ei = PolynomialRing(QQ, ["e$i" for i in 1:length(w)])
+  S, ei = polynomial_ring(QQ, ["e$i" for i in 1:length(w)])
   e = i -> i < 0 ? S() : ei[i+1]
   M = [e(λ[i]-i+j) for i in 1:length(λ), j in 1:length(λ)]
   sch = det(matrix(S, M)) # Jacobi-Trudi
@@ -623,8 +698,10 @@ end
 #
 @doc raw"""
     basis(X::AbstractVariety)
+
 Return an additive basis of the Chow ring of $X$, grouped by increasing
-degree (i.e., increasing codimension)."""
+degree (i.e., increasing codimension).
+"""
 function basis(X::AbstractVariety)
   # it is important for this to be cached!
   return get_attribute!(X, :basis) do
@@ -643,14 +720,18 @@ end
 
 @doc raw"""
     basis(k::Int, X::AbstractVariety)
-Return an additive basis of the Chow ring of $X$ in codimension $k$."""
+
+Return an additive basis of the Chow ring of $X$ in codimension $k$.
+"""
 basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 
 @doc raw"""
     betti(X::AbstractVariety)
+
 Return the Betti numbers of the Chow ring of $X$. Note that these are not
 necessarily equal to the usual Betti numbers, i.e., the dimensions of
-(co)homologies."""
+(co)homologies.
+"""
 betti(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
@@ -675,6 +756,7 @@ end
     intersection_matrix(a::Vector)
     intersection_matrix(a::Vector, b::Vector)
     intersection_matrix(X::AbstractVariety)
+
 Compute the intersection matrix among entries of a vector $a$ of Chow ring
 elements, or between two vectors $a$ and $b$. For a abstract_variety $X$, this computes
 the intersection matrix of the additive basis given by `basis(X)`.
@@ -687,9 +769,11 @@ end
 
 @doc raw"""
     dual_basis(k::Int, X::AbstractVariety)
+
 Compute the dual basis of the additive basis in codimension $k$ given by
 `basis(X, k)` (the returned elements are therefore in codimension
-$\dim X-k$)."""
+$\dim X-k$).
+"""
 function dual_basis(X::AbstractVariety, k::Int)
   d = get_attribute!(X, :dual_basis) do
     d = Dict{Int, Vector{elem_type(X.ring)}}()
@@ -708,8 +792,10 @@ end
 
 @doc raw"""
     dual_basis(X::AbstractVariety)
+
 Compute the dual basis with respect to the additive basis given by `basis(X)`,
-grouped by decreasing degree (i.e., decreasing codimension)."""
+grouped by decreasing degree (i.e., decreasing codimension).
+"""
 dual_basis(X::AbstractVariety) = [dual_basis(X, k) for k in 0:X.dim]
 
 # the parameter for truncation is usually the dimension, but can also be set
@@ -774,7 +860,7 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   R = parent(x)
   iszero(x) && return R(1)
   n = get_attribute(R, :abstract_variety_dim)
-  R, (t,) = grade(PolynomialRing(QQ, ["t"])[1])
+  R, (t,) = grade(polynomial_ring(QQ, ["t"])[1])
   set_attribute!(R, :abstract_variety_dim, n)
   lg = _logg(R(sum(taylor[i+1] * t^i for i in 0:n)))
   comps = lg[1:n]
@@ -810,7 +896,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   _g = Symbol("_", g)
   @eval function $g(n::Int)
     n == 0 && return QQ(1)
-    R, p = grade(PolynomialRing(QQ, _parse_symbol($s, 1:n))[1], collect(1:n))
+    R, p = grade(polynomial_ring(QQ, _parse_symbol($s, 1:n))[1], collect(1:n))
     set_attribute!(R, :abstract_variety_dim, n)
     $_g(_logg(R(1+sum(p))))[n]
   end
@@ -818,17 +904,23 @@ end
 
 @doc raw"""
     todd_class(n::Int)
-Compute the (generic) $n$-th Todd genus."""
+
+Compute the (generic) $n$-th Todd genus.
+"""
 todd_class(n::Int)
 
 @doc raw"""
     l_genus(n::Int)
-Compute the (generic) $n$-th L genus."""
+
+Compute the (generic) $n$-th L genus.
+"""
 l_genus(n::Int)
 
 @doc raw"""
     a_hat_genus(n::Int)
-Compute the (generic) $n$-th $\hat A$ genus."""
+
+Compute the (generic) $n$-th $\hat A$ genus.
+"""
 a_hat_genus(n::Int)
 
 @doc raw"""
@@ -878,6 +970,7 @@ end
 @doc raw"""
     complete_intersection(X::AbstractVariety, degs::Int...)
     complete_intersection(X::AbstractVariety, degs::Vector{Int})
+
 Construct the complete intersection in $X$ of general hypersurfaces with
 degrees $d_1,\dots,d_k$.
 """
@@ -917,9 +1010,11 @@ end
 ###############################################################################
 @doc raw"""
     point()
-Construct a point as an abstract abstract_variety."""
+
+Construct a point as an abstract abstract_variety.
+"""
 function point(; base::Ring=QQ)
-  R, (p,) = grade(PolynomialRing(base, ["p"])[1])
+  R, (p,) = grade(polynomial_ring(base, ["p"])[1])
   I = ideal([p])
   pt = AbstractVariety(0, quo(R, I)[1])
   pt.point = pt(1)
@@ -931,11 +1026,13 @@ function point(; base::Ring=QQ)
 end
 
 @doc raw"""
-    abstract_projective_variety(n::Int)
+    abstract_projective_space(n::Int)
+
 Construct an abstract projective space of dimension $n$, parametrizing
-1-dimensional *subspaces* of a vector space of dimension $n+1$."""
-function abstract_projective_variety(n::Int; base::Ring=QQ, symbol::String="h")
-  R, (h,) = grade(PolynomialRing(base, [symbol])[1])
+1-dimensional *subspaces* of a vector space of dimension $n+1$.
+"""
+function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
+  R, (h,) = grade(polynomial_ring(base, [symbol])[1])
   I = ideal([h^(n+1)])
   AP = quo(R, I)[1]
   P = AbstractVariety(n, AP)
@@ -958,8 +1055,10 @@ end
 
 @doc raw"""
     abstract_projective_bundle(F::AbstractBundle)
+
 Construct the projectivization of a bundle $F$, parametrizing 1-dimensional
-*subspaces*."""
+*subspaces*.
+"""
 function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
@@ -969,7 +1068,7 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
   # ord = ordering_dp(1) * R.R.ord
   # construct the ring
   w = vcat([1], gradings(R))
-  R1, (h,) = grade(PolynomialRing(X.base, syms)[1], w)
+  R1, (h,) = grade(polynomial_ring(X.base, syms)[1], w)
   # TODO: why does this fail with check = true
   pback = hom(R, R1, gens(R1)[2:end], check = false)
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
@@ -1016,7 +1115,7 @@ function abs_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
   @assert k < n
  
   d = k*(n-k)
-  R, c = grade(PolynomialRing(base, _parse_symbol(symbol, 1:k))[1], collect(1:k))
+  R, c = grade(polynomial_ring(base, _parse_symbol(symbol, 1:k))[1], collect(1:k))
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
@@ -1065,7 +1164,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
   # FIXME ordering
   # ord = prod(ordering_dp(r) for r in ranks)
-  R = grade(PolynomialRing(base, syms)[1], vcat([collect(1:r) for r in ranks]...))[1]
+  R = grade(polynomial_ring(base, syms)[1], vcat([collect(1:r) for r in ranks]...))[1]
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
@@ -1094,6 +1193,7 @@ end
 @doc raw"""
     abstract_flag_variety(d::Int, F::AbstractBundle)
     abstract_flag_variety(dims::Vector{Int}, F::AbstractBundle)
+
 Construct the relative flag abstract_variety of a bundle $F$, parametrizing
 flags of subspaces $V_{d_1}\subset V_{d_2}\subset\cdots\subset V_{d_k}$. The
 last dimension (i.e., the rank of $F$) can be omitted.
@@ -1118,7 +1218,7 @@ function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::Str
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(R.R)))
   # ord = prod(ordering_dp(r) for r in ranks) * ordering(X.ring.R.R)
   w = vcat([collect(1:r) for r in ranks]..., gradings(R))
-  R1 = grade(PolynomialRing(X.base, syms)[1], w)[1]
+  R1 = grade(polynomial_ring(X.base, syms)[1], w)[1]
   pback = hom(R, R1, gens(R1)[n+1:end])
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
   
@@ -1162,6 +1262,7 @@ end
     schubert_class(G::AbstractVariety, λ::Int...)
     schubert_class(G::AbstractVariety, λ::Vector{Int})
     schubert_class(G::AbstractVariety, λ::Partition)
+
 Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian $G$.
 """
 function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
@@ -1174,7 +1275,9 @@ end
 
 @doc raw"""
     schubert_classes(m::Int, G::AbstractVariety)
-Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian $G$."""
+
+Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian $G$.
+"""
 function schubert_classes(G::AbstractVariety, m::Int)
   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
   S, Q = G.bundles

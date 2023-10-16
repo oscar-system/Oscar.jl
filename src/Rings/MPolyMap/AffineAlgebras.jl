@@ -155,13 +155,11 @@ julia> is_bijective(F)
 true
 
 julia> G = inverse(F)
-Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in t over Rational Field
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Ring homomorphism
+  from multivariate polynomial ring in 1 variable over QQ
+  to quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z)
+defined by
+  t -> x
 
 julia> G(t)
 x

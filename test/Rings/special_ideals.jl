@@ -1,7 +1,7 @@
 @testset "Special Ideals" begin
     @testset "Katsura Ideals" begin
         I = katsura(5)
-        R = parent(gens(I)[1])
+        R = base_ring(I)
         (x1, x2, x3, x4, x5, x6) = gens(R)
         @test gens(I) == [
             x1 + 2 * x2 + 2 * x3 + 2 * x4 + 2 * x5 + 2 * x6 - 1,

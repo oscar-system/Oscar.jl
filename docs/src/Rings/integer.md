@@ -40,7 +40,7 @@ The parent of an OSCAR integer is the ring of integers `ZZ`.
 
 ```jldoctest
 julia> ZZ
-Integer Ring
+Integer ring
 
 ```
 

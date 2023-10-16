@@ -25,20 +25,70 @@ end
 ==(X::EmptyScheme, Y::AbsSpec) = (Y == X)
 
 
-
 ########################################################
 # (2) Display
 ########################################################
 
+# We show a detailed version of the coordinate ring since they are all the
+# details we can get.. Otherwise our detailed printing is quite poor and
+# "useless".
+function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
+  io = pretty(io)
+  println(io, "Spectrum")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, MIME"text/plain"(), OO(X))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, X::AbsSpec)
   if has_attribute(X, :name)
     print(io, name(X))
-    return
+  elseif get(io, :supercompact, false)
+    print(io, "Affine scheme")
+  elseif get_attribute(X, :is_empty, false)
+    print(io, "Empty affine scheme")
+  else
+    _show(io, X)
   end
-  print(io, "Spec of $(OO(X))")
 end
 
+function _show(io::IO, X::AbsSpec)
+  io = pretty(io)
+  print(io, LowercaseOff(), "Spec of ")
+  print(io, Lowercase(), OO(X))
+end
 
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
+  print(io, "Affine ", ngens(OO(X)), "-space")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  join(io, gens(I), ", ")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "V(")
+  I = modulus(OO(X))
+  S = inverted_set(OO(X))
+  join(io, gens(I), ", ")
+  print(io, raw") \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
+
+function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+  io = pretty(io)
+  print(io, LowercaseOff(), "AA^", ngens(OO(X)))
+  S = inverted_set(OO(X))
+  print(io, raw" \ V(")
+  join(io, denominators(S), ",")
+  print(io, ")")
+end
 
 ########################################################
 # (3) Check for zero divisors in rings
@@ -54,8 +104,8 @@ in the coordinate ring of an affine scheme.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
-  with coordinates x1 x2 x3
-  over Rational Field
+  over rational field
+with coordinates [x1, x2, x3]
 
 julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{QQMPolyRingElem}:
@@ -199,6 +249,67 @@ function components(X::AbsSpec)
   return result
 end
 
+########################################################################
+# Base change and reduction modulo p
+########################################################################
 
+@doc raw"""
+    base_change(phi::Any, X::AbsSpec)
 
+For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism 
+``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair 
+`(Y, psi)` where `psi` is the canonical map ``Y → X``.
+"""
+function base_change(phi::Any, X::AbsSpec)
+  kk = base_ring(X)
+  kk_red = parent(phi(zero(kk)))
+  R = OO(X)
+  R_red, Phi = _change_base_ring(phi, R)
+  Y = Spec(R_red)
+  return Y, SpecMor(Y, X, Phi)
+end
 
+### Some helper functions
+function _change_base_ring(phi::Any, R::MPolyRing)
+  K = coefficient_ring(R)
+  kk = parent(phi(zero(K)))
+  P, _ = polynomial_ring(kk, symbols(R))
+  Phi = hom(R, P, phi, gens(P))
+  return P, Phi
+end
+
+function _change_base_ring(phi::Any, A::MPolyQuoRing)
+  R = base_ring(A)
+  I = modulus(A)
+  P, Phi = _change_base_ring(phi, R)
+  I_red = ideal(P, Phi.(gens(I)))
+  Q, pr = quo(P, I_red)
+  Phi_bar = hom(A, Q, phi, gens(Q), check=false)
+  return Q, Phi_bar
+end
+
+function _change_base_ring(phi::Any, 
+    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+                    <:MPolyPowersOfElement}
+  )
+  R = base_ring(W)
+  P, Phi = _change_base_ring(phi, R)
+  U = inverted_set(W)
+  U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
+  W_red, loc_map = localization(P, U_red)
+  return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
+end
+
+function _change_base_ring(phi::Any, 
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+                       <:MPolyPowersOfElement}
+  )
+  R = base_ring(L)
+  W = localized_ring(L)
+  W_red, Phi_W = _change_base_ring(phi, W)
+  I = modulus(L)
+  I_red = ideal(W_red, Phi_W.(gens(I)))
+  L_red, pr = quo(W_red, I_red)
+  res = compose(restricted_map(Phi_W), pr)
+  return L_red, hom(L, L_red, res, check=false)
+end

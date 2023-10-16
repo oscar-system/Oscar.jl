@@ -1,0 +1,57 @@
+{
+    "arxiv_data": {
+        "id": "1208.2695",
+        "doi": "10.48550/arXiv.1208.2695",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1208.2695v2",
+        "model_location": {
+            "section": "B",
+            "equation": "B.19",
+            "page": "34"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1007/JHEP10(2012)128",
+        "report_numbers": ["UCSB-MATH-2012-27", "MIT-CTP-4388"],
+        "journal": "JHEP",
+        "volume": "10",
+        "pages": "128",
+        "year": "2012",
+        "link": "https://link.springer.com/article/10.1007/JHEP10(2012)128",
+        "model_location": {
+            "section": "",
+            "equation": "",
+            "page": ""
+        }
+    },
+    "paper_metadata": {
+        "authors": ["David R. Morrison", "Daniel S. Park"],
+        "title": "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds",
+        "description": "General construction of U(1) model",
+        "buzzwords": ["U(1)", "Mordell–Weil", "rational sections"]
+    },
+    "model_descriptors": {
+        "type": "weierstrass",
+        "description": "U(1) Weierstrass model",
+        "gauge_algebra": ["u1"]
+    },
+    "model_data": {
+        "base_dim": 2,
+        "base_coordinates": ["Kbar", "b", "c0", "c1", "c2", "c3"],
+        "f": "c1 * c3 - b^2 c0 - 1//3 * c2^2",
+        "g": "c0 c3^2 - 1//3 * c1 * c2 * c3 + 2//27 * c2^3 - 2//3 * b^2 * c0 * c2 + 1//4 * b^2 * c1^2",
+        "auxiliary_base_grading": [
+            [1, 0, 4, 3, 2, 1],
+            [0, 1, -2, -1, 0, 1]
+        ],
+        "generating_sections": [
+            [
+                "c3^2 - 2//3 * b^2 * c2",
+                "-c3^3 + b^2 * c2 * c3 - 1//2 * b^4 * c1",
+                "b"
+            ]
+        ]
+    },
+    "associated_models": ["model1208_2695-1.json"]
+}

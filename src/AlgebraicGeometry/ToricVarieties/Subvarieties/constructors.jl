@@ -3,11 +3,11 @@
 ##############################################################
 
 @attributes mutable struct ClosedSubvarietyOfToricVariety
-    toric_variety::AbstractNormalToricVariety
+    toric_variety::NormalToricVarietyType
     defining_ideal::MPolyIdeal
-    function ClosedSubvarietyOfToricVariety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
+    function ClosedSubvarietyOfToricVariety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal)
       @req is_simplicial(toric_variety) "Currently, closed subvarieties are only supported for simplicial toric varieties"
-      @req parent(gens(defining_ideal)[1]) == cox_ring(toric_variety) "The defining ideal must be contained in the Cox ring of the toric supervariety"
+      @req base_ring(defining_ideal) == cox_ring(toric_variety) "The defining ideal must be contained in the Cox ring of the toric supervariety"
       return new(toric_variety, defining_ideal)
     end
 end
@@ -18,7 +18,7 @@ end
 ##############################################################
 
 @doc raw"""
-    closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
+    closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}})
 
 Construct the closed subvariety of a simplicial normal toric variety.
 The defining data for the closed subvariety is a list of homogeneous
@@ -30,7 +30,7 @@ arises in this way.
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
@@ -38,11 +38,11 @@ julia> closed_subvariety_of_toric_variety(f2, [t1])
 Closed subvariety of a normal toric variety
 ```
 """
-closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
+closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_polynomials::Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}) = ClosedSubvarietyOfToricVariety(toric_variety, ideal(defining_polynomials))
 
 
 @doc raw"""
-    closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal)
+    closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal)
 
 Construct the closed subvariety of a simplicial normal toric variety.
 The defining data for the closed subvariety is an ideal of the Cox ring of the
@@ -52,7 +52,7 @@ arises in this way.
 
 # Examples
 ```jldoctest
-julia> f2 = hirzebruch_surface(2);
+julia> f2 = hirzebruch_surface(NormalToricVariety, 2);
 
 julia> (t1, x1, t2, x2) = gens(cox_ring(f2));
 
@@ -60,7 +60,7 @@ julia> closed_subvariety_of_toric_variety(f2, ideal([t1]))
 Closed subvariety of a normal toric variety
 ```
 """
-closed_subvariety_of_toric_variety(toric_variety::AbstractNormalToricVariety, defining_ideal::MPolyIdeal) = ClosedSubvarietyOfToricVariety(toric_variety, defining_ideal)
+closed_subvariety_of_toric_variety(toric_variety::NormalToricVarietyType, defining_ideal::MPolyIdeal) = ClosedSubvarietyOfToricVariety(toric_variety, defining_ideal)
 
 
 ######################

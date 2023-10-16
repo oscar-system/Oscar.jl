@@ -3,9 +3,9 @@
 #########################
 
 @attributes mutable struct ToricDivisorClass
-    toric_variety::AbstractNormalToricVariety
+    toric_variety::NormalToricVarietyType
     class::GrpAbFinGenElem
-    function ToricDivisorClass(toric_variety::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+    function ToricDivisorClass(toric_variety::NormalToricVarietyType, class::GrpAbFinGenElem)
         @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem)
+    toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem)
 
 Construct the toric divisor class associated to a group
 element of the class group of the normal toric variety `v`.
@@ -25,17 +25,17 @@ element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::AbstractNormalToricVariety, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
+toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
 
 
 @doc raw"""
-    toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
+    toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the toric divisor class associated to a list of integers which
 specify an element of the class group of the normal toric variety `v`.
@@ -43,13 +43,13 @@ specify an element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([ZZRingElem(1)]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([ZZRingElem(c) for c in coeffs]))
+toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([ZZRingElem(c) for c in coeffs]))
 
 
 ######################
@@ -64,7 +64,7 @@ Construct the toric divisor class associated to the element ... of the class gro
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(P2, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -95,16 +95,24 @@ function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 
+Base.:-(td :: ToricDivisorClass) = toric_divisor_class(toric_variety(td), -divisor_class(td))
 
 Base.:*(c::T, tdc::ToricDivisorClass) where {T <: IntegerUnion} = toric_divisor_class(toric_variety(tdc), ZZRingElem(c) * divisor_class(tdc))
 
 
 ########################
-# 5: Equality
+# 5: Equality and hash
 ########################
 
 function Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    return toric_variety(tdc1) === toric_variety(tdc2) && iszero(divisor_class(tdc1) - divisor_class(tdc2))
+    return toric_variety(tdc1) === toric_variety(tdc2) && divisor_class(tdc1) == divisor_class(tdc2)
+end
+
+function Base.hash(tdc::ToricDivisorClass, h::UInt)
+    b = 0x118eb1fba136490c % UInt
+    h = hash(toric_variety(tdc), h)
+    h = hash(divisor_class(tdc), h)
+    return xor(h, b)
 end
 
 

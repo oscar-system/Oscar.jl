@@ -1,9 +1,57 @@
 ########################################################################
 # Printing                                                             #
 ########################################################################
-function Base.show(io::IO, f::SpecOpenMor) 
-  print(io, "Morphism from $(domain(f)) to $(codomain(f))")
-  #given by the rational map $(generic_fractions(f))")
+
+# For the printing, we describe the domain and codomain with coordinates
+# for the ambient space and the description of the complement (and we do not
+# forget to avoid printing again the coordinates by using the `false`) argument
+# in both the show function for `domain(f)` and `codomain(f)`).
+function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
+  io = pretty(io)
+  X = domain(f)
+  cX = ambient_coordinates(X)
+  Y = codomain(f)
+  cY = ambient_coordinates(Y)
+  co_str = String[]
+  str = "["*join(cX, ", ")*"]"
+  kX = length(str)
+  push!(co_str, str)
+  str = "["*join(cY, ", ")*"]"
+  kY = length(str)
+  push!(co_str, str)
+  k = max(length.(co_str)...)
+  println(io, "Spec open morphism")
+  print(io, Indent(), "from ")
+  print(io, co_str[1]*" "^(k-kX+2), Lowercase())
+  show(IOContext(io, :show_coordinates => false), domain(f))
+  println(io)
+  print(io, "to   ", co_str[2]*" "^(k-kY+2), Lowercase())
+  show(IOContext(io, :show_coordinates => false), codomain(f))
+  mop = maps_on_patches(f)
+  if length(mop) > 0
+    println(io)
+    print(io, Dedent(), "defined by the map")
+    length(mop) > 1 && print(io, "s")
+    print(io, Indent())
+    for i in 1:length(mop)
+      println(io, Lowercase())
+      Base.show(io, MIME"text/plain"(), mop[i])
+      if i != length(mop)
+        println(io)
+        print(io, "----------------------------------------------------------------------")
+      end
+    end
+  end
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, f::SpecOpenMor)
+  if get(io, :supercompact, false)
+    print(io, "Spec open morphism")
+  else
+    io = pretty(io)
+    print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
+  end
 end
 
 ########################################################################
@@ -13,9 +61,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  if check
-    issubset(Cf, V) || error("maps are not compatible")
-  end
+  @check issubset(Cf, V) "maps are not compatible"
   W = codomain(g)
   X = ambient_scheme(U)
   Y = ambient_scheme(V)
@@ -63,16 +109,14 @@ end
 function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
   X = ambient_scheme(U)
-  if check
-    is_closed_embedding(Z, ambient_scheme(codomain(f))) || error("second argument must be closed in the codomain")
-  end
+  @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
   Y = X 
   for K in pbZ
     Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
   end
-  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
+  return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
   V = codomain(f) 
@@ -91,13 +135,13 @@ function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
 end
 
 
-function preimage(f::SpecOpenMor, V::SpecOpen)
+function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
   U = domain(f)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(gens(V))))))
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(complement_equations(V))))))
   end
   return intersect(U, SpecOpen(X, I))
 end
@@ -110,15 +154,15 @@ function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
 end
 
 function find_non_zero_divisor(U::SpecOpen)
-  n = length(gens(U))
+  n = ngens(U)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   n == 0 && return zero(R)
   kk = base_ring(X)
   coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
-  d = sum([coeff[i]*gens(U)[i] for i in 1:n])
+  d = sum([coeff[i]*complement_equations(U)[i] for i in 1:n])
   while !is_non_zero_divisor(d, U)
-    d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
+    d = dot([rand(kk, 0:100) for i in 1:n], complement_equations(U))
   end
   return d
 end

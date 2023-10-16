@@ -106,7 +106,6 @@ often as people think.
 
 
 The infrastructure is incomplete, e.g. we do not have
- - varieties, (we've started with curves recently)
  - combinatorial manifolds
  - surfaces
  - tropical polytopes

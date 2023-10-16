@@ -77,6 +77,15 @@ Here is a summary of the naming convention followed in OSCAR:
 Please check if your editor can be configured to honor our `.editorconfig`
 file, see <https://editorconfig.org> for more information about this.
 
+### JuliaFormatter
+
+There is a `.JuliaFormatter.toml` in our git repository. To format your files,
+first add `JuliaFormatter.jl` in Julia and then use
+```
+using JuliaFormatter
+format_file("path/to/file/file.jl")
+```
+
 ### Unicode
 
 As most modern programming languages, Julia allows the use of Unicode, e.g.,
@@ -84,9 +93,8 @@ As most modern programming languages, Julia allows the use of Unicode, e.g.,
 to various groups of users and developers, the use of Unicode should be kept
 to a minimum. Here is a general principle:
 
-> Do not use Unicode characters inside functions. See below for the exception
-> concerning printing.
-
+> Do not use Unicode characters inside functions. See
+> [Unicode printing](@ref) for the exception concerning printing.
 
 ### Whitespace
 
@@ -263,7 +271,7 @@ printing in Oscar](@ref).
 
 Sometimes it is necessary to rename a function or otherwise change it. To allow
 for backwards compatibility, please then introduce a new line in the file
-`src/Deprecations.jl`. The syntax is as follows:
+`src/deprecations.jl`. The syntax is as follows:
 ```
 # Deprecated after CURRENT_RELEASE_VERSION
 @deprecate old_function(args) new_function(args)
@@ -280,14 +288,14 @@ end
 @deprecate old_function(args) new_function(transform_args_for_new_function(args))
 ```
 The comment about the version number is only necessary if you are the first one
-adding to `Deprecations.jl` after a release, otherwise please add to the
+adding to `deprecations.jl` after a release, otherwise please add to the
 existing block.
 
 !!! note
     Please make sure to change to the new function everywhere in the existing
     OSCAR code base. Even if you think, you were the only one using the
     function, run a quick `grep` to make sure. When you are done,
-    `Deprecations.jl` should be the only place mentioning `old_function`. To
+    `deprecations.jl` should be the only place mentioning `old_function`. To
     make sure, you can start Julia with `--depwarn=yes` or even
     `--depwarn=error` and then run the tests.
 
