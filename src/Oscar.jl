@@ -85,6 +85,7 @@ function __init__()
     for pkg in [
        "atlasrep",
        "ctbllib",  # character tables
+       "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
        "fga",      # dealing with free groups
        "forms",    # bilinear/sesquilinear/quadratic forms
        "primgrp",  # primitive groups library

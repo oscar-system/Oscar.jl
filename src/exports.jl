@@ -315,6 +315,7 @@ export character_table
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
+export chief_series, has_chief_series, set_chief_series
 export chip_firing_move
 export chow_ring
 export circuits
@@ -371,7 +372,7 @@ export complete_intersection_germ
 export complex_projective_plane
 export components
 export compose
-export composition_series
+export composition_series, has_composition_series, set_composition_series
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -444,6 +445,7 @@ export denest
 export denominator
 export denominators
 export depth
+export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
@@ -881,6 +883,7 @@ export iterate_basis
 export jacobi_ideal
 export jacobi_matrix
 export jacobi_symbol
+export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
@@ -931,6 +934,7 @@ export load_mps
 export localized_ring
 export loops
 export low_index_subgroup_reps
+export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
@@ -1113,6 +1117,7 @@ export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
 export outneighbors
+export p_central_series
 export pappus_matroid
 export parallel_extension
 export parent
@@ -1437,6 +1442,7 @@ export update_glueing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
 export upper_bound_h_vector
+export upper_central_series, has_upper_central_series, set_upper_central_series
 export upper_triangular_matrix
 export v_reduced
 export valuation_of_roots
