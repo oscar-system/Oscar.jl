@@ -8,7 +8,7 @@ are executed via `underlying_morphism`.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
@@ -29,7 +29,7 @@ Return the index of the new ray used in the construction of the toric blowdown m
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
@@ -56,14 +56,14 @@ computed.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
 
 julia> center(blow_down_morphism)
 Sheaf of ideals
-  on normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+  on normal toric variety
 with restrictions
   1: ideal(x_3_1, x_2_1)
   2: ideal(x_3_2, x_2_2)
@@ -96,7 +96,7 @@ Return the exceptional divisor (as toric divisor)  of the toric blowdown morphis
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
