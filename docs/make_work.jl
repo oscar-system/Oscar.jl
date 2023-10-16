@@ -111,7 +111,7 @@ end
 
 function doit(
   Oscar::Module;
-  strict::Bool=true,
+  warnonly=false,
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
 )
@@ -189,7 +189,7 @@ function doit(
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
       doctest=false,
-      strict=strict,
+      warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
     )
