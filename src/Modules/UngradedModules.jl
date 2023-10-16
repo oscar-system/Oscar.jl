@@ -1954,16 +1954,16 @@ function show_subquo(SQ::SubquoModule)
       else
         println("Cokernel of")
       end
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     else
       if is_graded(SQ)
         println("Graded subquotient of")
       else
         println("Subquotient of")
       end
-      display(generator_matrix(SQ.sub))
-      println("by image of")
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.sub))
+      println("\nby image of")
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     end
   else
     if is_graded(SQ)
@@ -1971,9 +1971,9 @@ function show_subquo(SQ::SubquoModule)
     else
       println("Image of")
     end
-    display(generator_matrix(SQ.sub))
+    show(stdout, "text/plain", generator_matrix(SQ.sub))
   end
-  print(io_compact, "with ambient free module ", SQ.F)
+  print(io_compact, "\nwith ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
@@ -4953,7 +4953,7 @@ function matrix(f::SubQuoHom)
 end
 
 function show_morphism(f::ModuleFPHom)
-  display(matrix(f))
+  show(stdout, "text/plain", matrix(f))
 end
 
 @doc raw"""
