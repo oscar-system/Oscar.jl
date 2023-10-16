@@ -2216,16 +2216,27 @@ function _johnson_solid(::Val{86})
   return convex_hull(EMF, V; non_redundant = true)
 end
 
-# function _johnson_solid(::Val{87})
-#   Qx, x = QQ["x"]
-#   NF, ks = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23)
-#   NFy, y = NF["y"]
-#   UNF, us = number_field(y^2 - 1 + ks^2)
-#   ENF, u = Hecke.embedded_field(UNF, real_embeddings(UNF)[4])
-#   k = ENF(ks) 
-#   v = (-13//27*k^3 - 208//135*k^2 + 1733//810*k + 449//405)*u
-#   w = (4//27*k^3 + 64//135*k^2 + 668//405*k - 512//405)*u
-# end
+function _johnson_solid(::Val{87})
+  Qx, x = QQ["x"]
+  NF, k = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23)
+  NFy, y = NF["y"]
+  MF, mr = number_field([y^2 - 1 + k^2, y^2 - 2])
+  EMF, mra = Hecke.embedded_field(MF, real_embeddings(MF)[8])
+  ke = EMF(k)
+  mre, sre2 = mra
+  V = [0 1//2 mre;
+       0 -1//2 mre;
+       ke 1//2 0;
+       ke -1//2 0;
+       -ke 1//2 0;
+       -ke -1//2 0;
+       0 (2*ke^3//27+32*ke^2//135+334*ke//405-107//810) (1-2*ke^2)//(2*mre);
+       0 -(2*ke^3//27+32*ke^2//135+334*ke//405-107//810) (1-2*ke^2)//(2*mre);
+       1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
+       -1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
+       (ke+sre2*mre)//2 0 (ke+sre2*mre)//2]
+  return convex_hull(EMF, V; non_redundant = true)
+end
 
 function _johnson_solid(::Val{88})
   Qx, x = QQ["x"]
