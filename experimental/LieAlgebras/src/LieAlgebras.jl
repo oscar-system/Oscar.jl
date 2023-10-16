@@ -48,6 +48,7 @@ import ..Oscar:
   is_solvable,
   is_welldefined,
   kernel,
+  lower_central_series,
   matrix,
   ngens,
   normalizer,
@@ -95,7 +96,6 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lower_central_series
 export matrix_repr_basis
 export multicombinations
 export permutations
@@ -157,7 +157,6 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lower_central_series
 export matrix_repr_basis
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra

@@ -312,6 +312,11 @@ function Base.show(io::IO, G::PermGroup)
       else
         print(io, " and infinite order")
       end
+    elseif GAP.Globals.HasStabChainMutable(G.X)
+      # HACK: to show order in a few more cases where it is trivial to get
+      # but really, GAP should be using this anyway?
+      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
+      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -1921,19 +1926,6 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    end
 
    return FPGroupElem(G, w)
-end
-
-@doc raw"""
-    nilpotency_class(G::GAPGroup) -> Int
-
-Return the nilpotency class of `G`, i.e.,
-the smallest integer $n$ such that `G` has a central series of length $n$.
-
-An exception is thrown if `G` is not nilpotent.
-"""
-@gapattribute function nilpotency_class(G::GAPGroup)
-   @assert is_nilpotent(G) "The group is not nilpotent."
-   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
 
