@@ -191,6 +191,7 @@ function doit(
       warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
+      remotes=nothing,  # TODO: make work with Hecke, Nemo, AbstractAlgebra, see https://github.com/oscar-system/Oscar.jl/issues/588
       plugins=[bib],
     )
   end
