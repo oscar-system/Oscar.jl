@@ -127,15 +127,6 @@ end
 
 @everywhere testlist = $testlist
 
-# this is to check for obsolete include statements in the tests
-@everywhere function include(str::String, mod::Module=Main)
-  if joinpath(Base.source_dir(), str) in testlist
-    @error "invalid include of $str: this file is be included automatically"
-  else
-    Oscar._timed_include(str, mod)
-  end
-end
-
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
 stats = merge(pmap(x -> Oscar.test_module(x; new=false, timed=true), testlist)...)
