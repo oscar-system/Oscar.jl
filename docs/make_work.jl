@@ -182,8 +182,7 @@ function doit(
       Documenter.doctest(Oscar, fix = doctest === :fix)
     end
 
-    makedocs(
-      bib;
+    makedocs(;
       format=Documenter.HTML(; prettyurls=!local_build, collapselevel=1),
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
@@ -192,6 +191,7 @@ function doit(
       warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
+      plugins=[bib],
     )
   end
 

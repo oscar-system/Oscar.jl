@@ -8,7 +8,7 @@
 import DocumenterCitations
 
 # we use some (undocumented) internal helper functions for formatting...
-using DocumenterCitations: format_names, tex2unicode, italicize_md_et_al
+using DocumenterCitations: format_names, tex2unicode
 
 const oscar_style = :oscar
 
@@ -66,7 +66,7 @@ function DocumenterCitations.format_citation(
       )
     end
     capitalize && (names = uppercasefirst(names))
-    link_text = italicize_md_et_al("$names $link_text")
+    link_text = "$names $link_text"
   end
   return link_text
 end
