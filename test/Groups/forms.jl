@@ -174,7 +174,7 @@ end
    f = symmetric_form(x); g = symmetric_form(y)
    is_true,z = is_congruent(f,g)
    @test !is_true
-   @test z==nothing
+   @test z===nothing
 
    T,t = polynomial_ring(GF(3),"t")
    F,a = finite_field(t^2+1,"a")

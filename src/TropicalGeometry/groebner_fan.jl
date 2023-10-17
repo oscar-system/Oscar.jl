@@ -465,7 +465,7 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
             # check whether facet is supposed to be traversed
             # (i.e., if ideal is not quasi-homogeneous,
             #  check whether facet lies inside the positive orthant)
-            if homogeneityWeight==nothing && !reduce(&,isless.(0,u))
+            if homogeneityWeight === nothing && !reduce(&,isless.(0,u))
                 continue
             end
 

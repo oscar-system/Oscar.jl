@@ -50,7 +50,7 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
     proper_flats = Flats[2:number_flats-1]
 
     #construct polynomial ring and extract variables
-    if ring==nothing
+    if ring===nothing
         # create variable names, indexed by the proper flats of M
         var_names = ["x_{" * join(S, ",") * "}" for S in proper_flats]
         if extended

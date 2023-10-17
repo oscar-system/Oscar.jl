@@ -290,15 +290,14 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
          end
       end
    end
-   if isdefined(G,:descr) && G.descr==:GL
+   if isdefined(G,:descr) && G.descr === :GL
       return det(x)!=0, x_gap
-   elseif isdefined(G,:descr) && G.descr==:SL
+   elseif isdefined(G,:descr) && G.descr === :SL
       return det(x)==1, x_gap
-   else
-      if x_gap==nothing x_gap = map_entries(G.ring_iso, x) end
-     # x_gap !=nothing || x_gap = map_entries(G.ring_iso, x)
-      return (x_gap in G.X), x_gap
+   elseif x_gap === nothing
+      x_gap = map_entries(G.ring_iso, x)
    end
+   return (x_gap in G.X), x_gap
 end
 
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
@@ -316,7 +315,7 @@ function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
       @req _is_true "Element not in the group"
-      x_gap != nothing && return MatrixGroupElem(G,x,x_gap)
+      x_gap !== nothing && return MatrixGroupElem(G,x,x_gap)
    end
    return MatrixGroupElem(G,x)
 end
@@ -341,9 +340,10 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    else
       _is_true, x_gap = lies_in(x.elm,G,nothing)
       @req _is_true "Element not in the group"
-      if x_gap==nothing return MatrixGroupElem(G,x.elm)
-      else return MatrixGroupElem(G,x.elm,x_gap)
+      if x_gap == nothing
+        return MatrixGroupElem(G,x.elm)
       end
+      return MatrixGroupElem(G,x.elm,x_gap)
    end
 end
 

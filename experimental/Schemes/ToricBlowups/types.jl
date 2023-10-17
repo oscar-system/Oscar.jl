@@ -19,7 +19,7 @@
     for i in 1:nrays(v)+1
         j = findfirst(==(rays(new_variety)[i]), rays(v))
         new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-        j == nothing && (index_of_new_ray = i)
+        j === nothing && (index_of_new_ray = i)
     end
     @assert index_of_new_ray !==nothing "New ray not found -- some error in blow-up of toric variety"
     set_attribute!(new_variety, :coordinate_names, new_vars)
