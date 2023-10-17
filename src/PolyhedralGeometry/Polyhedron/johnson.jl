@@ -2234,7 +2234,7 @@ function _johnson_solid(::Val{87})
        0 -(2*ke^3//27+32*ke^2//135+334*ke//405-107//810) (1-2*ke^2)//(2*mre);
        1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
        -1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
-       (ke+sre2*mre)//2 0 (ke+sre2*mre)//2]
+       (ke+sre2*mre)//2 0 (ke*sre2+mre)//2]
   return convex_hull(EMF, V; non_redundant = true)
 end
 
