@@ -183,7 +183,13 @@ function doit(
     end
 
     makedocs(;
-      format=Documenter.HTML(; prettyurls=!local_build, collapselevel=1),
+      format=Documenter.HTML(;
+        prettyurls=!local_build,
+        collapselevel=1,
+        size_threshold=409600,
+        size_threshold_warn=204800,
+        size_threshold_ignore=["manualindex.md"],
+      ),
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
