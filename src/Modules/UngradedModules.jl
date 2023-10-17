@@ -6261,7 +6261,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 # - the idx is only used to see how many maps are missing
 
   algorithm = get_attribute(cc, :algorithm)
-  if algorithm == nothing
+  if algorithm === nothing
     algorithm = :fres
     set_attribute!(cc, :algorithm, :fres)
   end
@@ -8228,7 +8228,7 @@ as a subquotient, as well as the injection homomorphism into the domain of $H$.
 """
 function preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
   inclusion = get_attribute(N, :canonical_inclusion)
-  if inclusion != nothing && codomain(inclusion) === codomain(H)
+  if inclusion !== nothing && codomain(inclusion) === codomain(H)
     elems = [inclusion(v) for v in gens(N)]
   else
     elems = [SubquoModuleElem(repres(v),codomain(H)) for v in gens(N)]

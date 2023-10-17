@@ -785,7 +785,7 @@ end
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
-  @test character_parameters(modtbl) == nothing
+  @test character_parameters(modtbl) === nothing
   @test class_lengths(ordtbl) == [1, 15, 20, 12, 12]
   @test class_lengths(modtbl) == [1, 20, 12, 12]
   @test class_names(ordtbl) == ["1a", "2a", "3a", "5a", "5b"]
@@ -797,7 +797,7 @@ end
   @test identifier(modtbl) == "A5mod2"
   @test !is_duplicate_table(ordtbl)
   @test maxes(ordtbl) == ["a4", "D10", "S3"]
-  @test maxes(modtbl) == nothing
+  @test maxes(modtbl) === nothing
   @test "D10" in names_of_fusion_sources(ordtbl)
   @test order(ordtbl) == 60
   @test order(modtbl) == 60
