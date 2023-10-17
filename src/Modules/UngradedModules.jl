@@ -7569,11 +7569,11 @@ end
 
 
 @doc raw"""
-    tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+    tensor_product(C::ComplexOfMorphisms{<:ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
+function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
