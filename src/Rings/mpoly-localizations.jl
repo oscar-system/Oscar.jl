@@ -3095,7 +3095,7 @@ julia> minimal_generating_set(I)
 """
 @attr Vector{<:MPolyLocRingElem} function minimal_generating_set(
     I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal}
                           }
   )
@@ -3171,11 +3171,11 @@ julia> small_generating_set(I)
 ```
 """
 small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyRing, <:MPolyRingElem,
                         <:MPolyComplementOfKPointIdeal}})  = minimal_generating_set(I)
 
 function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyRing, <:MPolyRingElem,
                         <:MPolyPowersOfElement}})
   L = base_ring(I)
   R = base_ring(L)
@@ -3183,5 +3183,5 @@ function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:F
   return filter(!iszero, I_min)
 end
 
-dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
 

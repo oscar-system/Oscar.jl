@@ -13,7 +13,7 @@
 
 # Computes the space of weight vectors w.r.t. which G is weighted homogeneous
 @doc raw"""
-    homogeneity_space(G::Vector{<:MPolyElem})
+    homogeneity_space(G::Vector{<:MPolyRingElem})
 
 Return a `Cone` that is the space of all weight vectors under which all elements of `G` are weighted homogeneous.  The cone will be a linear subspace without any rays.
 
@@ -56,7 +56,7 @@ julia> rays_modulo_lineality(homogeneity_space(G3))
 
 ```
 """
-function homogeneity_space(G::Vector{<:MPolyElem})
+function homogeneity_space(G::Vector{<:MPolyRingElem})
     inequalities = fmpq_mat(0,0)
     equations = Vector{Vector{Int}}()
     for g in G
@@ -71,7 +71,7 @@ end
 
 
 @doc raw"""
-    homogeneity_vector(G::Vector{<:MPolyElem})
+    homogeneity_vector(G::Vector{<:MPolyRingElem})
 
 Return a positive `Vector{fmpz}` under which every element of `G` is weighted
 homogeneous. If no such vector exists, return `nothing`.
@@ -119,7 +119,7 @@ true
 
 ```
 """
-function homogeneity_vector(G::Vector{<:MPolyElem})
+function homogeneity_vector(G::Vector{<:MPolyRingElem})
     homogeneitySpace = homogeneity_space(G)
 
     # return nothing if homogeneitySpace is the origin
@@ -150,7 +150,7 @@ end
 
 
 @doc raw"""
-    maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem}; homogeneityWeight::Union{Nothing,Vector{fmpz}}=nothing)
+    maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}; homogeneityWeight::Union{Nothing,Vector{fmpz}}=nothing)
 
 Returns the maximal Groebner cone of a Groebner basis `G`, i.e., the closure of all weight vectors with respect to whose weighted ordering `G` is a Groebner basis (independent of tie-breaker).
 
@@ -180,7 +180,7 @@ julia> rays_modulo_lineality(maximal_groebner_cone(G))
 
 ```
 """
-function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem})
+function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
     @assert is_groebner_basis(G)
     ord = ordering(G)
     G = collect(G)
@@ -188,14 +188,14 @@ function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem})
     return maximal_groebner_cone(G,ord,homogeneityWeight)
 end
 
-function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem}, homogeneityWeight::Union{Vector{fmpz},Nothing})
+function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}, homogeneityWeight::Union{Vector{fmpz},Nothing})
     @assert is_groebner_basis(G)
     ord = ordering(G)
     G = collect(G)
     return maximal_groebner_cone(G,ord,homogeneityWeight)
 end
 
-function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, homogeneityWeight::Nothing)
+function maximal_groebner_cone(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, homogeneityWeight::Nothing)
     # calling with `nothing` as homogeneityWeight
     # means that C needs to be restricted to the positive orthant
     C = maximal_groebner_cone_extended(G,ord)
@@ -203,13 +203,13 @@ function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, ho
     return intersect(C,positiveOrthant)
 end
 
-function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, homogeneityWeight::Vector{fmpz})
+function maximal_groebner_cone(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, homogeneityWeight::Vector{fmpz})
     # calling with a positive homogeneityWeight
     # means that C does not be restricted to the positive orthant
     return maximal_groebner_cone_extended(G,ord)
 end
 
-function maximal_groebner_cone_extended(G::Vector{<:MPolyElem}, ord::MonomialOrdering)
+function maximal_groebner_cone_extended(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
     # iterate over all elements of G and construct the inequalities
     inequalities = Vector{Vector{Int}}()
     for g in G
@@ -268,7 +268,7 @@ end
 
 # Returns the initial form of polynomial g with respect to weight vector u.
 # Requires a monomial ordering that is compatible with respect to u, i.e., the leading monomial is of highest weighted degree.
-function initial(g::MPolyElem, ordering::MonomialOrdering, u::Vector{fmpz})
+function initial(g::MPolyRingElem, ordering::MonomialOrdering, u::Vector{fmpz})
     lt,tail = Iterators.peel(terms(g,ordering=ordering));
     d = dot(u,fmpz.(leading_exponent_vector(lt)))
     initial_terms = [s for s in tail if dot(u,fmpz.(leading_exponent_vector(s)))==d]
@@ -277,7 +277,7 @@ function initial(g::MPolyElem, ordering::MonomialOrdering, u::Vector{fmpz})
 end
 
 # Applies the function above to each polynomial in a list of polynomials.
-function initial(G::Vector{<:MPolyElem}, ord::MonomialOrdering, u::Vector{fmpz})
+function initial(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, u::Vector{fmpz})
     return initial.(G,Ref(ord),Ref(u))
 end
 
@@ -287,7 +287,7 @@ end
 # - G is a Groebner basis with respect to ord
 # Returns:
 # - a reduced Groebner basis with respect to ord
-function interreduce(G::Vector{<:MPolyElem}, ord::MonomialOrdering)
+function interreduce(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
     # sort G by its leading monomials (result is smallest first)
     # then reduce G[i] by G[1:i-1] for i=length(G),...,2
     sort!(G,
@@ -307,9 +307,9 @@ end
 # - ordH and ordG are adjacent orderings
 # Returns:
 # - Gnew, a Groebner basis of the original ideal w.r.t. ordH
-function groebner_lift(Hnew::Vector{<:MPolyElem},
+function groebner_lift(Hnew::Vector{<:MPolyRingElem},
                        ordH::MonomialOrdering,
-                       G::Vector{<:MPolyElem},
+                       G::Vector{<:MPolyRingElem},
                        ordG::MonomialOrdering)
     # lift to groebner basis
     Gnew = Hnew - reduce(Hnew,G,ordering=ordG,complete_reduction=true)
@@ -327,7 +327,7 @@ end
 # Returns:
 # - the reduced Groebner basis with respect to the adjacent ordering
 #     in direction v
-function groebner_flip(G::Vector{<:MPolyElem},
+function groebner_flip(G::Vector{<:MPolyRingElem},
                        ordG::MonomialOrdering,
                        homogeneityVector::Union{Vector{fmpz},Nothing},
                        interior_facet_point::Vector{fmpz},

@@ -2221,7 +2221,7 @@ If the localization is at a point, a minimal set of generators is returned.
 """
 @attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
-                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal},
                               <:Any,<:Any}
   )
@@ -2234,7 +2234,7 @@ end
 
 function small_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
-                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyPowersOfElement}
                           }
   )
@@ -2245,5 +2245,5 @@ function small_generating_set(
   return filter(!iszero, Q.(small_generating_set(J)))
 end
 
-dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
 
