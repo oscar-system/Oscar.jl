@@ -119,17 +119,7 @@ function save_object(s::SerializerState, G::PermGroup)
 
   save_data_dict(s) do
     save_object(s, n, :degree)
-
-    save_data_array(s, :gens) do
-      for x in gens(G)
-        # We don't need any type information inside the array.
-        save_data_array(s) do
-          for i in Vector{Int}(GAP.Globals.ListPerm(x.X))
-            save_object(s, i)
-          end
-        end
-      end
-    end
+    save_object(s, [Vector{Int}(GAP.Globals.ListPerm(x.X)) for x in gens(G)], :gens)
   end
 end
 
@@ -150,13 +140,7 @@ end
 @register_serialization_type PermGroupElem uses_params
 
 function save_object(s::SerializerState, p::PermGroupElem)
-  vector_int = Vector{Int}(GAP.Globals.ListPerm(p.X))
-  # again, here we dont need to store as a vector
-  save_data_array(s) do
-    for i in vector_int
-      save_object(s, i)
-    end
-  end
+  save_object(s, Vector{Int}(GAP.Globals.ListPerm(p.X)))
 end
 
 function load_object(s::DeserializerState, T::Type{PermGroupElem},
@@ -192,13 +176,7 @@ end
 @register_serialization_type FPGroupElem uses_params
 
 function save_object(s::SerializerState, g::FPGroupElem)
-  vector_int = Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...))
-  # again, here we don't need to store as a vector.
-  save_data_array(s) do
-    for i in vector_int
-      save_object(s, i)
-    end
-  end
+  save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
 end
 
 function load_object(s::DeserializerState, ::Type{FPGroupElem},

@@ -103,11 +103,7 @@ install_GAP_serialization(:IsFreeGroup,
           # store the names
           names = Vector{String}(Xnames)
         end
-        save_data_array(s, :names) do
-          for i in names
-            save_object(s, i)
-          end
-        end
+        save_object(s, names, :names)
       end
     else
       # subgroup of a full free group: save the full group and generators
@@ -116,16 +112,7 @@ install_GAP_serialization(:IsFreeGroup,
         save_object(s, "IsFreeGroup", :GapType)
         save_typed_object(s, F, :freeGroup)
         # store generators
-        save_data_array(s, :gens) do
-          for x in GAPWrap.GeneratorsOfGroup(X)
-            v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
-            save_data_array(s) do
-              for i in v
-                save_object(s, i)
-              end
-            end
-          end
-        end
+        save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in GAPWrap.GeneratorsOfGroup(X)], :gens)
       end
     end
   end)
@@ -173,16 +160,7 @@ install_GAP_serialization(:IsSubgroupFpGroup,
         save_typed_object(s, freegroup, :freeGroup)
         # relators
         relators = GAP.getbangproperty(elfam, :relators)::GapObj
-        save_data_array(s, :relators) do
-          for x in relators
-            v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
-            save_data_array(s) do
-              for i in v
-                save_object(s, i)
-              end
-            end
-          end
-        end
+        save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in relators], :relators)
       end
     else
       # subgroup of a full f.p. group: save the full group and generators
@@ -191,16 +169,7 @@ install_GAP_serialization(:IsSubgroupFpGroup,
         save_object(s, "IsSubgroupFpGroup", :GapType)
         save_typed_object(s, F, :wholeGroup)
         # store generators
-        save_data_array(s, :gens) do
-          for x in GAPWrap.GeneratorsOfGroup(X)
-            v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
-            save_data_array(s) do
-              for i in v
-                save_object(s, i)
-              end
-            end
-          end
-        end
+        save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in GAPWrap.GeneratorsOfGroup(X)], :gens)
       end
     end
   end)
