@@ -43,7 +43,7 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
-    if match(r"[^*0]",rvlx)!=nothing
+    if match(r"[^*0]",rvlx) !== nothing
         error("The revlex encoding uses only `*` and `0`")
     end
     if length(rvlx)!= binomial(n,r)

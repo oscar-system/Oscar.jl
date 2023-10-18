@@ -161,7 +161,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         jl_flats = reverse(jl_flats)
     end
     matroid_flats = [[M.groundset[i] for i in flat] for flat in jl_flats]
-    if r != nothing
+    if r !== nothing
         if r<0 || r>rank(M)
             error("The specified rank needs to be between 0 and the rank of the matroid.")
         end
