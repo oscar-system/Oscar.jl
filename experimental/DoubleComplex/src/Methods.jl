@@ -64,10 +64,6 @@ function _total_chain_complex(dc::DoubleComplexOfMorphisms{ChainType, MorphismTy
   return ComplexOfMorphisms(ChainType, new_maps, seed=last(r_tot))
 end
 
-function Base.:*(k::Int, f::ModuleFPHom)
-  return base_ring(codomain(f))(k)*f
-end
-
 function _total_cochain_complex(dc::DoubleComplexOfMorphisms{ChainType, MorphismType}) where {ChainType, MorphismType}
   error("total complex of double cochain complexes currently not implemented")
 end
@@ -75,87 +71,4 @@ end
 ### Missing functionality for complexes
 typ(C::ComplexOfMorphisms) = C.typ
 is_complete(C::ComplexOfMorphisms) = C.complete
-
-### Missing functionality for tensor products
-#
-# Actually, this was not really missing, but available under a different name. 
-# I leave the code snippets here for the moment.
-function is_tensor_product(M::ModuleFP)
-  !has_attribute(M, :tensor_product) && return false, [M]
-  return true, get_attribute(M, :tensor_product)::Tuple
-end
-
-function tensor_pure_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
-  success || error("not a tensor product")
-  return get_attribute(M, :tensor_pure_function)
-end
-
-function tensor_generator_decompose_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
-  success || error("not a tensor product")
-  return get_attribute(M, :tensor_generator_decompose_function)
-end
-  
-function tensor_product(mod::Vector{<:ModuleFP})
-  return tensor_product(mod...)
-end
-
-function tensor_product(f::ModuleFPHom...)
-  return tensor_product(collect(f))
-end
-
-function tensor_product(maps::Vector{<:ModuleFPHom};
-    domain::ModuleFP=tensor_product(domain.(maps)),
-    codomain::ModuleFP=tensor_product(codomain.(maps))
-  )
-  n = length(maps)
-  iszero(n) && error("list of maps must not be empty")
-  R = base_ring(domain)
-  S = base_ring(codomain)
-  R === S || error("tensor product of maps with base change not implemented")
-  success, dom_facs = is_tensor_product(domain)
-  n == length(dom_facs) || error("number of factors is incompatible")
-  !success && error("domain must be a tensor product")
-  all(k->dom_facs[k] === Oscar.domain(maps[k]), 1:n) || error("domains not compatible")
-  success, cod_facs = is_tensor_product(codomain)
-  n == length(cod_facs) || error("number of factors is incompatible")
-  !success && error("codomain must be a tensor product")
-  all(k->cod_facs[k] === Oscar.codomain(maps[k]), 1:n)|| error("codomains not compatible")
-
-  pure_func_dom = tensor_pure_function(domain)
-  inv_pure_func_dom = tensor_generator_decompose_function(domain)
-  
-  pure_func_cod = tensor_pure_function(codomain)
-  inv_pure_func_cod = tensor_generator_decompose_function(codomain)
-
-  # Compute the images of the generators
-  img_gens = elem_type(codomain)[]
-  ngens_cod_fac = ngens.(cod_facs)
-  cod_ranges = Iterators.product([1:r for r in ngens_cod_fac]...)
-  # Iterate over the generators of the domain
-  for e in gens(domain)
-    # decompose it into a product of elementary tensors
-    x = inv_pure_func_dom(e)
-    # map each factor
-    y = [maps[k](x[k]) for k in 1:n]
-    # initialize a variable for the image
-    z = zero(codomain)
-    # iterate over all the tuples of indices
-    for I in cod_ranges
-      # get the corresponding tuple of factors for this collection of generators
-      v = Tuple([cod_facs[k][I[k]] for k in 1:n])
-      # map it to its pure tensor
-      w = pure_func_cod(v)
-      # gather the product of the coefficients
-      coeff = prod(y[k][I[k]] for k in 1:n; init=one(S))
-      # add it to the intermediate result
-      z = z + coeff * w
-    end
-    push!(img_gens, z)
-  end
-  return hom(domain, codomain, img_gens)
-end
-
-tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = tensor_product(maps, domain=dom, codomain=cod)
 
