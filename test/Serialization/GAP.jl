@@ -106,5 +106,47 @@
 #      # full group and subgroup together in the same Julia session
 #      # full group and subgroup together in a new Julia session
     end
+
+    @testset "IsPcGroup" begin
+      paras = [(1, 1), (5, 1), (24, 12)]
+      for (n, i) in paras
+        # full pc group
+        G = GAP.Globals.SmallGroup(n, i)
+        test_save_load_roundtrip(path, G) do loaded
+          @test G == loaded
+        end
+
+        # subgroup of full pc group
+        U = GAP.Globals.SylowSubgroup(G, 2)
+        test_save_load_roundtrip(path, U) do loaded
+          @test U == loaded
+        end
+
+        # full group and subgroup in two different data files,
+        # in the same Julia session
+        filenameG = joinpath(path, "G")
+        Oscar.save(filenameG, G)
+        filenameU = joinpath(path, "U")
+        Oscar.save(filenameU, U)
+        loadedG = Oscar.load(filenameG)
+        loadedU = Oscar.load(filenameU)
+        @test loadedG === G
+        @test loadedU === U
+
+        # full group and subgroup in two different data files,
+        # in a new Julia session
+        Oscar.reset_global_serializer_state()
+        loadedG = Oscar.load(filenameG)
+        loadedU = Oscar.load(filenameU)
+        @test loadedG !== G
+        @test loadedU !== U
+        @test GAP.Globals.IsSubset(loadedG, loadedU)
+        @test GAP.Globals.IsomorphismGroups(loadedG, G) != GAP.Globals.fail
+        @test GAP.Globals.IsomorphismGroups(loadedU, U) != GAP.Globals.fail
+
+#      # full group and subgroup together in the same Julia session
+#      # full group and subgroup together in a new Julia session
+      end
+    end
   end
 end

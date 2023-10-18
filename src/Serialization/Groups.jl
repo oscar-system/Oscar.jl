@@ -131,7 +131,7 @@ function load_object(s::DeserializerState, ::Type{PermGroup}, dict::Dict)
 end
 
 
-################################################################################
+##############################################################################
 # PermGroupElem
 # We need just the array of image points up to the largest moved point.
 # (Or would it be easier for other systems if the length of the array
@@ -151,7 +151,7 @@ function load_object(s::DeserializerState, T::Type{PermGroupElem},
 end
 
 
-################################################################################
+##############################################################################
 # FPGroup
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
@@ -169,7 +169,7 @@ function load_object(s::DeserializerState, ::Type{FPGroup}, dict::Dict)
 end
 
 
-################################################################################
+##############################################################################
 # FPGroupElem
 # We need the parent and a description of the word that defines the element.
 
@@ -194,5 +194,45 @@ function load_object(s::DeserializerState, ::Type{FPGroupElem},
     # element in a free group
     gapelm = GAPWrap.ObjByExtRep(fam, GapObj(lo, true))
   end
+  return Oscar.group_element(parent_group, gapelm)
+end
+
+
+##############################################################################
+# PcGroup
+
+@register_serialization_type PcGroup uses_id
+
+function save_object(s::SerializerState, G::PcGroup)
+  save_data_dict(s) do
+    save_object(s, G.X, :X)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{PcGroup}, dict::Dict)
+  return PcGroup(load_object(s, GapObj, dict[:X]))
+end
+
+
+##############################################################################
+# PcGroupElem
+# We need the parent and a description of the exponent vector
+# that defines the element.
+
+@register_serialization_type PcGroupElem uses_params
+
+function save_object(s::SerializerState, g::PcGroupElem)
+  elfam = GAPWrap.FamilyObj(g.X)
+  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)
+  save_object(s, Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, g.X)))
+end
+
+function load_object(s::DeserializerState, ::Type{PcGroupElem},
+                     word_data::Vector,
+                     parent_group::PcGroup)
+  lo = load_object(s, Vector, word_data, Int)
+  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
+  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+  gapelm = GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
   return Oscar.group_element(parent_group, gapelm)
 end
