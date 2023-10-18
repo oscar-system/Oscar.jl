@@ -5,6 +5,14 @@ function getindex(moc::MorphismOfComplexes{<:Any, <:Any, MorphismType}, i::Int) 
   haskey(moc.morphisms, i) && return moc.morphisms[i]::MorphismType
   result = moc.morphism_factory(moc, i)::MorphismType
   moc.morphisms[i] = result
+
+  if has_left_bound(moc) && i < left_bound(moc)
+    moc.left_bound = i
+  end
+  if has_right_bound(moc) && i > right_bound(moc)
+    moc.right_bound = i
+  end
+
   return result
 end
 

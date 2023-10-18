@@ -18,12 +18,21 @@
 
   psi = Oscar.lift_morphism_through_free_resolutions(phi, domain_resolution=res2, codomain_resolution=res1);
 
+  @test Oscar.extends_right(psi)
+  @test !Oscar.extends_left(psi)
+  @test_throws ErrorException psi[-5]
+  @test Oscar.left_bound(psi) == -2
+  @test Oscar.right_bound(psi) == -1
   @test matrix(psi[-2]) == R[;]
   @test matrix(psi[-1]) == R[1;]
   @test matrix(psi[0]) == R[1;]
-  @test matrix(psi[1]) == R[z 0 0; 0 y 0; 0 0 x]
+  @test Oscar.right_bound(psi) == 0
   @test matrix(psi[2]) == R[y*z 0 0; 0 x*y 0; 0 0 x*z]
+  @test Oscar.right_bound(psi) == 2
+  @test matrix(psi[1]) == R[z 0 0; 0 y 0; 0 0 x]
+  @test Oscar.right_bound(psi) == 2
   @test matrix(psi[3]) == R[x*y*z;]
+  @test Oscar.right_bound(psi) == 3
 end
 
 
