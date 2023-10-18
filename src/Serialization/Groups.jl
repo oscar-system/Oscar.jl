@@ -12,6 +12,20 @@
 #   deserializing the same group element twice may yield two nonidentical
 #   objects.
 #
+# - Not all subobjects of GAP objects get serialized, only the ones that are
+#   needed to define the object.
+#   For example, we do not attempt to serialize the known properties and
+#   attributes.
+#   (We may decide that some of them shall better get serialized because
+#   they are expensive to compute, such as finiteness and group order of
+#   finitely presented groups.)
+#   Moreover, some subobjects are intended just for "internal purposes".
+#   For example, a pc group in GAP stores (via its family object)
+#   a rewriting system in terms of elements of a free group.
+#   We do not serialize this information, it gets created anew when the
+#   pc group gets deserialized; this way, the original pc group and the
+#   deserialized one store nonidentical free group objects.
+#
 # - There are cases where the comparison of Oscar group elements relies on
 #   the comparison of underlying GAP elements,
 #   such that the object identity of the `GAPWrap.FamilyObj` values of these
@@ -35,6 +49,15 @@
 #   elements family.
 #   In particular, we do not support the (de)serialization of GAP's
 #   family objects.)
+#
+# - Currently it is not our aim to provide a (de)serialization of as many
+#   GAP objects as possible.
+#   We provide methods for those GAP objects that are needed for the
+#   (de)serialization of Oscar objects.
+#   For example, we need a serialization of free groups in GAP, because of
+#   the object identity requirements, but (de)serializing elements of
+#   free groups in Oscar is done by serializing the underlying word and
+#   the parent object, without serializing the underlying element in GAP.
 #
 # - Remark:
 #   In those cases where the object identity of `GAP.Globals.FamilyObj`

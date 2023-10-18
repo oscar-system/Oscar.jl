@@ -27,24 +27,6 @@ function install_GAP_deserialization(filtsymbol::Symbol, meth::Function)
   return
 end
 
-function _describe_GAP_flags(flags::GapObj)
-  return [string(GAPWrap.NameFunction(x))
-          for x in GAPWrap.ELMS_LIST(GAP.Globals.FILTERS,
-                     GAP.Globals.TRUES_FLAGS(flags))]
-#TODO: omit implied filters
-end
-
-function _GAP_flags(filtnames::Vector)
-  # We need `GAP.evalstr` because of function names involving brackets.
-  l = [GAP.Globals.FLAGS_FILTER(GAP.evalstr(x))::GapObj
-       for x in filtnames]
-  fl = l[1]
-  for f in l[2:end]
-    fl = GAP.Globals.AND_FLAGS(fl, f)
-  end
-  return fl
-end
-
 #############################################################################
 #
 # the Oscar (de)serialization methods that delegate to GAP's method selection
@@ -68,7 +50,7 @@ end
 # - `IsObject`:
 #   generic method, throw an exception
 #
-install_GAP_serialization(:IsObject, 
+install_GAP_serialization(:IsObject,
   function(X::GapObj, s::SerializerState)
     error("serialization of GAP object $X is not yet supported")
   end)
@@ -82,50 +64,57 @@ install_GAP_serialization(:IsObject,
 #   a domain based on it.
 #   Thus (de)serializing family objects does not help us.
 #
-install_GAP_serialization(:IsFamily, 
+install_GAP_serialization(:IsFamily,
   function(X::GapObj, s::SerializerState)
     error("serialization of GAP family object $X is deliberately not supported")
   end)
 
 # - `IsFreeGroup`:
-#   full free group or subgroup of it
-install_GAP_serialization(:IsFreeGroup, 
+#   full free group or subgroup of it,
+#   distinguished by presence of `:freeGroup` and `:gens` in case of a subgroup
+install_GAP_serialization(:IsFreeGroup,
   function(X::GapObj, s::SerializerState)
-    # save the defining data
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
-    save_data_dict(s) do
-      save_object(s, "IsFreeGroup", :GapType)
-      # the internal representation of elements
-      if GAP.Globals.IsSyllableWordsFamily(elfam)::Bool
-        wfilt = "IsSyllableWordsFamily"
-      elseif GAP.Globals.IsLetterWordsFamily(elfam)::Bool
-        wfilt = "IsLetterWordsFamily"
-      elseif GAP.Globals.IsWLetterWordsFamily(elfam)::Bool
-        wfilt = "IsWLetterWordsFamily"
-      elseif GAP.Globals.IsBLetterWordsFamily(elfam)::Bool
-        wfilt = "IsBLetterWordsFamily"
-      else
-        error("not supported internal representation")
-      end
-      save_object(s, wfilt, :wfilt)
-      # rank and names of generators
-      Xnames = GAP.getbangproperty(elfam, :names)::GapObj
-      if GAP.Globals.Length(Xnames)::GAP.Obj == GAP.Globals.infinity
-        # store the initial names and the prefix
-        prefix = GAP.getbangposition(Xnames, 1)::GapObj
-        save_object(s, string(prefix), :nameprefix)
-        names = Vector{String}(GAP.getbangposition(Xnames, 2)::GapObj)
-      else
-        # store the names
-        names = Vector{String}(Xnames)
-      end
-      save_data_array(s, :names) do
-        for i in names
-          save_object(s, i)
+    if GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
+      # full free group: Save the defining data.
+      save_data_dict(s) do
+        save_object(s, "IsFreeGroup", :GapType)
+        # the internal representation of elements
+        if GAP.Globals.IsSyllableWordsFamily(elfam)::Bool
+          wfilt = "IsSyllableWordsFamily"
+        elseif GAP.Globals.IsLetterWordsFamily(elfam)::Bool
+          wfilt = "IsLetterWordsFamily"
+        elseif GAP.Globals.IsWLetterWordsFamily(elfam)::Bool
+          wfilt = "IsWLetterWordsFamily"
+        elseif GAP.Globals.IsBLetterWordsFamily(elfam)::Bool
+          wfilt = "IsBLetterWordsFamily"
+        else
+          error("not supported internal representation")
+        end
+        save_object(s, wfilt, :wfilt)
+        # rank and names of generators
+        Xnames = GAP.getbangproperty(elfam, :names)::GapObj
+        if GAP.Globals.Length(Xnames)::GAP.Obj == GAP.Globals.infinity
+          # store the initial names and the prefix
+          prefix = GAP.getbangindex(Xnames, 1)::GapObj
+          save_object(s, string(prefix), :nameprefix)
+          names = Vector{String}(GAP.getbangindex(Xnames, 2)::GapObj)
+        else
+          # store the names
+          names = Vector{String}(Xnames)
+        end
+        save_data_array(s, :names) do
+          for i in names
+            save_object(s, i)
+          end
         end
       end
-      if !(GAP.Globals.HasIsWholeFamily(X) &&
-           GAPWrap.IsWholeFamily(X))
+    else
+      # subgroup of a full free group: save the full group and generators
+      save_data_dict(s) do
+        F = GAP.getbangproperty(elfam, :freeGroup)::GapObj
+        save_object(s, "IsFreeGroup", :GapType)
+        save_typed_object(s, F, :freeGroup)
         # store generators
         save_data_array(s, :gens) do
           for x in GAPWrap.GeneratorsOfGroup(X)
@@ -143,75 +132,65 @@ install_GAP_serialization(:IsFreeGroup,
 
 install_GAP_deserialization(:IsFreeGroup,
   function(filt::GapObj, s::DeserializerState, T, d::Dict)
-    # We have to create a new free group.
-    wfilt = GAP.evalstr(d[:wfilt])
-    if haskey(d, :nameprefix)
-      # infinite rank
-#TODO: support these groups in Oscar?
-      prefix = string(d[:nameprefix])
-      init = GapObj(d[:names], true)
-      G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)
-    else
-      names = GapObj(d[:names], true)
-      G = GAP.Globals.FreeGroup(wfilt, names)
-    end
-
-    if haskey(d, :gens)
+    if haskey(d, :freeGroup) && haskey(d, :gens)
+      # Deserialize the full free group.
+      F = load_typed_object(s, d[:freeGroup])
+      # Deserialize the generators.
       generators = load_object(s, Vector, d[:gens], (Vector{Int}, Int))
-      F = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G))
-      Ggens = [GAPWrap.ObjByExtRep(F, GapObj(x, true)) for x in generators]
-      G = GAP.Globals.SubgroupNC(G, GapObj(Ggens))
+      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+      Ggens = [GAPWrap.ObjByExtRep(fam, GapObj(x, true)) for x in generators]
+      # Create the subgroup.
+      G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
+    else
+      # Create a new full free group.
+      wfilt = getproperty(GAP.Globals, Symbol(d[:wfilt]))
+      if haskey(d, :nameprefix)
+        # infinite rank
+        prefix = GapObj(d[:nameprefix])
+        init = GapObj(d[:names], true)
+        G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)
+      else
+        names = GapObj(d[:names], true)
+        G = GAP.Globals.FreeGroup(wfilt, names)
+      end
     end
-
     return G
   end)
 
-# # - IsElementOfFreeGroup
-# install_GAP_serialization(:IsElementOfFreeGroup, 
-#   function(X::GapObj, s::SerializerState)
-#     cfam = GAPWrap.FamilyObj(X)::GapObj
-#     efam = GAPWrap.ElementsFamily(cfam)::GapObj
-#     G = GAP.getbangproperty(efam, :freeGroup)
-#     save_data_dict(s) do
-#       save_object(s, G, :freeGroup)
-#     end
-#   end)
-# 
-# install_GAP_deserialization(:IsElementOfFreeGroup,
-#   function(filt::GapObj, s::DeserializerState, T, d::Dict)
-# 
-#   end)
-
-
 # - `IsSubgroupFpGroup`:
-#   full f.p. group or subgroup of it
-install_GAP_serialization(:IsSubgroupFpGroup, 
+#   full f.p. group or subgroup of it,
+#   distinguished by presence of `:wholeGroup` and `:gens` in case of a subgroup
+install_GAP_serialization(:IsSubgroupFpGroup,
   function(X::GapObj, s::SerializerState)
-    # save the defining data
-    elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
-    save_data_dict(s) do
-      save_object(s, "IsSubgroupFpGroup", :GapType)
-
-      # underlying free group
-      freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
-      save_object(s, freegroup, :freeGroup)
-
-      # relators
-      relators = GAP.getbangproperty(elfam, :relators)::GapObj
-      save_data_array(s, :relators) do
-        for x in relators
-          v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
-          save_data_array(s) do
-            for i in v
-              save_object(s, i)
+    Xfam = GAPWrap.FamilyObj(X)
+    elfam = GAPWrap.ElementsFamily(Xfam)
+    if GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
+      # full f.p. group: Save the defining data.
+      save_data_dict(s) do
+        save_object(s, "IsSubgroupFpGroup", :GapType)
+        # underlying free group
+        freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
+        save_typed_object(s, freegroup, :freeGroup)
+        # relators
+        relators = GAP.getbangproperty(elfam, :relators)::GapObj
+        save_data_array(s, :relators) do
+          for x in relators
+            v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
+            save_data_array(s) do
+              for i in v
+                save_object(s, i)
+              end
             end
           end
         end
       end
-
-      if !(GAP.Globals.HasIsWholeFamily(X) &&
-           GAPWrap.IsWholeFamily(X))
-        # generators
+    else
+      # subgroup of a full f.p. group: save the full group and generators
+      save_data_dict(s) do
+        F = GAP.getbangproperty(Xfam, :wholeGroup)::GapObj
+        save_object(s, "IsSubgroupFpGroup", :GapType)
+        save_typed_object(s, F, :wholeGroup)
+        # store generators
         save_data_array(s, :gens) do
           for x in GAPWrap.GeneratorsOfGroup(X)
             v = Vector{Int}(GAPWrap.ExtRepOfObj(x))
@@ -228,22 +207,27 @@ install_GAP_serialization(:IsSubgroupFpGroup,
 
 install_GAP_deserialization(:IsSubgroupFpGroup,
   function(filt::GapObj, s::DeserializerState, T, d::Dict)
-    # Create the free group.
-    F = load_object(s, GapObj, d[:freeGroup])
-    freefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-    relators = load_object(s, Vector, d[:relators], (Vector{Int}, Int))
-    rels = [GAPWrap.ObjByExtRep(freefam, GapObj(x, true)) for x in relators]
-
-    # Create the f.p. group.
-    G = F/GapObj(rels)
-    if haskey(d, :gens)
-      # Create the subgroup.
+    if haskey(d, :wholeGroup) && haskey(d, :gens)
+      # Deserialize the full f.p. group.
+      F = load_typed_object(s, d[:wholeGroup])
+      Ffam = GAPWrap.FamilyObj(F)
+      elfam = GAPWrap.ElementsFamily(Ffam)
+      freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
+      freefam = GAPWrap.FamilyObj(freegroup)
+      elfreefam = GAPWrap.ElementsFamily(freefam)
+      # Deserialize the generators.
       generators = load_object(s, Vector, d[:gens], (Vector{Int}, Int))
-      gens = [GAPWrap.ObjByExtRep(freefam, GapObj(x, true)) for x in generators]
-      fpfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(G))
-      Ggens = [GAPWrap.ElementOfFpGroup(fpfam, x) for x in gens]
-      G = GAP.Globals.SubgroupNC(G, GapObj(Ggens))
+      gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
+      Ggens = [GAPWrap.ElementOfFpGroup(elfam, x) for x in gens]
+      # Create the subgroup.
+      G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
+    else
+      # Create a new full f.p. group.
+      F = load_typed_object(s, d[:freeGroup])
+      relators = load_object(s, Vector, d[:relators], (Vector{Int}, Int))
+      elfreefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+      rels = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in relators]
+      G = F/GapObj(rels)
     end
-
     return G
   end)
