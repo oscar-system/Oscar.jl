@@ -114,7 +114,7 @@ julia> G3 = [x1^2+x2,x2^2+x3,x3+1]
  x2^2 + x3
  x3 + 1
 
-julia> homogeneity_vector(G3) == nothing
+julia> homogeneity_vector(G3) === nothing
 true
 
 ```

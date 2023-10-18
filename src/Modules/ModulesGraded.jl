@@ -1374,7 +1374,7 @@ function Base.show(io::IO, b::BettiTable)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
   end
 
-  if b.project == nothing
+  if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))

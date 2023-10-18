@@ -305,7 +305,9 @@ Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    isdefined(x,:X) && return lies_in(x.elm,G,x.X)[1]
    _is_true, x_gap = lies_in(x.elm,G,nothing)
-   if x_gap !=nothing x.X = x_gap end
+   if x_gap !== nothing
+      x.X = x_gap
+   end
    return _is_true
 end
 
@@ -340,7 +342,7 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    else
       _is_true, x_gap = lies_in(x.elm,G,nothing)
       @req _is_true "Element not in the group"
-      if x_gap == nothing
+      if x_gap === nothing
         return MatrixGroupElem(G,x.elm)
       end
       return MatrixGroupElem(G,x.elm,x_gap)
