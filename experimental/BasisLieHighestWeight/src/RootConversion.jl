@@ -73,14 +73,14 @@ end
 
 function w_to_alpha(type, rank, weight_w::Vector{QQFieldElem})::Vector{QQFieldElem}
   C = get_inverse_CartanMatrix(type, rank)
-  return [i for i in C * weight_w]
+  return [i for i in weight_w * C]
 end
 
 function alpha_to_w(
   type::String, rank::Int, weight_alpha::Vector{QQFieldElem}
 )::Vector{QQFieldElem}
   C_inv = get_CartanMatrix(type, rank)
-  return [i for i in C_inv * weight_alpha]
+  return [i for i in weight_alpha * C_inv]
 end
 
 function get_CartanMatrix(type::String, rank::Int)::Matrix{QQFieldElem}
