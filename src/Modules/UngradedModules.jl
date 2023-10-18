@@ -9073,3 +9073,9 @@ end
 # constructor of induced maps.
 tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
 
+function tensor_product(maps::Vector{<:ModuleFPHom})
+  dom = tensor_product([domain(f) for f in maps])
+  cod = tensor_product([codomain(f) for f in maps])
+  return tensor_product(dom, cod, maps)
+end
+
