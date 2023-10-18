@@ -1453,13 +1453,12 @@ julia> small_generating_set(J)
  x*y^2 - z
 ```
 """
-function small_generating_set(I::MPolyIdeal)
+function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}
   # For non-homogeneous ideals, we do not have a notion of minimal generating
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.
 
   R = base_ring(I)
-  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
   sing_gb, sing_min = Singular.mstd(singular_generators(I))

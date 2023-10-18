@@ -4060,8 +4060,8 @@ function chain_complex(V::ModuleFPHom...; seed::Int = 0)
   return ComplexOfMorphisms(ModuleFP, collect(V); typ = :chain, seed = seed)
 end
 
-function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed)
+function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0, check::Bool=true)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed, check=check)
 end
 
 ####################

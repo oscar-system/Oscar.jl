@@ -691,6 +691,7 @@ export indicator
 export induce
 export induce_shift
 export induced_automorphism
+export induced_map_on_exterior_power
 export induced_cyclic
 export induced_ring_ordering
 export initial
@@ -762,6 +763,7 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
+export is_exterior_power
 export is_faithful
 export is_fano
 export is_feasible
@@ -1471,6 +1473,10 @@ export walls
 export wdeglex
 export wdegrevlex
 export weakly_connected_components
+export wedge
+export wedge_multiplication_map
+export wedge_pure_function
+export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering
