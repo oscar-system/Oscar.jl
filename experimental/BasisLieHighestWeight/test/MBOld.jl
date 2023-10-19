@@ -77,10 +77,6 @@ end
 
 #### Lie algebras
 
-G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
-fromGap = Oscar.GAP.gap_to_julia
-
 function lieAlgebra(t::String, n::Int)
   L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
   return L, G.ChevalleyBasis(L)

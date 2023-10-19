@@ -1,5 +1,19 @@
 fromGap = Oscar.GAP.gap_to_julia
 
+struct LieAlgebraStructure
+  lie_type::String
+  rank::Int
+  lie_algebra_gap::GAP.Obj
+end
+
+function LieAlgebraStructure(lie_type::String, rank::Int)
+  return LieAlgebraStructure(lie_type, rank, create_lie_algebra(lie_type, rank))
+end
+
+function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
+  print(io, "Lie-Algebra of type ", lie_algebra.lie_type, " and rank ", lie_algebra.rank)
+end
+
 function create_lie_algebra(type::String, rank::Int)::GAP.Obj
   """
   Creates the Lie-algebra as a GAP object that gets used for a lot of other computations with GAP

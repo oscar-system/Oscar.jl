@@ -1,5 +1,5 @@
 include("VectorSpaceBases-test.jl")
 include("NewMonomial-test.jl")
-include("BasisLieHighestWeight-test.jl")
 include("RootConversion-test.jl")
-include("CalculateBetas-test.jl")
+include("MainAlgorithm-test.jl")
+include("WordCalculations-test.jl")

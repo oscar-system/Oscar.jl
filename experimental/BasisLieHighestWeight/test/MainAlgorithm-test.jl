@@ -119,6 +119,7 @@ end
       end
     end
   end
+
   @testset "Check dimension" begin
     @testset "Monomial order $monomial_order" for monomial_order in
                                                   ("lex", "revlex", "degrevlex")
