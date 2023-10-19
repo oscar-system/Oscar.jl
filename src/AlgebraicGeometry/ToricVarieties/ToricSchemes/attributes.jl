@@ -14,10 +14,10 @@ julia> C = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-Normal, affine toric variety
+Normal toric variety
 
 julia> forget_toric_structure(antv)
-(V(0), Hom: V(0) -> normal, affine toric variety)
+(V(0), Hom: V(0) -> normal toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
@@ -38,10 +38,10 @@ together with an isomorphism `iso : Y → X`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> forget_toric_structure(P2)
-(Scheme over QQ covered with 3 patches, Hom: scheme over QQ covered with 3 patches -> normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor)
+(Scheme over QQ covered with 3 patches, Hom: scheme over QQ covered with 3 patches -> normal toric variety)
 ```
 """
 function forget_toric_structure(X::NormalToricVariety)
@@ -105,7 +105,7 @@ julia> C = positive_hull([1 0; 0 1])
 Polyhedral cone in ambient dimension 2
 
 julia> antv = affine_normal_toric_variety(C)
-Normal, affine toric variety
+Normal toric variety
 
 julia> underlying_scheme(antv)
 Spectrum
@@ -205,16 +205,16 @@ its toric origin.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> underlying_scheme(P2)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: normal, affine toric variety
-    2: normal, affine toric variety
-    3: normal, affine toric variety
+    1: normal toric variety
+    2: normal toric variety
+    3: normal toric variety
   in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]

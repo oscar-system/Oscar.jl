@@ -246,7 +246,6 @@ function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; 
   return number_field(f; cached, check)
 end
 
-
 function refined_derived_series(G::PermGroup)
   s = GAP.Globals.PcSeries(GAP.Globals.Pcgs(G.X))
   return  Oscar._as_subgroups(G,s)

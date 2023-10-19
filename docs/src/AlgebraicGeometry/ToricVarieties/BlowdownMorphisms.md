@@ -22,7 +22,7 @@ morphism must also know (to compute) its blowup center in the form of an ideal s
 allows to set this ideal sheaf center upon construction:
 - `toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf)`
 The "working-horse" constructor however is the following:
-- `toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String, set_attributes::Bool)`
+- `toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String)`
 This constructor will, among others, construct the underlying toric morphism. In addition, we can then specify
 a name for the coordinate in the Cox ring that is assigned to `new_ray`.
 
@@ -37,18 +37,18 @@ For our most specialized blow-up method, we focus on the n-th cone in the fan of
 This cone need not be maximal! The ensuing star subdivision will subdivide this cone about its "diagonal"
 (the sum of all its rays). The result of this will always be a toric variety:
 ```@docs
-blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
+blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e")
 ```
 More generally, we can provide a primitive element in the fan of the variety in question. The resulting
 star subdivision leads to a polyhedral fan, or put differently, the blow-up along this center is always toric:
 ```@docs
-blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e", set_attributes::Bool = true)
+blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
 ```
 Finally, and most generally, we encode the blowup center by a homogeneous ideal in the Cox ring.
 Such blowups center may easily lead to non-toric blowups, i.e. the return value of the following method
 could well be non-toric.
 ```@docs
-blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
+blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e")
 ```
 
 

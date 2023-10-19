@@ -18,21 +18,12 @@ the affine and non-affine case:
 
 ## Constructors
 
-All of the constructors below accept as their last argument an optional boolean. This boolean `set_attributes` controls whether the constructors
-sets attributes for the constructed variety. The benefit of such setters is increased performance. However, as per usual, a shortcut comes at
-a price. In the case at hand, it might lead to possible inconsistencies, despite our best efforts to prevent this from happening.
-
-The default is `set_attributes = true`, that is our constructors set attributes upon construction. If not desired, it can be switched off by
-passing `set_attributes = false` as last argument. Note however, that the constructors of `del_pezzo_surface`, `hirzebruch_surface`,
-`projective_space` and `weighted_projective_space ` *always* make a default/standard choice for the grading of the Cox ring.
-
-
 ### Affine Toric Varieties
 
 ```@docs
-affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
-normal_toric_variety(C::Cone; set_attributes::Bool = true)
-affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
+affine_normal_toric_variety(C::Cone)
+normal_toric_variety(C::Cone)
+affine_normal_toric_variety(v::NormalToricVariety)
 ```
 
 ### Normal Toric Varieties
@@ -40,17 +31,19 @@ affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)
 ```@docs
 normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false)
 normal_toric_variety(PF::PolyhedralFan)
-normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_variety(P::Polyhedron)
 ```
 
 ### Famous Toric Vareties
 
+The constructors of `del_pezzo_surface`, `hirzebruch_surface`, `projective_space` and `weighted_projective_space ` *always* make a default/standard choice for the grading of the Cox ring.
+
 ```@docs
-affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
-hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
-projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
+affine_space(::Type{NormalToricVariety}, d::Int)
+del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
+hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
+projective_space(::Type{NormalToricVariety}, d::Int)
+weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Constructions based on triangulations
@@ -61,8 +54,8 @@ to any full star triangulation of the lattice points of the polyhedron
 in question a toric variety. For this task, we provide the following
 constructors.
 ```@docs
-normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
-normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
+normal_toric_variety_from_star_triangulation(P::Polyhedron)
+normal_toric_varieties_from_star_triangulations(P::Polyhedron)
 ```
 An application of this functionality exists in the physics.
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
@@ -85,14 +78,14 @@ It then remains to triangulate these rays, hence in general for
 a GLSM the toric variety is only unique up to fine regular
 star triangulations. We provide the following two constructors:
 ```@docs
-normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
-normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+normal_toric_variety_from_glsm(charges::ZZMatrix)
+normal_toric_varieties_from_glsm(charges::ZZMatrix)
 ```
 
 ### Further Constructions
 
 ```@docs
-Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
+Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
 proj(E::ToricLineBundle...)
 total_space(E::ToricLineBundle...)
 ```

@@ -1954,16 +1954,16 @@ function show_subquo(SQ::SubquoModule)
       else
         println("Cokernel of")
       end
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     else
       if is_graded(SQ)
         println("Graded subquotient of")
       else
         println("Subquotient of")
       end
-      display(generator_matrix(SQ.sub))
-      println("by image of")
-      display(generator_matrix(SQ.quo))
+      show(stdout, "text/plain", generator_matrix(SQ.sub))
+      println("\nby image of")
+      show(stdout, "text/plain", generator_matrix(SQ.quo))
     end
   else
     if is_graded(SQ)
@@ -1971,9 +1971,9 @@ function show_subquo(SQ::SubquoModule)
     else
       println("Image of")
     end
-    display(generator_matrix(SQ.sub))
+    show(stdout, "text/plain", generator_matrix(SQ.sub))
   end
-  print(io_compact, "with ambient free module ", SQ.F)
+  print(io_compact, "\nwith ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
@@ -4060,8 +4060,8 @@ function chain_complex(V::ModuleFPHom...; seed::Int = 0)
   return ComplexOfMorphisms(ModuleFP, collect(V); typ = :chain, seed = seed)
 end
 
-function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed)
+function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0, check::Bool=true)
+  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed, check=check)
 end
 
 ####################
@@ -4953,7 +4953,7 @@ function matrix(f::SubQuoHom)
 end
 
 function show_morphism(f::ModuleFPHom)
-  display(matrix(f))
+  show(stdout, "text/plain", matrix(f))
 end
 
 @doc raw"""
@@ -6261,7 +6261,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 # - the idx is only used to see how many maps are missing
 
   algorithm = get_attribute(cc, :algorithm)
-  if algorithm == nothing
+  if algorithm === nothing
     algorithm = :fres
     set_attribute!(cc, :algorithm, :fres)
   end
@@ -8228,7 +8228,7 @@ as a subquotient, as well as the injection homomorphism into the domain of $H$.
 """
 function preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
   inclusion = get_attribute(N, :canonical_inclusion)
-  if inclusion != nothing && codomain(inclusion) === codomain(H)
+  if inclusion !== nothing && codomain(inclusion) === codomain(H)
     elems = [inclusion(v) for v in gens(N)]
   else
     elems = [SubquoModuleElem(repres(v),codomain(H)) for v in gens(N)]

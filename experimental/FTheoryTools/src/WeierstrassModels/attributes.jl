@@ -124,7 +124,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 fiber_ambient_space(w::WeierstrassModel) = w.fiber_ambient_space

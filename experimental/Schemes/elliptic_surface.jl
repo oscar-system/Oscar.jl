@@ -1126,7 +1126,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert scheme(parent(u)) === weierstrass_model(X)[1]
 
   # Helper function
-  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+  my_const(u::MPolyRingElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   # transform to a quartic y'^2 = q(x)
   if iszero(P[3])  #  P = O
@@ -1456,13 +1456,13 @@ end
 
 
 @doc raw"""
-    elliptic_surface(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+    elliptic_surface(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
 degree at most ``4`` to Weierstrass form and return the corresponding
 elliptic surface as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyElem, P::Vector{<:RingElem})
+function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
@@ -1480,14 +1480,14 @@ function elliptic_surface(g::MPolyElem, P::Vector{<:RingElem})
 end
 
 @doc raw"""
-    transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+    transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of degree ``≤ 4``
 to Weierstrass form. This returns a pair `(f, trans)` where `trans` is an endomorphism of the 
 `fraction_field` of `parent(g)` and `f` is the transform. The input `P` must be a rational point 
 on the curve defined by `g`, i.e. `g(P) == 0`.
 """
-function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::Vector{<:RingElem})
+function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
@@ -1568,11 +1568,11 @@ function transform_to_weierstrass(g::MPolyElem, x::MPolyElem, y::MPolyElem, P::V
   return result, trans
 end
 
-function _is_in_weierstrass_form(f::MPolyElem)
+function _is_in_weierstrass_form(f::MPolyRingElem)
   R = parent(f)
   @req ngens(R) == 2 "polynomial must be bivariate"
   # Helper function
-  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+  my_const(u::MPolyRingElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   (x, y) = gens(R)
   f = -inv(my_const(coeff(f, [x, y], [0, 2]))) * f
@@ -1645,7 +1645,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
   FS = fraction_field(S)
 
   # Helper function
-  my_const(u::MPolyElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
+  my_const(u::MPolyRingElem) = is_zero(u) ? zero(coefficient_ring(parent(u))) : first(coefficients(u))
 
   # We verify the assumptions made on p. 44 of
   #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface"

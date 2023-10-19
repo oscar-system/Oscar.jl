@@ -25,7 +25,7 @@ element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
@@ -43,7 +43,7 @@ specify an element of the class group of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, class_group(P2)([ZZRingElem(1)]))
 Divisor class on a normal toric variety
@@ -64,7 +64,7 @@ Construct the toric divisor class associated to the element ... of the class gro
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(P2, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety

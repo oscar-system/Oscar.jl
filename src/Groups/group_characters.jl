@@ -591,11 +591,11 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
       elseif alphabet != ""
         # write irrationalities using symbolic names
         pos = findnext(x -> x[1] == val, legend, 1)
-        if pos != nothing
+        if pos !== nothing
           m[i,j] = legend[pos][2]
         else
           pos = findnext(x -> x[1] == -val, legend, 1)
-          if pos != nothing
+          if pos !== nothing
             # The negative of a known name is shown relative to that name.
             m[i,j] = "-" * legend[pos][2]
           else
@@ -610,7 +610,7 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
               push!(legend, (valbar, "\\overline{$name}", disp))
             else
               info = AbelianClosure.quadratic_irrationality_info(val)
-              if info != nothing
+              if info !== nothing
                 # `val` generates a quadratic field extension.
                 # Show the unique Galois conjugate of `A` different from
                 # `A` as `A*`, and show both `A` and `A*` in the footer.
@@ -839,7 +839,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     power_maps_strings = Vector{String}[]
     for i in 2:length(pmaps)
       map = pmaps[i]
-      if map != nothing
+      if map !== nothing
         push!(power_maps_primes, string(i)*"P")
         push!(power_maps_strings, names[map])
       end
@@ -2348,7 +2348,7 @@ function indicator(chi::GAPGroupClassFunction, n::Int = 2)
       # The indicator is defined only for `n = 2` and irreducible characters.
       @req n == 2 "defined for Brauer characters only for n = 2"
       chipos = findfirst(isequal(chi), tbl)
-      @req chipos != nothing "defined only for irreducible Brauer characters"
+      @req chipos !== nothing "defined only for irreducible Brauer characters"
       ind = GAPWrap.Indicator(GAPTable(tbl), n)
       return ind[chipos]::Int
     end

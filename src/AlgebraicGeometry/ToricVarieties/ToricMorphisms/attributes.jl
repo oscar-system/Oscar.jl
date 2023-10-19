@@ -6,10 +6,10 @@ Return the domain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> domain(toric_identity_morphism(F4))
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 domain(tm::ToricMorphism) = tm.domain
@@ -23,10 +23,10 @@ Return the codomain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain(toric_identity_morphism(F4))
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 codomain(tm::ToricMorphism) = tm.codomain
@@ -40,7 +40,7 @@ Return the underlying grid morphism of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> grid_morphism(toric_identity_morphism(F4))
 Map
@@ -60,7 +60,7 @@ map of the torusinvariant Weil divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map
@@ -93,7 +93,7 @@ map of the Cartier divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map
@@ -120,7 +120,7 @@ map of the Class groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map
@@ -147,7 +147,7 @@ map of the Picard groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map
@@ -179,7 +179,7 @@ blow-down morphism of a blow-up of the projective space.
 # Examples
 ```jldoctest
 julia> IP2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> bl = blow_up(IP2, [1, 1]);
 
@@ -188,10 +188,10 @@ julia> cov_bl = covering_morphism(bl);
 julia> domain(cov_bl)
 Covering
   described by patches
-    1: normal, affine toric variety
-    2: normal, affine toric variety
-    3: normal, affine toric variety
-    4: normal, affine toric variety
+    1: normal toric variety
+    2: normal toric variety
+    3: normal toric variety
+    4: normal toric variety
   in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]
@@ -201,9 +201,9 @@ Covering
 julia> codomain(cov_bl)
 Covering
   described by patches
-    1: normal, affine toric variety
-    2: normal, affine toric variety
-    3: normal, affine toric variety
+    1: normal toric variety
+    2: normal toric variety
+    3: normal toric variety
   in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]

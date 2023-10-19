@@ -6,14 +6,14 @@ Return the ideal sheaf corresponding to a toric divisor.
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(P3, [0, 1, 0, 0])
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> ideal_sheaf(td)
 Sheaf of ideals
-  on normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+  on normal, smooth toric variety
 with restrictions
   1: ideal(x_2_1)
   2: ideal(x_2_2)
@@ -102,7 +102,7 @@ Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1,x2,x3,x4) = gens(cox_ring(P3));
 

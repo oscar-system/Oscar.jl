@@ -8,7 +8,7 @@
 @doc raw"""
     lattice(Lf::ZZLatWithIsom) -> ZZLat
 
-Given a lattice with isometry $(L, f)$, return the underlying lattice `L`.
+Given a lattice with isometry $(L, f)$, return the underlying lattice $L$.
 
 # Examples
 ```jldoctest
@@ -25,7 +25,7 @@ lattice(Lf::ZZLatWithIsom) = Lf.Lb
 @doc raw"""
     isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
-Given a lattice with isometry $(L, f)$, return the underlying isometry `f`.
+Given a lattice with isometry $(L, f)$, return the underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -47,11 +47,11 @@ isometry(Lf::ZZLatWithIsom) = Lf.f
     ambient_space(Lf::ZZLatWithIsom) -> QuadSpaceWithIsom
 
 Given a lattice with isometry $(L, f)$, return the pair $(V, g)$ where
-`V` is the ambient quadratic space of `L` and `g` is an isometry of `V`
-inducing `f` on `L`.
+$V$ is the ambient quadratic space of $L$ and $g$ is an isometry of $V$
+inducing $f$ on $L$.
 
-Note that `g` might not be unique and we fix such a global isometry
-together with `V` into a container type `QuadSpaceWithIsom`.
+Note that $g$ might not be unique and we fix such a global isometry
+together with $V$ into a container type `QuadSpaceWithIsom`.
 
 # Examples
 ```jldoctest
@@ -79,7 +79,7 @@ ambient_space(Lf::ZZLatWithIsom) = Lf.Vf
    ambient_isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return an isometry of the ambient
-space of `L` inducing `f` on `L`.
+space of $L$ inducing $f$ on $L$.
 
 # Examples
 ```jldoctest
@@ -101,7 +101,7 @@ ambient_isometry(Lf::ZZLatWithIsom) = isometry(ambient_space(Lf))
     order_of_isometry(Lf::ZZLatWithIsom) -> IntExt
 
 Given a lattice with isometry $(L, f)$, return the order of the underlying
-isometry `f`.
+isometry $f$.
 
 # Examples
 ```jldoctest
@@ -125,7 +125,7 @@ order_of_isometry(Lf::ZZLatWithIsom) = Lf.n
     rank(Lf::ZZLatWithIsom) -> Integer
 
 Given a lattice with isometry $(L, f)$, return the rank of the underlying lattice
-`L`.
+$L$.
 
 # Examples
 ```jldoctest
@@ -143,7 +143,7 @@ rank(Lf::ZZLatWithIsom) = rank(lattice(Lf))
     characteristic_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the characteristic polynomial of the
-underlying isometry `f`.
+underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -161,7 +161,7 @@ characteristic_polynomial(Lf::ZZLatWithIsom) = characteristic_polynomial(isometr
     minimal_polynomial(Lf::ZZLatWithIsom) -> QQPolyRingElem
 
 Given a lattice with isometry $(L, f)$, return the minimal polynomial of the
-underlying isometry `f`.
+underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -179,7 +179,7 @@ minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))
     genus(Lf::ZZLatWithIsom) -> ZZGenus
 
 Given a lattice with isometry $(L, f)$, return the genus of the underlying 
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -201,7 +201,7 @@ genus(Lf::ZZLatWithIsom) = genus(lattice(Lf))
     basis_matrix(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the basis matrix of the underlying
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -236,7 +236,7 @@ basis_matrix(Lf::ZZLatWithIsom) = basis_matrix(lattice(Lf))
     gram_matrix(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return the gram matrix of the underlying
-lattice `L` with respect to its basis matrix.
+lattice $L$ with respect to its basis matrix.
 
 # Examples
 ```jldoctest
@@ -258,8 +258,8 @@ gram_matrix(Lf::ZZLatWithIsom) = gram_matrix(lattice(Lf))
     rational_span(Lf::ZZLatWithIsom) -> QuadSpaceWithIsom
 
 Given a lattice with isometry $(L, f)$, return the rational span
-$L \otimes \mathbb{Q}$ of the underlying lattice `L` together with the
-underlying isometry of `L`.
+$L \otimes \mathbb{Q}$ of the underlying lattice $L$ together with the
+underlying isometry of $L$.
 
 # Examples
 ```jldoctest
@@ -287,7 +287,7 @@ rational_span(Lf::ZZLatWithIsom) = quadratic_space_with_isometry(rational_span(l
     det(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the determinant of the
-underlying lattice `L`.
+underlying lattice $L$.
 
 # Examples
 ```jldoctest
@@ -305,7 +305,7 @@ det(Lf::ZZLatWithIsom) = det(lattice(Lf))
     scale(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the scale of the underlying
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -323,7 +323,7 @@ scale(Lf::ZZLatWithIsom) = scale(lattice(Lf))
     norm(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the norm of the underlying
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -341,7 +341,7 @@ norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))
     is_positive_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is positive definite.
+lattice $L$ is positive definite.
 
 # Examples
 ```jldoctest
@@ -359,7 +359,7 @@ is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))
     is_negative_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is negative definite.
+lattice $L$ is negative definite.
 
 # Examples
 ```jldoctest
@@ -377,7 +377,7 @@ is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))
     is_definite(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying
-lattice `L` is definite.
+lattice $L$ is definite.
 
 # Examples
 ```jldoctest
@@ -395,7 +395,7 @@ is_definite(Lf::ZZLatWithIsom) = is_definite(lattice(Lf))
     minimum(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a positive definite lattice with isometry $(L, f)$, return the minimum
-of the underlying lattice `L`.
+of the underlying lattice $L$.
 
 # Examples
 ```jldoctest
@@ -416,7 +416,7 @@ end
     is_integral(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
-`L` is integral.
+$L$ is integral.
 
 # Examples
 ```jldoctest
@@ -434,7 +434,7 @@ is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))
     degree(Lf::ZZLatWithIsom) -> Int
 
 Given a lattice with isometry $(L, f)$, return the degree of the underlying
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -452,7 +452,7 @@ degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))
     is_even(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
-`L` is even.
+$L$ is even.
 
 # Examples
 ```jldoctest
@@ -470,7 +470,7 @@ is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))
     discriminant(Lf::ZZLatWithIsom) -> QQFieldElem
 
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
-lattice `L`.
+lattice $L$.
 
 # Examples
 ```jldoctest
@@ -488,7 +488,7 @@ discriminant(Lf::ZZLatWithIsom) = discriminant(lattice(Lf))
     signature_tuple(Lf::ZZLatWithIsom) -> Tuple{Int, Int, Int}
 
 Given a lattice with isometry $(L, f)$, return the signature tuple of the
-underlying lattice `L`.
+underlying lattice $L$.
 
 # Examples
 ```jldoctest
@@ -502,6 +502,145 @@ julia> signature_tuple(Lf)
 """
 signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))
 
+@doc raw"""
+    is_primary_with_prime(Lf::ZZLatWithIsom) -> Bool, ZZRingElem
+
+Given a lattice with isometry $(L, f)$, return whether $L$ is primary,
+that is whether $L$ is integral and its discriminant group is a
+$p$-group for some prime number $p$. In case it is, $p$ is also returned as
+second output.
+
+Note that for unimodular lattices, this function returns `(true, 1)`. If the
+lattice is not primary, the second return value is `-1` by default.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A, 5);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> is_primary_with_prime(Lf)
+(false, -1)
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (5, 0, 0)
+Local symbols:
+  Local genus symbol at 2: 1^-4 2^1_7
+  Local genus symbol at 3: 1^-4 3^1
+```
+"""
+is_primary_with_prime(Lf::ZZLatWithIsom) = is_primary_with_prime(lattice(Lf))
+
+@doc raw"""
+    is_primary(Lf::ZZLatWithIsom, p::IntegerUnion) -> Bool
+
+Given a lattice with isometry $(L, f)$ and a prime number $p$,
+return whether $L$ is $p$-primary, that is whether its discriminant group
+is a $p$-group.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A, 6);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> is_primary(Lf, 7)
+true
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (6, 0, 0)
+Local symbols:
+  Local genus symbol at 2: 1^6
+  Local genus symbol at 7: 1^-5 7^-1
+```
+"""
+is_primary(Lf::ZZLatWithIsom, p::IntegerUnion) = is_primary(lattice(Lf), p)
+
+@doc raw"""
+    is_unimodular(Lf::ZZLatWithIsom) -> Bool
+
+Given a lattice with isometry $(L, f)$, return whether `$L$ is unimodular,
+that is whether its discriminant group is trivial.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:E, 8);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> is_unimodular(Lf)
+true
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (8, 0, 0)
+Local symbol:
+  Local genus symbol at 2: 1^8
+```
+"""
+is_unimodular(Lf::ZZLatWithIsom) = is_unimodular(lattice(Lf))
+
+@doc raw"""
+    is_elementary_with_prime(Lf::ZZLatWithIsom) -> Bool, ZZRingElem
+
+Given a lattice with isometry $(L, f)$, return whether $L$ is elementary, that is
+whether $L$ is integral and its discriminant group is an elemenentary $p$-group for
+some prime number $p$. In case it is, $p$ is also returned as second output.
+
+Note that for unimodular lattices, this function returns `(true, 1)`. If the lattice
+is not elementary, the second return value is `-1` by default.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A, 7);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> is_elementary_with_prime(Lf)
+(false, -1)
+
+julia> is_primary(Lf, 2)
+true
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (7, 0, 0)
+Local symbol:
+  Local genus symbol at 2: 1^6 8^1_7
+```
+"""
+is_elementary_with_prime(Lf::ZZLatWithIsom) = is_elementary_with_prime(lattice(Lf))
+
+@doc raw"""
+    is_elementary(Lf::ZZLatWithIsom, p::IntegerUnion) -> Bool
+
+Given a lattice with isometry $(L, f)$ and a prime number $p$, return whether
+$L$ is $p$-elementary, that is whether its discriminant group is an elementary
+$p$-group.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:E, 7);
+
+julia> Lf = integer_lattice_with_isometry(L);
+
+julia> is_elementary(Lf, 3)
+false
+
+julia> is_elementary(Lf, 2)
+true
+
+julia> genus(Lf)
+Genus symbol for integer lattices
+Signatures: (7, 0, 0)
+Local symbol:
+  Local genus symbol at 2: 1^6 2^1_7
+```
+"""
+is_elementary(Lf::ZZLatWithIsom, p::IntegerUnion) = is_elementary(lattice(Lf), p)
+
 ###############################################################################
 #
 #  Constructors
@@ -513,13 +652,15 @@ signature_tuple(Lf::ZZLatWithIsom) = signature_tuple(lattice(Lf))
                                                 ambient_representation = true)
                                                              -> ZZLatWithIsom
 
-Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
-of `L` of order `n`, return the corresponding lattice with isometry pair $(L, f)$.
+Given a $\mathbb Z$-lattice $L$ and a matrix $f$, if $f$ defines an isometry
+of $L$ of order $n$, return the corresponding lattice with isometry pair $(L, f)$.
 
-If `ambient_representation` is set to true, `f` is consider as an isometry of the
-ambient space of `L` and the induced isometry on `L` is automatically computed.
-Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
-on the complement of the rational span of `L` if it is not of full rank.
+If `ambient_representation` is set to `true`, $f$ is consider as an isometry of
+the ambient space of $L$ and the induced isometry on $L$ is automatically
+computed as long as $f$ preserves $L$.
+
+Otherwise, an isometry of the ambient space of $L$ is constructed, setting the
+identity on the complement of the rational span of $L$ if it is not of full rank.
 
 # Examples
 
@@ -596,7 +737,7 @@ function integer_lattice_with_isometry(L::ZZLat, f::QQMatrix; check::Bool = true
     Vf = quadratic_space_with_isometry(ambient_space(L), f_ambient; check)
     B = basis_matrix(L)
     ok, f = can_solve_with_solution(B, B*f_ambient; side = :left)
-    @req ok "Isometry does not restrict to L"
+    @req ok "Isometry does not preserve the lattice"
   else
     V = ambient_space(L)
     B = basis_matrix(L)
@@ -620,10 +761,10 @@ end
 @doc raw"""
     integer_lattice_with_isometry(L::ZZLat; neg::Bool = false) -> ZZLatWithIsom
 
-Given a $\mathbb Z$-lattice `L` return the lattice with isometry pair $(L, f)$,
-where `f` corresponds to the identity mapping of `L`.
+Given a $\mathbb Z$-lattice $L$ return the lattice with isometry pair $(L, f)$,
+where $f$ corresponds to the identity mapping of $L$.
 
-If `neg` is set to `true`, then the isometry `f` is negative the identity of `L`.
+If `neg` is set to `true`, then the isometry $f$ is negative the identity of $L$.
 
 # Examples
 ```jldoctest
@@ -652,9 +793,9 @@ end
 @doc raw"""
     lattice(Vf::QuadSpaceWithIsom) -> ZZLatWithIsom
 
-Given a quadratic space with isometry $(V, f)$, return the full rank lattice `L`
-in `V` with basis the standard basis, together with the induced action of `f`
-on `L`.
+Given a quadratic space with isometry $(V, f)$, return the full rank lattice $L$
+in $V$ with basis the standard basis, together with the induced action of $f$
+on $L$.
 
 # Examples
 ```jldoctest
@@ -691,10 +832,10 @@ lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(
                                    isbasis::Bool = true, check::Bool = true)
                                                               -> ZZLatWithIsom
 
-Given a quadratic space with isometry $(V, f)$ and a matrix `B` generating a
-lattice `L` in `V`, if `L` is preserved under the action of `f`, return the
-lattice with isometry $(L, f_L)$ where $f_L$ is induced by the action of `f`
-on `L`.
+Given a quadratic space with isometry $(V, f)$ and a matrix $B$ generating a
+lattice $L$ in $V$, if $L$ is preserved under the action of $f$, return the
+lattice with isometry $(L, f_L)$ where $f_L$ is induced by the action of $f$
+on $L$.
 
 # Examples
 ```jldoctest
@@ -741,11 +882,11 @@ end
                                                     check::Bool = true)
                                                             -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ and a matrix `B` whose rows define a free
-system of vectors in the ambient space `V` of `L`, if the lattice `M` in `V` defined
-by `B` is preserved under the fixed isometry `g` of `V` inducing `f` on `L`, return
+Given a lattice with isometry $(L, f)$ and a matrix $B$ whose rows define a free
+system of vectors in the ambient space $V$ of $L$, if the lattice $M$ in $V$ defined
+by $B$ is preserved under the fixed isometry $g$ of $V$ inducing $f$ on $L$, return
 the lattice with isometry pair $(M, f_M)$ where $f_M$ is induced by the action of
-`g` on `M`.
+$g$ on $M$.
 
 # Examples
 ```jldoctest
@@ -791,9 +932,49 @@ end
 ###############################################################################
 
 @doc raw"""
+    orthogonal_submodule(Lf::ZZLatWithIsom, B::QQMatrix) -> ZZLatWithIsom
+
+Given a lattice with isometry $(L, f)$ and a matrix $B$ with rational entries
+defining an $f$-stable sublattice of $L$, return the largest submodule of $L$
+orthogonal to each row of $B$, equipped with the induced action from $f$.
+
+# Examples
+```jldoctest
+julia> L = root_lattice(:A,5);
+
+julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
+                             -1 -1 -1 -1 -1;
+                              0  0  0  0  1;
+                              0  0  0  1  0;
+                              0  0  1  0  0]);
+
+julia> Lf = integer_lattice_with_isometry(L, f);
+
+julia> B = matrix(QQ,3,5,[1 0 0 0 0;
+                          0 0 1 0 1;
+                          0 0 0 1 0])
+[1   0   0   0   0]
+[0   0   1   0   1]
+[0   0   0   1   0]
+
+julia> orthogonal_submodule(Lf, B)
+Integer lattice of rank 2 and degree 5
+  with isometry of finite order 2
+  given by
+  [-1    0]
+  [ 0   -1]
+```
+"""
+function orthogonal_submodule(Lf::ZZLatWithIsom, B::QQMatrix)
+  @req ncols(B) == degree(Lf) "The rows of B should represent vectors in the ambient space of Lf"
+  B2 = basis_matrix(orthogonal_submodule(lattice(Lf), B))
+  return lattice_in_same_ambient_space(Lf, B2; check = false)
+end
+
+@doc raw"""
     rescale(Lf::ZZLatWithIsom, a::RationalUnion) -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ and a rational number `a`, return the
+Given a lattice with isometry $(L, f)$ and a rational number $a$, return the
 lattice with isometry $(L(a), f)$.
 
 # Examples
@@ -892,9 +1073,9 @@ end
     dual(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$ inside the space $(V, \Phi)$, such that
-`f` is induced by an isometry `g` of $(V, \Phi)$, return the lattice with
-isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of `L` in $(V, \Phi)$
-and `h` is induced by `g`.
+$f$ is induced by an isometry $g$ of $(V, \Phi)$, return the lattice with
+isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of $L$ in $(V, \Phi)$
+and $h$ is induced by $g$.
 
 # Examples
 ```jldoctest
@@ -939,11 +1120,11 @@ end
     lll(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the same lattice with isometry
-with a different basis matrix for `L`  obtained by performing an LLL-reduction
-on the associated gram matrix of `L`.
+with a different basis matrix for $L$  obtained by performing an LLL-reduction
+on the associated gram matrix of $L$.
 
-Note that matrix representing the action of `f` on `L` changes but the global action
-on the ambient space of `L` stays the same.
+Note that matrix representing the action of $f$ on $L$ changes but the global action
+on the ambient space of $L$ stays the same.
 
 # Examples
 ```jldoctest
@@ -996,8 +1177,8 @@ end
 
 Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the injections $L_i \to L$,
-where `L` is the direct sum $L := L_1 \oplus \ldots \oplus L_n$ and `f` is the
-isometry of `L` induced by the diagonal actions of the $f_i$'s.
+where $L$ is the direct sum $L := L_1 \oplus \ldots \oplus L_n$ and $f$ is the
+isometry of $L$ induced by the diagonal actions of the $f_i$'s.
 
 For objects of type `ZZLatWithIsom`, finite direct sums and finite direct products
 agree and they are therefore called biproducts.
@@ -1077,8 +1258,8 @@ direct_sum(x::Vararg{ZZLatWithIsom}) = direct_sum(collect(x))
 
 Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the projections $L \to L_i$,
-where `L` is the direct product $L := L_1 \times \ldots \times L_n$ and `f` is the
-isometry of `L` induced by the diagonal actions of the $f_i$'s.
+where $L$ is the direct product $L := L_1 \times \ldots \times L_n$ and $f$ is the
+isometry of $L$ induced by the diagonal actions of the $f_i$'s.
 
 For objects of type `ZZLatWithIsom`, finite direct sums and finite direct products
 agree and they are therefore called biproducts.
@@ -1160,8 +1341,8 @@ direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
 
 Given a collection of lattices with isometries $(L_1, f_1), \ldots, (L_n, f_n)$,
 return the lattice with isometry $(L, f)$ together with the injections
-$L_i \to L$ and the projections $L \to L_i$, where `L` is the biproduct
-$L := L_1 \oplus \ldots \oplus L_n$ and `f` is the isometry of `L` induced by the
+$L_i \to L$ and the projections $L \to L_i$, where $L$ is the biproduct
+$L := L_1 \oplus \ldots \oplus L_n$ and $f$ is the isometry of $L$ induced by the
 diagonal actions of the $f_i$'s.
 
 For objects of type `ZZLatWithIsom`, finite direct sums and finite direct products
@@ -1274,10 +1455,10 @@ end
     is_of_hermitian_type(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the minimal polynomial of
-the underlying isometry `f` is irreducible.
+the underlying isometry $f$ is irreducible.
 
-Note that if $(L, f)$ is of hermitian type with `f` of minimal polynomial $\chi$,
-then `L` can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
+Note that if $(L, f)$ is of hermitian type with $f$ of minimal polynomial $\chi$,
+then $L$ can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
 
 # Examples
 ```jldoctest
@@ -1306,7 +1487,7 @@ julia> is_of_hermitian_type(coinvariant_lattice(Lf))
 true
 ```
 """
-function is_of_hermitian_type(Lf::ZZLatWithIsom)
+@attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   return is_irreducible(minimal_polynomial(Lf))
 end
@@ -1315,9 +1496,9 @@ end
     hermitian_structure(Lf::ZZLatWithIsom) -> HermLat
 
 Given a lattice with isometry $(L, f)$ such that the minimal polynomial of the
-underlying isometry `f` is irreducible, return the hermitian structure of the
-underlying lattice `L` over the equation order of the minimal polynomial of
-`f`.
+underlying isometry $f$ is irreducible, return the hermitian structure of the
+underlying lattice $L$ over the equation order of the minimal polynomial of
+$f$.
 
 If it exists, the hermitian structure is stored. For now, we only cover the case
 where the equation order is maximal (which is always the case when the order is
@@ -1378,16 +1559,16 @@ end
 
 ###############################################################################
 #
-#  Image centralizer in discriminant group
+#  Discriminant actions
 #
 ###############################################################################
 
 @doc raw"""
     discriminant_group(Lf::ZZLatWithIsom) -> TorQuadModule, AutomorphismGroupElem
 
-Given an integral lattice with isometry $(L, f)$, return the discriminant group `q`
-of the underlying lattice `L` as well as this image of the underlying isometry
-`f` inside $O(q)$.
+Given an integral lattice with isometry $(L, f)$, return the discriminant group
+$D_L$ of the underlying lattice $L$ as well as the image $D_f$ of the underlying
+isometry $f$ inside $O(D_L)$.
 
 # Examples
 ```jldoctest
@@ -1436,8 +1617,51 @@ function discriminant_group(Lf::ZZLatWithIsom)
   f = ambient_isometry(Lf)
   q = discriminant_group(L)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
-  f = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
-  return (q, f)
+  fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
+  return (q, fq)
+end
+
+@doc raw"""
+    discriminant_representation(L::ZZLat, G::MatrixGroup;
+                                          ambient_representation::Bool = true,
+                                          check::Bool = true) -> GAPGroupHomomorphism
+
+Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
+orthogonal representation $G\to O(D_L)$ of $G$ on the discriminant group $D_L$
+of $L$.
+
+If `ambient_representation` is set to `true`, then the isometries in $G$ are
+considered as matrix representation of their action on the standard basis of
+the ambient space of $L$. Otherwise, they are considered as matrix representation
+of their action on the basis matrix of $L$.
+"""
+function discriminant_representation(L::ZZLat, G::MatrixGroup;
+                                               ambient_representation::Bool = true,
+                                               check::Bool = true)
+  V = ambient_space(L)
+  if ambient_representation
+    @check all(g -> matrix(g)*gram_matrix(V)*transpose(matrix(g)) == gram_matrix(V), gens(G)) "G does not define a group of isometries of the ambient space of L"
+  else
+    @check all(g -> matrix(g)*gram_matrix(L)*transpose(matrix(g)) == gram_matrix(L), gens(G)) "G does not define a group of isometries of L"
+    B = basis_matrix(L)
+    B2 = orthogonal_complement(V, B)
+    C = vcat(B, B2)
+    iC = inv(C)
+  end
+  q = discriminant_group(L)
+  Oq = orthogonal_group(q)
+  imag_lis = elem_type(Oq)[]
+  geneG = gens(G)
+  for g in geneG
+    if !ambient_representation
+      mg = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
+      mg = iC*mg*C
+    else
+      mg = matrix(g)
+    end
+    push!(imag_lis, Oq(hom(q, q, TorQuadModuleElem[q(lift(a)*mg) for a in gens(q)]); check = false))
+  end
+  return hom(G, Oq, geneG, imag_lis; check = false)
 end
 
 @doc raw"""
@@ -1445,9 +1669,9 @@ end
                                                   GAPGroupHomomorphism
 
 Given an integral lattice with isometry $(L, f)$, return the image $G_L$ in
-$O(q_L, \bar{f})$ of the centralizer $O(L, f)$ of `f` in $O(L)$. Here $q_L$
-denotes the discriminant group of `L` and $\bar{f}$ is the isometry of
-$q_L$ induced by `f`.
+$O(D_L, D_f)$ of the centralizer $O(L, f)$ of $f$ in $O(L)$. Here $D_L$
+denotes the discriminant group of $L$ and $D_f$ is the isometry of
+$D_L$ induced by $f$.
 
 # Examples
 ```jldoctest
@@ -1468,44 +1692,126 @@ julia> order(G)
   @req is_integral(Lf) "Underlying lattice must be integral"
   n = order_of_isometry(Lf)
   L = lattice(Lf)
-  if (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
-    # Trivial cases: the lattice has rank 0, or is endowed with +- identity
+  f = isometry(Lf)
+  chi = minpoly(Lf)
+  if is_unimodular(L)
+    # If L is unimodular we do not have to do any wizard's trick since the
+    # discriminant group is trivial
+    qL = discriminant_group(L)
+    OqL = orthogonal_group(qL)
+    return OqL, id_hom(OqL)
+  elseif (n in [1, -1]) || (isometry(Lf) == -identity_matrix(QQ, rank(L)))
+    # Trivial cases: the lattice has rank 0 or 1, or it is endowed with +- identity
     return image_in_Oq(L)
-  elseif rank(L) == euler_phi(n)
-    # this should also cover the case of rank 1
-    # The image of -id and multiplication by primitive root of unity
+  elseif rank(L) == degree(chi)
+    # Hermitian type with hermitian structure of rank 1
+    # The image consists of -id and multiplication by a primitive element on the
+    # hermitian side, which itself corresponds to f along the trace construction
     qL, fqL = discriminant_group(Lf)
     OqL = orthogonal_group(qL)
-    UL = ZZMatrix[-matrix(one(OqL)), matrix(fqL)]
-    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
+    UL = elem_type(OqL)[OqL(m; check = false) for m in ZZMatrix[-matrix(one(OqL)), matrix(fqL)]]
     return sub(OqL, unique!(UL))
-  elseif is_definite(L) || rank(L) == 2
-    # We can compute the orthogonal groups and centralizer with GAP
-    OL = orthogonal_group(L)
-    f = isometry(Lf)
-    V = ambient_space(L)
-    B = basis_matrix(L)
-    B2 = orthogonal_complement(V, B)
-    C = vcat(B, B2)
-    f = block_diagonal_matrix(QQMatrix[f, identity_matrix(QQ, nrows(B2))])
-    f = inv(C)*f*C
-    f = OL(f; check = false)
-    UL = QQMatrix[matrix(s) for s in gens(centralizer(OL, f)[1])]
-    qL = discriminant_group(L)
-    UL = ZZMatrix[matrix(hom(qL, qL, elem_type(qL)[qL(lift(t)*g) for t in gens(qL)])) for g in UL]
-    unique!(UL)
-    OqL = orthogonal_group(qL)
-    UL = elem_type(OqL)[OqL(m; check = false) for m in UL]
-    return sub(OqL, UL)
+  elseif is_of_hermitian_type(Lf)
+    if is_definite(L) || rank(L) == 2
+      # If L is definite or of rank 2 and we use the correspondance between
+      # O(L, f) and O(L, h) via the trace equivalence, where (L, h) is the
+      # hermitian structure on (L, f). Preferable choice than computing O(L, f)
+      # directly because the rank of the hermitian structure is a strict divisor
+      # of the rank of L (lower the rank is, the better!)
+      H, res = Hecke.hermitian_structure_with_transfer_data(integer_lattice(; gram = gram_matrix(L)), f)
+      @hassert :ZZLatWithIsom 1 is_definite(H) # Should always be the case since L is definite, even for infinite isometries
+      OH = isometry_group(H) # This is identified with O(L, f) using `res`
+      geneOH = gens(OH)
+      geneUL = QQMatrix[_transfer_isometry(res, matrix(g)) for g in geneOH]
+      @hassert :ZZLatWithIsom 1 all(g -> g*gram_matrix(Lf)*transpose(g) == gram_matrix(Lf), geneUL)
+      @hassert :ZZLatWithIsom 1 all(g -> g*f == f*g, geneUL)
+      UL = matrix_group(unique!(geneUL))
+      disc = discriminant_representation(L, UL; check = false, ambient_representation = false)
+      return image(disc)
+    else
+      # If L is indefinite of rank >=3, then we use the hermitian version of
+      # Miranda-Morrison theory to compute the image of the centralizer f directly
+      # in the centralizer of D_f.
+      dets, j = Oscar._local_determinants_morphism(Lf)
+      _, jj = kernel(dets)
+      jj = compose(jj, j)
+      return image(jj)
+    end
   else
-    @req is_of_hermitian_type(Lf) "Not yet implemented for indefinite lattices with isometry which are not of hermitian type"
-    # indefinite of rank bigger or equal to 3
-    # We use Hermitian Miranda-Morrison (see [BH23, Part 6])
-    dets, j = Oscar._local_determinants_morphism(Lf)
-    _, jj = kernel(dets)
-    jj = compose(jj, j)
-    return image(jj)
+    # For this last case, we cut our lattice into two orthogonal parts and we
+    # proceed by induction by gluing the stabilizers. For now we do naively,
+    # and we split the "largest non trivial exponent of the isometry".
+    #
+    # TODO: make a "smart search", for instance for some particular stable
+    # kernel sublattices of small rank or for which rank(L) == euler_phi(n)
+    #
+    # We use the similar method as used for extending stabilizers along
+    # equivariant primitive extensions as seen in the function
+    # `admissible_equivariant_primitive_extensions`.
+    divs = typeof(chi)[a for (a, _) in factor(chi)]
+    sort!(divs; lt = (a, b) -> degree(a) <= degree(b))
+    psi = divs[end]
+
+    M = kernel_lattice(Lf, psi)
+    qM, fqM = discriminant_group(M)
+    GM, _ = image_centralizer_in_Oq(M)
+
+    N = orthogonal_submodule(Lf, basis_matrix(M))
+    qN, fqN = discriminant_group(N)
+    GN, _ = image_centralizer_in_Oq(N)
+
+    phi, HMinqM, HNinqN = glue_map(L, lattice(M), lattice(N); check = false)
+
+    # Since M and N are obtained by cutting some parts of `f \in O(L)`, the glue
+    # map should be equivariant!
+    @hassert :ZZLatWithIsom 1 is_invariant(fqM, HMinqM)
+    @hassert :ZZLatWithIsom 1 is_invariant(fqN, HNinqN)
+    @hassert :ZZLatWithIsom 1 matrix(compose(restrict_automorphism(fqM, HMinqM; check = false), phi)) == matrix(compose(phi, restrict_automorphism(fqN, HNinqN; check = false)))
+
+    HM = domain(HMinqM)
+    OHM = orthogonal_group(HM)
+
+    HN = domain(HNinqN)
+    OHN = orthogonal_group(HN)
+
+    _, qMinD, qNinD, _, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
+    HMinD = compose(HMinqM, qMinD)
+    HNinD = compose(HNinqN, qNinD)
+
+    stabM, _ = stabilizer(GM, HMinqM)
+    stabN, _ = stabilizer(GN, HNinqN)
+
+    actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false)) for x in gens(stabM)])
+    actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false)) for x in gens(stabN)])
+
+    _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N); same_ambient = true)
+    disc, stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
+    qL, fqL = discriminant_group(Lf)
+    OqL = orthogonal_group(qL)
+    phi = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
+    @hassert :ZZLatWithIsom 1 is_isometry(phi)
+    @hassert :ZZLatWithIsom 1 qL == disc
+
+    stab = sub(OqL, elem_type(OqL)[OqL(compose(phi, compose(g, inv(phi))); check = false) for g in stab])
+
+    @hassert :ZZLatWithIsom 1 fqL in stab[1]
+    return stab
   end
+end
+
+function _transfer_isometry(res::AbstractSpaceRes, g::T) where T <: MatElem
+  E = base_ring(codomain(res))
+  rk = rank(codomain(res))
+  n = rank(domain(res))
+  gQ = zero_matrix(QQ, n, n)
+  vQ = zero(gQ[1,:])
+  for i in 1:n
+    vQ[i] = one(QQ)
+    vE = matrix(E, 1, rk, res(vec(collect(vQ))))
+    gQ[i, :] = res\(vec(collect(vE*g)))
+    vQ[i] = zero(QQ)
+  end
+  return gQ
 end
 
 ###############################################################################
@@ -1517,9 +1823,9 @@ end
 function _real_kernel_signatures(L::ZZLat, M::MatElem)
   C = base_ring(M)
   G = gram_matrix(L)
-  G = change_base_ring(C, G)
+  GC = change_base_ring(C, G)
   _, K = left_kernel(M)
-  diag = K*G*transpose(K)
+  diag = K*GC*transpose(K)
 
   diag = Hecke._gram_schmidt(diag, C)[1]
   diag = diagonal(diag)
@@ -1536,11 +1842,11 @@ end
 @doc raw"""
     signatures(Lf::ZZLatWithIsom) -> Dict{Int, Tuple{Int, Int}}
 
-Given a lattice with isometry $(L, f)$ where the minimal polynomial of `f`
-is irreducible cyclotomic, return the signatures of $(L, f)$.
+Given a lattice with isometry $(L, f)$ where the minimal polynomial of $f$
+is irreducible cyclotomic, return the signatures of the pair $(L, f)$.
 
-In this context, if we denote $z$ a primitive `n`-th root of unity, where `n`
-is the order of `f`, then for each $1 \leq i \leq n/2$ such that $(i, n) = 1$,
+In this context, if we denote $z$ a primitive $n$-th root of unity, where $n$
+is the order of $f$, then for each $1 \leq i \leq n/2$ such that $(i, n) = 1$,
 the $i$-th signature of $(L, f)$ is given by the signatures of the real quadratic
 form $\ker(f + f^{-1} - z^i - z^{-i})$.
 
@@ -1575,9 +1881,10 @@ function signatures(Lf::ZZLatWithIsom)
   lambda = C(eig[j])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()
-  f = change_base_ring(C, f)
+  fC = change_base_ring(C, f)
+  ifC = inv(fC)
   for i in Sq
-    M = f + inv(f) - lambda^i - lambda^(-i)
+    M = fC + ifC - lambda^i - lambda^(-i)
     D[i] = _real_kernel_signatures(L, M)
   end
   return D
@@ -1598,9 +1905,9 @@ end
     kernel_lattice(Lf::ZZLatWithIsom, p::Union{fmpz_poly, QQPolyRingElem})
                                                          -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ and a polynomial `p` with rational
+Given a lattice with isometry $(L, f)$ and a polynomial $p$ with rational
 coefficients, return the sublattice $M := \ker(p(f))$ of the underlying lattice
-`L` with isometry `f`, together with the restriction $f_{\mid M}$.
+$L$ with isometry $f$, together with the restriction $f_{\mid M}$.
 
 # Examples
 ```jldoctest
@@ -1656,8 +1963,8 @@ kernel_lattice(Lf::ZZLatWithIsom, p::ZZPolyRingElem) = kernel_lattice(Lf, change
 @doc raw"""
     kernel_lattice(Lf::ZZLatWithIsom, l::Integer) -> ZZLatWithIsom
 
-Given a lattice with isometry $(L, f)$ and an integer `l`, return the kernel
-lattice of $(L, f)$ associated to the `l`-th cyclotomic polynomial.
+Given a lattice with isometry $(L, f)$ and an integer $l$, return the kernel
+lattice of $(L, f)$ associated to the $l-$th cyclotomic polynomial.
 
 # Examples
 ```jldoctest
@@ -1697,7 +2004,7 @@ end
     invariant_lattice(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the invariant lattice $L^f$ of
-$(L, f)$ together with the restriction of `f` to $L^f$ (which is the identity
+$(L, f)$ together with the restriction of $f$ to $L^f$ (which is the identity
 in this case).
 
 # Examples
@@ -1725,12 +2032,13 @@ invariant_lattice(Lf::ZZLatWithIsom) = kernel_lattice(Lf, 1)
     invariant_lattice(L::ZZLat, G::MatrixGroup;
                                 ambient_representation::Bool = true) -> ZZLat
 
-Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
-return the invariant sublattice $L^G$ of `L`.
+Given an integer lattice $L$ and a group $G$ of isometries of $L$ in matrix,
+return the invariant sublattice $L^G$ of $L$.
 
-If `ambient_representation` is set to true, the isometries in `G` are seen as
-isometries of the ambient quadratic space of `L` preserving `L`. Otherwise, they
-are considered as honnest isometries of `L`.
+If `ambient_representation` is set to `true`, the isometries in $G$ are considered
+as matrix representation of their action on the standard basis of the ambient
+space of $L$. Otherwise, they are considered as matrix representation of their
+action on the basis matrix of $L$.
 
 # Examples
 ```jldoctest
@@ -1752,10 +2060,10 @@ end
     coinvariant_lattice(Lf::ZZLatWithIsom) -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$, return the coinvariant lattice $L_f$ of
-$(L, f)$ together with the restriction of `f` to $L_f$.
+$(L, f)$ together with the restriction of $f$ to $L_f$.
 
 The coinvariant lattice $L_f$ of $(L, f)$ is the orthogonal complement in
-`L` of the invariant lattice $L_f$.
+$L$ of the invariant lattice $L_f$.
 
 # Examples
 ```jldoctest
@@ -1796,13 +2104,14 @@ end
                                   ambient_representation::Bool = true)
                                                         -> ZZLat, MatrixGroup
 
-Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
-return the coinvariant sublattice $L_G$ of `L`, together with the subgroup `H`
-of isometries of $L_G$ induced by the action of $G$.
+Given an integer lattice $L$ and a group $G$ of isometries of $L$, return the
+coinvariant sublattice $L_G$ of $L$, together with the subgroup $H$ of
+isometries of $L_G$ induced by the action of $G$.
 
-If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
-as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
-they are considered as honnest isometries of `L`.
+If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
+considered as matrix representation of their action on the standard basis of the
+ambient space of $L$. Otherwise, they are considered as matrix representation of
+their action on the basis matrices of $L$ and $L_G$ respectively.
 
 # Examples
 ```jldoctest
@@ -1828,12 +2137,13 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     B3 = vcat(B, B2)
+    iB3 = inv(B3)
   end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = inv(B3)*g_ambient*B3
+      g_ambient = iB3*g_ambient*B3
       m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
@@ -1844,18 +2154,33 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
 end
 
 @doc raw"""
+    invariant_coinvariant_pair(Lf::ZZLatWithIsom) -> ZZLatWithIsom, ZZLatWithIsom
+
+Given a lattice with isometry $(L, f)$, return the pair of lattices with
+isometries consisting of $(L^f, f_{\mid L^f})$ and $(L_f, f_{\mid L_f})$,
+the invariant and coinvariant sublattices with isometry of $(L, f)$.
+"""
+function invariant_coinvariant_pair(Lf::ZZLatWithIsom)
+  F = invariant_lattice(Lf)
+  B = basis_matrix(F)
+  C = orthogonal_submodule(Lf, B)
+  return F, C
+end
+
+@doc raw"""
     invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup;
                                          ambient_representation::Bool = true)
                                                    -> ZZLat, ZZLat, MatrixGroup
 
-Given an integer lattice `L` and a group `G` of isometries of `L` in matrix,
-return the invariant sublattice $L^G$ of `L` and its coinvariant sublattice
-$L_G$ together with the subgroup `H` of isometries of $L_G$ induced by the
-action of $G$.
+Given an integer lattice $L$ and a group $G$ of isometries of $L$, return
+the invariant sublattice $L^G$ of $L$ and its coinvariant sublattice
+$L_G$ together with the subgroup $H$ of isometries of $L_G$ induced by the
+action of $G$ on $L$.
 
-If `ambient_representation` is set to true, the isometries in `G` and `H` are seen
-as isometries of the ambient quadratic space of `L` preserving `L`. Otherwise,
-they are considered as honnest isometries of `L`.
+If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
+considered as matrix representation of their action on the standard basis of the
+ambient space of $L$. Otherwise, they are considered as matrix representation of
+their action on the basis matrices of $L$ and $L_G$ respectively.
 
 # Examples
 ```jldoctest
@@ -1887,12 +2212,13 @@ function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representa
     B = basis_matrix(L)
     B2 = orthogonal_complement(V, B)
     B3 = vcat(B, B2)
+    iB3 = inv(B3)
   end
   gene = QQMatrix[]
   for g in gens(G)
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
-      g_ambient = inv(B3)*g_ambient*B3
+      g_ambient = iB3*g_ambient*B3
       m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
       push!(gene, m)
     else
@@ -1912,13 +2238,13 @@ end
     type(Lf::ZZLatWithIsom)
                       -> Dict{Int, Tuple{ <: Union{ZZGenus, HermGenus}, ZZGenus}}
 
-Given a lattice with isometry $(L, f)$ with `f` of finite order `n`, return the
-type of $(L, f)$.
+Given a lattice with isometry $(L, f)$ with $f$ of finite order $n$, return the
+type of the pair $(L, f)$.
 
-In this context, the type is defined as follows: for each divisor `k` of `n`,
-the `k`-type of $(L, f)$ is the tuple $(H_k, A_K)$ consisting of the genus
+In this context, the type is defined as follows: for each divisor $k$ of $n$,
+the $k$-type of $(L, f)$ is the tuple $(H_k, A_K)$ consisting of the genus
 $H_k$ of the lattice $\ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k]$-
-lattice (so a $\mathbb{Z}$-lattice for k= 1, 2) and of the genus $A_k$ of the
+lattice (so a $\mathbb{Z}$-lattice for $k= 1, 2$) and of the genus $A_k$ of the
 $\mathbb{Z}$-lattice $\ker(f^k-1)$.
 
 # Examples
@@ -1962,7 +2288,7 @@ end
 @doc raw"""
     is_of_type(Lf::ZZLatWithIsom, t::Dict) -> Bool
 
-Given a lattice with isometry $(L, f)$, return whether $(L, f)$ is of type `t`.
+Given a lattice with isometry $(L, f)$, return whether $(L, f)$ is of type $t$.
 
 # Examples
 ```jldoctest
@@ -2033,7 +2359,7 @@ end
 @doc raw"""
     is_hermitian(t::Dict) -> Bool
 
-Given a type `t` of lattices with isometry, return whether `t` is hermitian, i.e.
+Given a type $t$ of lattices with isometry, return whether $t$ is hermitian, i.e.
 whether it defines the type of a hermitian lattice with isometry.
 
 # Examples
@@ -2080,4 +2406,3 @@ function to_oscar(io::IO, Lf::ZZLatWithIsom)
 end
 
 to_oscar(Lf::ZZLatWithIsom) = to_oscar(stdout, Lf)
-

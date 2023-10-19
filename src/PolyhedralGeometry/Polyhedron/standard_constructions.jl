@@ -1633,7 +1633,7 @@ For $g=0$ we obtain a Klee-Minty cube,
 in particular for $e=g=0$ we obtain the standard cube. 
 
 # Example
-The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}.
+The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}$.
 ```jldoctest
 julia> c = goldfarb_cube(3,1//3,0)
 Polyhedron in ambient dimension 3

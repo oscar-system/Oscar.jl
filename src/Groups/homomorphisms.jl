@@ -775,7 +775,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
      newgens = elem_type(S)[]
      for g in gensA
        j = g.i
-       p = S(A.mult_table[j, :])
+       p = S(A.mult_table[:, j])
        push!(newgens, p)
      end
 

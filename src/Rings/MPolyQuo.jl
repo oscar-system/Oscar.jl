@@ -1230,7 +1230,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   # quotient; see Greuel/Pfister "A singular introduction to Commutative Algebra".
   function prim(a::MPolyQuoRingElem)
     @assert parent(a) === Q
-    b = lift(a)::MPolyElem
+    b = lift(a)::MPolyRingElem
     o = default_ordering(R)
     # TODO: Make sure the ordering is the same as the one used for the _kbase above
     @assert is_global(o) "ordering must be global"
