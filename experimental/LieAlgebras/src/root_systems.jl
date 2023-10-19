@@ -141,7 +141,7 @@ end
 @doc raw"""
     cartan_matrix(R::RootSystem) -> Matrix{QQFieldElem}
 
-Return the Cartan matrix of the type root system `R`
+Return the Cartan matrix of the root system `R`.
 """
 function cartan_matrix(R::RootSystem)
   RS = R.GAP_root_system
