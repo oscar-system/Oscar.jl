@@ -118,7 +118,7 @@ end
     cartan_matrix(S::Symbol, n::Int) -> Matrix{QQFieldElem}
 
 Return the Cartan matrix of the root system of type `Sn`.
-For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
+For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](ref).
 """
 function cartan_matrix(S::Symbol, n::Int)
   return cartan_matrix(root_system(S, n))
@@ -140,7 +140,7 @@ end
     dynkin_diagram(S::Symbol, n::Int)
 
 Return the Dynkin diagram of the root system of type `Sn`.
-For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
+For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](ref).
 """
 function dynkin_diagram(S::Symbol, n::Int)
   @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
