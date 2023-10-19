@@ -157,10 +157,10 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
-export coerce_to_lie_algebra_elem
-export derived_algebra
 export cartan_matrix
 export chevalley_basis
+export coerce_to_lie_algebra_elem
+export derived_algebra
 export dynkin_diagram
 export exterior_power
 export general_linear_lie_algebra
