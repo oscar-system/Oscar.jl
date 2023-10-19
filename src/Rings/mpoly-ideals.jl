@@ -66,11 +66,11 @@ end
 
 # elementary operations #######################################################
 @doc raw"""
-    check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    check_base_rings(I::MPolyIdeal, J::MPolyIdeal)
 
 Throws an error if the base rings of the ideals `I` and `J` do not coincide.
 """
-function check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function check_base_rings(I::MPolyIdeal, J::MPolyIdeal)
   if !isequal(base_ring(I), base_ring(J))
     error("Base rings must coincide.")
   end
@@ -970,7 +970,7 @@ end
 
 #######################################################
 @doc raw"""
-    ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    ==(I::MPolyIdeal, J::MPolyIdeal)
 
 Return `true` if `I` is equal to `J`, `false` otherwise.
 
@@ -989,7 +989,8 @@ julia> I == J
 false
 ```
 """
-function ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function ==(I::MPolyIdeal, J::MPolyIdeal)
+  check_base_rings(I, J)
   I === J && return true
   gens(I) == gens(J) && return true
   return issubset(I, J) && issubset(J, I)
@@ -999,7 +1000,7 @@ end
 
 #######################################################
 @doc raw"""
-    is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    is_subset(I::MPolyIdeal, J::MPolyIdeal)
 
 Return `true` if `I` is contained in `J`, `false` otherwise.
 
@@ -1018,7 +1019,8 @@ julia> is_subset(I, J)
 true
 ```
 """
-function is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function is_subset(I::MPolyIdeal, J::MPolyIdeal)
+  check_base_rings(I, J)
   return Singular.iszero(Singular.reduce(singular_generators(I), singular_groebner_generators(J)))
 end
 
