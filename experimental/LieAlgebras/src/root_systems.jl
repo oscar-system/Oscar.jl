@@ -84,11 +84,13 @@ end
 #   Constructor
 #
 ###############################################################################
+
 @doc raw"""
-  root_system(S::String) -> root_system
-Return the root system of type `S` where `S` is a string consisting out of
-a letter `A`, `B`, `C`, `D`, `E`, `F`, `G` followed by an integer.
-For the exceptional root system, the integers are fixed, e.g. `G2`, `F4`, `E6`, ...
+    root_system(S::Symbol, n::Int) -> RootSystem
+    
+Return the root system of type `Sn` where `S` is a symbol consisting out of
+a single letter `A`, `B`, `C`, `D`, `E`, `F`, `G`.
+The allowed values for `n` depend on the choice of `S`.
 """
 function root_system(S::Symbol, n::Int64)
   @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
