@@ -59,9 +59,8 @@ root_system_type_string(R::RootSystem) = string(R.root_system_type[1]) * string(
 #
 ###############################################################################
 
-function show(io::IO, R::RootSystem)
-  print(io, "Root system of type ")
-  show(io, string(R.root_system_type[1]) * string(R.root_system_type[2]))
+function Base.show(io::IO, R::RootSystem)
+  print(io, "Root system of type $(root_system_type_string(R))")
 end
 
 ###############################################################################
