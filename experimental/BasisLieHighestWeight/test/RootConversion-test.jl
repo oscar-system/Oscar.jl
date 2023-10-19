@@ -1,4 +1,3 @@
-include("RootConversion-test-data.jl")
 
 @testset "Test RootConversion" begin
   w_to_alpha = BasisLieHighestWeight.w_to_alpha
@@ -54,12 +53,11 @@ include("RootConversion-test-data.jl")
           @test_broken false # TODO: fix these test cases
           continue
         end
-        for weight in test_sample_weights[n]
-          print(".")
-          test_inverse_alpha_w(dynkin, n, weight)
-          test_inverse_eps_w(dynkin, n, weight)
-          test_inverse_eps_alpha(dynkin, n, weight)
-        end
+        weight = [rand(QQ, -10:10) for _ in 1:n]
+        print(".")
+        test_inverse_alpha_w(dynkin, n, weight)
+        test_inverse_eps_w(dynkin, n, weight)
+        test_inverse_eps_alpha(dynkin, n, weight)
       end
     end
   end
