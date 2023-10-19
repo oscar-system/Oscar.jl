@@ -329,7 +329,7 @@ function realization_space(
 
   #need to catch the corner-case if there are no variables at all
   if !(typeof(polyR) isa MPolyRing)
-    RS = MatroidRealizationSpace(ideal(polyR, 0), ineqs, polyR, mat, F, char, q)
+    RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, mat, F, char, q)
     RS.realizable = true
     return RS
   end
