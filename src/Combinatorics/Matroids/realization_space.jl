@@ -55,7 +55,7 @@ end
 
 * If char = nothing, then this function determines whether the matroid is realizable over some field.
   
-* If char = 0,then this function determines whether the matroid is realizable over some field of
+* If `char == 0`, then this function determines whether the matroid is realizable over some field of
     characteristic 0.
   
 * If char = p is prime, this function determines whether the matroid is realizable
