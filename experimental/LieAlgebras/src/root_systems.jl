@@ -70,7 +70,7 @@ end
 ###############################################################################
 
 function Base.:(==)(R1::RootSystem, R2::RootSystem)
-  return R1.roots == R2.roots && R1.root_system_type == R2.root_system_type
+  return R1.root_system_type == R2.root_system_type && R1.roots == R2.roots
 end
 
 function Base.hash(R::RootSystem, h::UInt)
