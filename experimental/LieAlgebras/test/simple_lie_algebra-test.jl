@@ -20,7 +20,7 @@
     @test dim(L) == 8
     @test coefficient_ring(L) == QQ
     @test root_system(L) == RootSystem(:A, 2)
-    @test root_type(L) == (:A, 2)
+    @test root_system_type(L) == (:A, 2)
     @test characteristic(L) == 0
     @test chevalley_basis(L) == [
       [L([1, 0, 0, 0, 0, 0, 0, 0]), L([0, 1, 0, 0, 0, 0, 0, 0]), L([0, 0, 1, 0, 0, 0, 0, 0])],
