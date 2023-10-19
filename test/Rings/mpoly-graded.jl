@@ -421,7 +421,7 @@ end
 
 
 
-@testset "homogenizaton: big principal ideal" begin
+@testset "homogenization: big principal ideal" begin
   # It is easy to honogenize a principal ideal: just homogenize the gen!
   # Do not really need lots of vars; just a "large" single polynomial
   LotsOfVars = 250;
@@ -463,9 +463,10 @@ end
                           x^3*y^2+x*y*z^3+x*y+y^2,
                           x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2], W1, "h");
   Ih_std = homogenization(I, "h")
-  Ih_expected = ideal(Ih_W1)
+  Ih_expected = ideal(base_ring(Ih_std), Ih_W1)
   @test Ih_std == Ih_expected
   Ih = homogenization(I, W1, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W1)
   @test Ih == Ih_expected
   Ih_W2 = homogenization([x*y*z^3+x^3*y^2+y^2+x*y,
                           x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
@@ -473,19 +474,19 @@ end
                           x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2,
                           y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2],
                          W2, "h");
-  Ih_expected = ideal(Ih_W2)
   Ih = homogenization(I, W2, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W2)
   @test Ih == Ih_expected
   Ih_W3 = homogenization([x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2,
                           x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
                           x^3*y^2+y^2+x*y*z^3+x*y],
                          W3, "h");
-  Ih_expected = ideal(Ih_W3)
   Ih = homogenization(I, W3, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W3)
   @test Ih == Ih_expected
   # Ih_W4 = ????
-  # Ih_expected = ideal(Ih_W4)
   # Ih = homogenization(I, W4, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W4)
   # @test Ih = Ih_expected
   Ih_W2a = homogenization([x*y*z^3+x^3*y^2+y^2+x*y,
                            x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
@@ -493,12 +494,12 @@ end
                            y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2,
                            x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2],
                           W2a, "h");
-  Ih_expected = ideal(Ih_W2a)  
   Ih = homogenization(I, W2a, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W2a)
   @test Ih == Ih_expected
   # Ih_W2b = ????
-  # Ih_expected = ideal(Ih_W2b)
   # Ih = homogenization(I, W2b, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W2b)
   # @test Ih == Ih_expected
 end
 
