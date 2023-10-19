@@ -96,7 +96,7 @@ end
   plane = hypersurface_complement(disjoint_plane_and_line, y)
   @test dim(line) == 1
   @test dim(plane) == 2
-  A3_localized_along_line = Spec(Localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
+  A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(standard_spec(A3_localized_along_line)) == 2
   
@@ -121,7 +121,7 @@ end
   plane = hypersurface_complement(disjoint_plane_and_line, y)
   @test dim(line) == 2
   @test dim(plane) == 3
-  A3_localized_along_line = Spec(Localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
+  A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(standard_spec(A3_localized_along_line)) == 2
   P = ideal(R, R(5))

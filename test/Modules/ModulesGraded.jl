@@ -122,7 +122,7 @@ end
         (2*x^2+x*y)*x (2*y^3+y*x^2)]
     B = Rg[4*x*y^3 (2*x+y)^4]
     F2 = graded_free_module(Rg, [0,0])
-    M1 = SubQuo(F2, A1, B)
+    M1 = SubquoModule(F2, A1, B)
     @test degrees_of_generators(M1) == [Z[1], 2*Z[1]]
     F = graded_free_module(Rg, 2)
     O = [x*F[1]+y*F[2],y*F[2]]

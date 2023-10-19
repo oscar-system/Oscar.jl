@@ -272,7 +272,7 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
     #S = localizing_semigroup(d, n, Bs, MC, B, R, x, xdict)
     
     S = MPolyPowersOfElement(R , basesX)
-    SinvR , iota = Localization(R, S)
+    SinvR , iota = localization(R, S)
     # X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
 
     Igens = unique!([det(X[:, nb]) for nb in NBsNotVariable ])
@@ -403,7 +403,7 @@ function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
     
     S = MPolyPowersOfElement(R , basesX)
     #S = realization_localizing_semigroup(basesX); 
-    SinvR , iota = Localization(R, S)
+    SinvR , iota = localization(R, S)
     
 
     Igens = [det(X[:, nb]) for nb in NBsNotVariable ]

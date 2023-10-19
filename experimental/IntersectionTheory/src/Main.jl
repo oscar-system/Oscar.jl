@@ -740,7 +740,7 @@ betti(X::AbstractVariety) = length.(basis(X))
 Compute the integral of a Chow ring element.
 
 If the abstract_variety $X$ has a (unique) point class `X.point`, the integral will be a
-number (an `fmpq` or a function field element). Otherwise the 0-dimensional
+number (an `QQFieldElem` or a function field element). Otherwise the 0-dimensional
 part of $x$ is returned.
 """
 function integral(x::MPolyDecRingOrQuoElem)
@@ -886,7 +886,7 @@ end
 function _a_hat_genus(x::MPolyDecRingOrQuoElem)
   n = get_attribute(parent(x), :abstract_variety_dim)
   # the Taylor series of (sqrt(t)/2)/sinh(sqrt(t)/2)
-  R, t = PowerSeriesRing(QQ, 2n+1, "t")
+  R, t = power_series_ring(QQ, 2n+1, "t")
   s = divexact(t, exp(QQ(1//2)*t)-exp(-QQ(1//2)*t))
   taylor = [coeff(s, 2i) for i in 0:n]
   _genus(x, taylor)

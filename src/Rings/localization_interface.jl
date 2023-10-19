@@ -103,7 +103,7 @@ Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
-julia> Rloc, _ = Localization(U);
+julia> Rloc, _ = localization(U);
 
 julia> R === base_ring(Rloc)
 true
@@ -131,7 +131,7 @@ Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
-julia> Rloc, _ = Localization(U);
+julia> Rloc, _ = localization(U);
 
 julia> U === inverted_set(Rloc)
 true
@@ -143,12 +143,12 @@ end
 
 ### required functionality
 @doc raw"""
-    Localization(U::AbsMultSet)
+    localization(U::AbsMultSet)
 
 Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
 return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\to`` ``R[U^{-1}]``.
 
-    Localization(R::Ring, U::AbsMultSet)
+    localization(R::Ring, U::AbsMultSet)
 
 Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
 
@@ -165,7 +165,7 @@ Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
-julia> Rloc, iota = Localization(R, U);
+julia> Rloc, iota = localization(R, U);
 
 julia> Rloc
 Localization
@@ -183,13 +183,13 @@ defined by
   z -> z
 ```
 """
-function Localization(S::AbsMultSet)
+function localization(S::AbsMultSet)
   error("localizations at multiplicatively closed sets of type $(typeof(S)) are not implemented")
 end
 
-function Localization(R::Ring, U::AbsMultSet)
+function localization(R::Ring, U::AbsMultSet)
   R == ambient_ring(U) || error("ring and multiplicative set are incompatible")
-  return Localization(U)
+  return localization(U)
 end
 
 @doc raw"""

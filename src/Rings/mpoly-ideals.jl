@@ -1455,7 +1455,7 @@ julia> small_generating_set(J)
  x*y^2 - z
 ```
 """
-function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}
+function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}
   # For non-homogeneous ideals, we do not have a notion of minimal generating
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.

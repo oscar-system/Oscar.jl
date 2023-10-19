@@ -439,7 +439,7 @@ function intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
   R = parent(C.eq)
   m = ideal_point(R, P)
-  r = Localization(R, m)
+  r = localization(R, m)
   I = ideal(r, [C.eq, D.eq])
   G = Oscar.groebner_assure(I)
   return Singular.vdim(G.S)

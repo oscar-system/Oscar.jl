@@ -125,7 +125,7 @@ end
 # framework. 
 #
 # Say you have a new type `MyType` for the `coefficient_ring` of a 
-# polynomial ring `P` and you would like to make the `MPolyQuo` 
+# polynomial ring `P` and you would like to make the `MPolyQuoRing`
 # structure useful for quotients of the form `P/I`. Then you would 
 # declare 
 #

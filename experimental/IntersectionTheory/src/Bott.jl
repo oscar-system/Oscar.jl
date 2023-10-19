@@ -11,7 +11,7 @@ struct TnRep
   n::Int
   w::Vector
   function TnRep(w::Vector{W}) where W
-    # be sure to use fmpz to avoid overflow
+    # be sure to use ZZRingElem to avoid overflow
     W == Int && return new(length(w), ZZ.(w))
     new(length(w), w)
   end

@@ -1902,7 +1902,7 @@ function _divides(k::IntExt, n::Int)
 end
 
 @doc raw"""
-    kernel_lattice(Lf::ZZLatWithIsom, p::Union{fmpz_poly, QQPolyRingElem})
+    kernel_lattice(Lf::ZZLatWithIsom, p::Union{ZZPolyRingElem, QQPolyRingElem})
                                                          -> ZZLatWithIsom
 
 Given a lattice with isometry $(L, f)$ and a polynomial $p$ with rational
