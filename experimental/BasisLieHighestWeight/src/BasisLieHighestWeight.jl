@@ -32,8 +32,8 @@ using Polymake
 # eps_to_w
 # alpha_to_eps
 # eps_to_alpha
-# w_to_eps
-# eps_to_w
+# w_to_aplha
+# alpha_to_w
 
 # TODO GAPWrap-wrappers are missing for 
 # ChevalleyBasis
@@ -199,10 +199,12 @@ function basis_lie_highest_weight_compute(
   ) # weights of the operators
   # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
   weights_eps = [
-    w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
+    w_to_eps(Symbol(type), rank, convert(Vector{QQFieldElem}, weight_w)) for
+    weight_w in weights_w
   ] # other root system
   weights_alpha = [
-    w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
+    w_to_alpha(Symbol(type), rank, convert(Vector{QQFieldElem}, weight_w)) for
+    weight_w in weights_w
   ] # other root system
 
   asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
@@ -794,7 +796,9 @@ function add_new_monomials!(
     get_lattice_points_of_weightspace(
       birational_sequence.weights_eps,
       w_to_eps(
-        lie_algebra.lie_type, lie_algebra.rank, convert(Vector{QQFieldElem}, weight_w)
+        Symbol(lie_algebra.lie_type),
+        lie_algebra.rank,
+        convert(Vector{QQFieldElem}, weight_w),
       ),
       lie_algebra.lie_type,
     ),

@@ -91,7 +91,7 @@ function demazure_operators_summary(
   type::String, rank::Int, lambda::Vector{Int}, weyl_word::Vector{Int}
 )
   alpha_list = [[i == j ? 1 : 0 for i in 1:rank] for j in 1:rank] # [..., [0, .., 0, 1, 0, ..., 0], ...]
-  alpha_wi_list = [alpha_to_w(type, rank, alpha_i) for alpha_i in alpha_list]
+  alpha_wi_list = [alpha_to_w(Symbol(type), rank, alpha_i) for alpha_i in alpha_list]
   ZZ_x, x = LaurentPolynomialRing(ZZ, length(lambda))
   sub_word = []
   p = monomial_from_degrees(ZZ_x, lambda)
