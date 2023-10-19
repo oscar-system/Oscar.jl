@@ -708,7 +708,7 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
     Igens = gens(MRS.defining_ideal)
     Sgens = MRS.inequations
     R = MRS.ambient_ring
-    FR = FractionField(R)
+    FR = fraction_field(R)
     xs = gens(R)
     X = MRS.realization_matrix
     nr, nc = size(X)
