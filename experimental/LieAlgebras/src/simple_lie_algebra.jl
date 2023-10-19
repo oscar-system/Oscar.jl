@@ -100,9 +100,7 @@ function Base.show(io::IO, L::SimpleLieAlgebra)
     print(io, "Simple Lie algebra $(root_system_type_string(root_system(L))")
   else
     io = pretty(io)
-    print(io, "Simple Lie algebra")
-    print(io, "$(string_root_system(L))", Dedent())
-    print(io, "over ", Lowercase())
+    print(io, "Simple Lie algebra $(root_system_type_string(root_system(L)) over ", Lowercase())
     print(IOContext(io, :supercompact => true), coefficient_ring(L))
   end
 end
