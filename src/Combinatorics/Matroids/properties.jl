@@ -1106,15 +1106,14 @@ julia> vertices(D)
  [0, 0, 1, 1]
 ```
 """
-
-
-function indicator_vector(S::Vector{Int}, n::Int)
-    return map(x -> x in S ? 1 : 0 , 1:n)
-end
-
 function matroid_base_polytope(Q::Matroid)
     n = length(matroid_groundset(Q))
     Q = isomorphic_matroid(Q, [i for i in 1:n])
     Delta_verts = hcat([indicator_vector(x, n) for x in bases(Q)]...)
     return convex_hull(Delta_verts') 
+end
+
+
+function indicator_vector(S::Vector{Int}, n::Int)
+    return map(x -> x in S ? 1 : 0 , 1:n)
 end
