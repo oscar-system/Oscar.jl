@@ -443,7 +443,9 @@ end
 
 
 function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
-    foreach(f -> I = saturation(I,ideal([f])), Sgens)
+    for f in Sgens
+        I = saturation(I, ideal([f]))
+    end
     return I
 end
 
