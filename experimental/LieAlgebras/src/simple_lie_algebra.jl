@@ -10,29 +10,29 @@
     R::Field, S::Symbol, n::Int; cached::Bool=true
   ) where {C<:FieldElem}
     RS = root_system(S, n)
-    dimL = number_of_roots(RS) + length(RS.simple_roots)
-    s = [Symbol("e_$i") for i in 1:dimL]
-    st = root_system_type(RS)
-    #get the structure constants of the Lie algebra L 
-    #note that it is enough to do this over QQ, as we can later coerce the constants
-    #into the field R
-    coeffs_iso = inv(Oscar.iso_oscar_gap(QQ))
-    LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(S), n, domain(coeffs_iso))
-    sc_table_G =
-      (
-        entry -> (entry[1], Vector{elem_type(QQ)}(map(coeffs_iso, entry[2])))
-      ).(
-        Matrix{Tuple{Vector{Int},Vector{GAP.Obj}}}(
-          (GAP.Globals.StructureConstantsTable(GAPWrap.Basis(LG)))[1:dimL]
-        )
-      )
-    struct_consts = Matrix{SRow{elem_type(R)}}(undef, dimL, dimL)
-    for i in 1:dimL, j in 1:dimL
-      struct_consts[i, j] = sparse_row(
-        R, Tuple{Int,elem_type(R)}[(k, R(c)) for (k, c) in zip(sc_table_G[i, j]...)]
-      )
-    end
     return get_cached!(SimpleLieAlgebraDict, (R, RS), cached) do
+      dimL = number_of_roots(RS) + length(RS.simple_roots)
+      s = [Symbol("e_$i") for i in 1:dimL]
+      st = root_system_type(RS)
+      #get the structure constants of the Lie algebra L 
+      #note that it is enough to do this over QQ, as we can later coerce the constants
+      #into the field R
+      coeffs_iso = inv(Oscar.iso_oscar_gap(QQ))
+      LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(S), n, domain(coeffs_iso))
+      sc_table_G =
+        (
+          entry -> (entry[1], Vector{elem_type(QQ)}(map(coeffs_iso, entry[2])))
+        ).(
+          Matrix{Tuple{Vector{Int},Vector{GAP.Obj}}}(
+            (GAP.Globals.StructureConstantsTable(GAPWrap.Basis(LG)))[1:dimL]
+          )
+        )
+      struct_consts = Matrix{SRow{elem_type(R)}}(undef, dimL, dimL)
+      for i in 1:dimL, j in 1:dimL
+        struct_consts[i, j] = sparse_row(
+          R, Tuple{Int,elem_type(R)}[(k, R(c)) for (k, c) in zip(sc_table_G[i, j]...)]
+        )
+      end
       new{C}(R, RS, dimL, s, st, struct_consts)
     end::SimpleLieAlgebra{C}
   end
