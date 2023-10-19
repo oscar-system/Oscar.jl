@@ -94,8 +94,6 @@ The allowed values for `n` depend on the choice of `S`.
 """
 function root_system(S::Symbol, n::Int64)
   @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
-  # S is a symbol detailing the type of the indecomposable root system 
-  # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
   return RootSystem(S, n)
 end
 
