@@ -122,9 +122,7 @@ realization_matrix(RS::MatroidRealizationSpace)
 A matrix with entries in ambient_ring(RS) whose columns, when filled in with values satisfying equalities
 from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid. 
 """
-function realization_matrix(RS::MatroidRealizationSpace)
-    return RS.realization_matrix
-end
+realization_matrix(RS::MatroidRealizationSpace) = RS.realization_matrix
 
 function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring)
     # prepare the combinatorial data
@@ -694,7 +692,6 @@ function matrix_clear_den_in_col(X::Oscar.MatElem, c::Int)
     t = lcm(Xc)
     result = multiply_column!(X, t, c)
     return result
-
 end
 
 
