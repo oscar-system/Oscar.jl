@@ -51,7 +51,7 @@ function MatroidRealizationSpace(I::Union{Ideal, NumFieldOrdIdl, Nothing},
 end
 
 @doc raw"""
-is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
+    is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
 * If char = nothing, then this function determines whether the matroid is realizable over some field.
   
