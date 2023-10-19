@@ -4,7 +4,7 @@
   root_system::RootSystem
   dim::Int
   s::Vector{Symbol}
-  root_system_type::Tuple{Symbol,Int64}
+  root_system_type::Tuple{Symbol,Int}
   struct_consts::Matrix{SRow{C}}
   function SimpleLieAlgebra{C}(
     R::Field, S::Symbol, n::Int; cached::Bool=true
