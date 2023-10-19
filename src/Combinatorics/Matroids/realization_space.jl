@@ -694,7 +694,6 @@ function matrix_clear_den_in_col(X::Oscar.MatElem, c::Int)
     t = lcm(Xc)
     result = multiply_column!(X, t, c)
     return result
-
 end
 
 
