@@ -755,7 +755,6 @@ moebius_kantor_matroid() = matroid_from_revlex_basis_encoding("0******0******0**
 
 Construct the Perles matroid.
 """
-
 perles_matroid() = matroid_from_revlex_basis_encoding("0000************0**********0****0**********0****0****************0*****0******0*****", 3, 9)
 
 
