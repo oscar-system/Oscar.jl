@@ -772,11 +772,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     if length(xnew_str) == 0
         phi = hom(R, cR, [cR(0) for i in 1:length(xs)])
         ambR = codomain(phi)
-        if length(Igens) == 0
-            Inew = ideal(ambR, ambR(0))
-        else
-            Inew = ideal(ambR, phi.(Igens)); 
-        end
+        Inew = ideal(ambR, phi.(Igens))
         
         if length(Sgens) == 0
             normal_Sgens = Vector{RingElem}()
