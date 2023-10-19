@@ -779,7 +779,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
         if xs[i] in elim
             push!(zero_elim, 0)
         else
-            push!(zero_elim, "x"*string(i) ) 
+            push!(zero_elim, "x$i") 
         end
     end
         
