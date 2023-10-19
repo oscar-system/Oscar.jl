@@ -443,7 +443,9 @@ end
 
 
 function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
-    foreach(f -> I = saturation(I,ideal([f])), Sgens)
+    for f in Sgens
+        I = saturation(I, ideal([f]))
+    end
     return I
 end
 
@@ -682,7 +684,7 @@ function n_new_Igens(x::RingElem, t::RingElem, Igens::Vector{<:RingElem},
                      Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}) 
 
     preIgens = unique!([clean(sub_v(x, t, f, R, xs), R, Sgens) for f in Igens])
-    return filter(x-> x!= R(0), preIgens)
+    return filter(!iszero, preIgens)
 end
 
 
