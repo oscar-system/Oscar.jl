@@ -144,7 +144,7 @@ end
 Construct the simple Lie algebra over the field `R` with root system of type `S`
 The internally used basis of this Lie algebra is the Chevalley basis.
 """
-function lie_algebra(R::Field, S::Symbol, n::Int64; cached::Bool=true)
+function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   return SimpleLieAlgebra{elem_type(R)}(R, S, n; cached)
 end
 
