@@ -65,14 +65,32 @@ function tensor_product(C1::ComplexOfMorphisms{<:ModuleFP}, C2::ComplexOfMorphis
                                     vertical_typ=typ(C2)
                                    )
   r1 = range(C1)
-  result.horizontal_upper_bound = (typ(C1) == :chain ? first(r1) : last(r1))
-  result.horizontal_lower_bound = (typ(C1) == :cochain ? first(r1) : last(r1))
+  result.right_bound = (typ(C1) == :chain ? first(r1) : last(r1))
+  result.left_bound = (typ(C1) == :cochain ? first(r1) : last(r1))
   r2 = range(C2)
-  result.vertical_upper_bound = (typ(C2) == :chain ? first(r2) : last(r2))
-  result.vertical_lower_bound = (typ(C2) == :cochain ? first(r2) : last(r2))
+  result.upper_bound = (typ(C2) == :chain ? first(r2) : last(r2))
+  result.lower_bound = (typ(C2) == :cochain ? first(r2) : last(r2))
 
-  if is_complete(C1) && is_complete(C2)
-    result.is_complete = true
+  if is_complete(C1) || !isdefined(C1, :fill)
+    result.extends_left = false
+    result.extends_right = false
+  elseif isdefined(C1, :fill) && typ(C1) == :chain # the filling function to extend to the right
+    result.extends_right = true
+    result.extends_left = false
+  elseif isdefined(C1, :fill) && typ(C1) == :cochain # the filling function to extend to the right
+    result.extends_right = false
+    result.extends_left = right
+  end
+
+  if is_complete(C2) || !isdefined(C2, :fill)
+    result.extends_down = false
+    result.extends_up = false
+  elseif isdefined(C2, :fill) && typ(C2) == :chain # the filling function to extend to the up
+    result.extends_up = true
+    result.extends_down = false
+  elseif isdefined(C2, :fill) && typ(C2) == :cochain # the filling function to extend to the up
+    result.extends_up = false
+    result.extends_down = up
   end
   return result
 end

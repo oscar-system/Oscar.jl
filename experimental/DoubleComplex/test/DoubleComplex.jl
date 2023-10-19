@@ -7,10 +7,10 @@
 
   Cxy = tensor_product(Cx, Cy)
 
-  @test Oscar.horizontal_upper_bound(Cxy) == 1
-  @test Oscar.horizontal_lower_bound(Cxy) == 0
-  @test Oscar.vertical_upper_bound(Cxy) == 1
-  @test Oscar.vertical_lower_bound(Cxy) == 0
+  @test Oscar.right_bound(Cxy) == 1
+  @test Oscar.left_bound(Cxy) == 0
+  @test Oscar.upper_bound(Cxy) == 1
+  @test Oscar.lower_bound(Cxy) == 0
   @test Cxy[0, 0] isa FreeMod
   @test Cxy[1, 0] isa FreeMod
   @test Cxy[0, 1] isa FreeMod

@@ -47,7 +47,7 @@ function _total_chain_complex(dc::DoubleComplexOfMorphisms{ChainType, MorphismTy
         boundary_map = boundary_map + compose(vert, inc[m])
       end
 
-      if I[1] > horizontal_lower_bound(dc)
+      if I[1] > left_bound(dc)
         horz = compose(p, horizontal_map(dc, I))
         n = findfirst(x->x==(I[1]-1, I[2]), index_pairs)
         @assert n !== nothing

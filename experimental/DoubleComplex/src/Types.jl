@@ -5,14 +5,37 @@ abstract type AbsDoubleComplexOfMorphisms{ChainType, MapType} end
 getindex(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = underlying_double_complex(dc)[i, j]
 
 ### asking for horizontal and vertical maps
+@doc raw"""
+    horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+
+Return the morphism ``dc[i, j] → dc[i ± 1, j]`` (the sign depending on the `horizontal_typ` of `dc`). 
+"""
 horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = horizontal_map(underlying_double_complex(dc), i, j)
+@doc raw"""
+    vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+
+Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_typ` of `dc`). 
+"""
 vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = vertical_map(underlying_double_complex(dc), i, j)
+
 vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = vertical_map(dc, t...)
 horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = horizontal_map(dc, t...)
 
 
 ### asking for the typ of the row and the column complexes
+@doc raw"""
+    horizontal_typ(dc::AbsDoubleComplexOfMorphisms)
+
+Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the rows 
+of `dc` decrease or increase the (co-)homological index.
+"""
 horizontal_typ(dc::AbsDoubleComplexOfMorphisms) = horizontal_typ(underlying_double_complex(dc))
+@doc raw"""
+    vertical_typ(dc::AbsDoubleComplexOfMorphisms)
+
+Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the columns 
+of `dc` decrease or increase the (co-)homological index.
+"""
 vertical_typ(dc::AbsDoubleComplexOfMorphisms) = vertical_typ(underlying_double_complex(dc))
 
 ### asking for known bounds of the row and column complexes
@@ -22,16 +45,106 @@ vertical_typ(dc::AbsDoubleComplexOfMorphisms) = vertical_typ(underlying_double_c
 # request is considered legitimate there. 
 #
 # Note that at the moment only rectangular shapes are available to describe bounds.
-is_horizontally_bounded(dc::AbsDoubleComplexOfMorphisms) = has_horizontal_upper_bound(dc) && has_horizontal_lower_bound(dc)
-is_vertically_bounded(dc::AbsDoubleComplexOfMorphisms) = has_vertical_upper_bound(dc) && has_vertical_lower_bound(dc)
+is_horizontally_bounded(dc::AbsDoubleComplexOfMorphisms) = has_right_bound(dc) && has_left_bound(dc)
+is_vertically_bounded(dc::AbsDoubleComplexOfMorphisms) = has_upper_bound(dc) && has_lower_bound(dc)
 is_bounded(dc::AbsDoubleComplexOfMorphisms) = is_horizontally_bounded(dc) && is_vertically_bounded(dc)
 
-has_horizontal_upper_bound(D::AbsDoubleComplexOfMorphisms) = has_horizontal_upper_bound(underlying_double_complex(D))
-has_horizontal_lower_bound(D::AbsDoubleComplexOfMorphisms) = has_horizontal_lower_bound(underlying_double_complex(D))
-has_vertical_upper_bound(D::AbsDoubleComplexOfMorphisms)   = has_vertical_upper_bound(underlying_double_complex(D))
-has_vertical_lower_bound(D::AbsDoubleComplexOfMorphisms)   = has_vertical_lower_bound(underlying_double_complex(D))
+@doc raw"""
+    has_right_bound(D::AbsDoubleComplexOfMorphisms)
 
-is_complete(dc::AbsDoubleComplexOfMorphisms) = is_complete(underlying_double_complex(dc))
+Returns `true` if a universal upper bound ``i ≤ B`` for the `D[i, j]` 
+is known; `false` otherwise.
+"""
+has_right_bound(D::AbsDoubleComplexOfMorphisms) = has_right_bound(underlying_double_complex(D))
+@doc raw"""
+    has_left_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if a universal upper bound ``B ≤ i`` for the `D[i, j]` 
+is known; `false` otherwise.
+"""
+has_left_bound(D::AbsDoubleComplexOfMorphisms) = has_left_bound(underlying_double_complex(D))
+@doc raw"""
+    has_upper_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if a universal upper bound ``j ≤ B`` for the `D[i, j]` 
+is known; `false` otherwise.
+"""
+has_upper_bound(D::AbsDoubleComplexOfMorphisms)   = has_upper_bound(underlying_double_complex(D))
+@doc raw"""
+    has_lower_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if a universal upper bound ``B ≤ j`` for the `D[i, j]` 
+is known; `false` otherwise.
+"""
+has_lower_bound(D::AbsDoubleComplexOfMorphisms)   = has_lower_bound(underlying_double_complex(D))
+
+@doc raw"""
+    extends_right(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if `D` knows how to extend itself to the right, i.e. to produce entries 
+`D[i, j]` and (co-)boundary maps for `i > horizontal_right_bound(D)`.
+"""
+extends_right(D::AbsDoubleComplexOfMorphisms) = extends_right(underlying_double_complex(D))
+@doc raw"""
+    extends_left(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if `D` knows how to extend itself to the left, i.e. to produce entries 
+`D[i, j]` and (co-)boundary maps for `i < horizontal_left_bound(D)`.
+"""
+extends_left(D::AbsDoubleComplexOfMorphisms) = extends_left(underlying_double_complex(D))
+@doc raw"""
+    extends_up(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if `D` knows how to extend itself upwards, i.e. to produce entries 
+`D[i, j]` and (co-)boundary maps for `j > upper_bound(D)`.
+"""
+extends_up(D::AbsDoubleComplexOfMorphisms) = extends_up(underlying_double_complex(D))
+@doc raw"""
+    extends_down(D::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if `D` knows how to extend itself downwards, i.e. to produce entries 
+`D[i, j]` and (co-)boundary maps for `j < lower_bound(D)`.
+"""
+extends_down(D::AbsDoubleComplexOfMorphisms) = extends_down(underlying_double_complex(D))
+
+@doc raw"""
+    is_complete(dc::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if the double complex `dc` has bounds in every direction and 
+the double complex can not extend to either direction. 
+
+The entries `dc[i, j]` for `(i, j)` within this range should then be considered 
+to comprise all non-zero ones.
+"""
+function is_complete(dc::AbsDoubleComplexOfMorphisms)
+  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) && has_upper_bound(dc) && !extends_up(dc) && has_lower_bound(dc) && !extends_down(dc)
+end
+
+@doc raw"""
+    is_horizontally_complete(dc::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if the double complex `dc` has bounds in the horizontal directions and 
+it can not extend to either of these directions.
+
+The entries `dc[i, j]` for `(i, j)` within this (possibly unbounded) strip should then be considered 
+to comprise all non-zero ones.
+"""
+function is_horizontally_complete(dc::AbsDoubleComplexOfMorphisms)
+  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) 
+end
+
+@doc raw"""
+    is_vertically_complete(dc::AbsDoubleComplexOfMorphisms)
+
+Returns `true` if the double complex `dc` has bounds in the vertical directions and 
+it can not extend to either of these directions.
+
+The entries `dc[i, j]` for `(i, j)` within this (possibly unbounded) strip should then be considered 
+to comprise all non-zero ones.
+"""
+function is_vertically_complete(dc::AbsDoubleComplexOfMorphisms)
+  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) 
+end
 
 # The concrete architecture of double complexes is lazy by default. 
 # Hence the constructor needs to be provided with the means to produce 
@@ -91,15 +204,19 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
   vertical_map_factory::ChainMorphismFactory{<:MorphismType}
 
   # Information about the nature of the complex
-  is_complete::Bool
   horizontal_typ::Symbol
   vertical_typ::Symbol
 
   # Information about boundedness and completeness of the complex
-  horizontal_upper_bound::Int
-  horizontal_lower_bound::Int
-  vertical_upper_bound::Int
-  vertical_lower_bound::Int
+  right_bound::Int
+  left_bound::Int
+  upper_bound::Int
+  lower_bound::Int
+
+  extends_right::Bool
+  extends_left::Bool
+  extends_up::Bool
+  extends_down::Bool
 
   function DoubleComplexOfMorphisms(
       chain_factory::ChainFactory{ChainType}, 
@@ -107,11 +224,14 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
       vertical_map_factory::ChainMorphismFactory{MorphismType};
       horizontal_typ::Symbol=:chain,
       vertical_typ::Symbol=:chain,
-      horizontal_upper_bound::Union{Int, Nothing} = nothing,
-      horizontal_lower_bound::Union{Int, Nothing} = nothing,
-      vertical_upper_bound::Union{Int, Nothing} = nothing,
-      vertical_lower_bound::Union{Int, Nothing} = nothing,
-      is_complete::Bool=false
+      right_bound::Union{Int, Nothing} = nothing,
+      left_bound::Union{Int, Nothing} = nothing,
+      upper_bound::Union{Int, Nothing} = nothing,
+      lower_bound::Union{Int, Nothing} = nothing,
+      extends_right::Bool=true,
+      extends_left::Bool=true,
+      extends_up::Bool=true,
+      extends_down::Bool=true
     ) where {ChainType, MorphismType}
     result = new{ChainType, MorphismType}(Dict{Tuple{Int, Int}, ChainType}(),
                                           Dict{Tuple{Int, Int}, MorphismType}(),
@@ -119,10 +239,14 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
                                           chain_factory, horizontal_map_factory, 
                                           vertical_map_factory, is_complete, 
                                           horizontal_typ, vertical_typ)
-    horizontal_upper_bound !== nothing && (result.horizontal_upper_bound = horizontal_upper_bound)
-    horizontal_lower_bound !== nothing && (result.horizontal_lower_bound = horizontal_lower_bound)
-    vertical_upper_bound !== nothing && (result.vertical_upper_bound = vertical_upper_bound)
-    vertical_lower_bound !== nothing && (result.vertical_lower_bound = vertical_lower_bound)
+    right_bound !== nothing && (result.right_bound = right_bound)
+    left_bound !== nothing && (result.left_bound = left_bound)
+    upper_bound !== nothing && (result.upper_bound = upper_bound)
+    lower_bound !== nothing && (result.lower_bound = lower_bound)
+    result.extends_right = extends_right
+    result.extends_left = extends_left
+    result.extends_up = extends_up
+    result.extends_down = extends_down
     return result
   end
 end

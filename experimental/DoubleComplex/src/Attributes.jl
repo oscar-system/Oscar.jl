@@ -1,8 +1,4 @@
 ### Basic getters
-function is_complete(D::DoubleComplexOfMorphisms)
-  return D.is_complete
-end
-
 function horizontal_typ(D::DoubleComplexOfMorphisms)
   return D.horizontal_typ
 end
@@ -24,17 +20,17 @@ function vertical_map_cache(D::DoubleComplexOfMorphisms)
 end
 
 ### Boundedness
-has_horizontal_upper_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :horizontal_upper_bound)
-has_horizontal_lower_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :horizontal_lower_bound)
-has_vertical_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :vertical_upper_bound)
-has_vertical_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :vertical_lower_bound)
+has_right_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :right_bound)
+has_left_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :left_bound)
+has_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :upper_bound)
+has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
 
 function horizontal_range(D::DoubleComplexOfMorphisms) 
   is_horizontally_bounded(D) || error("complex is not known to be horizontally bounded")
   if horizontal_typ(D) == :chain
-    return horizontal_upper_bound(D):-1:horizontal_lower_bound(D)
+    return right_bound(D):-1:left_bound(D)
   elseif horizontal_typ(D) == :cochain
-    return horizontal_lower_bound(D):horizontal_upper_bound(D)
+    return left_bound(D):right_bound(D)
   end
   error("typ not recognized")
 end
@@ -42,31 +38,31 @@ end
 function vertical_range(D::DoubleComplexOfMorphisms) 
   is_vertically_bounded(D) || error("complex is not known to be vertically bounded")
   if vertical_typ(D) == :chain
-    return vertical_upper_bound(D):-1:vertical_lower_bound(D)
+    return upper_bound(D):-1:lower_bound(D)
   elseif vertical_typ(D) == :cochain
-    return vertical_lower_bound(D):vertical_upper_bound(D)
+    return lower_bound(D):upper_bound(D)
   end
   error("typ not recognized")
 end
 
-function horizontal_upper_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :horizontal_upper_bound) || error("complex has no known horizontal upper bound")
-  return D.horizontal_upper_bound
+function right_bound(D::DoubleComplexOfMorphisms) 
+  isdefined(D, :right_bound) || error("complex has no known horizontal upper bound")
+  return D.right_bound
 end
 
-function horizontal_lower_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :horizontal_lower_bound) || error("complex has no known horizontal lower bound")
-  return D.horizontal_lower_bound
+function left_bound(D::DoubleComplexOfMorphisms) 
+  isdefined(D, :left_bound) || error("complex has no known horizontal lower bound")
+  return D.left_bound
 end
 
-function vertical_upper_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :vertical_upper_bound) || error("complex has no known vertical upper bound")
-  return D.vertical_upper_bound
+function upper_bound(D::DoubleComplexOfMorphisms) 
+  isdefined(D, :upper_bound) || error("complex has no known vertical upper bound")
+  return D.upper_bound
 end
 
-function vertical_lower_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :vertical_lower_bound) || error("complex has no known vertical lower bound")
-  return D.vertical_lower_bound
+function lower_bound(D::DoubleComplexOfMorphisms) 
+  isdefined(D, :lower_bound) || error("complex has no known vertical lower bound")
+  return D.lower_bound
 end
 
 ### User facing functionality
@@ -75,25 +71,36 @@ function getindex(D::DoubleComplexOfMorphisms, t::Tuple)
 end
 
 function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  (has_horizontal_upper_bound(D) && i<=horizontal_upper_bound(D)) || error("index out of range")
-  (has_horizontal_lower_bound(D) && i>=horizontal_lower_bound(D)) || error("index out of range")
-  (has_vertical_upper_bound(D) && j<=vertical_upper_bound(D)) || error("index out of range")
-  (has_vertical_lower_bound(D) && j>=vertical_lower_bound(D)) || error("index out of range")
+  # legitimize request
+  (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
+  (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
+  (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
+  (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
+
+  # load from cache if applicable
   haskey(D.chains, (i, j)) && return D.chains[(i, j)]
+
+  # produce entry otherwise
   new_chain = D.chain_factory(D, i, j)
   D.chains[(i, j)] = new_chain
+
+  # adjust bounds
+  has_right_bound(D) && i>right_bound(D) && (D.right_bound = i)
+  has_left_bound(D) && i<left_bound(D) && (D.left_bound = i)
+  has_upper_bound(D) && j>upper_bound(D) && (D.upper_bound = j)
+  has_lower_bound(D) && j<lower_bound(D) && (D.lower_bound = j)
   return new_chain
 end
 
 function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  (has_horizontal_upper_bound(D) && i<=horizontal_upper_bound(D)) || error("index out of range")
-  (has_horizontal_lower_bound(D) && i>=horizontal_lower_bound(D)) || error("index out of range")
+  (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
+  (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
   if horizontal_typ(D) == :chain
-    (has_vertical_upper_bound(D) && j<=vertical_upper_bound(D)) || error("index out of range")
-    (has_vertical_lower_bound(D) && j>vertical_lower_bound(D)) || error("index out of range")
+    (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
+    (has_lower_bound(D) && !extends_down(D) && j>lower_bound(D)) || error("index out of range")
   else
-    (has_vertical_upper_bound(D) && j<vertical_upper_bound(D)) || error("index out of range")
-    (has_vertical_lower_bound(D) && j>=vertical_lower_bound(D)) || error("index out of range")
+    (has_upper_bound(D) && !extends_up(D) && j<upper_bound(D)) || error("index out of range")
+    (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
   end
   haskey(vertical_map_cache(D), (i, j)) && return vertical_map_cache(D)[(i, j)]
   new_map = D.vertical_map_factory(D, i, j)
@@ -102,14 +109,14 @@ function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
 end
 
 function horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  (has_vertical_upper_bound(D) && j<=vertical_upper_bound(D)) || error("index out of range")
-  (has_vertical_lower_bound(D) && j>=vertical_lower_bound(D)) || error("index out of range")
+  (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
+  (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
   if horizontal_typ(D) == :chain
-    (has_horizontal_upper_bound(D) && i<=horizontal_upper_bound(D)) || error("index out of range")
-    (has_horizontal_lower_bound(D) && i>horizontal_lower_bound(D)) || error("index out of range")
+    (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
+    (has_left_bound(D) && !extends_left(D) && i>left_bound(D)) || error("index out of range")
   else
-    (has_horizontal_upper_bound(D) && i<horizontal_upper_bound(D)) || error("index out of range")
-    (has_horizontal_lower_bound(D) && i>=horizontal_lower_bound(D)) || error("index out of range")
+    (has_right_bound(D) && !extends_right(D) && i<right_bound(D)) || error("index out of range")
+    (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
   end
   haskey(horizontal_map_cache(D), (i, j)) && return horizontal_map_cache(D)[(i, j)]
   new_map = D.horizontal_map_factory(D, i, j)
