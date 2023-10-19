@@ -10,12 +10,12 @@ end
 
 function Base.show(io::IO, base::BasisLieHighestWeightStructure)
   println(io, base.lie_algebra)
-  println("")
+  println(io, "")
   println(io, base.birational_sequence)
-  println("")
+  println(io, "")
   println(io, "Highest-weight: ", base.highest_weight)
   println(io, "Monomial-order: ", base.monomial_order)
-  println("")
+  println(io, "")
   print(io, base.monomial_basis)
 end
 
@@ -150,61 +150,61 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 1])
 Lie-Algebra of type A and rank 2
 
 BirationalSequence
-Operators: GAP: [ v.1, v.2, v.3 ]
-Weights in w_i:[[2, -1], [-1, 2], [1, 1]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.1, GAP: v.2, GAP: v.3]
+Weights in alpha_i:Vector{QQFieldElem}[[1, 0], [0, 1], [1, 1]]
 
 Highest-weight: [1, 1]
-Monomial-order: GRevLex
+Monomial-order: degrevlex
 
 MonomialBasis
 Dimension: 8
 Generators within semi-group: Set([[1, 0], [0, 1]])
-First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2, x1, x3^2, x2*x3, x1*x3, x1*x2]
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x3, x2, x1, x3^2, x2*x3, x1*x3, x1*x2]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 3, [2, 2, 3], monomial_order = "Lex")
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 3, [2, 2, 3]; monomial_order = "lex")
 Lie-Algebra of type A and rank 3
 
 BirationalSequence
-Operators: GAP: [ v.1, v.2, v.3, v.4, v.5, v.6 ]
-Weights in w_i:[[2, -1, 0], [-1, 2, -1], [0, -1, 2], [1, 1, -1], [-1, 1, 1], [1, 0, 1]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.4, GAP: v.5, GAP: v.6]
+Weights in alpha_i:Vector{QQFieldElem}[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, 1, 1]]
 
 Highest-weight: [2, 2, 3]
-Monomial-order: Lex
+Monomial-order: lex
 
 MonomialBasis
 Dimension: 1260
-Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
-First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x6^2, x5*x6, x4*x6]
+Generators within semi-group: Set([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x6^2, x5*x6, x4*x6]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], operators = [1,2,1])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0]; reduced_expression = [1,2,1])
 Lie-Algebra of type A and rank 2
 
 BirationalSequence
-Operators: GAP: [ v.1, v.2, v.1 ]
-Weights in w_i:[[2, -1], [-1, 2], [2, -1]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.1, GAP: v.2, GAP: v.1]
+Weights in alpha_i:Vector{QQFieldElem}[[1, 0], [0, 1], [1, 0]]
 
 Highest-weight: [1, 0]
-Monomial-order: GRevLex
+Monomial-order: degrevlex
 
 MonomialBasis
 Dimension: 3
 Generators within semi-group: Set([[1, 0]])
-First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2*x3]
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x3, x2*x3]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:C, 3, [1, 1, 1], monomial_order = "Lex")
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:C, 3, [1, 1, 1]; monomial_order = "lex")
 Lie-Algebra of type C and rank 3
 
 BirationalSequence
-Operators: GAP: [ v.1, v.2, v.3, v.4, v.5, v.6, v.7, v.8, v.9 ]
-Weights in w_i:[[2, -1, 0], [-1, 2, -1], [0, -2, 2], [1, 1, -1], [-1, 0, 1], [1, -1, 1], [-2, 2, 0], [0, 1, 0], [2, 0, 0]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.4, GAP: v.5, GAP: v.6, GAP: v.7, GAP: v.8, GAP: v.9]
+Weights in alpha_i:Vector{QQFieldElem}[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
 
 Highest-weight: [1, 1, 1]
-Monomial-order: Lex
+Monomial-order: lex
 
 MonomialBasis
 Dimension: 512
-Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 1, 1], [0, 1, 1]])
-First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2, x1]
+Generators within semi-group: Set([[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1], [0, 1, 1]])
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2, x1]
 ```
 """
 function basis_lie_highest_weight(
@@ -233,8 +233,8 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1
 Lie-Algebra of type D and rank 4
 
 BirationalSequence
-Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.4, GAP: v.3, GAP: v.10, GAP: v.6, GAP: v.7, GAP: v.2, GAP: v.12, GAP: v.11, GAP: v.9, GAP: v.8, GAP: v.5, GAP: v.1]
-Weights in w_i:Vector{ZZRingElem}[[0, -1, 0, 2], [0, -1, 2, 0], [-1, 0, 1, 1], [-1, 1, 1, -1], [-1, 1, -1, 1], [-1, 2, -1, -1], [0, 1, 0, 0], [1, -1, 1, 1], [1, 0, -1, 1], [1, 0, 1, -1], [1, 1, -1, -1], [2, -1, 0, 0]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.4, GAP: v.3, GAP: v.10, GAP: v.6, GAP: v.7, GAP: v.2, GAP: v.12, GAP: v.11, GAP: v.9, GAP: v.8, GAP: v.5, GAP: v.1]
+Weights in alpha_i:Vector{QQFieldElem}[[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 1, 1], [0, 1, 1, 0], [0, 1, 0, 1], [0, 1, 0, 0], [1, 2, 1, 1], [1, 1, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0], [1, 1, 0, 0], [1, 0, 0, 0]]
 
 Highest-weight: [1, 1, 1, 1]
 Monomial-order: oplex
@@ -273,8 +273,8 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,
 Lie-Algebra of type B and rank 3
 
 BirationalSequence
-Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.3, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1]
-Weights in w_i:Vector{ZZRingElem}[[0, -1, 2], [-1, 2, -2], [0, -1, 2], [-1, 2, -2], [2, -1, 0], [-1, 2, -2], [0, -1, 2], [-1, 2, -2], [2, -1, 0]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.3, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1]
+Weights in alpha_i:Vector{QQFieldElem}[[0, 0, 1], [0, 1, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]]
 
 Highest-weight: [1, 1, 1]
 Monomial-order: oplex
@@ -315,8 +315,8 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_fflv(:A, 3, [1,1,1])
 Lie-Algebra of type A and rank 3
 
 BirationalSequence
-Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.4, GAP: v.5, GAP: v.6]
-Weights in w_i:Vector{ZZRingElem}[[2, -1, 0], [-1, 2, -1], [0, -1, 2], [1, 1, -1], [-1, 1, 1], [1, 0, 1]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.4, GAP: v.5, GAP: v.6]
+Weights in alpha_i:Vector{QQFieldElem}[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, 1, 1]]
 
 Highest-weight: [1, 1, 1]
 Monomial-order: oplex
@@ -351,8 +351,8 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,
 Lie-Algebra of type C and rank 3
 
 BirationalSequence
-Operators: Union{Bool, Int64, GAP.FFE, GAP_jll.GapObj}[GAP: v.3, GAP: v.5, GAP: v.7, GAP: v.2, GAP: v.8, GAP: v.6, GAP: v.9, GAP: v.4, GAP: v.1]
-Weights in w_i:Vector{ZZRingElem}[[0, -2, 2], [-1, 0, 1], [-2, 2, 0], [-1, 2, -1], [0, 1, 0], [1, -1, 1], [2, 0, 0], [1, 1, -1], [2, -1, 0]]
+Operators: Union{Bool, GAP.FFE, GAP.GapInt}[GAP: v.3, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1, GAP: v.2, GAP: v.3, GAP: v.2, GAP: v.1]
+Weights in alpha_i:Vector{QQFieldElem}[[0, 0, 1], [0, 1, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]]
 
 Highest-weight: [1, 1, 1]
 Monomial-order: lex
@@ -360,7 +360,7 @@ Monomial-order: lex
 MonomialBasis
 Dimension: 512
 Generators within semi-group: Set([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
-First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2, x1]
+First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x9, x8, x7, x8*x9, x7*x9, x7*x8, x5*x8, x6*x7, x8^2*x9]
 ```
 """
 function basis_lie_highest_weight_nz(
@@ -786,7 +786,7 @@ function get_operators_normal(
 end
 
 @doc """
-    is_fundamental(highest_weight::Vector{Int})::Bool
+    is_fundamental(highest_weight::Vector{IntegerUnion})::Bool
 
     returns true if ``highest_weight`` is fundamental, i.e. [0, ..., 1, ..., 0]
 
@@ -799,18 +799,19 @@ julia> BasisLieHighestWeight.is_fundamental([0, 1, 1])
 false
 ```
 """
-function is_fundamental(highest_weight::Vector{ZZRingElem})::Bool
-  one = false
-  for i in highest_weight
-    if i > 0
-      if one || i > 1
-        return false
-      else
-        one = true
-      end
+function is_fundamental(highest_weight::Vector{<:IntegerUnion})
+  hasone = false
+  for i in Int.(highest_weight)
+    if i == 0
+      continue
+    elseif i == 1
+      hasone && return false
+      hasone = true
+    else
+      return false
     end
   end
-  return one
+  return hasone
 end
 
 function compute_sub_weights(highest_weight::Vector{ZZRingElem})::Vector{Vector{ZZRingElem}}

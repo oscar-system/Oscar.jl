@@ -1,7 +1,7 @@
 module BasisLieHighestWeight
 
 using ..Oscar
-using ..Oscar: GAPWrap
+using ..Oscar: GAPWrap, IntegerUnion
 using Polymake
 
 # TODO basis_lie_highest_weight_lustzig
