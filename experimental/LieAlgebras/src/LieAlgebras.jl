@@ -64,7 +64,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, show, zero, ==
+import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem
