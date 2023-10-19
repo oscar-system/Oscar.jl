@@ -35,7 +35,7 @@ number_of_roots(R::RootSystem) = size(R.roots)[1]
 
 Return the numbers of roots in the root system of type `S`
 """
-number_of_roots(S::Symbol, n::Int64) = number_of_roots(RootSystem(S, n))
+number_of_roots(S::Symbol, n::Int) = number_of_roots(root_system(S, n))
 
 @doc raw"""
     getindex(R::RootSystem, r::Int)
