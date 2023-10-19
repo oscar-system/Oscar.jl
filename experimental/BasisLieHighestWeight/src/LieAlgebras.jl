@@ -10,14 +10,6 @@ end
 
 gapReshape(A) = sparse_matrix(QQ, hcat(A...))
 
-# temporary workaround for issue 2128
-function multiply_scalar(A::SMat{T}, d) where {T}
-  for i in 1:nrows(A)
-    scale_row!(A, i, T(d))
-  end
-  return A
-end
-
 function matricesForOperators(
   lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
 )::Vector{SMat{ZZRingElem}}
@@ -33,9 +25,7 @@ function matricesForOperators(
   denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))
   common_denominator = lcm(denominators)# // 1
   matrices_of_operators =
-    (
-      A -> change_base_ring(ZZ, multiply_scalar(A, common_denominator))
-    ).(matrices_of_operators)
+    (A -> change_base_ring(ZZ, common_denominator * A)).(matrices_of_operators)
   return matrices_of_operators
 end
 

@@ -86,15 +86,6 @@ function lieAlgebra(t::String, n::Int)
   return L, G.ChevalleyBasis(L)
 end
 
-# temporary workaround for issue 2128
-function multiply_scalar(A::SMat{T}, d) where {T}
-  for i in 1:nrows(A)
-    scale_row!(A, i, T(d))
-  end
-  return A
-  #return identity_matrix(SMat, QQ, size(A)[1])*A
-end
-
 gapReshape(A) = sparse_matrix(QQ, hcat(A...))
 
 function matricesForOperators(L, hw, ops)
@@ -107,7 +98,7 @@ function matricesForOperators(L, hw, ops)
   denominators = map(y -> denominator(y[2]), union(union(mats...)...))
   #d = convert(QQ, lcm(denominators))
   d = lcm(denominators)# // 1
-  mats = (A -> change_base_ring(ZZ, multiply_scalar(A, d))).(mats)
+  mats = (A -> change_base_ring(ZZ, d * A)).(mats)
   return mats
 end
 
