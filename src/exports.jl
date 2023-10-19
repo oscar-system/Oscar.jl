@@ -844,7 +844,7 @@ export is_realizable
 export is_reduced
 export is_regular
 export is_regular_sequence
-export is_representable
+#export is_representable
 export is_right
 export is_semiregular
 export is_semisimple
@@ -967,7 +967,7 @@ export matroid_from_matrix_rows
 export matroid_from_nonbases
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
-export matroid_realization_space
+#export matroid_realization_space
 #export matroid_stratum_matrix_coordinates
 export max_GC_rank_polytope
 export maxes
