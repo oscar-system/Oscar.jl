@@ -92,7 +92,7 @@ Return the root system of type `Sn` where `S` is a symbol consisting out of
 a single letter `A`, `B`, `C`, `D`, `E`, `F`, `G`.
 The allowed values for `n` depend on the choice of `S`.
 """
-function root_system(S::Symbol, n::Int64)
+function root_system(S::Symbol, n::Int)
   @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
   return RootSystem(S, n)
 end
