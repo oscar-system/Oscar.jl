@@ -114,9 +114,7 @@ ambient_ring(RS::MatroidRealizationSpace)
 
 The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`. 
 """
-function ambient_ring(RS::MatroidRealizationSpace)
-    return RS.ambient_ring
-end
+ambient_ring(RS::MatroidRealizationSpace) = RS.ambient_ring
 
 @doc raw"""
 realization_matrix(RS::MatroidRealizationSpace)
