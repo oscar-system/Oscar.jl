@@ -57,8 +57,6 @@ elem_type(::Type{SimpleLieAlgebra{C}}) where {C<:FieldElem} = SimpleLieAlgebraEl
 
 parent(x::SimpleLieAlgebraElem) = x.parent
 
-base_ring(L::SimpleLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
-
 coefficient_ring(L::SimpleLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::SimpleLieAlgebra) = L.dim
