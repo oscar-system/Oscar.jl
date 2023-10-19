@@ -157,7 +157,7 @@ end
 Return the Dynkin diagram of the root system of type `Sn`.
 For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
 """
-function dynkin_diagram(S::Symbol, n::Int64)
+function dynkin_diagram(S::Symbol, n::Int)
   @req  _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
   D = ""
 
