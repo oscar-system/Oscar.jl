@@ -767,25 +767,8 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     Igens = gens(MRS.defining_ideal)
     Sgens = MRS.inequations
 
-<<<<<<< HEAD
-    xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
-
-=======
+    xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]    
     
-    zero_elim = []        
-    for i in 1:length(xs)
-        if xs[i] in elim
-            push!(zero_elim, 0)
-        else
-            push!(zero_elim, "x$i") 
-        end
-    end
-        
-    xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
-    
-    
-    
->>>>>>> be83e97386c0b6e780c8ee6bf463a8075a39d9a9
     if length(xnew_str) == 0
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
         ambR = codomain(phi);
