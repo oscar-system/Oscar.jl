@@ -720,8 +720,7 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
         t isa String && continue
         
         phi = sub_map(x, t, R, xs)
-        
-	    Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
+	Sgens_new = n_new_Sgens(x, t, Sgens, R, xs);
         if length(Sgens_new) == 0
             Sgens_new = Vector{RingElem}()
         end
@@ -735,7 +734,6 @@ function reduce_ideal_one_step(MRS::MatroidRealizationSpace,
         GBnew = collect(groebner_basis(ideal(R, Igens_new)))         
         
         MRS_new = MatroidRealizationSpace(ideal(R, GBnew), Sgens_new, R, nX, MRS.F, MRS.char, MRS.q )
-
         
         return (MRS_new, elim, fullyReduced)
     end
@@ -761,7 +759,6 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     
     !fullyReduced && return reduce_realization_space(MRS, elim, fullyReduced)
     
-    
     R = MRS.ambient_ring
     xs = gens(R)
     cR = coefficient_ring(R)
@@ -770,20 +767,8 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     Igens = gens(MRS.defining_ideal)
     Sgens = MRS.inequations
 
-    
-    zero_elim = []        
-    for i in 1:length(xs)
-        if xs[i] in elim
-            push!(zero_elim, 0)
-        else
-            push!(zero_elim, "x"*string(i) ) 
-        end
-    end
-        
-    xnew_str = Vector{String}(filter(x -> x!=0,  zero_elim))    
-    
-    
-    
+    xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
+
     if length(xnew_str) == 0
         phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
         ambR = codomain(phi);
