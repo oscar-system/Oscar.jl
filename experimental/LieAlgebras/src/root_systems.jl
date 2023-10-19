@@ -130,10 +130,11 @@ function _root_system_type_supported_by_GAP(S, n)
 end
 
 @doc raw"""
-    cartan_matrix(S::Symbol, n::Int64) -> Matrix{QQFieldElem}
+    cartan_matrix(S::Symbol, n::Int) -> Matrix{QQFieldElem}
 
-Return the Cartan matrix of the type of root system specified by `S`
-  """
+Return the Cartan matrix of the root system of type `Sn`.
+For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
+"""
 function cartan_matrix(S::Symbol, n::Int)
   return cartan_matrix(root_system(S, n))
 end
