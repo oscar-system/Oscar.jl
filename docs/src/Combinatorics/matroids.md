@@ -126,7 +126,7 @@ the matroid ``M`` (up to the action of ``PGL(r)``).
 
 
 ```@docs
-is_representable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
+is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 defining_ideal(RS::MatroidRealizationSpace)
 inequations(RS::MatroidRealizationSpace)
 ambient_ring(RS::MatroidRealizationSpace)
