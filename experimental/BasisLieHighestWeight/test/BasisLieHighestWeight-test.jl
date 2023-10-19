@@ -1,6 +1,3 @@
-using Oscar
-using Test
-# using TestSetExtensions
 include("MBOld.jl")
 forGap = Oscar.GAP.julia_to_gap
 

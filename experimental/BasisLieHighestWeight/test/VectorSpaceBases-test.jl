@@ -1,14 +1,13 @@
-using Oscar
-using Test
-
-include("../src/VectorSpaceBases.jl")
-
 @testset "Test VectorSpaceBases" begin
+  reduce_col = BasisLieHighestWeight.reduce_col
+  normalize = BasisLieHighestWeight.normalize
+  add_and_reduce! = BasisLieHighestWeight.add_and_reduce!
+
   a = sparse_row(ZZ, [1, 3, 6], [3, 2, 4])::SRow{ZZRingElem} # [3, 0, 2, 0, 0, 4]
   b = sparse_row(ZZ, [3], [2])::SRow{ZZRingElem} # [0, 0, 2, 0, 0, 0]
   c = sparse_row(ZZ, [1, 6], [4, 3])::SRow{ZZRingElem} # [4, 0, 0, 0, 0, 3]
   d = sparse_row(ZZ, [1, 3], [4, 3])::SRow{ZZRingElem} # [6, 0, 4, 0, 0, 0]
-  sparse_vector_space_basis = SparseVectorSpaceBasis([a, b], [1, 3])
+  sparse_vector_space_basis = BasisLieHighestWeight.SparseVectorSpaceBasis([a, b], [1, 3])
 
   @testset "reduce_col" begin
     a_reduced_b_3 = sparse_row(ZZ, [1, 6], [6, 8])::SRow{ZZRingElem} # [6, 0, 0, 0, 0, 8]

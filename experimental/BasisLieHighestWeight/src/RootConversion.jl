@@ -83,15 +83,15 @@ function alpha_to_w(
   return [i for i in weight_alpha * C_inv]
 end
 
-function get_CartanMatrix(type::String, rank::Int)::Matrix{QQFieldElem}
+function get_CartanMatrix(type::String, rank::Int)
   L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
   R = GAP.Globals.RootSystem(L)
-  C = Matrix{QQFieldElem}(GAP.Globals.CartanMatrix(R))
+  C = matrix(QQ, GAP.Globals.CartanMatrix(R))
   # println("C: ", C)
   return C
 end
 
-function get_inverse_CartanMatrix(type::String, rank::Int)::Matrix{QQFieldElem}
+function get_inverse_CartanMatrix(type::String, rank::Int)
   return inv(get_CartanMatrix(type, rank))
 end
 

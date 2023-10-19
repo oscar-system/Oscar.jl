@@ -1,9 +1,8 @@
-using Oscar
-using Test
-
-include("../src/NewMonomial.jl")
-
 @testset "Test NewMonomial" begin
+  calc_weight = BasisLieHighestWeight.calc_weight
+  calc_vec = BasisLieHighestWeight.calc_vec
+  highest_calc_sub_monomial = BasisLieHighestWeight.highest_calc_sub_monomial
+
   ZZx, _ = PolynomialRing(ZZ, 2)
   x = gens(ZZx)
   mon1 = ZZx(1)
