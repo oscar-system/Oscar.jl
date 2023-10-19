@@ -380,7 +380,7 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
     (polyR(0) in ineqs) && return MatroidRealizationSpace(nothing, nothing, nothing, nothing, false, F, char, q)
     =#
 
-    ineqs = gens_2_factors(ineqs)
+    ineqs = gens_2_prime_divisors(ineqs)
     #=
     # Only saturate easy inequations as it's too slow otherwise.
     for i in 1:length(ineqs)
@@ -431,14 +431,14 @@ function find_good_basis_heuristically(M::Matroid)
 end
 
 
-# Return the factors of f, but not the exponents
-function poly_2_factors(f::RingElem)
+# Return the prime divisors of f. 
+function poly_2_prime_divisors(f::RingElem)
     return map(first, factor(f))
 end
 
-# Return the unique factors of the elements of Sgen, again no exponents. 
-function gens_2_factors(Sgens::Vector{<:RingElem})
-    return unique!(vcat([poly_2_factors(f) for f in Sgens]...))
+# Return the unique prime divisors of the elements of Sgen, again no exponents. 
+function gens_2_prime_divisors(Sgens::Vector{<:RingElem})
+    return unique!(vcat([poly_2_prime_divisors(f) for f in Sgens]...))
 end
 
 
@@ -628,7 +628,7 @@ function find_solution_v(v::RingElem, Igens::Vector{<:RingElem},
     for f in with_v_deg_1
 
         den = coefficient_v(v, f)
-        fac_den = poly_2_factors(den)
+        fac_den = poly_2_prime_divisors(den)
         !issubset(fac_den, Sgens) && continue
 
         no_v = [term(f,i) for i in 1:length(f) if !(v in vars(monomial(f,i)))]
@@ -677,7 +677,7 @@ end
 function n_new_Sgens(x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, 
                      R::Ring, xs::Vector{<:RingElem}) 
     preSgens = unique!([sub_v(x, t, f, R, xs) for f in Sgens])
-    return gens_2_factors(preSgens)
+    return gens_2_prime_divisors(preSgens)
 end
 
 function n_new_Igens(x::RingElem, t::RingElem, Igens::Vector{<:RingElem}, 
@@ -833,7 +833,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
             normal_Sgens = Vector{RingElem}()
         else             
             Sgens_new = phi.(Sgens)
-            normal_Sgens = gens_2_factors([normal_form(g, Inew) for g in Sgens_new])
+            normal_Sgens = gens_2_prime_divisors([normal_form(g, Inew) for g in Sgens_new])
         end
     
     end
@@ -861,8 +861,8 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
 
     for j in 1:n
         g = gcd(Xnew[:,j]...)
-        factors = poly_2_factors(g)
-        for f in factors
+        prime_divisors = poly_2_prime_divisors(g)
+        for f in prime_divisors
             if f in normal_Sgens
                 for i in 1:m
                     Xnew[i,j] = Xnew[i,j]/f
