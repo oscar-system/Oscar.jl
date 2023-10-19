@@ -148,15 +148,13 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra
   # we start by computing the number of variables:
   numVars = 0
   unUsedRowsForOnes = collect(2:rk)
-  for col in 1:(n - rk)
-    for row in 1:rk
-      circ = circs[col]
-      if !(B[row] == minimum(circ)) && B[row] in circ
-        if row in unUsedRowsForOnes
-          unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
-        else
-          numVars += 1
-        end
+  for col in 1:(n - rk), row in 1:rk
+    circ = circs[col]
+    if !(B[row] == minimum(circ)) && B[row] in circ
+      if row in unUsedRowsForOnes
+        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
+      else
+        numVars += 1
       end
     end
   end
@@ -180,27 +178,24 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::AbstractAlgebra
 
   varCounter = 1
 
-  for col in 1:(n - rk)
-    for row in 1:rk
-      circ = circs[col]
-      c = nonIdCols[col]
+  for col in 1:(n - rk), row in 1:rk
+    circ = circs[col]
+    c = nonIdCols[col]
 
-      if B[row] == minimum(circ)
+    if B[row] == minimum(circ)
+      mat[row, c] = R(1)
+    elseif B[row] in circ
+      if row in unUsedRowsForOnes
         mat[row, c] = R(1)
-      elseif B[row] in circ
-        if row in unUsedRowsForOnes
-          mat[row, c] = R(1)
-          unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
-        else
-          mat[row, c] = x[varCounter]
-          varCounter = varCounter + 1
-        end
+        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
       else
-        mat[row, c] = R(0)
+        mat[row, c] = x[varCounter]
+        varCounter = varCounter + 1
       end
+    else
+      mat[row, c] = R(0)
     end
   end
-
   return (R, mat)
 end
 
@@ -776,7 +771,6 @@ function reduce_realization_space(
     phi = hom(R, cR, [cR(0) for i in 1:length(xs)])
     ambR = codomain(phi)
     Inew = ideal(ambR, phi.(Igens))
-
     normal_Sgens = phi.(Sgens)
 
   else
