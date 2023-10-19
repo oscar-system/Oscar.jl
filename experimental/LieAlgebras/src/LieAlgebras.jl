@@ -78,7 +78,6 @@ export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
 export abelian_lie_algebra
 export abstract_module
-export adjoint_matrix
 export base_lie_algebra
 export base_module
 export base_modules
