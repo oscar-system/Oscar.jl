@@ -92,7 +92,7 @@ end
 function get_lattice_points_of_weightspace(
   weights_eps::Vector{Vector{QQFieldElem}},
   weight_eps::Vector{QQFieldElem},
-  lie_type::String,
+  lie_type::Symbol,
 )
   """
   calculates all lattice points in a given weightspace for a lie algebra of type type
@@ -104,7 +104,7 @@ function get_lattice_points_of_weightspace(
   """
   # Rescale to integers
   scaled_weights_eps, scaled_weight_eps = scale_weights_to_integers(weights_eps, weight_eps)
-  if lie_type in ["A", "G"]
+  if lie_type in [:A, :G]
     return get_lattice_points_of_weightspace_A_G_n(scaled_weights_eps, scaled_weight_eps)
   else
     return get_lattice_points_of_weightspace_Xn(scaled_weights_eps, scaled_weight_eps)

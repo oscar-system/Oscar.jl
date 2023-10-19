@@ -1,5 +1,5 @@
 @testset "Test CalculateBetas for A2" begin
-  type = "A"
+  type = :A
   rank = 2
   word = [1, 2, 1]
   lie_algebra = BasisLieHighestWeight.LieAlgebraStructure(type, rank)

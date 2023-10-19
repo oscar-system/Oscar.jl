@@ -1,25 +1,20 @@
 fromGap = Oscar.GAP.gap_to_julia
 
 struct LieAlgebraStructure
-  lie_type::String
+  lie_type::Symbol
   rank::Int
   lie_algebra_gap::GAP.Obj
-end
 
-function LieAlgebraStructure(lie_type::String, rank::Int)
-  return LieAlgebraStructure(lie_type, rank, create_lie_algebra(lie_type, rank))
+  function LieAlgebraStructure(lie_type::Symbol, rank::Int)
+    lie_algebra_gap = GAP.Globals.SimpleLieAlgebra(
+      GAP.Obj(lie_type), rank, GAP.Globals.Rationals
+    )
+    return new(lie_type, rank, lie_algebra_gap)
+  end
 end
 
 function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
   print(io, "Lie-Algebra of type ", lie_algebra.lie_type, " and rank ", lie_algebra.rank)
-end
-
-function create_lie_algebra(type::String, rank::Int)::GAP.Obj
-  """
-  Creates the Lie-algebra as a GAP object that gets used for a lot of other computations with GAP
-  """
-  lie_algebra = GAP.Globals.SimpleLieAlgebra(GAP.Obj(type), rank, GAP.Globals.Rationals)
-  return lie_algebra
 end
 
 gapReshape(A) = sparse_matrix(QQ, hcat(A...))

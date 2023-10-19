@@ -9,16 +9,14 @@ problem without the recursion, weightspaces and saving of computations. The thir
 compute with the weaker version.
 """
 
-function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
+function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   # old algorithm
   mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
   # new algorithm
-  base = BasisLieHighestWeight.basis_lie_highest_weight(string(dynkin), n, lambda)
+  base = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
   mons_new = base.monomial_basis.set_mon
-  L = Oscar.GAP.Globals.SimpleLieAlgebra(
-    forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals
-  )
+  L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
   gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
 
   # comparison
@@ -29,15 +27,13 @@ function compare_algorithms(dynkin::Char, n::Int64, lambda::Vector{Int64})
 end
 
 function check_dimension(
-  dynkin::Char, n::Int64, lambda::Vector{Int64}, monomial_order::String
+  dynkin::Symbol, n::Int64, lambda::Vector{Int64}, monomial_order::String
 )
   base = BasisLieHighestWeight.basis_lie_highest_weight(
-    string(dynkin), n, lambda; monomial_order=monomial_order
+    dynkin, n, lambda; monomial_order=monomial_order
   )
   mons_new = base.monomial_basis.set_mon
-  L = Oscar.GAP.Globals.SimpleLieAlgebra(
-    forGap(string(dynkin)), n, Oscar.GAP.Globals.Rationals
-  )
+  L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
   gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
   @test gap_dim == length(mons_new) # check if dimension is correct
 end
@@ -83,22 +79,20 @@ end
   end
 
   @testset "Known examples basis_lie_highest_weight" begin
-    base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 0])
+    base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0])
     mons = base.monomial_basis.set_mon
     @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
     base = BasisLieHighestWeight.basis_lie_highest_weight(
-      "A", 2, [1, 0]; reduced_expression=[1, 2, 1]
+      :A, 2, [1, 0]; reduced_expression=[1, 2, 1]
     )
     mons = base.monomial_basis.set_mon
     @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
   end
   @testset "Compare basis_lie_highest_weight with algorithm of Johannes and check dimension" begin
-    @testset "Dynkin type $dynkin" for dynkin in ('A', 'B', 'C', 'D')
+    @testset "Dynkin type $dynkin" for dynkin in (:A, :B, :C, :D)
       @testset "n = $n" for n in 1:4
         if (
-          !(dynkin == 'B' && n < 2) &&
-          !(dynkin == 'C' && n < 2) &&
-          !(dynkin == 'D' && n < 4)
+          !(dynkin == :B && n < 2) && !(dynkin == :C && n < 2) && !(dynkin == :D && n < 4)
         )
           for i in 1:n                                # w_i
             lambda = zeros(Int64, n)
@@ -123,13 +117,13 @@ end
   @testset "Check dimension" begin
     @testset "Monomial order $monomial_order" for monomial_order in
                                                   ("lex", "revlex", "degrevlex")
-      check_dimension('A', 3, [1, 1, 1], monomial_order)
-      #check_dimension('B', 3, [2,1,0], monomial_order)
-      #check_dimension('C', 3, [1,1,1], monomial_order)
-      #check_dimension('D', 4, [3,0,1,1], monomial_order)
-      #check_dimension('F', 4, [2,0,1,0], monomial_order)
-      #check_dimension('G', 2, [1,0], monomial_order)
-      #check_dimension('G', 2, [2,2], monomial_order)
+      check_dimension(:A, 3, [1, 1, 1], monomial_order)
+      #check_dimension(:B, 3, [2,1,0], monomial_order)
+      #check_dimension(:C, 3, [1,1,1], monomial_order)
+      #check_dimension(:D, 4, [3,0,1,1], monomial_order)
+      #check_dimension(:F, 4, [2,0,1,0], monomial_order)
+      #check_dimension(:G, 2, [1,0], monomial_order)
+      #check_dimension(:G, 2, [2,2], monomial_order)
     end
   end
 end

@@ -20,7 +20,7 @@ function Base.show(io::IO, base::BasisLieHighestWeightStructure)
 end
 
 function basis_lie_highest_weight_compute(
-  type::String,
+  type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
   get_operators::Function,
@@ -77,12 +77,10 @@ function basis_lie_highest_weight_compute(
   ) # weights of the operators
   # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
   weights_eps = [
-    w_to_eps(Symbol(type), rank, convert(Vector{QQFieldElem}, weight_w)) for
-    weight_w in weights_w
+    w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
   ] # other root system
   weights_alpha = [
-    w_to_alpha(Symbol(type), rank, convert(Vector{QQFieldElem}, weight_w)) for
-    weight_w in weights_w
+    w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
   ] # other root system
 
   asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
@@ -124,7 +122,7 @@ end
 
 @doc """
 basis_lie_highest_weight(
-    type::String,
+    type::Symbol,
     rank::Int, 
     highest_weight::Vector{Int};
     operators::Union{String, Vector{Int}} = "regular", 
@@ -137,7 +135,7 @@ Computes a monomial basis for the highest weight module with highest weight
 ``type`` and rank ``rank``.
 
 # Parameters
-- `type`: type of liealgebra we want to investigate, one of "A", "B", "C", "D", "E", "F", "G"
+- `type`: type of liealgebra we want to investigate, one of :A, :B, :C, :D, :E, :F, :G
 - `rank`: rank of liealgebra
 - `highest_weight`: highest-weight
 - `operators`: list of operators, either "regular" or integer array. The functionality of choosing a random longest word
@@ -148,7 +146,7 @@ Computes a monomial basis for the highest weight module with highest weight
 
 # Examples
 ```jldoctest
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 1])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 1])
 Lie-Algebra of type A and rank 2
 
 BirationalSequence
@@ -163,7 +161,7 @@ Dimension: 8
 Generators within semi-group: Set([[1, 0], [0, 1]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2, x1, x3^2, x2*x3, x1*x3, x1*x2]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 3, [2, 2, 3], monomial_order = "Lex")
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 3, [2, 2, 3], monomial_order = "Lex")
 Lie-Algebra of type A and rank 3
 
 BirationalSequence
@@ -178,7 +176,7 @@ Dimension: 1260
 Generators within semi-group: Set([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x6^2, x5*x6, x4*x6]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight("A", 2, [1, 0], operators = [1,2,1])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], operators = [1,2,1])
 Lie-Algebra of type A and rank 2
 
 BirationalSequence
@@ -193,7 +191,7 @@ Dimension: 3
 Generators within semi-group: Set([[1, 0]])
 First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x3, x2*x3]
 
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight("C", 3, [1, 1, 1], monomial_order = "Lex")
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:C, 3, [1, 1, 1], monomial_order = "Lex")
 Lie-Algebra of type C and rank 3
 
 BirationalSequence
@@ -210,7 +208,7 @@ First 10 Monomials in GRevLex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, x2
 ```
 """
 function basis_lie_highest_weight(
-  type::String,
+  type::Symbol,
   rank::Int,
   highest_weight::Vector{Int};
   reduced_expression::Union{String,Vector{Int},Vector{GAP.GapObj},Any}="regular",
@@ -231,7 +229,7 @@ end
 @doc """
 # Examples
 ```jldoctest
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig("D", 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
 Lie-Algebra of type D and rank 4
 
 BirationalSequence
@@ -248,7 +246,7 @@ First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x12, x11, x10, x9, x8, x7, x
 ```
 """
 function basis_lie_highest_weight_lustzig(
-  type::String,
+  type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
   reduced_expression::Vector{Int};
@@ -257,7 +255,7 @@ function basis_lie_highest_weight_lustzig(
 )::BasisLieHighestWeightStructure
   """
   Lustzig polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_lustzig("D", 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
+  BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
   """
   # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   get_operators =
@@ -271,7 +269,7 @@ end
 @doc """
 # Examples
 ```jldoctest
-julia> BasisLieHighestWeight.basis_lie_highest_weight_string("B", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+julia> BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
 Lie-Algebra of type B and rank 3
 
 BirationalSequence
@@ -288,7 +286,7 @@ First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x5, x2, x1, x5*x6, x2*x5, x1
 ```
 """
 function basis_lie_highest_weight_string(
-  type::String,
+  type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
   reduced_expression::Vector{Int};
@@ -296,9 +294,9 @@ function basis_lie_highest_weight_string(
 )::BasisLieHighestWeightStructure
   """
   String / Littelmann-Berenstein-Zelevinsky polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_string("B", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_string("B", 4, [1,1,1,1], [4,3,4,3,2,3,4,3,2,1,2,3,4,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_string("A", 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
+  BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+  BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 4, [1,1,1,1], [4,3,4,3,2,3,4,3,2,1,2,3,4,3,2,1])
+  BasisLieHighestWeight.basis_lie_highest_weight_string(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
   """
   # reduced_expression = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   monomial_order = "oplex"
@@ -313,7 +311,7 @@ end
 @doc """
 # Examples
 ```jldoctest
-julia> BasisLieHighestWeight.basis_lie_highest_weight_fflv("A", 3, [1,1,1])
+julia> BasisLieHighestWeight.basis_lie_highest_weight_fflv(:A, 3, [1,1,1])
 Lie-Algebra of type A and rank 3
 
 BirationalSequence
@@ -330,11 +328,11 @@ First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x6, x5, x4, x3, x2, x1, x5*x
 ```
 """
 function basis_lie_highest_weight_fflv(
-  type::String, rank::Int, highest_weight::Vector{Int}; cache_size::Int=0
+  type::Symbol, rank::Int, highest_weight::Vector{Int}; cache_size::Int=0
 )::BasisLieHighestWeightStructure
   """
   Feigin-Fourier-Littelmann-Vinberg polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_fflv("A", 3, [1,1,1])
+  BasisLieHighestWeight.basis_lie_highest_weight_fflv(:A, 3, [1,1,1])
   """
   monomial_order = "oplex"
   # operators = all positive roots, same ordering as GAP uses
@@ -349,7 +347,7 @@ end
 @doc """
 # Examples
 ```jldoctest
-julia> BasisLieHighestWeight.basis_lie_highest_weight_nz("C", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+julia> BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
 Lie-Algebra of type C and rank 3
 
 BirationalSequence
@@ -366,7 +364,7 @@ First 10 Monomials in degrevlex: ZZMPolyRingElem[1, x9, x8, x7, x6, x5, x4, x3, 
 ```
 """
 function basis_lie_highest_weight_nz(
-  type::String,
+  type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
   reduced_expression::Vector{Int};
@@ -374,8 +372,8 @@ function basis_lie_highest_weight_nz(
 )::BasisLieHighestWeightStructure
   """
   Nakashima-Zelevinsky polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_nz("C", 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_nz("A", 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
+  BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
+  BasisLieHighestWeight.basis_lie_highest_weight_nz(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
   """
   monomial_order = "lex"
   get_operators =

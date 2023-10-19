@@ -175,7 +175,7 @@ Compute a monomial basis for the highest weight module with highest weight ``hw`
 Example
 ======
 ```jldoctest
-julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight("A", 2, [1,0])
+julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight(:A, 2, [1,0])
 (3, Vector{UInt8}[[0x00, 0x00, 0x00], [0x01, 0x00, 0x00], [0x00, 0x00, 0x01]], SparseArrays.SparseVector{Int64, Int64}[  [1]  =  1,   [2]  =  1,   [3]  =  1])
 ```
 """
