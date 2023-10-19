@@ -99,9 +99,7 @@ end
 
 The ideal of the matroid realization space `RS`.
 """
-function defining_ideal(RS::MatroidRealizationSpace)
-    return RS.defining_ideal
-end
+defining_ideal(RS::MatroidRealizationSpace) = RS.defining_ideal
 
 @doc raw"""
 inequations(RS::MatroidRealizationSpace)
