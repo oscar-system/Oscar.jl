@@ -2,7 +2,7 @@ mutable struct RootSystem
   roots::Vector{Vector{Int}}
   simple_roots::Vector{Vector{Int}}
   positive_roots::Vector{Vector{Int}}
-  root_system_type::Tuple{Symbol,Int64}
+  root_system_type::Tuple{Symbol,Int}
   GAP_root_system::GAP.GapObj
   function RootSystem(S::Symbol, n::Int64)
     # S is a symbol detailing the type of the indecomposable root system 
