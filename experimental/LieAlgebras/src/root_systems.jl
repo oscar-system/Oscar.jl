@@ -151,9 +151,10 @@ function cartan_matrix(R::RootSystem)
 end
 
 @doc raw"""
-    dynkin_diagram(S::String)
+    dynkin_diagram(S::Symbol, n::Int)
 
-Return the Dynkin diagram of the type of root system specified by `S`
+Return the Dynkin diagram of the root system of type `Sn`.
+For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
 """
 function dynkin_diagram(S::Symbol, n::Int64)
   @req  _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
