@@ -10,12 +10,6 @@ export basisLieHighestWeight
 
 using Oscar
 
-G = Oscar.GAP.Globals
-forGap = Oscar.GAP.julia_to_gap
-fromGap = Oscar.GAP.gap_to_julia
-
-Short = UInt8
-
 struct SparseVectorSpaceBasis
   A::Vector{SRow{ZZRingElem}}
   pivot::Vector{Int}
@@ -78,8 +72,8 @@ end
 #### Lie algebras
 
 function lieAlgebra(t::String, n::Int)
-  L = G.SimpleLieAlgebra(forGap(t), n, G.Rationals)
-  return L, G.ChevalleyBasis(L)
+  L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+  return L, NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(L))
 end
 
 gapReshape(A) = sparse_matrix(QQ, hcat(A...))
@@ -88,9 +82,13 @@ function matricesForOperators(L, hw, ops)
   """
   used to create tensorMatricesForOperators
   """
-  M = G.HighestWeightModule(L, forGap(hw))
-  mats = G.List(ops, o -> G.MatrixOfAction(G.Basis(M), o))
-  mats = gapReshape.(fromGap(mats))
+  M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
+  mats = map(
+    o -> sparse_matrix(
+      transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o)))
+    ),
+    ops,
+  )
   denominators = map(y -> denominator(y[2]), union(union(mats...)...))
   #d = convert(QQ, lcm(denominators))
   d = lcm(denominators)# // 1
@@ -99,9 +97,7 @@ function matricesForOperators(L, hw, ops)
 end
 
 function weightsForOperators(L, cartan, ops)
-  cartan = fromGap(cartan; recursive=false)
-  ops = fromGap(ops; recursive=false)
-  asVec(v) = fromGap(G.ExtRepOfObj(v))
+  asVec(v) = Vector{Int}(GAP.Globals.Coefficients(GAP.Globals.Basis(L), v))
   if any(iszero.(asVec.(ops)))
     error("ops should be non-zero")
   end
@@ -168,7 +164,7 @@ function tensorMatricesForOperators(L, hw, ops)
 end
 
 """
-    basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; parallel::Bool = true) :: Tuple{Vector{Vector{Short}},Vector{SRow{ZZRingElem}}}
+    basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; parallel::Bool = true) :: Tuple{Vector{Vector{UInt8}},Vector{SRow{ZZRingElem}}}
 
 Compute a monomial basis for the highest weight module with highest weight ``hw`` (in terms of the fundamental weights), for a simple Lie algebra of type ``t`` and rank ``n``.
 
@@ -180,7 +176,7 @@ julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight(:A, 2, [1,0]
 ```
 """
 
-function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--- :: Tuple{Int64,Vector{Vector{Short}},Vector{SRow{ZZRingElem}}}
+function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--- :: Tuple{Int64,Vector{Vector{UInt8}},Vector{SRow{ZZRingElem}}}
   L, CH = lieAlgebra(t, n)
   ops = CH[1] # positive root vectors
   # .. reorder..
@@ -200,14 +196,14 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--
   return monomials
 end
 
-nullMon(m) = zeros(Short, m)
+nullMon(m) = zeros(UInt8, m)
 
 function compute(v0, mats, wts::Vector{Vector{Int}})
   m = length(mats)
   monomials = [nullMon(m)]
   lastPos = 0
   id(mon) = sum((1 << (sum(mon[1:i]) + i - 1) for i in 1:(m - 1)); init=1)
-  e = [Short.(1:m .== i) for i in 1:m]
+  e = [UInt8.(1:m .== i) for i in 1:m]
   maxid(deg) = id(deg .* e[1])
 
   blacklists = [falses(maxid(0))]

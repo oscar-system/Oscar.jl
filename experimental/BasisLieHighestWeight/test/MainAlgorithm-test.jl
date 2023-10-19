@@ -1,5 +1,4 @@
 include("MBOld.jl")
-forGap = Oscar.GAP.julia_to_gap
 
 """
 We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
@@ -17,7 +16,7 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   base = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
   mons_new = base.monomial_basis.set_mon
   L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
-  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
 
   # comparison
   # convert set of monomials over different ring objects to string representation to compare for equality
@@ -34,7 +33,7 @@ function check_dimension(
   )
   mons_new = base.monomial_basis.set_mon
   L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
-  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, forGap(lambda)) # dimension
+  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
   @test gap_dim == length(mons_new) # check if dimension is correct
 end
 

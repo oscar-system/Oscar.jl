@@ -1,5 +1,3 @@
-fromGap = Oscar.GAP.gap_to_julia
-
 struct BasisLieHighestWeightStructure
   lie_algebra::LieAlgebraStructure
   birational_sequence::BirationalSequence
@@ -67,7 +65,9 @@ function basis_lie_highest_weight_compute(
   # initialization of objects that can be precomputed
   # lie_algebra of type, rank and its chevalley_basis
   lie_algebra = LieAlgebraStructure(type, rank)
-  chevalley_basis = GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+  chevalley_basis = NTuple{3,Vector{GAP.Obj}}(
+    GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+  )
 
   # operators that are represented by our monomials. x_i is connected to operators[i]
   operators = get_operators(lie_algebra, chevalley_basis)
@@ -83,7 +83,7 @@ function basis_lie_highest_weight_compute(
     w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
   ] # other root system
 
-  asVec(v) = fromGap(GAPWrap.ExtRepOfObj(v)) # TODO
+  asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
     operators, [asVec(v) for v in operators], weights_w, weights_eps, weights_alpha
   )
@@ -735,7 +735,7 @@ function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GA
   substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
   """
   root_system = GAP.Globals.RootSystem(lie_algebra_gap)
-  canonical_generators = fromGap(
+  canonical_generators = Vector{GAP.Obj}(
     GAP.Globals.CanonicalGenerators(root_system)[1]; recursive=false
   )
   operators = [canonical_generators[i] for i in word]
@@ -744,7 +744,7 @@ end
 
 function get_operators_normal(
   lie_algebra::LieAlgebraStructure,
-  chevalley_basis::GAP.Obj,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   operators::Union{String,Vector{Int},Vector{GAP.GapObj},Any},
 )::Vector{GAP.Obj}
   """
@@ -757,7 +757,7 @@ function get_operators_normal(
   if typeof(operators) != String && typeof(operators) != Vector{Int}
     return operators
   elseif operators == "regular" # create standard operators, use operators as specified by GAP
-    return [v for v in chevalley_basis[1]]
+    return chevalley_basis[1]
     # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
     # temporarily deleted
     # choose a random longest word. Created by extending by random not leftdescending reflections until total length is 

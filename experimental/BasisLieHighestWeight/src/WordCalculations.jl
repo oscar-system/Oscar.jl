@@ -30,7 +30,9 @@ function compute_betas(
 end
 
 function roots_to_root_vectors(
-  lie_algebra::LieAlgebraStructure, chevalley_basis::GAP.Obj, roots::Vector{Vector{Int}}
+  lie_algebra::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  roots::Vector{Vector{Int}},
 )::Vector{GAP.Obj}
   """
   Returns for list of roots the corresponding root-vectors from GAP
@@ -55,9 +57,9 @@ end
 
 function find_root_in_chevalley_basis(
   positive_roots::Vector{Vector{Int}},
-  positive_root_vectors::GAP.Obj,
+  positive_root_vectors::Vector{GAP.Obj},
   negative_roots::Vector{Vector{Int}},
-  negative_root_vectors::GAP.Obj,
+  negative_root_vectors::Vector{GAP.Obj},
   root::Vector{Int},
 )::GAP.Obj
   """
@@ -82,7 +84,7 @@ end
 
 function get_operators_lustzig(
   lie_algebra::LieAlgebraStructure,
-  chevalley_basis::GAP.Obj,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   reduced_expression::Vector{Int},
 )::Vector{GAP.Obj}
   """
