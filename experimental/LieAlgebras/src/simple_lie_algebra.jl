@@ -67,11 +67,6 @@ root_system(L::SimpleLieAlgebra) = L.root_system
 
 root_system_type(L::SimpleLieAlgebra) = L.root_system_type
 
-#  Base.@propagate_inbounds function Base.setindex!(f::SimpleLieAlgebraElem{T}, d, r) where {T <: FieldElem}
-#    Generic._matrix(f)[1, r] = d
-#    return f
-#  end
-
 function symbols(L::SimpleLieAlgebra)
   return L.s
 end
