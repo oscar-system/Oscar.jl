@@ -770,7 +770,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]    
     
     if length(xnew_str) == 0
-        phi = hom(R, cR, a->a, [cR(0) for i in 1:length(xs)])
+        phi = hom(R, cR, [cR(0) for i in 1:length(xs)])
         ambR = codomain(phi);
         if length(Igens) == 0
             Inew = ideal(ambR, ambR(0))
