@@ -97,8 +97,7 @@ end
 
 function Base.show(io::IO, L::SimpleLieAlgebra)
   if get(io, :supercompact, false)
-    print(io, "Simple Lie algebra")
-    print(io, "$(string_root_system(L))")
+    print(io, "Simple Lie algebra $(root_system_type_string(root_system(L))")
   else
     io = pretty(io)
     print(io, "Simple Lie algebra")
