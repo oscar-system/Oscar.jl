@@ -22,6 +22,8 @@
     @test root_system(L) == RootSystem(:A, 2)
     @test root_system_type(L) == (:A, 2)
     @test characteristic(L) == 0
-    @test chevalley_basis(L) == ([basis(L, i), for i in 1:3], [basis(L, i), for i in 4:6], [basis(L, i), for i in 7:8])
+    @test chevalley_basis(L) == (
+      [basis(L, i) for i in 1:3], [basis(L, i) for i in 4:6], [basis(L, i) for i in 7:8]
+    )
   end
 end

@@ -78,12 +78,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", L::SimpleLieAlgebra)
   io = pretty(io)
   println(io, "Simple Lie algebra")
-  println(
-    io,
-    Indent(),
-    "of type $(root_system_type_string(root_system(L))",
-    Dedent(),
-  )
+  println(io, Indent(), "of type $(root_system_type_string(root_system(L)))", Dedent())
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
   print(io, "over ")
   print(io, Lowercase(), coefficient_ring(L))
@@ -91,10 +86,12 @@ end
 
 function Base.show(io::IO, L::SimpleLieAlgebra)
   if get(io, :supercompact, false)
-    print(io, "Simple Lie algebra $(root_system_type_string(root_system(L))")
+    print(io, "Simple Lie algebra $(root_system_type_string(root_system(L)))")
   else
     io = pretty(io)
-    print(io, "Simple Lie algebra $(root_system_type_string(root_system(L)) over ", Lowercase())
+    print(
+      io, "Simple Lie algebra $(root_system_type_string(root_system(L))) over ", Lowercase()
+    )
     print(IOContext(io, :supercompact => true), coefficient_ring(L))
   end
 end

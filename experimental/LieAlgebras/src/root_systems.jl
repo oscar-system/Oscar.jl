@@ -51,7 +51,8 @@ Return the Dynkin type of the root system `R`.
 """
 root_system_type(R::RootSystem) = R.root_system_type
 
-root_system_type_string(R::RootSystem) = string(R.root_system_type[1]) * string(R.root_system_type[2])
+root_system_type_string(R::RootSystem) =
+  string(R.root_system_type[1]) * string(R.root_system_type[2])
 
 ###############################################################################
 #
@@ -102,30 +103,14 @@ end
 #   further functions
 #
 ###############################################################################
+
 function _root_system_type_supported_by_GAP(S, n)
-  if S notin [:A, :B, :C, :D, :E, :F, :G]
-    return false
-  end
-  if n < 1
-    return false
-  end
-  if S == :D
-    if n< 4
-      return false
-    end
-  elseif S == :E
-    if n notin [6,7,8]
-      return false
-    end
-  elseif S == :F
-    if n != 4
-      return false
-    end
-  elseif S == :G
-    if n != 2
-      return false
-    end
-  end
+  S in [:A, :B, :C, :D, :E, :F, :G] || return false
+  n >= 1 || return false
+  S == :D && n < 4 && return false
+  S == :E && !(n in [6, 7, 8]) && return false
+  S == :F && n != 4 && return false
+  S == :G && n != 2 && return false
   return true
 end
 
@@ -158,7 +143,7 @@ Return the Dynkin diagram of the root system of type `Sn`.
 For the semantics of the arguments, refer to [`root_system(S::Symbol, n::Int)`](@ref).
 """
 function dynkin_diagram(S::Symbol, n::Int)
-  @req  _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
+  @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
   D = ""
 
   if S == :A
@@ -248,5 +233,5 @@ end
 Return the Dynkin diagram of the root system `R`
 """
 function dynkin_diagram(R::RootSystem)
-  return dynkin_diagram(R.root_system_type)
+  return dynkin_diagram(R.root_system_type...)
 end
