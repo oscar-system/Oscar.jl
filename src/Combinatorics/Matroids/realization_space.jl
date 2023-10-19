@@ -61,7 +61,7 @@ end
 * If char = p is prime, this function determines whether the matroid is realizable
     of characteristic p.
   
-* if char = p and q is a power of p, this function determines whether the matroid is realizable over the
+* If `char == p` and `q` is a power of `p`, this function determines whether the matroid is realizable over the
     finite field ``GF(q)``.
 """
 function is_realizable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
