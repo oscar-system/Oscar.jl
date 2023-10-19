@@ -7,8 +7,8 @@ Let ``\mathcal A`` be an Abelian category. A double complex
 ``D_{\bullet, \bullet}`` consists of a collection of objects ``D_{i, j}`` in 
 ``\mathcal A`` with indices ``(i, j) \in \mathbb Z^2`` and usually arranged 
 in a matrix-like grid, together with two collections 
-of morphisms ``D_{i, j} \to D_{i, j \pm 1}``, the *horizontal* morphisms, and 
-``D_{i, j} \to D_{i \pm 1, j}``, the *vertical* morphisms, so that both 
+of morphisms ``D_{i, j} \to D_{i \pm 1, j}``, the *horizontal* morphisms, and 
+``D_{i, j} \to D_{i, j \pm 1}``, the *vertical* morphisms, so that both 
 the rows and the columns of ``D_{\bullet, \bullet}`` are complexes in the 
 classical sense and such that all resulting squares of maps commute.
 
