@@ -602,9 +602,8 @@ end
 function coefficient_monomial(v::RingElem, m::RingElem)
     isone(degree(m,v)) || return "The variable is not a degree 1 factor."
     mf = factor(m)
-    mfdict = Dict(mf)
     u = unit(mf)
-    not_v = [k^(mfdict[k]) for k in keys(mfdict) if k != v ]
+    not_v = [k^e for (k,e) in mf if k != v ]
     length(not_v) == 0 ? u : u*prod(not_v)
 end
 
