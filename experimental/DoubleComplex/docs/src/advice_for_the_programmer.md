@@ -1,5 +1,6 @@
 # Advice for the programmer
 
+## How to implement my custom double complex?
 The implementation for Double complexes is generically lazy. We provide 
 a concrete type which takes care of handling the user's requests 
 to entries and morphisms and their caching: `DoubleComplexOfMorphisms`. 
@@ -101,3 +102,24 @@ return `false` and `upper_bound(Z)` will throw an error. At the same time
 legitimate and will produce a reasonable and cached result.
 See the source code of the internal 
 constructor of `DoubleComplex` for how to alter these settings.
+
+## How to make use of the generic functionality?
+
+For double complexes we have some generic functionality available, e.g. 
+`total_complex(D::AbsDoubleComplexOfMorphisms{ChainType, MorphismType})`. 
+This generic functionality assumes certain methods to be implemented for the 
+`ChainType` and the `MorphismType` of the double complex `D`. For instance, 
+it must be possible to compose two morphisms of type `<:MorphismType` and 
+get a new object of type `<:MorphismType`. Sometimes, the required functionality 
+is not streamlined throughout OSCAR (and there is little hope to achieve this).
+One example for this are direct sums: For finitely generated modules, the 
+function takes a special keyword argument `task` to indicate whether the inclusion 
+and projection maps should also be returned, while for `TorQuadModule`s, this keyword argument 
+is not even available. To potentially accomodate all these different types in our 
+double complexes, the generic code uses an internal method
+```@docs
+    _direct_sum(u::Vector{T}) where {T}
+```
+If forming a total complex does not work for your custom implementation of a double 
+complex, check whether this might be due to a missing implementation of this method or others.
+    

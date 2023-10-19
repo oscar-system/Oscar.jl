@@ -16,6 +16,7 @@ In practice one usually encounters complexes which are *bounded* in the sense
 that outside some specified area of indices ``(i, j) \in \mathbb Z^2`` the entries 
 ``D_{i, j}`` are all zero. Such entries are then usually omitted. 
 
+## Basic getters and attributes
 In OSCAR the generic functionality for double complexes is declared for the 
 abstract type `AbsDoubleComplexOfMorphisms`. These functions comprise
 ```julia
@@ -77,3 +78,7 @@ ask for the entry `D[i+1, j]`. Whether or not such requests are admissible can b
     is_vertically_complete(D::AbsDoubleComplexOfMorphisms)
 ```
 
+## Generic functionality
+```@docs
+    total_complex(D::AbsDoubleComplexOfMorphisms)
+```
