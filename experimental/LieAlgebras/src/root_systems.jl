@@ -93,7 +93,7 @@ a single letter `A`, `B`, `C`, `D`, `E`, `F`, `G`.
 The allowed values for `n` depend on the choice of `S`.
 """
 function root_system(S::Symbol, n::Int64)
-  @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
+  @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
   # S is a symbol detailing the type of the indecomposable root system 
   # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
   return RootSystem(S, n)
@@ -104,6 +104,33 @@ end
 #   further functions
 #
 ###############################################################################
+function _root_system_type_supported_by_GAP(S, n)
+  if S notin [:A, :B, :C, :D, :E, :F, :G]
+    return false
+  end
+  if n < 1
+    return false
+  end
+  if S == :D
+    if n< 4
+      return false
+    end
+  elseif S == :E
+    if n notin [6,7,8]
+      return false
+    end
+  elseif S == :F
+    if n != 4
+      return false
+    end
+  elseif S == :G
+    if n != 2
+      return false
+    end
+  end
+  return true
+end
+
 @doc raw"""
     cartan_matrix(S::Symbol, n::Int64) -> Matrix{QQFieldElem}
 
@@ -131,8 +158,7 @@ end
 Return the Dynkin diagram of the type of root system specified by `S`
 """
 function dynkin_diagram(S::Symbol, n::Int64)
-  @req S in [:A, :B, :C, :D, :E, :F, :G] "Unknown Dynkin type"
-  @req n >= 1 "We need a positive number of roots"
+  @req  _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
   D = ""
 
   if S == :A
