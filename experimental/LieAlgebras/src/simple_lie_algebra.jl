@@ -74,10 +74,6 @@ end
 #   String I/O
 #
 ###############################################################################
-#make root system string
-function string_root_system(L::SimpleLieAlgebra)
-  return string(root_system_type(L)[1]) * string(root_system_type(L)[2])
-end
 
 function Base.show(io::IO, ::MIME"text/plain", L::SimpleLieAlgebra)
   io = pretty(io)
