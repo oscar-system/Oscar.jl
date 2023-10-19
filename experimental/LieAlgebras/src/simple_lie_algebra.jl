@@ -81,12 +81,12 @@ function Base.show(io::IO, ::MIME"text/plain", L::SimpleLieAlgebra)
   println(
     io,
     Indent(),
-    "of type $(string(root_system_type(L)[1])*string(root_system_type(L)[2]))",
+    "of type $(root_system_type_string(root_system(L))",
     Dedent(),
   )
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
   print(io, "over ")
-  print(io, Lowercase(), base_ring(L))
+  print(io, Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::SimpleLieAlgebra)
