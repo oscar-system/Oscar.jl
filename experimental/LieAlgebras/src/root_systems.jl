@@ -51,6 +51,8 @@ Return the Dynkin type of the root system `R`.
 """
 root_system_type(R::RootSystem) = R.root_system_type
 
+root_system_type_string(R::RootSystem) = string(R.root_system_type[1]) * string(R.root_system_type[2])
+
 ###############################################################################
 #
 #   String I/O
