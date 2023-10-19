@@ -95,7 +95,7 @@ end
 
 
 @doc raw"""
-defining_ideal(RS::MatroidRealizationSpace)
+    defining_ideal(RS::MatroidRealizationSpace)
 
 The ideal of the matroid realization space `RS`.
 """
