@@ -124,8 +124,8 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector}:
- Any[]
+16-element Vector{Vector{Int64}}:
+ []
  [1]
  [2]
  [3]
@@ -143,7 +143,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]

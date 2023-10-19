@@ -968,7 +968,7 @@ export matroid_from_nonbases
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export matroid_realization_space
-export matroid_stratum_matrix_coordinates
+#export matroid_stratum_matrix_coordinates
 export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
