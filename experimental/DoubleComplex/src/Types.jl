@@ -56,6 +56,7 @@ Returns `true` if a universal upper bound ``i ≤ B`` for the `D[i, j]`
 is known; `false` otherwise.
 """
 has_right_bound(D::AbsDoubleComplexOfMorphisms) = has_right_bound(underlying_double_complex(D))
+
 @doc raw"""
     has_left_bound(D::AbsDoubleComplexOfMorphisms)
 
@@ -63,13 +64,15 @@ Returns `true` if a universal upper bound ``B ≤ i`` for the `D[i, j]`
 is known; `false` otherwise.
 """
 has_left_bound(D::AbsDoubleComplexOfMorphisms) = has_left_bound(underlying_double_complex(D))
+
 @doc raw"""
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
 
 Returns `true` if a universal upper bound ``j ≤ B`` for the `D[i, j]` 
 is known; `false` otherwise.
 """
-has_upper_bound(D::AbsDoubleComplexOfMorphisms)   = has_upper_bound(underlying_double_complex(D))
+has_upper_bound(D::AbsDoubleComplexOfMorphisms) = has_upper_bound(underlying_double_complex(D))
+
 @doc raw"""
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
 
@@ -79,12 +82,49 @@ is known; `false` otherwise.
 has_lower_bound(D::AbsDoubleComplexOfMorphisms)   = has_lower_bound(underlying_double_complex(D))
 
 @doc raw"""
+    right_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns a bound ``B`` such that `D[i, j]` is either zero, unknown, or undefined
+for ``i > B``. Whether or not requests for `D[i, j]` beyond that bound are 
+legitimate depends on the return value of `extends_right(D)`.
+"""
+right_bound(D::AbsDoubleComplexOfMorphisms) = right_bound(underlying_double_complex(D))
+
+@doc raw"""
+    left_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns a bound ``B`` such that `D[i, j]` is either zero, unknown, or undefined
+for ``i < B``. Whether or not requests for `D[i, j]` beyond that bound are 
+legitimate depends on the return value of `extends_left(D)`.
+"""
+left_bound(D::AbsDoubleComplexOfMorphisms) = left_bound(underlying_double_complex(D))
+
+@doc raw"""
+    upper_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns a bound ``B`` such that `D[i, j]` is either zero, unknown, or undefined
+for ``j > B``. Whether or not requests for `D[i, j]` beyond that bound are 
+legitimate depends on the return value of `extends_up(D)`.
+"""
+upper_bound(D::AbsDoubleComplexOfMorphisms) = upper_bound(underlying_double_complex(D))
+
+@doc raw"""
+    lower_bound(D::AbsDoubleComplexOfMorphisms)
+
+Returns a bound ``B`` such that `D[i, j]` is either zero, unknown, or undefined
+for ``j < B``. Whether or not requests for `D[i, j]` beyond that bound are 
+legitimate depends on the return value of `extends_down(D)`.
+"""
+lower_bound(D::AbsDoubleComplexOfMorphisms) = lower_bound(underlying_double_complex(D))
+
+@doc raw"""
     extends_right(D::AbsDoubleComplexOfMorphisms)
 
 Returns `true` if `D` knows how to extend itself to the right, i.e. to produce entries 
 `D[i, j]` and (co-)boundary maps for `i > horizontal_right_bound(D)`.
 """
 extends_right(D::AbsDoubleComplexOfMorphisms) = extends_right(underlying_double_complex(D))
+
 @doc raw"""
     extends_left(D::AbsDoubleComplexOfMorphisms)
 
@@ -92,6 +132,7 @@ Returns `true` if `D` knows how to extend itself to the left, i.e. to produce en
 `D[i, j]` and (co-)boundary maps for `i < horizontal_left_bound(D)`.
 """
 extends_left(D::AbsDoubleComplexOfMorphisms) = extends_left(underlying_double_complex(D))
+
 @doc raw"""
     extends_up(D::AbsDoubleComplexOfMorphisms)
 
@@ -99,6 +140,7 @@ Returns `true` if `D` knows how to extend itself upwards, i.e. to produce entrie
 `D[i, j]` and (co-)boundary maps for `j > upper_bound(D)`.
 """
 extends_up(D::AbsDoubleComplexOfMorphisms) = extends_up(underlying_double_complex(D))
+
 @doc raw"""
     extends_down(D::AbsDoubleComplexOfMorphisms)
 

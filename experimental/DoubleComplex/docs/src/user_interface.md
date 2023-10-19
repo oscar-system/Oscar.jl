@@ -1,8 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 ```
-# Double complexes
-
+# Double complexes -- the user's interface
 We briefly review the mathematical notion of a double complex. 
 Let ``\mathcal A`` be an Abelian category. A double complex 
 ``D_{\bullet, \bullet}`` consists of a collection of objects ``D_{i, j}`` in 
@@ -42,9 +41,9 @@ To accomodate all of these cases, we are forced to employ a rather general patte
 admissible ranges of a double complex.
 ```@docs
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
-    has_left_bound(D::AbsDoubleComplexOfMorphisms)
-    has_upper_bound(D::AbsDoubleComplexOfMorphisms)
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
+    has_right_bound(D::AbsDoubleComplexOfMorphisms)
+    has_left_bound(D::AbsDoubleComplexOfMorphisms)
 ```
 If they exist, these bounds can be asked for using 
 ```@docs
@@ -56,13 +55,15 @@ If they exist, these bounds can be asked for using
 In case any of these bounds does not exist, say `has_right_bound(D) == false` 
 for some `AbsDoubleComplexOfMorphisms` `D`, then every request `D[i, j]` with ``i \gg 0`` arbitrarily 
 big (but at least greater or equal to any potential `left_bound` of `D`) 
-should be considered legitimate. Thus the programmer is responsible to indicate the 
-bounds for the indices `(i, j)` for legitimate requests `D[i, j]` for their individual 
-implementation of a double complex! 
+should be considered **to be legitimate**. Thus the programmer is responsible to indicate the 
+bounds for the indices `(i, j)` if 
+for their individual implementation of a double complex 
+there are limitations for legitimate requests `D[i, j]`.
 
-Asking for `D[i, j]` beyond the above bounds might nevertheless be legitimate. Consider, 
+If any of the above bounds exist, asking for `D[i, j]` beyond those bounds might 
+nevertheless be legitimate. Consider, 
 for instance, the case where the rows of a double complex `D` are free resolutions of 
-modules. Sometimes, these are not computed at creation, but only on request of a specific entry 
+modules. Sometimes these are not computed at creation, but only on request of a specific entry 
 `D[i, j]`. In this case the `right_bound(D)` indicates the supremum of indices `i` 
 for which `D[i, j]` has already been computed, but it should nevertheless be allowed to also 
 ask for the entry `D[i+1, j]`. Whether or not such requests are admissible can be checked using
