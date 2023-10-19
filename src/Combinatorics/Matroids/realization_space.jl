@@ -109,9 +109,7 @@ inequations(RS::MatroidRealizationSpace)
 Generators of the localizing semigroup of `RS`.
 These are the polynomials that need to be nonzero in any realization.
 """
-function inequations(RS::MatroidRealizationSpace)
-    return RS.inequations
-end
+inequations(RS::MatroidRealizationSpace) = RS.inequations
 
 @doc raw"""
 ambient_ring(RS::MatroidRealizationSpace)
