@@ -439,7 +439,7 @@ end
 
 # Return the factors of f, but not the exponents
 function poly_2_factors(f::RingElem)
-    return collect(keys(Dict(factor(f))))
+    return map(first, factor(f))
 end
 
 # Return the unique factors of the elements of Sgen, again no exponents. 
