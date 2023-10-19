@@ -142,20 +142,20 @@ end
 ###############################################################################
 
 @doc raw"""
-    chevalley_basis(L::SimpleLieAlgebra{T}) -> Vector{Vector{SimpleLieAlgebraElem{T}}}
+    chevalley_basis(L::SimpleLieAlgebra{T}) -> NTuple{3,Vector{SimpleLieAlgebraElem{T}}}
 
-Give the Chevalley basis of the simple Lie algebra `L` in three vectors, stating first the positive root vectors, 
-then the negative root vectors and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
-to the order or the roots in the root system.
+Return the Chevalley basis of the simple Lie algebra `L` in three vectors, stating first the positive root vectors, 
+then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
+to the order of the roots in the root system.
 """
 function chevalley_basis(L::SimpleLieAlgebra)
   RS = root_system(L)
   n = length(RS.positive_roots)
   B = basis(L)
-  #root vectors
+  # root vectors
   r_plus = B[1:n]
   r_minus = B[(n + 1):(2 * n)]
-  #basis for cartan algebra
+  # basis for cartan algebra
   h = B[(2 * n + 1):dim(L)]
-  return [r_plus, r_minus, h]
+  return (r_plus, r_minus, h)
 end
