@@ -149,7 +149,7 @@ function get_lattice_points_of_weightspace_A_G_n(weights_eps, weight_eps)
 
   # convert lattice-points to Oscar monomials
   #println("before lattice_points")
-  lattice_points_weightspace = lattice_points(Polyhedron(poly))
+  lattice_points_weightspace = lattice_points(polyhedron(poly))
   #println("after lattice-points")
   lattice_points_weightspace = [
     lattice_point[2:end] for lattice_point in lattice_points_weightspace
@@ -194,6 +194,6 @@ function get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
   poly = polytope.Polytope(; INEQUALITIES=ineq, EQUATIONS=equ)
 
   # convert lattice-points to Oscar monomials
-  lattice_points_weightspace = lattice_points(Polyhedron(poly))
+  lattice_points_weightspace = lattice_points(polyhedron(poly))
   return lattice_points_weightspace
 end

@@ -17,8 +17,6 @@ using Polymake
 # TODO basis_lie_highest_weight_feigin_fflv
 # TODO basis_lie_highest_weight_nZ
 
-# TODO write methods small when using Polymake, f.e. polyhedron instead of Polyhedron (The lowercase names are not found)
-
 # TODO (?) Maybe export and docstring: 
 # get_dim_weightspace
 # orbit_weylgroup
