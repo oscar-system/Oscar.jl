@@ -126,9 +126,9 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Field, S::Symbol, n::Int64, cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true) -> SimpleLieAlgebra{elem_type(R)}
 
-Construct the simple Lie algebra over the field `R` with root system of type `S`
+Construct the simple Lie algebra over the field `R` with root system of type `Sn` (see [`root_system(S::Symbol, n::Int)`](@ref)).
 The internally used basis of this Lie algebra is the Chevalley basis.
 """
 function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
