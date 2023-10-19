@@ -114,7 +114,8 @@ function bracket(
   L = parent(x)
   mat = sum(
     cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(coefficients(x)),
-    (j, cyj) in enumerate(coefficients(y))
+    (j, cyj) in enumerate(coefficients(y));
+    init=sparse_row(coefficient_ring(L)),
   )
   return L(mat)
 end
