@@ -237,7 +237,7 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
                                           Dict{Tuple{Int, Int}, MorphismType}(),
                                           Dict{Tuple{Int, Int}, MorphismType}(),
                                           chain_factory, horizontal_map_factory, 
-                                          vertical_map_factory, is_complete, 
+                                          vertical_map_factory,
                                           horizontal_typ, vertical_typ)
     right_bound !== nothing && (result.right_bound = right_bound)
     left_bound !== nothing && (result.left_bound = left_bound)

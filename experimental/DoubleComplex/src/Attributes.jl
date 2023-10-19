@@ -65,6 +65,11 @@ function lower_bound(D::DoubleComplexOfMorphisms)
   return D.lower_bound
 end
 
+extends_right(D::DoubleComplexOfMorphisms) = D.extends_right
+extends_left(D::DoubleComplexOfMorphisms) = D.extends_left
+extends_up(D::DoubleComplexOfMorphisms) = D.extends_up
+extends_down(D::DoubleComplexOfMorphisms) = D.extends_down
+
 ### User facing functionality
 function getindex(D::DoubleComplexOfMorphisms, t::Tuple)
   return getindex(D, t...)
@@ -72,10 +77,10 @@ end
 
 function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   # legitimize request
-  (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
-  (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
-  (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
-  (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
+  !extends_right(D) && ((has_right_bound(D) &&  i<=right_bound(D)) || error("index out of range"))
+  !extends_left(D) && ((has_left_bound(D) && i>=left_bound(D)) || error("index out of range"))
+  !extends_up(D) && ((has_upper_bound(D) && j<=upper_bound(D)) || error("index out of range"))
+  !extends_down(D) && ((has_lower_bound(D) && j>=lower_bound(D)) || error("index out of range"))
 
   # load from cache if applicable
   haskey(D.chains, (i, j)) && return D.chains[(i, j)]
@@ -93,14 +98,14 @@ function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
 end
 
 function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
-  (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
+  !extends_right(D) && ((has_right_bound(D) && i<=right_bound(D)) || error("index out of range"))
+  !extends_left(D) && ((has_left_bound(D) && i>=left_bound(D)) || error("index out of range"))
   if horizontal_typ(D) == :chain
-    (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
-    (has_lower_bound(D) && !extends_down(D) && j>lower_bound(D)) || error("index out of range")
+    !extends_up(D) && ((has_upper_bound(D) && j<=upper_bound(D)) || error("index out of range"))
+    !extends_down(D) && ((has_lower_bound(D) && j>lower_bound(D)) || error("index out of range"))
   else
-    (has_upper_bound(D) && !extends_up(D) && j<upper_bound(D)) || error("index out of range")
-    (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
+    !extends_up(D) && ((has_upper_bound(D) && j<upper_bound(D)) || error("index out of range"))
+    !extends_down(D) && ((has_lower_bound(D) && j>=lower_bound(D)) || error("index out of range"))
   end
   haskey(vertical_map_cache(D), (i, j)) && return vertical_map_cache(D)[(i, j)]
   new_map = D.vertical_map_factory(D, i, j)
@@ -109,14 +114,14 @@ function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
 end
 
 function horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
-  (has_upper_bound(D) && !extends_up(D) && j<=upper_bound(D)) || error("index out of range")
-  (has_lower_bound(D) && !extends_down(D) && j>=lower_bound(D)) || error("index out of range")
+  !extends_up(D) && ((has_upper_bound(D) && j<=upper_bound(D)) || error("index out of range"))
+  !extends_down(D) && ((has_lower_bound(D) && j>=lower_bound(D)) || error("index out of range"))
   if horizontal_typ(D) == :chain
-    (has_right_bound(D) && !extends_right(D) && i<=right_bound(D)) || error("index out of range")
-    (has_left_bound(D) && !extends_left(D) && i>left_bound(D)) || error("index out of range")
+    !extends_right(D) && ((has_right_bound(D) && i<=right_bound(D)) || error("index out of range"))
+    !extends_left(D) && ((has_left_bound(D) && i>left_bound(D)) || error("index out of range"))
   else
-    (has_right_bound(D) && !extends_right(D) && i<right_bound(D)) || error("index out of range")
-    (has_left_bound(D) && !extends_left(D) && i>=left_bound(D)) || error("index out of range")
+    !extends_right(D) && ((has_right_bound(D) && i<right_bound(D)) || error("index out of range"))
+    !extends_left(D) && ((has_left_bound(D) && i>=left_bound(D)) || error("index out of range"))
   end
   haskey(horizontal_map_cache(D), (i, j)) && return horizontal_map_cache(D)[(i, j)]
   new_map = D.horizontal_map_factory(D, i, j)

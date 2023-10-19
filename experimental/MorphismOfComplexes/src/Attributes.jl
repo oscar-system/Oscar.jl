@@ -31,7 +31,7 @@ function extends_right(moc::MorphismOfComplexes)
   return moc.extends_right
 end
 
-function range(moc::MorphismOfComplexes)
+function Base.range(moc::MorphismOfComplexes)
   (has_right_bound(moc) && has_left_bound(moc)) || error("no bounds known")
   return left_bound(moc):right_bound(moc)
 end

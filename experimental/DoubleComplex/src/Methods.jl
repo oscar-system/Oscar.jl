@@ -39,7 +39,7 @@ function _total_chain_complex(dc::DoubleComplexOfMorphisms{ChainType, MorphismTy
       p = last_pr[l]
       @assert domain(p) === last_chain
 
-      if I[2] > vertical_lower_bound(dc)
+      if I[2] > lower_bound(dc)
         vert = compose(p, vertical_map(dc, I))
         m = findfirst(x->x==(I[1], I[2]-1), index_pairs)
         @assert m !== nothing
