@@ -15,7 +15,6 @@ import ..Oscar:
   action,
   basis,
   basis_matrix,
-  base_ring,
   canonical_injection,
   canonical_injections,
   canonical_projection,
