@@ -134,7 +134,7 @@ end
 
 Return the Cartan matrix of the type of root system specified by `S`
   """
-function cartan_matrix(S::Symbol, n::Int64)
+function cartan_matrix(S::Symbol, n::Int)
   return cartan_matrix(root_system(S, n))
 end
 
