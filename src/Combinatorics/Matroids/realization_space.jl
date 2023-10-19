@@ -62,7 +62,7 @@ end
     of characteristic p.
   
 * if char = p and q is a power of p, this function determines whether the matroid is realizable over the
-    finite field ``GF(q)}``.
+    finite field ``GF(q)``.
 """
 function is_realizable(M::Matroid; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)::Bool
     RS = realization_space(M, char=char, q=q)
