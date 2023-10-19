@@ -788,7 +788,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     else
         Rnew, xnew = polynomial_ring(coefficient_ring(R), length(xnew_str)) 
     
-        zero_elim_var = []
+        zero_elim_var = elem_type(Rnew)[]
         j=1
         for i in 1:length(zero_elim)
             if xs[i] in elim
