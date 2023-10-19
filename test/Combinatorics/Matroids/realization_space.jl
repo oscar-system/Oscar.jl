@@ -1,6 +1,5 @@
 @testset "matroid realization spaces" begin
 
-
     M1 = fano_matroid()
     M2 = pappus_matroid()
     M3 = vamos_matroid()
@@ -23,11 +22,10 @@
         @test length(x1) == 3
         @test length(x2) == 8
         @test length(x3) == 9
-	
+
         @test mat_M1 ==  matrix(R1, [1 0 1 0 1 0 1; 0 1 1 0 0 1 x1[2]; 0 0 0 1 1 x1[1] x1[3]])
-	@test mat_M2 ==  matrix(R2, [1 1 0 0 1 1 1 0 1; 1 0 1 1 x2[1] x2[3] x2[5] 0 x2[7]; 0 0 0 1 x2[2] x2[4] x2[6] 1 x2[8]])
-	@test mat_M3 ==  matrix(R3, [1 1 1 0 0 1 0 1; 1 0 x3[1] 1 0 x3[4] 0 x3[7]; 1 0 x3[2] 0 1 x3[5] 0 x3[8]; 1 0 x3[3] 0 0 x3[6] 1 x3[9]])
-	
+        @test mat_M2 ==  matrix(R2, [1 1 0 0 1 1 1 0 1; 1 0 1 1 x2[1] x2[3] x2[5] 0 x2[7]; 0 0 0 1 x2[2] x2[4] x2[6] 1 x2[8]])
+        @test mat_M3 ==  matrix(R3, [1 1 1 0 0 1 0 1; 1 0 x3[1] 1 0 x3[4] 0 x3[7]; 1 0 x3[2] 0 1 x3[5] 0 x3[8]; 1 0 x3[3] 0 0 x3[6] 1 x3[9]])
     end
     
     B1 = Oscar.find_good_basis_heuristically(M1)
@@ -59,23 +57,23 @@
     @testset "stepwise_saturation" begin
         @test Oscar.stepwise_saturation(I,Sgens) == ideal(R, [y+z])
     end
-    
+
     Igens = [y^3-x^2+1, x^2*y-z^3+6]
     Sgens = [x,y,z]
 
     @testset "find_solution_v" begin
         @test Oscar.find_solution_v(y, Igens, Sgens, R) == (z^3-6)//x^2
     end
-    
+
     phi = Oscar.sub_map(y, (z^3-6)//x^2, R, [x,y,z])
     
     @testset "sub_map" begin
         @test phi.([x,y,z]) == [x,(z^3-6)//x^2,z]
     end
-    
+
     t = (z^3-6)//x^2
     f = y^3-x^2+1
-    
+
     @testset "sub_v" begin
         @test Oscar.sub_v(y, t, f, R, [x,y,z]) == (z^3-6)^3 + x^6*(-x^2 + 1)
     end
@@ -92,17 +90,17 @@
     @testset "ideal_vars" begin
         @test Oscar.ideal_vars(Igens) == [x,y]
     end
-        
+
     newSgens = Oscar.n_new_Sgens(y,t,[y^3-x^2+1, y+x^3 ],R,[x,y,z])
-    
+
     @testset "n_new_Sgens" begin
         @test newSgens == [x^8 - x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^5 + z^3 - 6]
     end
-    
+
     @testset "n_new_Igens" begin
         @test Oscar.n_new_Igens(y,t,[y^3-x-2, y+z^3], newSgens ,R,[x,y,z]) == [x^7 + 2*x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^2*z^3 + z^3 - 6]
     end
-    
+
     X = matrix(FractionField(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
 
     @testset "matrix_clear_den_in_col" begin
@@ -112,7 +110,7 @@
     @testset "matrix_clear_den" begin
         @test Oscar.matrix_clear_den(X) == matrix(FractionField(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
     end
-     
-    
+
+
 end
 
