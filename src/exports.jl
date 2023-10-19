@@ -981,10 +981,10 @@ export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_norma
 export maximal_polyhedra
 export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
-export min_revlex_basis_encoding
 export metadata
 export milnor_algebra
 export milnor_number
+export min_revlex_basis_encoding
 export min_weights
 export minimal_betti_table
 export minimal_block_reps
