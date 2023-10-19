@@ -7,7 +7,7 @@
   root_system_type::Tuple{Symbol,Int64}
   struct_consts::Matrix{SRow{C}}
   function SimpleLieAlgebra{C}(
-    R::Field, S::Symbol, n::Int64; cached::Bool=true
+    R::Field, S::Symbol, n::Int; cached::Bool=true
   ) where {C<:FieldElem}
     RS = root_system(S, n)
     dimL = number_of_roots(RS) + length(RS.simple_roots)
