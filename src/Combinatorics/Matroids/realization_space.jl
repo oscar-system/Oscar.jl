@@ -5,7 +5,7 @@ mutable struct MatroidRealizationSpace
     inequations::Union{Vector{Oscar.RingElem},Nothing}
     ambient_ring::Union{Oscar.MPolyRing, Ring, Nothing}
     realization_matrix::Union{Oscar.MatElem,Nothing}
-    realizable::Union{Bool,Nothing} # Nothing if we're not sure yet if M is realizable.
+    realizable::Union{Bool,Nothing} # Nothing if we're not sure yet if the matroid is realizable.
     F::AbstractAlgebra.Ring
     char::Union{Int,Nothing}
     q::Union{Int,Nothing}
