@@ -789,7 +789,7 @@ function n_new_Igens(x::RingElem, t::RingElem, Igens::Vector{<:RingElem},
                      Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}) 
 
     preIgens = unique!([clean(sub_v(x, t, f, R, xs), R, Sgens) for f in Igens])
-    return filter(x-> x!= R(0), preIgens)
+    return filter(!iszero, preIgens)
 end
 
 
