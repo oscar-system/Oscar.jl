@@ -76,6 +76,7 @@ export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
+
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
