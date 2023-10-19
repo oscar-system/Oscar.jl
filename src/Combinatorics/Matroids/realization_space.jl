@@ -29,7 +29,7 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
         display(RS.realization_matrix)
         println(io, "in the ", RS.ambient_ring)
         I = RS.defining_ideal
-        if (typeof(I) <: NumFieldOrdIdl && I.gen != ZZ(0)) || (typeof(I) <: Ideal && !iszero(I))
+        if (typeof(I) isa NumFieldOrdIdl && I.gen != ZZ(0)) || (typeof(I) isa Ideal && !iszero(I))
             println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
         end
         if length(RS.inequations) > 0
@@ -72,7 +72,7 @@ end
 function is_realizable(RS::MatroidRealizationSpace)
     !isnothing(RS.realizable) && return RS.realizable
 
-    if !(typeof(RS.ambient_ring) <: MPolyRing)
+    if !(typeof(RS.ambient_ring) isa MPolyRing)
         RS.realizable = true
         return RS.realizable
     end
@@ -330,7 +330,7 @@ function realization_space(M::Matroid; B::Union{GroundsetType,Nothing} = nothing
     ineqs = Vector{RingElem}()
 
     #need to catch the corner-case if there are no variables at all
-    if !(typeof(polyR) <: MPolyRing)
+    if !(typeof(polyR) isa MPolyRing)
         RS = MatroidRealizationSpace(ideal(polyR,0), ineqs, polyR, mat, F, char, q)
         RS.realizable = true
         return RS
@@ -541,7 +541,7 @@ function realization(RS::MatroidRealizationSpace)
 
     # If the ambient ring is not a polynomial ring we can reduce we stop
     R = RS.ambient_ring
-    !(typeof(R) <: MPolyRing) && return RS    
+    !(typeof(R) isa MPolyRing) && return RS    
     Inew = RS.defining_ideal
     eqs = copy(gens(Inew))
 
@@ -869,7 +869,7 @@ function reduce_realization_space(MRS::MatroidRealizationSpace,
     
     
     #If there are no variables left, we don't reduce anything
-    if !(typeof(MRS.ambient_ring) <: MPolyRing)
+    if !(typeof(MRS.ambient_ring) isa MPolyRing)
         return MRS
     end
 
