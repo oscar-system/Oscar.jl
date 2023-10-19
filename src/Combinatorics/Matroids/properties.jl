@@ -978,10 +978,10 @@ Computes the revlex basis encoding of the matroid M.
 # Examples
 To get the revlex basis encoding of the fano matroid and to produce a matrod form the encoding write:
 ```jldoctest
-julia> string = revlex_basis_encoding(fano_matroid())
+julia> str = revlex_basis_encoding(fano_matroid())
 "0******0******0***0******0*0**0****"
 
-julia> matroid_from_revlex_basis_encoding(string, 3, 7)
+julia> matroid_from_revlex_basis_encoding(str, 3, 7)
 Matroid of rank 3 on 7 elements
 
 ```
@@ -998,7 +998,7 @@ Computes the minimal revlex basis encoding among isomorphic matroids.
 # Examples
 To get the minimal revlex basis encoding of the fano matroid write:
 ```jldoctest
-julia> string = min_revlex_basis_encoding(fano_matroid())
+julia> str = min_revlex_basis_encoding(fano_matroid())
 "0******0******0***0******0*0**0****"
 
 ```
