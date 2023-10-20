@@ -90,6 +90,7 @@ function __init__()
        "forms",    # bilinear/sesquilinear/quadratic forms
        "primgrp",  # primitive groups library
        "repsn",    # constructing representations of finite groups
+       "sla",      # computing with simple Lie algebras
        "smallgrp", # small groups library
        "transgrp", # transitive groups library
        "wedderga", # provides a function to compute Schur indices

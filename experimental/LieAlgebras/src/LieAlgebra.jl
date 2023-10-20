@@ -58,6 +58,13 @@ function basis(L::LieAlgebra, i::Int)
 end
 
 @doc raw"""
+    characteristic(L::LieAlgebra) -> Int
+
+Return the characteristic of the coefficient ring of the Lie algebra `L`.
+"""
+characteristic(L::LieAlgebra) = characteristic(coefficient_ring(L))
+
+@doc raw"""
     zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
 
 Return the zero element of the Lie algebra `L`.
