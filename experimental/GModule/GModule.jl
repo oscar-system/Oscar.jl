@@ -1088,7 +1088,7 @@ end
 #TODO: in ctx of MeatAxe & Gap: we're mostly having a rref,
 #      but for a different ordering of entries
 function _rref!(V::Vector{<:MatElem{<:FieldElem}})
-  @show :in, V
+  #@show :in, V
   @assert all(x->size(x) == size(V[1]), V)
   n = nrows(V[1])
   @assert ncols(V[1]) == n
