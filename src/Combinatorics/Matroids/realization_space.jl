@@ -328,7 +328,9 @@ function realization_space(
   ineqs = Vector{RingElem}()
 
   #need to catch the corner-case if there are no variables at all
-  if !(typeof(polyR) isa MPolyRing)
+
+  #if !(typeof(polyR) isa MPolyRing)
+  if !(polyR isa MPolyRing)
     RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, mat, F, char, q)
     RS.realizable = true
     return RS
@@ -538,6 +540,9 @@ function realization(RS::MatroidRealizationSpace)
 
   # If the ambient ring is not a polynomial ring we can reduce we stop
   R = RS.ambient_ring
+  
+#  !(R isa Field || R == ZZ) && return RS
+
   !(typeof(R) isa MPolyRing) && return RS
   Inew = RS.defining_ideal
   eqs = copy(gens(Inew))
@@ -613,17 +618,16 @@ end
 function find_solution_v(
   v::RingElem, Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing
 )
-  with_v_deg_1 = [g for g in Igens if isone(degree(g, v))]
+  with_v_deg_1 = [g for g in Igens if isone(degree(g, v))]  
   length(with_v_deg_1) != 0 || error("can't solve for v")
 
   for f in with_v_deg_1
     den = coefficient_v(v, f)
     fac_den = poly_2_prime_divisors(den)
     !issubset(fac_den, Sgens) && continue
-    
     no_v = coeff(f, [v], [0])
-    iszero(length(no_v)) && continue
-    h = R(-1) * sum(no_v)
+    iszero(length(no_v)) && continue    
+    h = R(-1) * no_v
     return h//den
   end
   error("can't solve for v")
@@ -704,7 +708,9 @@ function reduce_ideal_one_step(
 
   Ivars = ideal_vars(Igens)
 
+  t = R(0)
   for x in Ivars
+
     try 
       t = find_solution_v(x, Igens, Sgens, R)
     catch e
@@ -712,7 +718,7 @@ function reduce_ideal_one_step(
         continue
       end
     end
-
+    
     phi = sub_map(x, t, R, xs)
     Sgens_new = n_new_Sgens(x, t, Sgens, R, xs)
     if length(Sgens_new) == 0
@@ -737,46 +743,6 @@ function reduce_ideal_one_step(
   return (MRS, elim, true)
 end
 
-# function reduce_ideal_one_step(
-#   MRS::MatroidRealizationSpace, elim::Vector{<:RingElem}, fullyReduced::Bool
-# )
-#   Igens = gens(MRS.defining_ideal)
-#   Sgens = MRS.inequations
-#   R = MRS.ambient_ring
-#   FR = fraction_field(R)
-#   xs = gens(R)
-#   X = MRS.realization_matrix
-#   nr, nc = size(X)
-
-#   Ivars = ideal_vars(Igens)
-
-#   for x in Ivars
-#     t = find_solution_v(x, Igens, Sgens, R)
-#     t isa String && continue
-
-#     phi = sub_map(x, t, R, xs)
-#     Sgens_new = n_new_Sgens(x, t, Sgens, R, xs)
-#     if length(Sgens_new) == 0
-#       Sgens_new = Vector{RingElem}()
-#     end
-#     Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs)
-#     push!(elim, x)
-
-#     phiX = matrix(FR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
-#     nX_FR = matrix_clear_den(phiX)
-#     nX = matrix(R, [numerator(nX_FR[i, j]) for i in 1:nr, j in 1:nc])
-
-#     GBnew = collect(groebner_basis(ideal(R, Igens_new)))
-
-#     MRS_new = MatroidRealizationSpace(
-#       ideal(R, GBnew), Sgens_new, R, nX, MRS.F, MRS.char, MRS.q
-#     )
-
-#     return (MRS_new, elim, fullyReduced)
-#   end
-
-#   return (MRS, elim, true)
-# end
 
 function reduce_realization_space(
   MRS::MatroidRealizationSpace,
@@ -785,13 +751,11 @@ function reduce_realization_space(
 )
 
   #If there are no variables left, we don't reduce anything
-  if !(typeof(MRS.ambient_ring) isa MPolyRing)
+  if !(MRS.ambient_ring isa MPolyRing)
     return MRS
   end
 
-  output = reduce_ideal_one_step(MRS, elim, fullyReduced)
-  output isa String && return "Not Realizable 0 in Semigroup"
-  (MRS, elim, fullyReduced) = output
+  (MRS, elim, fullyReduced) = reduce_ideal_one_step(MRS, elim, fullyReduced)
 
   !fullyReduced && return reduce_realization_space(MRS, elim, fullyReduced)
 
@@ -802,21 +766,26 @@ function reduce_realization_space(
   nr, nc = size(X)
   Igens = gens(MRS.defining_ideal)
   Sgens = MRS.inequations
-
+  
+ 
   xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
 
   if length(xnew_str) == 0
     phi = hom(R, cR, [cR(0) for i in 1:length(xs)])
     ambR = codomain(phi)
-    Inew = ideal(ambR, phi.(Igens))
-    normal_Sgens = phi.(Sgens)
 
+    if length(Igens) == 0
+      Inew = ideal(ambR, [ambR(0)])
+    else
+      Inew = ideal(ambR, phi.(Igens))
+    end
+    normal_Sgens = phi.(Sgens)
   else
     Rnew, xnew = polynomial_ring(coefficient_ring(R), length(xnew_str))
-
+    
     zero_elim_var = elem_type(Rnew)[]
     j = 1
-    for i in 1:length(zero_elim)
+    for i in 1:length(xs)
       if xs[i] in elim
         push!(zero_elim_var, Rnew(0))
       else
@@ -826,6 +795,7 @@ function reduce_realization_space(
     end
 
     phi = hom(R, Rnew, zero_elim_var)
+    
     ambR = codomain(phi)
     if length(Igens) == 0
       Inew = ideal(ambR, ambR(0))
@@ -845,19 +815,18 @@ function reduce_realization_space(
     return MatroidRealizationSpace(MRS.F, MRS.char, MRS.q)
   end
 
+
   Xnew = matrix(ambR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
 
   #Try to reduce the matrix one last time using the ideal and the inequations
   m, n = size(Xnew)
   A = base_ring(R)
   if length(gens(Inew)) > 0 && gens(Inew)[1] != 0
-    for i in 1:m
-      for j in 1:n
-        if A == ZZ
-          Xnew[i, j] = mod(Xnew[i, j], gens(Inew)[1])
-        else
-          Xnew[i, j] = reduce(Xnew[i, j], gens(Inew))
-        end
+    for i in 1:m, j in 1:n
+      if A == ZZ
+        Xnew[i, j] = mod(Xnew[i, j], gens(Inew)[1])
+      else
+        Xnew[i, j] = reduce(Xnew[i, j], gens(Inew))
       end
     end
   end
@@ -873,6 +842,7 @@ function reduce_realization_space(
       end
     end
   end
+
   MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.F, MRS.char, MRS.q)
 
   return MRS_new
