@@ -2,7 +2,14 @@ module BasisLieHighestWeight
 
 using ..Oscar
 using ..Oscar: GAPWrap, IntegerUnion
+
+using AbstractAlgebra.PrettyPrinting
+
 using Polymake
+
+import Oscar: dim, monomial_ordering, monomials
+
+import Base: length
 
 # TODO basis_lie_highest_weight_lustzig
 # TODO basis_lie_highest_weight_string

@@ -13,8 +13,8 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
   # new algorithm
-  base = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
-  mons_new = base.monomial_basis.set_mon
+  basis = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
+  mons_new = monomials(basis)
   L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
   gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
 
@@ -28,13 +28,10 @@ end
 function check_dimension(
   dynkin::Symbol, n::Int64, lambda::Vector{Int64}, monomial_order::String
 )
-  base = BasisLieHighestWeight.basis_lie_highest_weight(
-    dynkin, n, lambda; monomial_order=monomial_order
-  )
-  mons_new = base.monomial_basis.set_mon
+  basis = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda; monomial_order)
   L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
   gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
-  @test gap_dim == length(mons_new) # check if dimension is correct
+  @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
 end
 
 @testset "Test BasisLieHighestWeight" begin
@@ -79,12 +76,12 @@ end
 
   @testset "Known examples basis_lie_highest_weight" begin
     base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0])
-    mons = base.monomial_basis.set_mon
+    mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
     base = BasisLieHighestWeight.basis_lie_highest_weight(
       :A, 2, [1, 0]; reduced_expression=[1, 2, 1]
     )
-    mons = base.monomial_basis.set_mon
+    mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
   end
   @testset "Compare basis_lie_highest_weight with algorithm of Johannes and check dimension" begin
