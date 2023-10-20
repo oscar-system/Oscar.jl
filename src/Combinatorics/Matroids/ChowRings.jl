@@ -59,7 +59,7 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
         end
         
         if graded
-            ring, vars = GradedPolynomialRing(QQ, var_names)
+            ring, vars = graded_polynomial_ring(QQ, var_names, cached=false)
         else
             ring, vars = polynomial_ring(QQ, var_names, cached=false)
         end
