@@ -166,7 +166,7 @@ Spectrum
 julia> representative(XS) == X
 true
 
-julia> L, phi = Localization(R,complement_of_point_ideal(R,[0,0,0]));
+julia> L, phi = localization(R,complement_of_point_ideal(R,[0,0,0]));
 
 julia> IL = phi(I);
 
@@ -404,7 +404,7 @@ function SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  Y = Spec(Localization(OO(X), U)[1])
+  Y = Spec(localization(OO(X), U)[1])
   Z = SpaceGerm(Y)
   set_attribute!(Z,:representative,X)
   return SpaceGerm(Y)
@@ -485,7 +485,7 @@ function HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, Fiel
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  LX,_ = Localization(OO(X), U)
+  LX,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(LX))
   length(mingens) == 1 || error("not a hypersurface")
   f = mingens[1]
@@ -560,7 +560,7 @@ function CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integ
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  L,_ = Localization(OO(X), U)
+  L,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
 ## TODO: Should be dim(L) and not dim(Spec(L)), but dim for localized 
 ## quotients is only repaired on the geometric side as of now!!!

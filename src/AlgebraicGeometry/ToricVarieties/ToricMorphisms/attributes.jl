@@ -258,7 +258,7 @@ function _my_mult(u::PointVector{ZZRingElem}, A::ZZMatrix)
   m = length(u)
   m == nrows(A) || error("sizes incompatible")
   n = ncols(A)
-  result = zero(MatrixSpace(ZZ, 1, n))
+  result = zero_matrix(ZZ, 1, n)
   for k in 1:n
     result[1, k] = sum(u[i]*A[i, k] for i in 1:m; init=zero(ZZ))
   end
@@ -267,7 +267,7 @@ end
 
 function _to_ZZ_matrix(u::PointVector{ZZRingElem})
   n = length(u)
-  result = zero(MatrixSpace(ZZ, 1, n))
+  result = zero_matrix(ZZ, 1, n)
   for i in 1:n
     result[1, i] = u[i]
   end

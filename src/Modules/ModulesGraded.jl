@@ -1424,7 +1424,7 @@ function Base.show(io::IO, b::BettiTable)
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
     print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
     print(io, "  ")
-    L = Vector{fmpz}(undef,0)
+    L = Vector{ZZRingElem}(undef,0)
     for i in 1:length(x)
         temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
         Base.push!(L, temp_sum)
@@ -2283,7 +2283,7 @@ function _constant_sub_matrix(
   ind_cod = _indices_of_generators_of_degree(G, d)
   m = length(ind_dom)
   n = length(ind_cod)
-  result = zero(MatrixSpace(kk, m, n))
+  result = zero_matrix(kk, m, n)
   for i in 1:m
     for j in 1:n
       c = phi(F[ind_dom[i]])[ind_cod[j]]

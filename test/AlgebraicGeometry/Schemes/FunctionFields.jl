@@ -3,7 +3,7 @@
   @test is_irreducible(Spec(R))
   @test is_irreducible(Spec(R, ideal(R, x)))
   @test !is_irreducible(Spec(R, ideal(R, x*y)))
-  @test is_irreducible(Spec(Localization(R, units_of(R))[1]))
+  @test is_irreducible(Spec(localization(R, units_of(R))[1]))
   @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
