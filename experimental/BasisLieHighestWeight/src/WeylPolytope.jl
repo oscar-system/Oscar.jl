@@ -121,41 +121,33 @@ function get_lattice_points_of_weightspace_A_G_n(weights_eps, weight_eps)
   output: all monomials with weight weight
 
   works by calculating all integer solutions to the following linear program:
-  [ 1     |              |    ]       [   x   ]      
-  [ 1 weights[1]... weights[k]]   *   [   |   ]   =   weight 
-  [...    |              |    ]       [  res  ] 
-  [ 1     |              |    ]       [   |   ]
+  [    |              |     1 ]       [   |   ]      
+  [weights[1]... weights[k] 1 ]   *   [  res  ]   =   weight 
+  [    |              |     1 ]       [   |   ] 
+  [    |              |     1 ]       [   x   ]
   where res[i] >= 0 for all i
 
-  example:
-  weights = [[1, 0, 2], [-1, 1, 1], [0, -1, 0]] (i.e. a_1 = eps_1 - eps_2, a_2 = eps_2 - eps_3, a_12 = eps_1 - eps_3)
-  weight = [2, 1, 0]
-  -> poly = polytope.polytope(INEQUALITIES=[0 0 1 0 0; 0 0 0 1 0; 0 0 0 0 1], 
-                                EQUATIONS=[-2 1 1 0 2; -1 1 -1 1 1; 0 1 0 -1 0])
-  => returns [[1 0 0], [1 1 0]]
   """
-  # build linear (in-)equalities
-  weights_eps = [reshape(w, 1, :) for w in weights_eps]
   n = length(weights_eps)
-  ineq = zeros(Int64, n, n + 2)
+  m = length(weight_eps)
+  A = zero_matrix(QQ, 2m + n, n + 1)
+  b = [zero(QQ) for _ in 1:(2m + n)]
+  # equalities
   for i in 1:n
-    ineq[i, 2 + i] = 1
+    w = matrix(QQ, m, 1, weights_eps[i])
+    A[1:m, i] = w
+    A[(m + 1):(2m), i] = -w
   end
-  equ = cat([-i for i in vec(weight_eps)], [1 for i in 1:length(weight_eps)]; dims=(2, 2))
-  equ = cat(equ, [transpose(w) for w in weights_eps]...; dims=(2, 2))
+  A[1:m, n + 1] = [one(QQ) for _ in 1:m]
+  A[(m + 1):(2m), n + 1] = [-one(QQ) for _ in 1:m]
+  b[1:m] = weight_eps
+  b[(m + 1):(2m)] = -weight_eps
+  # non-negativity
+  for i in 1:n
+    A[2m + i, i] = -1
+  end
 
-  # find integer solutions of linear (in-)equation as lattice points of polytope
-  poly = polytope.Polytope(; INEQUALITIES=ineq, EQUATIONS=equ)
-
-  # convert lattice-points to Oscar monomials
-  #println("before lattice_points")
-  lattice_points_weightspace = lattice_points(polyhedron(poly))
-  #println("after lattice-points")
-  lattice_points_weightspace = [
-    lattice_point[2:end] for lattice_point in lattice_points_weightspace
-  ]
-  #println("after deleting first coordinate")
-  return lattice_points_weightspace
+  return [point[1:n] for point in lattice_points(polyhedron(A, b))]
 end
 
 function get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
@@ -173,27 +165,23 @@ function get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
   [   |              |    ]       [  res  ] 
   [   |              |    ]       [   |   ]
   where res[i] >= 0 for all i
-
-  example:
-  weights = [[1, 0, 2], [-1, 1, 1], [0, -1, 0]] (i.e. a_1 = eps_1 - eps_2, a_2 = eps_2 - eps_3, a_12 = eps_1 - eps_3)
-  weight = [2, 1, 0]
-  -> poly = polytope.Polytope(INEQUALITIES=[0 1 0 0; 0 0 1 0; 0 0 0 1], EQUATIONS=[-2 1 0 2; -1 -1 1 1; 0 0 -1 0])
-  => returns 
   """
-  # build linear (in-)equalities
-  weights_eps = [reshape(w, 1, :) for w in weights_eps]
   n = length(weights_eps)
-  ineq = zeros(Int64, n, n + 1)
+  m = length(weight_eps)
+  A = zero_matrix(QQ, 2m + n, n)
+  b = [zero(QQ) for _ in 1:(2m + n)]
+  # equalities
   for i in 1:n
-    ineq[i, 1 + i] = 1
+    w = matrix(QQ, m, 1, weights_eps[i])
+    A[1:m, i] = w
+    A[(m + 1):(2m), i] = -w
   end
-  equ = [-i for i in vec(weight_eps)]
-  equ = cat(equ, [transpose(w) for w in weights_eps]...; dims=(2, 2))
+  b[1:m] = weight_eps
+  b[(m + 1):(2m)] = -weight_eps
+  # non-negativity
+  for i in 1:n
+    A[2m + i, i] = -1
+  end
 
-  # find integer solutions of linear (in-)equation as lattice points of polytope
-  poly = polytope.Polytope(; INEQUALITIES=ineq, EQUATIONS=equ)
-
-  # convert lattice-points to Oscar monomials
-  lattice_points_weightspace = lattice_points(polyhedron(poly))
-  return lattice_points_weightspace
+  return lattice_points(polyhedron(A, b))
 end

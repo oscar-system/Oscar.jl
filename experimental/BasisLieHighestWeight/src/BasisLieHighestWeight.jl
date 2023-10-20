@@ -5,8 +5,6 @@ using ..Oscar: GAPWrap, IntegerUnion
 
 using AbstractAlgebra.PrettyPrinting
 
-using Polymake
-
 import Oscar: dim, monomial_ordering, monomials
 
 import Base: length
