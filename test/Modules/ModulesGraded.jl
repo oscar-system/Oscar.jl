@@ -1176,3 +1176,15 @@ end
   @test Int(degree(gen(N, 1))[2]) == -2
 end
 
+@testset "all_monomials for graded free modules" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+  S, (x, y, u, v, w) = grade(R)
+
+  F = graded_free_module(S, [-1, 2])
+
+  for d in -4:4
+    amm = Oscar.all_monomials(F, d)
+    @test d < -1 || !isempty(amm)
+    @test all(x->degree(x) == grading_group(F)([d]), amm)
+  end
+end
