@@ -10,6 +10,7 @@ Normal toric variety
 ```
 """
 function affine_space(::Type{NormalToricVariety}, d::Int)
+  @req d >= 0 "Dimension must be non-negative"
   C = positive_hull(identity_matrix(ZZ, d))
   variety = normal_toric_variety(C)
   return variety
@@ -28,6 +29,7 @@ Normal toric variety
 ```
 """
 function projective_space(::Type{NormalToricVariety}, d::Int)
+  @req d >= 0 "Dimension must be non-negative"
   f = normal_fan(Oscar.simplex(d))
   pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
   variety = NormalToricVariety(pm_object)
@@ -51,6 +53,7 @@ Normal toric variety
 ```
 """
 function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+  @req length(w) > 0 "At least one weight must be specified"
   if all(a -> isone(a), w)
     return projective_space(NormalToricVariety, length(w)-1)
   end
