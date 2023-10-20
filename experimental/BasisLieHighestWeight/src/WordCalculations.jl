@@ -1,6 +1,3 @@
-using ..Oscar
-using ..Oscar: GAPWrap
-
 function compute_betas(
   lie_algebra::LieAlgebraStructure, word::Vector{Int}
 )::Vector{Vector{Int}}

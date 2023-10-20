@@ -1,5 +1,3 @@
-using Oscar
-
 function kron(A::SMat{ZZRingElem}, B::SMat{ZZRingElem})::SMat{ZZRingElem}
   """
   Computes the Kronecker-product of A and B
@@ -43,7 +41,6 @@ function tensorMatricesForOperators(
   """
   Calculates the matrices g_i corresponding to the operator ops[i].
   """
-  operatos = GAP.Obj(operators; recursive=false)
   matrices_of_operators = []
   for i in 1:length(highest_weight)
     if highest_weight[i] <= 0

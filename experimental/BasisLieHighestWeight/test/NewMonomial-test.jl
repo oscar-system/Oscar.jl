@@ -1,7 +1,6 @@
 @testset "Test NewMonomial" begin
   calc_weight = BasisLieHighestWeight.calc_weight
   calc_vec = BasisLieHighestWeight.calc_vec
-  highest_calc_sub_monomial = BasisLieHighestWeight.highest_calc_sub_monomial
 
   ZZx, _ = PolynomialRing(ZZ, 2)
   x = gens(ZZx)
@@ -16,9 +15,6 @@
   setindex!(B, sparse_row(ZZ, [2], [ZZ(2)]), 2)
   matrices_of_operators = [A, B]
   v0 = sparse_row(ZZ, [1], [1])::SRow{ZZRingElem} # [1, 0]
-  calc_monomials = Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}}(
-    ZZx(1) => (v0, [0, 0])
-  )
 
   mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])::SRow{ZZRingElem}
 
@@ -30,9 +26,5 @@
   @testset "calc_vec" begin
     @test isequal(calc_vec(v0, mon1, matrices_of_operators), v0)
     @test isequal(calc_vec(v0, mon2, matrices_of_operators), mon2_vec)
-  end
-
-  @testset "highest_calc_sub_monomial" begin
-    @test isequal(highest_calc_sub_monomial(x, mon2, calc_monomials), ZZx(1))
   end
 end

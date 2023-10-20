@@ -6,8 +6,6 @@
 
 module MBOld
 
-export basisLieHighestWeight
-
 using Oscar
 
 struct SparseVectorSpaceBasis

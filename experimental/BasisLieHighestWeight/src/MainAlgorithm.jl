@@ -436,7 +436,6 @@ function compute_monomials(
       ZZx,
       highest_weight,
       monomial_order_lt,
-      gap_dim,
       Set{ZZMPolyRingElem}(),
     )
     push!(calc_highest_weight, highest_weight => set_mon)
@@ -487,13 +486,7 @@ function compute_monomials(
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
-        lie_algebra,
-        birational_sequence,
-        ZZx,
-        highest_weight,
-        monomial_order_lt,
-        gap_dim,
-        set_mon,
+        lie_algebra, birational_sequence, ZZx, highest_weight, monomial_order_lt, set_mon
       )
     end
     push!(calc_highest_weight, highest_weight => set_mon)
@@ -502,12 +495,9 @@ function compute_monomials(
 end
 
 function add_known_monomials!(
-  birational_sequence::BirationalSequence,
-  ZZx::ZZMPolyRing,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   matrices_of_operators::Vector{SMat{ZZRingElem}},
-  calc_monomials::Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}},
   space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
 )
@@ -520,7 +510,6 @@ function add_known_monomials!(
 
   for mon in set_mon_in_weightspace[weight_w]
     # calculate the vector vec associated with mon
-    d = sz(matrices_of_operators[1])
     vec = calc_vec(v0, mon, matrices_of_operators)
 
     # check if vec extends the basis
@@ -540,7 +529,6 @@ function add_new_monomials!(
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  calc_monomials::Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}},
   space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
   set_mon::Set{ZZMPolyRingElem},
@@ -612,13 +600,11 @@ function add_by_hand(
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
   monomial_order_lt::Function,
-  gap_dim::Int,
   set_mon::Set{ZZMPolyRingElem},
 )::Set{ZZMPolyRingElem}
   #println("")
   #println("")
   #println("add_by_hand", highest_weight)
-  set_mon_temp = copy(set_mon)
 
   """
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
@@ -631,10 +617,7 @@ function add_by_hand(
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
-  # saves the calculated vectors to decrease necessary matrix multiplicatons
-  calc_monomials = Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}}(
-    ZZx(1) => (v0, ZZ(0) * birational_sequence.weights_w[1])
-  )
+
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
   weightspaces = get_dim_weightspace(lie_algebra, highest_weight)
@@ -664,16 +647,7 @@ function add_by_hand(
   # insert known monomials into basis
   for (weight_w, _) in weightspaces
     # print(".")
-    add_known_monomials!(
-      birational_sequence,
-      ZZx,
-      weight_w,
-      set_mon_in_weightspace,
-      matrices_of_operators,
-      calc_monomials,
-      space,
-      v0,
-    )
+    add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
   # println("")
@@ -689,16 +663,11 @@ function add_by_hand(
       dim_weightspace,
       weight_w,
       set_mon_in_weightspace,
-      calc_monomials,
       space,
       v0,
       set_mon,
     )
   end
-
-  #println("")
-  #println("highest_weight: ", highest_weight)
-  #println("added-by-hand: ", [mon for mon in set_mon if !(mon in set_mon_temp)])
 
   return set_mon
 end

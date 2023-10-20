@@ -58,7 +58,6 @@ include("TensorModels.jl")
 include("MonomialOrder.jl")
 include("RootConversion.jl")
 include("WeylPolytope.jl")
-include("DemazureOperators.jl")
 include("WordCalculations.jl")
 include("MainAlgorithm.jl")
 
