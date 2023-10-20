@@ -3,6 +3,7 @@ module GrpCoh
 using Oscar
 import Oscar: action
 import Oscar: induce
+import Oscar: word
 import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
 import AbstractAlgebra: Group, Module
 import Base: parent

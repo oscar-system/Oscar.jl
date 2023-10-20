@@ -1,3 +1,6 @@
+function weight end
+function word end
+
 module LieAlgebras
 
 using ..Oscar
@@ -55,17 +58,23 @@ import ..Oscar:
   ngens,
   normalizer,
   parent_type,
+  rank,
   sub,
   symbols,
   symmetric_power,
   tensor_product,
   zero_map,
+  word,
+  weight,
+  weyl_vector,
+  word,
   ⊕,
   ⊗
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export AbstractRootSystem, RootSpaceElem, WeightLatticeElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -75,6 +84,7 @@ export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
+export WeylGroup, WeylGroupElem
 
 export abelian_lie_algebra
 export abstract_module
@@ -87,13 +97,17 @@ export chevalley_basis
 export coefficient_vector
 export coerce_to_lie_algebra_elem
 export combinations
+export conjugate_dominant_weight
 export derived_algebra
 export dynkin_diagram
+export elem
 export exterior_power
+export fundamental_weights
 export general_linear_lie_algebra
 export highest_weight_module
 export hom_direct_sum
 export hom_power
+export is_cartan_matrix
 export is_direct_sum
 export is_dual
 export is_self_normalizing
@@ -102,11 +116,17 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
+export lmul!
+export longest_element
+export lower_central_series
 export matrix_repr_basis
 export multicombinations
 export number_of_roots
 export permutations
 export permutations_with_sign
+export rank
+export reduced_expressions
+export reflect, reflect!
 export root_system
 export root_system_type
 export special_linear_lie_algebra
@@ -116,6 +136,9 @@ export symmetric_power
 export tensor_power
 export trivial_module
 export universal_enveloping_algebra
+export weyl_group
+export weyl_vector
+export word
 
 include("Combinatorics.jl")
 include("Util.jl")
@@ -133,11 +156,17 @@ include("GapWrapper.jl")
 include("root_systems.jl")
 include("simple_lie_algebra.jl")
 
+include("CartanMatrix.jl")
+include("CoxeterGroup.jl")
+include("RootSystem.jl")
+include("AbstractRootSystem.jl")
+include("WeylGroup.jl")
 end
 
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export AbstractRootSystem, RootSpaceElem, WeightLatticeElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -147,6 +176,7 @@ export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
+export WeylGroup, WeylGroupElem
 
 export abelian_lie_algebra
 export abstract_module
@@ -157,13 +187,18 @@ export bracket
 export cartan_matrix
 export chevalley_basis
 export coerce_to_lie_algebra_elem
+export cartan_matrix
+export conjugate_dominant_weight
 export derived_algebra
 export dynkin_diagram
 export exterior_power
+export elem
+export fundamental_weights
 export general_linear_lie_algebra
 export highest_weight_module
 export hom_direct_sum
 export hom_power
+export is_cartan_matrix
 export is_direct_sum
 export is_dual
 export is_self_normalizing
@@ -174,6 +209,12 @@ export is_tensor_product
 export lie_algebra
 export matrix_repr_basis
 export number_of_roots
+export lmul!
+export longest_element
+export lower_central_series
+export matrix_repr_basis
+export reduced_expressions
+export reflect, reflect!
 export root_system
 export root_system_type
 export special_linear_lie_algebra
@@ -183,3 +224,6 @@ export symmetric_power
 export tensor_power
 export trivial_module
 export universal_enveloping_algebra
+export weyl_group
+export weyl_vector
+export word
