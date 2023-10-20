@@ -28,8 +28,9 @@ for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
     error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
-  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
-    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
+  path = joinpath(expdir, pkg, "test")
+  if !isdir(path) || length(filter(endswith(".jl"), readdir(path))) == 0
+    error("experimental/$pkg is incomplete: $pkg/test/ missing or empty. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
 end
 
