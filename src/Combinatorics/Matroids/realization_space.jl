@@ -604,40 +604,29 @@ end
 # full reduction    #
 #####################
 
-# computes the coefficient of v in monomial m. 
-function coefficient_monomial(v::RingElem, m::RingElem)
-  isone(degree(m, v)) || return "The variable is not a degree 1 factor."
-  mf = factor(m)
-  u = unit(mf)
-  not_v = [k^e for (k, e) in mf if k != v]
-  length(not_v) == 0 ? u : u * prod(not_v)
-end
 
-# computes the coefficient of v in f. 
 function coefficient_v(v::RingElem, f::RingElem)
-  isone(degree(f, v)) || return "degree of variable must be 1"
-  withv = [term(f, i) for i in 1:length(f) if v in vars(monomial(f, i))]
-  return sum([coefficient_monomial(v, m) for m in withv])
+  isone(degree(f, v)) || error("degree of variable must be 1")
+  return coeff(f, [v], [1])  
 end
 
 function find_solution_v(
   v::RingElem, Igens::Vector{<:RingElem}, Sgens::Vector{<:RingElem}, R::MPolyRing
 )
   with_v_deg_1 = [g for g in Igens if isone(degree(g, v))]
-  length(with_v_deg_1) != 0 || return "can't isolate"
+  length(with_v_deg_1) != 0 || error("can't solve for v")
 
   for f in with_v_deg_1
     den = coefficient_v(v, f)
     fac_den = poly_2_prime_divisors(den)
     !issubset(fac_den, Sgens) && continue
-
-    no_v = [term(f, i) for i in 1:length(f) if !(v in vars(monomial(f, i)))]
+    
+    no_v = coeff(f, [v], [0])
     iszero(length(no_v)) && continue
-
     h = R(-1) * sum(no_v)
     return h//den
   end
-  return "can't solve for v"
+  error("can't solve for v")
 end
 
 # v is replaced by t in f
@@ -660,7 +649,7 @@ function clean(f::RingElem, R::MPolyRing, Sgens::Vector{<:RingElem})
   length(cleanf_arr) > 0 ? prod(cleanf_arr) : unit(fFactors)
 end
 
-#variables in ideal
+# variables in ideal
 function ideal_vars(Igens::Vector{<:RingElem})
   return unique!(vcat([vars(gen) for gen in Igens]...))
 end
@@ -699,6 +688,9 @@ function matrix_clear_den(X::Oscar.MatElem)
   return X
 end
 
+# the types of errors that can appear in reduce_ideal_one_step 
+ers = [ErrorException("degree of variable must be 1"), ErrorException("can't solve for v")] 
+
 function reduce_ideal_one_step(
   MRS::MatroidRealizationSpace, elim::Vector{<:RingElem}, fullyReduced::Bool
 )
@@ -713,8 +705,13 @@ function reduce_ideal_one_step(
   Ivars = ideal_vars(Igens)
 
   for x in Ivars
-    t = find_solution_v(x, Igens, Sgens, R)
-    t isa String && continue
+    try 
+      t = find_solution_v(x, Igens, Sgens, R)
+    catch e
+      if e in ers
+        continue
+      end
+    end
 
     phi = sub_map(x, t, R, xs)
     Sgens_new = n_new_Sgens(x, t, Sgens, R, xs)
@@ -739,6 +736,47 @@ function reduce_ideal_one_step(
 
   return (MRS, elim, true)
 end
+
+# function reduce_ideal_one_step(
+#   MRS::MatroidRealizationSpace, elim::Vector{<:RingElem}, fullyReduced::Bool
+# )
+#   Igens = gens(MRS.defining_ideal)
+#   Sgens = MRS.inequations
+#   R = MRS.ambient_ring
+#   FR = fraction_field(R)
+#   xs = gens(R)
+#   X = MRS.realization_matrix
+#   nr, nc = size(X)
+
+#   Ivars = ideal_vars(Igens)
+
+#   for x in Ivars
+#     t = find_solution_v(x, Igens, Sgens, R)
+#     t isa String && continue
+
+#     phi = sub_map(x, t, R, xs)
+#     Sgens_new = n_new_Sgens(x, t, Sgens, R, xs)
+#     if length(Sgens_new) == 0
+#       Sgens_new = Vector{RingElem}()
+#     end
+#     Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs)
+#     push!(elim, x)
+
+#     phiX = matrix(FR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
+#     nX_FR = matrix_clear_den(phiX)
+#     nX = matrix(R, [numerator(nX_FR[i, j]) for i in 1:nr, j in 1:nc])
+
+#     GBnew = collect(groebner_basis(ideal(R, Igens_new)))
+
+#     MRS_new = MatroidRealizationSpace(
+#       ideal(R, GBnew), Sgens_new, R, nX, MRS.F, MRS.char, MRS.q
+#     )
+
+#     return (MRS_new, elim, fullyReduced)
+#   end
+
+#   return (MRS, elim, true)
+# end
 
 function reduce_realization_space(
   MRS::MatroidRealizationSpace,
