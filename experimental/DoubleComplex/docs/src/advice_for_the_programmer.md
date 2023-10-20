@@ -1,6 +1,6 @@
-# Advice for the programmer
+  # Advice for the programmer
 
-## How to implement my custom double complex?
+  ## How to implement my custom double complex?
 The implementation for Double complexes is generically lazy. We provide 
 a concrete type which takes care of handling the user's requests 
 to entries and morphisms and their caching: `DoubleComplexOfMorphisms`. 
@@ -103,103 +103,13 @@ legitimate and will produce a reasonable and cached result.
 See the source code of the internal 
 constructor of `DoubleComplex` for how to alter these settings.
 
-## Another example for creating a double complex
-
-Suppose we are given a bounded simple `ComplexOfMorphisms` for modules
-over polynomial rings `C` and we want to turn it 
+Another example for an implementation of a double complex can be 
+found in `experimental/DoubleComplexes/test/double_complex_interface.jl`. 
+There we write an implementation to turn a bounded simple 
+`ComplexOfMorphisms` for modules over polynomial rings `C` 
 into a bounded `DoubleComplexOfMorphisms` `D` which knows how to extend itself 
 with zeroes to the left and to the right, but is concentrated in the zeroeth row.
-We would do the following:
-```julia
-# Set up a factory for the chains.
-struct MyNewChainFactory{ChainType} <: ChainFactory{ChainType} 
-  original_complex::ComplexOfMorphisms
 
-  function MyNewChainFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
-    return new{ModuleFP}(C)
-  end
-end
-
-function (fac::MyNewChainFactory)(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  inc = (typ(fac.original_complex) == :chain ? -1 : 1)
-  lb = (typ(fac.original_complex) == :chain ? last(range(fac.original_complex)) : first(range(fac.original_complex)))
-  rb = (typ(fac.original_complex) == :cochain ? last(range(fac.original_complex)) : first(range(fac.original_complex)))
-  R = base_ring(fac.original_complex[lb])
-
-  iszero(j) || error("invalid production request")
-  
-  # Extend by zeroes to both directions
-  (i < lb || i > rb) && return FreeMod(R, 0)
-  
-  # Give back the entry of the original complex wherever applicable
-  return fac.original_complex[i]
-end
-
-# Set up a factory for the morphisms; we only need to worry about the horizontal 
-# ones as the vertical ones will be forbidden to ask for by restrictions on 
-# the bounds.
-struct MyNewMorphismFactory{MorphismType} <: ChainMorphismFactory{MorphismType}
-  original_complex::ComplexOfMorphisms
-
-  function MyNewMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFPHom}
-    return new{T}(C)
-  end
-end
-
-function (fac::MyNewMorphismFactory)(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  inc = (typ(fac.original_complex) == :chain ? -1 : 1)
-  lb = (typ(fac.original_complex) == :chain ? last(range(fac.original_complex)) : first(range(fac.original_complex)))
-  rb = (typ(fac.original_complex) == :cochain ? last(range(fac.original_complex)) : first(range(fac.original_complex)))
-  R = base_ring(fac.original_complex[lb])
-  
-  iszero(j) || error("invalid production request")
-
-  # Handle the trivial out of bounds case with zero maps
-  (i < lb || i > rb) && return hom(D[i, j], D[i + inc, j], elem_type(D[i + inc, j])[zero(D[i + inc, j]) for k in 1:ngens(D[i, j]))
-  
-  # Handle the boundary cases
-  (i = lb && inc = -1) && return hom(D[i, j], D[i + inc, j], elem_type(D[i + inc, j])[zero(D[i + inc, j]) for k in 1:ngens(D[i, j]))
-  (i = rb && inc = 1) && return hom(D[i, j], D[i + inc, j], elem_type(D[i + inc, j])[zero(D[i + inc, j]) for k in 1:ngens(D[i, j]))
-  
-  # return the morphisms from the original complex otherwise
-  return map(fac.original_complex, i)
-end
-
-# The actual constructor for the object we want to have.
-function as_infinite_one_line_double_complex(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
-  is_complete(C) || error("implemented only for complete complexes")
-  chain_fac = MyNewChainFactory(C)
-  mor_fac = MyNewMorphismFactory(C)
-  
-  lb = (typ(C) == :chain ? last(range(C)) : first(range(C)))
-  rb = (typ(C) == :cochain ? last(range(C)) : first(range(C)))
-  return DoubleComplexOfMorphisms(chain_fac, mor_fac, mor_fac, # third argument is a dummy here 
-                                  right_bound=rb, left_bound=lb, 
-                                  extends_right=true, extends_left=true, 
-                                  upper_bound=0, lower_bound=0,
-                                  extends_up=false, extends_down=false
-                                 )
-end
-
-# Test code
-R, (x, y) = QQ[:x, :y]
-I = ideal(R, [x, y])
-F = FreeMod(R, 1)
-IF, _ = I*F
-M, _ = quo(F, IF)
-res = free_resolution(M).C # for the moment we need to access the field to get a `ComplexOfMorphisms`
-dc = as_infinite_one_line_double_complex(res)
-
-dc[-1, 0]  # Should reproduce M
-dc[0, 0]   # A free module over R of rank 1
-dc[1, 0]   # A free module over R of rank 2
-dc[120, 0] # A zero module
-map(dc, 120, 0) # A zero map
-map(dc, 0, 0)   # The augmentation map of the resolution
-has_upper_bound(dc) && upper_bound(dc) < 1  # Returns `true`
-extends_up(dc)                              # Returns `false`
-map(dc, 0, 2)   # An illegitimate request throwing an error as indicated by the above output
-```
 
 ## How to make use of the generic functionality?
 

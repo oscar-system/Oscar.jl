@@ -82,3 +82,9 @@ ask for the entry `D[i+1, j]`. Whether or not such requests are admissible can b
 ```@docs
     total_complex(D::AbsDoubleComplexOfMorphisms)
 ```
+
+## Constructors
+```@docs 
+    tensor_product(C1::ComplexOfMorphisms{ChainType}, C2::ComplexOfMorphisms{ChainType}) where {ChainType}
+```
+
