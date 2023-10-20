@@ -74,7 +74,6 @@ import ..Oscar:
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
-export AbstractRootSystem, RootSpaceElem, WeightLatticeElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -82,6 +81,7 @@ export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSpaceElem, WeightLatticeElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
 export WeylGroup, WeylGroupElem
@@ -159,14 +159,12 @@ include("simple_lie_algebra.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
-include("AbstractRootSystem.jl")
 include("WeylGroup.jl")
 end
 
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
-export AbstractRootSystem, RootSpaceElem, WeightLatticeElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -174,6 +172,7 @@ export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSpaceElem, WeightLatticeElem
 export RootSystem
 export SimpleLieAlgebra, SimpleLieAlgebraElem
 export WeylGroup, WeylGroupElem
