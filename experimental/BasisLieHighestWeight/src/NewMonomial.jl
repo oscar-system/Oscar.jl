@@ -67,7 +67,6 @@ function calc_new_mon!(
   },
   calc_monomials::Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}},
   space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
-  cache_size::Int,
 )::SRow{ZZRingElem}
   # calculate vector of mon by extending a previous calculated vector to a
   # monom that differs only by left-multiplication, save results in calc_monomials
@@ -85,9 +84,6 @@ function calc_new_mon!(
       end
 
       vec = mul(vec, transpose(matrices_of_operators[i])) # currently there is no sparse matrix * vector mult
-      if length(calc_monomials) < cache_size
-        calc_monomials[sub_mon_cur] = (vec, weight_w)
-      end
 
       # check if the extended monomial can be deleted from calculated_monomials, i.e. the other possible 
       # extensions by left multiplication with some x[i] are already contained

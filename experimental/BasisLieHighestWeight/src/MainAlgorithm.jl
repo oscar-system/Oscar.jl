@@ -5,7 +5,6 @@ function basis_lie_highest_weight_compute(
   highest_weight::Vector{Int},
   get_operators::Function,
   monomial_order::Union{String,Function},
-  cache_size::Int,
 )
   """
   Pseudocode:
@@ -88,7 +87,6 @@ function basis_lie_highest_weight_compute(
     highest_weight,
     monomial_order_lt,
     calc_highest_weight,
-    cache_size,
     no_minkowski,
   )
 
@@ -116,7 +114,6 @@ basis_lie_highest_weight(
     highest_weight::Vector{Int};
     operators::Union{String, Vector{Int}} = "regular", 
     monomial_order::Union{String, Function} = "GRevLex", 
-    cache_size::Int = 0,
 )
 
 Computes a monomial basis for the highest weight module with highest weight
@@ -131,7 +128,6 @@ Computes a monomial basis for the highest weight module with highest weight
                 is currently not implemented, because we used https://github.com/jmichel7/Gapjm.jl to work with coxeter 
                 groups need a method to obtain all non left descending elements to extend a word
 - `monomial_order`: monomial order in which our basis gets defined with regards to our operators 
-- `cache_size`: number of computed monomials we want to cache, default is 0 
 
 # Examples
 ```jldoctest
@@ -210,7 +206,6 @@ function basis_lie_highest_weight(
   highest_weight::Vector{Int};
   reduced_expression::Union{String,Vector{Int},Vector{GAP.GapObj},Any}="regular",
   monomial_order::Union{String,Function}="degrevlex",
-  cache_size::Int=0,
 )
   """
   Standard function with all options
@@ -219,7 +214,7 @@ function basis_lie_highest_weight(
     (lie_algebra, chevalley_basis) ->
       get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_order, cache_size
+    type, rank, highest_weight, get_operators, monomial_order
   )
 end
 
@@ -259,7 +254,6 @@ function basis_lie_highest_weight_lustzig(
   highest_weight::Vector{Int},
   reduced_expression::Vector{Int};
   monomial_order::Union{String,Function}="oplex",
-  cache_size::Int=0,
 )
   """
   Lustzig polytope
@@ -270,7 +264,7 @@ function basis_lie_highest_weight_lustzig(
     (lie_algebra, chevalley_basis) ->
       get_operators_lustzig(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_order, cache_size
+    type, rank, highest_weight, get_operators, monomial_order
   )
 end
 
@@ -300,11 +294,7 @@ over lie-Algebra of type B and rank 3
 ```
 """
 function basis_lie_highest_weight_string(
-  type::Symbol,
-  rank::Int,
-  highest_weight::Vector{Int},
-  reduced_expression::Vector{Int};
-  cache_size::Int=0,
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int};
 )
   """
   String / Littelmann-Berenstein-Zelevinsky polytope
@@ -318,7 +308,7 @@ function basis_lie_highest_weight_string(
     (lie_algebra, chevalley_basis) ->
       get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_order, cache_size
+    type, rank, highest_weight, get_operators, monomial_order
   )
 end
 
@@ -345,9 +335,7 @@ over lie-Algebra of type A and rank 3
     [1, 0, 1]
 ```
 """
-function basis_lie_highest_weight_fflv(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}; cache_size::Int=0
-)
+function basis_lie_highest_weight_fflv(type::Symbol, rank::Int, highest_weight::Vector{Int})
   """
   Feigin-Fourier-Littelmann-Vinberg polytope
   BasisLieHighestWeight.basis_lie_highest_weight_fflv(:A, 3, [1,1,1])
@@ -358,7 +346,7 @@ function basis_lie_highest_weight_fflv(
     (lie_algebra, chevalley_basis) ->
       get_operators_normal(lie_algebra, chevalley_basis, "regular")
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_order, cache_size
+    type, rank, highest_weight, get_operators, monomial_order
   )
 end
 
@@ -388,11 +376,7 @@ over lie-Algebra of type C and rank 3
 ```
 """
 function basis_lie_highest_weight_nz(
-  type::Symbol,
-  rank::Int,
-  highest_weight::Vector{Int},
-  reduced_expression::Vector{Int};
-  cache_size::Int=0,
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int};
 )
   """
   Nakashima-Zelevinsky polytope
@@ -404,7 +388,7 @@ function basis_lie_highest_weight_nz(
     (lie_algebra, chevalley_basis) ->
       get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_order, cache_size
+    type, rank, highest_weight, get_operators, monomial_order
   )
 end
 
@@ -415,7 +399,6 @@ function compute_monomials(
   highest_weight::Vector{ZZRingElem},
   monomial_order_lt::Function,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  cache_size::Int,
   no_minkowski::Set{Vector{ZZRingElem}},
 )::Set{ZZMPolyRingElem}
   """
@@ -455,7 +438,6 @@ function compute_monomials(
       monomial_order_lt,
       gap_dim,
       Set{ZZMPolyRingElem}(),
-      cache_size,
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -478,7 +460,6 @@ function compute_monomials(
         lambda_1,
         monomial_order_lt,
         calc_highest_weight,
-        cache_size,
         no_minkowski,
       )
       mon_lambda_2 = compute_monomials(
@@ -488,7 +469,6 @@ function compute_monomials(
         lambda_2,
         monomial_order_lt,
         calc_highest_weight,
-        cache_size,
         no_minkowski,
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
@@ -514,7 +494,6 @@ function compute_monomials(
         monomial_order_lt,
         gap_dim,
         set_mon,
-        cache_size,
       )
     end
     push!(calc_highest_weight, highest_weight => set_mon)
@@ -531,7 +510,6 @@ function add_known_monomials!(
   calc_monomials::Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}},
   space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
-  cache_size::Int,
 )
   """
   By using the Minkowski-sum, we know that all monomials in set_mon_in_weightspace are in our basis. Since we want to
@@ -542,20 +520,8 @@ function add_known_monomials!(
 
   for mon in set_mon_in_weightspace[weight_w]
     # calculate the vector vec associated with mon
-    if cache_size == 0
-      d = sz(matrices_of_operators[1])
-      vec = calc_vec(v0, mon, matrices_of_operators)
-    else
-      vec = calc_new_mon!(
-        gens(ZZx),
-        mon,
-        birational_sequence.weights_w,
-        matrices_of_operators,
-        calc_monomials,
-        space,
-        cache_size,
-      )
-    end
+    d = sz(matrices_of_operators[1])
+    vec = calc_vec(v0, mon, matrices_of_operators)
 
     # check if vec extends the basis
     if !haskey(space, weight_w)
@@ -577,7 +543,6 @@ function add_new_monomials!(
   calc_monomials::Dict{ZZMPolyRingElem,Tuple{SRow{ZZRingElem},Vector{Int}}},
   space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
-  cache_size::Int,
   set_mon::Set{ZZMPolyRingElem},
 )
   """
@@ -623,20 +588,8 @@ function add_new_monomials!(
     end
 
     # calculate the vector vec associated with mon
-    if cache_size == 0
-      d = sz(matrices_of_operators[1])
-      vec = calc_vec(v0, mon, matrices_of_operators)
-    else
-      vec = calc_new_mon!(
-        gens(ZZx),
-        mon,
-        birational_sequence.weights_w,
-        matrices_of_operators,
-        calc_monomials,
-        space,
-        cache_size,
-      )
-    end
+    d = sz(matrices_of_operators[1])
+    vec = calc_vec(v0, mon, matrices_of_operators)
 
     # check if vec extends the basis
     if !haskey(space, weight_w)
@@ -661,9 +614,7 @@ function add_by_hand(
   monomial_order_lt::Function,
   gap_dim::Int,
   set_mon::Set{ZZMPolyRingElem},
-  cache_size::Int,
 )::Set{ZZMPolyRingElem}
-
   #println("")
   #println("")
   #println("add_by_hand", highest_weight)
@@ -722,7 +673,6 @@ function add_by_hand(
       calc_monomials,
       space,
       v0,
-      cache_size,
     )
   end
 
@@ -742,7 +692,6 @@ function add_by_hand(
       calc_monomials,
       space,
       v0,
-      cache_size,
       set_mon,
     )
   end
