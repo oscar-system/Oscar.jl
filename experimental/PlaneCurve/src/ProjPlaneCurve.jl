@@ -38,8 +38,7 @@ julia> C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -77,8 +76,7 @@ julia> T, _ = grade(S)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
@@ -155,8 +153,7 @@ julia> T, _ = grade(S)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> C = ProjPlaneCurve(T(x+y+z))
 Projective plane curve defined by x + y + z

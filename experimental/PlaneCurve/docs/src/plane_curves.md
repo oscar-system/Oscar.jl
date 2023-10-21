@@ -77,8 +77,7 @@ julia> K = QQ
 Rational field
 
 julia> PP = proj_space(K, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 ```
 

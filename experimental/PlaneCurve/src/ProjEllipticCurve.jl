@@ -158,8 +158,7 @@ julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -274,8 +273,7 @@ julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -562,8 +560,7 @@ julia> T, _ = grade(S)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
