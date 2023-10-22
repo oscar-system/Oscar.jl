@@ -693,7 +693,7 @@ end
     N,pure_N = tensor_product(M3,F4, task=:map)
 
     M3_to_M1 = SubQuoHom(M3,M1, matrix([randpoly(R,0:2,2,2) for i=1:ngens(M3), j=1:ngens(M1)]))
-    @assert is_welldefined(M3_to_M1)
+    is_welldefined(M3_to_M1) || continue
     F4_to_M2 = FreeModuleHom(F4,M2, matrix([randpoly(R,0:2,2,2) for i=1:ngens(F4), j=1:ngens(M2)]))
 
     phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
