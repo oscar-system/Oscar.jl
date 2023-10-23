@@ -29,6 +29,11 @@
             Txy,(x,y) = T["x","y"]
             f = x + y^2
             Tf = tropical_hypersurface(f)
+
+            test_save_load_roundtrip(path, inf(T)) do loaded
+              @test inf(T) == loaded
+            end
+
             test_save_load_roundtrip(path, Tf) do loaded
                 @test f == tropical_polynomial(loaded)
             end

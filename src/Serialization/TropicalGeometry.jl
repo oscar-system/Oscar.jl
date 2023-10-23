@@ -5,14 +5,14 @@
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params
 
-function save_type_params(s::SerializerState, x::TropicalSemiringElem)
+function save_type_params(s::SerializerState, x::T) where {T <: TropicalSemiringElem}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, parent(x), :params)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict{Symbol, Any})
   return load_typed_object(s, dict)
 end
 
@@ -24,7 +24,12 @@ end
 function load_object(s::DeserializerState,
                                  ::Type{<:TropicalSemiringElem},
                                  str::String, params::TropicalSemiring)
-  return params(load_object(s, QQFieldElem, str))
+  if str == "∞" || str == "-∞"
+    return inf(params)
+  else
+    # looks like (q)
+    return params(load_object(s, QQFieldElem, String(strip(str, ['(', ')']))))
+  end
 end
 
 # Tropical Hypersurfaces
