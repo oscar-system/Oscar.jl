@@ -56,17 +56,13 @@ function basis_lie_highest_weight_compute(
   weights_w = weights_for_operators(
     lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
   ) # weights of the operators
-  # weights_w = (weight_w->Int.(weight_w)).(weights_w)  
-  weights_eps = [
-    w_to_eps(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
-  ] # other root system
   weights_alpha = [
     w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
   ] # other root system
 
   asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_eps, weights_alpha
+    operators, [asVec(v) for v in operators], weights_w, weights_alpha
   )
 
   ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials

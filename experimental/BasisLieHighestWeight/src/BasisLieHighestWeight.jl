@@ -19,11 +19,7 @@ import Base: length
 # weights_for_operators
 
 # TODO Use Oscar-Lie-Algebra type instead of LieAlgebra
-# TODO Data-Type for weights of Lie-Algebras? Three types, in alpha_i, w_i and eps_i, conversion is defined in RootConversion
-# w_to_eps
-# eps_to_w
-# alpha_to_eps
-# eps_to_alpha
+# TODO Data-Type for weights of Lie-Algebras? Two types, in alpha_i and w_i, conversion is defined in RootConversion
 # w_to_aplha
 # alpha_to_w
 

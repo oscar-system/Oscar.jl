@@ -72,23 +72,6 @@ function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
   return monomials
 end
 
-function scale_weights_to_integers(
-  weights_eps::Vector{Vector{QQFieldElem}}, weight_eps::Vector{QQFieldElem}
-)
-  # Extract all denominators from both structures
-  denominators = [denominator(r) for w in weights_eps for r in w]
-  append!(denominators, [denominator(r) for r in weight_eps])
-
-  # Compute the LCM of all the denominators
-  lcm_denominator = lcm(denominators...)
-
-  # Scale the elements of weights_eps and weight_eps
-  scaled_weights_eps = [[Int(lcm_denominator * r) for r in w] for w in weights_eps]
-  scaled_weight_eps = [Int(lcm_denominator * r) for r in weight_eps]
-
-  return scaled_weights_eps, scaled_weight_eps
-end
-
 function get_lattice_points_of_weightspace(
   weights_alpha::Vector{Vector{QQFieldElem}}, weight_alpha::Vector{QQFieldElem}
 )

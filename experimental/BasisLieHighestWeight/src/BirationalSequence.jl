@@ -2,7 +2,6 @@ struct BirationalSequence
   operators::Vector{GAP.Obj}
   operators_vectors::Vector{Vector{Any}}
   weights_w::Vector{Vector{ZZRingElem}}
-  weights_eps::Vector{Vector{QQFieldElem}}
   weights_alpha::Vector{Vector{QQFieldElem}}
 end
 
