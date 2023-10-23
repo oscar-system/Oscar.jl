@@ -128,7 +128,7 @@ export rank
 export reduced_expressions
 export reflect, reflect!
 export root_system
-export root_system_type
+export root_system_type, has_root_system_type
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module

@@ -127,6 +127,23 @@ or half the sum of all positive roots.
 function weyl_vector(R::RootSystem)
   return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, fill(1, rank(R))))
 end
+
+function nroots(R::RootSystem)
+  return 2 * length(R.positive_roots)
+end
+
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type)
+end
+
+function root_system_type(R::RootSystem)
+  @req has_root_system_type(R) "root system type not defined"
+  return R.type
+end
+
+function root_system_type_string(R::RootSystem)
+  @req has_root_system_type(R) "root system type not defined"
+  return join([string(t[1]) * string(t[2]) for t in R.type], " x ")
 end
 
 ###############################################################################
