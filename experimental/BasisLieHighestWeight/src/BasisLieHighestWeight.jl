@@ -11,11 +11,6 @@ import Oscar: dim, monomial_ordering, monomials
 
 import Base: length
 
-# TODO basis_lie_highest_weight_lustzig
-# TODO basis_lie_highest_weight_string
-# TODO basis_lie_highest_weight_feigin_fflv
-# TODO basis_lie_highest_weight_nZ
-
 # TODO (?) Maybe export and docstring: 
 # get_dim_weightspace
 # orbit_weylgroup

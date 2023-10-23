@@ -112,7 +112,7 @@ basis_lie_highest_weight(
     type::Symbol,
     rank::Int, 
     highest_weight::Vector{Int};
-    operators::Union{String, Vector{Int}} = "regular", 
+    reduced_expression::Union{String, Vector{Union{Int, Vector{Int}}}} = "regular", 
     monomial_order::Union{String, Function} = "GRevLex", 
 )
 
@@ -124,7 +124,7 @@ Computes a monomial basis for the highest weight module with highest weight
 - `type`: type of liealgebra we want to investigate, one of :A, :B, :C, :D, :E, :F, :G
 - `rank`: rank of liealgebra
 - `highest_weight`: highest-weight
-- `operators`: list of operators, either "regular" or integer array. The functionality of choosing a random longest word
+- `reduced_expression`: list of operators, either "regular" or integer array. The functionality of choosing a random longest word
                 is currently not implemented, because we used https://github.com/jmichel7/Gapjm.jl to work with coxeter 
                 groups need a method to obtain all non left descending elements to extend a word
 - `monomial_order`: monomial order in which our basis gets defined with regards to our operators 
@@ -321,8 +321,7 @@ Monomial basis of a highest weight module
   of dimension 64
   with monomial ordering oplex
 over lie-Algebra of type A and rank 3
-  where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_
-  i):
+  where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 1, 1]
     [0, 1, 1]
     [1, 1, 0]
@@ -687,18 +686,17 @@ end
 function get_operators_normal(
   lie_algebra::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  operators::Union{String,Vector{Int},Vector{GAP.GapObj},Any},
+  reduced_expression::Union{String,Vector{Union{Int,Vector{Int}}},Vector{GAP.GapObj},Any},
 )::Vector{GAP.Obj}
   """
   handles user input for operators
   "regular" for all operators
   "longest-word" for random longest-word in Weyl-group (currently not implemented)
-  operators::Vector{Int} for explicit longest-word
+    reduced_expression::Vector{Int} for explicit longest-word
   """
-  #if typeof(operators) == GAP.Obj  # If user already submitted gap-roots as operators, keep
-  if typeof(operators) != String && typeof(operators) != Vector{Int}
-    return operators
-  elseif operators == "regular" # create standard operators, use operators as specified by GAP
+  if typeof(reduced_expression) == GAP.Obj  # If user already submitted gap-roots as operators, keep
+    return reduced_expression
+  elseif reduced_expression == "regular" # create standard reduced_expression, use reduced_expression as specified by GAP
     return chevalley_basis[1]
     # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
     # temporarily deleted
@@ -710,20 +708,42 @@ function get_operators_normal(
     #    return operators
   end
 
-  # use user defined operators
-  # wrong input
-  if !(typeof(operators) == Vector{Int})
-    println("operators needs to be of type Vector{Int}")
-    return -1
-  end
-  if !(all([(1 <= i <= lie_algebra.rank) for i in operators]))
-    println("all values of operators need to between 1 and the rank of the lie algebra.")
+  # use user defined operator
+  # Check for incorrect input:
+  for x in reduced_expression
+    if isa(x, Int)
+      if !(1 <= x <= lie_algebra.rank)
+        error(
+          "Each integer in reduced_expression should be between 1 and the rank of the lie-algebra",
+        )
+      end
+    elseif isa(x, Vector{Int})
+      if !(all(1 <= i <= lie_algebra.rank for i in x))
+        error(
+          "All integers in each vector of reduced_expression should be between 1 and the rank of the lie-algebra",
+        )
+      end
+    else
+      error("Each item in reduced_expression needs to be an Int or Vector{Int}")
+    end
   end
   # If one of the conditions is met, the algorithms works. Otherwise a warning is printed (and can be ignored).
-  #if  !(is_longest_weyl_word(type, rank, operators)) && !(Set(operators) == [i for i=1:n])
-  #    println("WARNING: operators may be incorrect input.")
+  #if  !(is_longest_weyl_word(type, rank, reduced_expression)) && !(Set(reduced_expression) == [i for i=1:n])
+  #    println("WARNING: reduced_expression may be incorrect input.")
   #end
-  operators = sub_simple_refl(operators, lie_algebra.lie_algebra_gap)
+  sanitized_reduced_expression = Vector{Union{Int,Vector{Int}}}() # creates an empty array of the desired type
+  for item in reduced_expression
+    if isa(item, Int)
+      push!(sanitized_reduced_expression, item)
+    elseif isa(item, Vector{Int})
+      push!(sanitized_reduced_expression, item)
+    else
+      error("Wrong type")
+    end
+  end
+  operators = get_operators_simple_reflections(
+    lie_algebra, chevalley_basis, sanitized_reduced_expression
+  )
   return operators
 end
 
