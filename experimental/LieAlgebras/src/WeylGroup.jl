@@ -1,3 +1,6 @@
+# This file is based on an implementation from CoxeterGroups.jl by Ulrich Thiel (@ulthiel), Cameron Braunstein (@CameronBraunstein),
+# Joel Gibson (University of Sydney, @joelgibson), and Tom Schmit (@schto223)
+
 ###############################################################################
 #
 #   Weyl Groups
