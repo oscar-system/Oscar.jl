@@ -94,4 +94,5 @@ exponent(G::GAPGroup)
 describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
 prime_of_pgroup
+derived_length
 ```

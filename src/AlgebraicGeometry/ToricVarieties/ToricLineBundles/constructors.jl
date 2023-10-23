@@ -27,7 +27,7 @@ in the Picard group of the toric variety in question.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
 Toric line bundle on a normal toric variety
@@ -45,7 +45,7 @@ in the Picard group of `v`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -68,7 +68,7 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, toric_divisor(v, [1, 2, 3]))
 Toric line bundle on a normal toric variety
@@ -93,7 +93,7 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(v, [1, 2, 3]);
 
@@ -112,7 +112,7 @@ of a toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(v, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -145,7 +145,7 @@ of a toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(v, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety

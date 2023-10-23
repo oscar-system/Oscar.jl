@@ -399,7 +399,7 @@ function _extension_with_tower_basis(
     w = copy(vec)
     piv = findfirst(!iszero, w)
     # TODO : figure out the purpose of this loop and FIX it
-    while piv != nothing && isassigned(vecs, piv)
+    while piv !== nothing && isassigned(vecs, piv)
       x = -w[piv]
       if isassigned(pols, piv)
         # println("p: ", p, " piv ", piv, " pols[piv]: ", pols[piv])

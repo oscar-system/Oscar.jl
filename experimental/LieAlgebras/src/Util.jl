@@ -10,9 +10,7 @@ julia> coefficient_vector(matrix(QQ, [1 2;3 4]), [matrix(QQ, [1 0;0 0]), matrix(
 [1   2   -3]
 ```
 """
-function coefficient_vector(
-  M::MatElem{T}, basis::Vector{<:MatElem{T}}
-) where {T<:RingElement}
+function coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T<:FieldElem}
   (nr, nc) = size(M)
   all(b -> size(b) == (nr, nc), basis) ||
     throw(DimensionMismatch("The matrices in B must have the same size as M."))

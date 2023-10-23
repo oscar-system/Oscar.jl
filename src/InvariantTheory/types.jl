@@ -72,7 +72,7 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
     n = degree(G)
     # We want to use divrem w.r.t. degrevlex e.g. for the computation of
     # secondary invariants and fundamental invariants
-    R, = grade(polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
+    R, = graded_polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)
     return InvRing(K, G, action, R)
   end
 

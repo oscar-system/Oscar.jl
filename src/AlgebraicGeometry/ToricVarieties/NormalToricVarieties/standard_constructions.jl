@@ -1,287 +1,150 @@
 @doc raw"""
-    affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+    affine_space(::Type{NormalToricVariety}, d::Int)
 
 Constructs the (toric) affine space of dimension `d`.
 
 # Examples
 ```jldoctest
 julia> affine_space(NormalToricVariety, 2)
-Normal, affine, 2-dimensional toric variety
+Normal toric variety
 ```
 """
-function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-    C = positive_hull(identity_matrix(ZZ, d))
-    variety = normal_toric_variety(C; set_attributes=set_attributes)
-    
-    if set_attributes
-        set_attribute!(variety, :is_complete, false)
-        set_attribute!(variety, :is_projective, false)
-        set_attribute!(variety, :isprojective_space, false)
-        set_attribute!(variety, :dim, d)
-        set_attribute!(variety, :dim_of_torusfactor, 0)
-    end
-    
-    return variety
+function affine_space(::Type{NormalToricVariety}, d::Int)
+  C = positive_hull(identity_matrix(ZZ, d))
+  variety = normal_toric_variety(C)
+  return variety
 end
 
 
 @doc raw"""
-    projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
+    projective_space(::Type{NormalToricVariety}, d::Int)
 
 Construct the projective space of dimension `d`.
 
 # Examples
 ```jldoctest
 julia> projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
-function projective_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
-    f = normal_fan(Oscar.simplex(d))
-    pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    variety = NormalToricVariety(pm_object)
-    
-    # make standard choice for weights of the cox ring
-    set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :class_group, free_abelian_group(1))
-    set_attribute!(variety, :picard_group, free_abelian_group(1))
-    weights = matrix(ZZ,ones(Int,d+1,1))
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,d+1)))
-    
-    if set_attributes
-        set_attribute!(variety, :is_affine, false)
-        set_attribute!(variety, :is_projective, true)
-        set_attribute!(variety, :is_projective_space, true)
-        set_attribute!(variety, :is_smooth, true)
-        set_attribute!(variety, :is_complete, true)
-        set_attribute!(variety, :has_torusfactor, false)
-        set_attribute!(variety, :is_orbifold, true)
-        set_attribute!(variety, :is_simplicial, true)
-        set_attribute!(variety, :is_gorenstein, true)
-        set_attribute!(variety, :is_q_gorenstein, true)
-        set_attribute!(variety, :is_fano, true)
-        set_attribute!(variety, :dim, d)
-        set_attribute!(variety, :dim_of_torusfactor, 0)
-        set_attribute!(variety, :euler_characteristic, d+1)
-        set_attribute!(variety, :betti_number, fill(ZZRingElem(1), d+1))
-        set_attribute!(variety, :character_lattice, free_abelian_group(d))
-    end
-    
-    return variety
+function projective_space(::Type{NormalToricVariety}, d::Int)
+  f = normal_fan(Oscar.simplex(d))
+  pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
+  variety = NormalToricVariety(pm_object)
+  weights = matrix(ZZ,ones(Int,d+1,1))
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
+  set_attribute!(variety, :class_group, free_abelian_group(1))
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  return variety
 end
 
 
 @doc raw"""
-    weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
+    weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
 
 Construct the weighted projective space corresponding to the weights `w`.
 
 # Examples
 ```jldoctest
-julia> weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+julia> weighted_projective_space(NormalToricVariety, [2, 3, 1])
+Normal toric variety
 ```
 """
-function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set_attributes::Bool = true) where {T <: IntegerUnion}
-    # build projective space
-    if all(a -> isone(a), w)
-      return projective_space(NormalToricVariety, length(w)-1)
-    end
-
-    pmntv = Polymake.fulton.weighted_projective_space(w)
-    variety = NormalToricVariety(pmntv)
-    
-    # make standard choice for the weights of the cox ring
-    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
-    set_attribute!(variety, :class_group, free_abelian_group(1))
-    weights = matrix(ZZ,hcat(w))
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-    
-    if set_attributes
-        set_attribute!(variety, :has_torusfactor, false)
-        set_attribute!(variety, :is_affine, false)
-        set_attribute!(variety, :is_projective, true)
-        set_attribute!(variety, :is_projective_space, false)
-        set_attribute!(variety, :is_complete, true)
-        set_attribute!(variety, :is_orbifold, true)
-        set_attribute!(variety, :is_simplicial, true)
-        set_attribute!(variety, :dim, length(w)-1)
-        set_attribute!(variety, :character_lattice, free_abelian_group(length(w)-1))
-        set_attribute!(variety, :dim_of_torusfactor, 0)
-    end
-    
-    return variety
+function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+  if all(a -> isone(a), w)
+    return projective_space(NormalToricVariety, length(w)-1)
+  end
+  pmntv = Polymake.fulton.weighted_projective_space(w)
+  variety = NormalToricVariety(pmntv)
+  weights = matrix(ZZ,hcat(w))
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
+  set_attribute!(variety, :class_group, free_abelian_group(1))
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  return variety
 end
 
 
 @doc raw"""
-    hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
+    hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
 
 Constructs the r-th Hirzebruch surface.
 
 # Examples
 ```jldoctest
 julia> hirzebruch_surface(NormalToricVariety, 5)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
-function hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
-    fan_rays = [1 0; 0 1; -1 r; 0 -1]
-    cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
-    variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
-    
-    # make standard choice for the weights of the cox ring
-    set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
-    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
-    set_attribute!(variety, :class_group, free_abelian_group(2))
-    set_attribute!(variety, :picard_group, free_abelian_group(2))
-    weights = matrix(ZZ, [1 0; 0 1; 1 0; r 1])
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,4)))
-    
-    if set_attributes
-        set_attribute!(variety, :is_affine, false)
-        set_attribute!(variety, :is_projective, true)
-        set_attribute!(variety, :is_projective_space, false)
-        set_attribute!(variety, :is_smooth, true)
-        set_attribute!(variety, :is_complete, true)
-        set_attribute!(variety, :has_torusfactor, false)
-        set_attribute!(variety, :is_orbifold, true)
-        set_attribute!(variety, :is_simplicial, true)
-        set_attribute!(variety, :is_gorenstein, true)
-        set_attribute!(variety, :is_q_gorenstein, true)
-        if abs(r) <= 1
-            set_attribute!(variety, :is_fano, true)
-        else
-            set_attribute!(variety, :is_fano, false)
-        end
-        vars = ["t1", "x1", "t2", "x2"]
-        set_coordinate_names(variety, vars)
-        set_attribute!(variety, :dim, 2)
-        set_attribute!(variety, :dim_of_torusfactor, 0)
-        set_attribute!(variety, :euler_characteristic, 4)
-        set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(2), ZZRingElem(1)])
-        set_attribute!(variety, :character_lattice, free_abelian_group(2))
-        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
-    end
-    
-    return variety
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
+  fan_rays = [1 0; 0 1; -1 r; 0 -1]
+  cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
+  variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
+  set_attribute!(variety, :class_group, free_abelian_group(2))
+  weights = matrix(ZZ, [1 0; 0 1; 1 0; r 1])
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  vars = ["t1", "x1", "t2", "x2"]
+  set_coordinate_names(variety, vars)
+  return variety
 end
 
 
 @doc raw"""
-    del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
+    del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
 
 Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
 
 # Examples
 ```jldoctest
 julia> del_pezzo_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
-function del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
-    # check for valid input
-    @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
-    @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
-    
-    # special case of projective space
-    if b == 0
-        return projective_space(NormalToricVariety, 2)
-    end
-    
-    # construct the "true" toric del Pezzo surfaces
-    if b == 1
-        fan_rays = [1 0; 0 1; -1 -1; 1 1]
-        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 3], [2, 3]])
-    end
-    if b == 2
-        fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1]
-        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 3]])
-    end
-    if b == 3
-        fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
-        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
-    end
-    variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
-    
-    # make standard choice for weights of the cox ring
-    if b == 1
-        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
-        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
-        set_attribute!(variety, :class_group, free_abelian_group(2))
-        set_attribute!(variety, :picard_group, free_abelian_group(2))
-        weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
-        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,4)))
-    end
-    if b == 2
-        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(5))
-        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(5))
-        set_attribute!(variety, :class_group, free_abelian_group(3))
-        set_attribute!(variety, :picard_group, free_abelian_group(3))
-        weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
-        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,5)))
-    end
-    if b == 3
-        set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(6))
-        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(6))
-        set_attribute!(variety, :class_group, free_abelian_group(4))
-        set_attribute!(variety, :picard_group, free_abelian_group(4))
-        weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
-        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, hom(torusinvariant_cartier_divisor_group(variety), picard_group(variety), weights))
-        set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, hom(torusinvariant_cartier_divisor_group(variety), torusinvariant_weil_divisor_group(variety), identity_matrix(ZZ,6)))
-    end
-    
-    if set_attributes
-        set_attribute!(variety, :is_affine, false)
-        set_attribute!(variety, :is_projective, true)
-        set_attribute!(variety, :is_projective_space, false)
-        set_attribute!(variety, :is_smooth, true)
-        set_attribute!(variety, :is_complete, true)
-        set_attribute!(variety, :has_torusfactor, false)
-        set_attribute!(variety, :is_orbifold, true)
-        set_attribute!(variety, :is_simplicial, true)
-        set_attribute!(variety, :is_gorenstein, true)
-        set_attribute!(variety, :is_q_gorenstein, true)
-        set_attribute!(variety, :is_fano, true)
-        vars = ["x1", "x2", "x3", "e1", "e2", "e3"]
-        set_coordinate_names(variety, vars[1:(3 + b)])
-        set_attribute!(variety, :dim, 2)
-        set_attribute!(variety, :dim_of_torusfactor, 0)
-        if b == 1
-            set_attribute!(variety, :euler_characteristic, 4)
-            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(2), ZZRingElem(1)])
-            set_attribute!(variety, :character_lattice, free_abelian_group(2))
-            set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
-        end
-        if b == 2
-            set_attribute!(variety, :euler_characteristic, 5)
-            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(3), ZZRingElem(1)])
-            set_attribute!(variety, :character_lattice, free_abelian_group(2))
-            set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
-        end
-        if b == 3
-            set_attribute!(variety, :euler_characteristic, 6)
-            set_attribute!(variety, :betti_number, [ZZRingElem(1), ZZRingElem(4), ZZRingElem(1)])
-            set_attribute!(variety, :character_lattice, free_abelian_group(2))
-            set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, hom(character_lattice(variety), torusinvariant_weil_divisor_group(variety), transpose(matrix(ZZ, fan_rays))))
-        end
-    end
-    
-    return variety
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
+  # check for valid input
+  @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
+  @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
+  
+  # special case of projective space
+  if b == 0
+    return projective_space(NormalToricVariety, 2)
+  end
+  
+  # construct the "true" toric del Pezzo surfaces
+  if b == 1
+    fan_rays = [1 0; 0 1; -1 -1; 1 1]
+    cones = IncidenceMatrix([[1, 4], [2, 4], [1, 3], [2, 3]])
+  end
+  if b == 2
+    fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1]
+    cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 3]])
+  end
+  if b == 3
+    fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
+    cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
+  end
+  variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(b+3))
+  set_attribute!(variety, :class_group, free_abelian_group(b+1))
+  if b == 1
+    weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  end
+  if b == 2
+    weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  end
+  if b == 3
+    weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
+    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+  end
+  vars = ["x1", "x2", "x3", "e1", "e2", "e3"]
+  set_coordinate_names(variety, vars[1:(3 + b)])
+  return variety
 end
 
 @doc raw"""
-    Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
+    Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
@@ -303,7 +166,7 @@ do for `w`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> v1 = P2 * P2
 Normal toric variety
@@ -333,7 +196,7 @@ Multivariate polynomial ring in 6 variables over QQ graded by
   y3 -> [0 1]
 ```
 """
-function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType; set_attributes::Bool = true)
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
     product = normal_toric_variety(polyhedral_fan(v)*polyhedral_fan(w))
     set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
     return product
@@ -342,7 +205,7 @@ end
 
 
 @doc raw"""
-    normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+    normal_toric_variety_from_star_triangulation(P::Polyhedron)
 
 Returns a toric variety that was obtained from a fine regular
 star triangulation of the lattice points of the polyhedron P.
@@ -358,7 +221,7 @@ julia> v = normal_toric_variety_from_star_triangulation(P)
 Normal toric variety
 ```
 """
-function normal_toric_variety_from_star_triangulation(P::Polyhedron; set_attributes::Bool = true)
+function normal_toric_variety_from_star_triangulation(P::Polyhedron)
   # Find position of origin in the lattices points of the polyhedron P
   pts = matrix(ZZ, lattice_points(P))
   zero = [0 for i in 1:ambient_dim(P)]
@@ -385,7 +248,7 @@ end
 
 
 @doc raw"""
-    normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
+    normal_toric_varieties_from_star_triangulations(P::Polyhedron)
 
 Returns the list of toric varieties obtained from fine regular
 star triangulations of the polyhedron P. With this we can
@@ -408,38 +271,37 @@ julia> stanley_reisner_ideal(v2)
 ideal(x2*x3)
 ```
 """
-function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attributes::Bool = true)
-    
-    # find position of origin in the lattices points of the polyhedron P
-    pts = matrix(ZZ, lattice_points(P))
-    zero = [0 for i in 1:ambient_dim(P)]
-    indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
-    @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
-    
-    # change order of lattice points s.t. zero is the first point
-    tmp = pts[1,:]
-    pts[1,:] = pts[indices[1],:]
-    pts[indices[1],:] = tmp
-    
-    # triangulate the points - note that we enforce full, i.e. want all points to be rays
-    trias = star_triangulations(pts; full = true)
-    
-    # rays are all but the zero vector at the first position of pts
-    integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
-    
-    # trias contains the max_cones as list of lists
-    # (a) needs to be converted to incidence matrix
-    # (b) one has to remove origin from list of indices (as removed above)
-    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in trias]
-    
-    # construct the varieties
-    return [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
+function normal_toric_varieties_from_star_triangulations(P::Polyhedron)  
+  # find position of origin in the lattices points of the polyhedron P
+  pts = matrix(ZZ, lattice_points(P))
+  zero = [0 for i in 1:ambient_dim(P)]
+  indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+  @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
+  
+  # change order of lattice points s.t. zero is the first point
+  tmp = pts[1,:]
+  pts[1,:] = pts[indices[1],:]
+  pts[indices[1],:] = tmp
+  
+  # triangulate the points - note that we enforce full, i.e. want all points to be rays
+  trias = star_triangulations(pts; full = true)
+  
+  # rays are all but the zero vector at the first position of pts
+  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  
+  # trias contains the max_cones as list of lists
+  # (a) needs to be converted to incidence matrix
+  # (b) one has to remove origin from list of indices (as removed above)
+  max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in trias]
+  
+  # construct the varieties
+  return [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
 end
 
 
 
 @doc raw"""
-  normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+  normal_toric_variety_from_glsm(charges::ZZMatrix)
 
 This function returns one toric variety with the desired
 GLSM charges. This can be particularly useful provided that
@@ -459,7 +321,7 @@ For convenience, we also support:
 - normal_toric_variety_from_glsm(charges::Vector{Vector{Int}})
 - normal_toric_variety_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
-function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+function normal_toric_variety_from_glsm(charges::ZZMatrix)
 
   # find the ray generators
   G1 = free_abelian_group(ncols(charges))
@@ -479,19 +341,17 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix; set_attributes::Bool 
   variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
 
   # set the attributes and return the variety
-  if set_attributes
-    set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
-    set_attribute!(variety, :class_group, G2)
-    set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
-  end
+  set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
+  set_attribute!(variety, :class_group, G2)
+  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
   return variety
 end
-normal_toric_variety_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_variety_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
+normal_toric_variety_from_glsm(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = normal_toric_variety_from_glsm(matrix(ZZ, charges))
 
 
 
 @doc raw"""
-    normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
+    normal_toric_varieties_from_glsm(charges::ZZMatrix)
 
 This function returns all toric variety with the desired
 GLSM charges. This computation may take a long time if
@@ -525,39 +385,36 @@ For convenience, we also support:
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{Int}})
 - normal_toric_varieties_from_glsm(charges::Vector{Vector{ZZRingElem}})
 """
-function normal_toric_varieties_from_glsm(charges::ZZMatrix; set_attributes::Bool = true)
-
-    # find the ray generators
-    G1 = free_abelian_group(ncols(charges))
-    G2 = free_abelian_group(nrows(charges))
-    map = hom(G1, G2, transpose(charges))
-    ker = kernel(map)
-    embedding = snf(ker[1])[2] * ker[2]
-    rays = transpose(embedding.map)
-    
-    # identify the points to be triangulated
-    pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
-    for i in 1:nrows(rays)
-        pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
-    end
-    zero = [0 for i in 1:ncols(charges)-nrows(charges)]
-    pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
-    
-    # construct varieties
-    integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
-    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
-    varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
-    
-    # set the map from Div_T -> Cl to the desired matrix
-    if set_attributes
-      for v in varieties
-        set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
-        set_attribute!(v, :class_group, G2)
-        set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
-      end
-    end
-    
-    # return the varieties
-    return varieties
+function normal_toric_varieties_from_glsm(charges::ZZMatrix)
+  # find the ray generators
+  G1 = free_abelian_group(ncols(charges))
+  G2 = free_abelian_group(nrows(charges))
+  map = hom(G1, G2, transpose(charges))
+  ker = kernel(map)
+  embedding = snf(ker[1])[2] * ker[2]
+  rays = transpose(embedding.map)
+  
+  # identify the points to be triangulated
+  pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
+  for i in 1:nrows(rays)
+    pts[i, :] = [ZZRingElem(c) for c in rays[i, :]]
+  end
+  zero = [0 for i in 1:ncols(charges)-nrows(charges)]
+  pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
+  
+  # construct varieties
+  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
+  varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
+  
+  # set the map from Div_T -> Cl to the desired matrix
+  for v in varieties
+    set_attribute!(v, :torusinvariant_weil_divisor_group, G1)
+    set_attribute!(v, :class_group, G2)
+    set_attribute!(v, :map_from_torusinvariant_weil_divisor_group_to_class_group, map)
+  end
+  
+  # return the varieties
+  return varieties
 end
-normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}; set_attributes::Bool = true) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges); set_attributes = set_attributes)
+normal_toric_varieties_from_glsm(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = normal_toric_varieties_from_glsm(matrix(ZZ, charges))

@@ -1,7 +1,6 @@
 import Pkg
 Pkg.add("Documenter")
 Pkg.add("PrettyTables")
-Pkg.add("Printf")
 Pkg.add("Aqua")
 
 Pkg.precompile()

@@ -205,8 +205,8 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   # `affine_chart` of the codomain of Phi.
   covered_codomain_patches = Vector{AbsSpec}([V])
   complement_equations = Vector{elem_type(OO(U))}()
-  FY = FunctionField(Y)
-  FX = FunctionField(X)
+  FY = function_field(Y)
+  FX = function_field(X)
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]

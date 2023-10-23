@@ -167,13 +167,13 @@ is_monomial(f::MPolyRingElem)
 ### Containment of Ideals
 
 ```@docs
-is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+is_subset(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
 ### Equality of Ideals
 
 ```@docs
-==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+==(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
 ### Ideal Membership

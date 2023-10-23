@@ -88,7 +88,7 @@ export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
-export Localization
+export localization
 export MPolyComplementOfKPointIdeal
 export MPolyComplementOfPrimeIdeal
 export MPolyDecRing
@@ -315,6 +315,7 @@ export character_table
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
+export chief_series, has_chief_series, set_chief_series
 export chip_firing_move
 export chow_ring
 export circuits
@@ -345,7 +346,7 @@ export coefficients
 export coefficients_and_exponents
 export cohomology
 export cohomology_class
-export cohomology_index
+export cohomology_indices
 export cohomology_ring
 export cohyperplanes
 export cokernel
@@ -371,7 +372,7 @@ export complete_intersection_germ
 export complex_projective_plane
 export components
 export compose
-export composition_series
+export composition_series, has_composition_series, set_composition_series
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -444,6 +445,7 @@ export denest
 export denominator
 export denominators
 export depth
+export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
@@ -677,6 +679,7 @@ export image_ideal
 export image_in_Oq
 export images
 export img_gens
+export immaculate_line_bundles
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
@@ -688,6 +691,7 @@ export indicator
 export induce
 export induce_shift
 export induced_automorphism
+export induced_map_on_exterior_power
 export induced_cyclic
 export induced_ring_ordering
 export initial
@@ -759,6 +763,7 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
+export is_exterior_power
 export is_faithful
 export is_fano
 export is_feasible
@@ -780,6 +785,7 @@ export is_graded
 export is_groebner_basis
 export is_homogeneous
 export is_identity_map
+export is_immaculate
 export is_injective
 export is_inner_automorphism
 export is_integral
@@ -879,6 +885,7 @@ export iterate_basis
 export jacobi_ideal
 export jacobi_matrix
 export jacobi_symbol
+export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
@@ -929,6 +936,7 @@ export load_mps
 export localized_ring
 export loops
 export low_index_subgroup_reps
+export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
@@ -1111,6 +1119,7 @@ export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
 export outneighbors
+export p_central_series
 export pappus_matroid
 export parallel_extension
 export parent
@@ -1435,6 +1444,7 @@ export update_glueing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
 export upper_bound_h_vector
+export upper_central_series, has_upper_central_series, set_upper_central_series
 export upper_triangular_matrix
 export v_reduced
 export valuation_of_roots
@@ -1457,11 +1467,16 @@ export vertices_and_rays
 export vf_group
 export visualize
 export volume
+export volume_map
 export volume_form
 export walls
 export wdeglex
 export wdegrevlex
 export weakly_connected_components
+export wedge
+export wedge_multiplication_map
+export wedge_pure_function
+export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering

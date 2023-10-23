@@ -128,7 +128,7 @@ function load_object(s::DeserializerState,
     # the order in the symbols reflects the grading
     return graded_polynomial_ring(base_ring, symbols)[1]
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
+    return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
   end
   return polynomial_ring(base_ring, symbols, cached=false)[1]
 end

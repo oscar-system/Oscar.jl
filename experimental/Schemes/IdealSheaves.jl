@@ -682,7 +682,7 @@ function order_on_divisor(
   den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
   return num_mult - den_mult
 #    # Deprecated code computing symbolic powers explicitly:
-#    L, map = Localization(OO(U), 
+#    L, map = localization(OO(U),
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
 #    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
@@ -1153,7 +1153,7 @@ function _cofactors(comp::Vector{<:Ideal})
   R = base_ring(first(comp))
   all(x->base_ring(x)===R, comp) || error("ideals must be defined over the same ring")
   n = length(comp)
-  pairwise_cof = one(MatrixSpace(R, n, n))
+  pairwise_cof = identity_matrix(R, n)
   for i in 1:n-1
     for j in i+1:n
       I = ideal(R, vcat(gens(comp[i]), gens(comp[j])))

@@ -1296,7 +1296,7 @@ end
 lift(f::MPolyRingElem) = f
 
 ### Hessian matrix
-function hessian_matrix(f::MPolyElem)
+function hessian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   df = jacobi_matrix(f)
@@ -1309,7 +1309,7 @@ function hessian_matrix(f::MPolyElem)
   return result
 end
 
-hessian(f::MPolyElem) = det(hessian_matrix(f))
+hessian(f::MPolyRingElem) = det(hessian_matrix(f))
 
 function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
   set_attribute!(S, :default_ordering, ord)

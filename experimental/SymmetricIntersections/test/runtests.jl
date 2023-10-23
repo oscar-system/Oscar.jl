@@ -2,9 +2,8 @@ using Test
 using Oscar
 
 @testset "Elevators" begin
-  R, _ = polynomial_ring(QQ, 10, cached=false)
   W = sort(rand(1:5, 10))
-  S, x = grade(R, W)
+  S, x = graded_polynomial_ring(QQ, 10, W; cached=false)
   
   function weight(p)
     return degree(p).coeff[1]
@@ -18,7 +17,7 @@ using Oscar
     @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si))) 
   end
 
-  S, x = grade(R)
+  S, x = graded_polynomial_ring(QQ, 10; cached=false)
   el = Oscar.elevator(x, weight, 5, lbs=[2,0,0,0,0,0,0,0,0, 0])
   @test Oscar.number_of_elevations(el) == binomial(12, 3)
   @test Oscar.underlying_list(el) === x

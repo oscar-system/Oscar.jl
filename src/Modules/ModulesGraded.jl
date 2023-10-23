@@ -853,11 +853,7 @@ Return the grading group of `base_ring(M)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -890,11 +886,7 @@ Return the degrees of the generators of `M`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -914,9 +906,9 @@ julia> M = subquotient(a1,a2);
 
 julia> degrees_of_generators(M)
 3-element Vector{GrpAbFinGenElem}:
- Element of Z with components [2]
- Element of Z with components [2]
- Element of Z with components [2]
+ [2]
+ [2]
+ [2]
 
 julia> gens(M)
 3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -940,11 +932,7 @@ Return  `true` if `m` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1017,11 +1005,7 @@ Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the 
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1043,7 +1027,7 @@ julia> m = x*y*z*M[1]
 x*y^2*z*e[1]
 
 julia> degree(m)
-Element of Z with components [5]
+[5]
 
 julia> degree(Int, m)
 5
@@ -1052,7 +1036,7 @@ julia> m3 = x*M[1]+M[2]+x*M[3]
 (x*y + x + y)*e[1] + (x*z + y)*e[2]
 
 julia> degree(m3)
-Element of Z with components [2]
+[2]
 ```
 """
 function degree(el::SubquoModuleElem)
@@ -1102,11 +1086,7 @@ If `a` is graded, return the degree of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1127,7 +1107,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> degree(a)
-Element of Z with components [2]
+[2]
 ```
 """
 function degree(f::SubQuoHom)
@@ -1173,11 +1153,7 @@ Return `true` if `a` is graded, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1212,11 +1188,7 @@ If `a` is graded, return the grading group of `a`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1254,11 +1226,7 @@ is graded of degree `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Z = abelian_group(0);
-
-julia> Rg, (x, y, z) = grade(R, [Z[1],Z[1],Z[1]]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1406,7 +1374,7 @@ function Base.show(io::IO, b::BettiTable)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
   end
 
-  if b.project == nothing
+  if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
@@ -1456,7 +1424,7 @@ function Base.show(io::IO, b::BettiTable)
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
     print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
     print(io, "  ")
-    L = Vector{fmpz}(undef,0)
+    L = Vector{ZZRingElem}(undef,0)
     for i in 1:length(x)
         temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
         Base.push!(L, temp_sum)
@@ -1533,7 +1501,7 @@ function Base.show(io::IO, table::sheafCohTable)
   chi_print =  [_shcoh_string_rep(v, val_space_length) for v in chi]
 
   # row labels
-  row_label_length = max(_ndigits(nrows - 1), 3) + 2
+  row_label_length = max(_ndigits(nrows - 1), 3) + 3
   for i in 1:nrows
     pushfirst!(print_rows[i], rpad("$(i-1): ", row_label_length, " "))
   end
@@ -1541,20 +1509,20 @@ function Base.show(io::IO, table::sheafCohTable)
 
   # header
   header = [lpad(v, val_space_length, " ") for v in table.twist_range]
-  pushfirst!(header, rpad(" ", row_label_length, " "))
+  pushfirst!(header, rpad("twist:", row_label_length, " "))
 
-  println(io, prod(header))
+  println(io, header...)
   size_row = sum(length, first(print_rows))
   println(io, repeat("-", size_row))
   for rw in print_rows
-    println(io, prod(rw))
+    println(io, rw...)
   end
   println(io, repeat("-", size_row))
-  println(io, prod(chi_print))
+  print(io, chi_print...)
 end
 
 @doc raw"""
-    function sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+    sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M`. The range of twists is between `l` and `h`.
@@ -1565,7 +1533,7 @@ The values of the returned table can be accessed by indexing it
 with a cohomological index and a value between `l` and `h` as shown
 in the example below.
 
-
+```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:4);
 
 julia> S, _= grade(R);
@@ -1581,14 +1549,14 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 julia> M = cokernel(map(FI, 2));
 
 julia> tbl = sheaf_cohomology_bgg(M, -6, 2)
-       -6  -5  -4  -3  -2  -1   0   1   2
------------------------------------------
-0:     70  36  15   4   -   -   -   -   *
-1:      *   -   -   -   -   -   -   -   -
-2:      *   *   -   -   -   -   1   -   -
-3:      *   *   *   -   -   -   -   -   6
------------------------------------------
-chi:    *   *   *   4   -   -   1   -   *
+twist:  -6  -5  -4  -3  -2  -1   0   1   2
+------------------------------------------
+0:      70  36  15   4   -   -   -   -   *
+1:       *   -   -   -   -   -   -   -   -
+2:       *   *   -   -   -   -   1   -   -
+3:       *   *   *   -   -   -   -   -   6
+------------------------------------------
+chi:     *   *   *   4   -   -   1   -   *
 
 julia> tbl[0, -6]
 70
@@ -1596,22 +1564,23 @@ julia> tbl[0, -6]
 julia> tbl[2, 0]
 1
 
-julia> R, x = polynomial_ring(QQ, "x" => (1:5, ));
+julia> R, x = polynomial_ring(QQ, "x" => 1:5);
 
 julia> R, x = grade(R);
 
 julia> F = graded_free_module(R, 1);
 
 julia> sheaf_cohomology_bgg(F, -7, 2)
-       -7  -6  -5  -4  -3  -2  -1   0   1   2
----------------------------------------------
-0:     15   5   1   -   -   -   *   *   *   *
-1:      *   -   -   -   -   -   -   *   *   *
-2:      *   *   -   -   -   -   -   -   *   *
-3:      *   *   *   -   -   -   -   -   -   *
-4:      *   *   *   *   -   -   -   1   5  15
----------------------------------------------
-chi:    *   *   *   *   -   -   *   *   *   *
+twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
+----------------------------------------------
+0:      15   5   1   -   -   -   *   *   *   *
+1:       *   -   -   -   -   -   -   *   *   *
+2:       *   *   -   -   -   -   -   -   *   *
+3:       *   *   *   -   -   -   -   -   -   *
+4:       *   *   *   *   -   -   -   1   5  15
+----------------------------------------------
+chi:     *   *   *   *   -   -   *   *   *   *
+```
 """
 function sheaf_cohomology_bgg(M::ModuleFP{T},
                               l::Int,
@@ -1721,7 +1690,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1])
+julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
@@ -2314,7 +2283,7 @@ function _constant_sub_matrix(
   ind_cod = _indices_of_generators_of_degree(G, d)
   m = length(ind_dom)
   n = length(ind_cod)
-  result = zero(MatrixSpace(kk, m, n))
+  result = zero_matrix(kk, m, n)
   for i in 1:m
     for j in 1:n
       c = phi(F[ind_dom[i]])[ind_cod[j]]

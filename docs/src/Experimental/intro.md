@@ -34,14 +34,18 @@ experimental/PACKAGE_NAME/
 ├── src
 │   └── PACKAGE_NAME.jl
 └── test
-    └── runtests.jl
+    └── *.jl
 ```
-The files `src/PACKAGE_NAME.jl` and `test/runtests.jl` are mandatory as they
-are used by Oscar.jl to find your code and tests. The file `docs/doc.main` is
-used for integrating your documentation in the Oscar manual under the
-`Experimental` section. Optionally please provide a `README.md` describing your
-project and its goals, especially if you are starting from scratch and don't
-have any documentation yet.
+The file `src/PACKAGE_NAME.jl` and at least one `.jl` file in the `test/`
+directory are mandatory and are used by Oscar.jl to find your code and tests.
+If there is a `test/runtests.jl` then only this file is executed during
+testing, otherwise all `.jl` files will be run automatically (in a random
+order).
+
+The file `docs/doc.main` is used for integrating your documentation in the
+Oscar manual under the `Experimental` section. Optionally please provide a
+`README.md` describing your project and its goals, especially if you are
+starting from scratch and don't have any documentation yet.
 
 !!! note
     There are still older projects in `experimental` from before the

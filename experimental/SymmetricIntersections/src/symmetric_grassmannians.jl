@@ -499,7 +499,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothi
   F = base_ring(V[1])
   
   if S === nothing
-    S, _ = grade(polynomial_ring(F, "x" => 0:binomial(n, t)-1)[1])
+    S, _ = graded_polynomial_ring(F, "x" => 0:binomial(n, t)-1)
   end
   
   X = ProjectiveScheme(S)
@@ -532,7 +532,7 @@ function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroup
   rt = t == 1 ? r : exterior_power_representation(r, t)
   F = base_field(representation_ring(r))
   k = dimension_representation(rt)
-  S, _ = grade(polynomial_ring(F, "x" => 0:k-1)[1])
+  S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
   bas = basis_isotypical_component(rt, chi)
   if length(bas) == 0
     return ideal(S, [S(1)])
@@ -546,7 +546,7 @@ function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   cds = character_decomposition(rt)
   chis = [cd[2] for cd in cds if Int(degree(cd[2])) == 1]
   k = dimension_representation(rt)
-  S, _ = grade(polynomial_ring(F, "x" => 0:k-1)[1])
+  S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
   irre = ideal(S, gens(S))
   I = ideal(S, [S(1)])
   for chi in chis

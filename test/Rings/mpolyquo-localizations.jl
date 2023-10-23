@@ -9,7 +9,7 @@
   Q, p = quo(R, I)
   S = MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
   T = MPolyComplementOfKPointIdeal(R, [QQ(0), QQ(0), QQ(0), QQ(0)])
-  L, _ = Localization(Q, S)
+  L, _ = localization(Q, S)
   a = L(x)
   b = L(y)
   c = L(u)
@@ -68,8 +68,8 @@
   g = rand(S, 0:3, 1:5, 2:8)
   g = rand(T, 0:3, 1:5, 2:8)
   g = rand(U, 0:3, 1:5, 2:8)
-  W, _ = Localization(U)
-  Localization(W, S)
+  W, _ = localization(U)
+  localization(W, S)
   @test base_ring(W) == R
   @test inverted_set(W) == U
   L, _ = quo(W, ideal(W, f))
@@ -84,7 +84,7 @@
   h = x^4+23*x*y^3-15
   Q, _ = quo(R, f)
   T = MPolyPowersOfElement(h^3)
-  W, _ = Localization(Q, T)
+  W, _ = localization(Q, T)
   @test x//(h+3*f) in W
   @test W(x//(h+3*f)) == W(x//h)
   g = W.([rand(R, 0:5, 0:2, 0:1) for i in 1:10])
@@ -98,7 +98,7 @@
   h = (x+5)*(x^2+10*y)+(y-7)*(y^2-3*x)
   Q, _ = quo(R, h)
   T = MPolyComplementOfKPointIdeal(R, [-5, 7])
-  W, _ = Localization(Q, T)
+  W, _ = localization(Q, T)
   @test x//(y) in W
   @test x//(y+h) in W
   g = [W(h + (x+5) - 9, y+24*x^3-8)]
@@ -151,12 +151,12 @@ end
   T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
   f = x+y+z+w-1
   T2 = MPolyPowersOfElement(f)
-  RL1,phiL1 = Localization(R,T1)
-  RL2,phiL2 = Localization(R,T2)
-  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
-  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
-  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
-  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+  RL1,phiL1 = localization(R,T1)
+  RL2,phiL2 = localization(R,T2)
+  RQ1L1, phiQ1L1 = localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = localization(RQ2,T2)
 
   # tests for MPolyQuoRing
   I1 = ideal(R,[x*z*(w-1),y*z*(w-1)])
@@ -209,12 +209,12 @@ end
   T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   f = x-y
   T2 = MPolyPowersOfElement(f)
-  RL1,phiL1 = Localization(R,T1)
-  RL2,phiL2 = Localization(R,T2)
-  RQ1L1, phiQ1L1 = Localization(RQ1,T1)
-  RQ1L2, phiQ1L2 = Localization(RQ1,T2)
-  RQ2L1, phiQ2L1 = Localization(RQ2,T1)
-  RQ2L2, phiQ2L2 = Localization(RQ2,T2)
+  RL1,phiL1 = localization(R,T1)
+  RL2,phiL2 = localization(R,T2)
+  RQ1L1, phiQ1L1 = localization(RQ1,T1)
+  RQ1L2, phiQ1L2 = localization(RQ1,T2)
+  RQ2L1, phiQ2L1 = localization(RQ2,T1)
+  RQ2L2, phiQ2L2 = localization(RQ2,T2)
 
   # the ideals
   I1 = ideal(R,[x^2*y+y^2*z+z^2*x])

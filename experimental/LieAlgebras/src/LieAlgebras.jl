@@ -21,6 +21,7 @@ import ..Oscar:
   canonical_projections,
   center,
   centralizer,
+  characteristic,
   coeff,
   coefficient_ring,
   coefficients,
@@ -41,6 +42,7 @@ import ..Oscar:
   image,
   inv,
   is_abelian,
+  is_exterior_power,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
@@ -48,6 +50,7 @@ import ..Oscar:
   is_solvable,
   is_welldefined,
   kernel,
+  lower_central_series,
   matrix,
   ngens,
   normalizer,
@@ -70,6 +73,8 @@ export LieSubalgebra
 export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSystem
+export SimpleLieAlgebra, SimpleLieAlgebraElem
 
 export abelian_lie_algebra
 export abstract_module
@@ -77,10 +82,13 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export cartan_matrix
+export chevalley_basis
 export coefficient_vector
 export coerce_to_lie_algebra_elem
 export combinations
 export derived_algebra
+export dynkin_diagram
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -88,18 +96,19 @@ export hom_direct_sum
 export hom_power
 export is_direct_sum
 export is_dual
-export is_exterior_power
 export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lower_central_series
 export matrix_repr_basis
 export multicombinations
+export number_of_roots
 export permutations
 export permutations_with_sign
+export root_system
+export root_system_type
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
@@ -121,6 +130,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+include("root_systems.jl")
+include("simple_lie_algebra.jl")
 
 end
 
@@ -134,6 +145,8 @@ export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
+export RootSystem
+export SimpleLieAlgebra, SimpleLieAlgebraElem
 
 export abelian_lie_algebra
 export abstract_module
@@ -141,8 +154,11 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export cartan_matrix
+export chevalley_basis
 export coerce_to_lie_algebra_elem
 export derived_algebra
+export dynkin_diagram
 export exterior_power
 export general_linear_lie_algebra
 export highest_weight_module
@@ -150,15 +166,16 @@ export hom_direct_sum
 export hom_power
 export is_direct_sum
 export is_dual
-export is_exterior_power
 export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lower_central_series
 export matrix_repr_basis
+export number_of_roots
+export root_system
+export root_system_type
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module

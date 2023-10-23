@@ -519,9 +519,11 @@ julia> H
 GrpAb: Z
 
 julia> iso
-Map: GrpAb: Z -> (General) abelian group with relation matrix
-[1 -1]
-with structure of GrpAb: Z
+Map
+  from GrpAb: Z
+  to (General) abelian group with relation matrix
+  [1 -1]
+  with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series(
@@ -712,9 +714,11 @@ julia> H[2][1]
 GrpAb: Z
 
 julia> H[2][2]
-Map: GrpAb: Z -> (General) abelian group with relation matrix
-[1 -1]
-with structure of GrpAb: Z
+Map
+  from GrpAb: Z
+  to (General) abelian group with relation matrix
+  [1 -1]
+  with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)

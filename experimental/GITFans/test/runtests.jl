@@ -17,10 +17,9 @@
      ]
 
     n = nrows(Q)
-    Qt, T = polynomial_ring(QQ, :T => 1:n)
     D = free_abelian_group(ncols(Q))
     w = [D(Q[i, :]) for i = 1:n]
-    R, T = grade(Qt, w)
+    R, T = graded_polynomial_ring(QQ, :T => 1:n, w)
     a = ideal([
         T[5]*T[10] - T[6]*T[9] + T[7]*T[8],
         T[1]*T[9]  - T[2]*T[7] + T[4]*T[5],

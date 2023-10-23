@@ -145,16 +145,16 @@ function od_for_specht_module(chi::GAPGroupClassFunction)
   name = identifier(tbl)
   startswith(name, "A") || return (false, "")
   pos = findfirst('.', name)
-  if pos == nothing
+  if pos === nothing
     n = parse(Int, name[2:end])
   else
     n = parse(Int, name[2:(pos-1)])
   end
-  n == nothing && return (false, "")
+  n === nothing && return (false, "")
   name == "A$n" || name == "A$n.2" || name == "A6.2_1" || return (false, "")
 
   chipos = findfirst(isequal(chi), tbl)
-  chipos == nothing && return (false, "")
+  chipos === nothing && return (false, "")
   para = character_parameters(tbl)[chipos]
   isa(para, Vector{Int}) || return (false, "")
 

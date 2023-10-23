@@ -4,9 +4,9 @@
 #
 #################################################
 
-abstract type LieAlgebra{C<:RingElement} end
+abstract type LieAlgebra{C<:FieldElem} end
 
-abstract type LieAlgebraElem{C<:RingElement} end
+abstract type LieAlgebraElem{C<:FieldElem} end
 
 # To be implemented by subtypes:
 # parent_type(::Type{MyLieAlgebraElem{C}})
@@ -58,6 +58,13 @@ function basis(L::LieAlgebra, i::Int)
 end
 
 @doc raw"""
+    characteristic(L::LieAlgebra) -> Int
+
+Return the characteristic of the coefficient ring of the Lie algebra `L`.
+"""
+characteristic(L::LieAlgebra) = characteristic(coefficient_ring(L))
+
+@doc raw"""
     zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
 
 Return the zero element of the Lie algebra `L`.
@@ -76,7 +83,7 @@ function iszero(x::LieAlgebraElem)
   return iszero(coefficients(x))
 end
 
-@inline function _matrix(x::LieAlgebraElem{C}) where {C<:RingElement}
+@inline function _matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return (x.mat)::dense_matrix_type(C)
 end
 
@@ -111,7 +118,7 @@ function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
   return parent(x)(deepcopy_internal(_matrix(x), dict))
 end
 
-function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   parent(x1) !== parent(x2) && error("Incompatible Lie algebras.")
 end
 
@@ -168,7 +175,7 @@ end
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::Vector{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(v::Vector{C}) where {C<:FieldElem}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
@@ -180,7 +187,7 @@ end
 Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
   @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
 end
@@ -190,7 +197,7 @@ end
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::SRow{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(v::SRow{C}) where {C<:FieldElem}
   mat = dense_row(v, dim(L))
   return elem_type(L)(L, mat)
 end
@@ -200,7 +207,7 @@ end
 
 Return `x`. Fails if `x` is not an element of `L`.
 """
-function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:RingElement}
+function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:FieldElem}
   @req L === parent(x) "Incompatible modules."
   return x
 end
@@ -211,47 +218,39 @@ end
 #
 ###############################################################################
 
-function Base.:-(x::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:-(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return parent(x)(-_matrix(x))
 end
 
-function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return parent(x1)(_matrix(x1) + _matrix(x2))
 end
 
-function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return parent(x1)(_matrix(x1) - _matrix(x2))
 end
 
-function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:RingElem}
+function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(x::LieAlgebraElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
   return parent(x)(_matrix(x) * c)
 end
 
-function Base.:*(x::LieAlgebraElem{ZZRingElem}, c::ZZRingElem)
-  return parent(x)(_matrix(x) * c)
-end
-
-function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:RingElem}
+function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(c::U, x::LieAlgebraElem) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(c::U, x::LieAlgebraElem) where {U<:RationalUnion}
   return parent(x)(c * _matrix(x))
 end
 
-function Base.:*(c::ZZRingElem, x::LieAlgebraElem{ZZRingElem})
-  return parent(x)(c * _matrix(x))
-end
-
-function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:FieldElem}
   return bracket(x, y)
 end
 
@@ -261,7 +260,7 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:RingElement}
+function Base.:(==)(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
   return coefficients(x1) == coefficients(x2)
 end
@@ -392,7 +391,7 @@ Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 @attr Bool function is_abelian(L::LieAlgebra)
   b = basis(L)
   n = length(b)
-  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in (i + 1):n)
 end
 
 @doc raw"""
@@ -443,9 +442,10 @@ end
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBEAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
 
-Return the universal enveloping algebra of `L` with the given monomial ordering.
+Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
+together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))

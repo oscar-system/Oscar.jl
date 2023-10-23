@@ -1,7 +1,5 @@
 @testset "Hilbert series and free resolution" begin
-  R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-  Z = abelian_group(0);
-  Rg, (x, y, z) = grade(R, [3*Z[1],Z[1],Z[1]]);
+  Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights = [3,1,1]);
   F = graded_free_module(Rg, 1);
   A = Rg[x; y];
   B = Rg[x^2+y^6; y^7; z^4];

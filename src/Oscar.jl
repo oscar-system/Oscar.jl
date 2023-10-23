@@ -85,10 +85,12 @@ function __init__()
     for pkg in [
        "atlasrep",
        "ctbllib",  # character tables
+       "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
        "fga",      # dealing with free groups
        "forms",    # bilinear/sesquilinear/quadratic forms
        "primgrp",  # primitive groups library
        "repsn",    # constructing representations of finite groups
+       "sla",      # computing with simple Lie algebras
        "smallgrp", # small groups library
        "transgrp", # transitive groups library
        "wedderga", # provides a function to compute Schur indices
@@ -220,6 +222,7 @@ include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
+include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 

@@ -391,7 +391,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   # subring of a Laurent polynomial ring over R, see [Sch23, Section 6.1].
 
   # Transform the collected generators into Laurent polynomials
-  Rt, t = LaurentPolynomialRing(forget_grading(codomain(StoR)), [ "t$i" for i in 1:length(juniors) ])
+  Rt, t = laurent_polynomial_ring(forget_grading(codomain(StoR)), [ "t$i" for i in 1:length(juniors) ])
   gensRt = Vector{elem_type(Rt)}()
   degsRt = Vector{Vector{ZZRingElem}}()
   for x in gens(S)

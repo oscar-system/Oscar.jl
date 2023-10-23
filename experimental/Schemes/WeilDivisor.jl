@@ -596,7 +596,7 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
 
   # compute a symbolic power
-  RP, _ = Localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
+  RP, _ = localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   K = function_field(X)
 

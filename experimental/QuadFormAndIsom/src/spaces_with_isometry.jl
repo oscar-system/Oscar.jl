@@ -8,7 +8,7 @@
 @doc raw"""
     space(Vf::QuadSpaceWithIsom) -> QuadSpace
 
-Given a quadratic space with isometry $(V, f)$, return the underlying space `V`.
+Given a quadratic space with isometry $(V, f)$, return the underlying space $V$.
 
 # Examples
 ```jldoctest
@@ -26,7 +26,7 @@ space(Vf::QuadSpaceWithIsom) = Vf.V
     isometry(Vf::QuadSpaceWithIsom) -> QQMatrix
 
 Given a quadratic space with isometry $(V, f)$, return the underlying isometry
-`f`.
+$f$.
 
 # Examples
 ```jldoctest
@@ -45,7 +45,7 @@ isometry(Vf::QuadSpaceWithIsom) = Vf.f
     order_of_isometry(Vf::QuadSpaceWithIsom) -> IntExt
 
 Given a quadratic space with isometry $(V, f)$, return the order of the
-underlying isometry `f`.
+underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -69,7 +69,7 @@ order_of_isometry(Vf::QuadSpaceWithIsom) = Vf.n
     rank(Vf::QuadSpaceWithIsom) -> Integer
 
 Given a quadratic space with isometry $(V, f)$, return the rank of the underlying
-space `V`.
+space $V$.
 
 # Examples
 ```jldoctest
@@ -87,7 +87,7 @@ rank(Vf::QuadSpaceWithIsom) = rank(space(Vf))
     dim(Vf::QuadSpaceWithIsom) -> Integer
 
 Given a quadratic space with isometry $(V, f)$, return the dimension of the
-underlying space of `V`.
+underlying space of $V$.
 
 # Examples
 ```jldoctest
@@ -105,7 +105,7 @@ dim(Vf::QuadSpaceWithIsom) = dim(space(Vf))
     characteristic_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
 
 Given a quadratic space with isometry $(V, f)$, return the characteristic
-polynomial of the underlying isometry `f`.
+polynomial of the underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -123,7 +123,7 @@ characteristic_polynomial(Vf::QuadSpaceWithIsom) = characteristic_polynomial(iso
     minimal_polynomial(Vf::QuadSpaceWithIsom) -> QQPolyRingElem
 
 Given a quadratic space with isometry $(V, f)$, return the minimal
-polynomial of the underlying isometry `f`.
+polynomial of the underlying isometry $f$.
 
 # Examples
 ```jldoctest
@@ -141,7 +141,7 @@ minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))
     gram_matrix(Vf::QuadSpaceWithIsom) -> QQMatrix
 
 Given a quadratic space with isometry $(V, f)$, return the Gram matrix
-of the underlying space `V` with respect to its standard basis.
+of the underlying space $V$ with respect to its standard basis.
 
 # Examples
 ```jldoctest
@@ -159,7 +159,7 @@ gram_matrix(Vf::QuadSpaceWithIsom) = gram_matrix(space(Vf))
     det(Vf::QuadSpaceWithIsom) -> QQFieldElem
 
 Given a quadratic space with isometry $(V, f)$, return the determinant
-of the underlying space `V`.
+of the underlying space $V$.
 
 # Examples
 ```jldoctest
@@ -177,7 +177,7 @@ det(Vf::QuadSpaceWithIsom) = det(space(Vf))
     discriminant(Vf::QuadSpaceWithIsom) -> QQFieldElem
 
 Given a quadratic space with isometry $(V, f)$, return the discriminant
-of the underlying space `V`.
+of the underlying space $V$.
 
 # Examples
 ```jldoctest
@@ -195,7 +195,7 @@ discriminant(Vf::QuadSpaceWithIsom) = discriminant(space(Vf))
     is_positive_definite(Vf::QuadSpaceWithIsom) -> Bool
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
-space `V` is positive definite.
+space $V$ is positive definite.
 
 # Examples
 ```jldoctest
@@ -213,7 +213,7 @@ is_positive_definite(Vf::QuadSpaceWithIsom) = is_positive_definite(space(Vf))
     is_negative_definite(Vf::QuadSpaceWithIsom) -> Bool
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
-space `V` is negative definite.
+space $V$ is negative definite.
 
 # Examples
 ```jldoctest
@@ -231,7 +231,7 @@ is_negative_definite(Vf::QuadSpaceWithIsom) = is_negative_definite(space(Vf))
     is_definite(Vf::QuadSpaceWithIsom) -> Bool
 
 Given a quadratic space with isometry $(V, f)$, return whether the underlying
-space `V` is definite.
+space $V$ is definite.
 
 # Examples
 ```jldoctest
@@ -249,7 +249,7 @@ is_definite(Vf::QuadSpaceWithIsom) = is_definite(space(Vf))
     diagonal(Vf::QuadSpaceWithIsom) -> Vector{QQFieldElem}
 
 Given a quadratic space with isometry $(V, f)$, return the diagonal of the
-underlying space `V`.
+underlying space $V$.
 
 # Examples
 ```jldoctest
@@ -269,7 +269,7 @@ diagonal(Vf::QuadSpaceWithIsom) = diagonal(space(Vf))
     signature_tuple(Vf::QuadSpaceWithIsom) -> Tuple{Int, Int, Int}
 
 Given a quadratic space with isometry $(V, f)$, return the signature
-tuple of the underlying space `V`.
+tuple of the underlying space $V$.
 
 # Examples
 ```jldoctest
@@ -293,8 +293,8 @@ signature_tuple(Vf::QuadSpaceWithIsom) = signature_tuple(space(Vf))
     quadratic_space_with_isometry(V:QuadSpace, f::QQMatrix; check::Bool = false)
                                                             -> QuadSpaceWithIsom
 
-Given a quadratic space `V` and a matrix `f`, if `f` defines an isometry of `V`
-of order `n` (possibly infinite), return the corresponding quadratic space with
+Given a quadratic space $V$ and a matrix $f$, if $f$ defines an isometry of $V$
+of order $n$ (possibly infinite), return the corresponding quadratic space with
 isometry pair $(V, f)$.
 
 # Examples
@@ -339,10 +339,10 @@ end
 @doc raw"""
     quadratic_space_with_isometry(V::QuadSpace; neg::Bool = false) -> QuadSpaceWithIsom
 
-Given a quadratic space `V`, return the quadratic space with isometry pair $(V, f)$
-where `f` is represented by the identity matrix.
+Given a quadratic space $V$, return the quadratic space with isometry pair $(V, f)$
+where $f$ is represented by the identity matrix.
 
-If `neg` is set to true, then the isometry `f` is negative the identity on `V`.
+If `neg` is set to `true`, then the isometry $f$ is negative the identity on $V$.
 
 # Examples
 ```jldoctest
@@ -378,7 +378,7 @@ end
     rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
 
 Given a quadratic space with isometry $(V, f)$, return the pair $(V^a, f$) where
-$V^a$ is the same space as `V` with the associated quadratic form rescaled by `a`.
+$V^a$ is the same space as $V$ with the associated quadratic form rescaled by $a$.
 
 # Examples
 ```jldoctest
@@ -462,8 +462,8 @@ end
 
 Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
 return the quadratic space with isometry $(V, f)$ together with the injections
-$V_i \to V$, where `V` is the direct sum $V := V_1 \oplus \ldots \oplus V_n$ and
-`f` is the isometry of `V` induced by the diagonal actions of the $f_i$'s.
+$V_i \to V$, where $V$ is the direct sum $V := V_1 \oplus \ldots \oplus V_n$ and
+$f$ is the isometry of $V$ induced by the diagonal actions of the $f_i$'s.
 
 For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products
 agree and they are therefore called biproducts.
@@ -545,8 +545,8 @@ direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
 
 Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
 return the quadratic space with isometry $(V, f)$ together with the projections
-$V \to V_i$, where `V` is the direct product $V := V_1 \times \ldots \times V_n$ and
-`f` is the isometry of `V` induced by the diagonal actions of the $f_i$'s.
+$V \to V_i$, where $V$ is the direct product $V := V_1 \times \ldots \times V_n$ and
+$f$ is the isometry of $V$ induced by the diagonal actions of the $f_i$'s.
 
 For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products
 agree and they are therefore called biproducts.
@@ -628,8 +628,8 @@ direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
 
 Given a collection of quadratic spaces with isometries $(V_1, f_1), \ldots, (V_n, f_n)$,
 return the quadratic space with isometry $(V, f)$ together with the injections
-$V_i \to V$ and the projections $V \to V_i$, where `V` is the biproduct
-$V := V_1 \oplus \ldots \oplus V_n$ and `f` is the isometry of `V` induced by the
+$V_i \to V$ and the projections $V \to V_i$, where $V$ is the biproduct
+$V := V_1 \oplus \ldots \oplus V_n$ and $f$ is the isometry of $V$ induced by the
 diagonal actions of the $f_i$'s.
 
 For objects of type `QuadSpaceWithIsom`, finite direct sums and finite direct products

@@ -55,7 +55,7 @@
         end
     end
     @testset "val_t" begin
-        Kt,t = RationalFunctionField(QQ,"t")
+        Kt,t = rational_function_field(QQ,"t")
         Ktx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(Kt,6)
         Cyclic5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Cyclic5Homogenized)])
         Katsura5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Katsura5Homogenized)])
