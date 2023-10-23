@@ -127,8 +127,7 @@ julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
 Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = proj_space(A, 2)
-(Projective space of dim 2 over Integers modulo 4453
-, MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Integers modulo 4453, MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
 (1 : 3 : 1)
