@@ -124,9 +124,9 @@ end
     @test degree(C) == 9
 
     @test Oscar.curve_components(C) == Dict{ProjPlaneCurve{QQFieldElem},Int64}(
-        ProjPlaneCurve(T(x)) => 2,
-        ProjPlaneCurve(T(y)) => 3,
-        ProjPlaneCurve(T(x^4 - y^3 * z)) => 1,
+        ProjPlaneCurve(x) => 2,
+        ProjPlaneCurve(y) => 3,
+        ProjPlaneCurve(x^4 - y^3 * z) => 1,
     )
 
     @test C == ProjPlaneCurve(2 * F)
@@ -194,15 +194,15 @@ end
 
 @testset "ProjPlaneCurve int_multiplicity functions" begin
     T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-    F = ProjPlaneCurve(T((x^2 + y^2) * (x^2 + y^2 + 2 * y * z)))
-    G = ProjPlaneCurve(T((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z)))
+    F = ProjPlaneCurve((x^2 + y^2) * (x^2 + y^2 + 2 * y * z))
+    G = ProjPlaneCurve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z))
     PP = proj_space(QQ, 2)
 
     L = curve_intersect(PP[1], F, G)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-2), QQ(1)])
 
-    @test L[1] == [ProjPlaneCurve(T(x^2 + y^2))]
+    @test L[1] == [ProjPlaneCurve(x^2 + y^2)]
     @test length(L[2]) == 2
     @test length(findall(x -> x == P, L[2])) == 1
     @test length(findall(x -> x == Q, L[2])) == 1
@@ -214,14 +214,14 @@ end
 @testset "ProjPlaneCurve singularity functions" begin
     T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     PP = proj_space(QQ, 2)
-    F = ProjPlaneCurve(T(x * z + y^2))
+    F = ProjPlaneCurve(x * z + y^2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
 
     @test curve_singular_locus(F) == [[], []]
     @test is_smooth_curve(F)
     @test multiplicity(F, P) == 1
 
-    H = ProjPlaneCurve(T(x * y * (x + y)))
+    H = ProjPlaneCurve(x * y * (x + y))
     @test !is_smooth_curve(H)
 
     G = ProjPlaneCurve(x^2 * (x + y) * (y^3 - x^2 * z))
@@ -231,17 +231,17 @@ end
     P3 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
     P4 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(2), QQ(1)])
 
-    @test S[1] == [ProjPlaneCurve(T(x))]
+    @test S[1] == [ProjPlaneCurve(x)]
     @test length(S[2]) == 2
     @test length(findall(x -> x == P1, S[2])) == 1
     @test length(findall(x -> x == P2, S[2])) == 1
     @test !is_smooth(G, P1)
     @test is_smooth(G, P3)
 
-    @test tangent(G, P3) == ProjPlaneCurve(T(x + y))
+    @test tangent(G, P3) == ProjPlaneCurve(x + y)
     @test tangent_lines(G, P1) == Dict{ProjPlaneCurve{QQFieldElem},Int64}(
-        ProjPlaneCurve(T(x)) => 4,
-        ProjPlaneCurve(T(x + y)) => 1,
+        ProjPlaneCurve(x) => 4,
+        ProjPlaneCurve(x + y) => 1,
     )
 
     @test multiplicity(G, P1) == 5
@@ -266,7 +266,7 @@ end
 
 @testset "ProjCurveDivisor basic functions" begin
     T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
-    C = ProjPlaneCurve(T(y^2 + y * z + x^2))
+    C = ProjPlaneCurve(y^2 + y * z + x^2)
     PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
@@ -275,8 +275,8 @@ end
     @test -2 * D == Oscar.ProjCurveDivisor(C, Dict(P => -6, Q => 4))
     @test !Oscar.is_effective(D)
     @test Oscar.is_effective(Oscar.ProjCurveDivisor(C, P, 3))
-    F = T(x)
-    phi = T(x) // T(y)
+    F = x
+    phi = x // y
     @test multiplicity(C, F, P) == 1
     @test multiplicity(C, phi, P) == -1
     @test Oscar.divisor(PP[1], C, F) == Oscar.ProjCurveDivisor(C, Dict(P => 1, Q => 1))
@@ -286,7 +286,7 @@ end
 @testset "ProjCurveDivisor global sections" begin
     S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
     T, _ = grade(S)
-    C = ProjPlaneCurve(T(y^2 * z - x * (x - z) * (x + 3 * z)))
+    C = ProjPlaneCurve(y^2 * z - x * (x - z) * (x + 3 * z))
     PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
     R = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
