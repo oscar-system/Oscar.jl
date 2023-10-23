@@ -26,7 +26,7 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
 end
 
 function check_dimension(
-  dynkin::Symbol, n::Int64, lambda::Vector{Int64}, monomial_order::String
+  dynkin::Symbol, n::Int64, lambda::Vector{Int64}, monomial_order::Symbol
 )
   basis = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda; monomial_order)
   L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
@@ -112,7 +112,7 @@ end
 
   @testset "Check dimension" begin
     @testset "Monomial order $monomial_order" for monomial_order in
-                                                  ("lex", "revlex", "degrevlex")
+                                                  (:lex, :revlex, :degrevlex)
       check_dimension(:A, 3, [1, 1, 1], monomial_order)
       #check_dimension(:B, 3, [2,1,0], monomial_order)
       #check_dimension(:C, 3, [1,1,1], monomial_order)

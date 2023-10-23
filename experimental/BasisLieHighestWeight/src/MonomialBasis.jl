@@ -2,7 +2,7 @@ struct MonomialBasis
   lie_algebra::LieAlgebraStructure
   # birational_sequence::BirationalSequence
   highest_weight::Vector{Int}
-  monomial_order::Union{String,Function}
+  monomial_order::Union{Symbol,Function}
   dimension::Int
   monomials::Vector{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
@@ -12,7 +12,7 @@ struct MonomialBasis
   function MonomialBasis(
     lie_algebra::LieAlgebraStructure,
     highest_weight::Vector{<:IntegerUnion},
-    monomial_order::Union{String,Function},
+    monomial_order::Union{Symbol,Function},
     monomials::Vector{ZZMPolyRingElem},
     minkowski_gens::Vector{Vector{Int}},
     birational_sequence::BirationalSequence,

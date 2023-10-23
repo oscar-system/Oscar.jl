@@ -1,23 +1,20 @@
 function get_monomial_order_lt(
-  monomial_order::Union{String,Function}, ZZx::ZZMPolyRing
+  ordering_input::Union{Symbol,Function}, ZZx::ZZMPolyRing
 )::Function
   """
   Returns the desired monomial_order function less than, i.e. return true <=> mon1 < mon2
   """
-  if isa(monomial_order, Function)
-    choosen_monomial_order = monomial_order
+  if isa(ordering_input, Function)
+    choosen_monomial_order = ordering_input
   else
-    # Ensure that `monomial_order` is a valid function before trying to call it
-    if isdefined(Main, Symbol(monomial_order))
-      x = gens(ZZx)
-      choosen_monomial_order = eval(Symbol(monomial_order))(x)
-    elseif monomial_order == "oplex"
+    if ordering_input == :oplex
       return oplex_lt
     else
-      error("No monomial_order: $monomial_order")
+      choosen_monomial_order = monomial_ordering(ZZx, ordering_input)
     end
   end
-  return (mon1, mon2) -> (cmp(choosen_monomial_order, mon1, mon2) == -1)
+  return (mon1::ZZMPolyRingElem, mon2::ZZMPolyRingElem) ->
+    (cmp(choosen_monomial_order, mon1, mon2) < 0)
 end
 
 function oplex_lt(mon1::ZZMPolyRingElem, mon2::ZZMPolyRingElem)
