@@ -75,7 +75,7 @@ end
 #function basis(R::RootSystem)
 #  rk = rank(R)
 #  it = 1:rk
-#  return [RootLatticeElem(R, matrix(QQ, 1, rk, i .== it)) for i in 1:rk]
+#  return [RootSpaceElem(R, matrix(QQ, 1, rk, i .== it)) for i in 1:rk]
 #end
 
 function fundamental_weight(R::RootSystem, i::Int)
@@ -146,7 +146,7 @@ function nroots(R::RootSystem)
 end
 
 function positive_root(R::RootSystem, i::Int)
-  return R.positive_root[i]::RootSpaceElem
+  return R.positive_roots[i]::RootSpaceElem
 end
 
 function positive_roots(R::RootSystem)
@@ -154,7 +154,7 @@ function positive_roots(R::RootSystem)
 end
 
 function negative_root(R::RootSystem, i::Int)
-  return -R.positive_root[i]::RootSpaceElem
+  return -R.positive_roots[i]::RootSpaceElem
 end
 
 function negative_roots(R::RootSystem)
@@ -195,6 +195,10 @@ struct RootSpaceElem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
 end
 
+function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
+  return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+end
+
 function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
@@ -202,7 +206,7 @@ end
 function Base.:(+)(r::RootSpaceElem, r2::RootSpaceElem)
   @req r.root_system === r2.root_system "$r and $r2 must belong to the same root space"
 
-  return RootLatticeElem(r.root_system, r.vec + r2.vec)
+  return RootSpaceElem(r.root_system, r.vec + r2.vec)
 end
 
 function Base.:(-)(r::RootSpaceElem, r2::RootSpaceElem)
@@ -298,11 +302,11 @@ struct WeightLatticeElem
 end
 
 @doc raw"""
-    weight(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
+    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
 
 Returns the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
 """
-function weight(R::RootSystem, v::Vector{<:IntegerUnion})
+function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
 end
 
@@ -313,7 +317,7 @@ end
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
   @req w.root_system === w2.root_system "$w and $w2 must belong to the same weight lattice"
 
-  return RootLatticeElem(w.root_system, w.vec + w2.vec)
+  return RootSpaceElem(w.root_system, w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)

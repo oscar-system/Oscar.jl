@@ -43,28 +43,28 @@
     end
 
     @testset "A_4(QQ)" begin
-      L = lie_algebra(QQ, ('A', 4))
+      L = lie_algebra(QQ, :A, 4)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
       )
     end
 
     @testset "B_3(QQ)" begin
-      L = lie_algebra(QQ, ('B', 3))
+      L = lie_algebra(QQ, :B, 3)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
       )
     end
 
     @testset "A_4(CF(4))" begin
-      L = lie_algebra(cyclotomic_field(4)[1], ('A', 4))
+      L = lie_algebra(cyclotomic_field(4)[1], :A, 4)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
       )
     end
 
     @testset "B_3(CF(4))" begin
-      L = lie_algebra(cyclotomic_field(4)[1], ('B', 3))
+      L = lie_algebra(cyclotomic_field(4)[1], :B, 3)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
       )

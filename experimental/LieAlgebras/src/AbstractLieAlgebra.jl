@@ -334,14 +334,14 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
   for i in 1:npos, j in 1:npos
     # [x_i, x_j]
-    fl, k = is_positive_root_with_index(positive_root(R, i) + positive_root(R, j))
+    fl, k = is_positive_root_with_index(positive_root(rs, i) + positive_root(rs, j))
     struct_consts[i, j] = fl ? sparse_row(R, [k], [1]) : sparse_row(R)
     # [x_i, y_j] = δ_ij h_i
     struct_consts[i, npos + j] = i == j ? sparse_row(R, [2 * npos + i], [1]) : sparse_row(R)
     # [y_j, x_i] = -[x_i, y_j]
     struct_consts[npos + j, i] = -struct_consts[i, npos + j]
     # [y_i, y_j]
-    fl, k = is_negative_root_with_index(negative_root(R, i) + negative_root(R, j))
+    fl, k = is_negative_root_with_index(negative_root(rs, i) + negative_root(rs, j))
     struct_consts[npos + i, npos + j] = fl ? sparse_row(R, [npos + k], [1]) : sparse_row(R)
   end
   for i in 1:nsimp, j in 1:npos
