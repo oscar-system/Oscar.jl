@@ -365,7 +365,7 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
     [Symbol("h_$i") for i in 1:nsimp]
   ]
 
-  L = lie_algebra(R, struct_consts::Matrix{SRow{C}}, s; cached, check::Bool=true)
+  L = lie_algebra(R, struct_consts, s; cached, check=true) # TODO: remove check
   set_attribute!(L, :is_simple, true)
   return L
 end
