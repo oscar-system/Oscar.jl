@@ -13,7 +13,7 @@ struct WeylGroup <: CoxeterGroup
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
 
   function WeylGroup(finite::Bool, refl::ZZMatrix, root_system::RootSystem)
-    new(finite, refl, root_system)
+    return new(finite, refl, root_system)
   end
 end
 
@@ -34,7 +34,7 @@ function Base.isfinite(G::WeylGroup)
 end
 
 function Base.one(W::WeylGroup)
-  return WeylGroupElem(W, UInt8[]; in_normal_form=true)
+  return WeylGroupElem(W, UInt8[])
 end
 
 function Base.show(io::IO, W::WeylGroup)
@@ -55,7 +55,7 @@ end
 
 function gen(W::WeylGroup, i::Int)
   @req 1 <= i <= ngens(W) "invalid index"
-  return WeylGroupElem(W, [i]; in_normal_form=true)
+  return WeylGroupElem(W, UInt8[i])
 end
 
 function gens(W::WeylGroup)
@@ -103,20 +103,20 @@ struct WeylGroupElem
   parent::WeylGroup     # parent group
   word::Vector{UInt8}   # short revlex normal form of the word
 
-  function WeylGroupElem(W::WeylGroup, word::Vector{Int}; in_normal_form::Bool=false)
-    if in_normal_form
-      return new(W, word)
-    end
-
-    @req all(1 <= i <= ngens(W) for i in word) "word $word contains invalid generators"
-
-    x = new(W, UInt8[])
-    for s in Iterators.reverse(word)
-      _lmul!(W.refl, x.word, UInt8(s))
-    end
-
-    return x
+  function WeylGroupElem(W::WeylGroup, word::Vector{UInt8})
+    return new(W, word)
   end
+end
+
+function WeylGroupElem(W::WeylGroup, word::Vector{Int})
+  @req all(1 <= i <= ngens(W) for i in word) "word $word contains invalid generators"
+
+  w = UInt8[]
+  for s in Iterators.reverse(word)
+    _lmul!(W.refl, w, UInt8(s))
+  end
+
+  return WeylGroupElem(W, w)
 end
 
 function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
@@ -127,14 +127,14 @@ function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
     _lmul!(x.parent.refl, word, s)
   end
 
-  return WeylGroupElem(x.parent, word; in_normal_form=true)
+  return WeylGroupElem(x.parent, word)
 end
 
 function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
   @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
 
   w2 = deepcopy(w)
-  for s in reverse(x.word)
+  for s in Iterators.reverse(x.word)
     reflect!(w2, Int(s))
   end
 
@@ -150,7 +150,7 @@ function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
     return dict[x]
   end
 
-  y = WeylGroupElem(x.parent, deepcopy_internal(x.word, dict); in_normal_form=true)
+  y = WeylGroupElem(x.parent, deepcopy_internal(x.word, dict))
   dict[x] = y
   return y
 end
@@ -164,7 +164,12 @@ function Base.hash(x::WeylGroupElem, h::UInt)
 end
 
 function Base.inv(x::WeylGroupElem)
-  return WeylGroupElem(x.parent, reverse(word(x)); in_normal_form=false)
+  w = UInt8[]
+  sizehint!(w, length(word(x)))
+  for s in word(x)
+    _lmul!(parent(x).refl, w, s)
+  end
+  return WeylGroupElem(parent(x), w)
 end
 
 function Base.isone(x::WeylGroupElem)
@@ -196,8 +201,8 @@ function parent_type(::Type{WeylGroupElem})
   return WeylGroup
 end
 
-function reduced_expressions(x::WeylGroupElem)
-  return ReducedExpressionIterator(x)
+function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
+  return ReducedExpressionIterator(x, up_to_commutation)
 end
 
 @doc raw"""
@@ -213,6 +218,7 @@ end
 struct ReducedExpressionIterator
   el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
   #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
+  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
 end
 
 function Base.IteratorSize(::Type{ReducedExpressionIterator})
@@ -224,8 +230,8 @@ function Base.eltype(::Type{ReducedExpressionIterator})
 end
 
 function Base.iterate(iter::ReducedExpressionIterator)
-  word = deepcopy(word(iter.el))
-  return word, word
+  w = deepcopy(word(iter.el))
+  return w, w
 end
 
 function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
@@ -256,6 +262,13 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       reflect!(weight, s)
       s += 1
     else
+      if iter.up_to_commutation &&
+        i < length(word) && s < next[i+1] &&
+        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i+1]))
+        s += 1
+        continue
+      end
+
       next[i] = UInt8(s)
       reflect!(weight, s)
       i -= 1
