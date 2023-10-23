@@ -17,12 +17,16 @@ struct WeylGroup <: CoxeterGroup
   end
 end
 
-function weyl_group(gcm::ZZMatrix)
-  return weyl_group(root_system(gcm))
+function weyl_group(cartan_matrix::ZZMatrix)
+  return weyl_group(root_system(cartan_matrix))
 end
 
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
+end
+
+function (W::WeylGroup)(word::Vector{Int})
+  return WeylGroupElem(W, word)
 end
 
 function Base.IteratorSize(::Type{WeylGroup})
@@ -43,10 +47,6 @@ end
 
 function coxeter_matrix(W::WeylGroup)
   return cartan_to_coxeter_matrix(cartan_matrix(root_system(W)))
-end
-
-function (W::WeylGroup)(word::Vector{Int})
-  return WeylGroupElem(W, word)
 end
 
 function elem_type(::Type{WeylGroup})
