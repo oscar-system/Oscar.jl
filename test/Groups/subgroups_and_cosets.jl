@@ -331,6 +331,19 @@ end
    
 end
 
+@testset "Subgroups of perm. groups defined by properties" begin
+   G = symmetric_group(4)
+   S = subgroup_by_property(is_one, G)[1]
+   @test order(S) == 1
+   S = subgroup_by_property(x -> isa(x, PermGroupElem), G)[1]
+   @test order(S) == order(G)
+   S = subgroup_by_property(x -> sign(x) == 1, G)[1]
+   index = all(x -> sign(x) == 1, gens(G)) ? 1 : 2
+   @test index * order(S) == order(G)
+
+   @test_throws MethodError subgroup_by_property(is_one, small_group(2, 1))
+end
+
 @testset "Complement classes" begin
    # solvable group
    G = symmetric_group(4)

@@ -101,7 +101,7 @@ function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
 end
 
 """
-    orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
+    orbit_cones(I::MPolyIdeal, Q::QQMatrix, G::PermGroup = symmetric_group(1))
 
 Return orbit representatives of `G` on the set of those cones
 whose defining rays are given by subsets `S` of the rows of `Q`,
@@ -109,7 +109,7 @@ such that the matrix `S` has full rank and such that `I` is
 monomial-free (see [`is_monomial_free`](@ref)) w.r.t. the variables `x_i`
 for which the `i`-th row of `Q` is not contained in `S`.
 """
-function orbit_cones(I::MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
+function orbit_cones(I::MPolyIdeal, Q::QQMatrix, G::PermGroup = symmetric_group(1))
     nr_variables, projected_dimension = size(Q)
 
     collector_cones = Cone{QQFieldElem}[]
@@ -145,8 +145,42 @@ end
 #T what if some projections lie in the same orbit?
 #T later we expand the orbits, do we want to check this here?
 
+
 @doc raw"""
-    action_on_target(Q::Matrix{Int}, G::PermGroup)
+    symmetry_group_q_matrix(Q::QQMatrix)
+
+Return the group of those permutations $\pi$ of degree `size(Q, 1)`
+such that permuting the rows of `Q` with $\pi$ has the same effect
+as multiplying `Q` from the right with a matrix over `QQ`.
+
+# Examples
+
+```jldoctest
+julia> Q = matrix(QQ, [ 1  1 ; -1  1 ; -1 -1 ; 1 -1 ])
+[ 1    1]
+[-1    1]
+[-1   -1]
+[ 1   -1]
+
+julia> S, emb = Oscar.GITFans.symmetry_group_q_matrix(Q);
+
+julia> describe(S)
+"D8"
+```
+"""
+function symmetry_group_q_matrix(Q::QQMatrix)
+  n = ncols(Q)
+  prop = function(elm)
+    Qimg = Q[Vector{Int}(elm), 1:n]  # permute the rows with `pi`
+    return can_solve(Q, Qimg)
+  end
+  G = symmetric_group(nrows(Q))
+  return subgroup_by_property(prop, G)
+end
+
+
+@doc raw"""
+    action_on_target(Q::QQMatrix, G::PermGroup)
 
 Let `Q` be an $n \times m$ Q-matrix, and `G` be a permutation group
 on $n$ points that describes an action on the rows of `Q`.
@@ -156,17 +190,17 @@ to its induced matrix action on the $m$-dimensional space over the Rationals.
 # Examples
 
 ```jldoctest
-julia> Q = [
-        1  1   0   0   0
-        1  0   1   1   0
-        1  0   1   0   1
-        1  0   0   1   1
-        0  1   0   0  -1
-        0  1   0  -1   0
-        0  1  -1   0   0
-        0  0   1   0   0
-        0  0   0   1   0
-        0  0   0   0   1 ];
+julia> Q = matrix(QQ, [
+        1  1   0   0   0 ;
+        1  0   1   1   0 ;
+        1  0   1   0   1 ;
+        1  0   0   1   1 ;
+        0  1   0   0  -1 ;
+        0  1   0  -1   0 ;
+        0  1  -1   0   0 ;
+        0  0   1   0   0 ;
+        0  0   0   1   0 ;
+        0  0   0   0   1 ] );
 
 julia> n = nrows(Q)
 10
@@ -196,18 +230,17 @@ The cone defined by $Q{J}$ is mapped to
 $Q{J} \cdot \rho(\pi^{-1}) = (Q \cdot \rho(\pi^{-1}))\{J\} = Q^\pi\{J\}$,
 which is equal to $Q\{J^{\pi^{-1}}\}$.
 """
-function action_on_target(Q::Matrix{Int}, G::PermGroup)
+function action_on_target(Q::QQMatrix, G::PermGroup)
 
     # For each permutation generator describing the action on the rows of Q,
     # compute the induced action on the column space,
     # by solving a linear equation system.
     m, n = size(Q)
-    mat = matrix(QQ, Q)
     permgens = gens(G)
-    matgens = typeof(mat)[]
+    matgens = typeof(Q)[]
     for ppi in permgens
-      matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
-      push!(matgens, solve(mat, matimg))
+      matimg = Q[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
+      push!(matgens, solve(Q, matimg))
     end
 
     # Create the matrix group.
@@ -557,12 +590,12 @@ end
 
 
 """
-    git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+    git_fan(a::MPolyIdeal, Q::QQMatrix, G::PermGroup)
 
 Return the object that represents the polyhedral fan given by
 the ideal `a`, the grading matrix `Q`, and the symmetry group `G`.
 """
-function git_fan(a::MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
+function git_fan(a::MPolyIdeal, Q::QQMatrix, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)

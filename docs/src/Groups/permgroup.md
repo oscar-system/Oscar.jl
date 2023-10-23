@@ -91,6 +91,7 @@ blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 all_blocks(G::PermGroup)
+subgroup_by_property(prop::Function, G::PermGroup)
 ```
 
 ## Cycle structures

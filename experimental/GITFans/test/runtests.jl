@@ -3,23 +3,25 @@
     using Oscar
     using Oscar.GITFans
 
-    Q = [
-     1  1   0   0   0
-     1  0   1   1   0
-     1  0   1   0   1
-     1  0   0   1   1
-     0  1   0   0  -1
-     0  1   0  -1   0
-     0  1  -1   0   0
-     0  0   1   0   0
-     0  0   0   1   0
+    Qint = [
+     1  1   0   0   0 ;
+     1  0   1   1   0 ;
+     1  0   1   0   1 ;
+     1  0   0   1   1 ;
+     0  1   0   0  -1 ;
+     0  1   0  -1   0 ;
+     0  1  -1   0   0 ;
+     0  0   1   0   0 ;
+     0  0   0   1   0 ;
      0  0   0   0   1
      ]
+
+    Q = matrix(QQ, Qint)
 
     n = nrows(Q)
     Qt, T = polynomial_ring(QQ, :T => 1:n)
     D = free_abelian_group(ncols(Q))
-    w = [D(Q[i, :]) for i = 1:n]
+    w = [D(Qint[i, :]) for i = 1:n]
     R, T = grade(Qt, w)
     a = ideal([
         T[5]*T[10] - T[6]*T[9] + T[7]*T[8],
@@ -29,9 +31,12 @@
         T[2]*T[10] - T[3]*T[9] + T[4]*T[8],
     ])
 
-    perms_list = [ [1,3,2,4,6,5,7,8,10,9], [5,7,1,6,9,2,8,4,10,3] ];
-    sym = symmetric_group(n);
-    G, emb = sub([sym(x) for x in perms_list]...);
+    # Compute the symmetry group of `Q`,
+    # check that it is equal to the group claimed in the paper.
+    # (The function returns different generators.)
+    G, emb = GITFans.symmetry_group_q_matrix(Q)
+    @test describe(G) == "S5"
+    @test G == sub(G([1,3,2,4,6,5,7,8,10,9]), G([5,7,1,6,9,2,8,4,10,3]))[1]
 
     fanobj = GITFans.git_fan(a, Q, G)
     @test f_vector(fanobj) == [20, 110, 240, 225, 76]
