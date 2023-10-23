@@ -25,8 +25,8 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
       println(io, "The realizations are parametrized by")
     end
     # println isn't ideal as it prints the matrix as one big line
-    println(io, RS.realization_matrix)
-    print(io, "in the ", RS.ambient_ring)
+    show(io, MIME("text/plain"), RS.realization_matrix)
+    print(io, "\nin the ", RS.ambient_ring)
     I = RS.defining_ideal
     if (typeof(I) isa NumFieldOrdIdl && I.gen != ZZ(0)) ||
       (typeof(I) isa Ideal && !iszero(I))
