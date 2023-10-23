@@ -90,72 +90,13 @@ function scale_weights_to_integers(
 end
 
 function get_lattice_points_of_weightspace(
-  weights_eps::Vector{Vector{QQFieldElem}},
-  weight_eps::Vector{QQFieldElem},
-  lie_type::Symbol,
+  weights_alpha::Vector{Vector{QQFieldElem}}, weight_alpha::Vector{QQFieldElem}
 )
   """
-  calculates all lattice points in a given weightspace for a lie algebra of type type
+  calculates all lattice points in a given weightspace for lie algebras
   input:
-  weights: the operator weights in eps_i
-  weight: lambda - mu
-
-  output: all lattice points with weight weight
-  """
-  # Rescale to integers
-  scaled_weights_eps, scaled_weight_eps = scale_weights_to_integers(weights_eps, weight_eps)
-  if lie_type in [:A, :G]
-    return get_lattice_points_of_weightspace_A_G_n(scaled_weights_eps, scaled_weight_eps)
-  else
-    return get_lattice_points_of_weightspace_Xn(scaled_weights_eps, scaled_weight_eps)
-  end
-end
-
-function get_lattice_points_of_weightspace_A_G_n(weights_eps, weight_eps)
-  """
-  calculates all monomials in a given weightspace for lie algebras that have type A or G
-  input:
-  weights: the operator weights in eps_i
-  weight: lambda - mu
-
-  output: all monomials with weight weight
-
-  works by calculating all integer solutions to the following linear program:
-  [    |              |     1 ]       [   |   ]      
-  [weights[1]... weights[k] 1 ]   *   [  res  ]   =   weight 
-  [    |              |     1 ]       [   |   ] 
-  [    |              |     1 ]       [   x   ]
-  where res[i] >= 0 for all i
-
-  """
-  n = length(weights_eps)
-  m = length(weight_eps)
-  A = zero_matrix(QQ, 2m + n, n + 1)
-  b = [zero(QQ) for _ in 1:(2m + n)]
-  # equalities
-  for i in 1:n
-    w = matrix(QQ, m, 1, weights_eps[i])
-    A[1:m, i] = w
-    A[(m + 1):(2m), i] = -w
-  end
-  A[1:m, n + 1] = [one(QQ) for _ in 1:m]
-  A[(m + 1):(2m), n + 1] = [-one(QQ) for _ in 1:m]
-  b[1:m] = weight_eps
-  b[(m + 1):(2m)] = -weight_eps
-  # non-negativity
-  for i in 1:n
-    A[2m + i, i] = -1
-  end
-
-  return [point[1:n] for point in lattice_points(polyhedron(A, b))]
-end
-
-function get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
-  """
-  calculates all lattice points in a given weightspace for lie algebras that don't have type A or G
-  input:
-  weights: the operator weights in eps_i
-  weight: lambda - mu
+  weights: the operator weights in alpha_i
+  weight: lambda - mu in alpha_i
 
   output: all lattice points with weight weight
 
@@ -166,18 +107,18 @@ function get_lattice_points_of_weightspace_Xn(weights_eps, weight_eps)
   [   |              |    ]       [   |   ]
   where res[i] >= 0 for all i
   """
-  n = length(weights_eps)
-  m = length(weight_eps)
+  n = length(weights_alpha)
+  m = length(weight_alpha)
   A = zero_matrix(QQ, 2m + n, n)
   b = [zero(QQ) for _ in 1:(2m + n)]
   # equalities
   for i in 1:n
-    w = matrix(QQ, m, 1, weights_eps[i])
+    w = matrix(QQ, m, 1, weights_alpha[i])
     A[1:m, i] = w
     A[(m + 1):(2m), i] = -w
   end
-  b[1:m] = weight_eps
-  b[(m + 1):(2m)] = -weight_eps
+  b[1:m] = weight_alpha
+  b[(m + 1):(2m)] = -weight_alpha
   # non-negativity
   for i in 1:n
     A[2m + i, i] = -1

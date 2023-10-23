@@ -545,13 +545,10 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_eps,
-      w_to_eps(
-        Symbol(lie_algebra.lie_type),
-        lie_algebra.rank,
-        convert(Vector{QQFieldElem}, weight_w),
+      birational_sequence.weights_alpha,
+      w_to_alpha(
+        lie_algebra.lie_type, lie_algebra.rank, convert(Vector{QQFieldElem}, weight_w)
       ),
-      lie_algebra.lie_type,
     ),
   )
   #println("before sort")
