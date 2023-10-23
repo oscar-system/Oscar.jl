@@ -263,8 +263,9 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       s += 1
     else
       if iter.up_to_commutation &&
-        i < length(word) && s < next[i+1] &&
-        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i+1]))
+        i < length(word) &&
+        s < next[i + 1] &&
+        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i + 1]))
         s += 1
         continue
       end
