@@ -2,8 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  S, _ = grade(R, [1, 1])
+  S, = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 

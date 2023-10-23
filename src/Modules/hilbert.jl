@@ -61,9 +61,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Rg, (x, y, z) = grade(R, [4,3,2]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 

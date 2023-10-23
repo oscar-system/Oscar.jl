@@ -80,10 +80,7 @@ Given a curve `C` which is assumed to be smooth and irreducible, return the divi
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2 + y*z + x^2))
@@ -297,10 +294,7 @@ Return the multiplicity of the rational function `phi` on the curve `C` at the p
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2 + y*z + x^2))
@@ -440,10 +434,7 @@ Return the divisor defined by the rational function `phi` on the curve `C`.
 
 # Examples
 ```jldoctest
-julia> S, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2 + y*z + x^2))
@@ -584,10 +575,7 @@ Return a set of generators of the global sections of the sheaf associated to the
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
@@ -679,10 +667,7 @@ otherwise
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
@@ -719,10 +704,7 @@ Return `true` if the divisor `D` is principal, and `false` otherwise
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
@@ -757,10 +739,7 @@ is linearly equivalent to the divisor defined by `phi`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))

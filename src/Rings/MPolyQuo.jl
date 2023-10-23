@@ -1544,19 +1544,12 @@ w^2
 ```
 
 ```jldoctest
-julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
-
 julia> G = abelian_group([0, 0])
 GrpAb: Z^2
 
-julia> g = gens(G)
-2-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+julia> W = [G[1], G[1], G[2], G[2], G[2]];
 
-julia> W = [g[1], g[1], g[2], g[2], g[2]];
-
-julia> S, _ = grade(R, W);
+julia> S, x, y = graded_polynomial_ring(QQ, "x" => 1:2, "y" => 1:3; weights = W);
 
 julia> L = homogeneous_component(S, [2,1]);
 
@@ -1564,7 +1557,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree Element of G with components [2 1]
+  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2 1]
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end

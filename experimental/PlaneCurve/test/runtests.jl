@@ -114,9 +114,8 @@ end
 end
 
 @testset "ProjPlaneCurve constructors" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
-    F = T(y^3 * x^6 - y^6 * x^2 * z)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = y^3 * x^6 - y^6 * x^2 * z
     C = ProjPlaneCurve(F)
 
     @test Oscar.defining_equation(C) == F.f
@@ -134,35 +133,33 @@ end
 end
 
 @testset "ProjPlaneCurve reducible functions" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
-    F = ProjPlaneCurve(T(x^2 + y^2))
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = ProjPlaneCurve(x^2 + y^2)
     P = Point([QQ(0), QQ(0), QQ(1)])
 
     @test Oscar.is_irreducible(F)
     @test Oscar.is_reduced(F)
     @test Oscar.reduction(F) == F
 
-    G = ProjPlaneCurve(T(y^2))
+    G = ProjPlaneCurve(y^2)
     @test !Oscar.is_irreducible(G)
     @test !Oscar.is_reduced(G)
-    @test Oscar.reduction(G) == ProjPlaneCurve(T(y))
+    @test Oscar.reduction(G) == ProjPlaneCurve(y)
 
-    H = ProjPlaneCurve(T(x * y))
+    H = ProjPlaneCurve(x * y)
 
     @test !Oscar.is_irreducible(H)
     @test Oscar.is_reduced(H)
     @test Oscar.reduction(H) == H
 
-    @test Oscar.union(G, H) == ProjPlaneCurve(T(x * y^3))
+    @test Oscar.union(G, H) == ProjPlaneCurve(x * y^3)
 end
 
 @testset "ProjPlaneCurve intersection functions" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
-    F = ProjPlaneCurve(T(x * (x + y)))
-    G = ProjPlaneCurve(T(x * z + y^2 + z^2))
-    H = ProjPlaneCurve(T(x * (x + y) * y))
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = ProjPlaneCurve(x * (x + y))
+    G = ProjPlaneCurve(x * z + y^2 + z^2)
+    H = ProjPlaneCurve(x * (x + y) * y)
     M = ProjPlaneCurve((x - y) * (x - 2 * z))
     PP = proj_space(QQ, 2)
 
@@ -172,14 +169,14 @@ end
     Z = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(-1), QQ(0)])
 
     @test common_components(F, G) == []
-    @test common_components(F, H) == [ProjPlaneCurve(T(x * (x + y)))]
+    @test common_components(F, H) == [ProjPlaneCurve(x * (x + y))]
 
     @test curve_intersect(PP[1], F, G) == [[], []]
-    @test curve_intersect(PP[1], F, H) == [[ProjPlaneCurve(T(x * (x + y)))], []]
+    @test curve_intersect(PP[1], F, H) == [[ProjPlaneCurve(x * (x + y))], []]
     @test curve_intersect(
         PP[1],
-        ProjPlaneCurve(T(x + y + z)),
-        ProjPlaneCurve(T(z)),
+        ProjPlaneCurve(x + y + z),
+        ProjPlaneCurve(z),
     ) == [[], [Z]]
 
     L = curve_intersect(PP[1], F, M)
@@ -196,8 +193,7 @@ end
 end
 
 @testset "ProjPlaneCurve int_multiplicity functions" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = ProjPlaneCurve(T((x^2 + y^2) * (x^2 + y^2 + 2 * y * z)))
     G = ProjPlaneCurve(T((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z)))
     PP = proj_space(QQ, 2)
@@ -216,8 +212,7 @@ end
 end
 
 @testset "ProjPlaneCurve singularity functions" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     PP = proj_space(QQ, 2)
     F = ProjPlaneCurve(T(x * z + y^2))
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
@@ -270,8 +265,7 @@ end
 end
 
 @testset "ProjCurveDivisor basic functions" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     C = ProjPlaneCurve(T(y^2 + y * z + x^2))
     PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
@@ -316,27 +310,23 @@ end
 end
 
 @testset "Weierstrass form" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
-    C = ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+    C = ProjPlaneCurve(y^2 * z - x^3 - x * z^2)
     D = ProjPlaneCurve(
-        T(
             -x^3 - 3 * x^2 * y + 2 * x^2 * z - 3 * x * y^2 + 3 * x * y * z - 4 * x * z^2 - y^3 - y * z^2 + 6 * z^3,
-        ),
     )
     @test Oscar.iselliptic(C)
-    @test Oscar.toweierstrass(C, P) == T(y^2 * z - x^3 - x * z^2)
+    @test Oscar.toweierstrass(C, P) == y^2 * z - x^3 - x * z^2
     @test Oscar.toweierstrass(D, Q) ==
-          T(y^2 * z + x * y * z + 3 * y * z^2 - x^3 - 2 * x^2 * z - 4 * x * z^2 - 6 * z^3)
+          y^2 * z + x * y * z + 3 * y * z^2 - x^3 - 2 * x^2 * z - 4 * x * z^2 - 6 * z^3
 end
 
 @testset "genus" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
-    C = ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    C = ProjPlaneCurve(y^2 * z - x^3 - x * z^2)
     @test (Oscar.PlaneCurveModule.arithmetic_genus(C)) == ZZ(1)
     @test (geometric_genus(C)) == ZZ(1)
     R, (a, b) = polynomial_ring(GF(7), ["a", "b"])
@@ -346,22 +336,20 @@ end
 end
 
 @testset "ProjEllipticCurve" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
-    F = T(y^2 * z - x^3 - x * z^2)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = y^2 * z - x^3 - x * z^2
     E = Oscar.ProjEllipticCurve(F)
     @test Oscar.discriminant(E) == -64
     @test Oscar.j_invariant(E) == 1728
 end
 
 @testset "Point addition" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
-    F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = -x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3
     PP = proj_space(QQ, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
-    @test Oscar.weierstrass_form(E) == T(-x^3 - x * z^2 + y^2 * z - 4 * z^3)
+    @test Oscar.weierstrass_form(E) == -x^3 - x * z^2 + y^2 * z - 4 * z^3
     Q1 = Oscar.Point_EllCurve(E, P1)
     P2 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-2), QQ(2), QQ(1)])
     Q2 = Oscar.Point_EllCurve(E, P2)
@@ -371,9 +359,8 @@ end
 
 @testset "Counting Points on Elliptic Curves" begin
     K = GF(5, 7)
-    S, (x, y, z) = polynomial_ring(K, ["x", "y", "z"])
-    T, _ = grade(S)
-    F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
+    T, (x, y, z) = graded_polynomial_ring(K, ["x", "y", "z"])
+    F = -x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3
     PP = proj_space(K, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [K(-1), K(1), K(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
@@ -381,9 +368,8 @@ end
 end
 
 @testset "Torsion points on elliptic curves" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
-    F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    F = -x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3
     PP = proj_space(QQ, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
@@ -403,9 +389,8 @@ end
     @test gcd(n, ZZ(4453)) == n
 
     A = residue_ring(ZZ, ZZ(4453))
-    S, (x, y, z) = polynomial_ring(A, ["x", "y", "z"])
-    T, _ = grade(S)
-    F = T(y^2 * z - x^3 - 10 * x * z^2 + 2 * z^3)
+    T, (x, y, z) = graded_polynomial_ring(A, ["x", "y", "z"])
+    F = y^2 * z - x^3 - 10 * x * z^2 + 2 * z^3
     E = Oscar.ProjEllipticCurve(F)
     PP = proj_space(A, 2)
     P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
@@ -423,23 +408,22 @@ end
 end
 
 @testset "ParaPlaneCurve" begin
-    S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-    T, _ = grade(S)
-    C1 = ProjPlaneCurve(T(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5))
+    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    C1 = ProjPlaneCurve(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5)
     I1 = Oscar.parametrization_plane_curve(C1)
     I2 = Oscar.adjoint_ideal(C1)
     R1 = parent(I1[1])
     s, t = gens(R1)
     @test I1 == [-4*s^4*t + 2*s^3*t^2, 2*s^2*t^3 - s*t^4, 4*s^5 - t^5]
-    @test gens(I2) == [T(-x*y*z + y^3), T(-x^2*z + x*y^2), T(x^2*y + y^2*z), T(x^3 + x*y*z)]
-    C2 = ProjPlaneCurve(T(y^2 - x*z))
+    @test gens(I2) == [-x*y*z + y^3, -x^2*z + x*y^2, x^2*y + y^2*z, x^3 + x*y*z]
+    C2 = ProjPlaneCurve(y^2 - x*z)
     P = Oscar.rational_point_conic(C2)
     I3 = Oscar.parametrization_conic(C2)
     R2 = parent(I3[1])
     s1, t1 = gens(R2)
     @test iszero(evaluate(C2.eq, P))
     @test I3 == [s1^2,  s1*t1, t1^2]
-    C3 = ProjPlaneCurve(T(y^8-x^3*(z+x)^5))
+    C3 = ProjPlaneCurve(y^8-x^3*(z+x)^5)
     D = Oscar.map_to_rational_normal_curve(C3)
     I4 = Oscar.rat_normal_curve_anticanonical_map(D)
     Y = gens(parent(I4[1]))
@@ -448,17 +432,17 @@ end
     R3 = parent(C4[2].eq)
     U = gens(R3)
     @test C4[2] == ProjPlaneCurve(-U[1]*U[3] + U[2]^2)
-    C5 = ProjPlaneCurve(T(-x^7-10*x^5*y^2-10*x^4*y^3-3*x^3*y^4+8*x^2*y^5+
+    C5 = ProjPlaneCurve(-x^7-10*x^5*y^2-10*x^4*y^3-3*x^3*y^4+8*x^2*y^5+
     7*x*y^6+11*y^7+3*x^6*z+10*x^5*y*z+30*x^4*y^2*z+26*x^3*y^3*z-13*x^2*y^4*z-
     29*x*y^5*z-33*y^6*z-3*x^5*z^2-20*x^4*y*z^2-33*x^3*y^2*z^2-8*x^2*y^3*z^2+
     37*x*y^4*z^2+33*y^5*z^2+x^4*z^3+10*x^3*y*z^3+13*x^2*y^2*z^3-15*x*y^3*z^3-
-    11*y^4*z^3))
+    11*y^4*z^3)
     D2 = Oscar.map_to_rational_normal_curve(C5)
     I5 = Oscar.rat_normal_curve_It_Proj_Odd(D2)
     R4 = parent(I5[1])
     V = gens(R4)
     @test I5 == [121*V[3] + 77*V[4], -11*V[5] - 7*V[6]]
-    C6 = ProjPlaneCurve(T(y^8 - x^3*(z+x)^5))
+    C6 = ProjPlaneCurve(y^8 - x^3*(z+x)^5)
     I = Oscar.adjoint_ideal(C6)
     BM = Oscar.invert_birational_map(gens(I), C6)
     R5 = parent(BM["image"][1])
@@ -473,8 +457,7 @@ end
 end
 
 @testset "NonPlaneCurve" begin
-    S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
-    T, _ = grade(S)
+    T, (x, y, z, t) = graded_polynomial_ring(QQ, ["x", "y", "z", "t"])
     I = ideal(T, [x^2, y^2*z, z^2])
     C = Oscar.ProjCurve(I)
     PP = proj_space(QQ, 3)
@@ -484,10 +467,10 @@ end
     J = Oscar.jacobi_ideal(C)
     L = gens(J)
     @test length(L) == 4
-    @test length(findall(a -> a == T(4*x*y*z), L)) == 1
-    @test length(findall(a -> a == T(2*x*y^2), L)) == 1
-    @test length(findall(a -> a == T(4*x*z), L)) == 1
-    @test length(findall(a -> a == T(4*y*z^2), L)) == 1
+    @test length(findall(a -> a == 4*x*y*z, L)) == 1
+    @test length(findall(a -> a == 2*x*y^2, L)) == 1
+    @test length(findall(a -> a == 4*x*z, L)) == 1
+    @test length(findall(a -> a == 4*y*z^2, L)) == 1
     C2 = Oscar.reduction(C)
     I2 = Oscar.defining_ideal(C2)
     @test I2 == ideal(T, [x, z])

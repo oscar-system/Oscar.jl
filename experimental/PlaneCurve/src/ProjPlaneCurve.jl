@@ -28,10 +28,7 @@ Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
@@ -69,10 +66,7 @@ Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y","z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
@@ -146,19 +140,16 @@ Return a list whose first element is the projective plane curve defined by the g
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y","z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
-julia> C = ProjPlaneCurve(T(x+y+z))
+julia> C = ProjPlaneCurve(x+y+z)
 Projective plane curve defined by x + y + z
 
-julia> D = ProjPlaneCurve(T(z))
+julia> D = ProjPlaneCurve(z)
 Projective plane curve defined by z
 
 julia> curve_intersect(PP[1], C, D)
@@ -448,13 +439,10 @@ Return the arithmetic genus of `C`.
 
 # Examples
 ```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> C = ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+julia> C = ProjPlaneCurve(y^2 * z - x^3 - x * z^2)
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
 
 julia> Oscar.PlaneCurveModule.arithmetic_genus(C)

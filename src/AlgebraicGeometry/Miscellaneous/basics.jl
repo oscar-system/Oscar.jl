@@ -28,15 +28,13 @@ function Base.show(io::IO, P::ProjSpc)
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
-  Sx = polynomial_ring(R, name => 0:n)[1]
-  Rx = grade(Sx, [1 for i=0:n])[1]
-  return ProjSpc(R, n, Rx), gens(Rx)
+  Rx, x = graded_polynomial_ring(R, name => 0:n)
+  return ProjSpc(R, n, Rx), x
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
-  Sx = polynomial_ring(R, name => 0:length(n)-1)[1]
-  Rx = grade(Sx, n)[1]
-  return ProjSpc(R, length(n)-1, Rx), gens(Rx)
+  Rx, x = graded_polynomial_ring(R, name => 0:length(n)-1, n)
+  return ProjSpc(R, length(n)-1, Rx), x
 end
 
 function coordinate_ring(P::ProjSpc)
