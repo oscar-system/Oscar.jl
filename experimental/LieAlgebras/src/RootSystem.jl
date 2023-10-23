@@ -92,13 +92,47 @@ function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
-#function positive_roots(R::RootSystem) end
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type)
+end
 
 function is_simple(R::RootSystem)
   if has_root_system_type(R)
     return length(root_system_type(R)) == 1
   end
   error("Not implemented") # TODO: implement is_simple
+end
+
+function negative_root(R::RootSystem, i::Int)
+  return -R.positive_roots[i]::RootSpaceElem
+end
+
+function negative_roots(R::RootSystem)
+  return [-r for r in positive_roots(R)]
+end
+
+function num_positive_roots(R::RootSystem)
+  return length(R.positive_roots)
+end
+
+function num_roots(R::RootSystem)
+  return 2 * length(R.positive_roots)
+end
+
+function num_simple_roots(R::RootSystem)
+  return rank(R)
+end
+
+function nroots(R::RootSystem)
+  return num_roots(R)
+end
+
+function positive_root(R::RootSystem, i::Int)
+  return R.positive_roots[i]::RootSpaceElem
+end
+
+function positive_roots(R::RootSystem)
+  return R.positive_roots::Vector{RootSpaceElem}
 end
 
 @doc raw"""
@@ -108,6 +142,28 @@ Returns the rank of `R`.
 """
 function rank(R::RootSystem)
   return nrows(R.cartan_matrix)
+end
+
+function root_system_type(R::RootSystem)
+  @req has_root_system_type(R) "root system type not defined"
+  return R.type
+end
+
+function root_system_type_string(R::RootSystem)
+  @req has_root_system_type(R) "root system type not defined"
+  return join([string(t[1]) * string(t[2]) for t in R.type], " x ")
+end
+
+function root(R::RootSystem, i::Int)
+  if i <= num_positive_roots(R)
+    return positive_root(R, i)
+  else
+    return negative_root(R, i - num_positive_roots(R))
+  end
+end
+
+function roots(R::RootSystem)
+  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
 @doc raw"""
@@ -129,66 +185,8 @@ function weyl_vector(R::RootSystem)
   return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, fill(1, rank(R))))
 end
 
-function num_positive_roots(R::RootSystem)
-  return length(R.positive_roots)
-end
-
-function num_simple_roots(R::RootSystem)
-  return rank(R)
-end
-
-function num_roots(R::RootSystem)
-  return 2 * length(R.positive_roots)
-end
-
-function nroots(R::RootSystem)
-  return num_roots(R)
-end
-
-function positive_root(R::RootSystem, i::Int)
-  return R.positive_roots[i]::RootSpaceElem
-end
-
-function positive_roots(R::RootSystem)
-  return R.positive_roots::Vector{RootSpaceElem}
-end
-
-function negative_root(R::RootSystem, i::Int)
-  return -R.positive_roots[i]::RootSpaceElem
-end
-
-function negative_roots(R::RootSystem)
-  return [-r for r in positive_roots(R)]
-end
-
-function root(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
-    return positive_root(R, i)
-  else
-    return negative_root(R, i - num_positive_roots(R))
-  end
-end
-
-function roots(R::RootSystem)
-  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
-end
-
-function has_root_system_type(R::RootSystem)
-  return isdefined(R, :type)
-end
-
-function root_system_type(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
-  return R.type
-end
-
-function root_system_type_string(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
-  return join([string(t[1]) * string(t[2]) for t in R.type], " x ")
-end
-
 ###############################################################################
-# WIP
+# RootSpaceElem
 
 struct RootSpaceElem
   root_system::RootSystem
@@ -217,6 +215,36 @@ end
 
 function Base.:(-)(r::RootSpaceElem)
   return RootSpaceElem(r.root_system, -r.vec)
+end
+
+function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
+  return r.root_system === r2.root_system && r.vec == r2.vec
+end
+
+function Base.deepcopy_internal(r::RootSpaceElem, dict::IdDict)
+  if haskey(dict, r)
+    return dict[r]
+  end
+
+  w2 = RootSpaceElem(r.root_system, deepcopy_internal(r.vec, dict))
+  dict[r] = w2
+  return w2
+end
+
+@doc raw"""
+    getindex(r::RootSpaceElem, i::Int) -> QQRingElem
+
+Returns the coefficient of the `i`-th simple root in `r`.
+"""
+function Base.getindex(r::RootSpaceElem, i::Int)
+  return coeff(r, i)
+end
+
+function Base.hash(r::RootSpaceElem, h::UInt)
+  b = 0xbe7603eb38c985ad % UInt
+  h = hash(r.root_system, h)
+  h = hash(r.vec, h)
+  return xor(b, h)
 end
 
 function coefficients(r::RootSpaceElem)
@@ -254,36 +282,6 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
-@doc raw"""
-    getindex(r::RootSpaceElem, i::Int) -> QQRingElem
-
-Returns the coefficient of the `i`-th simple root in `r`.
-"""
-function Base.getindex(r::RootSpaceElem, i::Int)
-  return coeff(r, i)
-end
-
-function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
-  return r.root_system === r2.root_system && r.vec == r2.vec
-end
-
-function Base.hash(r::RootSpaceElem, h::UInt)
-  b = 0xbe7603eb38c985ad % UInt
-  h = hash(r.root_system, h)
-  h = hash(r.vec, h)
-  return xor(b, h)
-end
-
-function Base.deepcopy_internal(r::RootSpaceElem, dict::IdDict)
-  if haskey(dict, r)
-    return dict[r]
-  end
-
-  w2 = RootSpaceElem(r.root_system, deepcopy_internal(r.vec, dict))
-  dict[r] = w2
-  return w2
-end
-
 function reflect!(r::RootSpaceElem, s::Int)
   addmul!(
     r.vec,
@@ -294,7 +292,7 @@ function reflect!(r::RootSpaceElem, s::Int)
 end
 
 ###############################################################################
-# Weights
+# WeightLatticeElem
 
 struct WeightLatticeElem
   root_system::RootSystem
@@ -334,13 +332,6 @@ function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
   return w.root_system === w2.root_system && w.vec == w2.vec
 end
 
-function Base.hash(w::WeightLatticeElem, h::UInt)
-  b = 0x7b2fefadacf46f4e % UInt
-  h = hash(w.root_system, h)
-  h = hash(w.vec, h)
-  return xor(b, h)
-end
-
 function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
   if haskey(dict, w)
     return dict[w]
@@ -349,14 +340,6 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
   w2 = WeightLatticeElem(w.root_system, deepcopy_internal(w.vec, dict))
   dict[w] = w2
   return w2
-end
-
-function coefficients(w::WeightLatticeElem)
-  return w.vec
-end
-
-function coeff(w::WeightLatticeElem, i::Int)
-  return w.vec[i]
 end
 
 @doc raw"""
@@ -368,6 +351,13 @@ function Base.getindex(w::WeightLatticeElem, i::Int)
   return coeff(w, i)
 end
 
+function Base.hash(w::WeightLatticeElem, h::UInt)
+  b = 0x7b2fefadacf46f4e % UInt
+  h = hash(w.root_system, h)
+  h = hash(w.vec, h)
+  return xor(b, h)
+end
+
 @doc raw"""
     iszero(w::WeightLatticeElem) -> Bool
 
@@ -375,6 +365,14 @@ Returns whether `w` is zero.
 """
 function Base.iszero(w::WeightLatticeElem)
   return iszero(w.vec)
+end
+
+function coefficients(w::WeightLatticeElem)
+  return w.vec
+end
+
+function coeff(w::WeightLatticeElem, i::Int)
+  return w.vec[i]
 end
 
 @doc raw"""

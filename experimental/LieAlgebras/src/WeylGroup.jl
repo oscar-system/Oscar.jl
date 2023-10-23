@@ -25,12 +25,12 @@ function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
 end
 
-function Base.isfinite(G::WeylGroup)
-  return G.finite
-end
-
 function Base.IteratorSize(::Type{WeylGroup})
   return Base.SizeUnknown()
+end
+
+function Base.isfinite(G::WeylGroup)
+  return G.finite
 end
 
 function Base.one(W::WeylGroup)
@@ -53,10 +53,6 @@ function elem_type(::Type{WeylGroup})
   return WeylGroupElem
 end
 
-function ngens(W::WeylGroup)
-  return rank(root_system(W))
-end
-
 function gen(W::WeylGroup, i::Int)
   @req 1 <= i <= ngens(W) "invalid index"
   return WeylGroupElem(W, [i]; in_normal_form=true)
@@ -65,9 +61,6 @@ end
 function gens(W::WeylGroup)
   return [gen(W, i) for i in 1:ngens(W)]
 end
-
-#function order(G::WeylGroup)
-#end
 
 function longest_element(W::WeylGroup)
   @req isfinite(W) "$W is not finite"
@@ -91,6 +84,13 @@ function longest_element(W::WeylGroup)
 
   return WeylGroupElem(W, word)
 end
+
+function ngens(W::WeylGroup)
+  return rank(root_system(W))
+end
+
+#function order(G::WeylGroup)
+#end
 
 function root_system(W::WeylGroup)
   return W.root_system
@@ -171,12 +171,12 @@ function Base.isone(x::WeylGroupElem)
   return isempty(x.word)
 end
 
-function Base.parent(x::WeylGroupElem)
-  return x.parent
+function Base.length(x::WeylGroupElem)
+  return length(x.word)
 end
 
-function parent_type(::Type{WeylGroupElem})
-  return WeylGroup
+function Base.parent(x::WeylGroupElem)
+  return x.parent
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
@@ -187,17 +187,17 @@ function Base.show(io::IO, x::WeylGroupElem)
   end
 end
 
-function Base.length(x::WeylGroupElem)
-  return length(x.word)
+function lmul!(x::WeylGroupElem, i::Int)
+  _lmul!(parent(x).refl, word(x), UInt8(i))
+  return x
+end
+
+function parent_type(::Type{WeylGroupElem})
+  return WeylGroup
 end
 
 function reduced_expressions(x::WeylGroupElem)
   return ReducedExpressionIterator(x)
-end
-
-function lmul!(x::WeylGroupElem, i::Int)
-  _lmul!(parent(x).refl, word(x), UInt8(i))
-  return x
 end
 
 @doc raw"""
@@ -215,12 +215,12 @@ struct ReducedExpressionIterator
   #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
 end
 
-function Base.eltype(::Type{ReducedExpressionIterator})
-  return Vector{UInt8}
-end
-
 function Base.IteratorSize(::Type{ReducedExpressionIterator})
   return Base.SizeUnknown()
+end
+
+function Base.eltype(::Type{ReducedExpressionIterator})
+  return Vector{UInt8}
 end
 
 function Base.iterate(iter::ReducedExpressionIterator)
