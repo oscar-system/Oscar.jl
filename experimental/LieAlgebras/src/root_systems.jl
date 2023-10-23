@@ -1,23 +1,3 @@
-mutable struct RootSystem
-  roots::Vector{Vector{Int}}
-  simple_roots::Vector{Vector{Int}}
-  positive_roots::Vector{Vector{Int}}
-  root_system_type::Tuple{Symbol,Int}
-  GAP_root_system::GAP.GapObj
-  function RootSystem(S::Symbol, n::Int)
-    # S is a symbol detailing the type of the indecomposable root system 
-    # e.g. "A", "B", "C",... and n is an integer for the number of simple roots
-    S1 = GAP.Obj(S)
-    RS = GAP.Globals.RootSystem(S1, n)
-    sR = Vector{Vector{Int}}(GAP.Globals.SimpleSystem(RS))
-    Ro1 = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(RS))
-    Ro2 = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(RS))
-    Ro = vcat(Ro1, Ro2)
-    t = (S, n)
-    return new(Ro, sR, Ro1, t, RS)
-  end
-end
-
 @doc raw"""
     dynkin_diagram(S::Symbol, n::Int)
 
@@ -107,4 +87,14 @@ function dynkin_diagram(S::Symbol, n::Int)
     error("This root system doesn't exist.")
   end
   print(D)
+end
+
+function _root_system_type_supported_by_GAP(S, n)
+  S in [:A, :B, :C, :D, :E, :F, :G] || return false
+  n >= 1 || return false
+  S == :D && n < 4 && return false
+  S == :E && !(n in [6, 7, 8]) && return false
+  S == :F && n != 4 && return false
+  S == :G && n != 2 && return false
+  return true
 end

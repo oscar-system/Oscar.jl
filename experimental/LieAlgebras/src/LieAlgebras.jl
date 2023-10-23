@@ -154,7 +154,6 @@ include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
 include("root_systems.jl")
-include("simple_lie_algebra.jl")
 
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")

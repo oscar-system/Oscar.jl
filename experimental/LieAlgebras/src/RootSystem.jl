@@ -7,8 +7,8 @@
 mutable struct RootSystem
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
-  positive_roots::Vector
-  weyl_group::Any  #::WeylGroup (cyclic reference)
+  positive_roots::Any #::Vector{RootSpaceElem} (cyclic reference)
+  weyl_group::Any     #::WeylGroup (cyclic reference)
   type::Vector{Tuple{Symbol,Int}}
 
   function RootSystem(mat::ZZMatrix)
@@ -17,7 +17,8 @@ mutable struct RootSystem
     roots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
-    R = new(mat, roots)
+    R = new(mat)
+    R.positive_roots = map(r -> RootSpaceElem(R, r), roots)
     R.weyl_group = WeylGroup(finite, refl, R)
 
     return R
@@ -97,7 +98,7 @@ function is_simple(R::RootSystem)
   if has_root_system_type(R)
     return length(root_system_type(R)) == 1
   end
-  error("Not implemented")
+  error("Not implemented") # TODO: implement is_simple
 end
 
 @doc raw"""
@@ -128,8 +129,48 @@ function weyl_vector(R::RootSystem)
   return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, fill(1, rank(R))))
 end
 
-function nroots(R::RootSystem)
+function num_positive_roots(R::RootSystem)
+  return length(R.positive_roots)
+end
+
+function num_simple_roots(R::RootSystem)
+  return rank(R)
+end
+
+function num_roots(R::RootSystem)
   return 2 * length(R.positive_roots)
+end
+
+function nroots(R::RootSystem)
+  return num_roots(R)
+end
+
+function positive_root(R::RootSystem, i::Int)
+  return R.positive_root[i]::RootSpaceElem
+end
+
+function positive_roots(R::RootSystem)
+  return R.positive_roots::Vector{RootSpaceElem}
+end
+
+function negative_root(R::RootSystem, i::Int)
+  return -R.positive_root[i]::RootSpaceElem
+end
+
+function negative_roots(R::RootSystem)
+  return [-r for r in positive_roots(R)]
+end
+
+function root(R::RootSystem, i::Int)
+  if i <= num_positive_roots(R)
+    return positive_root(R, i)
+  else
+    return negative_root(R, i - num_positive_roots(R))
+  end
+end
+
+function roots(R::RootSystem)
+  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
 function has_root_system_type(R::RootSystem)
@@ -158,12 +199,55 @@ function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
 
+function Base.:(+)(r::RootSpaceElem, r2::RootSpaceElem)
+  @req r.root_system === r2.root_system "$r and $r2 must belong to the same root space"
+
+  return RootLatticeElem(r.root_system, r.vec + r2.vec)
+end
+
+function Base.:(-)(r::RootSpaceElem, r2::RootSpaceElem)
+  @req r.root_system === r2.root_system "$r and $r2 must belong to the same root space"
+
+  return RootSpaceElem(r.root_system, r.vec - r2.vec)
+end
+
+function Base.:(-)(r::RootSpaceElem)
+  return RootSpaceElem(r.root_system, -r.vec)
+end
+
 function coefficients(r::RootSpaceElem)
   return r.vec
 end
 
 function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
+end
+
+function is_root_with_index(r::RootSpaceElem)
+  i = findfirst(==(r), roots(r.root_system))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function is_positive_root_with_index(r::RootSpaceElem)
+  i = findfirst(==(r), positive_roots(r.root_system))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function is_negative_root_with_index(r::RootSpaceElem)
+  i = findfirst(==(r), negative_roots(r.root_system))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
 end
 
 @doc raw"""
