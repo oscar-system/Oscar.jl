@@ -25,15 +25,15 @@ function Base.show(io::IO, RS::MatroidRealizationSpace)
       println(io, "The realizations are parametrized by")
     end
     # println isn't ideal as it prints the matrix as one big line
-    display(RS.realization_matrix)
-    println(io, "in the ", RS.ambient_ring)
+    println(io, RS.realization_matrix)
+    print(io, "in the ", RS.ambient_ring)
     I = RS.defining_ideal
     if (typeof(I) isa NumFieldOrdIdl && I.gen != ZZ(0)) ||
       (typeof(I) isa Ideal && !iszero(I))
-      println(io, "within the vanishing set of the ideal\n", RS.defining_ideal)
+      print(io, "\nwithin the vanishing set of the ideal\n", I)
     end
     if length(RS.inequations) > 0
-      println(io, "avoiding the zero loci of the polynomials\n", RS.inequations)
+      print(io, "\navoiding the zero loci of the polynomials\n", RS.inequations)
     end
   end
 end
