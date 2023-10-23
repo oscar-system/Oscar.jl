@@ -2,7 +2,7 @@ struct MonomialBasis
   lie_algebra::LieAlgebraStructure
   # birational_sequence::BirationalSequence
   highest_weight::Vector{Int}
-  monomial_order::Union{Symbol,Function}
+  monomial_ordering::Union{Symbol,Function}
   dimension::Int
   monomials::Vector{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
@@ -12,7 +12,7 @@ struct MonomialBasis
   function MonomialBasis(
     lie_algebra::LieAlgebraStructure,
     highest_weight::Vector{<:IntegerUnion},
-    monomial_order::Union{Symbol,Function},
+    monomial_ordering::Union{Symbol,Function},
     monomials::Vector{ZZMPolyRingElem},
     minkowski_gens::Vector{Vector{Int}},
     birational_sequence::BirationalSequence,
@@ -20,7 +20,7 @@ struct MonomialBasis
     return new(
       lie_algebra,
       Int.(highest_weight),
-      monomial_order,
+      monomial_ordering,
       length(monomials),
       monomials,
       parent(first(monomials)),
@@ -39,7 +39,7 @@ length(basis::MonomialBasis) = dim(basis)
 
 monomials(basis::MonomialBasis) = basis.monomials
 
-monomial_ordering(basis::MonomialBasis) = basis.monomial_order
+monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   io = pretty(io)

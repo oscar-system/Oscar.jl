@@ -1,8 +1,8 @@
-function get_monomial_order_lt(
+function get_monomial_ordering_lt(
   ordering_input::Union{Symbol,Function}, ZZx::ZZMPolyRing
 )::Function
   """
-  Returns the desired monomial_order function less than, i.e. return true <=> mon1 < mon2
+  Returns the desired monomial_ordering function less than, i.e. return true <=> mon1 < mon2
   """
   if isa(ordering_input, Function)
     choosen_monomial_order = ordering_input
