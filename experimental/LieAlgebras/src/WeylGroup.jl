@@ -5,14 +5,13 @@
 ###############################################################################
 
 struct WeylGroup <: CoxeterGroup
-  # finite indicates whether the Weyl group is finite
-  finite::Bool
+  finite::Bool              # finite indicates whether the Weyl group is finite
+  refl::ZZMatrix            # see positive_roots_and_reflections
+  root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
 
-  # see positive_roots_and_reflections
-  refl::ZZMatrix
-
-  # root_system is the RootSystem from which the Weyl group was constructed
-  root_system::RootSystem
+  function WeylGroup(finite::Bool, refl::ZZMatrix, root_system::RootSystem)
+    new(finite, refl, root_system)
+  end
 end
 
 function weyl_group(gcm::ZZMatrix)
@@ -32,7 +31,7 @@ function Base.IteratorSize(::Type{WeylGroup})
 end
 
 function Base.one(W::WeylGroup)
-  return WeylGroupElem(W, [])
+  return WeylGroupElem(W, UInt8[]; in_normal_form=true)
 end
 
 function Base.show(io::IO, W::WeylGroup)
@@ -40,27 +39,35 @@ function Base.show(io::IO, W::WeylGroup)
 end
 
 function coxeter_matrix(W::WeylGroup)
-  return cartan_to_coxeter_matrix(W.root_system.cartan_matrix)
+  return cartan_to_coxeter_matrix(cartan_matrix(root_system(W)))
 end
 
-function elem(W::WeylGroup, word::Vector{Int})
-  w = one(W)
-  for s in Iterators.reverse(word)
-    lmul!(W.refl, w.word, UInt8(s))
-  end
+function (W::WeylGroup)(word::Vector{Int})
+  return WeylGroupElem(W, word)
+end
 
-  return w
+function elem_type(::Type{WeylGroup})
+  return WeylGroupElem
+end
+
+function ngens(W::WeylGroup)
+  return rank(root_system(W))
+end
+
+function gen(W::WeylGroup, i::Int)
+  @req 1 <= i <= ngens(W) "invalid index"
+  return WeylGroupElem(W, [i]; in_normal_form=true)
 end
 
 function gens(W::WeylGroup)
-  return [WeylGroupElem(W, [i]) for i in 1:rank(root_system(W))]
+  return [gen(W, i) for i in 1:ngens(W)]
 end
 
 #function order(G::WeylGroup)
 #end
 
 function longest_element(W::WeylGroup)
-  @req W.finite "$W is not finite"
+  @req isfinite(W) "$W is not finite"
 
   rk = rank(root_system(W))
   w = -weyl_vector(root_system(W))
@@ -69,7 +76,7 @@ function longest_element(W::WeylGroup)
   s = 1
   i = length(word)
   while s <= rk
-    if w.vec[s] < 0
+    if w[s] < 0
       word[i] = UInt8(s)
       reflect!(w, s)
       s = 1
@@ -90,29 +97,41 @@ end
 # Weyl group elements
 
 struct WeylGroupElem
-  # parent group
-  parent::WeylGroup
+  parent::WeylGroup     # parent group
+  word::Vector{UInt8}   # short revlex normal form of the word
 
-  # short revlex normal form of the word
-  word::Vector{UInt8}
+  function WeylGroupElem(W::WeylGroup, word::Vector{Int}; in_normal_form::Bool=false)
+    if in_normal_form
+      return new(W, word)
+    end
+
+    @req all(1 <= i <= ngens(W) for i in word) "word $word contains invalid generators"
+
+    x = new(W, UInt8[])
+    for s in Iterators.reverse(word)
+      _lmul!(W.refl, x.word, UInt8(s))
+    end
+
+    return x
+  end
 end
 
 function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
 
-  word = copy(y.word)
+  word = deepcopy(y.word)
   for s in Iterators.reverse(x.word)
-    lmul!(x.parent.refl, word, s)
+    _lmul!(x.parent.refl, word, s)
   end
 
-  return WeylGroupElem(x.parent, word)
+  return WeylGroupElem(x.parent, word; in_normal_form=true)
 end
 
 function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
-  @req x.parent.root_system === w.root_system "the Weyl group of $x and the weight lattice of $w come from different root systems"
+  @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
 
-  w2 = copy(w)
-  for s in Iterators.reverse(x.word)
+  w2 = deepcopy(w)
+  for s in reverse(x.word)
     reflect!(w2, Int(s))
   end
 
@@ -123,16 +142,12 @@ function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
   return x.parent === y.parent && x.word == y.word
 end
 
-function Base.copy(x::WeylGroupElem)
-  return WeylGroupElem(x.parent, deepcopy(x.word))
-end
-
 function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
   if haskey(dict, x)
     return dict[x]
   end
 
-  y = WeylGroupElem(x.parent, deepcopy_internal(x.word, dict))
+  y = WeylGroupElem(x.parent, deepcopy_internal(x.word, dict); in_normal_form=true)
   dict[x] = y
   return y
 end
@@ -146,22 +161,19 @@ function Base.hash(x::WeylGroupElem, h::UInt)
 end
 
 function Base.inv(x::WeylGroupElem)
-  word = UInt8[]
-  sizehint!(word, length(x.word))
-
-  for s in x.word
-    lmul!(x.parent.refl, word, s)
-  end
-
-  return WeylGroupElem(x.parent, word)
+  return WeylGroupElem(x.parent, reverse(word(x)); in_normal_form=false)
 end
 
 function Base.isone(x::WeylGroupElem)
-  return length(x.word) == 0
+  return isempty(x.word)
 end
 
 function Base.parent(x::WeylGroupElem)
   return x.parent
+end
+
+function parent_type(::Type{WeylGroupElem})
+  return WeylGroup
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
@@ -181,7 +193,7 @@ function reduced_expressions(x::WeylGroupElem)
 end
 
 function lmul!(x::WeylGroupElem, i::Int)
-  lmul!(x.parent.refl, x.word, UInt8(i))
+  _lmul!(parent(x).refl, word(x), UInt8(i))
   return x
 end
 
@@ -196,11 +208,8 @@ end
 # Iterators
 
 struct ReducedExpressionIterator
-  # el is the Weyl group element for which we a searching reduced expressions
-  el::WeylGroupElem
-
-  # letters are the simple reflections occuring in one (hence any) reduced expression of el
-  #letters::Vector{UInt8}
+  el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
+  #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
 end
 
 function Base.eltype(::Type{ReducedExpressionIterator})
@@ -212,16 +221,16 @@ function Base.IteratorSize(::Type{ReducedExpressionIterator})
 end
 
 function Base.iterate(iter::ReducedExpressionIterator)
-  word = copy(iter.el.word)
+  word = deepcopy(word(iter.el))
   return word, word
 end
 
 function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
-  rk = rank(iter.el.parent.root_system)
+  rk = rank(root_system(parent(iter.el)))
 
   # we need to copy word; iterate behaves differently when length is (not) known
-  next = copy(word)
-  weight = reflect!(weyl_vector(iter.el.parent.root_system), Int(next[1]))
+  next = deepcopy(word)
+  weight = reflect!(weyl_vector(root_system(parent(iter.el))), Int(next[1]))
 
   i = 1
   s = rk + 1
@@ -254,7 +263,7 @@ end
 
 # ----- internal -----
 
-function lmul!(refl::ZZMatrix, word::Vector{T}, s::T) where {T<:Unsigned}
+function _lmul!(refl::ZZMatrix, word::Vector{T}, s::T) where {T<:Unsigned}
   insert_index = 1
   insert_letter = s
 

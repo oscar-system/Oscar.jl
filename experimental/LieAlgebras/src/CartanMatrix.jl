@@ -9,14 +9,14 @@
 """
 function cartan_matrix(fam::Symbol, rk::Int)
   if fam == :A
-    @req rk >= 1 "type An requires rank rk greater than 1"
+    @req rk >= 1 "type An requires rank rk of at least 1"
 
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
       mat[i + 1, i], mat[i, i + 1] = -1, -1
     end
   elseif fam == :B
-    @req rk >= 2 "type Bn requires rank rk greater than 2"
+    @req rk >= 2 "type Bn requires rank rk of at least  2"
 
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
@@ -24,7 +24,7 @@ function cartan_matrix(fam::Symbol, rk::Int)
     end
     mat[rk, rk - 1] = -2
   elseif fam == :C
-    @req rk >= 2 "type Cn requires rank rk greater than 2"
+    @req rk >= 2 "type Cn requires rank rk of at least 2"
 
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
@@ -32,7 +32,7 @@ function cartan_matrix(fam::Symbol, rk::Int)
     end
     mat[rk - 1, rk] = -2
   elseif fam == :D
-    @req rk >= 3 "type Dn requires rank rk to be greater than 3"
+    @req rk >= 3 "type Dn requires rank rk of at least 3"
 
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
@@ -66,18 +66,15 @@ function cartan_matrix(fam::Symbol, rk::Int)
   elseif fam == :G
     @req rk == 2 "type Gn requires rank rk to be 2"
     mat = matrix(ZZ, [2 -3; -1 2])
+  else
+    error("unknown family $fam")
   end
 
   return mat
 end
 
 function cartan_matrix(types::Tuple{Symbol,Int}...)
-  blocks = ZZMatrix[]
-  sizehint!(blocks, length(types))
-
-  for (fam, rk) in types
-    push!(blocks, cartan_matrix(fam, rk))
-  end
+  blocks = ZZMatrix[cartan_matrix(type...) for type in types]
 
   return block_diagonal_matrix(blocks)
 end
@@ -111,7 +108,7 @@ end
 
 Test if `mat` is a (`generalized`) Cartan matrix.
 """
-function is_cartan_matrix(mat::ZZMatrix; generalized=true)
+function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
   n, m = size(mat)
   if n != m
     return false
@@ -122,8 +119,8 @@ function is_cartan_matrix(mat::ZZMatrix; generalized=true)
   end
 
   for i in 1:n
-    for j in (i + 1):m
-      if mat[i, j] == mat[j, i] == 0
+    for j in (i + 1):n
+      if is_zero_entry(mat, i, j) && is_zero_entry(mat, j, i)
         continue
       end
 
@@ -137,9 +134,7 @@ function is_cartan_matrix(mat::ZZMatrix; generalized=true)
         continue
       end
 
-      if mat[i, j] == -1 && mat[j, i] < -3
-        return false
-      elseif mat[i, j] < -3 || mat[j, i] != -1
+      if !(mat[i, j] * mat[j, i] in 1:3)
         return false
       end
     end
