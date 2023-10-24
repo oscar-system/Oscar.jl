@@ -49,6 +49,7 @@ include("RootConversion.jl")
 include("WeylPolytope.jl")
 include("WordCalculations.jl")
 include("MainAlgorithm.jl")
+include("UserFunctions.jl")
 
 end
 
