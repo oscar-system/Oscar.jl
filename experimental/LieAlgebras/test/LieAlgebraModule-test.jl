@@ -40,13 +40,13 @@
     end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
-      L = lie_algebra(QQ, ('A', 2))
+      L = lie_algebra(QQ, :A, 2)
       V = highest_weight_module(L, [0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [0,1,1] of B_3(QQ)" begin
-      L = lie_algebra(QQ, ('B', 3))
+      L = lie_algebra(QQ, :B, 3)
       V = highest_weight_module(L, [0, 1, 1])
       lie_algebra_module_conformance_test(L, V)
     end

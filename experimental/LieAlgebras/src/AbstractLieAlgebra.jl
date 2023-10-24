@@ -331,6 +331,7 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   nsimp = num_simple_roots(rs)
   n = 2 * npos + nsimp
 
+  #=
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
   for i in 1:npos, j in 1:npos
     # [x_i, x_j]
@@ -366,6 +367,23 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   ]
 
   L = lie_algebra(R, struct_consts, s; cached, check=true) # TODO: remove check
+  =#
+
+  # start temporary workaround # TODO: reenable code above
+  type = only(root_system_type(rs))
+  coeffs_iso = inv(Oscar.iso_oscar_gap(R))
+  LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(string(type[1])), type[2], domain(coeffs_iso))
+  @req GAPWrap.Dimension(LG) == n "Dimension mismatch. Something went wrong."
+  s = [
+    [Symbol("x_$i") for i in 1:npos]
+    [Symbol("y_$i") for i in 1:npos]
+    [Symbol("h_$i") for i in 1:nsimp]
+  ]
+  L = codomain(
+    _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso, cached)
+  )::AbstractLieAlgebra{elem_type(R)}
+  # end temporary workaround
+
   set_attribute!(L, :is_simple, true)
   return L
 end
