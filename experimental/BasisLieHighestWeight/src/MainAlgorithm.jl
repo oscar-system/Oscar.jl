@@ -1,9 +1,9 @@
 
 function basis_lie_highest_weight_compute(
-  type::Symbol,
-  rank::Int,
+  lie_algebra::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
-  get_operators::Function,
+  operators::Vector{GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
   monomial_ordering::Union{Symbol,Function},
 )
   """
@@ -43,21 +43,12 @@ function basis_lie_highest_weight_compute(
   # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
   # steps. Then it starts the recursion and returns the result.
 
-  # initialization of objects that can be precomputed
-  # lie_algebra of type, rank and its chevalley_basis
-  lie_algebra = LieAlgebraStructure(type, rank)
-  chevalley_basis = NTuple{3,Vector{GAP.Obj}}(
-    GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
-  )
-
-  # operators that are represented by our monomials. x_i is connected to operators[i]
-  operators = get_operators(lie_algebra, chevalley_basis)
-
   weights_w = weights_for_operators(
     lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
   ) # weights of the operators
   weights_alpha = [
-    w_to_alpha(type, rank, convert(Vector{QQFieldElem}, weight_w)) for weight_w in weights_w
+    w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)) for
+    weight_w in weights_w
   ] # other root system
 
   asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
@@ -70,7 +61,7 @@ function basis_lie_highest_weight_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
-    [ZZ(0) for i in 1:rank] => Set([ZZx(1)])
+    [ZZ(0) for i in 1:rank(lie_algebra)] => Set([ZZx(1)])
   )
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{Vector{ZZRingElem}}()
@@ -206,11 +197,10 @@ function basis_lie_highest_weight(
   """
   Standard function with all options
   """
-  get_operators =
-    (lie_algebra, chevalley_basis) ->
-      get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_ordering
+    lie_algebra, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 end
 
@@ -256,11 +246,10 @@ function basis_lie_highest_weight_lustzig(
   BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
   """
   # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-  get_operators =
-    (lie_algebra, chevalley_basis) ->
-      get_operators_lustzig(lie_algebra, chevalley_basis, reduced_expression)
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = get_operators_lustzig(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_ordering
+    lie_algebra, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 end
 
@@ -300,11 +289,10 @@ function basis_lie_highest_weight_string(
   """
   # reduced_expression = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   monomial_ordering = :oplex
-  get_operators =
-    (lie_algebra, chevalley_basis) ->
-      get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_ordering
+    lie_algebra, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 end
 
@@ -336,12 +324,10 @@ function basis_lie_highest_weight_fflv(type::Symbol, rank::Int, highest_weight::
   BasisLieHighestWeight.basis_lie_highest_weight_fflv(:A, 3, [1,1,1])
   """
   monomial_ordering = :oplex
-  # operators = all positive roots, reverse ordering as GAP uses
-  get_operators =
-    (lie_algebra, chevalley_basis) ->
-      reverse(get_operators_normal(lie_algebra, chevalley_basis, "regular"))
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = reverse(get_operators_normal(lie_algebra, chevalley_basis, "regular"))
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_ordering
+    lie_algebra, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 end
 
@@ -379,11 +365,10 @@ function basis_lie_highest_weight_nz(
   BasisLieHighestWeight.basis_lie_highest_weight_nz(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
   """
   monomial_ordering = :lex
-  get_operators =
-    (lie_algebra, chevalley_basis) ->
-      get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = get_operators_normal(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    type, rank, highest_weight, get_operators, monomial_ordering
+    lie_algebra, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 end
 
@@ -542,9 +527,7 @@ function add_new_monomials!(
     ZZx,
     get_lattice_points_of_weightspace(
       birational_sequence.weights_alpha,
-      w_to_alpha(
-        lie_algebra.lie_type, lie_algebra.rank, convert(Vector{QQFieldElem}, weight_w)
-      ),
+      w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)),
     ),
   )
   #println("before sort")

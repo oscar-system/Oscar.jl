@@ -1,4 +1,4 @@
-struct LieAlgebraStructure
+@attributes mutable struct LieAlgebraStructure
   lie_type::Symbol
   rank::Int
   lie_algebra_gap::GAP.Obj
@@ -11,11 +11,29 @@ struct LieAlgebraStructure
   end
 end
 
+rank(L::LieAlgebraStructure) = L.rank
+
+@attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
+  R = GAP.Globals.RootSystem(L.lie_algebra_gap)
+  C = matrix(QQ, GAP.Globals.CartanMatrix(R))
+  return C
+end
+
+@attr QQMatrix function inv_cartan_matrix(L::LieAlgebraStructure)
+  return inv(cartan_matrix(L))
+end
+
 function Base.show(io::IO, lie_algebra::LieAlgebraStructure)
   print(io, "Lie-Algebra of type ", lie_algebra.lie_type, " and rank ", lie_algebra.rank)
 end
 
-gapReshape(A) = sparse_matrix(QQ, hcat(A...))
+function lie_algebra_with_basis(type::Symbol, rk::Int)
+  lie_algebra = LieAlgebraStructure(type, rk)
+  chevalley_basis = NTuple{3,Vector{GAP.Obj}}(
+    GAP.Globals.ChevalleyBasis(lie_algebra.lie_algebra_gap)
+  )
+  return lie_algebra, chevalley_basis
+end
 
 function matricesForOperators(
   lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}

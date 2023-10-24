@@ -3,9 +3,9 @@
   w_to_alpha = BasisLieHighestWeight.w_to_alpha
   alpha_to_w = BasisLieHighestWeight.alpha_to_w
 
-  function test_inverse_alpha_w(lie_type, n, weight)
-    @test w_to_alpha(lie_type, n, alpha_to_w(lie_type, n, weight)) == weight # alpha -> w -> alpha
-    @test alpha_to_w(lie_type, n, w_to_alpha(lie_type, n, weight)) == weight # w -> alpha -> w
+  function test_inverse_alpha_w(lie_algebra, weight)
+    @test w_to_alpha(lie_algebra, alpha_to_w(lie_algebra, weight)) == weight # alpha -> w -> alpha
+    @test alpha_to_w(lie_algebra, w_to_alpha(lie_algebra, weight)) == weight # w -> alpha -> w
   end
 
   @testset "Dynkin type $dynkin" for dynkin in (:A, :B, :C, :D, :E, :F, :G)
@@ -20,7 +20,8 @@
       )
         weight = [rand(QQ, -10:10) for _ in 1:n]
         print(".")
-        test_inverse_alpha_w(dynkin, n, weight)
+        lie_algebra = BasisLieHighestWeight.LieAlgebraStructure(dynkin, n)
+        test_inverse_alpha_w(lie_algebra, weight)
       end
     end
   end

@@ -74,8 +74,6 @@ function lieAlgebra(t::String, n::Int)
   return L, NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(L))
 end
 
-gapReshape(A) = sparse_matrix(QQ, hcat(A...))
-
 function matricesForOperators(L, hw, ops)
   """
   used to create tensorMatricesForOperators
