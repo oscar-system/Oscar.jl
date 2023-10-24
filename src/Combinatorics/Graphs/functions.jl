@@ -63,12 +63,12 @@ Undirected graph with 2 nodes and the following edges:
 """
 graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
 
-function graph_from_adjacency_matrix(::Type{Undirected}, G::Union{MatElem, Matrix})
+function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{Undirected}(n)
+  g = Graph{T}(n)
   for i in 1:n
-    for j in 1:i-1
+    for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
         add_edge!(g, i, j)
       else
@@ -79,21 +79,6 @@ function graph_from_adjacency_matrix(::Type{Undirected}, G::Union{MatElem, Matri
   return g
 end
 
-function graph_from_adjacency_matrix(::Type{Directed}, G::Union{MatElem, Matrix})
-  n = nrows(G)
-  @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{Directed}(n)
-  for i in 1:n
-    for j in 1:n
-      if isone(G[i,j])
-        add_edge!(g, i, j)
-      else
-        iszero(G[i,j]) || error("not an adjacency matrix")
-      end
-    end
-  end
-  return g
-end
 
 _has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
