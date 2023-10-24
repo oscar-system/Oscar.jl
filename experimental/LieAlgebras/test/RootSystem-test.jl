@@ -10,3 +10,10 @@
   @test coefficients(positive_root(R, 1)) == QQ[1 0]
   @test coefficients(positive_root(R, 2)) == QQ[0 1]
 end
+
+@testset "WeightLatticeElem" begin
+  R = root_system(:A, 2)
+  w = WeightLatticeElem(R, [2, 2])
+
+  @test root_system(w) === R
+end

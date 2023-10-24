@@ -88,6 +88,14 @@ end
   @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
 end
 
+@testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
+  R = root_system(:A, 2)
+  W = weyl_group(R)
+  
+  rho = weyl_vector(R)
+  @test longest_element(W)*rho == -rho
+end
+
 @testset "ReducedExpressionIterator" begin
   W = weyl_group(:A, 3)
   s = gens(W)

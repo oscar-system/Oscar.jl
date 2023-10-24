@@ -12,8 +12,6 @@ mutable struct RootSystem
   type::Vector{Tuple{Symbol,Int}}
 
   function RootSystem(mat::ZZMatrix)
-    R = new()
-
     roots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
@@ -291,6 +289,10 @@ function reflect!(r::RootSpaceElem, s::Int)
   return r
 end
 
+function root_system(r::RootSpaceElem)
+  return r.root_system
+end
+
 ###############################################################################
 # WeightLatticeElem
 
@@ -425,6 +427,10 @@ Reflects the `w` at the `s`-th simple root in place and returns `w`.
 function reflect!(w::WeightLatticeElem, s::Int)
   addmul!(w.vec, view(w.root_system.cartan_matrix, :, s), -w.vec[s])
   return w
+end
+
+function root_system(w::WeightLatticeElem)
+  return w.root_system
 end
 
 ###############################################################################
