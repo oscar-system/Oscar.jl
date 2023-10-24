@@ -10,8 +10,7 @@
         rem_edge!(g, 1, 2)
         @test ne(g) == 0
         @test !has_edge(g, 1, 2)
-        v = add_vertex!(g)
-        @test v == 6
+        @test add_vertex!(g)
         @test nv(g) == 6
         @test has_vertex(g, 6)
         rem_vertex!(g, 1)
@@ -121,6 +120,6 @@
 
     @testset "errors" begin
         g = Graph{Undirected}(1)
-        @test_throws ArgumentError add_edge!(g,1,2)
+        @test !add_edge!(g,1,2)
     end
 end
