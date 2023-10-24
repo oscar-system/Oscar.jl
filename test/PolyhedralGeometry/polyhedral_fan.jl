@@ -80,6 +80,17 @@
     @test lineality_space(F2NR) == collect(eachrow(L))
     @test ray_indices(maximal_cones(F2NR)) == incidence2
     @test IncidenceMatrix(maximal_cones(F2NR)) == incidence2
+
+    C = positive_hull(f, identity_matrix(ZZ, 0))
+    pf = polyhedral_fan(C)
+    @test n_maximal_cones(pf) == 1
+    @test dim(pf) == 0
+    pfc = polyhedral_fan(maximal_cones(pf))
+    @test n_maximal_cones(pfc) == 1
+
+    C = positive_hull(f, vcat(identity_matrix(ZZ, 4), -identity_matrix(ZZ,4)))
+    pf = polyhedral_fan(C)
+    @test n_maximal_cones(pf) == 1
   end
 
 end
