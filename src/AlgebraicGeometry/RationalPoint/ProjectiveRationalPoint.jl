@@ -208,7 +208,7 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
 end
 
 function Base.hash(a::AbsProjectiveRationalPoint, u::UInt=UInt(123432))
-  if isweighted(codomain(a))
+  if is_weighted(codomain(a))
     return u
   end
   normalize!(a)
