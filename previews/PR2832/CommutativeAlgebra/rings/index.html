@@ -166,17 +166,18 @@ julia&gt; G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 
-julia&gt; g = gens(G)
-4-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0 0 0]
- Element of G with components [0 1 0 0]
- Element of G with components [0 0 1 0]
- Element of G with components [0 0 0 1]
+julia&gt; g = gens(G);
 
-julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
+5-element Vector{GrpAbFinGenElem}:
+ Element of G with components [1 0 1 1]
+ Element of G with components [0 1 0 1]
+ Element of G with components [1 0 1 0]
+ Element of G with components [0 1 0 0]
+ Element of G with components [1 1 0 0]
 
 julia&gt; S, x = grade(R, W)
-(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{&lt;:Vector{&lt;:Union{Integer, ZZRingElem}}}}" href="#grade-Tuple{MPolyRing, Vector{&lt;:Vector{&lt;:Union{Integer, ZZRingElem}}}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::Vector{&lt;:Vector{&lt;:IntegerUnion}})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integer vectors of the same size <code>m</code>, say, create a free  abelian group of type <code>GrpAbFinGen</code> given by <code>m</code> free generators, and convert the vectors in <code>W</code> to elements of that group. Then create a <span>$\mathbb Z^m$</span>-graded ring by assigning the group  elements as weights to the variables of <code>R</code>, and return the new ring, together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing, W::Union{ZZMatrix, Matrix{&lt;:IntegerUnion}})</code></pre><p>As above, converting the columns of <code>W</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3)
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{&lt;:Vector{&lt;:Union{Integer, ZZRingElem}}}}" href="#grade-Tuple{MPolyRing, Vector{&lt;:Vector{&lt;:Union{Integer, ZZRingElem}}}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::AbstractVector{&lt;:AbstractVector{&lt;:IntegerUnion}})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integer vectors of the same size <code>m</code>, say, create a free  abelian group of type <code>GrpAbFinGen</code> given by <code>m</code> free generators, and convert the vectors in <code>W</code> to elements of that group. Then create a <span>$\mathbb Z^m$</span>-graded ring by assigning the group  elements as weights to the variables of <code>R</code>, and return the new ring, together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing, W::Union{ZZMatrix, AbstractMatrix{&lt;:IntegerUnion}})</code></pre><p>As above, converting the columns of <code>W</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3)
 (Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
 
 julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
@@ -185,7 +186,7 @@ julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
  0  0  1  1  1
 
 julia&gt; grade(R, W)
-(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{&lt;:Union{Integer, ZZRingElem}}}" href="#grade-Tuple{MPolyRing, Vector{&lt;:Union{Integer, ZZRingElem}}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integers, create a free abelian group of type <code>GrpAbFinGen</code>  given by one free generator, and convert the entries of <code>W</code> to elements of that group. Then  create a <span>$\mathbb Z$</span>-graded ring by assigning the group elements as weights to the variables  of <code>R</code>, and return the new ring, together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing)</code></pre><p>As above, where the grading is the standard <span>$\mathbb Z$</span>-grading on <code>R</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grade-Tuple{MPolyRing, Vector{&lt;:Union{Integer, ZZRingElem}}}" href="#grade-Tuple{MPolyRing, Vector{&lt;:Union{Integer, ZZRingElem}}}"><code>grade</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grade(R::MPolyRing, W::AbstractVector{&lt;:IntegerUnion})</code></pre><p>Given a vector <code>W</code> of <code>ngens(R)</code> integers, create a free abelian group of type <code>GrpAbFinGen</code>  given by one free generator, and convert the entries of <code>W</code> to elements of that group. Then  create a <span>$\mathbb Z$</span>-graded ring by assigning the group elements as weights to the variables  of <code>R</code>, and return the new ring, together with the vector of variables.</p><pre><code class="nohighlight hljs">grade(R::MPolyRing)</code></pre><p>As above, where the grading is the standard <span>$\mathbb Z$</span>-grading on <code>R</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia&gt; W = [1, 2, 3];
@@ -194,51 +195,38 @@ julia&gt; S, (x, y, z) = grade(R, W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; T, (x, y, z) = grade(R)
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="graded_polynomial_ring-Tuple{Ring, Vector{String}, Any}" href="#graded_polynomial_ring-Tuple{Ring, Vector{String}, Any}"><code>graded_polynomial_ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">graded_polynomial_ring(C::Ring, V, W; ordering=:lex)
-graded_polynomial_ring(C::Ring, n::Int, s::T, W; ordering=:lex) where T&lt;:VarName</code></pre><p>Create a multivariate <a href="../../AbstractAlgebra/mpolynomial/#polynomial_ring-Tuple{Ring, Vector{Union{Char, AbstractString, Symbol}}}"><code>polynomial_ring</code></a> with coefficient ring <code>C</code> and variables which print according to the variable names in <code>V</code> (respectively as &quot;<span>$</span>(s)1&quot; up to &quot;<span>$</span>s<span>$</span>n&quot;), and <a href="../ModulesOverMultivariateRings/free_modules/#grade-Tuple{FreeMod, Vector{GrpAbFinGenElem}}"><code>grade</code></a> this ring according to the data provided by <code>W</code>. Return the graded ring as an object of type <code>MPolyDecRing</code>, together with the vector of variables.</p><pre><code class="nohighlight hljs">graded_polynomial_ring(C::Ring, V; ordering=:lex)</code></pre><p>As above, where the grading is the standard <span>$\mathbb Z$</span>-grading.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="graded_polynomial_ring-Tuple{Ring, Vector{String}, Any}" href="#graded_polynomial_ring-Tuple{Ring, Vector{String}, Any}"><code>graded_polynomial_ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">graded_polynomial_ring(C::Ring, args...; weights, kwargs...)</code></pre><p>Create a multivariate <a href="../../AbstractAlgebra/mpolynomial/#polynomial_ring-Tuple{Ring, Vector{Union{Char, AbstractString, Symbol}}}"><code>polynomial_ring</code></a> with coefficient ring <code>C</code> and variables as described by <code>args...</code> (using the exact same syntax as <code>polynomial_ring</code>), and <a href="../ModulesOverMultivariateRings/free_modules/#grade-Tuple{FreeMod, Vector{GrpAbFinGenElem}}"><code>grade</code></a> this ring according to the data provided by the keyword argument <code>weights</code>. Return the graded ring as an object of type <code>MPolyDecRing</code>, together with the variables.</p><p>If <code>weights</code> is omitted the grading is the standard <span>$\mathbb Z$</span>-grading, i.e. all variables are graded with weight <code>1</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
  [1, 0]
  [0, 1]
  [1, 0]
  [4, 1]
 
-julia&gt; R, x = graded_polynomial_ring(QQ, 4, :x, W)
+julia&gt; R, x = graded_polynomial_ring(QQ, 4, :x; weights = W)
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x1, x2, x3, x4])
 
-julia&gt; S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
+julia&gt; S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia&gt; T, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
-(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])</code></pre></div></section></article><h2 id="Tests-on-Graded-Rings"><a class="docs-heading-anchor" href="#Tests-on-Graded-Rings">Tests on Graded Rings</a><a id="Tests-on-Graded-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Graded-Rings" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_standard_graded-Tuple{MPolyDecRing}" href="#is_standard_graded-Tuple{MPolyDecRing}"><code>is_standard_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_standard_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is standard <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+julia&gt; T, x = graded_polynomial_ring(QQ, :x =&gt; 1:3)
+(Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
-julia&gt; W = [1, 2, 3];
-
-julia&gt; S, (x, y, z) = grade(R, W)
+julia&gt; T, x, y = graded_polynomial_ring(QQ, :x =&gt; 1:3, :y =&gt; (1:2, 1:2); weights=1:7)
+(Graded multivariate polynomial ring in 7 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]], MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[y[1, 1] y[1, 2]; y[2, 1] y[2, 2]])</code></pre></div></section></article><h2 id="Tests-on-Graded-Rings"><a class="docs-heading-anchor" href="#Tests-on-Graded-Rings">Tests on Graded Rings</a><a id="Tests-on-Graded-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Graded-Rings" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_standard_graded-Tuple{MPolyDecRing}" href="#is_standard_graded-Tuple{MPolyDecRing}"><code>is_standard_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_standard_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is standard <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]; weights = [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; is_standard_graded(S)
-false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_z_graded-Tuple{MPolyDecRing}" href="#is_z_graded-Tuple{MPolyDecRing}"><code>is_z_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_z_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == 1</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia&gt; W = [1, 2, 3];
-
-julia&gt; S, (x, y, z) = grade(R, W)
+false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_z_graded-Tuple{MPolyDecRing}" href="#is_z_graded-Tuple{MPolyDecRing}"><code>is_z_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_z_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z$</span>-graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == 1</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]; weights = [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; is_z_graded(S)
-true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_zm_graded-Tuple{MPolyDecRing}" href="#is_zm_graded-Tuple{MPolyDecRing}"><code>is_zm_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_zm_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z^m$</span>-graded for some <span>$m$</span>, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z^m$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == m</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5)
-(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
-
-julia&gt; G = abelian_group([0, 0, 2, 2])
+true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_zm_graded-Tuple{MPolyDecRing}" href="#is_zm_graded-Tuple{MPolyDecRing}"><code>is_zm_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_zm_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is <span>$\mathbb Z^m$</span>-graded for some <span>$m$</span>, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Writing <code>G = grading_group(R)</code>, we say that <code>R</code> is <span>$\mathbb Z^m$</span>-graded if <code>is_free(G) &amp;&amp; ngens(G) == rank(G) == m</code> evaluates to <code>true</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 
-julia&gt; g = gens(G);
+julia&gt; W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
-julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
-
-julia&gt; S, x = grade(R, W)
+julia&gt; S, x = graded_polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5; weights=W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia&gt; is_zm_graded(S)
@@ -257,20 +245,11 @@ julia&gt; is_free(G)
 true
 
 julia&gt; is_zm_graded(R)
-false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_positively_graded-Tuple{MPolyDecRing}" href="#is_positively_graded-Tuple{MPolyDecRing}"><code>is_positively_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_positively_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is positively graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>We say that <code>R</code> is <em>positively graded</em> by a finitely generated abelian group <span>$G$</span> if the coefficient ring of <code>R</code> is a field,  <span>$G$</span> is free, and each graded part <span>$R_g$</span>, <span>$g\in G$</span>, has finite dimension.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (t, x, y) = polynomial_ring(QQ, [&quot;t&quot;, &quot;x&quot;, &quot;y&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[t, x, y])
-
-julia&gt; G = abelian_group([0])
-GrpAb: Z
-
-julia&gt; S, (t, x, y) = grade(R, [-1, 1, 1])
+false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_positively_graded-Tuple{MPolyDecRing}" href="#is_positively_graded-Tuple{MPolyDecRing}"><code>is_positively_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_positively_graded(R::MPolyDecRing)</code></pre><p>Return <code>true</code> if <code>R</code> is positively graded, <code>false</code> otherwise.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>We say that <code>R</code> is <em>positively graded</em> by a finitely generated abelian group <span>$G$</span> if the coefficient ring of <code>R</code> is a field,  <span>$G$</span> is free, and each graded part <span>$R_g$</span>, <span>$g\in G$</span>, has finite dimension.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (t, x, y) = graded_polynomial_ring(QQ, [&quot;t&quot;, &quot;x&quot;, &quot;y&quot;]; weights = [-1, 1, 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
 
 julia&gt; is_positively_graded(S)
 false
-
-julia&gt; R, (x, y) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;])
-(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia&gt; G = abelian_group([0, 2])
 (General) abelian group with relation matrix
@@ -281,7 +260,7 @@ julia&gt; W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
  Element of G with components [1 1]
  Element of G with components [1 0]
 
-julia&gt; S, (x, y) = grade(R, W)
+julia&gt; S, (x, y) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;]; weights = W)
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia&gt; is_positively_graded(S)
@@ -321,14 +300,12 @@ julia&gt; L = monomial_basis(T, 2)
  y^2
  x*z
  x*y
- x^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyDecRing, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyDecRing, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)</code></pre><p>Given a polynomial ring <code>R</code> over a field which is graded by a free group of type <code>GrpAbFinGen</code>, and given an element <code>g</code> of that group, return the homogeneous component of <code>R</code> of degree <code>g</code> as a standard vector space. Additionally, return the map which sends an element of that vector space to the corresponding monomial in <code>R</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyDecRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded polynomial ring <code>R</code> over a field, and given a vector <code>W</code> of <span>$m$</span> integers, convert <code>W</code> into an element <code>g</code> of the grading group of <code>R</code> and proceed as above.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyDecRing, d::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded polynomial ring <code>R</code> over a field, and given an integer <code>d</code>, convert <code>d</code> into an element <code>g</code> of the grading group of <code>R</code> proceed as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3);
-
-julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
+ x^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyDecRing, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyDecRing, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)</code></pre><p>Given a polynomial ring <code>R</code> over a field which is graded by a free group of type <code>GrpAbFinGen</code>, and given an element <code>g</code> of that group, return the homogeneous component of <code>R</code> of degree <code>g</code> as a standard vector space. Additionally, return the map which sends an element of that vector space to the corresponding monomial in <code>R</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyDecRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded polynomial ring <code>R</code> over a field, and given a vector <code>W</code> of <span>$m$</span> integers, convert <code>W</code> into an element <code>g</code> of the grading group of <code>R</code> and proceed as above.</p><pre><code class="nohighlight hljs">homogeneous_component(R::MPolyDecRing, d::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded polynomial ring <code>R</code> over a field, and given an integer <code>d</code>, convert <code>d</code> into an element <code>g</code> of the grading group of <code>R</code> proceed as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 0 0 0; 0 0 1 1 1]
 2×5 Matrix{Int64}:
  1  1  0  0  0
  0  0  1  1  1
 
-julia&gt; S, _ = grade(R, W);
+julia&gt; S, _ = graded_polynomial_ring(QQ, &quot;x&quot; =&gt; 1:2, &quot;y&quot; =&gt; 1:3; weights = W);
 
 julia&gt; G = grading_group(S)
 GrpAb: Z^2
@@ -336,7 +313,7 @@ GrpAb: Z^2
 julia&gt; L = homogeneous_component(S, [1, 1]);
 
 julia&gt; L[1]
-homogeneous component of Graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
+homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
 
 julia&gt; FG = gens(L[1]);
 
@@ -426,18 +403,13 @@ Dict{GrpAbFinGenElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 ent
   [2] =&gt; x^2 + y
   [3] =&gt; z
 
-julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5)
-(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
-
 julia&gt; G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 
-julia&gt; g = gens(G);
+julia&gt; W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
-julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
-
-julia&gt; S, x = grade(R, W)
+julia&gt; S, x = graded_polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5; weights=W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia&gt; f = x[1]^2+x[3]^2+x[5]^2
@@ -446,24 +418,19 @@ x[1]^2 + x[3]^2 + x[5]^2
 julia&gt; homogeneous_components(f)
 Dict{GrpAbFinGenElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   [2 2 0 0] =&gt; x[5]^2
-  [2 0 0 0] =&gt; x[1]^2 + x[3]^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyDecRingElem, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyDecRingElem, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, and given an element  <code>g</code> of the grading group of that ring, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyDecRingElem, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded multivariate ring <code>R</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyDecRingElem, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded multivariate ring <code>R</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the  homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5)
-(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
-
-julia&gt; G = abelian_group([0, 0, 2, 2])
+  [2 0 0 0] =&gt; x[1]^2 + x[3]^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyDecRingElem, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyDecRingElem, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, and given an element  <code>g</code> of the grading group of that ring, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyDecRingElem, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded multivariate ring <code>R</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyDecRingElem, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded multivariate ring <code>R</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>R</code>, and return the  homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 
-julia&gt; g = gens(G);
+julia&gt; W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
-julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
-
-julia&gt; S, x = grade(R, W)
+julia&gt; S, x = graded_polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5; weights=W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia&gt; f = x[1]^2+x[3]^2+x[5]^2
 x[1]^2 + x[3]^2 + x[5]^2
 
-julia&gt; homogeneous_component(f, 2*g[1])
+julia&gt; homogeneous_component(f, 2*G[1])
 x[1]^2 + x[3]^2
 
 julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
@@ -473,7 +440,7 @@ julia&gt; W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia&gt; R, x = graded_polynomial_ring(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;, &quot;x[4]&quot;], W)
+julia&gt; R, x = graded_polynomial_ring(QQ, :x =&gt; 1:4; weights=W)
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
 julia&gt; f = x[1]^2*x[2]+x[4]
@@ -482,7 +449,7 @@ x[1]^2*x[2] + x[4]
 julia&gt; homogeneous_component(f, [2, 1])
 x[1]^2*x[2]
 
-julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
+julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]; weights=[1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; f = x^2+y+z
@@ -516,18 +483,13 @@ julia&gt; F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 
 julia&gt; is_homogeneous(F)
-true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{MPolyDecRingElem}" href="#degree-Tuple{MPolyDecRingElem}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a graded multivariate ring, return the degree of <code>f</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z^m$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5)
-(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
-
-julia&gt; G = abelian_group([0, 0, 2, 2])
+true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{MPolyDecRingElem}" href="#degree-Tuple{MPolyDecRingElem}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a graded multivariate ring, return the degree of <code>f</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z^m$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, f::MPolyDecRingElem)</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z$</span>-graded multivariate ring, return the degree of <code>f</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; G = abelian_group([0, 0, 2, 2])
 (General) abelian group with relation matrix
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 
-julia&gt; g = gens(G);
+julia&gt; W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
-julia&gt; W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
-
-julia&gt; S, x = grade(R, W)
+julia&gt; S, x = graded_polynomial_ring(QQ, &quot;x&quot; =&gt; 1:5; weights=W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia&gt; f = x[2]^2+2*x[4]^2
@@ -625,4 +587,4 @@ defined by
   y -&gt; y
 
 julia&gt; H(f)
-x^2 + 1</code></pre></div></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuoRing{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyRingElem{T}</code>. Functionality for these homomorphism is discussed in the section on affine algebras.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../ideals/">Ideals in Multivariate Rings »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.1 on <span class="colophon-date" title="Friday 20 October 2023 12:07">Friday 20 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+x^2 + 1</code></pre></div></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuoRing{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyRingElem{T}</code>. Functionality for these homomorphism is discussed in the section on affine algebras.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../ideals/">Ideals in Multivariate Rings »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Tuesday 24 October 2023 11:55">Tuesday 24 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

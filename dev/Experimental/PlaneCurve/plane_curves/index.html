@@ -28,8 +28,7 @@ ideal(x - 2, y - 1)</code></pre></div></section></article><p>The following funct
 Rational field
 
 julia&gt; PP = proj_space(K, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 </code></pre><p>Then, one can define a projective point as follows:</p><pre><code class="language-julia-repl hljs">julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(2), QQ(-5)])
 (1 : 2 : -5)
 </code></pre><p>The following function checks if a given point is on a curve:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="in-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpcElem{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#in-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpcElem{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>in</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return <code>true</code> if the point <code>P</code> is on the curve <code>C</code>, and <code>false</code> otherwise.</p></div></section></article><h2 id="General-functions-for-curves"><a class="docs-heading-anchor" href="#General-functions-for-curves">General functions for curves</a><a id="General-functions-for-curves-1"></a><a class="docs-heading-anchor-permalink" href="#General-functions-for-curves" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{Oscar.PlaneCurveModule.PlaneCurve}" href="#degree-Tuple{Oscar.PlaneCurveModule.PlaneCurve}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(C::PlaneCurve)</code></pre><p>Return the degree of the defining polynomial of <code>C</code>.</p></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="ring-Tuple{Oscar.PlaneCurveModule.PlaneCurve}" href="#ring-Tuple{Oscar.PlaneCurveModule.PlaneCurve}"><code>ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">ring(C::PlaneCurve)</code></pre><p>Return the coordinate ring of the curve <code>C</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;])
@@ -93,13 +92,10 @@ julia&gt; D = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia&gt; union(C, D)
-Affine plane curve defined by -x^9*y^3 + x^7*y^3 + x^6*y^5 + x^5*y^6 - x^3*y^6 - x^2*y^8</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="arithmetic_genus-Tuple{ProjectivePlaneCurve}" href="#arithmetic_genus-Tuple{ProjectivePlaneCurve}"><code>arithmetic_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arithmetic_genus(C::ProjectivePlaneCurve)</code></pre><p>Return the arithmetic genus of <code>C</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia&gt; T, _ = grade(S)
+Affine plane curve defined by -x^9*y^3 + x^7*y^3 + x^6*y^5 + x^5*y^6 - x^3*y^6 - x^2*y^8</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="arithmetic_genus-Tuple{ProjectivePlaneCurve}" href="#arithmetic_genus-Tuple{ProjectivePlaneCurve}"><code>arithmetic_genus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arithmetic_genus(C::ProjectivePlaneCurve)</code></pre><p>Return the arithmetic genus of <code>C</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia&gt; C = ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+julia&gt; C = ProjPlaneCurve(y^2 * z - x^3 - x * z^2)
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
 
 julia&gt; Oscar.PlaneCurveModule.arithmetic_genus(C)
@@ -133,18 +129,14 @@ julia&gt; P = Point([QQ(0), QQ(0)])
 Point with coordinates QQFieldElem[0, 0]
 
 julia&gt; is_smooth(C, P)
-false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_smooth-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#is_smooth-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>is_smooth</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Throw an error if <code>P</code> is not a point of <code>C</code>, return <code>false</code> if <code>P</code> is a singular point of <code>C</code>, and <code>true</code> if <code>P</code> is a smooth point of <code>C</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia&gt; T, _ = grade(S)
+false</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_smooth-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#is_smooth-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>is_smooth</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Throw an error if <code>P</code> is not a point of <code>C</code>, return <code>false</code> if <code>P</code> is a singular point of <code>C</code>, and <code>true</code> if <code>P</code> is a smooth point of <code>C</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia&gt; PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia&gt; P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -160,15 +152,11 @@ julia&gt; P2 = Point([QQ(2), QQ(-2)])
 Point with coordinates QQFieldElem[2, -2]
 
 julia&gt; tangent(C, P2)
-Affine plane curve defined by -48*x - 48*y</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tangent-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#tangent-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>tangent</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Return the tangent of <code>C</code> at <code>P</code> when <code>P</code> is a smooth point of <code>C</code>, and throw an error otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;,&quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia&gt; T, _ = grade(S)
+Affine plane curve defined by -48*x - 48*y</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tangent-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#tangent-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>tangent</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S &lt;: FieldElem</code></pre><p>Return the tangent of <code>C</code> at <code>P</code> when <code>P</code> is a smooth point of <code>C</code>, and throw an error otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
 julia&gt; C = ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
@@ -238,20 +226,16 @@ Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 julia&gt; curve_intersect(C, D)
 2-element Vector{Vector}:
  AffinePlaneCurve[]
- Point{QQFieldElem}[Point with coordinates QQFieldElem[0, 0], Point with coordinates QQFieldElem[2, -2]]</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>curve_intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a list whose first element is the projective plane curve defined by the gcd of <code>C.eq</code> and <code>D.eq</code>, the second element is the list of the remaining intersection points when the common components are removed from <code>C</code> and <code>D</code> (the points are in <code>PP</code> if specified, or in a new projective space otherwise).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;,&quot;z&quot;])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia&gt; T, _ = grade(S)
+ Point{QQFieldElem}[Point with coordinates QQFieldElem[0, 0], Point with coordinates QQFieldElem[2, -2]]</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem" href="#curve_intersect-Union{Tuple{S}, Tuple{Oscar.Geometry.ProjSpc{S}, ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}}} where S&lt;:FieldElem"><code>curve_intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S &lt;: FieldElem</code></pre><p>Return a list whose first element is the projective plane curve defined by the gcd of <code>C.eq</code> and <code>D.eq</code>, the second element is the list of the remaining intersection points when the common components are removed from <code>C</code> and <code>D</code> (the points are in <code>PP</code> if specified, or in a new projective space otherwise).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia&gt; PP = proj_space(QQ, 2)
-(Projective space of dim 2 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2]])
 
-julia&gt; C = ProjPlaneCurve(T(x+y+z))
+julia&gt; C = ProjPlaneCurve(x+y+z)
 Projective plane curve defined by x + y + z
 
-julia&gt; D = ProjPlaneCurve(T(z))
+julia&gt; D = ProjPlaneCurve(z)
 Projective plane curve defined by z
 
 julia&gt; curve_intersect(PP[1], C, D)
@@ -289,4 +273,4 @@ julia&gt; aretransverse(C, D, P)
 false
 
 julia&gt; aretransverse(C, D, Q)
-true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="aretransverse-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#aretransverse-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>aretransverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S&lt;:FieldElem</code></pre><p>Return <code>true</code> if <code>C</code> and <code>D</code> intersect transversally at <code>P</code> and <code>false</code> otherwise.</p></div></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.1 on <span class="colophon-date" title="Friday 20 October 2023 12:53">Friday 20 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="aretransverse-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem" href="#aretransverse-Union{Tuple{S}, Tuple{ProjectivePlaneCurve{S}, ProjectivePlaneCurve{S}, Oscar.Geometry.ProjSpcElem{S}}} where S&lt;:FieldElem"><code>aretransverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs"> aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S&lt;:FieldElem</code></pre><p>Return <code>true</code> if <code>C</code> and <code>D</code> intersect transversally at <code>P</code> and <code>false</code> otherwise.</p></div></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Monday 23 October 2023 17:00">Monday 23 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

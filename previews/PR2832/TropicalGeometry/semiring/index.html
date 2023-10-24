@@ -5,7 +5,7 @@ Min tropical semiring
 julia&gt; T = tropical_semiring(max)
 Max tropical semiring
 
-julia&gt; 0*T(3) + 1*T(1)^2 + inf(T) # = max(0+3,1+2*1,-∞)
+julia&gt; 0*T(3) + 1*T(1)^2 + zero(T) # = max(0+3,1+2*1,-∞)
 (3)
 
 julia&gt; T(0) == 0    # checks whether the tropical number is 0
@@ -25,7 +25,7 @@ julia&gt; evaluate(f,T.([-1//2,1//2])) # warning: omitting T() gives an error
 (-1//2)</code></pre><p><strong>Examples (matrices)</strong></p><pre><code class="language-julia-repl hljs">julia&gt; T = tropical_semiring()
 Min tropical semiring
 
-julia&gt; A = matrix(T,[0 inf(T); inf(T) 0]) # = tropical identity matrix
+julia&gt; A = matrix(T,[0 zero(T); zero(T) 0]) # = tropical identity matrix
 [(0)     ∞]
 [  ∞   (0)]
 
@@ -49,13 +49,13 @@ julia&gt; minors(A,1)
 Min tropical semiring
 
 julia&gt; convention(T)
-min (generic function with 12 methods)
+min (generic function with 27 methods)
 
 julia&gt; T = tropical_semiring(max)
 Max tropical semiring
 
 julia&gt; convention(T)
-max (generic function with 12 methods)</code></pre></div></section></article><h2 id="Related-functions"><a class="docs-heading-anchor" href="#Related-functions">Related functions</a><a id="Related-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Related-functions" title="Permalink"></a></h2><p>Other functions related to <code>TropicalSemiring</code>, matrices, and polynomials thereover include:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="det-Tuple{AbstractAlgebra.Generic.MatSpaceElem{&lt;:TropicalSemiringElem}}" href="#det-Tuple{AbstractAlgebra.Generic.MatSpaceElem{&lt;:TropicalSemiringElem}}"><code>det</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">det(A::Generic.MatSpaceElem{&lt;: TropicalSemiringElem})</code></pre><p>Return the tropical determinant of <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>This function effectively overwrites the <code>det</code> command for tropical matrices.  This means that functions like <code>minors</code> will use the tropical determinant when used on a tropical matrix.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = matrix(tropical_semiring(),[1 2; 3 4])
+max (generic function with 27 methods)</code></pre></div></section></article><h2 id="Related-functions"><a class="docs-heading-anchor" href="#Related-functions">Related functions</a><a id="Related-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Related-functions" title="Permalink"></a></h2><p>Other functions related to <code>TropicalSemiring</code>, matrices, and polynomials thereover include:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="det-Tuple{AbstractAlgebra.Generic.MatSpaceElem{&lt;:TropicalSemiringElem}}" href="#det-Tuple{AbstractAlgebra.Generic.MatSpaceElem{&lt;:TropicalSemiringElem}}"><code>det</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">det(A::Generic.MatSpaceElem{&lt;: TropicalSemiringElem})</code></pre><p>Return the tropical determinant of <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>This function effectively overwrites the <code>det</code> command for tropical matrices.  This means that functions like <code>minors</code> will use the tropical determinant when used on a tropical matrix.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = matrix(tropical_semiring(),[1 2; 3 4])
 [(1)   (2)]
 [(3)   (4)]
 
@@ -70,4 +70,4 @@ julia&gt; f = 7*x+y+49
 7*x + y + 49
 
 julia&gt; tropical_polynomial(f,nu)
-(1)*x + y + (2)</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../semiring_map/">Tropical semiring maps »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.1 on <span class="colophon-date" title="Friday 20 October 2023 12:07">Friday 20 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+(1)*x + y + (2)</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../semiring_map/">Tropical semiring maps »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Tuesday 24 October 2023 11:56">Tuesday 24 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
