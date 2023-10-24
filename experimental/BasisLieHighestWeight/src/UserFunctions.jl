@@ -18,7 +18,8 @@ Computes a monomial basis for the highest weight module with highest weight
 - `reduced_expression`: list of operators, either "regular" or integer array. The functionality of choosing a random longest word
                 is currently not implemented, because we used https://github.com/jmichel7/Gapjm.jl to work with coxeter 
                 groups need a method to obtain all non left descending elements to extend a word
-- `monomial_ordering`: monomial order in which our basis gets defined with regards to our operators 
+- `monomial_ordering`: monomial order in which our basis gets defined with regards to our operators.
+                       If this is a weighted ordering, the height of the corresponding root is used as weight.
 
 # Examples
 ```jldoctest
@@ -112,21 +113,10 @@ end
 # Examples
 ```jldoctest
 julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1]; reduced_expression=[4,3,2,4,3,2,1,2,4,3,2,1])
-ERROR: not working currently
-Stacktrace:
- [1] error(s::String)
-   @ Base ./error.jl:35
- [2] basis_lie_highest_weight_lustzig(type::Symbol, rank::Int64, highest_weight::Vector{Int64}; reduced_expression::Vector{Int64})
-   @ Oscar.BasisLieHighestWeight ~/code/julia/Oscar.jl/experimental/BasisLieHighestWeight/src/UserFunctions.jl:160
- [3] top-level scope
-   @ none:1
-```
-keep track of correct output:
-
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 4096
-  with monomial ordering oplex
+  with monomial ordering wdegrevlex
 over lie-Algebra of type D and rank 4
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [0, 0, 0, 1]
@@ -147,6 +137,7 @@ over lie-Algebra of type D and rank 4
     [0, 0, 1, 0]
     [0, 0, 0, 1]
     [0, 0, 1, 1]
+```
 """
 function basis_lie_highest_weight_lustzig(
   type::Symbol, rank::Int, highest_weight::Vector{Int}; reduced_expression::Vector{Int}
@@ -156,9 +147,7 @@ function basis_lie_highest_weight_lustzig(
   BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
   """
   # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
-  error("not working currently")
   monomial_ordering = :wdegrevlex
-  # TODO: weighting = height = -sum_i c_i, where root = sum_i c_i alpha_i
   lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
   operators = get_operators_lustzig(lie_algebra, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(

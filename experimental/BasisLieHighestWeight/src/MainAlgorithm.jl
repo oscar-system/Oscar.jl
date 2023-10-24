@@ -57,7 +57,7 @@ function basis_lie_highest_weight_compute(
   )
 
   ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
-  monomial_ordering_lt = get_monomial_ordering_lt(monomial_ordering, ZZx) # less than function to sort monomials by order
+  monomial_ordering_lt = get_monomial_ordering_lt(monomial_ordering, ZZx, weights_alpha) # less than function to sort monomials by order
 
   # save computations from recursions
   calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
