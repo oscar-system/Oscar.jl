@@ -51,18 +51,18 @@ Works similarly for tropical numbers,
 tropical vectors and matrices, and tropical polynomials.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"\(generic function with .* methods\)"
 julia> T = tropical_semiring(min)
 Min tropical semiring
 
 julia> convention(T)
-min (generic function with 12 methods)
+min (generic function with 27 methods)
 
 julia> T = tropical_semiring(max)
 Max tropical semiring
 
 julia> convention(T)
-max (generic function with 12 methods)
+max (generic function with 27 methods)
 ```
 """
 convention(T::TropicalSemiring{typeof(min)}) = min
