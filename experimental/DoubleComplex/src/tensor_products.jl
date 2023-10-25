@@ -115,3 +115,6 @@ end
 ### missing functionality
 # A fallback in case nothing more specific is known
 morphism_type(::Type{T}) where {T<:ModuleFP} = ModuleFPHom
+
+zero(phi::ModuleFPHom) = hom(domain(phi), codomain(phi), [zero(codomain(phi)) for i in 1:ngens(domain(phi))])
+zero_morphism(dom::ModuleFP, cod::ModuleFP) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
