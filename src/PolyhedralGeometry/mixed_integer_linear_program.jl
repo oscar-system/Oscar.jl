@@ -248,3 +248,10 @@ julia> solve_milp(milp)
 ```
 """
 solve_milp(milp::MixedIntegerLinearProgram) = optimal_value(milp), optimal_solution(milp)
+
+@doc raw"""
+    ambient_dim(MILP::MixedIntegerLinearProgram)
+
+Return the ambient dimension of the feasible reagion of `MILP`.
+"""
+ambient_dim(milp::MixedIntegerLinearProgram) = ambient_dim(feasible_region(milp))
