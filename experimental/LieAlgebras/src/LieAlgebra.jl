@@ -58,6 +58,13 @@ function basis(L::LieAlgebra, i::Int)
 end
 
 @doc raw"""
+    characteristic(L::LieAlgebra) -> Int
+
+Return the characteristic of the coefficient ring of the Lie algebra `L`.
+"""
+characteristic(L::LieAlgebra) = characteristic(coefficient_ring(L))
+
+@doc raw"""
     zero(L::LieAlgebra{C}) -> LieAlgebraElem{C}
 
 Return the zero element of the Lie algebra `L`.
@@ -384,7 +391,7 @@ Return `true` if `L` is abelian, i.e. $[L, L] = 0$.
 @attr Bool function is_abelian(L::LieAlgebra)
   b = basis(L)
   n = length(b)
-  return all(iszero, b[i] * b[j] for i in 1:n for j in i+1:n)
+  return all(iszero, b[i] * b[j] for i in 1:n for j in (i + 1):n)
 end
 
 @doc raw"""
@@ -435,9 +442,10 @@ end
 ###############################################################################
 
 @doc raw"""
-    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBEAlgRing, Map
+    universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex) -> PBWAlgRing, Map
 
-Return the universal enveloping algebra of `L` with the given monomial ordering.
+Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
+together with a map from `L` into the filtered component of degree 1 of `U(L)`.
 """
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:lex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))

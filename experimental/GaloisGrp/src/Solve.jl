@@ -246,7 +246,6 @@ function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; 
   return number_field(f; cached, check)
 end
 
-
 function refined_derived_series(G::PermGroup)
   s = GAP.Globals.PcSeries(GAP.Globals.Pcgs(G.X))
   return  Oscar._as_subgroups(G,s)
@@ -325,7 +324,7 @@ function length_bound(C::GaloisCtx, S::SubField, x::Union{QQFieldElem,NumFieldEl
   end
   f = parent(defining_polynomial(S.fld))(x)
   if iszero(f)
-    return fmpz(1)
+    return ZZRingElem(1)
   end
 
   B = Oscar.GaloisGrp.upper_bound(C, S.pe).val

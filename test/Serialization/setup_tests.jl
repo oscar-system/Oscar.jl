@@ -1,6 +1,10 @@
 # This code is needed for multiple test files that may end up on different workers.
 # Thus, this needs to be conditionally included in each of these test files.
 
+# we only need to define this once
+
+if !isdefined(Main, :test_save_load_roundtrip)
+
 function test_save_load_roundtrip(func, path, original::T; params=nothing) where {T}
   # save and load from a file
   filename = joinpath(path, "original.json")
@@ -42,4 +46,6 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
   save(filename, original)
   reset_global_serializer_state()
   loaded = load(filename; params=params)
+end
+
 end

@@ -85,6 +85,13 @@ end
   @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
   @test intersect(I,J,P) == intersect([I,J,P])
 
+  @test I != J
+  RR, (xx, yy) = grade(R, [1, 1])
+  @test_throws ErrorException ideal(R, [x]) == ideal(RR, [xx])
+  @test is_subset(I, I)
+  RR, (xx, yy) = polynomial_ring(QQ, ["xx", "yy"])
+  @test_throws ErrorException is_subset(ideal(R, [x]), ideal(RR, [xx]))
+
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]

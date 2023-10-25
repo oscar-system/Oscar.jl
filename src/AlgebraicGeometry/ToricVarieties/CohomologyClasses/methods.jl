@@ -7,7 +7,7 @@ toric variety `toric_variety(c)`.
 # Examples
 ```jldoctest
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
 6-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -25,7 +25,7 @@ julia> integrate(c)
 -1
 
 julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1, x2, x3, x4) = gens(cohomology_ring(F3))
 4-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:

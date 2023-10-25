@@ -31,7 +31,7 @@ defined by ideal(x^3 + y^2 + y + 1, x)
 
 ```
 """
-function algebraic_set(I::MPolyIdeal{<:MPolyElem}; is_radical::Bool=false, check::Bool=true)
+function algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; is_radical::Bool=false, check::Bool=true)
   X = Spec(base_ring(I), I)
   return algebraic_set(X, is_reduced=is_radical, check=check)
 end

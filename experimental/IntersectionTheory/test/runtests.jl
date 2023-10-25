@@ -148,7 +148,7 @@ let pushforward = IntersectionTheory.pushforward
     @test euler_characteristic(cotangent_bundle(P2)) == -1
     hilb = hilbert_polynomial(P2)
     t = gens(parent(hilb))[1]
-    @test hilb isa fmpq_poly
+    @test hilb isa QQPolyRingElem
     @test hilb == 1 + 3//2*t + 1//2*t^2
 
     # Grassmannian

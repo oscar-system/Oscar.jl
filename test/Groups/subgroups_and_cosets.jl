@@ -280,7 +280,7 @@ end
    @test is_nilpotent(quaternion_group(8))
    @test is_supersolvable(quaternion_group(8))
    @test nilpotency_class(quaternion_group(8))==2
-   @test_throws AssertionError nilpotency_class(symmetric_group(4))
+   @test_throws ArgumentError nilpotency_class(symmetric_group(4))
 end
 
 @testset "Sylow and Hall subgroups" begin

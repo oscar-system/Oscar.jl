@@ -6,7 +6,7 @@ Checks if the toric line bundle `l` is contained in the toric vanishing set `tvs
 # Examples
 ```jldoctest
 julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(dP1, [3, 2])
 Toric line bundle on a normal toric variety

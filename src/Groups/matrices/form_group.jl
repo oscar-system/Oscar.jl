@@ -621,16 +621,21 @@ function isometry_group(f::SesquilinearForm{T}) where T
    Xf = is_congruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
-   if Xf==nothing && isodd(r)
+   if Xf === nothing && isodd(r)
       Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
    end
 
 
-   if f.descr==:hermitian G = GU(r,Int(characteristic(F)^div(degree(F),2)))
-   elseif f.descr==:alternating G = Sp(r, F)
-   elseif isodd(r) G = GO(0,r,F)
-   elseif witt_index(f)==div(r,2) G=GO(1,r,F)
-   else G=GO(-1,r,F)
+   if f.descr === :hermitian
+      G = GU(r,Int(characteristic(F)^div(degree(F),2)))
+   elseif f.descr === :alternating
+      G = Sp(r, F)
+   elseif isodd(r)
+      G = GO(0,r,F)
+   elseif 2*witt_index(f) == r
+      G = GO(1,r,F)
+   else
+      G = GO(-1,r,F)
    end
 
 # 2x2 block matrix. The four blocks are: group of isometries for fn,

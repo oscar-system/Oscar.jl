@@ -19,6 +19,13 @@ print(IOContext(io, :supercompact => true), x) # supercompact printing
 For reference, string interpolation `"$(x)"` uses one line printing via `print(io, x)`,
 while on the REPL detailed printing is used to show top level objects.
 
+!!! warning "display"
+    Please do not use `display`! From the [Julia documentation of
+    `display`](https://docs.julialang.org/en/v1/base/io-network/#Base.Multimedia.display):
+    "In general, you cannot assume that `display` output goes to `stdout`
+    [...]". In particular, the output of `display` will not work in the
+    `jldoctest`s.
+
 ### Mockup
 
 #### Detailed printing with a new line

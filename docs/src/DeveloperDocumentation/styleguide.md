@@ -194,6 +194,63 @@ end
 
 However, as always, rules sometimes should be broken.
 
+## Optional arguments for parents of return values
+
+Several objects in OSCAR have `parent`s, e.g. polynomials, group elements, ... 
+Whenever a function creates such objects from an input which does not involve 
+the output's parent, we strongly recommend that 
+the user should have the possibility to pass on this 
+parent as a keyword argument under the name `parent`.
+Beyond that you can make more entry points for such parents available for 
+the user's convenience.
+
+Let's see an example. Say, you want to implement the characteristic 
+polynomial of a matrix. You could do it as follows:
+```julia
+  function characteristic_polynomial(A::MatrixElem)
+    kk = base_ring(A)
+    P, x = kk["x"]
+    AP = change_base_ring(P, A)
+    return det(AP - x*one(AP))
+  end
+```
+You can see that the polynomial ring `P`, i.e. the parent of the output, 
+is newly created in the body of the function. In particular, calling this 
+function two times on two different matrices `A` and `B` might produce 
+incompatible polynomials `p = det(A - x*one(A))` and `q = det(B - x*one(B))` 
+with different parents. Calling `p + q` will result in an error. 
+
+To solve this, we should have implemented the function differently:
+```julia
+  # Implementation of the recommended keyword argument signature:
+  function characteristic_polynomial(
+      A::MatrixElem;
+      parent::AbstractAlgebra.Ring=polynomial_ring(base_ring(A), :t)[1]
+    )
+    AP = change_base_ring(parent, A)
+    x = first(gens(ring))
+    return det(AP - x*one(AP))
+  end
+
+  # Optional second signature to also allow for the specification of the 
+  # output's parent as the first argument:
+  function characteristic_polynomial(
+      P::PolyRing,
+      A::MatrixElem
+    )
+    coefficient_ring(P) === base_ring(A) || error("coefficient rings incompatible")
+    return characteristic_polynomial(A, parent=P)
+  end
+```
+In fact this now allows for two different entry points for the parent ring `P` 
+of the output: First as the required `parent` keyword argument and second 
+as the first argument of a method of `characteristic_polynomial` with 
+an extended signature. Note that within the scope of the first method's body 
+the OSCAR function `parent` is necessarily overwritten by the name of the 
+keyword argument. Hence to call the actual parent of any other object, you 
+must then use `Oscar.parent`. E.g. to get the `MatrixSpace` of the 
+matrix `A`, write `Oscar.parent(A)`.
+
 
 ## Documentation
 

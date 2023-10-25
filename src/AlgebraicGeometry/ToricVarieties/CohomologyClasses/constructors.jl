@@ -27,7 +27,7 @@ reside in the cohomology ring of `v`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
 Cohomology class on a normal toric variety given by x1
@@ -45,7 +45,7 @@ corresponding to the toric divisor `d`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(P2, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -71,7 +71,7 @@ corresponding to the toric divisor class `c`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, [2])
 Divisor class on a normal toric variety
@@ -92,7 +92,7 @@ corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(P2, [2])
 Toric line bundle on a normal toric variety

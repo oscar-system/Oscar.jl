@@ -10,7 +10,7 @@ toric varieties.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> bl = blow_up(P2, [1, 1])
 Toric blowdown morphism
@@ -21,7 +21,7 @@ julia> x, y, z = gens(S);
 
 julia> I = ideal_sheaf(P2, ideal([x*y]))
 Sheaf of ideals
-  on normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+  on normal, smooth toric variety
 with restrictions
   1: ideal(x_1_1*x_2_1)
   2: ideal(x_2_2)

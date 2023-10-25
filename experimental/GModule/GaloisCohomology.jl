@@ -85,7 +85,7 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, nf(order(codomain((mR)))))[2])
   k = nf(order(codomain(mR)))
   G = domain(mG)
 
@@ -1846,6 +1846,7 @@ function Oscar.orbit(C::GModule, o)
   return orbit(C.G, (x,y) -> action(C, y, x), o)
 end
 
+#TODO: reduce torsion: the part coprime to |G| can go...
 """
     shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
 
@@ -1854,7 +1855,7 @@ Returns a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
-  local mq
+  mq = hom(C.M, C.M, gens(C.M))
   q = C
   first = true
   while true
@@ -1862,9 +1863,9 @@ function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
     for i=1:attempts
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        s, ms = sub(q.M, collect(o))
+        s, ms = sub(q.M, collect(o), false)
         if rank(s) == length(o)
-          q, _mq = quo(q, ms)
+          q, _mq = quo(q, ms, false)
           if first
             mq = _mq
             first = false

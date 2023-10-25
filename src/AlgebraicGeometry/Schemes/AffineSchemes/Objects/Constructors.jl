@@ -50,7 +50,7 @@ Spectrum
     at complement of prime ideal(x)
 ```
 """
-Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
+Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(localization(R, U)[1])
 
 
 @doc raw"""
@@ -408,7 +408,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -419,7 +419,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   h = numerator(f)
   U = MPolyPowersOfElement(h)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -429,7 +429,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -439,7 +439,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -487,7 +487,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -498,7 +498,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -508,7 +508,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -518,7 +518,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   simplify!(U)
-  W, _ = Localization(OO(X), U)
+  W, _ = localization(OO(X), U)
   Y = Spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
@@ -686,7 +686,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(Localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
+  return Spec(localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
 end
 
 
@@ -825,7 +825,7 @@ function closure(
                                     <:MPolyPowersOfElement}}
   @check issubset(X, Y) "the first argument is not a subset of the second"
   #is_closed_embedding(X, Y) && return X
-  W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
+  W, _ = localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
   R = ambient_coordinate_ring(Y)

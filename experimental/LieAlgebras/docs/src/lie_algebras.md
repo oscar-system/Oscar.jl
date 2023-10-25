@@ -24,6 +24,7 @@ coefficients(::LieAlgebraElem)
 coeff(::LieAlgebraElem, ::Int)
 getindex(::LieAlgebraElem, ::Int)
 symbols(::LieAlgebra)
+characteristic(L::LieAlgebra)
 ```
 
 ## Special functions for `LinearLieAlgebra`s

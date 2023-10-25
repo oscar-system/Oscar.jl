@@ -1182,9 +1182,7 @@ defined by
 ```
 """ localization(R::MPolyRing, U::AbsMPolyMultSet)
 
-###localization is an Abstract Algebra alias for Localization
-
-function Localization(S::AbsMPolyMultSet)
+function localization(S::AbsMPolyMultSet)
     R = ambient_ring(S)
     Rloc = MPolyLocRing(R, S)
     #iota = MapFromFunc(R, Rloc, x -> Rloc(x))
@@ -1192,19 +1190,19 @@ function Localization(S::AbsMPolyMultSet)
     return Rloc, iota
 end
 
-function Localization(R::MPolyRing, ord::MonomialOrdering)
+function localization(R::MPolyRing, ord::MonomialOrdering)
   @assert R === ord.R
-  return Localization(MPolyLeadingMonOne(ord))
+  return localization(MPolyLeadingMonOne(ord))
 end
 
 ### Successive localizations are handled by the dispatch for products
-function Localization(
+function localization(
     W::MPolyLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   issubset(S, inverted_set(W)) && return W, identity_map(W)
   U = S*inverted_set(W)
-  L, _ = Localization(U)
+  L, _ = localization(U)
   #return L, MapFromFunc(W, L, (x->(L(numerator(x), denominator(x), check=false))))
   return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
 end
@@ -1212,9 +1210,9 @@ end
 ### additional constructors
 MPolyLocRing(R::RingType, P::MPolyIdeal{RingElemType}; check::Bool=true) where {RingType, RingElemType} = MPolyLocRing(R, MPolyComplementOfPrimeIdeal(P); check)
 
-Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyRingElem} = Localization(MPolyPowersOfElement(R, v))
+localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyRingElem} = localization(MPolyPowersOfElement(R, v))
 
-function Localization(
+function localization(
     W::MPolyLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     f::RET
   ) where {BRT, BRET, RT, RET<:RingElement}
@@ -1231,13 +1229,13 @@ function Localization(
   #return L, MapFromFunc(W, L, (x->L(numerator(x), denominator(x), check=false)))
 end
 
-function Localization(
+function localization(
     W::MPolyLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     v::Vector{RET}
   ) where {BRT, BRET, RT, RET}
   V = W
   for f in v
-    V = Localization(V, f)
+    V = localization(V, f)
   end
   return V, MPolyLocalizedRingHom(W, V, hom(base_ring(W), V, V.(gens(base_ring(W)))), check=false)
   #return V, MapFromFunc(W, V, (x->V(numerator(x), denominator(x), check=false)))
@@ -1688,7 +1686,7 @@ julia> f = x+y+z+w-1;
 
 julia> T = MPolyPowersOfElement(f);
 
-julia> RL,phiL = Localization(R,T);
+julia> RL,phiL = localization(R,T);
 
 julia> I=ideal(RL,RL.([x+y+z,w-1]))
 Ideal
@@ -1797,6 +1795,15 @@ function coordinates(
   ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   L = base_ring(I)
   parent(a) === L || return coordinates(L(a), I, check=check)
+
+  b = numerator(a)
+  if b in pre_saturated_ideal(I)
+    x = coordinates(b, pre_saturated_ideal(I))
+    q = denominator(a)
+    # multiplications sparse*dense have to be carried out this way round.
+    return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+  end
+
   @check a in I "the given element is not in the ideal"
   !is_saturated(I) && _replace_pre_saturated_ideal(I, saturated_ideal(I), prod(denominators(inverted_set(L)); init=one(base_ring(L)))) # Computing the saturation first is cheaper than the generic Posur method
   J = pre_saturated_ideal(I)
@@ -2191,7 +2198,7 @@ function saturated_ideal(
     R = base_ring(W)
     J = ideal(R, numerator.(gens(I)))
     for U in sets(inverted_set(W))
-      L, _ = Localization(U)
+      L, _ = localization(U)
       J = saturated_ideal(L(J))
     end
     if with_generator_transition
@@ -2227,6 +2234,7 @@ function ideal_membership(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
+  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
@@ -2421,7 +2429,7 @@ function coordinates(
 
   if length(U) == 1 
     if !has_attribute(I, :popped_ideal)
-      W, _ = Localization(R, U[1])
+      W, _ = localization(R, U[1])
       popped_ideal = W(pre_saturated_ideal(I))
       set_attribute!(I, :popped_ideal, popped_ideal)
     end
@@ -2438,11 +2446,11 @@ function coordinates(
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
-      W, _ = Localization(base_ring(L), S)
+      W, _ = localization(base_ring(L), S)
       popped_ideal = ideal(W, pre_saturated_ideal(I))
       saturated_ideal(popped_ideal, with_generator_transition=true)
       set_attribute!(I, :popped_ideal, popped_ideal)
-      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      Wnext, _ = localization(R, MPolyProductOfMultSets(R, U))
       next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
       set_attribute!(I, :next_ideal, next_ideal)
     end
@@ -2456,11 +2464,11 @@ function coordinates(
   else
     if !has_attribute(I, :popped_ideal)
       S = pop!(U)
-      W, _ = Localization(base_ring(L), S)
+      W, _ = localization(base_ring(L), S)
       popped_ideal = ideal(W, pre_saturated_ideal(I))
       saturated_ideal(popped_ideal, with_generator_transition=true)
       set_attribute!(I, :popped_ideal, popped_ideal)
-      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      Wnext, _ = localization(R, MPolyProductOfMultSets(R, U))
       next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
       set_attribute!(I, :next_ideal, next_ideal)
     end
@@ -2486,7 +2494,7 @@ function ideal_membership(
 
   if length(U) == 1 
     if !has_attribute(I, :popped_ideal)
-      W, _ = Localization(R, U[1])
+      W, _ = localization(R, U[1])
       popped_ideal = W(pre_saturated_ideal(I))
       set_attribute!(I, :popped_ideal, popped_ideal)
     end
@@ -2500,11 +2508,11 @@ function ideal_membership(
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
-      W, _ = Localization(base_ring(L), S)
+      W, _ = localization(base_ring(L), S)
       popped_ideal = ideal(W, pre_saturated_ideal(I))
       saturated_ideal(popped_ideal, with_generator_transition=true)
       set_attribute!(I, :popped_ideal, popped_ideal)
-      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      Wnext, _ = localization(R, MPolyProductOfMultSets(R, U))
       next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
       set_attribute!(I, :next_ideal, next_ideal)
     end
@@ -2513,11 +2521,11 @@ function ideal_membership(
   else
     if !has_attribute(I, :popped_ideal)
       S = pop!(U)
-      W, _ = Localization(base_ring(L), S)
+      W, _ = localization(base_ring(L), S)
       popped_ideal = ideal(W, pre_saturated_ideal(I))
       saturated_ideal(popped_ideal, with_generator_transition=true)
       set_attribute!(I, :popped_ideal, popped_ideal)
-      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      Wnext, _ = localization(R, MPolyProductOfMultSets(R, U))
       next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
       set_attribute!(I, :next_ideal, next_ideal)
     end
@@ -2675,7 +2683,7 @@ function MPolyLocalizedRingHom(
       a::Vector{RingElemType}
   ) where {RingElemType<:RingElem}
   res = hom(R, S, a, check=false)
-  W, _ = Localization(units_of(R))
+  W, _ = localization(units_of(R))
   return MPolyLocalizedRingHom(W, S, res)
 end
 
@@ -2934,7 +2942,7 @@ function divides(a::MPolyLocRingElem, b::MPolyLocRingElem)
 end
 
 # This had to be moved after the definition of the elements.
-function Localization(R::MPolyRing, f::MPolyRingElem)
+function localization(R::MPolyRing, f::MPolyRingElem)
   U = MPolyPowersOfElement(R, [f])
   L = MPolyLocRing(R, U)
   function func(a::MPolyRingElem)
@@ -3095,7 +3103,7 @@ julia> minimal_generating_set(I)
 """
 @attr Vector{<:MPolyLocRingElem} function minimal_generating_set(
     I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                                          <:MPolyRing, <:MPolyElem,
+                                          <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal}
                           }
   )
@@ -3171,11 +3179,11 @@ julia> small_generating_set(I)
 ```
 """
 small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyRing, <:MPolyRingElem,
                         <:MPolyComplementOfKPointIdeal}})  = minimal_generating_set(I)
 
 function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:FieldElem,
-                        <:MPolyRing, <:MPolyElem,
+                        <:MPolyRing, <:MPolyRingElem,
                         <:MPolyPowersOfElement}})
   L = base_ring(I)
   R = base_ring(L)
@@ -3183,5 +3191,26 @@ function small_generating_set(I::MPolyLocalizedIdeal{<:MPolyLocRing{<:Field, <:F
   return filter(!iszero, I_min)
 end
 
-dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+dim(R::MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = nvars(base_ring(R)) - dim(prime_ideal(inverted_set(R)))
+
+########################################################################
+# Localizations of graded rings                                        #
+########################################################################
+function is_graded(L::MPolyLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
+  return true
+end
+
+function grading_group(L::MPolyLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
+  return grading_group(base_ring(L))
+end
+
+function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return degree(numerator(a)) - degree(denominator(a))
+end
+
+function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
+end
+
+
 
