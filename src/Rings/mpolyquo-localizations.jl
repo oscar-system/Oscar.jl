@@ -2247,3 +2247,22 @@ end
 
 dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
 
+########################################################################
+# Localizations of graded rings                                        #
+########################################################################
+function is_graded(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
+  return true
+end
+
+function grading_group(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
+  return grading_group(base_ring(L))
+end
+
+function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return degree(numerator(a)) - degree(denominator(a))
+end
+
+function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
+end
+

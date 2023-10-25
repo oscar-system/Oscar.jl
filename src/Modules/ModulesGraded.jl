@@ -2657,3 +2657,43 @@ function twist(M::ModuleFP{T}, d::IntegerUnion) where {T<:MPolyDecRingElem}
   @assert is_z_graded(R)
   return twist(M, grading_group(R)([d]))
 end
+
+# TODO: implement further base changes. But for this we need more functionality 
+# for potential change of grading groups. See the open pr #2677.
+function change_base_ring(
+    f::RingFlattening{DomType, CodType}, F::FreeMod
+  ) where {DomType<:MPolyDecRing, CodType<:Ring}
+  domain(f) === base_ring(F) || error("ring map not compatible with the module")
+  S = codomain(f)
+  r = ngens(F)
+  FS = grade(FreeMod(S, F.S), degree.(gens(F)))
+  map = hom(F, FS, gens(FS), f)
+  return FS, map
+end
+
+function change_base_ring(f::RingFlattening{DomType, CodType}, M::SubquoModule) where {DomType<:MPolyDecRing, CodType<:Ring}
+  domain(f) == base_ring(M) || error("ring map not compatible with the module")
+  S = codomain(f)
+  F = ambient_free_module(M)
+  R = base_ring(M)
+  FS, mapF, iso_inv = f(F) # Makes sure ambient modules are preserved due to caching in flattenings
+  g = ambient_representatives_generators(M)
+  rels = relations(M)
+  MS = SubquoModule(FS, mapF.(g), mapF.(rels))
+  map = SubQuoHom(M, MS, gens(MS), f)
+  return MS, map
+end
+
+function _regularity_bound(M::SubquoModule)
+  @assert is_graded(M) "module must be graded"
+  S = base_ring(M)
+  G = grading_group(S)
+  @assert is_free(G) && isone(rank(G)) "base ring must be ZZ-graded"
+  @assert all(x->degree(x)[1] >= 0, gens(S)) "base ring variables must be non-negatively graded"
+  res = free_resolution(M)
+  result = maximum((x->degree(x)[1]).(gens(res[0])))
+  for i in 0:first(chain_range(res))
+    result = maximum(push!((x->degree(x)[1]-i).(gens(res[i])), result))
+  end
+  return result
+end

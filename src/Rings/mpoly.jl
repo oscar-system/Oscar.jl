@@ -1311,3 +1311,6 @@ end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
 
+function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
+  set_attribute!(S, :default_ordering, ord)
+end
