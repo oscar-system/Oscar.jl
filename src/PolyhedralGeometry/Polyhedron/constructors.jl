@@ -137,6 +137,14 @@ function ==(P0::Polyhedron{T}, P1::Polyhedron{T}) where T<:scalar_types
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
+# we do not want to force a convex hull computation and even if we did, that
+# would not give a normal form
+function Base.hash(x::T, h::UInt) where {T <: Polyhedron}
+  h = hash(ambient_dim(x), h)
+  h = hash(T, h)
+  return h
+end
+
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc raw"""
     convex_hull([::Union{Type{T}, Field} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)

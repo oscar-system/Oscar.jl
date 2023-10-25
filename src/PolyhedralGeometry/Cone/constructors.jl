@@ -91,6 +91,13 @@ function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
     return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
 end
 
+# we do not want to force a convex hull computation and even if we did, that
+# would not give a normal form
+function Base.hash(x::T, h::UInt) where {T <: Cone}
+  h = hash(ambient_dim(x), h)
+  h = hash(T, h)
+  return h
+end
 
 @doc raw"""
     cone_from_inequalities([::Union{Type{T}, Field} = QQFieldElem,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
