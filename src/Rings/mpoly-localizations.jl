@@ -1800,8 +1800,7 @@ function coordinates(
   if b in pre_saturated_ideal(I)
     x = coordinates(b, pre_saturated_ideal(I))
     q = denominator(a)
-    # multiplications sparse*dense have to be carried out this way round.
-    return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+    return transpose(pre_saturation_data(I) * transpose(L(one(q), q, check=false)*change_base_ring(L, x)))
   end
 
   @check a in I "the given element is not in the ideal"
