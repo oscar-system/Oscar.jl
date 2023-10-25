@@ -86,7 +86,6 @@ function matricesForOperators(L, hw, ops)
     ops,
   )
   denominators = map(y -> denominator(y[2]), union(union(mats...)...))
-  #d = convert(QQ, lcm(denominators))
   d = lcm(denominators)# // 1
   mats = (A -> change_base_ring(ZZ, d * A)).(mats)
   return mats
@@ -185,8 +184,7 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--
   monomials = compute(hwv, mats, wts)
   ZZx, x = PolynomialRing(ZZ, length(monomials[1]))
   monomials = [
-    finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), convert(Vector{Int}, mon))) for
-    mon in monomials
+    finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), Int.(mon))) for mon in monomials
   ]
   monomials = Set(monomials)
   return monomials

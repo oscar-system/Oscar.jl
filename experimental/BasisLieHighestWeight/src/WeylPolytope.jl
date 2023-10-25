@@ -8,9 +8,8 @@ function orbit_weylgroup(
   """
   # initialization
   weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap))
-  weight_vector_w_int = convert(Vector{Int}, weight_vector_w)
-  orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(weight_vector_w_int))
-  vertices = []
+  orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(Int.(weight_vector_w)))
+  vertices = Vector{Int}[]
 
   # operate with the weylgroup on weight_vector
   GAPWrap.IsDoneIterator(orbit_iterator)
@@ -19,8 +18,6 @@ function orbit_weylgroup(
     push!(vertices, Vector{Int}(w))
   end
 
-  # return
-  vertices = convert(Vector{Vector{Int}}, vertices)
   return vertices
 end
 
@@ -34,11 +31,9 @@ function get_dim_weightspace(
   """
   # calculate dimension for dominant weights with GAP
   root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
-  highest_weight_int = convert(Vector{Int}, highest_weight)
-  result = GAP.Globals.DominantCharacter(root_system, GAP.Obj(highest_weight_int))
-  dominant_weights_w = [map(Int, item) for item in result[1]]
-  dominant_weights_dim = map(Int, result[2])
-  dominant_weights_w = convert(Vector{Vector{ZZRingElem}}, dominant_weights_w)
+  dominant_char = GAP.Globals.DominantCharacter(root_system, GAP.Obj(Int.(highest_weight)))
+  dominant_weights_w = map(weight -> ZZ.(weight), dominant_char[1])
+  dominant_weights_dim = Int.(dominant_char[2])
   weightspaces = Dict{Vector{ZZRingElem},Int}()
 
   # calculate dimension for the rest by checking which positive weights lies in the orbit.
@@ -53,22 +48,10 @@ function get_dim_weightspace(
 end
 
 function convert_lattice_points_to_monomials(ZZx, lattice_points_weightspace)
-  #println("convert_lattice_points_to_monomials")
-  #println("lattice_points_weightspace type: ", typeof(lattice_points_weightspace))
-  #lat = [convert(Vector{Int}, convert(Vector{Int64}, lattice_point)) for lattice_point in lattice_points_weightspace]
-  #println("before build")
-  #monomials = [finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), p)) for p in lat]
-  #          for lattice_point in lattice_points_weightspace]
   monomials = [
-    finish(
-      push_term!(
-        MPolyBuildCtx(ZZx),
-        ZZ(1),
-        convert(Vector{Int}, convert(Vector{Int64}, lattice_point)),
-      ),
-    ) for lattice_point in lattice_points_weightspace
+    finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), Int.(lattice_point))) for
+    lattice_point in lattice_points_weightspace
   ]
-  #println("end convert_lattice_points_to_monomials")
   return monomials
 end
 
@@ -107,5 +90,5 @@ function get_lattice_points_of_weightspace(
     A[2m + i, i] = -1
   end
 
-  return lattice_points(polyhedron(A, b))
+  return Vector{ZZRingElem}.(lattice_points(polyhedron(A, b)))
 end

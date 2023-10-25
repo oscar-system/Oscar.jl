@@ -39,17 +39,14 @@ function basis_lie_highest_weight_compute(
       go through them one by one in monomial_ordering until basis is full
       return set_mon
   """
-  highest_weight = convert(Vector{ZZRingElem}, highest_weight)
+  highest_weight = ZZ.(highest_weight)
   # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
   # steps. Then it starts the recursion and returns the result.
 
   weights_w = weights_for_operators(
     lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
   ) # weights of the operators
-  weights_alpha = [
-    w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)) for
-    weight_w in weights_w
-  ] # other root system
+  weights_alpha = [w_to_alpha(lie_algebra, QQ.(weight_w)) for weight_w in weights_w] # other root system
 
   asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
@@ -78,10 +75,7 @@ function basis_lie_highest_weight_compute(
   )
 
   monomials = sort(collect(set_mon); lt=monomial_ordering_lt)
-
-  minkowski_gens = map(
-    gen -> Int.(gen), sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
-  )
+  minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
 
   # output
   return MonomialBasis(
@@ -126,9 +120,8 @@ function compute_monomials(
   # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
   # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
   # the recursion.
-  highest_weight_int = convert(Vector{Int}, highest_weight)
   gap_dim = GAP.Globals.DimensionOfHighestWeightModule(
-    lie_algebra.lie_algebra_gap, GAP.Obj(highest_weight_int)
+    lie_algebra.lie_algebra_gap, GAP.Obj(Int.(highest_weight))
   ) # fundamental weights
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
@@ -248,8 +241,7 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha,
-      w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)),
+      birational_sequence.weights_alpha, w_to_alpha(lie_algebra, QQ.(weight_w))
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -462,10 +454,10 @@ false
 """
 function is_fundamental(highest_weight::Vector{<:IntegerUnion})
   hasone = false
-  for i in Int.(highest_weight)
-    if i == 0
+  for i in highest_weight
+    if iszero(i)
       continue
-    elseif i == 1
+    elseif isone(i)
       hasone && return false
       hasone = true
     else

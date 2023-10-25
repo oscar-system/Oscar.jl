@@ -46,7 +46,7 @@ function tensorMatricesForOperators(
     if highest_weight[i] <= 0
       continue
     end
-    wi = convert(Vector{ZZRingElem}, Int.(1:length(highest_weight) .== i)) # i-th fundamental weight
+    wi = ZZ.(1:length(highest_weight) .== i) # i-th fundamental weight
     _matrices_of_operators = matricesForOperators(lie_algebra, wi, operators)
     _matrices_of_operators = tensorPowers(_matrices_of_operators, highest_weight[i])
     matrices_of_operators = if matrices_of_operators == []

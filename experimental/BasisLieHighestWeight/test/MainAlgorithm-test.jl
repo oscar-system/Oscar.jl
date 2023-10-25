@@ -44,33 +44,30 @@ end
 
   @testset "compute_sub_weights" begin
     @test isequal(BasisLieHighestWeight.compute_sub_weights([ZZ(0), ZZ(0), ZZ(0)]), [])
-    sub_weights = convert(
-      Vector{Vector{ZZRingElem}},
-      [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 1, 0],
-        [1, 0, 1],
-        [0, 1, 1],
-        [1, 1, 1],
-        [2, 0, 0],
-        [0, 2, 0],
-        [2, 1, 0],
-        [1, 2, 0],
-        [2, 0, 1],
-        [0, 2, 1],
-        [2, 1, 1],
-        [1, 2, 1],
-        [2, 2, 0],
-        [0, 3, 0],
-        [2, 2, 1],
-        [1, 3, 0],
-        [0, 3, 1],
-        [1, 3, 1],
-        [2, 3, 0],
-      ],
-    )
+    sub_weights = Vector{Vector{ZZRingElem}}([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 1, 0],
+      [1, 0, 1],
+      [0, 1, 1],
+      [1, 1, 1],
+      [2, 0, 0],
+      [0, 2, 0],
+      [2, 1, 0],
+      [1, 2, 0],
+      [2, 0, 1],
+      [0, 2, 1],
+      [2, 1, 1],
+      [1, 2, 1],
+      [2, 2, 0],
+      [0, 3, 0],
+      [2, 2, 1],
+      [1, 3, 0],
+      [0, 3, 1],
+      [1, 3, 1],
+      [2, 3, 0],
+    ])
     @test isequal(
       BasisLieHighestWeight.compute_sub_weights([ZZ(2), ZZ(3), ZZ(1)]), sub_weights
     )

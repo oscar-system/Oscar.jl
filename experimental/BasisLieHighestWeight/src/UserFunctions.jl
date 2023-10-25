@@ -14,10 +14,7 @@ function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
   weights_w = weights_for_operators(
     lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
   )
-  weights_alpha = [
-    w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)) for
-    weight_w in weights_w
-  ]
+  weights_alpha = [w_to_alpha(lie_algebra, QQ.(weight_w)) for weight_w in weights_w]
   return collect(enumerate(weights_alpha))
 end
 

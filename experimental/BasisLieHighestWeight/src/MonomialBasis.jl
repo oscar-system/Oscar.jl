@@ -6,7 +6,7 @@ struct MonomialBasis
   dimension::Int
   monomials::Vector{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
-  minkowski_gens::Vector{Vector{Int}} # TODO: put in attribute storage
+  minkowski_gens::Vector{Vector{ZZRingElem}} # TODO: put in attribute storage
   birational_sequence::BirationalSequence # TODO: put in attribute storage
 
   function MonomialBasis(
@@ -14,7 +14,7 @@ struct MonomialBasis
     highest_weight::Vector{<:IntegerUnion},
     monomial_ordering::Union{Symbol,Function},
     monomials::Vector{ZZMPolyRingElem},
-    minkowski_gens::Vector{Vector{Int}},
+    minkowski_gens::Vector{Vector{ZZRingElem}},
     birational_sequence::BirationalSequence,
   )
     return new(
@@ -54,7 +54,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
     "where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):",
     Indent(),
   )
-  for (i, weight) in enumerate(basis.birational_sequence.weights_alpha)
+  for weight in basis.birational_sequence.weights_alpha
     print(io, '\n', Int.(weight))
   end
   println(io, Dedent(), Dedent())
@@ -65,7 +65,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
     Indent(),
   )
   for gen in basis.minkowski_gens
-    print(io, '\n', gen)
+    print(io, '\n', Int.(gen))
   end
   print(io, Dedent(), Dedent())
 end
