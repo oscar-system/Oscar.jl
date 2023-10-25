@@ -4,6 +4,8 @@
 const ElementType = Union{IntegerUnion,Char,String}
 const GroundsetType = Union{AbstractVector, AbstractSet} 
 
+# Later test if this works:
+# @attributes mutable struct Matroid
 
 struct Matroid
     pm_matroid::Polymake.BigObject
