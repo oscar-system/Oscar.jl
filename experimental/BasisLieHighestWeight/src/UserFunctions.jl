@@ -1,4 +1,27 @@
 @doc """
+```jldoctest
+julia> BasisLieHighestWeight.basis_lie_highest_weight_operators(:B, 2)
+4-element Vector{Tuple{Int64, Vector{QQFieldElem}}}:
+ (1, [1, 0])
+ (2, [0, 1])
+ (3, [1, 1])
+ (4, [1, 2])
+```
+"""
+function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
+  lie_algebra, chevalley_basis = lie_algebra_with_basis(type, rank)
+  operators = chevalley_basis[1]  # TODO: change to [2]
+  weights_w = weights_for_operators(
+    lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
+  )
+  weights_alpha = [
+    w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)) for
+    weight_w in weights_w
+  ]
+  return collect(enumerate(weights_alpha))
+end
+
+@doc """
 basis_lie_highest_weight(
     type::Symbol,
     rank::Int, 
