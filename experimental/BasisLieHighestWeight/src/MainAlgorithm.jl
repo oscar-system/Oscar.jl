@@ -252,6 +252,7 @@ function add_new_monomials!(
       w_to_alpha(lie_algebra, convert(Vector{QQFieldElem}, weight_w)),
     ),
   )
+  isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
   #println("before sort")
   #flush(stdout)
   poss_mon_in_weightspace = sort(poss_mon_in_weightspace; lt=monomial_ordering_lt)
