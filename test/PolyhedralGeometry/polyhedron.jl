@@ -588,3 +588,24 @@ for f in (QQ, ENF)
 
     end
 end
+
+@testset "Johnson solids" begin
+  
+  for i in [9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24, 25, 30, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 68, 69, 70, 71, 72, 73, 74, 75, 77, 78, 79, 82, 84, 85, 86, 87, 88, 89, 90, 92]
+    
+    j = johnson_solid(i)
+    @test j isa Polyhedron{<:EmbeddedElem}
+    
+    if i == 30 || 68 <= i <= 71
+      # no johnson_solid from polymake available for comparison
+    elseif i == 32 || i == 38
+      @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i + 1))
+    elseif i == 33 || i == 39
+      @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i - 1))
+    else
+      @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i))
+    end
+    
+  end
+  
+end
