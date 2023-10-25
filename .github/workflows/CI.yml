@@ -18,7 +18,6 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 150
-    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
@@ -73,7 +72,6 @@ jobs:
   doctest:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 150
-    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
