@@ -183,6 +183,7 @@
     @test vertex_sizes(Q1)[1] == 2
     @test length(vertex_sizes(Q2)) == 0
 
+    @test length(unique([cube(2), cube(2), simplex(2), simplex(2)])) == 2
   end
 
   @testset "volume" begin
