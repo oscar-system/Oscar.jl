@@ -2,27 +2,32 @@
 # vector spaces work.
 
 function chain_complex(maps::Vector{T}; seed::Int=0, check::Bool=true) where {S<:FieldElem, T<:AbstractAlgebra.Generic.ModuleHomomorphism{S}}
-  result = ComplexOfMorphisms(AbstractAlgebra.Generic.FreeModule{S}, maps, typ=:chain, seed=seed, check=check)
+  result = ComplexOfMorphisms(AbstractAlgebra.FPModule{S}, maps, typ=:chain, seed=seed, check=check)
   result.complete = true
   return result
 end
 
 function cochain_complex(maps::Vector{T}; seed::Int=0, check::Bool=true) where {S<:FieldElem, T<:AbstractAlgebra.Generic.ModuleHomomorphism{S}}
-  result = ComplexOfMorphisms(AbstractAlgebra.Generic.FreeModule{S}, maps, typ=:cochain, seed=seed, check=check)
+  result = ComplexOfMorphisms(AbstractAlgebra.FPModule{S}, maps, typ=:cochain, seed=seed, check=check)
   result.complete = true
   return result
 end
 
-Oscar.morphism_type(::Type{T}) where {S<:FieldElem, T <: AbstractAlgebra.Generic.FreeModule{S}} = AbstractAlgebra.Generic.ModuleHomomorphism{S}
+morphism_type(::Type{T}) where {S<:FieldElem, T <: AbstractAlgebra.FPModule{S}} = AbstractAlgebra.Generic.ModuleHomomorphism{S}
 
-zero_morphism(dom::AbstractAlgebra.Generic.FreeModule, cod::AbstractAlgebra.Generic.FreeModule) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
+zero_morphism(dom::AbstractAlgebra.FPModule, cod::AbstractAlgebra.FPModule) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
+
+function Base.:*(k::Int, phi::AbstractAlgebra.Generic.ModuleHomomorphism)
+  R = base_ring(codomain(phi))
+  return R(k)*phi
+end
 
 # Tensor products of chain complexes of vector spaces
-function (fac::Oscar.TensorProductFactory{AbstractAlgebra.Generic.FreeModule{S}})(dc::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
+function (fac::TensorProductFactory{AbstractAlgebra.FPModule{S}})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
   return tensor_product(fac.C1[i], fac.C2[j])
 end
 
-function (fac::Oscar.HorizontalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
+function (fac::HorizontalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
   # construct the induced morphism C1[i] ⊗ C2[j] → C1[i ± 1] ⊗ C2[j]
   r2j = rank(fac.C2[j])
   A = matrix(map(fac.C1, i))
@@ -38,7 +43,7 @@ function (fac::Oscar.HorizontalTensorMapFactory{AbstractAlgebra.Generic.ModuleHo
   return hom(dc[i, j], dc[i + inc, j], res_mat)
 end
 
-function (fac::Oscar.VerticalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
+function (fac::VerticalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
   # construct the induced morphism C1[i] ⊗ C2[j] → C1[i] ⊗ C2[j ± 1]
   r1i = rank(fac.C1[i])
   B = matrix(map(fac.C2, j))
@@ -61,4 +66,5 @@ function (fac::Oscar.VerticalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomo
   inc = (typ(fac.C2) == :chain ? -1 : 1)
   return hom(dc[i, j], dc[i, j + inc], res_mat)
 end
+
 
