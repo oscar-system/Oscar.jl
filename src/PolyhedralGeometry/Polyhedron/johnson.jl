@@ -16,7 +16,9 @@ function _johnson_solid(::Val{9})
        0 mre 1//2;
        0 mre -1//2;
        0 0 (1+mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J9: Elongated pentagonal pyramid")
+  return res
 end
 
 function _johnson_solid(::Val{10})
@@ -33,7 +35,9 @@ function _johnson_solid(::Val{10})
        0 -sre2//2 -qre8//4;
        sre2//2 0 -qre8//4;
        -sre2//2 0 -qre8//4]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J10: Gyroelongated square pyramid")
+  return res
 end
 
 function _johnson_solid(::Val{13})
@@ -50,7 +54,9 @@ function _johnson_solid(::Val{13})
        0 mre 0;
        0 0 mre*(sre5-1)//2;
        0 0 -mre*(sre5-1)//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J13: Pentagonal bipyramid")
+  return res
 end
 
 function _johnson_solid(::Val{16})
@@ -72,7 +78,9 @@ function _johnson_solid(::Val{16})
        0 mre -1//2;
        0 0 (1+mre*(sre5-1))//2;
        0 0 -(1+mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J16: Elongated pentagonal bipyramid")
+  return res
 end
 
 function _johnson_solid(::Val{17})
@@ -90,7 +98,9 @@ function _johnson_solid(::Val{17})
        0 -sre2//2 -qre8//4;
        sre2//2 0 -qre8//4;
        -sre2//2 0 -qre8//4]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J17: Gyroelongated square bipyramid")
+  return res
 end
 
 function _johnson_solid(::Val{18})
@@ -113,7 +123,9 @@ function _johnson_solid(::Val{18})
        1//2 -sre3//6 (3+2*sre2*sre3)//6;
        -1//2 -sre3//6 (3+2*sre2*sre3)//6;
        0 sre3//3 (3+2*sre2*sre3)//6]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J18: Elongated triangular cupola")
+  return res
 end
 
 function _johnson_solid(::Val{20})
@@ -148,7 +160,9 @@ function _johnson_solid(::Val{20})
        (1+sre5)//4 mre*(sre5-1)//4 (1+mre*(sre5-1))//2;
        -(1+sre5)//4 mre*(sre5-1)//4 (1+mre*(sre5-1))//2;
        0 mre (1+mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J20: Elongated pentagonal cupola")
+  return res
 end
 
 function _johnson_solid(::Val{21})
@@ -188,7 +202,9 @@ function _johnson_solid(::Val{21})
        -(1+sre5)//4 mre*(sre5+3)//4 (1+2*mre)//2;
        (3+sre5)//4 -mre//2 (1+2*mre)//2;
        -(3+sre5)//4 -mre//2 (1+2*mre)//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J21: Elongated pentagonal rotunda")
+  return res
 end
 
 function _johnson_solid(::Val{22})
@@ -215,7 +231,9 @@ function _johnson_solid(::Val{22})
        -sre3//2 -1//2 -mre//2;
        0 1 -mre//2;
        0 -1 -mre//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J22: Gyroelongated triangular cupola")
+  return res
 end
 
 function _johnson_solid(::Val{23})
@@ -248,7 +266,9 @@ function _johnson_solid(::Val{23})
        mre//2 -mre//2 -lre;
        -mre//2 mre//2 -lre;
        -mre//2 -mre//2 -lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J23: Gyroelongated square cupola")
+  return res
 end
 
 function _johnson_solid(::Val{24})
@@ -286,7 +306,9 @@ function _johnson_solid(::Val{24})
        -sre5*mre//2 -(3+sre5)//4 -lre;
        0 (1+sre5)//2 -lre;
        0 -(1+sre5)//2 -lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J24: Gyroelongated pentagonal cupola")
+  return res
 end
 
 function _johnson_solid(::Val{25})
@@ -329,7 +351,9 @@ function _johnson_solid(::Val{25})
        -sre5*mre//2 -(3+sre5)//4 -lre;
        0 (1+sre5)//2 -lre;
        0 -(1+sre5)//2 -lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J25: Gyroelongated pentagonal rotunda")
+  return res
 end
 
 # in Polymake, index 30 returns a solid isomorphic to J31
@@ -360,7 +384,9 @@ function _johnson_solid(::Val{30})
        -(3+sre5)//4 -sre5*mre//2 0;
        (1+sre5)//2 0 0;
        -(1+sre5)//2 0 0]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J30: Pentagonal orthobicupola")
+  return res
 end
 
 # in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
@@ -396,7 +422,9 @@ function _johnson_solid(::Val{32})
        (1+sre5)//4 mre*(sre5-1)//4 -mre*(sre5-1)//2;
        -(1+sre5)//4 mre*(sre5-1)//4 -mre*(sre5-1)//2;
        0 mre -mre*(sre5-1)//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J32: Pentagonal orthocupolarotunda")
+  return res
 end
 
 # in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
@@ -432,7 +460,9 @@ function _johnson_solid(::Val{33})
        (1+sre5)//4 -mre*(sre5-1)//4 -mre*(sre5-1)//2;
        -(1+sre5)//4 -mre*(sre5-1)//4 -mre*(sre5-1)//2;
        0 -mre -mre*(sre5-1)//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J33: Pentagonal gyrocupolarotunda")
+  return res
 end
 
 function _johnson_solid(::Val{34})
@@ -472,7 +502,9 @@ function _johnson_solid(::Val{34})
        -(3+sre5)//4 -sre5*mre//2 0;
        (1+sre5)//2 0 0;
        -(1+sre5)//2 0 0]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J34: Pentagonal orthobirotunda")
+  return res
 end
 
 function _johnson_solid(::Val{35})
@@ -498,7 +530,9 @@ function _johnson_solid(::Val{35})
        -1//2 -sre3//6 -(3+2*sre2*sre3)//6;
        0 sre3//3 (3+2*sre2*sre3)//6;
        0 sre3//3 -(3+2*sre2*sre3)//6]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J35: Elongated triangular orthobicupola")
+  return res
 end
 
 function _johnson_solid(::Val{36})
@@ -524,7 +558,9 @@ function _johnson_solid(::Val{36})
        -1//2 sre3//6 -(3+2*sre2*sre3)//6;
        0 sre3//3 (3+2*sre2*sre3)//6;
        0 -sre3//3 -(3+2*sre2*sre3)//6]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J36: Elongated triangular gyrobicupola")
+  return res
 end
 
 # in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
@@ -565,7 +601,9 @@ function _johnson_solid(::Val{38})
        -(1+sre5)//4 mre*(sre5-1)//4 -(1+mre*(sre5-1))//2;
        0 mre (1+mre*(sre5-1))//2;
        0 mre -(1+mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J38: Elongated pentagonal orthobicupola")
+  return res
 end
 
 # in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
@@ -606,7 +644,9 @@ function _johnson_solid(::Val{39})
        (1+sre5)//4 -mre*(sre5-1)//4 -(1+mre*(sre5-1))//2;
        0 mre (1+mre*(sre5-1))//2;
        0 -mre -(1+mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J39: Elongated pentagonal gyrobicupola")
+  return res
 end
 
 function _johnson_solid(::Val{40})
@@ -651,7 +691,9 @@ function _johnson_solid(::Val{40})
        (1+sre5)//4 mre*(sre5-1)//4 (-1-mre*(sre5-1))//2;
        -(1+sre5)//4 mre*(sre5-1)//4 (-1-mre*(sre5-1))//2;
        0 mre (-1-mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J40: Elongated pentagonal orthocupolarotunda")
+  return res
 end
 
 function _johnson_solid(::Val{41})
@@ -696,7 +738,9 @@ function _johnson_solid(::Val{41})
        (1+sre5)//4 -mre*(sre5-1)//4 (-1-mre*(sre5-1))//2;
        -(1+sre5)//4 -mre*(sre5-1)//4 (-1-mre*(sre5-1))//2;
        0 -mre (-1-mre*(sre5-1))//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J41: Elongated pentagonal gyrocupolarotunda")
+  return res
 end
 
 function _johnson_solid(::Val{42})
@@ -746,7 +790,9 @@ function _johnson_solid(::Val{42})
        (3+sre5)//4 -mre//2 -mre-1//2;
        -(3+sre5)//4 -mre//2 mre+1//2;
        -(3+sre5)//4 -mre//2 -mre-1//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J42: Elongated pentagonal orthobirotunda")
+  return res
 end
 
 function _johnson_solid(::Val{43})
@@ -796,7 +842,9 @@ function _johnson_solid(::Val{43})
        (3+sre5)//4 mre//2 -mre-1//2;
        -(3+sre5)//4 -mre//2 mre+1//2;
        -(3+sre5)//4 mre//2 -mre-1//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J43: Elongated pentagonal gyrobirotunda")
+  return res
 end
 
 function _johnson_solid(::Val{44})
@@ -826,7 +874,9 @@ function _johnson_solid(::Val{44})
        -sre3//6 1//2 -(2*sre2*sre3+3*mre)//6;
        -sre3//6 -1//2 -(2*sre2*sre3+3*mre)//6;
        sre3//3 0 -(2*sre2*sre3+3*mre)//6]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J44: Gyroelongated triangular bicupola")
+  return res
 end
 
 function _johnson_solid(::Val{45})
@@ -863,7 +913,9 @@ function _johnson_solid(::Val{45})
        -mre//(2*sre2) -mre*(1-sre2//2)//2 -(sre2+2*lre)//2;
        -mre*(1-sre2//2)//2 mre//(2*sre2) -(sre2+2*lre)//2;
        mre*(1-sre2//2)//2 -mre//(2*sre2) -(sre2+2*lre)//2]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J45: Gyroelongated square bicupola")
+  return res
 end
 
 function _johnson_solid(::Val{46})
@@ -906,7 +958,9 @@ function _johnson_solid(::Val{46})
        mre*(sre5-1)//4 (1+sre5)//4 -mre*(sre5-1)//2-lre;
        mre*(sre5-1)//4 -(1+sre5)//4 -mre*(sre5-1)//2-lre;
        mre 0 -mre*(sre5-1)//2-lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J46: Gyroelongated pentagonal bicupola")
+  return res
 end
 
 function _johnson_solid(::Val{47})
@@ -954,7 +1008,9 @@ function _johnson_solid(::Val{47})
        mre*(sre5-1)//4 (1+sre5)//4 -mre*(sre5-1)//2-lre;
        mre*(sre5-1)//4 -(1+sre5)//4 -mre*(sre5-1)//2-lre;
        mre 0 -mre*(sre5-1)//2-lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J47: Gyroelongated pentagonal cupolarotunda")
+  return res
 end
 
 function _johnson_solid(::Val{48})
@@ -1007,7 +1063,9 @@ function _johnson_solid(::Val{48})
        -mre//2 (3+sre5)//4 -mre-lre;
        -mre//2 -(3+sre5)//4 -mre-lre;
        -mre*(sre5+1)//2 0 -mre-lre]
-  return convex_hull(ELF, V; non_redundant = true)
+  res = convex_hull(ELF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J48: Gyroelongated pentagonal birotunda")
+  return res
 end
 
 function _johnson_solid(::Val{49})
@@ -1022,7 +1080,9 @@ function _johnson_solid(::Val{49})
        0 sre3//3 1//2;
        0 sre3//3 -1//2;
        0 -(3*sre2+sre3)//6 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J49: Augmented triangular prism")
+  return res
 end
 
 function _johnson_solid(::Val{50})
@@ -1038,7 +1098,9 @@ function _johnson_solid(::Val{50})
        0 sre3//3 -1//2;
        (1+sre2*sre3)//4 (3*sre2+sre3)//12 0;
        -(1+sre2*sre3)//4 (3*sre2+sre3)//12 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J50: Biaugmented triangular prism")
+  return res
 end
 
 function _johnson_solid(::Val{51})
@@ -1055,7 +1117,9 @@ function _johnson_solid(::Val{51})
        (1+sre2*sre3)//4 (3*sre2+sre3)//12 0;
        -(1+sre2*sre3)//4 (3*sre2+sre3)//12 0;
        0 -(3*sre2+sre3)//6 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J51: Triaugmented triangular prism")
+  return res
 end
 
 function _johnson_solid(::Val{52})
@@ -1078,7 +1142,9 @@ function _johnson_solid(::Val{52})
        0 mre 1//2;
        0 mre -1//2;
        0 -(sre2+mre*(sre5+1)//2)//2 0]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J52: Augmented pentagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{53})
@@ -1102,7 +1168,9 @@ function _johnson_solid(::Val{53})
        0 mre -1//2;
        (3+sre5+2*sre2*sre5*mre)//8 -(2*mre+sre2*sre5-sre2)//8 0;
        -(3+sre5+2*sre2*sre5*mre)//8 -(2*mre+sre2*sre5-sre2)//8 0]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J53: Biaugmented pentagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{54})
@@ -1123,7 +1191,9 @@ function _johnson_solid(::Val{54})
        -1 0 1//2;
        -1 0 -1//2;
        0 (sre2+sre3)//2 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J54: Augmented hexagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{55})
@@ -1145,7 +1215,9 @@ function _johnson_solid(::Val{55})
        -1 0 -1//2;
        0 (sre2+sre3)//2 0;
        0 -(sre2+sre3)//2 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J55: Parabiaugmented hexagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{56})
@@ -1167,7 +1239,9 @@ function _johnson_solid(::Val{56})
        -1 0 -1//2;
        (3+sre2*sre3)//4 (sre2+sre3)//4 0;
        -(3+sre2*sre3)//4 (sre2+sre3)//4 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J56: Metabiaugmented hexagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{57})
@@ -1190,7 +1264,9 @@ function _johnson_solid(::Val{57})
        (3+sre2*sre3)//4 (sre2+sre3)//4 0;
        -(3+sre2*sre3)//4 (sre2+sre3)//4 0;
        0 -(sre2+sre3)//2 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J57: Triaugmented hexagonal prism")
+  return res
 end
 
 function _johnson_solid(::Val{58})
@@ -1218,7 +1294,9 @@ function _johnson_solid(::Val{58})
        -(1+sre5)//4 -(1+sre5)//4 (1+sre5)//4;
        -(1+sre5)//4 -(1+sre5)//4 -(1+sre5)//4;
        0 (15+sre5)//20 (5+4*sre5)//10]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J58: Augmented dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{59})
@@ -1247,7 +1325,9 @@ function _johnson_solid(::Val{59})
        -(1+sre5)//4 -(1+sre5)//4 -(1+sre5)//4;
        0 (15+sre5)//20 (5+4*sre5)//10;
        0 -(15+sre5)//20 -(5+4*sre5)//10]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J59: Parabiaugmented dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{60})
@@ -1276,7 +1356,9 @@ function _johnson_solid(::Val{60})
        -(1+sre5)//4 -(1+sre5)//4 -(1+sre5)//4;
        0 (15+sre5)//20 (5+4*sre5)//10;
        0 (15+sre5)//20 -(5+4*sre5)//10]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J60: Metabiaugmented dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{61})
@@ -1306,7 +1388,9 @@ function _johnson_solid(::Val{61})
        0 (15+sre5)//20 (5+4*sre5)//10;
        0 (15+sre5)//20 -(5+4*sre5)//10;
        (15+sre5)//20 -(5+4*sre5)//10 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J61: Triaugmented dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{64})
@@ -1324,7 +1408,9 @@ function _johnson_solid(::Val{64})
        1//2 sre3//6 -sre3//3;
        -1//2 sre3//6 -sre3//3;
        0 -sre3//3 -sre3//3]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J64: Augmented tridiminished icosahedron")
+  return res
 end
 
 function _johnson_solid(::Val{68})
@@ -1396,7 +1482,9 @@ function _johnson_solid(::Val{68})
        (1+sre5)//4 (25+13*sre5)//20 (25+sre5)//20;
        -(1+sre5)//4 (25+13*sre5)//20 (25+sre5)//20;
        0 (10+9*sre5)//10 (15+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J68: Augmented truncated dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{69})
@@ -1473,7 +1561,9 @@ function _johnson_solid(::Val{69})
        -(1+sre5)//4 -(25+13*sre5)//20 -(25+sre5)//20;
        0 (10+9*sre5)//10 (15+sre5)//20;
        0 -(10+9*sre5)//10 -(15+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J69: Parabiaugmented truncated dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{70})
@@ -1550,7 +1640,9 @@ function _johnson_solid(::Val{70})
        -(1+sre5)//4 -(25+13*sre5)//20 (25+sre5)//20;
        0 (10+9*sre5)//10 (15+sre5)//20;
        0 -(10+9*sre5)//10 (15+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J70: Metabiaugmented truncated dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{71})
@@ -1632,7 +1724,9 @@ function _johnson_solid(::Val{71})
        -(25+sre5)//20 (1+sre5)//4 -(25+13*sre5)//20;
        -(25+sre5)//20 -(1+sre5)//4 -(25+13*sre5)//20;
        -(15+sre5)//20 0 -(10+9*sre5)//10]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J71: Triaugmented truncated dodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{72})
@@ -1699,7 +1793,9 @@ function _johnson_solid(::Val{72})
        (1+sre5)//4 (5+2*sre5)//5 (15+sre5)//20;
        -(1+sre5)//4 (5+2*sre5)//5 (15+sre5)//20;
        0 (15+13*sre5)//20 (5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J72: Gyrate rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{73})
@@ -1766,7 +1862,9 @@ function _johnson_solid(::Val{73})
        -(1+sre5)//4 -(5+2*sre5)//5 -(15+sre5)//20;
        0 (15+13*sre5)//20 (5+sre5)//20;
        0 -(15+13*sre5)//20 -(5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J73: Parabigyrate rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{74})
@@ -1833,7 +1931,9 @@ function _johnson_solid(::Val{74})
        -(1+sre5)//4 -(5+2*sre5)//5 (15+sre5)//20;
        0 (15+13*sre5)//20 (5+sre5)//20;
        0 -(15+13*sre5)//20 (5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J74: Metabigyrate rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{75})
@@ -1900,7 +2000,9 @@ function _johnson_solid(::Val{75})
        -(15+sre5)//20 (1+sre5)//4 -(5+2*sre5)//5;
        -(15+sre5)//20 -(1+sre5)//4 -(5+2*sre5)//5;
        -(5+sre5)//20 0 -(15+13*sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J75: Trigyrate rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{77})
@@ -1962,7 +2064,9 @@ function _johnson_solid(::Val{77})
        (1+sre5)//4 -(5+2*sre5)//5 -(15+sre5)//20;
        -(1+sre5)//4 -(5+2*sre5)//5 -(15+sre5)//20;
        0 -(15+13*sre5)//20 -(5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J77: Paragyrate diminished rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{78})
@@ -2024,7 +2128,9 @@ function _johnson_solid(::Val{78})
        (1+sre5)//4 -(5+2*sre5)//5 (15+sre5)//20;
        -(1+sre5)//4 -(5+2*sre5)//5 (15+sre5)//20;
        0 -(15+13*sre5)//20 (5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J78: Metagyrate diminished rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{79})
@@ -2086,7 +2192,9 @@ function _johnson_solid(::Val{79})
        -(1+sre5)//4 -(5+2*sre5)//5 (15+sre5)//20;
        0 (15+13*sre5)//20 (5+sre5)//20;
        0 -(15+13*sre5)//20 (5+sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J79: Bigyrate diminished rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{82})
@@ -2143,7 +2251,9 @@ function _johnson_solid(::Val{82})
        -(15+sre5)//20 (1+sre5)//4 -(5+2*sre5)//5;
        -(15+sre5)//20 -(1+sre5)//4 -(5+2*sre5)//5;
        -(5+sre5)//20 0 -(15+13*sre5)//20]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J82: Gyrate bidiminished rhombicosidodecahedron")
+  return res
 end
 
 function _johnson_solid(::Val{84})
@@ -2164,7 +2274,9 @@ function _johnson_solid(::Val{84})
        -1//2 0 s;
        0 1//2 -s;
        0 -1//2 -s]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J84: Snub disphenoid")
+  return res
 end
 
 function _johnson_solid(::Val{85})
@@ -2193,7 +2305,9 @@ function _johnson_solid(::Val{85})
        0 -sre2//2 -ec//2;
        sre2//2 0 -ec//2;
        -sre2//2 0 -ec//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J85: Snub square antiprism")
+  return res
 end
 
 function _johnson_solid(::Val{86})
@@ -2213,7 +2327,9 @@ function _johnson_solid(::Val{86})
        0 -(2*ke^3//27+32*ke^2//135+334*ke//405-107//810) (1-2*ke^2)//(2*mre);
        1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
        -1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J86: Sphenocorona")
+  return res
 end
 
 function _johnson_solid(::Val{87})
@@ -2235,7 +2351,9 @@ function _johnson_solid(::Val{87})
        1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
        -1//2 0 (13*ke^3//27+208*ke^2//135-1733*ke//810-449//405)*mre;
        (ke+sre2*mre)//2 0 (ke*sre2+mre)//2]
-  return convex_hull(EMF, V; non_redundant = true)
+  res = convex_hull(EMF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J87: Augmented sphenocorona")
+  return res
 end
 
 function _johnson_solid(::Val{88})
@@ -2259,7 +2377,9 @@ function _johnson_solid(::Val{88})
       -1//2 0 -v//2;
       0 w*(2*k^2-1)//(2*(k^2-1)*u)+1//2 (2*k^4-1)//(2*u^3);
       0 -w*(2*k^2-1)//(2*(k^2-1)*u)-1//2 (2*k^4-1)//(2*u^3)]
-  return convex_hull(ENF, V; non_redundant = false)
+  res = convex_hull(ENF, V; non_redundant = false)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J88: Sphenomegacorona")
+  return res
 end
 
 function _johnson_solid(::Val{89})
@@ -2285,7 +2405,9 @@ function _johnson_solid(::Val{89})
       0 -1//2-v//(2*u) v^2//(4*u);
       0 (v*w+k+1)//(4*u^2) (2*k-1)*w//(4*(1-k))-v//(4*u^2);
       0 -(v*w+k+1)//(4*u^2) (2*k-1)*w//(4*(1-k))-v//(4*u^2)]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J89: Hebesphenomegacorona")
+  return res
 end
 
 function _johnson_solid(::Val{90})
@@ -2313,7 +2435,9 @@ function _johnson_solid(::Val{90})
         -k 1//2 -v//4;
         k -1//2 -v//4; 
         -k -1//2 -v//4]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J90: Disphenocingulum")
+  return res
 end
 
 function _johnson_solid(::Val{92})
@@ -2339,6 +2463,8 @@ function _johnson_solid(::Val{92})
        -1//2 -sr3//2 0;
        1 0 0; 
        -1 0 0]
-  return convex_hull(ENF, V; non_redundant = true)
+  res = convex_hull(ENF, V; non_redundant = true)
+  Polymake.setdescription!(pm_object(res), "Johnson solid J92: Triangular hebesphenorotunda")
+  return res
 end
 
