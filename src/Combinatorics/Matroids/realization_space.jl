@@ -76,13 +76,7 @@ end
     return true
   end
   for p in minimal_primes(RS.defining_ideal)
-    component_non_trivial = true
-    for f in RS.inequations
-      if f in p
-        component_non_trivial = false
-        break
-      end
-    end
+    component_non_trivial = all(!in(p), RS.inequations)
     if component_non_trivial
       return true
     end
