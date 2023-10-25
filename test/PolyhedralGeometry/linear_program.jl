@@ -24,6 +24,8 @@
     @test LP2 isa LinearProgram{T}
     @test LP3 isa LinearProgram{T}
 
+    @test ambient_dim(LP1) == 2
+
     @test solve_lp(LP1)==(4,[1,1])
     @test solve_lp(LP2)==(-1,[-1,-1])
     if T == QQFieldElem
@@ -42,6 +44,8 @@
       @test MILP1 isa MixedIntegerLinearProgram{T}
       @test MILP2 isa MixedIntegerLinearProgram{T}
       @test MILP3 isa MixedIntegerLinearProgram{T}
+
+      @test ambient_dim(MILP3) == 3
 
       @test solve_milp(MILP1)==(11//2,[1,3//2])
       @test solve_milp(MILP2)==(-1,[-1,-1])
