@@ -17,8 +17,6 @@ Like [MS15](@cite), OSCAR follows the min-convention by default and unless speci
 
 ## Contact
 Please direct questions about this part of OSCAR to:
-[//]: <> * [Lars Kastner](https://lkastner.github.io/),
-[comment]: <> * [Marta Panizzut](https://martapanizzut.github.io/),
 * [Yue Ren](https://www.yueren.de/).
 
 You can also ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack) or raise an issue on [github](https://www.oscar-system.org/community/#how-to-report-issues).
