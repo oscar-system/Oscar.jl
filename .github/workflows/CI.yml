@@ -29,7 +29,17 @@ jobs:
         group: [ 'short', 'long' ]
         os:
           - ubuntu-latest
+        depwarn: [ '' ]
         include:
+          # Add a single job per group with deprecation errors on the most recent stable julia version
+          - julia-version: '1.9'
+            os: ubuntu-latest
+            group: 'short'
+            depwarn: 'error'
+          - julia-version: '1.9'
+            os: ubuntu-latest
+            group: 'long'
+            depwarn: 'error'
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: 'nightly'
             os: macOS-latest
@@ -58,7 +68,7 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.9' }}
           coverage: ${{ matrix.julia-version == '1.9' }}
-          depwarn: error
+          depwarn: ${{ matrix.depwarn != '' && matrix.depwarn || 'no' }}
       - name: "Process code coverage"
         if: matrix.julia-version == '1.9'
         uses: julia-actions/julia-processcoverage@v1
