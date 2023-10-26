@@ -9,7 +9,7 @@
 Return a matroid isomorphic to `M` on the groundset `gs`.
 
 # Examples
-```
+```jldoctest
 julia> isomorphic_matroid(fano_matroid(), [2,3,4,1,5,6,7])
 Matroid of rank 3 on 7 elements
 ```
@@ -29,7 +29,7 @@ end
 Return the size of the ground set of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> length(fano_matroid())
 7
 ```
@@ -43,7 +43,7 @@ length(M::Matroid) = length(M.groundset)
 Return the list of bases of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> bases(uniform_matroid(2, 3))
 3-element Vector{Vector{Int64}}:
  [1, 2]
@@ -59,7 +59,7 @@ bases(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vecto
 Return the list of nonbases of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> nonbases(fano_matroid())
 7-element Vector{Vector{Int64}}:
  [1, 2, 3]
@@ -71,7 +71,7 @@ julia> nonbases(fano_matroid())
  [3, 5, 6]
 ```
 """
-nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES]
+nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES] 
 
 
 @doc raw"""
@@ -80,7 +80,7 @@ nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_
 Return the list of circuits of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> circuits(uniform_matroid(2, 4))
 4-element Vector{Vector{Int64}}:
  [1, 2, 3]
@@ -97,7 +97,7 @@ circuits(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Ve
 Return the list of hyperplanes of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> hyperplanes(fano_matroid())
 7-element Vector{Vector{Int64}}:
  [3, 5, 6]
@@ -119,7 +119,7 @@ By default all flats are returned.
 One may specify a rank `r` as the second parameter in which case only the flats of rank `r` are returned.
 
 # Examples
-```
+```jldoctest
 julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
@@ -161,7 +161,7 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         jl_flats = reverse(jl_flats)
     end
     matroid_flats = [[M.groundset[i] for i in flat] for flat in jl_flats]
-    if r !== nothing
+    if r!=nothing
         if r<0 || r>rank(M)
             error("The specified rank needs to be between 0 and the rank of the matroid.")
         end
@@ -182,7 +182,7 @@ One may specify a rank `r` as the second parameter.
 In this case only the cyclic flats of this rank are returned.
 
 # Examples
-```
+```jldoctest
 julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
@@ -217,7 +217,7 @@ cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, M.pm_
 Return the closure of `set` in the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> closure(fano_matroid(), [1,2])
 3-element Vector{Int64}:
  1
@@ -241,7 +241,7 @@ end
 Return the rank of the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> rank(fano_matroid())
 3
 ```
@@ -254,7 +254,7 @@ rank(M::Matroid) = M.pm_matroid.RANK::Int
 Return the rank of `set` in the matroid `M`.
 
 # Examples
-```
+```jldoctest
 julia> M = fano_matroid();
 
 julia> rank(M, [1,2,3])
@@ -276,7 +276,7 @@ Return the nullity of `set` in the matroid `M`.
 This is defined to be `|set| - rk(set)`.
 
 # Examples
-```
+```jldoctest
 julia> M = fano_matroid();
 
 julia> nullity(M, [1,2,3])
@@ -295,7 +295,7 @@ Note that `elem` needs to be in the complement of the `basis` in this case.
 
 
 # Examples
-```
+```jldoctest
 julia> M = fano_matroid();
 
 julia> fundamental_circuit(M, [1,2,4], 7)
@@ -334,7 +334,7 @@ Note that `elem` needs to be an element of the `basis` in this case.
 
 
 # Examples
-```
+```jldoctest
 julia> fundamental_cocircuit(fano_matroid(), [1,2,4], 4)
 4-element Vector{Int64}:
  4
@@ -352,7 +352,7 @@ Return the list of independent sets of the matroid `M`.
 These are all subsets of the bases.
 
 # Examples
-```
+```jldoctest
 julia> independent_sets(uniform_matroid(2, 3))
 7-element Vector{Vector{Integer}}:
  []
@@ -391,7 +391,7 @@ Return the list of spanning sets of the matroid `M`.
 These are all sets containing a basis.
 
 # Examples
-```
+```jldoctest
 julia> spanning_sets(uniform_matroid(2, 3))
 4-element Vector{Vector{Integer}}:
  [1, 2]
@@ -414,7 +414,7 @@ Return the bases of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> cobases(uniform_matroid(2, 3))
 3-element Vector{Vector{Int64}}:
  [3]
@@ -431,7 +431,7 @@ Return the circuits of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> cocircuits(uniform_matroid(2, 5))
 5-element Vector{Vector{Int64}}:
  [1, 2, 3, 4]
@@ -450,7 +450,7 @@ Return the hyperplanes of the dual matroid of `M`.
 See Section 2 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> cohyperplanes(fano_matroid())
 14-element Vector{Vector{Int64}}:
  [4, 5, 6, 7]
@@ -477,7 +477,7 @@ cohyperplanes(M::Matroid) = hyperplanes(dual_matroid(M))
 Return the rank of `set` in the dual matroid of `M`.
 
 # Examples
-```
+```jldoctest
 julia> corank(fano_matroid(), [1,2,3])
 3
 ```
@@ -492,7 +492,7 @@ A collection of subsets is a clutter if none of the sets is a proper subset of a
 See Section 2.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_clutter([[1,2], [1,2,3]])
 false
 
@@ -518,7 +518,7 @@ Checks if the matroid `M` is regular, that is representable over every field.
 See Section 6.6 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_regular(uniform_matroid(2, 3))
 true
 
@@ -541,7 +541,7 @@ Checks if the matroid `M` is binary, that is representable over the finite field
 See Section 6.5 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_binary(uniform_matroid(2, 4))
 false
 
@@ -558,7 +558,7 @@ Checks if the matroid `M` is ternary, that is representable over the finite fiel
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_ternary(uniform_matroid(2, 4))
 true
 
@@ -581,7 +581,7 @@ Return the number of connected components of `M`.
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> n_connected_components(fano_matroid())
 1
 
@@ -594,11 +594,11 @@ n_connected_components(M::Matroid) = length(M.pm_matroid.CONNECTED_COMPONENTS)
 @doc raw"""
     connected_components(M::Matroid)
 
-Return the connected components of `M`. The function returns a partition of the ground set where each part corresponds to one connected component.
+Return the connected components of `M`. The function returns a partition of the ground set where each part corresponds to one connected component. 
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> connected_components(fano_matroid())
 1-element Vector{Vector{Int64}}:
  [1, 2, 3, 4, 5, 6, 7]
@@ -619,7 +619,7 @@ Check if the matroid `M` is connected, that is has one connected component
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_connected(fano_matroid())
 true
 
@@ -635,7 +635,7 @@ is_connected(M::Matroid) = M.pm_matroid.CONNECTED::Bool
 Return the loops of `M`. A loop is an element of the ground set that is not contained in any basis.
 
 # Examples
-```
+```jldoctest
 julia> loops(matroid_from_bases([[1,2]], 4))
 2-element Vector{Int64}:
  3
@@ -653,7 +653,7 @@ loops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.LOOPS]
 Return the coloops of `M`. A coloop is an element of the ground set that is contained in every basis.
 
 # Examples
-```
+```jldoctest
 julia> coloops(matroid_from_bases([[1,2]], 4))
 2-element Vector{Int64}:
  1
@@ -672,7 +672,7 @@ Check if `M` has a loop. Return `true` if `M` does not have a loop.
 See also `loops`.
 
 # Examples
-```
+```jldoctest
 julia> is_loopless(matroid_from_bases([[1,2]], 4))
 false
 
@@ -689,7 +689,7 @@ Check if `M` has a coloop. Return `true` if `M` does not have a coloop.
 See also `coloops`.
 
 # Examples
-```
+```jldoctest
 julia> is_coloopless(matroid_from_bases([[1,2]], 4))
 false
 
@@ -707,7 +707,7 @@ Return `true` if `M` is simple.
 See also `loops`.
 
 # Examples
-```
+```jldoctest
 julia> is_simple(matroid_from_bases([[1,2]], 4))
 false
 
@@ -724,7 +724,7 @@ Return the connected components of `M` as a list of matroids.
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> direct_sum_components(fano_matroid())
 1-element Vector{Matroid}:
  Matroid of rank 3 on 7 elements
@@ -751,7 +751,7 @@ Return the value of the connectivity function of `set` in the matroid `M`.
 See Section 8.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> connectivity_function(fano_matroid(), [1,2,4])
 3
 
@@ -768,13 +768,13 @@ Check if `set` together with its complement defines a `k` separation in `M`
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_vertical_k_separation(fano_matroid(), 2, [1,2,4])
 false
 
 ```
 """
-function is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType)
+function is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType) 
     return k<=rank(M,set) && k<=rank(M,setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
 end
 
@@ -785,7 +785,7 @@ Check if `set` together with its complement defines a `k` separation in `M`
 See Section 8.1 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> is_k_separation(fano_matroid(), 2, [1,2,4])
 false
 
@@ -802,7 +802,7 @@ If 'M' has two disjoint cocircuits, its vertical connectivity is defined to be l
 Otherwise its vertical connectivity is defined to be the rank of `M`.
 See Section 8.6 in [Oxl11](@cite).
 # Examples
-```
+```jldoctest
 julia> vertical_connectivity(fano_matroid())
 3
 
@@ -834,7 +834,7 @@ This is the size of the smallest circuit contained in `set` and infinite otherwi
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> girth(fano_matroid(), [1,2,3,4])
 3
 
@@ -849,12 +849,12 @@ The Tutte connectivity of `M` is the least integer k such that `M` has a k separ
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> tutte_connectivity(fano_matroid())
 3
 
 julia> tutte_connectivity(uniform_matroid(2,4))
-infinity
+PosInf()
 
 ```
 """
@@ -863,9 +863,9 @@ function tutte_connectivity(M::Matroid)
     n = M.pm_matroid.N_ELEMENTS
     #if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
     if M.pm_matroid.N_BASES==binomial(n,r)
-        if n>=2r+2
-            return r+1
-        elseif n<=2r-2
+        if n>=2r+2 
+            return r+1 
+        elseif n<=2r-2 
             n-r+1
         else
             return inf
@@ -881,7 +881,7 @@ Return the Tutte polynomial of `M`. This is polynomial in the variables x and y 
 See Section 15.3 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> tutte_polynomial(fano_matroid())
 x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 
@@ -902,7 +902,7 @@ It is computed as an evaluation of the Tutte polynmomial.
 See Section 15.2 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> characteristic_polynomial(fano_matroid())
 q^3 - 7*q^2 + 14*q - 8
 
@@ -920,7 +920,7 @@ Return the reduced characteristic polynomial of `M`. This is the quotient of the
 See Section 15.2 in [Oxl11](@cite).
 
 # Examples
-```
+```jldoctest
 julia> reduced_characteristic_polynomial(fano_matroid())
 q^2 - 6*q + 8
 
@@ -970,11 +970,11 @@ end
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
-Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids
+Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids 
 
 # Examples
 To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
-```
+```jldoctest
 julia> string1, string2 = revlex_basis_encoding(fano_matroid())
 ("0******0******0***0******0*0**0****", "0******0******0***0******0*0**0****")
 
@@ -1007,7 +1007,7 @@ Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of
 
 # Examples
 To compare two matrods write:
-```
+```jldoctest
 julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
 
 julia> M = matroid_from_hyperplanes(H,7);
@@ -1030,7 +1030,7 @@ end
 Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
 
 # Examples
-```
+```jldoctest
 julia> is_minor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), fano_matroid())
 false
 
