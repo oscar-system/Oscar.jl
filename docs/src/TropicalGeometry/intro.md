@@ -10,8 +10,8 @@ The tropical geometry part of OSCAR provides functionality for
 
 
 General textbooks offering details on theory and algorithms include:
-- [MS15](@cite)
-- [Jos21](@cite)
+- Maclagan, Sturmfels: Introduction to Tropical Geometry [MS15](@cite)
+- Joswig: Essentials of Tropical Combinatorics [Jos21](@cite)
 
 Like [MS15](@cite), OSCAR follows the min-convention by default and unless specified otherwise.
 
