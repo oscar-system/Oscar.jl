@@ -164,8 +164,9 @@ end
   Lf = integer_lattice_with_isometry(L, f);
 
   mktempdir() do path
-    test_save_load_roundtrip(path, Lf) do loaded
-      @test Lf == loaded
+    C = coinvariant_lattice(Lf)
+    test_save_load_roundtrip(path, C) do loaded
+      @test C == loaded
     end
   end
 
