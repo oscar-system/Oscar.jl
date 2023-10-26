@@ -410,6 +410,7 @@ end
 @deprecate dual_cone(v::AffineNormalToricVariety) weight_cone(v)
 @deprecate cohomology_index(tvs::ToricVanishingSet) cohomology_indices(tvs)
 
+@deprecate mul(x::GAPGroupElem, y::GAPGroupElem) x*y
 
 
 # see https://github.com/oscar-system/Oscar.jl/pull/2908

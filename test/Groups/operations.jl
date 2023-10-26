@@ -18,7 +18,6 @@
       @test x isa PermGroupElem
       @test ox isa ZZRingElem
       @test inv(x) in G
-      @test mul(x,y) == x*y
       @test mul!(x,x,y) == x*y
       @test inv(x)==x^-1
       @test inv!(x,x) == x^-1

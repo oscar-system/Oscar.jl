@@ -1778,13 +1778,13 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     # caching has been done during the call of `in`, so the following will work
     x = coordinates(p, pre_saturated_ideal(I))
     # multiplications sparse*dense have to be carried out this way round.
-    return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+    return transpose(pre_saturation_data(I) * transpose(L(one(q), q, check=false)*change_base_ring(L, x)))
   else
     (success, x, u) = has_solution(generator_matrix(J), matrix(R, 1, 1, [p]), inverted_set(L), check=false)
     !success && error("check for membership was disabled, but element is not in the ideal")
     # cache the intermediate result
     #result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
-    result = transpose(mul(pre_saturation_data(I), transpose(L(one(R), u*denominator(a), check=false)*change_base_ring(L, x))))
+    result = transpose(pre_saturation_data(I) * transpose(L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)))
     extend_pre_saturated_ideal!(I, p, x, u, check=false)
     return result
   end
@@ -1800,8 +1800,7 @@ function coordinates(
   if b in pre_saturated_ideal(I)
     x = coordinates(b, pre_saturated_ideal(I))
     q = denominator(a)
-    # multiplications sparse*dense have to be carried out this way round.
-    return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+    return transpose(pre_saturation_data(I) * transpose(L(one(q), q, check=false)*change_base_ring(L, x)))
   end
 
   @check a in I "the given element is not in the ideal"
@@ -1811,7 +1810,7 @@ function coordinates(
   p = numerator(a)
   x = coordinates(p, J)
   q = denominator(a)
-  return transpose(mul(pre_saturation_data(I), transpose(L(one(q), q, check=false)*change_base_ring(L, x))))
+  return transpose(pre_saturation_data(I) * transpose(L(one(q), q, check=false)*change_base_ring(L, x)))
 end
 
 generator_matrix(J::MPolyIdeal) = matrix(base_ring(J), ngens(J), 1, gens(J))
@@ -1911,7 +1910,7 @@ function extend_pre_saturated_ideal!(
   @check u*f == dot(x, gens(J)) "input is not coherent"
   J_ext = ideal(R, vcat(gens(J), [f]))
   T = pre_saturation_data(I)
-  y = mul(T, transpose(L(one(u), u, check=false)*change_base_ring(L, x)))
+  y = T * transpose(L(one(u), u, check=false)*change_base_ring(L, x))
   T_ext = zero_matrix(SMat, L, 0, ncols(T)+1)
   for i in 1:length(y)
     push!(T_ext, T[i] + sparse_row(L, [(ncols(T) + 1, y[i, 1])]))
@@ -1943,7 +1942,7 @@ function extend_pre_saturated_ideal!(
   #             change_base_ring(L, x)*T
   #            )
   #y = T * transpose(L(one(u), u, check=false)*change_base_ring(L, x))
-  y = mul(T, transpose(change_base_ring(L, x)))
+  y = T * transpose(change_base_ring(L, x))
   for i in 1:ncols(y)
     for j in 1:n
       y[i, j] = y[i, j]*L(one(u[i]), u[i], check=false) 
@@ -2124,7 +2123,7 @@ function _replace_pre_saturated_ideal(
     cols = Vector()
     for i in 1:length(cache)
       (g, a, dttk) = cache[i]
-      push!(cols, mul(pre_saturation_data(I), transpose(L(one(dttk), dttk, check=false)*change_base_ring(L, a))))
+      push!(cols, pre_saturation_data(I) * transpose(L(one(dttk), dttk, check=false)*change_base_ring(L, a)))
     end
     A = zero_matrix(SMat, L, 0, length(cache))
     for i in 1:ngens(I)
@@ -2396,7 +2395,7 @@ function coordinates(
   o = negdegrevlex(gens(R))
   x, u = Oscar.lift(p, J, o)
   T = pre_saturation_data(I)
-  return transpose(mul(T, transpose(L(one(base_ring(L)), tfihs(u)*denominator(a), check=false)*change_base_ring(L, map_entries(tfihs,x)))))
+  return transpose(T * transpose(L(one(base_ring(L)), tfihs(u)*denominator(a), check=false)*change_base_ring(L, map_entries(tfihs,x))))
   #return L(one(base_ring(L)), tfihs(u)*denominator(a), check=false)*change_base_ring(L, map_entries(tfihs,x))*T
 end
 
@@ -2434,12 +2433,12 @@ function coordinates(
       set_attribute!(I, :popped_ideal, popped_ideal)
     end
     popped_ideal = get_attribute(I, :popped_ideal)
-    return transpose(mul(pre_saturation_data(I), transpose(L(one(R), denominator(a), check=false)*map_entries(x->L(x, check=false), coordinates(numerator(a), popped_ideal)))))
+    return transpose(pre_saturation_data(I) * transpose(L(one(R), denominator(a), check=false)*map_entries(x->L(x, check=false), coordinates(numerator(a), popped_ideal))))
     #return L(one(R), denominator(a), check=false)*map_entries(x->L(x, check=false), coordinates(numerator(a), popped_ideal))*pre_saturation_data(I)
   end
 
   if numerator(a) in pre_saturated_ideal(I) 
-    return transpose(mul(T, transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I))))))
+    return transpose(T * transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))))
   end
 
   i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
@@ -2457,8 +2456,8 @@ function coordinates(
     popped_ideal = get_attribute(I, :popped_ideal)
     next_ideal = get_attribute(I, :next_ideal)
     y = coordinates(numerator(a), next_ideal)
-    x = transpose(mul(map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal)), 
-                      transpose(map_entries(x->L(x, check=false), y))))
+    x = transpose(map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal)) *
+                      transpose(map_entries(x->L(x, check=false), y)))
     #x = map_entries(x->L(x, check=false), y)*map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal))
     return L(one(R), denominator(a), check=false)*x
   else
@@ -2475,8 +2474,8 @@ function coordinates(
     popped_ideal = get_attribute(I, :popped_ideal)
     next_ideal = get_attribute(I, :next_ideal)
     y = coordinates(numerator(a), next_ideal)
-    x = transpose(mul(map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal)), 
-                      transpose(map_entries(x->L(x, check=false), y))))
+    x = transpose(map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal)) *
+                      transpose(map_entries(x->L(x, check=false), y)))
     #x = map_entries(x->L(x, check=false), y)*map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal))
     return L(one(R), denominator(a), check=false)*x
   end
@@ -2564,8 +2563,8 @@ function coordinates(
   o = ordering(inverted_set(parent(a)))
   x, u = Oscar.lift(p, J, o)
   T = pre_saturation_data(I)
-  return transpose(mul(T, transpose(L(one(base_ring(L)), u*denominator(a), check=false)*
-                                    change_base_ring(L, x))))
+  return transpose(T * transpose(L(one(base_ring(L)), u*denominator(a), check=false)*
+                                    change_base_ring(L, x)))
 end
 
 @doc raw"""

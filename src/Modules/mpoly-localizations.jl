@@ -75,7 +75,7 @@ function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; che
     return false, zero(R), zero_matrix(R, 1, ngens(I))
   end
   T = pre_saturation_data(Iloc)
-  Bext = transpose(mul(T, transpose(B)))
+  Bext = transpose(T * transpose(A))
   #Bext = A*T
   u = lcm(vec(denominator.(Bext)))
   B = map_entries(x->preimage(map_from_base_ring(Iloc), x), u*Bext)
