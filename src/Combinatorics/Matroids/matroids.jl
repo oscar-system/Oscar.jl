@@ -1,7 +1,7 @@
 ################################################################################
 ##  Constructing
 ################################################################################
-const ElementType = Union{IntegerUnion,Char,String}
+const ElementType = Union{IntegerUnion,Char,String,Edge}
 const GroundsetType = Union{AbstractVector, AbstractSet} 
 
 # Later test if this works:
