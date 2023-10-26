@@ -54,9 +54,10 @@ need to be concrete instances of
 ```julia
     abstract type ChainMorphismFactory{MorphismType} end
 ```
-and the programmer must overwrite 
+and the programmer must overwrite the functions 
 ```julia
     function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::MorphismType where {MorphismType}
+    function can_compute(fac::ChainMorphismFactory{MorphismType}, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::Bool where {MorphismType}
 ```
 In the above example we would implement
 ```julia
