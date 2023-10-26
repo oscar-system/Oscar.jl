@@ -114,16 +114,38 @@ end
 function show_kaehler_differentials(io::IO, M::ModuleFP)
   success, F, p = is_exterior_power(M)
   R = base_ring(F)
-  success && print(io, "Ω^$p($R)")
-  !success && print(io, "Ω^1($R)")
+  if success 
+    if is_unicode_allowed() 
+      print(io, "Ω^$p($R)")
+    else
+      print(io, "\\Omega^$p($R)")
+    end
+  else
+    if is_unicode_allowed() 
+      print(io, "Ω^1($R)")
+    else
+      print(io, "\\Omega^1($R)")
+    end
+  end
 end
 
 function show_kaehler_differentials(io::IO, ::MIME"text/html", M::ModuleFP)
   success, F, p = is_exterior_power(M)
   R = base_ring(F)
   io = IOContext(io, :compact => true)
-  success && print(io, "Ω^$p($R)")
-  !success && print(io, "Ω^1($R)")
+  if success 
+    if is_unicode_allowed() 
+      print(io, "Ω^$p($R)")
+    else
+      print(io, "\\Omega^$p($R)")
+    end
+  else
+    if is_unicode_allowed() 
+      print(io, "Ω^1($R)")
+    else
+      print(io, "\\Omega^1($R)")
+    end
+  end
 end
 
 # Exterior derivatives
