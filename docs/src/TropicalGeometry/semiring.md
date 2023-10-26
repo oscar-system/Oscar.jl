@@ -14,7 +14,7 @@ tropical_semiring()
 ```
 
 ## Properties
-Objects of type `TroicalSemiring` have the following properties:
+Objects of type `TropicalSemiring` have the following properties:
 ```@docs
 convention(T::TropicalSemiring{typeof(min)})
 ```
