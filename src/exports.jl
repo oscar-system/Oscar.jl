@@ -211,6 +211,10 @@ export affine_patch
 export affine_patches
 export affine_space
 export alexander_dual
+export algebraic_ideal
+export algebraic_matrix
+export algebraic_polynomial
+export algebraic_pluecker_vector
 export algebraic_set
 export all_atlas_group_infos
 export all_blocks
@@ -1137,6 +1141,7 @@ export picard_index
 export pile_polytope
 export pitman_stanley_polytope
 export platonic_solid
+export pluecker_indices
 export point_coordinates
 export point_matrix
 export point_vector
@@ -1413,7 +1418,9 @@ export trivial_divisor
 export trivial_divisor_class
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
+export tropical_matrix
 export tropical_polynomial
+export tropical_pluecker_vector
 export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
@@ -1478,13 +1485,3 @@ export write_as_full
 export write_as_linear_combination
 export zonotope
 export zonotope_vertices_fukuda_matrix
-
-# for tropical_bacics:
-export algebraic_ideal
-export algebraic_matrix
-export algebraic_polynomial
-export algebraic_pluecker_vector
-export pluecker_indices
-export tropical_pluecker_vector
-export tropical_matrix
-# export tropical_polynomial # already exported
