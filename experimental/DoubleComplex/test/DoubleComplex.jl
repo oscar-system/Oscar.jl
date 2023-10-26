@@ -11,27 +11,39 @@
   @test Oscar.left_bound(Cxy) == 0
   @test Oscar.upper_bound(Cxy) == 1
   @test Oscar.lower_bound(Cxy) == 0
-  @test Cxy[0, 0] isa FreeMod
-  @test Cxy[1, 0] isa FreeMod
-  @test Cxy[0, 1] isa FreeMod
-  @test Cxy[1, 1] isa FreeMod
+  @test can_compute_index(Cxy, 0, 0) && Cxy[0, 0] isa FreeMod
+  @test can_compute_index(Cxy, 1, 0) && Cxy[1, 0] isa FreeMod
+  @test can_compute_index(Cxy, 0, 1) && Cxy[0, 1] isa FreeMod
+  @test can_compute_index(Cxy, 1, 1) && Cxy[1, 1] isa FreeMod
   @test_throws ErrorException Cxy[0, 2]
+  @test !can_compute_index(Cxy, 0, 2)
   @test_throws ErrorException Cxy[0, -1]
+  @test !can_compute_index(Cxy, 0, -1)
   @test_throws ErrorException Cxy[-1, 0]
+  @test !can_compute_index(Cxy, -1, 0)
   @test_throws ErrorException Cxy[2, 0]
+  @test !can_compute_index(Cxy, 2, 0)
 
+  @test !can_compute_horizontal_map(Cxy, 1, 100)
+  @test can_compute_horizontal_map(Cxy, 1, 0)
   f = Oscar.horizontal_map(Cxy, 1, 0)
   @test domain(f) === Cxy[1, 0]
   @test codomain(f) === Cxy[0, 0]
 
+  @test !can_compute_horizontal_map(Cxy, 1, 100)
+  @test can_compute_horizontal_map(Cxy, 1, 1)
   f = Oscar.horizontal_map(Cxy, 1, 1)
   @test domain(f) === Cxy[1, 1]
   @test codomain(f) === Cxy[0, 1]
 
+  @test !can_compute_vertical_map(Cxy, 0, 100)
+  @test can_compute_vertical_map(Cxy, 0, 1)
   f = Oscar.vertical_map(Cxy, 0, 1)
   @test domain(f) === Cxy[0, 1]
   @test codomain(f) === Cxy[0, 0]
 
+  @test !can_compute_vertical_map(Cxy, 1, 100)
+  @test can_compute_vertical_map(Cxy, 1, 1)
   f = Oscar.vertical_map(Cxy, 1, 1)
   @test domain(f) === Cxy[1, 1]
   @test codomain(f) === Cxy[1, 0]
@@ -82,14 +94,18 @@ end
   @test Oscar.left_bound(Cxy) == 0
   @test Oscar.upper_bound(Cxy) == 1
   @test Oscar.lower_bound(Cxy) == 0
-  @test Cxy[0, 0] isa FreeMod
-  @test Cxy[1, 0] isa FreeMod
-  @test Cxy[0, 1] isa FreeMod
-  @test Cxy[1, 1] isa FreeMod
+  @test can_compute_index(Cxy, 0, 0) && Cxy[0, 0] isa FreeMod
+  @test can_compute_index(Cxy, 1, 0) && Cxy[1, 0] isa FreeMod
+  @test can_compute_index(Cxy, 0, 1) && Cxy[0, 1] isa FreeMod
+  @test can_compute_index(Cxy, 1, 1) && Cxy[1, 1] isa FreeMod
   @test_throws ErrorException Cxy[0, 2]
+  @test !can_compute_index(Cxy, 0, 2)
   @test_throws ErrorException Cxy[0, -1]
+  @test !can_compute_index(Cxy, 0, -1)
   @test_throws ErrorException Cxy[-1, 0]
+  @test !can_compute_index(Cxy, -1, 0)
   @test_throws ErrorException Cxy[2, 0]
+  @test !can_compute_index(Cxy, 2, 0)
 
   f = Oscar.horizontal_map(Cxy, 1, 0)
   @test domain(f) === Cxy[1, 0]

@@ -13,6 +13,10 @@
     return FreeMod(fac.R, 0)
   end
 
+  function Oscar.can_compute(fac::ZeroModuleFactory, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    return true
+  end
+
   # Setting up the factories for the boundary maps
   mutable struct VerticalZeroMaps{MorphismType} <: Oscar.ChainMorphismFactory{MorphismType}
     R::MPolyRing
@@ -43,6 +47,14 @@
     inc = (Oscar.horizontal_direction(D) == :chain ? -1 : 1)
     cod = D[i + inc, j]
     return hom(dom, cod, elem_type(cod)[])
+  end
+
+  function Oscar.can_compute(fac::VerticalZeroMaps, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    return true
+  end
+
+  function Oscar.can_compute(fac::HorizontalZeroMaps, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    return true
   end
 
   # Implement the actual constructor
@@ -95,6 +107,10 @@ end
     return fac.original_complex[i]
   end
 
+  function Oscar.can_compute(fac::MyNewChainFactory, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    return iszero(j)
+  end
+
   # Set up a factory for the morphisms; we only need to worry about the horizontal 
   # ones as the vertical ones will be forbidden to ask for by restrictions on 
   # the bounds.
@@ -125,15 +141,28 @@ end
     return map(fac.original_complex, i)
   end
 
+  function Oscar.can_compute(fac::MyNewMorphismFactory, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    return iszero(j)
+  end
+
+  struct MyDummyMorphismFactory{MorphismType} <: Oscar.ChainMorphismFactory{MorphismType}
+    function MyDummyMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
+      return new{ModuleFPHom}()
+    end
+  end
+
+  Oscar.can_compute(fac::MyDummyMorphismFactory, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int) = false
+
   # The actual constructor for the object we want to have.
   function as_infinite_one_line_double_complex(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
     is_complete(C) || error("implemented only for complete complexes")
     chain_fac = MyNewChainFactory(C)
     mor_fac = MyNewMorphismFactory(C)
+    dummy_fac = MyDummyMorphismFactory(C)
 
     lb = (Oscar.typ(C) == :chain ? last(range(C)) : first(range(C)))
     rb = (Oscar.typ(C) == :cochain ? last(range(C)) : first(range(C)))
-    return Oscar.DoubleComplexOfMorphisms(chain_fac, mor_fac, mor_fac, # third argument is a dummy here 
+    return Oscar.DoubleComplexOfMorphisms(chain_fac, mor_fac, dummy_fac, 
                                           right_bound=rb, left_bound=lb, 
                                           horizontal_direction=Oscar.typ(C), vertical_direction=Oscar.typ(C),
                                           extends_right=true, extends_left=true, 
@@ -155,10 +184,16 @@ end
   @test dc[0, 0] isa FreeMod && rank(dc[0, 0]) == 1  # A free module over R of rank 1
   @test dc[1, 0] isa FreeMod && rank(dc[1, 0]) == 2  # A free module over R of rank 2
   @test iszero(dc[120, 0]) # A zero module
-  @test iszero(Oscar.horizontal_map(dc, 120, 0)) # A zero map
-  @test !iszero(Oscar.horizontal_map(dc, 0, 0))   # The augmentation map of the resolution
-  @test Oscar.has_upper_bound(dc) && upper_bound(dc) < 1  # Returns `true`
-  @test !Oscar.extends_up(dc)                             # Returns `true`
-  @test_throws ErrorException Oscar.vertical_map(dc, 0, 0)
-  @test_throws ErrorException Oscar.horizontal_map(dc, 0, 2)   # An illegitimate request throwing an error as indicated by the above output
+  @test can_compute_index(dc, 100, 0)
+  @test !can_compute_index(dc, 100, 2)
+  @test !can_compute_index(dc, 100, -3)
+  @test iszero(horizontal_map(dc, 120, 0)) # A zero map
+  @test can_compute_horizontal_map(dc, 121, 0)
+  @test !can_compute_horizontal_map(dc, 121, 5)
+  @test !can_compute_horizontal_map(dc, 121, -5)
+  @test !iszero(horizontal_map(dc, 0, 0))   # The augmentation map of the resolution
+  @test has_upper_bound(dc) && upper_bound(dc) < 1  # Returns `true`
+  @test !extends_up(dc)                             # Returns `true`
+  @test_throws ErrorException vertical_map(dc, 0, 0)
+  @test_throws ErrorException horizontal_map(dc, 0, 2)   # An illegitimate request throwing an error as indicated by the above output
 end
