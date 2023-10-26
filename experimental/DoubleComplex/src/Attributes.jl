@@ -25,6 +25,83 @@ has_left_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :left_bound)
 has_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :upper_bound)
 has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
 
+function is_complete(D::DoubleComplexOfMorphisms)
+  todo = keys(D.chains)
+  isempty(todo) && return false
+  for (i, j) in todo
+    iszero(D[i, j]) && continue
+    has_index(D, i+1, j) || return false
+    has_index(D, i-1, j) || return false
+    has_index(D, i, j+1) || return false
+    has_index(D, i, j-1) || return false
+  end
+  return true
+end
+
+@doc raw"""
+    finalize!(D::DoubleComplexOfMorphisms)
+
+Compute all non-zero entries `D[i, j]` and maps of connected components of entries 
+of `D` in the grid of the double complex, starting from non-zero entries in 
+the cache which have already been computed.
+
+This can be used to write a full double complex to disc by filling the cache first.
+"""
+function finalize!(D::DoubleComplexOfMorphisms)
+  isempty(keys(D.chains)) && error("can not finalize starting from empty cache")
+  for (i, j) in keys(D.chains)
+    _compute_neighbors_and_maps(D, i, j)
+  end
+end
+
+function _compute_neighbors_and_maps(D::DoubleComplexOfMorphisms, i::Int, j::Int)
+  iszero(D[i, j]) && return
+  if !has_index(D, i+1, j) && can_compute_index(D, i+1, j) && !iszero(D[i+1, j])
+    _compute_neighbors_and_maps(D, i+1, j) # trigger the computation
+  end
+  if has_index(D, i+1, j) && !iszero(D[i+1, j])
+    if horizontal_direction(D) == :chain && !has_horizontal_map(D, i+1, i) && can_compute_horizontal_map(D, i+1, j)
+      horizontal_map(D, i+1, j)
+    elseif horizontal_direction(D) == :cochain && !has_horizontal_map(D, i, j) && can_compute_horizontal_map(D, i, j)
+      horizontal_map(D, i, j)
+    end
+  end
+
+  if !has_index(D, i-1, j) && can_compute_index(D, i-1, j) && !iszero(D[i-1, j])
+    _compute_neighbors_and_maps(D, i-1, j) # trigger the computation
+  end
+  if has_index(D, i-1, j) && !iszero(D[i-1, j])
+    if horizontal_direction(D) == :cochain && !has_horizontal_map(D, i-1, i) && can_compute_horizontal_map(D, i-1, j)
+      horizontal_map(D, i-1, j)
+    elseif horizontal_direction(D) == :chain && !has_horizontal_map(D, i, j) && can_compute_horizontal_map(D, i, j)
+      horizontal_map(D, i, j)
+    end
+  end
+
+  if !has_index(D, i, j+1) && can_compute_index(D, i, j+1) && !iszero(D[i, j+1])
+    _compute_neighbors_and_maps(D, i, j+1) # trigger the computation
+  end
+  if has_index(D, i, j+1) && !iszero(D[i, j+1])
+    if vertical_direction(D) == :chain && !has_vertical_map(D, i, j+1) && can_compute_vertical_map(D, i, j+1)
+      vertical_map(D, i, j+1)
+    elseif vertical_direction(D) == :cochain && !has_vertical_map(D, i, j) && can_compute_vertical_map(D, i, j)
+      vertical_map(D, i, j)
+    end
+  end
+
+  if !has_index(D, i, j-1) && can_compute_index(D, i, j-1) && !iszero(D[i, j-1])
+    _compute_neighbors_and_maps(D, i, j-1) # trigger the computation
+  end
+  if has_index(D, i, j-1) && !iszero(D[i, j-1])
+    if vertical_direction(D) == :cochain && !has_vertical_map(D, i, j-1) && can_compute_vertical_map(D, i, j-1)
+      vertical_map(D, i, j-1)
+    elseif vertical_direction(D) == :chain && !has_vertical_map(D, i, j) && can_compute_vertical_map(D, i, j)
+      vertical_map(D, i, j)
+    end
+  end
+end
+
+
 function horizontal_range(D::DoubleComplexOfMorphisms) 
   is_horizontally_bounded(D) || error("complex is not known to be horizontally bounded")
   if horizontal_direction(D) == :chain

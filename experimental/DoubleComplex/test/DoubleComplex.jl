@@ -6,6 +6,32 @@
   Cz = ComplexOfMorphisms([hom(R1, R1, [z*R1[1]])])
 
   Cxy = tensor_product(Cx, Cy)
+  Cxy[0, 0]
+  Oscar.finalize!(Cxy)
+  @test length(Cxy.chains) == 4
+  @test length(Cxy.vertical_maps) == 2
+  @test length(Cxy.horizontal_maps) == 2
+
+  Cxy = tensor_product(Cx, Cy)
+  Cxy[1, 0]
+  Oscar.finalize!(Cxy)
+  @test length(Cxy.chains) == 4
+  @test length(Cxy.vertical_maps) == 2
+  @test length(Cxy.horizontal_maps) == 2
+
+  Cxy = tensor_product(Cx, Cy)
+  Cxy[0, 1]
+  Oscar.finalize!(Cxy)
+  @test length(Cxy.chains) == 4
+  @test length(Cxy.vertical_maps) == 2
+  @test length(Cxy.horizontal_maps) == 2
+
+  Cxy = tensor_product(Cx, Cy)
+  Cxy[1, 1]
+  Oscar.finalize!(Cxy)
+  @test length(Cxy.chains) == 4
+  @test length(Cxy.vertical_maps) == 2
+  @test length(Cxy.horizontal_maps) == 2
 
   @test Oscar.right_bound(Cxy) == 1
   @test Oscar.left_bound(Cxy) == 0
@@ -70,9 +96,50 @@
   Kz = ComplexOfMorphisms([hom(Z, R1, elem_type(R1)[]), hom(R1, R1, [z*R1[1]]), hom(R1, Z, [zero(Z)])], seed = -1)
   Kxy = tensor_product(Kx, Ky)
 
+  Kxy[0, 0]
+  @test !is_complete(Kxy)
+  Oscar.finalize!(Kxy)
+  @test length(Kxy.chains) == 12
+  @test length(Kxy.vertical_maps) == 2
+  @test length(Kxy.horizontal_maps) == 2
+  @test is_complete(Kxy)
+
+  Kxy = tensor_product(Kx, Ky)
+  Kxy[1, 0]
+  @test !is_complete(Kxy)
+  Oscar.finalize!(Kxy)
+  @test length(Kxy.chains) == 12
+  @test length(Kxy.vertical_maps) == 2
+  @test length(Kxy.horizontal_maps) == 2
+  @test is_complete(Kxy)
+
+  Kxy = tensor_product(Kx, Ky)
+  Kxy[0, 1]
+  @test !is_complete(Kxy)
+  Oscar.finalize!(Kxy)
+  @test length(Kxy.chains) == 12
+  @test length(Kxy.vertical_maps) == 2
+  @test length(Kxy.horizontal_maps) == 2
+  @test is_complete(Kxy)
+
+  Kxy = tensor_product(Kx, Ky)
+  Kxy[1, 1]
+  @test !is_complete(Kxy)
+  Oscar.finalize!(Kxy)
+  @test length(Kxy.chains) == 12
+  @test length(Kxy.vertical_maps) == 2
+  @test length(Kxy.horizontal_maps) == 2
+  @test is_complete(Kxy)
+
   tot_xy = Oscar.total_complex(Kxy)
 
   KK = tensor_product(tot_xy, Kz)
+  @test !is_complete(KK)
+  @test_throws ErrorException Oscar.finalize!(KK)
+  KK[0, 0]
+  @test !is_complete(KK)
+  Oscar.finalize!(KK)
+  @test is_complete(KK)
   tot_xyz_alt = Oscar.total_complex(KK)
 
   @test matrix(map(tot_xyz_alt, 1)) == matrix(map(tot_xyz, 1))

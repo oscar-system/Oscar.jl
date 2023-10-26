@@ -226,15 +226,10 @@ extends_down(D::AbsDoubleComplexOfMorphisms) = extends_down(underlying_double_co
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if the non-zero entries and maps of the double complex `dc` 
-are precisely those for which `has_index`, `has_horizontal_map`, and 
-`has_vertical_map` return `true`. 
+Returns `true` if it is known that there are no indices `(i, j)` with non-zero 
+entries apart from those for which `has_index(dc, i, j)` returns `true`.
 
-It returns `false` if it is not known whether there are entries `dc[i, j]`
-or maps eminating from it which are non-zero but have not yet been computed.
-
-Note that it might nevertheless be possible to compute further entries 
-and maps! Just be aware that these will then all be zero.
+!!! note The generic implementation does the following. The double complex has an internal cache of entries which have already been computed. Call any two such entries neighbors if their distance of indices is at most 1. Then all known non-zero entries form connected components in the index plane for `dc`. This method checks whether all known connected components have a boundary of zeroes. Depending on the factories used to produce new entries, it might still be possible that new, non-complete components appear.
 """
 function is_complete(dc::AbsDoubleComplexOfMorphisms)
   return is_complete(underlying_double_complex(dc))
