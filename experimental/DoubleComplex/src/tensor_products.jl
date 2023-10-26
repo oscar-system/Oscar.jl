@@ -23,6 +23,10 @@ function (fac::TensorProductFactory{<:ModuleFP})(dc::AbsDoubleComplexOfMorphisms
   return tensor_product(fac.C1[i], fac.C2[j])
 end
 
+function can_compute(fac::TensorProductFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return i in range(fac.C1) && j in range(fac.C2)
+end
+
 # Now we move on to the factories for the maps. Here we have to provide 
 # either one for the horizontal and the vertical morphisms.
 mutable struct VerticalTensorMapFactory{MapType} <: ChainMorphismFactory{MapType}
@@ -41,6 +45,10 @@ function (fac::VerticalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOfMo
   return tensor_product(dom, cod, [identity_map(fac.C1[i]), map(fac.C2, j)])
 end
 
+function can_compute(fac::VerticalTensorMapFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return i in range(fac.C1) && j in map_range(fac.C2)
+end
+
 # Same for the horizontal maps.
 mutable struct HorizontalTensorMapFactory{MapType} <: ChainMorphismFactory{MapType}
   C1::ComplexOfMorphisms
@@ -53,6 +61,10 @@ function (fac::HorizontalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOf
   cod = dc[cod_ind]
   (iszero(dom) || iszero(cod)) && return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
   return tensor_product(dom, cod, [map(fac.C1, i), identity_map(fac.C2[j])])
+end
+
+function can_compute(fac::HorizontalTensorMapFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return i in map_range(fac.C1) && j in range(fac.C2)
 end
 
 # The user facing constructor for the tensor product of complexes 
