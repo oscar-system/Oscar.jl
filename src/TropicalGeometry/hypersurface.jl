@@ -12,7 +12,7 @@
 
     # tropical hypersurfaces need to be embedded
     function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
-        @assert codim(Sigma)==1 "input polyhedral complex not one-codimensional"
+        @req codim(Sigma)==1 "input polyhedral complex not one-codimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
@@ -46,8 +46,8 @@ end
 
 
 function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-    @assert codim(TropV)==1 "tropical variety codimension not one"
-    @assert is_pure(TropV) "tropical variety not pure"
+    @req codim(TropV)==1 "tropical variety codimension not one"
+    @req is_pure(TropV) "tropical variety not pure"
     return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
 end
 
@@ -99,7 +99,7 @@ Min tropical hypersurface
 ```
 """
 function tropical_hypersurface(f::MPolyRingElem{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
-    @assert total_degree(f)>0 "polynomial needs to be non-constant"
+    @req total_degree(f)>0 "polynomial needs to be non-constant"
 
     # Construct hypersurface in polymake
     minOrMax = convention(f)
@@ -209,7 +209,7 @@ end
 Return the polynomial over a valued field used to construct `TropH`.  Raises an error, if it is not cached.
 """
 function algebraic_polynomial(TropH::TropicalHypersurface)
-    @assert has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
+    @req has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
     return get_attribute(TropH,:algebraic_polynomial)
 end
 
@@ -250,7 +250,7 @@ end
 Return the tropical polynomial used to construct `TropH`.  Raises an error, if it is not cached.
 """
 function tropical_polynomial(TropH::TropicalHypersurface)
-    @assert has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
+    @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
     return get_attribute(TropH,:tropical_polynomial)
 end
 
@@ -261,6 +261,6 @@ end
 # Return the tropical semiring map used to construct `TropH`.  Raises an error, if it is not cached.
 # """
 # function tropical_semiring_map(TropH::TropicalHypersurface)
-#     @assert has_attribute(TropH,:tropical_semiring_map) "no tropical semiring map cached"
+#     @req has_attribute(TropH,:tropical_semiring_map) "no tropical semiring map cached"
 #     return get_attribute(TropH,:tropical_semiring_map)
 # end

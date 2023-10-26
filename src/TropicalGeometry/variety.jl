@@ -243,7 +243,7 @@ function tropical_variety(I::Union{MPolyIdeal,MPolyRingElem}, nu::Union{Tropical
         R = base_ring(I)
         I = saturation(I,ideal([prod(gens(R))]))
     end
-    @assert !isone(I) "ideal contains a monomial, tropical varieties in OSCAR cannot be empty"
+    @req !isone(I) "ideal contains a monomial, tropical varieties in OSCAR cannot be empty"
 
     ###
     # Step 0.c: Compute primary decomposition and tropical varieties of all primary factors
@@ -318,7 +318,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     ###
     # Compute tropical variety multiplicity
     ###
-    @assert ncols(A)>nrows(A) "input needs to be a GB"
+    @req ncols(A)>nrows(A) "input needs to be a GB"
     weight = abs(prod([snf(A)[i,i] for i in 1:nrows(A)]))
 
     ###
@@ -327,7 +327,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     A = QQMatrix(A)
     L = matrix(QQ,kernel_basis(A))
     can_solve, V = can_solve_with_solution(transpose(A),matrix(QQ,[b]),side=:left)
-    @assert can_solve "tropical variety cannot be empty"
+    @req can_solve "tropical variety cannot be empty"
     SigmaV = polyhedral_complex(IncidenceMatrix([[1]]), V, nothing, L)
 
     ###
@@ -410,7 +410,7 @@ end
 
 
 function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
-    @assert lineality_dim(Sigma)>0 "dehomogenizing polyhedral complex without lineality"
+    @req lineality_dim(Sigma)>0 "dehomogenizing polyhedral complex without lineality"
 
     ###
     # Construct hyperplane {first coord = 0}
@@ -494,7 +494,7 @@ function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{
     lp = [x[1] for x = prime_decomposition(zk,p)]
     ma = representation_matrix(a)
     mb = representation_matrix(k(lp[1].gen_two*lp[2].gen_two^2))
-    @assert iszero(ma*mb - mb*ma)
+    @req iszero(ma*mb - mb*ma)
     Qp = PadicField(p, 10)
     TropVDict = simultaneous_diagonalization([map_entries(Qp, ma),map_entries(Qp, mb)])
 
@@ -514,7 +514,7 @@ end
 function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     f = charpoly(M)
     lf = Hecke.slope_factorization(f)
-    # @assert all(x->x==1, values(lf))
+    # @req all(x->x==1, values(lf))
 
     se = Dict{typeof(f), typeof(M)}()
     k = base_ring(M)
@@ -523,7 +523,7 @@ function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     for f = keys(lf)
         se[f] = kernel(f(M))[2] #hopefully, this is in rref
     end
-    @assert sum(ncols(x) for x = values(se)) == nrows(M)
+    @req sum(ncols(x) for x = values(se)) == nrows(M)
     return se
 end
 
@@ -551,14 +551,14 @@ end
 function simultaneous_diagonalization(v::Vector{<:MatElem{T}}) where T <: Hecke.NonArchLocalFieldElem
 
     k = base_ring(v[1])
-    @assert all(x->base_ring(x) == k, v)
+    @req all(x->base_ring(x) == k, v)
     n = nrows(v[1])
-    @assert all(x->ncols(x) == nrows(x) == n, v)
+    @req all(x->ncols(x) == nrows(x) == n, v)
 
     vv = map(slope_eigenspace, v)
 
     d = Dict(v => [valuation_of_roots(k)] for (k,v) = vv[1])
-    @assert sum(ncols(x) for x = keys(d)) == n
+    @req sum(ncols(x) for x = keys(d)) == n
     for i=2:length(vv)
         dd = typeof(d)()
         for (mat, pol_vec) = d
@@ -570,7 +570,7 @@ function simultaneous_diagonalization(v::Vector{<:MatElem{T}}) where T <: Hecke.
             end
         end
         d = dd
-        @assert sum(ncols(x) for x = keys(d)) == n
+        @req sum(ncols(x) for x = keys(d)) == n
     end
 
     return d

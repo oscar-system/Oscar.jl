@@ -46,7 +46,7 @@ end
 
 function tropical_linear_space(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
     mult = multiplicities(TropV)
-    @assert isnothing(findfirst(!isequal(one(ZZ)),collect(values(mult)))) "tropical variety not all multiplicities one"
+    @req isnothing(findfirst(!isequal(one(ZZ)),collect(values(mult)))) "tropical variety not all multiplicities one"
     return tropical_linear_space(polyhedral_complex(TropV),mult,convention(TropV))
 end
 
@@ -330,7 +330,7 @@ end
 Return the Pluecker indices used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function pluecker_indices(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:pluecker_indices) "no pluecker indices cached"
+    @req has_attribute(TropL,:pluecker_indices) "no pluecker indices cached"
     return get_attribute(TropL,:pluecker_indices)
 end
 
@@ -341,7 +341,7 @@ end
 Return the tropical Pluecker vector of `TropL`.  Raises an error, if it is not cached.
 """
 function tropical_pluecker_vector(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:tropical_pluecker_vector) "no tropical pluecker vector cached"
+    @req has_attribute(TropL,:tropical_pluecker_vector) "no tropical pluecker vector cached"
     return get_attribute(TropL,:tropical_pluecker_vector)
 end
 
@@ -352,7 +352,7 @@ end
 Return the Pluecker vector over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function algebraic_pluecker_vector(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:algebraic_pluecker_vector) "no algebraic pluecker vector cached"
+    @req has_attribute(TropL,:algebraic_pluecker_vector) "no algebraic pluecker vector cached"
     return get_attribute(TropL,:algebraic_pluecker_vector)
 end
 
@@ -363,7 +363,7 @@ end
 Return the tropical semiring map used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function tropical_semiring_map(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:tropical_semiring_map) "no tropical semiring map cached"
+    @req has_attribute(TropL,:tropical_semiring_map) "no tropical semiring map cached"
     return get_attribute(TropL,:tropical_semiring_map)
 end
 
@@ -374,7 +374,7 @@ end
 Return the tropical matrix used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function tropical_matrix(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:tropical_matrix) "no tropical matrix cached"
+    @req has_attribute(TropL,:tropical_matrix) "no tropical matrix cached"
     return get_attribute(TropL,:tropical_matrix)
 end
 
@@ -385,7 +385,7 @@ end
 Return the matrix over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function algebraic_matrix(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:algebraic_matrix) "no algebraic matrix cached"
+    @req has_attribute(TropL,:algebraic_matrix) "no algebraic matrix cached"
     return get_attribute(TropL,:algebraic_matrix)
 end
 
@@ -396,6 +396,6 @@ end
 Return the polynomial ideal over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
 """
 function algebraic_ideal(TropL::TropicalLinearSpace)
-    @assert has_attribute(TropL,:algebraic_ideal) "no algebraic ideal cached"
+    @req has_attribute(TropL,:algebraic_ideal) "no algebraic ideal cached"
     return get_attribute(TropL,:algebraic_ideal)
 end

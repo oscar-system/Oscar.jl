@@ -53,7 +53,7 @@ ideal(tsim + s, tsim*x2 + x1, tsim*x3 + x2)
 ```
 """
 function simulate_valuation(I::MPolyIdeal, nu::TropicalSemiringMap)
-    @assert !isempty(gens(I)) "input ideal empty"
+    @req !isempty(gens(I)) "input ideal empty"
 
     R = valued_ring(nu)
     Rtx,tx = polynomial_ring(R,vcat([:tsim],symbols(base_ring(I))))
@@ -289,7 +289,7 @@ julia> desimulate_valuation(wSim, nuMax; perturbation=uSim)
 ```
 """
 function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
-    @assert w[1]<0 "invalid weight vector"
+    @req w[1]<0 "invalid weight vector"
     # scale the vector so that first entry is 1, then remove first entry
     w ./= w[1]
     if !isnothing(perturbation)
@@ -300,7 +300,7 @@ function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,
     return w[2:end]
 end
 function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
-    @assert w[1]<0 "invalid weight vector"
+    @req w[1]<0 "invalid weight vector"
     # scale the vector so that first entry is -1, then remove first entry
     w ./= -w[1]
     if !isnothing(perturbation)
@@ -352,7 +352,7 @@ julia> groebner_basis(I,nu,w)
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
-    @assert all(Oscar._is_homogeneous, gens(I)) "input ideal needs homogeneous generators"
+    @req all(Oscar._is_homogeneous, gens(I)) "input ideal needs homogeneous generators"
     Isim = simulate_valuation(I,nu)
     wSim = simulate_valuation(QQ.(w),nu)
     # TODO: experiment with different tiebreaker orderings

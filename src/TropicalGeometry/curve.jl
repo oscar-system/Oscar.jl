@@ -14,7 +14,7 @@
 
     # embedded tropical curves contain a PolyhedralComplex
     function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
-        @assert dim(Sigma)==1 "input not one-dimensional"
+        @req dim(Sigma)==1 "input not one-dimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 
@@ -126,7 +126,7 @@ end
 
 
 function tropical_curve(TropV::TropicalVarietySupertype)
-    @assert dim(TropV)<=1 "tropical variety dimension too high"
+    @req dim(TropV)<=1 "tropical variety dimension too high"
     return tropical_curve(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
 end
 
@@ -191,7 +191,7 @@ end
 # ```
 # """
 # function divisor_on_tropical_curve(tc::TropicalCurve{minOrMax, false}, coeffs::Vector{Int}) where minOrMax
-#     @assert nv(tc)==length(coeffs) "Wrong number coefficients"
+#     @req nv(tc)==length(coeffs) "Wrong number coefficients"
 #     return DivisorOnTropicalCurve{minOrMax, false}(tc, coeffs)
 # end
 
@@ -277,7 +277,7 @@ end
 # function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
 #     G = graph(tc)
 #     m = ne(G) #number of edges of tc
-#     @assert v in W "Vertex number $v not in $W"
+#     @req v in W "Vertex number $v not in $W"
 #     deg = 0 #outdeg
 #     for i in 1:m
 #         row = Polymake.row(incidence_matrix(G),i)
@@ -331,7 +331,7 @@ end
 #     newcoeff = Vector{Int}(coefficients(dtc))
 #     S = Set{Int}(1:n)
 #     W = setdiff(S,vertex)
-#     @assert all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
+#     @req all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
 #     while !(isempty(W))
 # 	      w0 = vertex
 # 	      if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
@@ -394,9 +394,9 @@ end
 # ```
 # """
 # function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
-#     @assert is_effective(dtc1) "The divisor $dtc1 is not effective"
-#     @assert is_effective(dtc2) "The divisor $dtc2 is not effective"
-#     @assert base_curve(dtc1) === base_curve(dtc2) "The input curve needs to be the same for both divisors"
+#     @req is_effective(dtc1) "The divisor $dtc1 is not effective"
+#     @req is_effective(dtc2) "The divisor $dtc2 is not effective"
+#     @req base_curve(dtc1) === base_curve(dtc2) "The input curve needs to be the same for both divisors"
 #     v = 1
 #     reduced1 = v_reduced(dtc1,v)
 #     reduced2 = v_reduced(dtc2,v)
@@ -522,7 +522,7 @@ end
 # # ```
 # # """
 # # @recipe function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
-# #     @assert EMB "Tropical curve is abstract."
+# #     @req EMB "Tropical curve is abstract."
 # #     PC = tc.polyhedralComplex
 # #     MaxPoly= maximal_polyhedra(PC)
 # #     list_vertices = Vector{Complex{Float64}}()

@@ -25,7 +25,7 @@ abstract type TropicalVarietySupertype{minOrMax,isEmbedded} end
 # if TropV isa TropicalLinearSpace, then polymake_object isa Polymake.matroid.ValuatedMatroid
 # if TropV isa TropicalHypersurface, then polymake_object isa Polymake.tropical.Hypersurface
 function pm_object(TropV::TropicalVarietySupertype)
-    @assert has_attribute(TropV,:polymake_object) "no polymake object cached"
+    @req has_attribute(TropV,:polymake_object) "no polymake object cached"
     return get_attribute(TropV,:polymake_object)
 end
 

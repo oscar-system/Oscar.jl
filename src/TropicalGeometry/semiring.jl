@@ -14,7 +14,7 @@ mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <:
     data::QQFieldElem
 
     function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, isinf::Bool) where {minOrMax<:Union{typeof(min),typeof(max)}}
-        @assert isinf
+        @req isinf
         return new{minOrMax}(R, true)
     end
 
@@ -167,7 +167,7 @@ tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
 ################################################################################
 
 function (T::TropicalSemiring)(u::TropicalSemiringElem)
-  @assert parent(u) === T
+  @req parent(u) === T
   return u
 end
 
@@ -203,17 +203,17 @@ end
 
 function (R::TropicalSemiring)(x::RingElem; preserve_ordering::Bool=false)
   x = QQ(x)
-  @assert parent(x)==QQ "cannot convert object of type $(repr(typeof(x)))"
+  @req parent(x)==QQ "cannot convert object of type $(repr(typeof(x)))"
   return R(x, preserve_ordering=preserve_ordering)
 end
 
 function (::QQField)(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)
-    @assert !iszero(x) "cannot convert $(repr(x))"
+    @req !iszero(x) "cannot convert $(repr(x))"
     return data(x)
 end
 
 function (::QQField)(x::TropicalSemiringElem{typeof(max)}; preserve_ordering::Bool=false)
-    @assert !iszero(x) "cannot convert $(repr(x))"
+    @req !iszero(x) "cannot convert $(repr(x))"
     return (preserve_ordering ? -data(x) : data(x))
 end
 
@@ -345,7 +345,7 @@ function Base.:(*)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{mi
 end
 
 function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
-    @assert !iszero(y) "dividing by (tropical) zero"
+    @req !iszero(y) "dividing by (tropical) zero"
     return (iszero(x) ? x : parent(x)(data(x)-data(y)))
 end
 
@@ -358,7 +358,7 @@ function Base.:(/)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{mi
 end
 
 function inv(a::TropicalSemiringElem)
-    @assert !iszero(a) "inverting (tropical) zero"
+    @req !iszero(a) "inverting (tropical) zero"
     return parent(a)(-data(a))
 end
 

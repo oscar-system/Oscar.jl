@@ -12,7 +12,7 @@ Return the stable intersection of `TropV1` and `TropV2`.
 function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, TropV2::TropicalVarietySupertype{minOrMax,true},
                              perturbation::Union{Vector{Int},Nothing}=nothing) where minOrMax
 
-    @assert ambient_dim(TropV1)==ambient_dim(TropV2) "different ambient dimenions of tropical varieties"
+    @req ambient_dim(TropV1)==ambient_dim(TropV2) "different ambient dimenions of tropical varieties"
     if isnothing(perturbation)
         perturbation = rand(Int,ambient_dim(TropV1))
     end
@@ -64,7 +64,7 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     sigma2Prime = polyhedron((M[:,2:end],[-M[:,1]...]), (N[:,2:end],[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
 
     sigma12Prime = intersect(sigma1Prime, sigma2Prime)
-    # @assert codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
+    # @req codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
 
     return dim(sigma12Prime)>0 && last(relative_interior_point(sigma12Prime))>0
 end
@@ -83,7 +83,7 @@ function tropical_intersection_multiplicity(sigma1::Polyhedron,sigma2::Polyhedro
     B2 = matrix(ZZ,[ numerator.(b .* lcm(denominator.(b))) for b in B2 ])
     B2 = saturate(B2)
 
-    @assert ncols(B1) == ncols(B2) && nrows(B1)+nrows(B2) >= ncols(B1) "polyhedra do not span ambient space"
+    @req ncols(B1) == ncols(B2) && nrows(B1)+nrows(B2) >= ncols(B1) "polyhedra do not span ambient space"
 
     snfB12 = snf(vcat(B1,B2))
     return abs(prod([snfB12[i,i] for i in 1:ncols(snfB12)]))
