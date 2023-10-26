@@ -206,9 +206,9 @@ julia> nu_t(1//t^2)
 ```
 """
 function tropical_semiring_map(Kt::Generic.RationalFunctionField, t::Generic.RationalFunctionFieldElem, minOrMax::Union{typeof(min),typeof(max)}=min)
-    @assert isone(denominator(t)) "input uniformizer denominator not 1"
+    @req isone(denominator(t)) "input uniformizer denominator not 1"
     t = numerator(t)
-    @assert degree(t)>0 "input uniformizer constant"
+    @req degree(t)>0 "input uniformizer constant"
     return TropicalSemiringMap{typeof(Kt),typeof(t),typeof(minOrMax)}(Kt,t,tropical_semiring(minOrMax))
 end
 
