@@ -3,7 +3,7 @@
     M1 = fano_matroid()
     M2 = pappus_matroid()
     M3 = vamos_matroid()
-    M4 = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a','b','c','d']))
+    M4 = matroid_from_bases([['a','b'], ['a','c'], ['a','d'], ['b','c'], ['b','d']], ['a','b','c','d'])
     
     R1, mat_M1 = Oscar.realization_space_matrix(M1, [1,2,4], GF(2));
     R2, mat_M2 = Oscar.realization_space_matrix(M2, [2,3,8], QQ);
