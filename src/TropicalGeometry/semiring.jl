@@ -131,7 +131,7 @@ julia> evaluate(f,T.([-1//2,1//2])) # warning: omitting T() gives an error
 julia> T = tropical_semiring()
 Min tropical semiring
 
-julia> A = matrix(T,[0 zero(T); zero(T) 0]) # = tropical identity matrix
+julia> A = identity_matrix(T, 2) # = tropical identity matrix
 [(0)     ∞]
 [  ∞   (0)]
 
