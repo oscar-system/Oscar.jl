@@ -91,7 +91,12 @@ jobs:
           - 'nightly'
         os:
           - ubuntu-latest
+        depwarn: [ '' ]
         include:
+          # Add a single job with deprecation errors on the most recent stable julia version
+          - julia-version: '1.9'
+            os: ubuntu-latest
+            depwarn: 'error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.9'
             os: macOS-latest
@@ -120,7 +125,7 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.9' }}
           coverage: ${{ matrix.julia-version == '1.9' }}
-          depwarn: error
+          depwarn: ${{ matrix.depwarn != '' && matrix.depwarn || 'no' }}
       - name: "Setup package"
         run: |
           julia --project=docs --color=yes -e '
