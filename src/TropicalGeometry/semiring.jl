@@ -132,16 +132,16 @@ julia> T = tropical_semiring()
 Min tropical semiring
 
 julia> A = identity_matrix(T, 2) # = tropical identity matrix
-[(0)     ∞]
-[  ∞   (0)]
+[  (0)   infty]
+[infty     (0)]
 
 julia> 2*A
-[(2)     ∞]
-[  ∞   (2)]
+[  (2)   infty]
+[infty     (2)]
 
 julia> A*A
-[(0)     ∞]
-[  ∞   (0)]
+[  (0)   infty]
+[infty     (0)]
 
 julia> det(A)
 (0)
@@ -149,8 +149,8 @@ julia> det(A)
 julia> minors(A,1)
 4-element Vector{TropicalSemiringElem{typeof(min)}}:
  (0)
- ∞
- ∞
+ infty
+ infty
  (0)
 ```
 """
@@ -253,10 +253,14 @@ end
 
 # Hook into the fancy printing, we use (x) for finite values and ±∞ for infinity.
 function AbstractAlgebra.expressify(x::TropicalSemiringElem{minOrMax}; context = nothing) where {minOrMax<:Union{typeof(min),typeof(max)}}
-  if isinf(x)
-    return minOrMax==typeof(min) ? "∞" : "-∞"
-  end
-  return Expr(:call, "", expressify(data(x), context = context))
+    if isinf(x)
+        if Oscar.is_unicode_allowed()
+            return minOrMax==typeof(min) ? "∞" : "-∞"
+        else
+            return minOrMax==typeof(min) ? "infty" : "-infty"
+        end
+    end
+    return Expr(:call, "", expressify(data(x), context = context))
 end
 
 AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Min tropical semiring"

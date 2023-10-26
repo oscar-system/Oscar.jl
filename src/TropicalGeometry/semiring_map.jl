@@ -48,7 +48,7 @@ julia> nu(1)
 (0)
 
 julia> nu(0)
-∞
+infty
 
 julia> nu = tropical_semiring_map(QQ,max) # arbitrary rings possible
 Map into Max tropical semiring encoding the trivial valuation on Rational field
@@ -57,7 +57,7 @@ julia> nu(1)
 (0)
 
 julia> nu(0)
--∞
+-infty
 
 ```
 """
