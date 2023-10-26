@@ -135,7 +135,7 @@ jobs:
       - name: "Run doctests"
         run: |
           julia ${{ matrix.julia-version == '1.9' && '--code-coverage' || '' }} \
-            --project=docs --depwarn=error --color=yes -e'
+            --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Documenter
               include("docs/documenter_helpers.jl")
               using Oscar
