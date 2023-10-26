@@ -363,23 +363,35 @@ function inv(a::TropicalSemiringElem)
 end
 
 function Base.:(^)(a::TropicalSemiringElem, n::QQFieldElem)
-    iszero(a) && return zero(parent(a)) # if a is zero, return zero
-    return parent(a)(data(a)*n)         # otherwise (rational) multiply a by n
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
 end
 
 function Base.:(^)(a::TropicalSemiringElem, n::ZZRingElem)
-    iszero(a) && return zero(parent(a)) # if a is zero, return zero
-    return parent(a)(data(a)*n)         # otherwise (rational) multiply a by n
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
 end
 
 function Base.:(^)(a::TropicalSemiringElem, n::Rational)
-    iszero(a) && return zero(parent(a)) # if a is zero, return zero
-    return parent(a)(data(a)*n)         # otherwise (rational) multiply a by n
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
 end
 
 function Base.:(^)(a::TropicalSemiringElem, n::Integer)
-    iszero(a) && return zero(parent(a)) # if a is zero, return zero
-    return parent(a)(data(a)*n)         # otherwise (rational) multiply a by n
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
 end
 
 
