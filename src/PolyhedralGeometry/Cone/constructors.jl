@@ -84,11 +84,7 @@ cone(f::scalar_type_or_field, x...) = positive_hull(f, x...)
 
 
 function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-    # TODO: Remove the following 3 lines, see #758
-    for pair in Iterators.product([C0, C1], ["RAYS", "FACETS"])
-        Polymake.give(pm_object(pair[1]),pair[2])
-    end
-    return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
+    return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))::Bool
 end
 
 # For a proper hash function for cones we should use a "normal form",
