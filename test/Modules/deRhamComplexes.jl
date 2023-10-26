@@ -33,6 +33,7 @@
   @test !iszero(WA[3])
   d2 = map(WA, 2)
   @test d2(A(x)*WA[2][4]) == WA[3][1]
+  @test "$(WA[2])" == "Ω^2($A)"
 
   I = L(I)
   A, pr = quo(L, I)
