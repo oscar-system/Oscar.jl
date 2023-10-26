@@ -158,7 +158,7 @@ has_lower_bound(D::AbsDoubleComplexOfMorphisms)   = has_lower_bound(underlying_d
 
 Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``i > B``. Whether or not requests for `D[i, j]` beyond that bound are 
-legitimate can be checked using `can_compute_index` or `extends_right(D)`.
+legitimate can be checked using `can_compute_index`.
 """
 right_bound(D::AbsDoubleComplexOfMorphisms) = right_bound(underlying_double_complex(D))
 
@@ -167,7 +167,7 @@ right_bound(D::AbsDoubleComplexOfMorphisms) = right_bound(underlying_double_comp
 
 Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``i < B``. Whether or not requests for `D[i, j]` beyond that bound are 
-legitimate can be checked using `can_compute_index` or `extends_left(D)`.
+legitimate can be checked using `can_compute_index`.
 """
 left_bound(D::AbsDoubleComplexOfMorphisms) = left_bound(underlying_double_complex(D))
 
@@ -176,7 +176,7 @@ left_bound(D::AbsDoubleComplexOfMorphisms) = left_bound(underlying_double_comple
 
 Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``j > B``. Whether or not requests for `D[i, j]` beyond that bound are 
-legitimate can be checked using `can_compute_index` or `extends_up(D)`.
+legitimate can be checked using `can_compute_index`.
 """
 upper_bound(D::AbsDoubleComplexOfMorphisms) = upper_bound(underlying_double_complex(D))
 
@@ -185,7 +185,7 @@ upper_bound(D::AbsDoubleComplexOfMorphisms) = upper_bound(underlying_double_comp
 
 Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``j < B``. Whether or not requests for `D[i, j]` beyond that bound are 
-legitimate can be checked using `can_compute_index` or `extends_down(D)`.
+legitimate can be checked using `can_compute_index`.
 """
 lower_bound(D::AbsDoubleComplexOfMorphisms) = lower_bound(underlying_double_complex(D))
 
@@ -237,7 +237,7 @@ Note that it might nevertheless be possible to compute further entries
 and maps! Just be aware that these will then all be zero.
 """
 function is_complete(dc::AbsDoubleComplexOfMorphisms)
-  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) && has_upper_bound(dc) && !extends_up(dc) && has_lower_bound(dc) && !extends_down(dc)
+  return is_complete(underlying_double_complex(dc))
 end
 
 #= has become obsolete with the advent of has_entry etc. 
@@ -350,11 +350,6 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
   upper_bound::Int
   lower_bound::Int
 
-  extends_right::Bool
-  extends_left::Bool
-  extends_up::Bool
-  extends_down::Bool
-
   function DoubleComplexOfMorphisms(
       chain_factory::ChainFactory{ChainType}, 
       horizontal_map_factory::ChainMorphismFactory{MorphismType}, 
@@ -364,11 +359,7 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
       right_bound::Union{Int, Nothing} = nothing,
       left_bound::Union{Int, Nothing} = nothing,
       upper_bound::Union{Int, Nothing} = nothing,
-      lower_bound::Union{Int, Nothing} = nothing,
-      extends_right::Bool=true,
-      extends_left::Bool=true,
-      extends_up::Bool=true,
-      extends_down::Bool=true
+      lower_bound::Union{Int, Nothing} = nothing
     ) where {ChainType, MorphismType}
     result = new{ChainType, MorphismType}(Dict{Tuple{Int, Int}, ChainType}(),
                                           Dict{Tuple{Int, Int}, MorphismType}(),
@@ -380,10 +371,6 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
     left_bound !== nothing && (result.left_bound = left_bound)
     upper_bound !== nothing && (result.upper_bound = upper_bound)
     lower_bound !== nothing && (result.lower_bound = lower_bound)
-    result.extends_right = extends_right
-    result.extends_left = extends_left
-    result.extends_up = extends_up
-    result.extends_down = extends_down
     return result
   end
 end

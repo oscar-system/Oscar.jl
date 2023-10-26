@@ -93,6 +93,8 @@ function tensor_product(C1::ComplexOfMorphisms{ChainType}, C2::ComplexOfMorphism
                                     horizontal_direction=typ(C1),
                                     vertical_direction=typ(C2)
                                    )
+  # TODO: Find out how to access the information that a complex can not extend.
+  #(is_complete(C1) && is_complete(C2)) || error("tensor product is only implemented for complete complexes at the moment")
   r1 = range(C1)
   result.right_bound = (typ(C1) == :chain ? first(r1) : last(r1))
   result.left_bound = (typ(C1) == :cochain ? first(r1) : last(r1))
@@ -100,27 +102,6 @@ function tensor_product(C1::ComplexOfMorphisms{ChainType}, C2::ComplexOfMorphism
   result.upper_bound = (typ(C2) == :chain ? first(r2) : last(r2))
   result.lower_bound = (typ(C2) == :cochain ? first(r2) : last(r2))
 
-  if is_complete(C1) || !isdefined(C1, :fill)
-    result.extends_left = false
-    result.extends_right = false
-  elseif isdefined(C1, :fill) && typ(C1) == :chain # the filling function to extend to the right
-    result.extends_right = true
-    result.extends_left = false
-  elseif isdefined(C1, :fill) && typ(C1) == :cochain # the filling function to extend to the right
-    result.extends_right = false
-    result.extends_left = true
-  end
-
-  if is_complete(C2) || !isdefined(C2, :fill)
-    result.extends_down = false
-    result.extends_up = false
-  elseif isdefined(C2, :fill) && typ(C2) == :chain # the filling function to extend to the up
-    result.extends_up = true
-    result.extends_down = false
-  elseif isdefined(C2, :fill) && typ(C2) == :cochain # the filling function to extend to the up
-    result.extends_up = false
-    result.extends_down = true
-  end
   return result
 end
 

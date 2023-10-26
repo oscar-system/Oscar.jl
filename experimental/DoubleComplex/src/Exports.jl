@@ -1,10 +1,6 @@
 export can_compute_index
 export can_compute_horizontal_map
 export can_compute_vertical_map
-export extends_down
-export extends_left
-export extends_right
-export extends_up
 export has_horizontal_map
 export has_index
 export has_vertical_map

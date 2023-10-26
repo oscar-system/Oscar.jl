@@ -165,9 +165,7 @@ end
     return Oscar.DoubleComplexOfMorphisms(chain_fac, mor_fac, dummy_fac, 
                                           right_bound=rb, left_bound=lb, 
                                           horizontal_direction=Oscar.typ(C), vertical_direction=Oscar.typ(C),
-                                          extends_right=true, extends_left=true, 
-                                          upper_bound=0, lower_bound=0,
-                                          extends_up=false, extends_down=false
+                                          upper_bound=0, lower_bound=0
                                          )
   end
 
@@ -193,7 +191,6 @@ end
   @test !can_compute_horizontal_map(dc, 121, -5)
   @test !iszero(horizontal_map(dc, 0, 0))   # The augmentation map of the resolution
   @test has_upper_bound(dc) && upper_bound(dc) < 1  # Returns `true`
-  @test !extends_up(dc)                             # Returns `true`
   @test_throws ErrorException vertical_map(dc, 0, 0)
   @test_throws ErrorException horizontal_map(dc, 0, 2)   # An illegitimate request throwing an error as indicated by the above output
 end
