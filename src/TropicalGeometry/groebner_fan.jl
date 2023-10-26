@@ -181,7 +181,7 @@ julia> rays_modulo_lineality(maximal_groebner_cone(G))
 ```
 """
 function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
-    @req is_groebner_basis(G)
+    @req is_groebner_basis(G) "input not a Groebner basis"
     ord = ordering(G)
     G = collect(G)
     homogeneityWeight = homogeneity_vector(G)
@@ -189,7 +189,7 @@ function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
 end
 
 function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}, homogeneityWeight::Union{Vector{ZZRingElem},Nothing})
-    @req is_groebner_basis(G)
+    @req is_groebner_basis(G) "input not a Groebner basis"
     ord = ordering(G)
     G = collect(G)
     return maximal_groebner_cone(G,ord,homogeneityWeight)

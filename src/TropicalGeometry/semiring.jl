@@ -14,7 +14,7 @@ mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <:
     data::QQFieldElem
 
     function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, isinf::Bool) where {minOrMax<:Union{typeof(min),typeof(max)}}
-        @req isinf
+        @assert isinf
         return new{minOrMax}(R, true)
     end
 
@@ -167,7 +167,7 @@ tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
 ################################################################################
 
 function (T::TropicalSemiring)(u::TropicalSemiringElem)
-  @req parent(u) === T
+  @req parent(u)==T "incompatible conventions"
   return u
 end
 

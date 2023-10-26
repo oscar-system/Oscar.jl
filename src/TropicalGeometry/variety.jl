@@ -494,7 +494,7 @@ function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{
     lp = [x[1] for x = prime_decomposition(zk,p)]
     ma = representation_matrix(a)
     mb = representation_matrix(k(lp[1].gen_two*lp[2].gen_two^2))
-    @req iszero(ma*mb - mb*ma)
+    @assert iszero(ma*mb - mb*ma)
     Qp = PadicField(p, 10)
     TropVDict = simultaneous_diagonalization([map_entries(Qp, ma),map_entries(Qp, mb)])
 
@@ -523,7 +523,7 @@ function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     for f = keys(lf)
         se[f] = kernel(f(M))[2] #hopefully, this is in rref
     end
-    @req sum(ncols(x) for x = values(se)) == nrows(M)
+    @assert sum(ncols(x) for x = values(se)) == nrows(M)
     return se
 end
 
@@ -551,14 +551,14 @@ end
 function simultaneous_diagonalization(v::Vector{<:MatElem{T}}) where T <: Hecke.NonArchLocalFieldElem
 
     k = base_ring(v[1])
-    @req all(x->base_ring(x) == k, v)
+    @assert all(x->base_ring(x) == k, v)
     n = nrows(v[1])
-    @req all(x->ncols(x) == nrows(x) == n, v)
+    @assert all(x->ncols(x) == nrows(x) == n, v)
 
     vv = map(slope_eigenspace, v)
 
     d = Dict(v => [valuation_of_roots(k)] for (k,v) = vv[1])
-    @req sum(ncols(x) for x = keys(d)) == n
+    @assert sum(ncols(x) for x = keys(d)) == n
     for i=2:length(vv)
         dd = typeof(d)()
         for (mat, pol_vec) = d
@@ -570,7 +570,7 @@ function simultaneous_diagonalization(v::Vector{<:MatElem{T}}) where T <: Hecke.
             end
         end
         d = dd
-        @req sum(ncols(x) for x = keys(d)) == n
+        @assert sum(ncols(x) for x = keys(d)) == n
     end
 
     return d
