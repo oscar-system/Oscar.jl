@@ -41,14 +41,14 @@
     R, (x,y,z) = QQ["x", "y", "z"]
     f = 2*(x^2+y)^2*(x+y*z)^4
     
-    @testset "poly_2_factors" begin
-        @test Oscar.poly_2_factors(f) == [x^2+y, x+y*z]
+    @testset "poly_2_prime_divisors" begin
+      @test all(e -> e in [x^2+y, x+y*z], Oscar.poly_2_prime_divisors(f))
     end
 
     Sgens = [2*(x^2+y)^2*(x+y*z)^4, 3*x^2*(x+y*z)^5] 
 
-    @testset "gens_2_factors" begin
-        @test Oscar.gens_2_factors(Sgens) == [x^2+y, x+y*z, x]
+    @testset "gens_2_prime_divisors" begin
+      @test all(e-> e in Oscar.gens_2_prime_divisors(Sgens), [x^2+y, x+y*z, x])
     end
     
     I = ideal(R, [x^2*(y+z), y^3*(y+z), z*(y+z)])
@@ -62,7 +62,7 @@
     Sgens = [x,y,z]
 
     @testset "find_solution_v" begin
-        @test Oscar.find_solution_v(y, Igens, Sgens, R) == (z^3-6)//x^2
+      @test Oscar.find_solution_v(y, Igens, Sgens, R) == (true, (z^3-6)//x^2)
     end
 
     phi = Oscar.sub_map(y, (z^3-6)//x^2, R, [x,y,z])
