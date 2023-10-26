@@ -10,8 +10,8 @@ function `_direct_sum`. See the docstring of that function to learn more.
 """
 function total_complex(D::AbsDoubleComplexOfMorphisms)
   is_bounded(D) || error("computation of total complexes is only implemented for bounded double complexes")
-  vertical_typ(D) == horizontal_typ(D) || error("horizontal and vertical typs must be the same")
-  if vertical_typ(D) == :chain
+  vertical_direction(D) == horizontal_direction(D) || error("horizontal and vertical typs must be the same")
+  if vertical_direction(D) == :chain
     return _total_chain_complex(D)
   else
     return _total_cochain_complex(D)

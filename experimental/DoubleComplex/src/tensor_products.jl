@@ -78,8 +78,8 @@ function tensor_product(C1::ComplexOfMorphisms{ChainType}, C2::ComplexOfMorphism
   result = DoubleComplexOfMorphisms(TensorProductFactory{ChainType}(C1, C2),
                                     HorizontalTensorMapFactory{MorphismType}(C1, C2),
                                     VerticalTensorMapFactory{MorphismType}(C1, C2),
-                                    horizontal_typ=typ(C1),
-                                    vertical_typ=typ(C2)
+                                    horizontal_direction=typ(C1),
+                                    vertical_direction=typ(C2)
                                    )
   r1 = range(C1)
   result.right_bound = (typ(C1) == :chain ? first(r1) : last(r1))

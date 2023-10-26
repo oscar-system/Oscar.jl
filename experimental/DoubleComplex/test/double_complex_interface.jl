@@ -33,14 +33,14 @@
   # Overwriting their call syntax as required
   function (fac::VerticalZeroMaps)(D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
     dom = D[i, j]
-    inc = (Oscar.vertical_typ(D) == :chain ? -1 : 1)
+    inc = (Oscar.vertical_direction(D) == :chain ? -1 : 1)
     cod = D[i, j + inc]
     return hom(dom, cod, elem_type(cod)[])
   end
 
   function (fac::HorizontalZeroMaps)(D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int)
     dom = D[i, j]
-    inc = (Oscar.horizontal_typ(D) == :chain ? -1 : 1)
+    inc = (Oscar.horizontal_direction(D) == :chain ? -1 : 1)
     cod = D[i + inc, j]
     return hom(dom, cod, elem_type(cod)[])
   end
@@ -51,7 +51,7 @@
     vert_map_fac = VerticalZeroMaps(R)
     horz_map_fac = HorizontalZeroMaps(R)
 
-    result = Oscar.DoubleComplexOfMorphisms(entry_fac, horz_map_fac, vert_map_fac, horizontal_typ=:chain, vertical_typ=:chain)
+    result = Oscar.DoubleComplexOfMorphisms(entry_fac, horz_map_fac, vert_map_fac, horizontal_direction=:chain, vertical_direction=:chain)
     return result
   end
 
@@ -135,7 +135,7 @@ end
     rb = (Oscar.typ(C) == :cochain ? last(range(C)) : first(range(C)))
     return Oscar.DoubleComplexOfMorphisms(chain_fac, mor_fac, mor_fac, # third argument is a dummy here 
                                           right_bound=rb, left_bound=lb, 
-                                          horizontal_typ=Oscar.typ(C), vertical_typ=Oscar.typ(C),
+                                          horizontal_direction=Oscar.typ(C), vertical_direction=Oscar.typ(C),
                                           extends_right=true, extends_left=true, 
                                           upper_bound=0, lower_bound=0,
                                           extends_up=false, extends_down=false

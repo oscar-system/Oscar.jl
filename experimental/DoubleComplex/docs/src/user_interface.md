@@ -28,8 +28,8 @@ abstract type `AbsDoubleComplexOfMorphisms`. These functions comprise
 ```
 In which direction the maps in the rows and columns go can be asked with the following methods:
 ```@docs
-    horizontal_typ(dc::AbsDoubleComplexOfMorphisms)
-    vertical_typ(dc::AbsDoubleComplexOfMorphisms)
+    horizontal_direction(dc::AbsDoubleComplexOfMorphisms)
+    vertical_direction(dc::AbsDoubleComplexOfMorphisms)
 ```
 Double complexes can be bounded or unbounded. But even in the bounded case where only finitely 
 many ``D_{i, j}`` can be non-zero, it is not clear that a concrete bound for the 

@@ -1,10 +1,10 @@
 ### Basic getters
-function horizontal_typ(D::DoubleComplexOfMorphisms)
-  return D.horizontal_typ
+function horizontal_direction(D::DoubleComplexOfMorphisms)
+  return D.horizontal_direction
 end
 
-function vertical_typ(D::DoubleComplexOfMorphisms)
-  return D.vertical_typ
+function vertical_direction(D::DoubleComplexOfMorphisms)
+  return D.vertical_direction
 end
 
 function chain_cache(D::DoubleComplexOfMorphisms) 
@@ -27,9 +27,9 @@ has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
 
 function horizontal_range(D::DoubleComplexOfMorphisms) 
   is_horizontally_bounded(D) || error("complex is not known to be horizontally bounded")
-  if horizontal_typ(D) == :chain
+  if horizontal_direction(D) == :chain
     return right_bound(D):-1:left_bound(D)
-  elseif horizontal_typ(D) == :cochain
+  elseif horizontal_direction(D) == :cochain
     return left_bound(D):right_bound(D)
   end
   error("typ not recognized")
@@ -37,9 +37,9 @@ end
 
 function vertical_range(D::DoubleComplexOfMorphisms) 
   is_vertically_bounded(D) || error("complex is not known to be vertically bounded")
-  if vertical_typ(D) == :chain
+  if vertical_direction(D) == :chain
     return upper_bound(D):-1:lower_bound(D)
-  elseif vertical_typ(D) == :cochain
+  elseif vertical_direction(D) == :cochain
     return lower_bound(D):upper_bound(D)
   end
   error("typ not recognized")
@@ -100,7 +100,7 @@ end
 function vertical_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   !extends_right(D) && ((has_right_bound(D) && i<=right_bound(D)) || error("index out of range"))
   !extends_left(D) && ((has_left_bound(D) && i>=left_bound(D)) || error("index out of range"))
-  if horizontal_typ(D) == :chain
+  if horizontal_direction(D) == :chain
     !extends_up(D) && ((has_upper_bound(D) && j<=upper_bound(D)) || error("index out of range"))
     !extends_down(D) && ((has_lower_bound(D) && j>lower_bound(D)) || error("index out of range"))
   else
@@ -116,7 +116,7 @@ end
 function horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   !extends_up(D) && ((has_upper_bound(D) && j<=upper_bound(D)) || error("index out of range"))
   !extends_down(D) && ((has_lower_bound(D) && j>=lower_bound(D)) || error("index out of range"))
-  if horizontal_typ(D) == :chain
+  if horizontal_direction(D) == :chain
     !extends_right(D) && ((has_right_bound(D) && i<=right_bound(D)) || error("index out of range"))
     !extends_left(D) && ((has_left_bound(D) && i>left_bound(D)) || error("index out of range"))
   else

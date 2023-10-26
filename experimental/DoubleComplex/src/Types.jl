@@ -8,13 +8,13 @@ getindex(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = underlying_double_co
 @doc raw"""
     horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Return the morphism ``dc[i, j] → dc[i ± 1, j]`` (the sign depending on the `horizontal_typ` of `dc`). 
+Return the morphism ``dc[i, j] → dc[i ± 1, j]`` (the sign depending on the `horizontal_direction` of `dc`). 
 """
 horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = horizontal_map(underlying_double_complex(dc), i, j)
 @doc raw"""
     vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_typ` of `dc`). 
+Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`). 
 """
 vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = vertical_map(underlying_double_complex(dc), i, j)
 
@@ -24,19 +24,19 @@ horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = horizontal_map(dc, t
 
 ### asking for the typ of the row and the column complexes
 @doc raw"""
-    horizontal_typ(dc::AbsDoubleComplexOfMorphisms)
+    horizontal_direction(dc::AbsDoubleComplexOfMorphisms)
 
 Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the rows 
 of `dc` decrease or increase the (co-)homological index.
 """
-horizontal_typ(dc::AbsDoubleComplexOfMorphisms) = horizontal_typ(underlying_double_complex(dc))
+horizontal_direction(dc::AbsDoubleComplexOfMorphisms) = horizontal_direction(underlying_double_complex(dc))
 @doc raw"""
-    vertical_typ(dc::AbsDoubleComplexOfMorphisms)
+    vertical_direction(dc::AbsDoubleComplexOfMorphisms)
 
 Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the columns 
 of `dc` decrease or increase the (co-)homological index.
 """
-vertical_typ(dc::AbsDoubleComplexOfMorphisms) = vertical_typ(underlying_double_complex(dc))
+vertical_direction(dc::AbsDoubleComplexOfMorphisms) = vertical_direction(underlying_double_complex(dc))
 
 ### asking for known bounds of the row and column complexes
 # These are also used to filter legitimate requests to entries and maps, 
@@ -246,8 +246,8 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
   vertical_map_factory::ChainMorphismFactory{<:MorphismType}
 
   # Information about the nature of the complex
-  horizontal_typ::Symbol
-  vertical_typ::Symbol
+  horizontal_direction::Symbol
+  vertical_direction::Symbol
 
   # Information about boundedness and completeness of the complex
   right_bound::Int
@@ -264,8 +264,8 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
       chain_factory::ChainFactory{ChainType}, 
       horizontal_map_factory::ChainMorphismFactory{MorphismType}, 
       vertical_map_factory::ChainMorphismFactory{MorphismType};
-      horizontal_typ::Symbol=:chain,
-      vertical_typ::Symbol=:chain,
+      horizontal_direction::Symbol=:chain,
+      vertical_direction::Symbol=:chain,
       right_bound::Union{Int, Nothing} = nothing,
       left_bound::Union{Int, Nothing} = nothing,
       upper_bound::Union{Int, Nothing} = nothing,
@@ -280,7 +280,7 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
                                           Dict{Tuple{Int, Int}, MorphismType}(),
                                           chain_factory, horizontal_map_factory, 
                                           vertical_map_factory,
-                                          horizontal_typ, vertical_typ)
+                                          horizontal_direction, vertical_direction)
     right_bound !== nothing && (result.right_bound = right_bound)
     left_bound !== nothing && (result.left_bound = left_bound)
     upper_bound !== nothing && (result.upper_bound = upper_bound)

@@ -70,14 +70,14 @@ Then we would overwrite the call syntax as follows.
 ```julia
 function (fac::VerticalZeroMaps)(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
    dom = D[i, j]
-   inc = (vertical_typ(D) == :chain ? -1 : 1)
+   inc = (vertical_direction(D) == :chain ? -1 : 1)
    cod = D[i, j + inc]
    return hom(dom, cod, elem_type(cod)[])
 end
 
 function (fac::HorizontalZeroMaps)(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
    dom = D[i, j]
-   inc = (horizontal_typ(D) == :chain ? -1 : 1)
+   inc = (horizontal_direction(D) == :chain ? -1 : 1)
    cod = D[i + inc, j]
    return hom(dom, cod, elem_type(cod)[])
 end
@@ -91,7 +91,7 @@ function zero_double_complex(R::MPolyRing)
   vert_map_fac = VerticalZeroMaps(R)
   horz_map_fac = HorizontalZeroMaps(R)
   
-  result = DoubleComplexOfMorphisms(entry_fac, horz_map_fac, vert_map_fac, horizontal_typ=:chain, vertical_typ=:chain)
+  result = DoubleComplexOfMorphisms(entry_fac, horz_map_fac, vert_map_fac, horizontal_direction=:chain, vertical_direction=:chain)
   return result
 end
 ```
