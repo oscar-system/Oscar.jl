@@ -1,13 +1,13 @@
-  # Advice for the programmer
+# Advice for the programmer
 
-  ## How to implement my custom double complex?
+## How to implement my custom double complex?
 The implementation for Double complexes is generically lazy. We provide 
 a concrete type which takes care of handling the user's requests 
 to entries and morphisms and their caching: `DoubleComplexOfMorphisms`. 
 
-In order to work properly, any `DoubleComplex` `D` needs to be able to produce
+In order to work properly, any `DoubleComplexOfMorphisms` `D` needs to be able to produce
 entries `D[i, j]` for legitimate indices `(i, j)` and the morphisms between 
-these on request. To this end, the internal constructor of `DoubleComplex` 
+these on request. To this end, the internal constructor of `DoubleComplexOfMorphisms` 
 requires the programmer to pass on certain "factories". For the production 
 of the entries `D[i, j]`, these must be concrete instances of 
 ```julia 
@@ -21,6 +21,12 @@ This will be called by the internals of `DoubleComplex` whenever production of t
 entry is requested. The first argument will then always be the concrete double complex `D` itself, 
 so that the factory has access to all information that has already been computed when trying 
 to compute the entry for `(i, j)`. Beware not to produce infinite feedback loops when implementing this!
+
+Moreover, any factory is supposed to be able to communicate whether or not a specific 
+entry is computable. To this end one also needs to overwrite
+```julia
+    function can_compute(fac::ChainFactory{ChainType}, D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::Bool where {ChainType}
+```
 
 Let's see this in an example. Suppose we want to implement the "zero double complex of modules" 
 over a multivariate polynomial ring `R`, i.e. the unbounded double complex which consists 
@@ -36,6 +42,10 @@ end
 
 function (fac::ZeroModuleFactory)(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   return FreeMod(fac.R, 0)
+end
+
+function can_compute(fac::ZeroModuleFactory, D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return true
 end
 ```
 
@@ -81,6 +91,14 @@ function (fac::HorizontalZeroMaps)(D::AbsDoubleComplexOfMorphisms, i::Int, j::In
    cod = D[i + inc, j]
    return hom(dom, cod, elem_type(cod)[])
 end
+  
+function can_compute(fac::HorizontalZeroMaps, D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return true
+end
+
+function can_compute(fac::VerticalZeroMaps, D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+  return true
+end
 ```
 
 In order to finally create our zero double complex we implement the constructor as 
@@ -97,11 +115,11 @@ end
 ```
 Note that any concrete complex `Z` created by `zero_double_complex` is unbounded in every direction. 
 In particular, `has_upper_bound(Z)` etc. will 
-return `false` and `upper_bound(Z)` will throw an error. At the same time 
-`extends_right(Z)` and friends will return `true`, indicating that indeed any request `Z[i, j]` is 
-legitimate and will produce a reasonable and cached result.
+return `false` and `upper_bound(Z)` will throw an error. 
+At the same time `can_compute_index(Z, i, j)` will always return `true` and 
+calling `Z[i, j]` will produce a reasonable and cached result.
 See the source code of the internal 
-constructor of `DoubleComplex` for how to alter these settings.
+constructor of `DoubleComplexOfMorphisms` for how to alter these settings.
 
 Another example for an implementation of a double complex can be 
 found in `experimental/DoubleComplexes/test/double_complex_interface.jl`. 

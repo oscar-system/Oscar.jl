@@ -53,29 +53,22 @@ If they exist, these bounds can be asked for using
     upper_bound(D::AbsDoubleComplexOfMorphisms)
     lower_bound(D::AbsDoubleComplexOfMorphisms)
 ```
-In case any of these bounds does not exist, say `has_right_bound(D) == false` 
-for some `AbsDoubleComplexOfMorphisms` `D`, then every request `D[i, j]` with ``i \gg 0`` arbitrarily 
-big (but at least greater or equal to any potential `left_bound` of `D`) 
-should be considered **to be legitimate**. Thus the programmer is responsible to indicate the 
-bounds for the indices `(i, j)` if 
-for their individual implementation of a double complex 
-there are limitations for legitimate requests `D[i, j]`.
-
-If any of the above bounds exist, asking for `D[i, j]` beyond those bounds might 
-nevertheless be legitimate. Consider, 
-for instance, the case where the rows of a double complex `D` are free resolutions of 
-modules. Sometimes these are not computed at creation, but only on request of a specific entry 
-`D[i, j]`. In this case the `right_bound(D)` indicates the supremum of indices `i` 
-for which `D[i, j]` has already been computed, but it should nevertheless be allowed to also 
-ask for the entry `D[i+1, j]`. Whether or not such requests are admissible can be checked using
+The existence of the above bounds does **not** indicate whether the entry 
+`D[i, j]` or the maps leaving from it have been or can be computed! 
+In principal it is advised to check for this using 
+```@docs 
+    has_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+```
+It is also possible to query whether or not a double complex 
+is already complete in the sense that it knows about all of its 
+non-zero entries.
 ```@docs
-    extends_right(D::AbsDoubleComplexOfMorphisms)
-    extends_left(D::AbsDoubleComplexOfMorphisms)
-    extends_up(D::AbsDoubleComplexOfMorphisms)
-    extends_down(D::AbsDoubleComplexOfMorphisms)
     is_complete(D::AbsDoubleComplexOfMorphisms)
-    is_horizontally_complete(D::AbsDoubleComplexOfMorphisms)
-    is_vertically_complete(D::AbsDoubleComplexOfMorphisms)
 ```
 
 ## Generic functionality
