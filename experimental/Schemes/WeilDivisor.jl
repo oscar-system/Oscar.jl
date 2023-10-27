@@ -698,24 +698,26 @@ end
 #
 # We would like to use Equation (3.2.7) from page 121 for this.
 #@attr Vector{<:IdealSheaf} function _ideal_sheaves_of_rays(X::NormalToricVariety)
-function _ideal_sheaves_of_rays(X::NormalToricVariety)
-  Sigma1 = rays(fan(X))
+function _ideal_sheaves_of_rays(X::NormalToricVariety; check::Bool=false)
+  ray_list = rays(fan(X))
   result = Vector{IdealSheaf}()
-  for tau in Sigma1
-    @show tau
-    tau_mat = _to_ZZ_mat(tau)
-    @show tau_mat
-    n = ncols(tau_mat)
-    #tau_perp = solve_mixed(ZZMatrix, tau_mat, zero_matrix(ZZ, 1, 1), identity_matrix(ZZ, n))
-    tau_perp = solve(transpose(tau_mat), zero_matrix(ZZ, 1, 1))
-    @show tau_perp
+  for tau in ray_list
+    tau_dual = polarize(cone(tau))
+    ideal_dict = IdDict{AbsSpec, Ideal}()
     for U in affine_charts(X)
-      sigma = cone(U)
-      @show rays(sigma)
+      if !(tau in cone(U))
+        ideal_dict[U] = ideal(OO(U), one(OO(U)))
+        continue
+      end
       sigma_dual = weight_cone(U)
-      @show rays(sigma_dual)
+      hb = hilbert_basis(sigma_dual)
+      selection = [v for v in hb if !(-v in tau_dual)]
+      x = gens(OO(U))
+      ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
     end
+    push!(result, IdealSheaf(X, ideal_dict, check=check))
   end
+  return result
 end
 
 function _to_ZZ_mat(tau::RayVector{QQFieldElem})
