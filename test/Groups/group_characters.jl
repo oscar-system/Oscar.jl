@@ -1027,6 +1027,8 @@ end
       F3, _ = QQ[chi]
       @test degree(F1) == degree(F2)
       @test degree(F1) == degree(F3)
+      @test conductor(chi) == conductor(phi)
+      @test conductor(Int, chi) isa Int
       for i in 1:length(chi)
         x = chi[i]
         xF = preimage(phi, x)
