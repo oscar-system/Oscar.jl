@@ -109,6 +109,7 @@ all_character_table_names
 
 ```@docs
 character_field
+conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator

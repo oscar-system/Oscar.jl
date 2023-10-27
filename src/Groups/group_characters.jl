@@ -2253,7 +2253,7 @@ Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values)
 
 @doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
+           where T <: Union{IntegerUnion, QQFieldElem, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
@@ -2821,6 +2821,28 @@ function order_field_of_definition(::Type{T}, chi::GAPGroupClassFunction) where
     p = characteristic(chi)
     @req p != 0 "the character must be a Brauer character"
     return T(GAPWrap.SizeOfFieldOfDefinition(chi.values, p))
+end
+
+
+@doc raw"""
+    conductor(::Type{T} = ZZRingElem, chi::GAPGroupClassFunction)
+              where T <: IntegerUnion
+
+Return the minimal integer `n`, as an instance of `T`,
+such that all values of `chi` lie in the `n`-th cyclotomic field.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> println([conductor(chi) for chi in tbl])
+ZZRingElem[1, 5, 5, 1, 1]
+```
+"""
+conductor(chi::GAPGroupClassFunction) = conductor(ZZRingElem, chi)
+
+function conductor(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
+    return T(GAPWrap.Conductor(chi.values))
 end
 
 
