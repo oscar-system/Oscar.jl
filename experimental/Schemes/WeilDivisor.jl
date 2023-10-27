@@ -303,6 +303,11 @@ function -(D::AbsWeilDivisor)
   return -underlying_divisor(D)
 end
 
+function -(D::WeilDivisor)
+  return WeilDivisor(-underlying_cycle(D), check=false)
+end
+
+
 -(D::AbsWeilDivisor, E::AbsWeilDivisor) = D + (-E)
 
 function *(a::RingElem, E::AbsWeilDivisor)
