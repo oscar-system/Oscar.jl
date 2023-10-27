@@ -121,10 +121,33 @@ function polyhedral_complex(f::scalar_type_or_field, v::AbstractCollection[Point
   return polyhedral_complex(f, polyhedra, vr, far_vertices, L; non_redundant = non_redundant)
 end
 
-# TODO: Only works for this specific case; implement generalization using `iter.Acc`
-# Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
-# This makes sure that polyhedral_complex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
-polyhedral_complex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
+@doc raw"""
+    polyhedral_complex(polytopes::AbstractVector{Polyhedron{T}}) where T<:scalar_types
+
+Assemble a polyhedral complex from a non-empty list of polyhedra.
+"""
+function polyhedral_complex(polytopes::AbstractVector{Polyhedron{T}}) where T<:scalar_types
+  @req length(polytopes) > 0 "list of polytopes must be non-empty"
+  pmfan = Polymake.fan.check_fan_objects(pm_object.(polytopes)...)
+  if pmfan.N_MAXIMAL_CONES == 0
+    # if check fan returns no cones then the rays are empty and we have just one trivial polyhedral (maybe with lineality)
+    P = polytopes[1]
+    return polyhedral_complex(coefficient_field(P), IncidenceMatrix(1,0), vertices(P); non_redundant=true)
+  end
+  pmtype = _scalar_type_to_polymake(T)
+  pmcplx = Polymake.fan.PolyhedralComplex{pmtype}(pmfan)
+  return PolyhedralComplex{T}(pmcplx, coefficient_field(iterate(polytopes)[1]))
+end
+
+# shortcut for maximal polytopes of an existing complex
+function polyhedral_complex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types
+  if iter.Acc == _maximal_polyhedron && iter.Obj isa PolyhedralComplex
+    return deepcopy(iter.Obj)
+  end
+  return polyhedral_complex(collect(iter))
+end
+
+polyhedral_complex(P::Polyhedron{T}) where T<:scalar_types = polyhedral_complex([P])
 
 ###############################################################################
 ###############################################################################
