@@ -15,8 +15,8 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   # new algorithm
   basis = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
   mons_new = monomials(basis)
-  L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
-  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
+  L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
+  gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
 
   # comparison
   # convert set of monomials over different ring objects to string representation to compare for equality
@@ -31,8 +31,8 @@ function check_dimension(
   basis = BasisLieHighestWeight.basis_lie_highest_weight(
     dynkin, n, lambda; monomial_ordering
   )
-  L = Oscar.GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, Oscar.GAP.Globals.Rationals)
-  gap_dim = Oscar.GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
+  L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
+  gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
   @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
 end
 

@@ -46,7 +46,7 @@ function basis_lie_highest_weight_compute(
   weights_w = [weight(L, op) for op in operators] # weights of the operators
   weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
 
-  asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
+  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
     operators, [asVec(v) for v in operators], weights_w, weights_alpha
   )
@@ -89,7 +89,7 @@ function compute_monomials(
   monomial_ordering_lt::Function,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}},
-)::Set{ZZMPolyRingElem}
+)
   """
   This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
@@ -185,8 +185,8 @@ end
 function add_known_monomials!(
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  matrices_of_operators::Vector{SMat{ZZRingElem}},
-  space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
+  matrices_of_operators::Vector{<:SMat{ZZRingElem}},
+  space::Dict{Vector{ZZRingElem},BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
 )
   """
@@ -212,12 +212,12 @@ function add_new_monomials!(
   L::LieAlgebraStructure,
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
-  matrices_of_operators::Vector{SMat{ZZRingElem}},
+  matrices_of_operators::Vector{<:SMat{ZZRingElem}},
   monomial_ordering_lt::Function,
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  space::Dict{Vector{ZZRingElem},Oscar.BasisLieHighestWeight.SparseVectorSpaceBasis},
+  space::Dict{Vector{ZZRingElem},BasisLieHighestWeight.SparseVectorSpaceBasis},
   v0::SRow{ZZRingElem},
   set_mon::Set{ZZMPolyRingElem},
 )
@@ -259,7 +259,6 @@ function add_new_monomials!(
     end
 
     # calculate the vector vec associated with mon
-    d = sz(matrices_of_operators[1])
     vec = calc_vec(v0, mon, matrices_of_operators)
 
     # check if vec extends the basis
@@ -284,19 +283,15 @@ function add_by_hand(
   highest_weight::Vector{ZZRingElem},
   monomial_ordering_lt::Function,
   set_mon::Set{ZZMPolyRingElem},
-)::Set{ZZMPolyRingElem}
-  #println("")
-  #println("")
-  #println("add_by_hand", highest_weight)
-
+)
   """
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
   monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
   """
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-  matrices_of_operators = tensorMatricesForOperators(
-    L.lie_algebra_gap, highest_weight, birational_sequence.operators
+  matrices_of_operators = tensor_matrices_of_operators(
+    L, highest_weight, birational_sequence.operators
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
@@ -311,7 +306,7 @@ function add_by_hand(
     set_mon_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
   end
   for mon in set_mon
-    weight_w = calc_weight(mon, birational_sequence.weights_w)
+    weight_w = weight(mon, birational_sequence.weights_w)
     push!(set_mon_in_weightspace[weight_w], mon)
   end
 
@@ -355,23 +350,11 @@ function add_by_hand(
   return set_mon
 end
 
-function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GAP.Obj}
-  """
-  substitute simple reflections (i,i+1), saved in dec by i, with E_{i,i+1}  
-  """
-  root_system = GAP.Globals.RootSystem(lie_algebra_gap)
-  canonical_generators = Vector{GAP.Obj}(
-    GAP.Globals.CanonicalGenerators(root_system)[1]; recursive=false
-  )
-  operators = [canonical_generators[i] for i in word]
-  return operators
-end
-
 function operators_by_index(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Int},
-)::Vector{GAP.Obj}
+)
   @req all(i -> 1 <= i <= num_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
 
   return [chevalley_basis[1][i] for i in birational_sequence] # TODO: change to [2]
@@ -381,7 +364,7 @@ function operators_by_simple_roots(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Vector{Int}},
-)::Vector{GAP.Obj}
+)
   rs = root_system_gap(L)
   simple_roots = Vector{Vector{Int}}(GAP.Globals.SimpleSystem(rs))
   positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
@@ -442,7 +425,7 @@ function operators_lustzig_indices(L::LieAlgebraStructure, word::Vector{Int})
 end
 
 @doc """
-    is_fundamental(highest_weight::Vector{IntegerUnion})::Bool
+    is_fundamental(highest_weight::Vector{IntegerUnion}) -> Bool
 
     returns true if ``highest_weight`` is fundamental, i.e. [0, ..., 1, ..., 0]
 
@@ -470,7 +453,7 @@ function is_fundamental(highest_weight::Vector{<:IntegerUnion})
   return hasone
 end
 
-function compute_sub_weights(highest_weight::Vector{ZZRingElem})::Vector{Vector{ZZRingElem}}
+function compute_sub_weights(highest_weight::Vector{ZZRingElem})
   """
   returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
   """

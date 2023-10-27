@@ -121,7 +121,7 @@ end
 
 # temprary fix sparse in Oscar does not work
 function tensorProduct(A, B)
-  temp_mat = kron(A, spid(sz(B))) + kron(spid(sz(A)), B)
+  temp_mat = kron(A, spid(nrows(B))) + kron(spid(nrows(A)), B)
   res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))
   for i in 1:nrows(temp_mat)
     setindex!(res, getindex(temp_mat, i), i)
@@ -130,7 +130,6 @@ function tensorProduct(A, B)
 end
 
 spid(n) = identity_matrix(SMat, ZZ, n)
-sz(A) = nrows(A)
 tensorProducts(As, Bs) = (AB -> tensorProduct(AB[1], AB[2])).(zip(As, Bs))
 tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n - 1), A)
 tensorPowers(As, n) = (A -> tensorPower(A, n)).(As)

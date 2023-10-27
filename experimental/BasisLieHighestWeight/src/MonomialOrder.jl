@@ -2,7 +2,7 @@ function get_monomial_ordering_lt(
   ordering_input::Union{Symbol,Function},
   ZZx::ZZMPolyRing,
   weights_alpha::Vector{Vector{QQFieldElem}},
-)::Function
+)
   """
   Returns the desired monomial_ordering function less than, i.e. return true <=> mon1 < mon2
   """

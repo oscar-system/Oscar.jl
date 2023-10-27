@@ -49,15 +49,15 @@ function num_positive_roots(L::LieAlgebraStructure)
   return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
 end
 
-function matricesForOperators(
-  L::GAP.Obj, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
-)::Vector{SMat{ZZRingElem}}
+function matrices_of_operators_gap(
+  L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
+)
   """
-  used to create tensorMatricesForOperators
+  used to create action_matrices_of_operators
   """
-  M = GAP.Globals.HighestWeightModule(L, GAP.Obj(Vector{Int}(highest_weight)))
+  M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
   matrices_of_operators = [
-    sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))))
+    sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))) # TODO: remove transpose?
     for o in operators
   ]
   denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))

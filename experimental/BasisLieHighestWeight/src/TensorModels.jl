@@ -1,59 +1,39 @@
-function kron(A::SMat{ZZRingElem}, B::SMat{ZZRingElem})::SMat{ZZRingElem}
-  """
-  Computes the Kronecker-product of A and B
-  """
-  res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))
-  for i in 1:nrows(B)
-    for j in 1:nrows(A)
-      new_row_tuples = Vector{Tuple{Int,ZZRingElem}}([(1, ZZ(0))])
-      for (index_A, element_A) in union(getindex(A, j))
-        for (index_B, element_B) in union(getindex(B, i))
-          push!(new_row_tuples, ((index_A - 1) * ncols(B) + index_B, element_A * element_B))
-        end
-      end
-      new_row = sparse_row(ZZ, new_row_tuples)
-      setindex!(res, new_row, (j - 1) * nrows(B) + i)
-    end
-  end
-  return res
+
+function _tensor_product(A, B)
+  return kronecker_product(A, identity_matrix(SMat, ZZ, nrows(B))) +
+         kronecker_product(identity_matrix(SMat, ZZ, nrows(A)), B)
 end
 
-# temprary fix sparse in Oscar does not work
-function tensorProduct(A::SMat{ZZRingElem}, B::SMat{ZZRingElem})::SMat{ZZRingElem}
-  temp_mat = kron(A, spid(sz(B))) + kron(spid(sz(A)), B)
-  res = sparse_matrix(ZZ, nrows(A) * nrows(B), ncols(A) * ncols(B))
-  for i in 1:nrows(temp_mat)
-    setindex!(res, getindex(temp_mat, i), i)
-  end
-  return res
+function _tensor_power(A, k)
+  return sum(
+    kronecker_product(
+      kronecker_product(identity_matrix(SMat, ZZ, nrows(A)^(j - 1)), A),
+      identity_matrix(SMat, ZZ, nrows(A)^(k - j)),
+    ) for j in 1:k
+  )
 end
 
-spid(n::Int) = identity_matrix(SMat, ZZ, n)::SMat{ZZRingElem}
-sz(A::SMat{ZZRingElem}) = nrows(A)::Int #size(A)[1]
-#tensorProduct(A, B) = kron(A, spid(sz(B))) + kron(spid(sz(A)), B)
-tensorProducts(As, Bs) = (AB -> tensorProduct(AB[1], AB[2])).(zip(As, Bs))
-tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n - 1), A)
-tensorPowers(As, n) = (A -> tensorPower(A, n)).(As)
+@doc raw"""
+    tensor_matrices_of_operators(L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}) -> Vector{SMat{ZZRingElem}}
 
-function tensorMatricesForOperators(
-  lie_algebra::GAP.Obj, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
-)::Vector{SMat{ZZRingElem}}
-  """
-  Calculates the matrices g_i corresponding to the operator ops[i].
-  """
-  matrices_of_operators = []
-  for i in 1:length(highest_weight)
-    if highest_weight[i] <= 0
+Calculates the action matrices of the operators in `operators` on
+the tensor product of the fundamental modules (with multiplicities in `highest_weight`).
+Note that the highest weight module with highest weight `highest_weight` is a submodule of this tensor product.
+"""
+function tensor_matrices_of_operators(
+  L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
+)
+  matrices_of_operators = [zero_matrix(SMat, ZZ, 1) for _ in operators]
+  for (i, highest_weight_i) in enumerate(Int.(highest_weight))
+    if highest_weight_i <= 0
       continue
     end
     wi = ZZ.(1:length(highest_weight) .== i) # i-th fundamental weight
-    _matrices_of_operators = matricesForOperators(lie_algebra, wi, operators)
-    _matrices_of_operators = tensorPowers(_matrices_of_operators, highest_weight[i])
-    matrices_of_operators = if matrices_of_operators == []
-      _matrices_of_operators
-    else
-      tensorProducts(matrices_of_operators, _matrices_of_operators)
-    end
+    matrices_of_operators = [
+      _tensor_product(mat_temp, _tensor_power(mat_wi, highest_weight_i)) for
+      (mat_temp, mat_wi) in
+      zip(matrices_of_operators, matrices_of_operators_gap(L, wi, operators))
+    ]
   end
   return matrices_of_operators
 end

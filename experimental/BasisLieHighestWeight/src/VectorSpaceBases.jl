@@ -7,10 +7,9 @@ struct SparseVectorSpaceBasis
 end
 
 # create zero entry in i-th entry
-reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) =
-  (b[i] * a - a[i] * b)::SRow{ZZRingElem}
+reduce_col(a::SRow{ZZRingElem}, b::SRow{ZZRingElem}, i::Int) = (b[i] * a - a[i] * b)
 
-function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem},Int64}
+function normalize(v::SRow{ZZRingElem})
   """
   divides vector by gcd of nonzero entries, returns vector and first nonzero index
   used: add_and_reduce!
@@ -22,7 +21,7 @@ function normalize(v::SRow{ZZRingElem})::Tuple{SRow{ZZRingElem},Int64}
   return divexact(v, gcd(map(y -> y[2], union(v)))), pivot
 end
 
-function add_and_reduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})::SRow{ZZRingElem}
+function add_and_reduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})
   """
   for each pivot of sp.basis_vectors we make entry of v zero and return the result and insert it into sp
   0 => linear dependent

@@ -1,5 +1,5 @@
 @testset "Test NewMonomial" begin
-  calc_weight = BasisLieHighestWeight.calc_weight
+  weight = BasisLieHighestWeight.weight
   calc_vec = BasisLieHighestWeight.calc_vec
 
   ZZx, _ = PolynomialRing(ZZ, 2)
@@ -14,13 +14,13 @@
   setindex!(B, sparse_row(ZZ, [1], [ZZ(1)]), 1)
   setindex!(B, sparse_row(ZZ, [2], [ZZ(2)]), 2)
   matrices_of_operators = [A, B]
-  v0 = sparse_row(ZZ, [1], [1])::SRow{ZZRingElem} # [1, 0]
+  v0 = sparse_row(ZZ, [1], [1]) # [1, 0]
 
-  mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])::SRow{ZZRingElem}
+  mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])
 
-  @testset "calc_weight" begin
-    @test isequal(calc_weight(mon1, weights), [ZZ(0), ZZ(0)])
-    @test isequal(calc_weight(mon2, weights), [ZZ(4), ZZ(3)])
+  @testset "weight" begin
+    @test isequal(weight(mon1, weights), [ZZ(0), ZZ(0)])
+    @test isequal(weight(mon2, weights), [ZZ(4), ZZ(3)])
   end
 
   @testset "calc_vec" begin
