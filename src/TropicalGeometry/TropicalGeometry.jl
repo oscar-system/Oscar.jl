@@ -7,8 +7,6 @@ function symbols(Kt::Generic.RationalFunctionField)
     return Kt.S
 end
 
-# Workaround of issue https://github.com/oscar-system/Oscar.jl/issues/2222
-Base.hash(x::Polyhedron, h::UInt) = h
 
 
 
