@@ -2,7 +2,7 @@
 # 1: The Julia type for ToricDivisors
 ######################
 
-@attributes mutable struct ToricDivisor <: AbsAlgebraicCycle{NormalToricVariety, ZZRing}
+@attributes mutable struct ToricDivisor <: AbsWeilDivisor{NormalToricVariety, ZZRing}
            polymake_divisor::Polymake.BigObject
            toric_variety::NormalToricVarietyType
            coeffs::Vector{ZZRingElem}

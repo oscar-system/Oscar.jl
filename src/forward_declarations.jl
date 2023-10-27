@@ -33,6 +33,8 @@ abstract type AbsAlgebraicCycle{
                                }
 end
 
+abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
+
 ### END Algebraic cycles and divisors
 
 ###########################################

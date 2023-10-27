@@ -115,5 +115,7 @@ end
 
 @testset "toric divisors to weil divisors" begin
   IP = weighted_projective_space(NormalToricVariety, [3, 4, 23])
-  Oscar._ideal_sheaves_of_rays(IP, check=true)
+  w = canonical_divisor(IP)
+  D = Oscar.underlying_divisor(w)
+  @test w + D == 2*w
 end
