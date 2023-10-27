@@ -280,13 +280,23 @@ end
 (K::QQAbField)() = zero(K)
 
 function (K::QQAbField)(a::nf_elem)
+  F = parent(a)
+
   # Cyclotomic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_cyclotomic_type(parent(a))
+  fl, f = Hecke.is_cyclotomic_type(F)
   fl && return QQAbElem(a, f)
 
   # Quadratic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_quadratic_type(parent(a))
-  if fl
+  if degree(F) == 2
+    # If the defining polynomial of `F` is `X^2 + A X + B` then
+    # `D = A^2 - 4 B` is a square in `F` (cf. [Coh93, p. 218]).
+    pol = F.pol
+    A = coeff(pol, 1)
+    D = A^2 - 4*coeff(pol, 0)
+    Dn = numerator(D)
+    Dd = denominator(D)
+    f = Dn * Dd
+
     x = coeff(a, 0)
     y = coeff(a, 1)
     iszero(y) && return QQAbElem(parent(a)(x), 1)
@@ -307,7 +317,7 @@ function (K::QQAbField)(a::nf_elem)
       N = 4*abs(d)
     end
     r = square_root_in_cyclotomic_field(K, Int(d), Int(N))
-    return x + y*c*r
+    return (x - y*A//2) + (y*c//(2*Dd)) * r
   end
 
   # We have no natural embeddings for other (abelian) number fields.
@@ -459,6 +469,7 @@ function minimize(::typeof(CyclotomicField), a::nf_elem)
   return minimize(CyclotomicField, [a])[1]
 end
 
+#TODO: document this!
 conductor(a::nf_elem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AnticNumberField)
@@ -468,6 +479,11 @@ function conductor(k::AnticNumberField)
 end
 
 conductor(a::QQAbElem) = conductor(data(a))
+
+# What we want is the conductor of the domain of the map, but we need the map.
+function conductor(phi::MapFromFunc{T, QQAbField{T}}) where T
+  return lcm([conductor(phi(x)) for x in gens(domain(phi))])
+end
 
 ################################################################################
 #
@@ -859,9 +875,30 @@ end
 # If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
 # is mapped to `QQAbElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
+function _embedding(F::QQField, K::QQAbField{AnticNumberField},
+                    x::QQAbElem{nf_elem})
+  C1, z = cyclotomic_field(1)
+
+  f = function(x::QQFieldElem)
+    return QQAbElem(C1(x), 1)
+  end
+
+  finv = function(x::QQAbElem; check::Bool = false)
+    if conductor(x) == 1
+      return Hecke.force_coerce_cyclo(C1, data(x))
+    elseif check
+      return
+    else
+      error("element has no preimage")
+    end
+  end
+
+  return MapFromFunc(F, K, f, finv)
+end
+#T add tests!
+
 function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
                     x::QQAbElem{nf_elem})
-  R, = polynomial_ring(QQ, "x")
   fl, n = Hecke.is_cyclotomic_type(F)
   if fl
     # This is cheaper.
@@ -886,6 +923,7 @@ function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
               for i in 0:degree(F)-1]
     c = transpose(matrix(QQ, powers))
+    R = parent(F.pol)
 
     f = function(z::nf_elem)
       return QQAbElem(evaluate(R(z), x), n)
