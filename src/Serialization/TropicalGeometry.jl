@@ -24,7 +24,7 @@ end
 function load_object(s::DeserializerState,
                                  ::Type{<:TropicalSemiringElem},
                                  str::String, params::TropicalSemiring)
-  if str == "∞" || str == "-∞"
+  if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
     return inf(params)
   else
     # looks like (q)
