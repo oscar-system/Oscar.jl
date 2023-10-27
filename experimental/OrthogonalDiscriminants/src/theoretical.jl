@@ -104,7 +104,9 @@ function od_from_eigenvalues(chi::GAPGroupClassFunction)
       str = atlas_description(od)
     else
       # Decide if the reduction mod `p` is a square in the char. field.
-      str = is_square(reduce(K(od), character_field(chi)[1])) ? "O+" : "O-"
+      red = reduce(K(od), character_field(chi)[1])
+      is_zero(red) && error("reduction mod $p is zero?")
+      str = is_square(red) ? "O+" : "O-"
     end
 
     return true, str
@@ -112,6 +114,7 @@ function od_from_eigenvalues(chi::GAPGroupClassFunction)
 
   return false, ""
 end
+
 
 @doc raw"""
     od_for_specht_module(chi::GAPGroupClassFunction)
