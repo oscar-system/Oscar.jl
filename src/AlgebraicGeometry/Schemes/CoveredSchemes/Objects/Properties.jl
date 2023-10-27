@@ -13,7 +13,8 @@
 Return the boolean value whether a covered scheme `X` is empty.
 
 """
-@attr function is_empty(X::AbsCoveredScheme)
+is_empty(X::AbsCoveredScheme) = is_empty(underlying_scheme(X))
+@attr function is_empty(X::CoveredScheme)
   if !isdefined(X, :coverings) 
     return true
   end
@@ -28,6 +29,7 @@ end
 
 Return the boolean value whether a covered scheme `X` is smooth.
 """
+is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
 @attr function is_smooth(X::AbsCoveredScheme)
   if !isdefined(X, :coverings) 
     return true
