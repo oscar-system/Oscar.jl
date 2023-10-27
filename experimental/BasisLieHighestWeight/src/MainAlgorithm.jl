@@ -181,7 +181,7 @@ function add_known_monomials!(
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
-  space::Dict{Vector{ZZRingElem},BasisLieHighestWeight.SparseVectorSpaceBasis},
+  space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
 )
   """
@@ -197,9 +197,9 @@ function add_known_monomials!(
 
     # check if vec extends the basis
     if !haskey(space, weight_w)
-      space[weight_w] = SparseVectorSpaceBasis([], [])
+      space[weight_w] = sparse_matrix(QQ)
     end
-    add_and_reduce!(space[weight_w], vec)
+    Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
   end
 end
 
@@ -212,7 +212,7 @@ function add_new_monomials!(
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  space::Dict{Vector{ZZRingElem},BasisLieHighestWeight.SparseVectorSpaceBasis},
+  space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
   set_mon::Set{ZZMPolyRingElem},
 )
@@ -260,10 +260,10 @@ function add_new_monomials!(
 
     # check if vec extends the basis
     if !haskey(space, weight_w)
-      space[weight_w] = SparseVectorSpaceBasis([], [])
+      space[weight_w] = sparse_matrix(QQ)
     end
-    vec_red = add_and_reduce!(space[weight_w], vec)
-    if isempty(vec_red) # v0 == 0
+    fl = Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
+    if !fl
       continue
     end
 
@@ -290,7 +290,7 @@ function add_by_hand(
   matrices_of_operators = tensor_matrices_of_operators(
     L, highest_weight, birational_sequence.operators
   )
-  space = Dict(ZZ(0) * birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
+  space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(set_mon, ZZx(1))

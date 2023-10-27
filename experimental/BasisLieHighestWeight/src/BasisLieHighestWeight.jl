@@ -43,7 +43,6 @@ import Base: length
 include("LieAlgebras.jl")
 include("BirationalSequence.jl")
 include("MonomialBasis.jl")
-include("VectorSpaceBases.jl")
 include("NewMonomial.jl")
 include("TensorModels.jl")
 include("MonomialOrder.jl")
