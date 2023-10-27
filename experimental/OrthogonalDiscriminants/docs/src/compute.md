@@ -7,6 +7,12 @@ end
 
 # Criteria for computing orthogonal discriminants
 
+## Direct methods
+
+```@docs
+od_from_atlas_group
+```
+
 ## Character-theoretical criteria
 
 ```@docs
