@@ -183,6 +183,7 @@
     @test vertex_sizes(Q1)[1] == 2
     @test length(vertex_sizes(Q2)) == 0
 
+    @test length(unique([cube(2), cube(2), simplex(2), simplex(2)])) == 2
   end
 
   @testset "volume" begin
@@ -221,12 +222,10 @@
       @test upper_bound_h_vector(4,8) == [1, 4, 10, 4 ,1]
       A = archimedean_solid("cuboctahedron")
       @test count(F -> nvertices(F) == 3, faces(A, 2)) == 8
-      # due to GLIBCXX issues with the outdated julia-shipped libstdc++
-      # we run this only where recent CompilerSupportLibraries are available
-      if VERSION >= v"1.6"
-        C = catalan_solid("triakis_tetrahedron")
-        @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
-      end
+
+      C = catalan_solid("triakis_tetrahedron")
+      @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
+
       @test polyhedron(facets(A)) == A
       b1 = birkhoff_polytope(3)
       b2 = birkhoff_polytope(3, even = true)
