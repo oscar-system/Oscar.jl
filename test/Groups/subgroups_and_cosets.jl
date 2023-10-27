@@ -283,6 +283,16 @@ end
    @test_throws ArgumentError nilpotency_class(symmetric_group(4))
 end
 
+@testset "Schur multiplier" begin
+   @test abelian_invariants(schur_multiplier(cyclic_group(1))) == []
+   @test abelian_invariants(schur_multiplier(cyclic_group(5))) == []
+   @test abelian_invariants(schur_multiplier(symmetric_group(4))) == [2]
+   @test abelian_invariants(schur_multiplier(alternating_group(6))) == [2, 3]
+
+   @test schur_multiplier(symmetric_group(4)) isa GrpAbFinGen
+   @test schur_multiplier(PcGroup, symmetric_group(4)) isa PcGroup
+end
+
 @testset "Sylow and Hall subgroups" begin
    G = symmetric_group(4)
 

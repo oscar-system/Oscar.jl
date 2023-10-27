@@ -372,6 +372,41 @@ end
 
 is_pgroup_with_prime(G::GrpAbFinGen) = is_pgroup_with_prime(ZZRingElem, G)
 
+function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+  invs = T[]
+  for elm in v
+    if elm == 0
+      push!(invs, 0)
+    elseif 1 < elm
+      append!(invs, [x[1]^x[2] for x in factor(elm)])
+    elseif elm < -1
+      append!(invs, [x[1]^x[2] for x in factor(-elm)])
+    end
+  end
+  return sort!(invs)
+end
+
+abelian_invariants(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion =
+  abelian_invariants_of_vector(T, elementary_divisors(G))
+
+abelian_invariants(G::GrpAbFinGen) = abelian_invariants(ZZRingElem, G)
+
+function abelian_invariants_multiplier(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+  # By a theorem of I. Schur,
+  # the multiplier of an abelian group with elementary divisors
+  # n_1 | n_2 | ... | n_k, with k > 1,
+  # has the elementary divisors n_i with multiplicity k-i, for 1 <= i < k.
+  invs = elementary_divisors(G)
+  res = T[]
+  k = length(invs)
+  for i in 1:(k-1)
+    append!(res, repeat(T[invs[i]], k-i))
+  end
+  return abelian_invariants_of_vector(T, res)
+end
+
+abelian_invariants_multiplier(G::GrpAbFinGen) = abelian_invariants_multiplier(ZZRingElem, G)
+
 nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 
 # helper for prime_of_pgroup: this helper is efficient thanks to

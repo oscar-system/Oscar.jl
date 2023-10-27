@@ -186,6 +186,8 @@ export Undirected
 export WreathProductGroup
 export ZZ
 export abelian_group
+export abelian_invariants
+export abelian_invariants_multiplier
 export absolute_primary_decomposition
 export acting_domain
 export acting_group
@@ -1293,6 +1295,7 @@ export save_mps
 export scalar_product
 export scheme
 export schur_index
+export schur_multiplier
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
