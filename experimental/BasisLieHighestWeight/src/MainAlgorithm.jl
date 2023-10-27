@@ -3,8 +3,8 @@ function basis_lie_highest_weight_compute(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
-  operators::Vector{GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
-  monomial_ordering::Union{Symbol,Function},
+  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  monomial_ordering_symb::Symbol,
 )
   """
   Pseudocode:
@@ -52,7 +52,7 @@ function basis_lie_highest_weight_compute(
   )
 
   ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
-  monomial_ordering_lt = get_monomial_ordering_lt(monomial_ordering, ZZx, weights_alpha) # less than function to sort monomials by order
+  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
 
   # save computations from recursions
   calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
@@ -67,12 +67,12 @@ function basis_lie_highest_weight_compute(
     birational_sequence,
     ZZx,
     highest_weight,
-    monomial_ordering_lt,
+    monomial_ordering,
     calc_highest_weight,
     no_minkowski,
   )
 
-  monomials = sort(collect(set_mon); lt=monomial_ordering_lt)
+  monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
 
   # output
@@ -86,7 +86,7 @@ function compute_monomials(
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
-  monomial_ordering_lt::Function,
+  monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}},
 )
@@ -119,12 +119,7 @@ function compute_monomials(
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      L,
-      birational_sequence,
-      ZZx,
-      highest_weight,
-      monomial_ordering_lt,
-      Set{ZZMPolyRingElem}(),
+      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -145,7 +140,7 @@ function compute_monomials(
         birational_sequence,
         ZZx,
         lambda_1,
-        monomial_ordering_lt,
+        monomial_ordering,
         calc_highest_weight,
         no_minkowski,
       )
@@ -154,7 +149,7 @@ function compute_monomials(
         birational_sequence,
         ZZx,
         lambda_2,
-        monomial_ordering_lt,
+        monomial_ordering,
         calc_highest_weight,
         no_minkowski,
       )
@@ -174,7 +169,7 @@ function compute_monomials(
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
-        L, birational_sequence, ZZx, highest_weight, monomial_ordering_lt, set_mon
+        L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon
       )
     end
     push!(calc_highest_weight, highest_weight => set_mon)
@@ -213,7 +208,7 @@ function add_new_monomials!(
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
-  monomial_ordering_lt::Function,
+  monomial_ordering::MonomialOrdering,
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
@@ -223,14 +218,14 @@ function add_new_monomials!(
 )
   """
   If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
-  monomials in the order monomial_ordering_lt and calculate the corresponding vector. If it extends the basis, we add it 
+  monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
   """
   #println("add_new_monomials")
 
-  # get monomials that are in the weightspace, sorted by monomial_ordering_lt
+  # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
@@ -240,7 +235,9 @@ function add_new_monomials!(
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
   #println("before sort")
   #flush(stdout)
-  poss_mon_in_weightspace = sort(poss_mon_in_weightspace; lt=monomial_ordering_lt)
+  poss_mon_in_weightspace = sort(
+    poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
+  )
   #println("after sort")
 
   # check which monomials should get added to the basis
@@ -281,7 +278,7 @@ function add_by_hand(
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
-  monomial_ordering_lt::Function,
+  monomial_ordering::MonomialOrdering,
   set_mon::Set{ZZMPolyRingElem},
 )
   """
@@ -337,7 +334,7 @@ function add_by_hand(
       birational_sequence,
       ZZx,
       matrices_of_operators,
-      monomial_ordering_lt,
+      monomial_ordering,
       dim_weightspace,
       weight_w,
       set_mon_in_weightspace,

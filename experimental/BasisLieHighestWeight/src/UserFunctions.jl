@@ -22,7 +22,7 @@ basis_lie_highest_weight(
     rank::Int,
     highest_weight::Vector{Int},
     birational_sequence::Union{String, Vector{Union{Int, Vector{Int}}}};
-    monomial_ordering::Union{Symbol, Function} = :degrevlex,
+    monomial_ordering::Symbol = :degrevlex,
 )
 
 Computes a monomial basis for the highest weight module with highest weight
@@ -122,10 +122,7 @@ over lie-Algebra of type C and rank 3
 ```
 """
 function basis_lie_highest_weight(
-  type::Symbol,
-  rank::Int,
-  highest_weight::Vector{Int};
-  monomial_ordering::Union{Symbol,Function}=:degrevlex,
+  type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -140,7 +137,7 @@ function basis_lie_highest_weight(
   rank::Int,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Int};
-  monomial_ordering::Union{Symbol,Function}=:degrevlex,
+  monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -155,7 +152,7 @@ function basis_lie_highest_weight(
   rank::Int,
   highest_weight::Vector{Int},
   birational_sequence::Vector{Vector{Int}};
-  monomial_ordering::Union{Symbol,Function}=:degrevlex,
+  monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
