@@ -751,6 +751,10 @@ end
 #       for those vⱼ which are not in τ⟂. Hence, we can use the 
 #       monomials corresponding to those vⱼ as generators of the 
 #       ideal.
+#
+# Edit: It turned out to be a misprint in the online version of the 
+# CLS book. In the printed version, which might not be accessible to 
+# all of us, the formula says exactly what we say in 2). 
 @attr Vector{<:WeilDivisor} function _torus_invariant_weil_divisors(X::NormalToricVariety)
   ray_list = rays(fan(X))
   ideal_sheaves = Vector{IdealSheaf}()
