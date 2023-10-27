@@ -379,18 +379,18 @@ function operators_by_simple_roots(
   return operators_by_index(L, chevalley_basis, root_inds)
 end
 
-function operators_lustzig(
+function operators_lusztig(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   reduced_expression::Vector{Int},
 )
-  root_inds = operators_lustzig_indices(L, reduced_expression)
+  root_inds = operators_lusztig_indices(L, reduced_expression)
   return operators_by_index(L, chevalley_basis, root_inds)
 end
 
-function operators_lustzig_indices(L::LieAlgebraStructure, word::Vector{Int})
+function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})
   """
-  Computes the operators for the lustzig polytopes for a longest weyl-word 
+  Computes the operators for the lusztig polytopes for a longest weyl-word 
   reduced_expression.
 
   \beta_k := s_{i_1} … s_{i_{k-1}} (\alpha_{i_k})

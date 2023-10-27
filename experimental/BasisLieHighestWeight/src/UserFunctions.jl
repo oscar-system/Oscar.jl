@@ -165,7 +165,7 @@ end
 @doc """
 # Examples
 ```jldoctest
-julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
+julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lusztig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 4096
@@ -192,18 +192,18 @@ over lie-Algebra of type D and rank 4
     [0, 0, 1, 1]
 ```
 """
-function basis_lie_highest_weight_lustzig(
+function basis_lie_highest_weight_lusztig(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
 )
   """
-  Lustzig polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_lustzig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
+  lusztig polytope
+  BasisLieHighestWeight.basis_lie_highest_weight_lusztig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
   """
   # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   monomial_ordering = :wdegrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_lustzig(L, chevalley_basis, reduced_expression)
+  operators = operators_lusztig(L, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
