@@ -77,9 +77,7 @@ end
     base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0])
     mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
-    base = BasisLieHighestWeight.basis_lie_highest_weight(
-      :A, 2, [1, 0]; birational_sequence=[1, 2, 1]
-    )
+    base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], [1, 2, 1])
     mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
   end

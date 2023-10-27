@@ -1,6 +1,6 @@
 
 function basis_lie_highest_weight_compute(
-  lie_algebra::LieAlgebraStructure,
+  L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
   operators::Vector{GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
@@ -43,10 +43,8 @@ function basis_lie_highest_weight_compute(
   # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
   # steps. Then it starts the recursion and returns the result.
 
-  weights_w = weights_for_operators(
-    lie_algebra.lie_algebra_gap, chevalley_basis[3], operators
-  ) # weights of the operators
-  weights_alpha = [w_to_alpha(lie_algebra, QQ.(weight_w)) for weight_w in weights_w] # other root system
+  weights_w = [weight(L, op) for op in operators] # weights of the operators
+  weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
 
   asVec(v) = Oscar.GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
@@ -58,14 +56,14 @@ function basis_lie_highest_weight_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
-    [ZZ(0) for i in 1:rank(lie_algebra)] => Set([ZZx(1)])
+    [ZZ(0) for i in 1:rank(L)] => Set([ZZx(1)])
   )
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{Vector{ZZRingElem}}()
 
   # start recursion over highest_weight
   set_mon = compute_monomials(
-    lie_algebra,
+    L,
     birational_sequence,
     ZZx,
     highest_weight,
@@ -79,17 +77,12 @@ function basis_lie_highest_weight_compute(
 
   # output
   return MonomialBasis(
-    lie_algebra,
-    highest_weight,
-    monomial_ordering,
-    monomials,
-    minkowski_gens,
-    birational_sequence,
+    L, highest_weight, monomial_ordering, monomials, minkowski_gens, birational_sequence
   )
 end
 
 function compute_monomials(
-  lie_algebra::LieAlgebraStructure,
+  L::LieAlgebraStructure,
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
@@ -112,7 +105,7 @@ function compute_monomials(
   # we already computed the highest_weight result in a prior recursion step
   if haskey(calc_highest_weight, highest_weight)
     return calc_highest_weight[highest_weight]
-  elseif highest_weight == [ZZ(0) for i in 1:(lie_algebra.rank)] # we mathematically know the solution
+  elseif highest_weight == [ZZ(0) for i in 1:(L.rank)] # we mathematically know the solution
     return Set(ZZx(1))
   end
 
@@ -121,12 +114,12 @@ function compute_monomials(
   # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
   # the recursion.
   gap_dim = GAP.Globals.DimensionOfHighestWeightModule(
-    lie_algebra.lie_algebra_gap, GAP.Obj(Int.(highest_weight))
+    L.lie_algebra_gap, GAP.Obj(Int.(highest_weight))
   ) # fundamental weights
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      lie_algebra,
+      L,
       birational_sequence,
       ZZx,
       highest_weight,
@@ -148,7 +141,7 @@ function compute_monomials(
       lambda_1 = sub_weights_w[i]
       lambda_2 = highest_weight .- lambda_1
       mon_lambda_1 = compute_monomials(
-        lie_algebra,
+        L,
         birational_sequence,
         ZZx,
         lambda_1,
@@ -157,7 +150,7 @@ function compute_monomials(
         no_minkowski,
       )
       mon_lambda_2 = compute_monomials(
-        lie_algebra,
+        L,
         birational_sequence,
         ZZx,
         lambda_2,
@@ -181,7 +174,7 @@ function compute_monomials(
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
-        lie_algebra, birational_sequence, ZZx, highest_weight, monomial_ordering_lt, set_mon
+        L, birational_sequence, ZZx, highest_weight, monomial_ordering_lt, set_mon
       )
     end
     push!(calc_highest_weight, highest_weight => set_mon)
@@ -216,7 +209,7 @@ function add_known_monomials!(
 end
 
 function add_new_monomials!(
-  lie_algebra::LieAlgebraStructure,
+  L::LieAlgebraStructure,
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{SMat{ZZRingElem}},
@@ -241,7 +234,7 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, w_to_alpha(lie_algebra, QQ.(weight_w))
+      birational_sequence.weights_alpha, w_to_alpha(L, weight_w)
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -285,7 +278,7 @@ function add_new_monomials!(
 end
 
 function add_by_hand(
-  lie_algebra::LieAlgebraStructure,
+  L::LieAlgebraStructure,
   birational_sequence::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
@@ -303,14 +296,14 @@ function add_by_hand(
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
   matrices_of_operators = tensorMatricesForOperators(
-    lie_algebra.lie_algebra_gap, highest_weight, birational_sequence.operators
+    L.lie_algebra_gap, highest_weight, birational_sequence.operators
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => SparseVectorSpaceBasis([], [])) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = get_dim_weightspace(lie_algebra, highest_weight)
+  weightspaces = get_dim_weightspace(L, highest_weight)
 
   # sort the monomials from the minkowski-sum by their weightspaces
   set_mon_in_weightspace = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}()
@@ -345,7 +338,7 @@ function add_by_hand(
   for (weight_w, dim_weightspace) in weightspaces
     # print("*")
     add_new_monomials!(
-      lie_algebra,
+      L,
       birational_sequence,
       ZZx,
       matrices_of_operators,
@@ -374,68 +367,78 @@ function sub_simple_refl(word::Vector{Int}, lie_algebra_gap::GAP.Obj)::Vector{GA
   return operators
 end
 
-function get_operators_normal(
-  lie_algebra::LieAlgebraStructure,
+function operators_by_index(
+  L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  reduced_expression::Union{String,Vector{Union{Int,Vector{Int}}},Vector{GAP.GapObj},Any},
+  birational_sequence::Vector{Int},
 )::Vector{GAP.Obj}
-  """
-  handles user input for operators
-  "regular" for all operators
-  "longest-word" for random longest-word in Weyl-group (currently not implemented)
-    reduced_expression::Vector{Int} for explicit longest-word
-  """
-  if typeof(reduced_expression) == GAP.Obj  # If user already submitted gap-roots as operators, keep
-    return reduced_expression
-  elseif reduced_expression == "regular" # create standard reduced_expression, use reduced_expression as specified by GAP
-    return chevalley_basis[1]
-    # The functionality longest-word required Coxetergroups from Gapjm.jl (https://github.com/jmichel7/Gapjm.jl and was 
-    # temporarily deleted
-    # choose a random longest word. Created by extending by random not leftdescending reflections until total length is 
-    # reached
-    #elseif operators == "longest-word"
-    #    operators = longest_weyl_word(t,n)
-    #    operators = sub_simple_refl(operators, lie_algebra, n)
-    #    return operators
+  @req all(i -> 1 <= i <= num_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
+
+  return [chevalley_basis[1][i] for i in birational_sequence] # TODO: change to [2]
+end
+
+function operators_by_simple_roots(
+  L::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  birational_sequence::Vector{Vector{Int}},
+)::Vector{GAP.Obj}
+  rs = root_system_gap(L)
+  simple_roots = Vector{Vector{Int}}(GAP.Globals.SimpleSystem(rs))
+  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
+
+  root_inds = Int[]
+  for whgt_alpha in birational_sequence
+    @req length(whgt_alpha) == rank(L) "Length mismatch"
+    @req all(>=(0), whgt_alpha) "Only positive roots are allowed as input"
+    root = sum(whgt_alpha .* simple_roots)
+    root_ind = findfirst(==(root), positive_roots)
+    @req !isnothing(root_ind) "$whgt_alpha is not a positive root"
+    push!(root_inds, root_ind)
   end
 
-  # use user defined operator
-  # Check for incorrect input:
-  for x in reduced_expression
-    if isa(x, Int)
-      if !(1 <= x <= lie_algebra.rank)
-        error(
-          "Each integer in reduced_expression should be between 1 and the rank of the lie-algebra",
-        )
-      end
-    elseif isa(x, Vector{Int})
-      if !(all(1 <= i <= lie_algebra.rank for i in x))
-        error(
-          "All integers in each vector of reduced_expression should be between 1 and the rank of the lie-algebra",
-        )
-      end
-    else
-      error("Each item in reduced_expression needs to be an Int or Vector{Int}")
+  return operators_by_index(L, chevalley_basis, root_inds)
+end
+
+function operators_lustzig(
+  L::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  reduced_expression::Vector{Int},
+)
+  root_inds = operators_lustzig_indices(L, reduced_expression)
+  return operators_by_index(L, chevalley_basis, root_inds)
+end
+
+function operators_lustzig_indices(L::LieAlgebraStructure, word::Vector{Int})
+  """
+  Computes the operators for the lustzig polytopes for a longest weyl-word 
+  reduced_expression.
+
+  \beta_k := s_{i_1} … s_{i_{k-1}} (\alpha_{i_k})
+
+  F.e. for A, 2, [1, 2, 1], we get
+  \beta_1 = \alpha_1
+  \beta_2 = \alpha_1 + \alpha_2
+  \beta_3 = \alpha_2
+  """
+  rs = root_system_gap(L)
+
+  simple_roots = GAP.Globals.SimpleSystem(rs)
+  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
+  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAP.Globals.WeylGroup(rs))
+
+  root_inds = Int[]
+
+  for k in 1:length(word)
+    # Calculate betas by applying simple reflections step-by-step.
+    root = copy(simple_roots[word[k]])
+    for j in (k - 1):-1:1
+      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, word[j], root)
     end
+    root_ind = findfirst(==(Vector{Int}(root)), positive_roots)
+    @req !isnothing(root_ind) "$root is not a positive root"
+    push!(root_inds, root_ind)
   end
-  # If one of the conditions is met, the algorithms works. Otherwise a warning is printed (and can be ignored).
-  #if  !(is_longest_weyl_word(type, rank, reduced_expression)) && !(Set(reduced_expression) == [i for i=1:n])
-  #    println("WARNING: reduced_expression may be incorrect input.")
-  #end
-  sanitized_reduced_expression = Vector{Union{Int,Vector{Int}}}() # creates an empty array of the desired type
-  for item in reduced_expression
-    if isa(item, Int)
-      push!(sanitized_reduced_expression, item)
-    elseif isa(item, Vector{Int})
-      push!(sanitized_reduced_expression, item)
-    else
-      error("Wrong type")
-    end
-  end
-  operators = get_operators_simple_reflections(
-    lie_algebra, chevalley_basis, sanitized_reduced_expression
-  )
-  return operators
+  return root_inds
 end
 
 @doc """

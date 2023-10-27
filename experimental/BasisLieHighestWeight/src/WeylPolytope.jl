@@ -1,13 +1,11 @@
 
-function orbit_weylgroup(
-  lie_algebra::LieAlgebraStructure, weight_vector_w::Vector{ZZRingElem}
-)
+function orbit_weylgroup(L::LieAlgebraStructure, weight_vector_w::Vector{ZZRingElem})
   """
   operates weyl-group of type type and rank rank on vector weight_vector and returns list of vectors in orbit
   input and output weights in terms of w_i
   """
   # initialization
-  weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap))
+  weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(L.lie_algebra_gap))
   orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(Int.(weight_vector_w)))
   vertices = Vector{Int}[]
 
@@ -22,7 +20,7 @@ function orbit_weylgroup(
 end
 
 function get_dim_weightspace(
-  lie_algebra::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}
+  L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}
 )::Dict{Vector{ZZRingElem},Int}
   """
   Calculates dictionary with weights as keys and dimension of corresponding weightspace as value. GAP computes the 
@@ -30,7 +28,7 @@ function get_dim_weightspace(
   calculate the dimension of each weightspace. Returns weights in w_i
   """
   # calculate dimension for dominant weights with GAP
-  root_system = GAP.Globals.RootSystem(lie_algebra.lie_algebra_gap)
+  root_system = GAP.Globals.RootSystem(L.lie_algebra_gap)
   dominant_char = GAP.Globals.DominantCharacter(root_system, GAP.Obj(Int.(highest_weight)))
   dominant_weights_w = map(weight -> ZZ.(weight), dominant_char[1])
   dominant_weights_dim = Int.(dominant_char[2])
@@ -38,7 +36,7 @@ function get_dim_weightspace(
 
   # calculate dimension for the rest by checking which positive weights lies in the orbit.
   for i in 1:length(dominant_weights_w)
-    orbit_weights = orbit_weylgroup(lie_algebra, dominant_weights_w[i])
+    orbit_weights = orbit_weylgroup(L, dominant_weights_w[i])
     dim_weightspace = dominant_weights_dim[i]
     for weight in orbit_weights
       weightspaces[highest_weight - weight] = dim_weightspace
