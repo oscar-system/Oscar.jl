@@ -18,7 +18,7 @@ export is_global
 export is_local
 export is_mixed
 export is_total
-export is_weighted
+export _is_weighted
 export lex
 export matrix_ordering
 export monomial_ordering
@@ -124,7 +124,7 @@ function _unique_var_indices(a::AbstractVector{<:MPolyRingElem})
   return z
 end
 
-function is_weighted(ord::Symbol)
+function _is_weighted(ord::Symbol)
    return ord == :wdeglex || ord == :wdegrevlex ||
           ord == :negwdeglex || ord == :negwdegrevlex
 end

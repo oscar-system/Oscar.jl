@@ -869,7 +869,6 @@ export is_unital
 export is_vertical_k_separation
 export is_very_ample
 export is_weakly_connected
-export is_weighted
 export is_welldefined
 export is_z_graded
 export is_zero
