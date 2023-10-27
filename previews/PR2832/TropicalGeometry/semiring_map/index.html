@@ -6,7 +6,7 @@ julia&gt; nu(1)
 (0)
 
 julia&gt; nu(0)
-∞
+infty
 
 julia&gt; nu = tropical_semiring_map(QQ,max) # arbitrary rings possible
 Map into Max tropical semiring encoding the trivial valuation on Rational field
@@ -15,7 +15,7 @@ julia&gt; nu(1)
 (0)
 
 julia&gt; nu(0)
--∞
+-infty
 </code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tropical_semiring_map" href="#tropical_semiring_map"><code>tropical_semiring_map</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">tropical_semiring_map(QQ::QQField, p::QQFieldElem, minOrMax::Union{typeof(min),typeof(max)}=min)</code></pre><p>Return a map <code>nu</code> from <code>QQ</code> to the min (default) or max tropical semiring <code>T</code> such that <code>nu(0)=zero(T)</code> and <code>nu(c)=+/-val(c)</code> for <code>c</code> non-zero, where <code>val</code> denotes the <code>p</code>-adic valuation.  Requires <code>p</code> to be a prime.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; nu_2 = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
@@ -51,4 +51,4 @@ julia&gt; nu_t(t^2)
 
 julia&gt; nu_t(1//t^2)
 (2)
-</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../semiring/">« Tropical semirings, matrices, and polynomials</a><a class="docs-footer-nextpage" href="../variety/">Tropical varieties »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Tuesday 24 October 2023 11:55">Tuesday 24 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../semiring/">« Tropical semirings, matrices, and polynomials</a><a class="docs-footer-nextpage" href="../variety/">Tropical varieties »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Friday 27 October 2023 08:35">Friday 27 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
