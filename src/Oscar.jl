@@ -135,6 +135,12 @@ function __init__()
 
     add_assertion_scope(:ZZLatWithIsom)
     add_verbosity_scope(:ZZLatWithIsom)
+
+    # Pkg.is_manifest_current() returns false if the manifest might be out of date
+    # (but might return nothing when there is no project_hash)
+    if is_dev && VERSION >= v"1.8" && Pkg.is_manifest_current() === false
+      @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+    end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
