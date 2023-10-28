@@ -422,6 +422,7 @@ export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
 export data
+export de_rham_complex
 export decide_du_val_singularity
 export decomposition_matrix
 export decorate
@@ -508,6 +509,7 @@ export exponent, has_exponent, set_exponent
 export exponents
 export ext
 export extension_field
+export exterior_derivative
 export exterior_power
 export f_vector
 export face_fan
@@ -890,6 +892,7 @@ export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
 export katsura
+export kaehler_differentials
 export kernel
 export klee_minty_cube
 export klein_bottle
