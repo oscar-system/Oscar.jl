@@ -969,11 +969,11 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
   Vector{T}(_abelian_invariants(G))
 
 
-# see `prime_of_pgroup` why we introduce `_abelian_invariants_multiplier`
-@gapattribute _abelian_invariants_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
+# see `prime_of_pgroup` why we introduce `_abelian_invariants_schur_multiplier`
+@gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
 
 """
-    abelian_invariants_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
 (see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
@@ -983,27 +983,27 @@ as a direct product of cyclic groups of prime power (or infinite) order.
 
 # Examples
 ```jldoctest
-julia> abelian_invariants_multiplier(symmetric_group(4))
+julia> abelian_invariants_schur_multiplier(symmetric_group(4))
 1-element Vector{ZZRingElem}:
  2
 
-julia> abelian_invariants_multiplier(Int, alternating_group(6))
+julia> abelian_invariants_schur_multiplier(Int, alternating_group(6))
 2-element Vector{Int64}:
  2
  3
 
-julia> abelian_invariants_multiplier(abelian_group([2, 12]))
+julia> abelian_invariants_schur_multiplier(abelian_group([2, 12]))
 1-element Vector{ZZRingElem}:
  2
 
-julia> abelian_invariants_multiplier(cyclic_group(5))
+julia> abelian_invariants_schur_multiplier(cyclic_group(5))
 ZZRingElem[]
 ```
 """
-abelian_invariants_multiplier(G::GAPGroup) = abelian_invariants_multiplier(ZZRingElem, G)
+abelian_invariants_schur_multiplier(G::GAPGroup) = abelian_invariants_schur_multiplier(ZZRingElem, G)
 
-abelian_invariants_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
-  Vector{T}(_abelian_invariants_multiplier(G))
+abelian_invariants_schur_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
+  Vector{T}(_abelian_invariants_schur_multiplier(G))
 
 
 """
@@ -1011,7 +1011,7 @@ abelian_invariants_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
 
 Return the Schur multiplier of `G`.
 This is an abelian group whose abelian invariants can be computed with
-[`abelian_invariants_multiplier`](@ref).
+[`abelian_invariants_schur_multiplier`](@ref).
 
 # Examples
 ```jldoctest
@@ -1031,7 +1031,7 @@ GrpAb: Z/1
 schur_multiplier(G::Union{GAPGroup, GrpAbFinGen}) = schur_multiplier(GrpAbFinGen, G)
 
 function schur_multiplier(::Type{T}, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
-  abinv = abelian_invariants_multiplier(G)
+  abinv = abelian_invariants_schur_multiplier(G)
   M = abelian_group(abinv)
   (M isa T) && return M
   return codomain(isomorphism(T, M))

@@ -90,7 +90,7 @@ is_finitelygenerated
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 abelian_invariants(G::GAPGroup)
-abelian_invariants_multiplier(G::GAPGroup)
+abelian_invariants_schur_multiplier(G::GAPGroup)
 cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
