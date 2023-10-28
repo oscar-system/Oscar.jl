@@ -7,19 +7,17 @@
 ###############################################################################
 
 @attributes mutable struct TropicalCurve{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
-    polyhedralComplex::Union{PolyhedralComplex,
-                             Graph}
-    multiplicities::Union{Dict{<:Polyhedron,ZZRingElem},
-                          Dict{Edge,ZZRingElem}}
+    polyhedralComplex::Union{PolyhedralComplex, Graph}
+    multiplicities::Vector{ZZRingElem}
 
     # embedded tropical curves contain a PolyhedralComplex
-    function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
         @req dim(Sigma)==1 "input not one-dimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 
     # abstract tropical curves contain a Graph
-    function TropicalCurve{minOrMax,false}(Sigma::Graph, multiplicities::Dict{Edge,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalCurve{minOrMax,false}(Sigma::Graph, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
         return new{minOrMax,false}(Sigma,multiplicities)
     end
 end
@@ -53,7 +51,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    tropical_curve(Sigma::PolyhedralComplex,multiplicities::Dict{Polyhedron,ZZRingElem},minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
 Return the embedded tropical curve consisting of the polyhedral complex `Sigma` and multiplicities `multiplicities`.
 
@@ -68,32 +66,28 @@ julia> rayIndices = [2,3,4];
 julia> Sigma = polyhedral_complex(incidenceMatrix, verticesAndRays, rayIndices)
 Polyhedral complex in ambient dimension 2
 
-julia> multiplicities = Dict(sigma=>one(ZZ) for sigma in maximal_polyhedra(Sigma))
-Dict{Polyhedron{QQFieldElem}, ZZRingElem} with 3 entries:
-  Polyhedron in ambient dimension 2 => 1
-  Polyhedron in ambient dimension 2 => 1
-  Polyhedron in ambient dimension 2 => 1
+julia> multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+3-element Vector{ZZRingElem}:
+ 1
+ 1
+ 1
 
 julia> tropical_curve(Sigma,multiplicities)
 Embedded min tropical curve
 
 ```
 """
-function tropical_curve(Sigma::PolyhedralComplex, mult::Dict{<:Polyhedron,ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    return TropicalCurve{typeof(minOrMax),true}(Sigma,mult)
-end
-function tropical_curve(Sigma::PolyhedralComplex, multVector::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = Dict(sigma=>i for (sigma,i) in zip(maximal_polyhedra(Sigma),multVector))
-    return tropical_curve(Sigma,multVector,minOrMax)
+function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    mult = Dict(sigma=>one(ZZ) for sigma in maximal_polyhedra(Sigma))
-    return tropical_curve(Sigma,mult,minOrMax)
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
 
 @doc raw"""
-    tropical_curve(Sigma::Graph,multiplicities::Dict{Edge,ZZRingElem},minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
 Return the abstract tropical curve consisting of the graph `Sigma` and multiplicities `multiplicities`.
 
@@ -101,33 +95,29 @@ Return the abstract tropical curve consisting of the graph `Sigma` and multiplic
 ```jldoctest; filter = r"Edge\(.*\)"
 julia> Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
 
-julia> multiplicities = Dict(sigma=>one(ZZ) for sigma in edges(Sigma))
-Dict{Edge, ZZRingElem} with 3 entries:
-  Edge(2, 1) => 1
-  Edge(3, 2) => 1
-  Edge(3, 2) => 1
+julia> multiplicities = ones(ZZRingElem, ne(Sigma))
+3-element Vector{ZZRingElem}:
+ 1
+ 1
+ 1
 
 julia> tropical_curve(Sigma,multiplicities)
 Abstract min tropical curve
 
 ```
 """
-function tropical_curve(Sigma::Graph,multiplicities::Dict{Edge,ZZRingElem},minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
    return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
 end
-function tropical_curve(Sigma::Graph,multiplicitiesVector::Vector{ZZRingElem},minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = Dict(sigma=>i for (sigma,i) in zip(edges(Sigma),multiplicitiesVector))
-    return tropical_curve(Sigma,multiplicities,minOrMax)
-end
 function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = Dict(sigma=>ZZ(1) for sigma in edges(Sigma))
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
 
 function tropical_curve(TropV::TropicalVarietySupertype)
     @req dim(TropV)<=1 "tropical variety dimension too high"
-    return tropical_curve(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
+    return tropical_curve(polyhedral_complex(TropV), multiplicities(TropV), convention(TropV))
 end
 
 

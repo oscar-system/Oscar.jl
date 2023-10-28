@@ -8,10 +8,10 @@
 
 @attributes mutable struct TropicalLinearSpace{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
     polyhedralComplex::PolyhedralComplex
-    multiplicities::Dict{<:Polyhedron, ZZRingElem}
+    multiplicities::Vector{ZZRingElem}
 
     # tropical linear spaces need to be embedded
-    function TropicalLinearSpace{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalLinearSpace{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
@@ -39,7 +39,7 @@ end
 #
 ###############################################################################
 
-function tropical_linear_space(Sigma::PolyhedralComplex, mult::Dict{<:Polyhedron,ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_linear_space(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
     return TropicalLinearSpace{typeof(minOrMax),true}(Sigma,mult)
 end
 
@@ -109,7 +109,7 @@ function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVec
 
     Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{minOrMax}(valuatedMatroid))
     Sigma = add_missing_lineality_from_polymake(Sigma)
-    multiplicities = Dict(sigma=>one(ZZ) for sigma in maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 
     TropL = tropical_linear_space(Sigma,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only

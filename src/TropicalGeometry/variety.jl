@@ -8,10 +8,10 @@
 
 @attributes mutable struct TropicalVariety{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
     polyhedralComplex::PolyhedralComplex
-    multiplicities::Dict{<:Polyhedron, ZZRingElem}
+    multiplicities::Vector{ZZRingElem}
 
     # tropical varieties need to be embedded
-    function TropicalVariety{minOrMax,true}(Sigma::PolyhedralComplex,multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalVariety{minOrMax,true}(Sigma::PolyhedralComplex,multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
@@ -42,10 +42,7 @@ end
 @doc raw"""
     tropical_variety(Sigma::PolyhedralComplex, mult, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplicities `mult` and convention `minOrMax`. Here, `mult` is optional can be specified in one of following ways:
-- As a `Dict{Polyhedron,ZZRingElem}` which assigns each maximal polyhedra of `Sigma` an integer,
-- As a `Vector{ZZRingElem}` which represents a list of multiplicities on the maximal polyhedra in the order of `maximal_polyhedra(Sigma)`.
-If `mult` is unspecified, then all multiplicities are set to one.
+Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplicities `mult` and convention `minOrMax`. Here, `mult` is optional can be specified as a `Vector{ZZRingElem}` which represents a list of multiplicities on the maximal polyhedra in the order of `maximal_polyhedra(Sigma)`.  If `mult` is unspecified, then all multiplicities are set to one.
 
 # Examples
 ```jldoctest
@@ -55,10 +52,10 @@ Polyhedral complex in ambient dimension 1
 julia> tropical_variety(Sigma)
 Min tropical variety
 
-julia> mult = Dict(sigma=>ZZ(1) for sigma in maximal_polyhedra(Sigma))
-Dict{Polyhedron{QQFieldElem}, ZZRingElem} with 2 entries:
-  Polyhedron in ambient dimension 1 => 1
-  Polyhedron in ambient dimension 1 => 1
+julia> mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+2-element Vector{ZZRingElem}:
+ 1
+ 1
 
 julia> tropical_variety(Sigma,mult,min)
 Min tropical variety
@@ -73,15 +70,11 @@ Max tropical variety
 
 ```
 """
-function tropical_variety(Sigma::PolyhedralComplex, mult::Dict{<:Polyhedron,ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
     return TropicalVariety{typeof(minOrMax),true}(Sigma,mult)
 end
-function tropical_variety(Sigma::PolyhedralComplex, multVector::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    mult = Dict(sigma=>i for (sigma,i) in zip(maximal_polyhedra(Sigma),multVector))
-    return tropical_variety(Sigma,mult,minOrMax)
-end
 function tropical_variety(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    mult = Dict(sigma=>one(ZZ) for sigma in maximal_polyhedra(Sigma))
+    mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_variety(Sigma,mult,minOrMax)
 end
 
@@ -170,8 +163,7 @@ end
 
 function tropical_variety(Sigma::Vector{<:Polyhedron}, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
     polyhedralComplex = polyhedral_complex(Sigma)
-    multiplicitiesDict = Dict(sigma=>i for (sigma,i) in zip(Sigma,multiplicities))
-    return tropical_variety(polyhedralComplex,multiplicitiesDict,minOrMax)
+    return tropical_variety(polyhedralComplex,multiplicities,minOrMax)
 end
 
 
@@ -333,9 +325,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     ###
     # Assemble tropical variety
     ###
-    sigmaV = first(maximal_polyhedra(SigmaV))
-    multiplicitiesDict = Dict{typeof(sigmaV),ZZRingElem}(sigmaV=>weight)
-    TropV = tropical_variety(SigmaV,multiplicitiesDict,convention(nu))
+    TropV = tropical_variety(SigmaV,[weight],convention(nu))
     if !weighted_polyhedral_complex_only
         set_attribute!(TropV,:algebraic_ideal,I)
         set_attribute!(TropV,:tropical_semiring_map,nu)
@@ -372,7 +362,7 @@ function tropical_variety_linear(I::MPolyIdeal,nu::TropicalSemiringMap; weighted
         TropLh = tropical_linear_space(Ih,nu,weighted_polyhedral_complex_only=true)
         Sigma = dehomogenize_post_tropicalization(polyhedral_complex(TropLh))
 
-        multiplicities = Dict(sigma=>one(ZZ) for sigma in maximal_polyhedra(Sigma))
+        multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
         TropV = tropical_variety(Sigma,multiplicities)
         if !weighted_polyhedral_complex_only
             set_attribute!(TropV,:algebraic_ideal,I)
@@ -501,7 +491,7 @@ function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{
     TropVPoints = collect(values(TropVDict))
     TropVPointsUnique = unique(TropVPointsMults)
     Sigma = polyhedral_complex(IncidenceMatrix([[i] for i in 1:length(TropVPointsUnique)]), TropVPointsUnique)
-    TropVMults = Dict(convex_hull(matrix(QQ,[p])) => ZZ(length(findall(isequal(p),TropVPoints))) for p in TropVPointsUnique)
+    TropVMults = [ZZ(length(findall(isequal(p),TropVPoints))) for p in TropVPointsUnique]
     TropV = tropical_variety(Sigma,TropVMults)
     set_attribute!(TropV,:algebraic_points,collect(keys(TropVDict)))
     return TropV

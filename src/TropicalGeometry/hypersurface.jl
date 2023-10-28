@@ -8,10 +8,10 @@
 
 @attributes mutable struct TropicalHypersurface{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
     polyhedralComplex::PolyhedralComplex
-    multiplicities::Dict{<:Polyhedron,ZZRingElem}
+    multiplicities::Vector{ZZRingElem}
 
     # tropical hypersurfaces need to be embedded
-    function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Dict{<:Polyhedron,ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
         @req codim(Sigma)==1 "input polyhedral complex not one-codimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
@@ -40,7 +40,7 @@ end
 #
 ################################################################################
 
-function tropical_hypersurface(Sigma::PolyhedralComplex, mult::Dict{<:Polyhedron,ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_hypersurface(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
     return TropicalHypersurface{typeof(minOrMax),true}(Sigma,mult)
 end
 
@@ -109,10 +109,9 @@ function tropical_hypersurface(f::MPolyRingElem{<:TropicalSemiringElem}; weighte
 
     # Convert to Oscar objects
     polyhedralComplex = polyhedral_complex(pmhyp)
-    multiplicitiesVector = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
-    multiplicitiesDict = Dict(sigma=>i for (sigma,i) in zip(maximal_polyhedra(polyhedralComplex),multiplicitiesVector))
+    multiplicities = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
 
-    TropH = tropical_hypersurface(polyhedralComplex,multiplicitiesDict,minOrMax)
+    TropH = tropical_hypersurface(polyhedralComplex,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only
         set_attribute!(TropH,:polymake_bigobject,pmhypproj)
         set_attribute!(TropH,:tropical_polynomial,f)
@@ -184,8 +183,7 @@ function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeo
 
     # Convert to Oscar objects
     polyhedralComplex = polyhedral_complex(pmhyp)
-    multiplicitiesVector = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
-    multiplicities = Dict(sigma=>i for (sigma,i) in zip(maximal_polyhedra(polyhedralComplex),multiplicitiesVector))
+    multiplicities = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
 
     TropH = tropical_hypersurface(polyhedralComplex,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only
