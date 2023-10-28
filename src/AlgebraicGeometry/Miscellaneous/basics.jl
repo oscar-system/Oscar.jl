@@ -45,7 +45,7 @@ function weights(P::ProjSpc)
   return Int[x[1] for x = P.Rx.d]
 end
 
-function isweighted(P::ProjSpc)
+function is_weighted(P::ProjSpc)
   return !all(x->isone(x[1]), P.Rx.d)
 end
 
@@ -173,7 +173,7 @@ function normalize!(a::ProjSpcElem{ZZRingElem})
 end
 
 function Base.hash(a::ProjSpcElem, u::UInt=UInt(123432))
-  if isweighted(parent(a))
+  if is_weighted(parent(a))
     return u
   end
   normalize!(a)
