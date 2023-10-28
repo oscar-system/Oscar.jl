@@ -1,7 +1,7 @@
 module JuLie
 
 using ..Oscar
-import Oscar: IntegerUnion
+import Oscar: IntegerUnion, weight
 
 include("partitions.jl")
 include("schur_polynomials.jl")
