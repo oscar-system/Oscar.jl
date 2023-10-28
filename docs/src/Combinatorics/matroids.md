@@ -38,9 +38,11 @@ matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnio
 ```@docs
 uniform_matroid(r::IntegerUnion,n::IntegerUnion)
 fano_matroid()
+moebius_kantor_matroid()
 non_fano_matroid()
 non_pappus_matroid()
 pappus_matroid()
+perles_matroid()
 vamos_matroid()
 all_subsets_matroid(r::Int)
 projective_plane(q::Int)
@@ -109,7 +111,10 @@ reduced_characteristic_polynomial(M::Matroid)
 revlex_basis_encoding(M::Matroid)
 is_isomorphic(M1::Matroid, M2::Matroid)
 is_minor(M::Matroid, N::Matroid)
+automorphism_group(M::Matroid)
+matroid_base_polytope(M::Matroid)
 ```
+
 
 ### Chow Rings
 ```@docs
@@ -117,7 +122,7 @@ chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=fal
 augmented_chow_ring(M::Matroid)
 ```
 
-## Matroid strata and realization spaces
+## Matroid realization spaces
 
 
 Let ``M`` be a matroid of rank ``d`` on a ground set ``E`` of size ``n``. Its *realization space* 
@@ -145,6 +150,3 @@ If ``B`` is the polynomial ring `ambient_ring(RS)`, ``I`` the ideal `defining_id
 the realization space ``\mathcal{R}(M)`` is isomorphic to ``U^{-1}B/I``.  
 
 
-```@docs
-    automorphism_group(m::Matroid)
-```

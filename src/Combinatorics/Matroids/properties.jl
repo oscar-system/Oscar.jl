@@ -1106,10 +1106,10 @@ julia> vertices(D)
  [0, 0, 1, 1]
 ```
 """
-function matroid_base_polytope(Q::Matroid)
-    n = length(matroid_groundset(Q))
-    Q = isomorphic_matroid(Q, [i for i in 1:n])
-    Delta_verts = hcat([indicator_vector(x, n) for x in bases(Q)]...)
+function matroid_base_polytope(M::Matroid)
+    n = length(matroid_groundset(M))
+    M = isomorphic_matroid(M, [i for i in 1:n])
+    Delta_verts = hcat([indicator_vector(x, n) for x in bases(M)]...)
     return convex_hull(Delta_verts') 
 end
 

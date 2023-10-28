@@ -876,10 +876,10 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
 end
 
 @doc raw"""
-    automorphism_group(m::Matroid)
+    automorphism_group(M::Matroid)
 
-Given a matroid `m` return its automorphism group as a `PermGroup`.
-The group acts on the elements of `m`.
+Given a matroid `M` return its automorphism group as a `PermGroup`.
+The group acts on the elements of `M`.
 
 # Examples
 ```jldoctest
@@ -890,9 +890,9 @@ julia> automorphism_group(M)
 Permutation group of degree 4
 ```
 """
-function automorphism_group(m::Matroid) 
-  @req length(m) > 0 "The matroid should not be empty."
-  I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
-  resize!(I, nrows(I), length(m))
+function automorphism_group(M::Matroid) 
+  @req length(M) > 0 "The matroid should not be empty."
+  I = rank(M) < 1 ? IncidenceMatrix(bases(dual_matroid(M))) : IncidenceMatrix(bases(M))
+  resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end
