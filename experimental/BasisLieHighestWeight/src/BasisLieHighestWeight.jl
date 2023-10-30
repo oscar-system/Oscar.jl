@@ -1,7 +1,7 @@
 module BasisLieHighestWeight
 
 using ..Oscar
-using ..Oscar: GAPWrap, IntegerUnion, isweighted
+using ..Oscar: GAPWrap, IntegerUnion, _is_weighted
 
 using AbstractAlgebra.PrettyPrinting
 
