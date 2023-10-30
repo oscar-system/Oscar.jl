@@ -43,7 +43,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 1])
 Monomial basis of a highest weight module
   of highest weight [1, 1]
   of dimension 8
-  with monomial ordering degrevlex
+  with monomial ordering degrevlex([x1, x2, x3])
 over lie-Algebra of type A and rank 2
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 0]
@@ -57,7 +57,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 3, [2, 2, 3]; m
 Monomial basis of a highest weight module
   of highest weight [2, 2, 3]
   of dimension 1260
-  with monomial ordering lex
+  with monomial ordering lex([x1, x2, x3, x4, x5, x6])
 over lie-Algebra of type A and rank 3
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 0, 0]
@@ -75,7 +75,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], [1,2
 Monomial basis of a highest weight module
   of highest weight [1, 0]
   of dimension 3
-  with monomial ordering degrevlex
+  with monomial ordering degrevlex([x1, x2, x3])
 over lie-Algebra of type A and rank 2
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 0]
@@ -88,7 +88,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], [[1,
 Monomial basis of a highest weight module
   of highest weight [1, 0]
   of dimension 3
-  with monomial ordering degrevlex
+  with monomial ordering degrevlex([x1, x2, x3])
 over lie-Algebra of type A and rank 2
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 0]
@@ -101,7 +101,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight(:C, 3, [1, 1, 1]; m
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
-  with monomial ordering lex
+  with monomial ordering lex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
 over lie-Algebra of type C and rank 3
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 0, 0]
@@ -169,7 +169,7 @@ julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lusztig(:D, 4, [1,1
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 4096
-  with monomial ordering wdegrevlex
+  with monomial ordering wdegrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12], [1, 1, 3, 2, 2, 1, 5, 4, 3, 3, 2, 1])
 over lie-Algebra of type D and rank 4
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [0, 0, 0, 1]
@@ -216,7 +216,7 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
-  with monomial ordering neglex
+  with monomial ordering neglex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
 over lie-Algebra of type B and rank 3
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [0, 0, 1]
@@ -260,7 +260,7 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 64
-  with monomial ordering neglex
+  with monomial ordering neglex([x1, x2, x3, x4, x5, x6])
 over lie-Algebra of type A and rank 3
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [1, 1, 1]
@@ -296,7 +296,7 @@ julia> BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
-  with monomial ordering degrevlex
+  with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
 over lie-Algebra of type C and rank 3
   where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
     [0, 0, 1]
