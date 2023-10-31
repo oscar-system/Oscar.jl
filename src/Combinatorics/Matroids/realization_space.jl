@@ -629,6 +629,9 @@ function n_new_Sgens(
   x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}
 )
   preSgens = unique!([sub_v(x, t, f, R, xs) for f in Sgens])
+  if R(0) in preSgens
+    return [R(0)]
+  end
   return gens_2_prime_divisors(preSgens)
 end
 
@@ -681,7 +684,12 @@ function reduce_ideal_one_step(
     Sgens_new = n_new_Sgens(x, t, Sgens, R, xs)
     if length(Sgens_new) == 0
       Sgens_new = Vector{RingElem}()
+    elseif R(0) in Sgens_new
+      # 0 is in the inequations, hence M is not realizable.
+      MRS.inequations = Sgens_new
+      return (MRS, elim, true)
     end
+
     Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs)
     push!(elim, x)
 
@@ -721,7 +729,13 @@ function reduce_realization_space(
   nr, nc = size(X)
   Igens = gens(MRS.defining_ideal)
   Sgens = MRS.inequations
-
+  
+  # 0 is in the inequations, thus it is not realizable
+  if R(0) in Sgens
+    MRS.realization_matrix = nothing
+    set_attribute!(MRS, :is_realizable, :false)
+    return MRS
+  end  
   xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
 
   if length(xnew_str) == 0
