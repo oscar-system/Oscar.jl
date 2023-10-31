@@ -146,6 +146,21 @@ end
   end
 end
 
+@testset "conversions between formats of abelian invariants" begin
+  @test Oscar.elementary_divisors_of_vector(Int, []) == []
+  @test Oscar.elementary_divisors_of_vector(Int, [0, 3, 2]) == [6, 0]
+  @test Oscar.abelian_invariants_of_vector(Int, []) == []
+  @test Oscar.abelian_invariants_of_vector(Int, [0, 6]) == [0, 2, 3]
+  for i in 1:100
+    v = rand(-5:30, 10)
+    elab = Oscar.elementary_divisors_of_vector(Int, v)
+    abinv = Oscar.abelian_invariants_of_vector(Int, v)
+    @test Oscar.elementary_divisors_of_vector(Int, abinv) == elab
+    @test Oscar.abelian_invariants_of_vector(Int, elab) == abinv
+    @test elementary_divisors(abelian_group([abs(x) for x in v])) == elab
+  end
+end
+
 @testset "abelian_invariants_schur_multiplier for GrpAbFinGen" begin
   for g in all_small_groups(1:50, is_abelian)
     gg = codomain(isomorphism(GrpAbFinGen, g))

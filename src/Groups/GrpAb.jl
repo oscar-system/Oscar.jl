@@ -372,6 +372,11 @@ end
 
 is_pgroup_with_prime(G::GrpAbFinGen) = is_pgroup_with_prime(ZZRingElem, G)
 
+# Let `v` be a vector of integers.
+# This function returns the unique sorted vector `w` of zeros and prime powers
+# such that `v` and `w` describe the same abelian group in the sense that
+# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
+# the direct product of the groups `ZZ /(w[i]*ZZ)`.
 function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
   invs = T[]
   for elm in v
@@ -384,6 +389,54 @@ function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUn
     end
   end
   return sort!(invs)
+end
+
+# Let `v` be a vector of integers.
+# This function returns the unique vector `w` of nonnegative integers
+# such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 < i < length(w)-1`
+# and such that `v` and `w` describe the same abelian group in the sense that
+# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
+# the direct product of the groups `ZZ /(w[i]*ZZ)`.
+function elementary_divisors_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+  invs = T[]
+  d = Dict{T, Vector{T}}()
+  for elm in v
+    if elm == 0
+      push!(invs, 0)
+    else
+      if elm < -1
+        elm = -elm
+      end
+      for (p, e) in factor(elm)
+        if haskey(d, p)
+          push!(d[p], p^e)
+        else
+          d[p] = T[p^e]
+        end
+      end
+    end
+  end
+  l = 0
+  ps = keys(d)
+  for p in ps
+    l = max(l, length(d[p]))
+  end
+  o = T(1)
+  for p in ps
+    dp = d[p]
+    for i in 1:(l-length(dp))
+      push!(dp, o)
+    end
+    sort!(dp)
+  end
+  for i in l:-1:1
+    e = o
+    for p in ps
+      e = e * d[p][i]
+    end
+    push!(invs, e)
+  end
+  return reverse(invs)
 end
 
 abelian_invariants(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion =

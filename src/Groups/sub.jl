@@ -1031,8 +1031,8 @@ GrpAb: Z/1
 schur_multiplier(G::Union{GAPGroup, GrpAbFinGen}) = schur_multiplier(GrpAbFinGen, G)
 
 function schur_multiplier(::Type{T}, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
-  abinv = abelian_invariants_schur_multiplier(G)
-  M = abelian_group(abinv)
+  eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
+  M = abelian_group(eldiv)
   (M isa T) && return M
   return codomain(isomorphism(T, M))
 end
