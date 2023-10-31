@@ -158,11 +158,6 @@ function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   new_chain = D.chain_factory(D, i, j)
   D.chains[(i, j)] = new_chain
 
-  # adjust bounds
-  has_right_bound(D) && i>right_bound(D) && (D.right_bound = i)
-  has_left_bound(D) && i<left_bound(D) && (D.left_bound = i)
-  has_upper_bound(D) && j>upper_bound(D) && (D.upper_bound = j)
-  has_lower_bound(D) && j<lower_bound(D) && (D.lower_bound = j)
   return new_chain
 end
 
