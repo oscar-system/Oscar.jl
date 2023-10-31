@@ -27,6 +27,14 @@ function (fac::TensorProductFactory{AbstractAlgebra.FPModule{S}})(dc::AbsDoubleC
   return tensor_product(fac.C1[i], fac.C2[j])
 end
 
+# On input (dc, i, j) this produces the morphism 
+#
+#   φᵢ ⊗ id : Cᵢ⊗ Dⱼ → Cᵢ₊₋₁⊗ Dⱼ 
+#
+# induced by the (co-)boundary map φᵢ : Cᵢ → Cᵢ₊₋1 of the first complex 
+# with the sign depending on the `horizontal_direction` of `dc`.
+#
+# See also experimental/src/tensor_products.jl
 function (fac::HorizontalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
   # construct the induced morphism C1[i] ⊗ C2[j] → C1[i ± 1] ⊗ C2[j]
   r2j = rank(fac.C2[j])
@@ -43,6 +51,14 @@ function (fac::HorizontalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorp
   return hom(dc[i, j], dc[i + inc, j], res_mat)
 end
 
+# On input (dc, i, j) this produces the morphism 
+#
+#   id ⊗ ψⱼ : Cᵢ⊗ Dⱼ → Cᵢ⊗ Dⱼ₊₋₁
+#
+# induced by the (co-)boundary map ψⱼ : Dⱼ → Dⱼ₊₋1 of the second complex 
+# with the sign depending on the `vertical_direction` of `dc`.
+#
+# See also experimental/src/tensor_products.jl
 function (fac::VerticalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphism{S}})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {S<:FieldElem}
   # construct the induced morphism C1[i] ⊗ C2[j] → C1[i] ⊗ C2[j ± 1]
   r1i = rank(fac.C1[i])

@@ -37,6 +37,13 @@ end
 # Again, we override the call syntax as required by the interface. Note that 
 # here we need to make use of the first argument, the double complex itself, 
 # in order to access the correct domains and codomains. 
+#
+# On input (dc, i, j) this must produce the morphism 
+#
+#   id ⊗ ψⱼ : Cᵢ⊗ Dⱼ → Cᵢ⊗ Dⱼ₊₋₁
+#
+# induced by the (co-)boundary map ψⱼ : Dⱼ → Dⱼ₊₋1 of the second complex 
+# with the sign depending on the `vertical_direction` of `dc`.
 function (fac::VerticalTensorMapFactory{<:ModuleFPHom})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   dom = dc[i, j]
   cod_ind = (i, j + (fac.C2.typ == :chain ? -1 : +1))
@@ -50,6 +57,12 @@ function can_compute(fac::VerticalTensorMapFactory, dc::AbsDoubleComplexOfMorphi
 end
 
 # Same for the horizontal maps.
+# On input (dc, i, j) this must produce the morphism 
+#
+#   φᵢ ⊗ id : Cᵢ⊗ Dⱼ → Cᵢ₊₋₁⊗ Dⱼ 
+#
+# induced by the (co-)boundary map φᵢ : Cᵢ → Cᵢ₊₋1 of the first complex 
+# with the sign depending on the `horizontal_direction` of `dc`.
 mutable struct HorizontalTensorMapFactory{MapType} <: ChainMorphismFactory{MapType}
   C1::ComplexOfMorphisms
   C2::ComplexOfMorphisms
@@ -70,16 +83,16 @@ end
 # The user facing constructor for the tensor product of complexes 
 # now takes the following rather simple form:
 @doc raw"""
-    tensor_product(C1::ComplexOfMorphisms{ChainType}, C2::ComplexOfMorphisms{ChainType}) where {ChainType}
+    tensor_product(C::ComplexOfMorphisms{ChainType}, D::ComplexOfMorphisms{ChainType}) where {ChainType}
 
-Create the tensor product of two complexes `C1` and `C2` as a double complex.
+Create the tensor product of two complexes `C` and `D` as a double complex.
 
 In order for the generic implementation to work for your specific `ChainType` the following 
 needs to be implemented.
 
   * `morphism_type(ChainType)` must produce the type of morphisms between objects of type `ChainType`;
-  * the call signature for `function (fac::TensorProductFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)` needs to be overwritten for your specific instance of `ChainType` to produce the `(i, j)`-th entry of the double complex, i.e. the tensor product of `C1[i]` and `C2[j]`;
-  * the call signature for `function (fac::HorizontalTensorMapFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)` needs to be overwritten to produce the map on tensor products `C1[i] ⊗ C2[j] → C1[i±1] ⊗ C2[j]` induced by the (co-)boundary map on `C1` (the sign depending on the `typ` of `C1`);
+  * the call signature for `function (fac::TensorProductFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)` needs to be overwritten for your specific instance of `ChainType` to produce the `(i, j)`-th entry of the double complex, i.e. the tensor product of `C[i]` and `D[j]`;
+  * the call signature for `function (fac::HorizontalTensorMapFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)` needs to be overwritten to produce the map on tensor products `C[i] ⊗ D[j] → C[i±1] ⊗ D[j]` induced by the (co-)boundary map on `C` (the sign depending on the `typ` of `C`);
   * similarly for the `VerticalTensorMapFactory`.
 
 

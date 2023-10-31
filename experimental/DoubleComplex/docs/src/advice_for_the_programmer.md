@@ -144,9 +144,12 @@ function takes a special keyword argument `task` to indicate whether the inclusi
 and projection maps should also be returned, while for `TorQuadModule`s, this keyword argument 
 is not even available. To potentially accomodate all these different types in our 
 double complexes, the generic code uses an internal method
-```@docs
+```julia
     _direct_sum(u::Vector{T}) where {T}
 ```
+to make sure that the output has the correct format `(s, inc, pr)` consisting of the 
+direct sum `s` itself, together with the vectors of inclusion- and projection 
+maps `inc` and `pr`.
 If forming a total complex does not work for your custom implementation of a double 
 complex, check whether this might be due to a missing implementation of this method or others.
     
