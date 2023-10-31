@@ -226,10 +226,37 @@ extends_down(D::AbsDoubleComplexOfMorphisms) = extends_down(underlying_double_co
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if it is known that there are no indices `(i, j)` with non-zero 
-entries apart from those for which `has_index(dc, i, j)` returns `true`.
+Returns `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and 
+`dc[i, j]` non-zero, the vertex `(i, j)` lays on an "island" of non-zero entries 
+in the grid of the double complex, which is bounded by either zero entries or 
+entries for indices `(i', j')` where `can_compute_index(dc, i', j') = false`.
+At least one index `dc[i, j]` must be known for this to return `true`.
 
-!!! note The generic implementation does the following. The double complex has an internal cache of entries which have already been computed. Call any two such entries neighbors if their distance of indices is at most 1. Then all known non-zero entries form connected components in the index plane for `dc`. This method checks whether all known connected components have a boundary of zeroes. Depending on the factories used to produce new entries, it might still be possible that new, non-complete components appear.
+        ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → ? → ? → ? → ? → ? → ? → ? → ? → ? → ? → ? → 0 → 0 → ? → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → ? → ? → 0 → 0 → 0 → ? → ? → 0 → 0 → 0 → 0 → * → * → 0 → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → 0 → 0 → * → * → * → 0 → ? → 0 → ? → 0 → 0 → * → * → * → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → 0 → * → * → * → 0 → ? → ? → 0 → 0 → ? → 0 → * → 0 → * → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → 0 → * → * → * → 0 → ? → 0 → 0 → 0 → 0 → * → * → 0 → 0 → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+    … → ? → 0 → 0 → 0 → ? → ? → ? → ? → ? → ? → 0 → 0 → ? → ? → - → - → …
+        ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   
+        ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   ⋮   
+
+Example of a pattern of a double complex with `is_complete = true`. 
+    `0` : zero entry
+    `-` : entry can not be computed (`can_compute_index` returns `false`)
+    `*` : non-zero entry which has been computed
+    `?` : entry can be computed, but that has not yet been done
+
+!!! note If the double complex has several of the above "islands", then `is_complete` might 
+return `true` even though one or more of the "islands" have not yet been uncovered. 
+Use this carefully if your full double complex might be separated by zero entries!
 """
 function is_complete(dc::AbsDoubleComplexOfMorphisms)
   return is_complete(underlying_double_complex(dc))

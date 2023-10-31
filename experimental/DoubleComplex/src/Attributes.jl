@@ -30,10 +30,10 @@ function is_complete(D::DoubleComplexOfMorphisms)
   isempty(todo) && return false
   for (i, j) in todo
     iszero(D[i, j]) && continue
-    has_index(D, i+1, j) || return false
-    has_index(D, i-1, j) || return false
-    has_index(D, i, j+1) || return false
-    has_index(D, i, j-1) || return false
+    has_index(D, i+1, j) || !can_compute_index(D, i+1, j) || return false
+    has_index(D, i-1, j) || !can_compute_index(D, i-1, j) || return false
+    has_index(D, i, j+1) || !can_compute_index(D, i, j+1) || return false
+    has_index(D, i, j-1) || !can_compute_index(D, i, j-1) || return false
   end
   return true
 end
