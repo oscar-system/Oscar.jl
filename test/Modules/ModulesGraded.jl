@@ -1088,7 +1088,7 @@ end
   M = cokernel(map(FI, 2))
   tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
-  @test tbl == lbt
+  @test tbl.values == lbt.values
   @test tbl[0, -6] == 70
   @test tbl[2, 0] == 1
   @test iszero(tbl[2, -2])
