@@ -10,7 +10,7 @@ Objects of type `TropicalVariety` need to be embedded, abstract tropical varieti
 ## Constructor
 Objects of type `TropicalVariety` can be constructed as follows:
 ```@docs
-tropical_variety(Sigma::PolyhedralComplex, mult::Dict{<: Polyhedron,ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 ```
 
 ## Properties

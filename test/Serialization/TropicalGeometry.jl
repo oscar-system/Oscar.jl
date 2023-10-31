@@ -3,8 +3,7 @@
         @testset "Tropical Curves" begin
             @testset "Abstract" begin
                 Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
-                multiplicities = Dict(sigma=>one(ZZ) for sigma in edges(Sigma))
-                abs_TC = tropical_curve(Sigma,multiplicities)
+                abs_TC = tropical_curve(Sigma, ones(ZZRingElem,ne(Sigma)))
                 test_save_load_roundtrip(path, abs_TC) do loaded
                     @test graph(loaded) == graph(abs_TC)
                 end
