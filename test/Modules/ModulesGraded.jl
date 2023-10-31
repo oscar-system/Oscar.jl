@@ -1086,7 +1086,7 @@ end
   I = ideal(S, gens(S))
   FI = free_resolution(I)
   M = cokernel(map(FI, 2))
-  tbl = _sheaf_cohomology_bgg(M, -6, 2)
+  tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
   @test tbl == lbt
   @test tbl[0, -6] == 70
@@ -1094,12 +1094,12 @@ end
   @test iszero(tbl[2, -2])
 
   F = free_module(S, 1)
-  @test_throws AssertionError _sheaf_cohomology_bgg(F, -6, 2)
+  @test_throws AssertionError Oscar._sheaf_cohomology_bgg(F, -6, 2)
 
   R, x = polynomial_ring(QQ, "x" => 1:4)
   S, _ = grade(R, [1,2,3,4])
   F = graded_free_module(S, 1)
-  @test_throws AssertionError _sheaf_cohomology_bgg(F, -6, 2)
+  @test_throws AssertionError Oscar._sheaf_cohomology_bgg(F, -6, 2)
 
   R, x = polynomial_ring(QQ, "x" => 1:5)
   S, _ = grade(R)

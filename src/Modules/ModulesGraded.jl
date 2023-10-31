@@ -1620,7 +1620,7 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 
 julia> M = cokernel(map(FI, 2));
 
-julia> tbl = _sheaf_cohomology_bgg(M, -6, 2)
+julia> tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
 twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 0:      70  36  15   4   -   -   -   -   *
@@ -1642,7 +1642,7 @@ julia> R, x = grade(R);
 
 julia> F = graded_free_module(R, 1);
 
-julia> _sheaf_cohomology_bgg(F, -7, 2)
+julia> Oscar._sheaf_cohomology_bgg(F, -7, 2)
 twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
 ----------------------------------------------
 0:      15   5   1   -   -   -   *   *   *   *
