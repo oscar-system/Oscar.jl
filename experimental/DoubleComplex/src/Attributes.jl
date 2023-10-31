@@ -26,6 +26,9 @@ has_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :upper_bound)
 has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
 
 function is_complete(D::DoubleComplexOfMorphisms)
+  if isdefined(D, :is_complete) && D.is_complete
+    return true
+  end
   todo = keys(D.chains)
   isempty(todo) && return false
   for (i, j) in todo
@@ -35,6 +38,7 @@ function is_complete(D::DoubleComplexOfMorphisms)
     has_index(D, i, j+1) || !can_compute_index(D, i, j+1) || return false
     has_index(D, i, j-1) || !can_compute_index(D, i, j-1) || return false
   end
+  D.is_complete = true
   return true
 end
 

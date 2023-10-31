@@ -258,8 +258,21 @@ Example of a pattern of a double complex with `is_complete = true`.
 return `true` even though one or more of the "islands" have not yet been uncovered. 
 Use this carefully if your full double complex might be separated by zero entries!
 """
-function is_complete(dc::AbsDoubleComplexOfMorphisms)
-  return is_complete(underlying_double_complex(dc))
+function is_complete(D::AbsDoubleComplexOfMorphisms)
+  if has_attribute(D, :is_complete) && get_attribute(D, :is_complete)::Bool
+    return true
+  end
+  todo = keys(D.chains)
+  isempty(todo) && return false
+  for (i, j) in todo
+    iszero(D[i, j]) && continue
+    has_index(D, i+1, j) || !can_compute_index(D, i+1, j) || return false
+    has_index(D, i-1, j) || !can_compute_index(D, i-1, j) || return false
+    has_index(D, i, j+1) || !can_compute_index(D, i, j+1) || return false
+    has_index(D, i, j-1) || !can_compute_index(D, i, j-1) || return false
+  end
+  set_attribute!(D, :is_complete, true)
+  return true
 end
 
 #= has become obsolete with the advent of has_entry etc. 
@@ -371,6 +384,9 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
   left_bound::Int
   upper_bound::Int
   lower_bound::Int
+
+  # caching
+  is_complete::Bool
 
   function DoubleComplexOfMorphisms(
       chain_factory::ChainFactory{ChainType}, 
