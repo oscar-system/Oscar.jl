@@ -29,6 +29,7 @@
   Cxy = tensor_product(Cx, Cy)
   Cxy[1, 1]
   Oscar.finalize!(Cxy)
+  @test is_complete(Cxy)
   @test length(Cxy.chains) == 4
   @test length(Cxy.vertical_maps) == 2
   @test length(Cxy.horizontal_maps) == 2
