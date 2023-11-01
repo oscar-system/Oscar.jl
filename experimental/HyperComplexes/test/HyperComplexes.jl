@@ -14,9 +14,9 @@
   Cy = ComplexOfMorphisms([inc0, my, pr0], seed = -1)
   Cz = ComplexOfMorphisms([inc0, mz, pr0], seed = -1)
 
-  HCx = Oscar.hyper_complex(Cx)
-  HCy = Oscar.hyper_complex(Cy)
-  HCz = Oscar.hyper_complex(Cz)
+  HCx = Oscar.hyper_complex(Cx, auto_extend=true)
+  HCy = Oscar.hyper_complex(Cy, auto_extend=true)
+  HCz = Oscar.hyper_complex(Cz, auto_extend=true)
 
   @test HCx[(0,)] === R1
   @test HCx[(1,)] === R1
@@ -26,6 +26,51 @@
   @test_throws AssertionError map(HCx, 2, (1,))
   @test_throws AssertionError map(HCx, 1, (1, 10))
   @test_throws AssertionError HCx[(1, 10)]
+
+  HCx = Oscar.SimpleComplexWrapper(Cx, auto_extend=true)
+  HCy = Oscar.SimpleComplexWrapper(Cy, auto_extend=true)
+  HCz = Oscar.SimpleComplexWrapper(Cz, auto_extend=true)
+
+  @test range(HCx) == range(Cx)
+  @test map_range(HCx) == map_range(Cx)
+  @test HCx[0] === R1
+  @test HCx[1] === R1
+  @test map(HCx, 1)(R1[1]) == x*R1[1]
+  @test iszero(HCx[10])
+  @test iszero(HCx[-10])
+  @test_throws AssertionError map(HCx, 2, (1,))
+  @test_throws AssertionError map(HCx, 1, (1, 10))
+  @test_throws AssertionError HCx[(1, 10)]
+  @test Oscar.direction(HCx) == :chain
+
+  HCx = Oscar.hyper_complex(Cx, auto_extend=false)
+  HCy = Oscar.hyper_complex(Cy, auto_extend=false)
+  HCz = Oscar.hyper_complex(Cz, auto_extend=false)
+
+  @test HCx[(0,)] === R1
+  @test HCx[(1,)] === R1
+  @test map(HCx, 1, (1,))(R1[1]) == x*R1[1]
+  @test_throws ErrorException iszero(HCx[(10,)])
+  @test_throws ErrorException iszero(HCx[(-10,)])
+  @test_throws AssertionError map(HCx, 2, (1,))
+  @test_throws AssertionError map(HCx, 1, (1, 10))
+  @test_throws AssertionError HCx[(1, 10)]
+
+  HCx = Oscar.SimpleComplexWrapper(Cx, auto_extend=false)
+  HCy = Oscar.SimpleComplexWrapper(Cy, auto_extend=false)
+  HCz = Oscar.SimpleComplexWrapper(Cz, auto_extend=false)
+
+  @test HCx[0] === R1
+  @test HCx[1] === R1
+  @test map(HCx, 1)(R1[1]) == x*R1[1]
+  @test_throws ErrorException map(HCx, 20)
+  @test_throws ErrorException iszero(HCx[10])
+  @test_throws ErrorException iszero(HCx[-10])
+  @test_throws AssertionError map(HCx, 2, (1,))
+  @test_throws AssertionError map(HCx, 1, (1, 10))
+  @test_throws AssertionError HCx[(1, 10)]
+  @test Oscar.direction(HCx) == :chain
+
 
   HC = tensor_product([Cx, Cy, Cz])
 

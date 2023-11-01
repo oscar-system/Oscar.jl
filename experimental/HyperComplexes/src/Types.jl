@@ -77,4 +77,37 @@ mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainTyp
   end
 end
 
+### Wrappers for simple complexes
+
+abstract type AbsSimpleComplex{ChainType, MapType} <:AbsHyperComplex{ChainType, MapType} end
+
+getindex(C::AbsSimpleComplex, i::Int) = C[(i,)]
+has_index(C::AbsSimpleComplex, i::Int) = has_index(C, (i,))
+can_compute_index(C::AbsSimpleComplex, i::Int) = can_compute_index(C, (i,))
+map(C::AbsSimpleComplex, i::Int) = map(C, 1, (i,))
+has_map(C::AbsSimpleComplex, i::Int) = has_map(C, 1, (i,))
+can_compute_map(C::AbsSimpleComplex, i::Int) = can_compute_map(C, 1, (i,))
+
+direction(C::AbsSimpleComplex) = direction(C, 1)
+is_chain_complex(C::AbsSimpleComplex) = direction(C) == :chain
+is_cochain_complex(C::AbsSimpleComplex) = !is_chain_complex(C)
+has_upper_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+has_lower_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+upper_bound(C::AbsSimpleComplex) = upper_bound(C, 1)
+lower_bound(C::AbsSimpleComplex) = lower_bound(C, 1)
+range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
+map_range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
+
+underlying_complex(C::AbsSimpleComplex) = error("underlying_complex not implemented for $C")
+
+mutable struct SimpleComplexWrapper{ChainType, MapType} <: AbsSimpleComplex{ChainType, MapType}
+  hc::HyperComplex{ChainType, MapType}
+
+  function SimpleComplexWrapper(hc::HyperComplex{ChainType, MapType}) where {ChainType, MapType}
+    @assert dim(hc) == 1 "hypercomplex must be one-dimensional"
+    return new{ChainType, MapType}(hc)
+  end
+end
+
+underlying_complex(C::SimpleComplexWrapper) = C.hc
 

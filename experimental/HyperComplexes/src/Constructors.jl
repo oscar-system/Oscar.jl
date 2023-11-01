@@ -1,8 +1,12 @@
 struct ChainFactoryFromComplex{ChainType} <: HyperComplexChainFactory{ChainType}
   C::ComplexOfMorphisms{ChainType}
+  auto_extend::Bool
 
-  function ChainFactoryFromComplex(C::ComplexOfMorphisms{ChainType}) where ChainType
-    return new{ChainType}(C)
+  function ChainFactoryFromComplex(
+      C::ComplexOfMorphisms{ChainType}; 
+      auto_extend::Bool=false
+    ) where ChainType
+    return new{ChainType}(C, auto_extend)
   end
 end
 
@@ -18,13 +22,18 @@ end
 
 function can_compute(fac::ChainFactoryFromComplex, HC::AbsHyperComplex, i::Tuple)
   @assert length(i) == 1 "wrong type of index"
-  return true
+  fac.auto_extend && return true
+  return first(i) in range(fac.C)
 end
 
 struct MapFactoryFromComplex{MorphismType} <: HyperComplexMapFactory{MorphismType}
   C::ComplexOfMorphisms
+  auto_extend::Bool
 
-  function MapFactoryFromComplex(C::ComplexOfMorphisms{ChainType}) where {ChainType}
+  function MapFactoryFromComplex(
+      C::ComplexOfMorphisms{ChainType};
+      auto_extend::Bool=false
+    ) where {ChainType}
     MorphismType = morphism_type(ChainType)
     return new{MorphismType}(C)
   end
@@ -42,16 +51,28 @@ function (fac::MapFactoryFromComplex{T})(HC::AbsHyperComplex, p::Int, i::Tuple) 
   return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
 end
 
+function can_compute(fac::MapFactoryFromComplex, HC::AbsHyperComplex, p::Int, i::Int)
+  @assert isone(p) "request out of bounds"
+  @assert isone(length(i)) "index out of bounds"
+  fac.auto_extend && return true
+  return first(i) in map_range(fac.C)
+end
 
-function hyper_complex(C::ComplexOfMorphisms)
-  chain_factory = ChainFactoryFromComplex(C)
-  map_factory = MapFactoryFromComplex(C)
-  upper_bound = (typ(C) == :chain ? last(range(C)) : first(range(C)))
-  lower_bound = (typ(C) == :cochain ? last(range(C)) : first(range(C)))
+# Wrap a conventional complex into a hypercomplex
+function hyper_complex(C::ComplexOfMorphisms; auto_extend::Bool=false)
+  chain_factory = ChainFactoryFromComplex(C; auto_extend)
+  map_factory = MapFactoryFromComplex(C; auto_extend)
+  upper_bound = (typ(C) == :cochain ? last(range(C)) : first(range(C)))
+  lower_bound = (typ(C) == :chain ? last(range(C)) : first(range(C)))
   result = HyperComplex(1, chain_factory, map_factory, [typ(C)],
                         upper_bounds = [upper_bound], lower_bounds = [lower_bound]
                        )
   return result
 end
 
-
+# Conversion of a conventional complex to an AbsSimpleComplex compatible 
+# with the hypercomplex framework
+function SimpleComplexWrapper(C::ComplexOfMorphisms; auto_extend::Bool=false)
+  hc = hyper_complex(C; auto_extend)
+  return SimpleComplexWrapper(hc)
+end
