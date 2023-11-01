@@ -1,8 +1,7 @@
 function _johnson_solid(::Val{9})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 -mre*(sre5+1)//4 1//2;
@@ -23,7 +22,7 @@ end
 
 function _johnson_solid(::Val{10})
   Qx, x = QQ["x"]
-  NF, qr8 = number_field(x^4 - 8)
+  NF, qr8 = number_field(x^4 - 8, "a")
   ENF, qre8 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   sre2 = (qre8^2)//2
   V = [0 0 (2*sre2 + qre8)//4;
@@ -41,10 +40,9 @@ function _johnson_solid(::Val{10})
 end
 
 function _johnson_solid(::Val{13})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 -mre*(sre5+1)//4 0;
@@ -60,10 +58,9 @@ function _johnson_solid(::Val{13})
 end
 
 function _johnson_solid(::Val{16})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 -mre*(sre5+1)//4 1//2;
@@ -85,7 +82,7 @@ end
 
 function _johnson_solid(::Val{17})
   Qx, x = QQ["x"]
-  NF, qr8 = number_field(x^4 - 8)
+  NF, qr8 = number_field(x^4 - 8, "a")
   ENF, qre8 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   sre2 = (qre8^2)//2
   V = [0 0 (2*sre2 + qre8)//4;
@@ -105,7 +102,7 @@ end
 
 function _johnson_solid(::Val{18})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -129,10 +126,9 @@ function _johnson_solid(::Val{18})
 end
 
 function _johnson_solid(::Val{20})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -166,10 +162,9 @@ function _johnson_solid(::Val{20})
 end
 
 function _johnson_solid(::Val{21})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -209,10 +204,10 @@ end
 
 function _johnson_solid(::Val{22})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   sr2, sr3 = srv
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (sr3-1))
+  MF, mr = number_field(y^2 - (sr3-1), "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre2 = EMF(sr2)
   sre3 = EMF(sr3)
@@ -237,12 +232,11 @@ function _johnson_solid(::Val{22})
 end
 
 function _johnson_solid(::Val{23})
-  Qx, x = QQ["x"]
-  NF, sr2 = number_field(x^2 - 2)
+  NF, sr2 = quadratic_field(2)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (sr2+2))
+  MF, mr = number_field(y^2 - (sr2+2), "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-2 - 2*sr2 + (sr2+2)*mr)//8)
+  LF, lr = number_field(z^2 - (-2 - 2*sr2 + (sr2+2)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[6])
   sre2 = ELF(sr2)
   mre = ELF(mr)
@@ -272,12 +266,11 @@ function _johnson_solid(::Val{23})
 end
 
 function _johnson_solid(::Val{24})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8)
+  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[4])
   sre5 = ELF(sr5)
   mre = ELF(mr)
@@ -312,12 +305,11 @@ function _johnson_solid(::Val{24})
 end
 
 function _johnson_solid(::Val{25})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8)
+  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[4])
   sre5 = ELF(sr5)
   mre = ELF(mr)
@@ -356,12 +348,10 @@ function _johnson_solid(::Val{25})
   return res
 end
 
-# in Polymake, index 30 returns a solid isomorphic to J31
 function _johnson_solid(::Val{30})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 -mre*(sre5+1)//4 mre*(sre5-1)//2;
@@ -389,12 +379,10 @@ function _johnson_solid(::Val{30})
   return res
 end
 
-# in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
 function _johnson_solid(::Val{32})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [0 mre mre*(sre5+1)//2;
@@ -427,12 +415,10 @@ function _johnson_solid(::Val{32})
   return res
 end
 
-# in Polymake, index 32 returns a solid isomorphic to J33 and vice versa
 function _johnson_solid(::Val{33})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [0 mre mre*(sre5+1)//2;
@@ -466,10 +452,9 @@ function _johnson_solid(::Val{33})
 end
 
 function _johnson_solid(::Val{34})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [0 mre mre*(sre5+1)//2;
@@ -509,7 +494,7 @@ end
 
 function _johnson_solid(::Val{35})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -537,7 +522,7 @@ end
 
 function _johnson_solid(::Val{36})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -563,12 +548,10 @@ function _johnson_solid(::Val{36})
   return res
 end
 
-# in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
 function _johnson_solid(::Val{38})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -606,12 +589,10 @@ function _johnson_solid(::Val{38})
   return res
 end
 
-# in Polymake, index 38 returns a solid isomorphic to J39 and vice versa
 function _johnson_solid(::Val{39})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -650,10 +631,9 @@ function _johnson_solid(::Val{39})
 end
 
 function _johnson_solid(::Val{40})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -697,10 +677,9 @@ function _johnson_solid(::Val{40})
 end
 
 function _johnson_solid(::Val{41})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -744,10 +723,9 @@ function _johnson_solid(::Val{41})
 end
 
 function _johnson_solid(::Val{42})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -796,10 +774,9 @@ function _johnson_solid(::Val{42})
 end
 
 function _johnson_solid(::Val{43})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre5 = EMF(sr5)
   V = [1//2 mre*(sre5+5)//4 1//2;
@@ -849,10 +826,10 @@ end
 
 function _johnson_solid(::Val{44})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   sr2, sr3 = srv
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (sr3-1))
+  MF, mr = number_field(y^2 - (sr3-1), "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   sre2 = EMF(sr2)
   sre3 = EMF(sr3)
@@ -880,12 +857,11 @@ function _johnson_solid(::Val{44})
 end
 
 function _johnson_solid(::Val{45})
-  Qx, x = QQ["x"]
-  NF, sr2 = number_field(x^2 - 2)
+  NF, sr2 = quadratic_field(2)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (sr2+2))
+  MF, mr = number_field(y^2 - (sr2+2), "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-2 - 2*sr2 + (sr2+2)*mr)//8)
+  LF, lr = number_field(z^2 - (-2 - 2*sr2 + (sr2+2)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[6])
   sre2 = ELF(sr2)
   mre = ELF(mr)
@@ -919,12 +895,11 @@ function _johnson_solid(::Val{45})
 end
 
 function _johnson_solid(::Val{46})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8)
+  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[4])
   sre5 = ELF(sr5)
   mre = ELF(mr)
@@ -964,12 +939,11 @@ function _johnson_solid(::Val{46})
 end
 
 function _johnson_solid(::Val{47})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8)
+  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[4])
   sre5 = ELF(sr5)
   mre = ELF(mr)
@@ -1014,12 +988,11 @@ function _johnson_solid(::Val{47})
 end
 
 function _johnson_solid(::Val{48})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   MFz, z = MF["z"]
-  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8)
+  LF, lr = number_field(z^2 - (-4 - 2*sr5 + (3*sr5+5)*mr)//8, "b")
   ELF, lre = Hecke.embedded_field(LF, real_embeddings(LF)[4])
   sre5 = ELF(sr5)
   mre = ELF(mr)
@@ -1070,7 +1043,7 @@ end
 
 function _johnson_solid(::Val{49})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 -sre3//6 1//2;
@@ -1087,7 +1060,7 @@ end
 
 function _johnson_solid(::Val{50})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 -sre3//6 1//2;
@@ -1105,7 +1078,7 @@ end
 
 function _johnson_solid(::Val{51})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 -sre3//6 1//2;
@@ -1124,10 +1097,10 @@ end
 
 function _johnson_solid(::Val{52})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 5, x^2 - 2])
+  NF, srv = number_field([x^2 - 5, x^2 - 2], ["sqrt(5)", "sqrt(2)"])
   sr5, sr2 = srv
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[8])
   sre2 = EMF(sr2)
   sre5 = EMF(sr5)
@@ -1149,10 +1122,10 @@ end
 
 function _johnson_solid(::Val{53})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 5, x^2 - 2])
+  NF, srv = number_field([x^2 - 5, x^2 - 2], ["sqrt(5)", "sqrt(2)"])
   sr5, sr2 = srv
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - (5 + sr5)//10)
+  MF, mr = number_field(y^2 - (5 + sr5)//10, "a")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[8])
   sre2 = EMF(sr2)
   sre5 = EMF(sr5)
@@ -1175,7 +1148,7 @@ end
 
 function _johnson_solid(::Val{54})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -1198,7 +1171,7 @@ end
 
 function _johnson_solid(::Val{55})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -1222,7 +1195,7 @@ end
 
 function _johnson_solid(::Val{56})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -1246,7 +1219,7 @@ end
 
 function _johnson_solid(::Val{57})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3])
+  NF, srv = number_field([x^2 - 2, x^2 - 3], ["sqrt(2)", "sqrt(3)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sre2, sre3 = srev
   V = [1//2 sre3//2 1//2;
@@ -1270,8 +1243,7 @@ function _johnson_solid(::Val{57})
 end
 
 function _johnson_solid(::Val{58})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(3+sre5)//4 1//2 0;
        (3+sre5)//4 -1//2 0;
@@ -1300,8 +1272,7 @@ function _johnson_solid(::Val{58})
 end
 
 function _johnson_solid(::Val{59})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(3+sre5)//4 1//2 0;
        (3+sre5)//4 -1//2 0;
@@ -1331,8 +1302,7 @@ function _johnson_solid(::Val{59})
 end
 
 function _johnson_solid(::Val{60})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(3+sre5)//4 1//2 0;
        (3+sre5)//4 -1//2 0;
@@ -1362,8 +1332,7 @@ function _johnson_solid(::Val{60})
 end
 
 function _johnson_solid(::Val{61})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(3+sre5)//4 1//2 0;
        (3+sre5)//4 -1//2 0;
@@ -1395,7 +1364,7 @@ end
 
 function _johnson_solid(::Val{64})
   Qx, x = QQ["x"]
-  NF, srv = number_field([x^2 - 2, x^2 - 3, x^2 - 5])
+  NF, srv = number_field([x^2 - 2, x^2 - 3, x^2 - 5], ["sqrt(2)", "sqrt(3)", "sqrt(5)"])
   ENF, srev = Hecke.embedded_field(NF, real_embeddings(NF)[8])
   sre2, sre3, sre5 = srev
   V = [0 0 (sre3+2*sre2*sre3+sre3*sre5)//6;
@@ -1414,8 +1383,7 @@ function _johnson_solid(::Val{64})
 end
 
 function _johnson_solid(::Val{68})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [0 1//2 (5+3*sre5)//4;
        0 1//2 -(5+3*sre5)//4;
@@ -1488,8 +1456,7 @@ function _johnson_solid(::Val{68})
 end
 
 function _johnson_solid(::Val{69})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [0 1//2 (5+3*sre5)//4;
        0 1//2 -(5+3*sre5)//4;
@@ -1567,8 +1534,7 @@ function _johnson_solid(::Val{69})
 end
 
 function _johnson_solid(::Val{70})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [0 1//2 (5+3*sre5)//4;
        0 1//2 -(5+3*sre5)//4;
@@ -1646,8 +1612,7 @@ function _johnson_solid(::Val{70})
 end
 
 function _johnson_solid(::Val{71})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [0 1//2 (5+3*sre5)//4;
        0 1//2 -(5+3*sre5)//4;
@@ -1730,8 +1695,7 @@ function _johnson_solid(::Val{71})
 end
 
 function _johnson_solid(::Val{72})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        (5+sre5)//4 0 -(3+sre5)//4;
@@ -1799,8 +1763,7 @@ function _johnson_solid(::Val{72})
 end
 
 function _johnson_solid(::Val{73})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        (5+sre5)//4 0 -(3+sre5)//4;
@@ -1868,8 +1831,7 @@ function _johnson_solid(::Val{73})
 end
 
 function _johnson_solid(::Val{74})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        (5+sre5)//4 0 -(3+sre5)//4;
@@ -1937,8 +1899,7 @@ function _johnson_solid(::Val{74})
 end
 
 function _johnson_solid(::Val{75})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        -(5+sre5)//4 0 (3+sre5)//4;
@@ -2006,8 +1967,7 @@ function _johnson_solid(::Val{75})
 end
 
 function _johnson_solid(::Val{77})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        (5+sre5)//4 0 -(3+sre5)//4;
@@ -2070,8 +2030,7 @@ function _johnson_solid(::Val{77})
 end
 
 function _johnson_solid(::Val{78})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        (5+sre5)//4 0 -(3+sre5)//4;
@@ -2134,8 +2093,7 @@ function _johnson_solid(::Val{78})
 end
 
 function _johnson_solid(::Val{79})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        -(5+sre5)//4 0 (3+sre5)//4;
@@ -2198,8 +2156,7 @@ function _johnson_solid(::Val{79})
 end
 
 function _johnson_solid(::Val{82})
-  Qx, x = QQ["x"]
-  NF, sr5 = number_field(x^2 - 5)
+  NF, sr5 = quadratic_field(5)
   ENF, sre5 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
   V = [(5+sre5)//4 0 (3+sre5)//4;
        -(5+sre5)//4 0 (3+sre5)//4;
@@ -2258,9 +2215,9 @@ end
 
 function _johnson_solid(::Val{84})
   Qx, x = QQ["x"]
-  NF, q = number_field(2*x^3 + 11*x^2 + 4*x - 1)
+  NF, q = number_field(2*x^3 + 11*x^2 + 4*x - 1, "a")
   NFy, y = NF["y"]
-  MF, srq = number_field(y^2 - q)
+  MF, srq = number_field(y^2 - q, "sqrt(a)")
   EMF, sreq = Hecke.embedded_field(MF, real_embeddings(MF)[2])
   eq = EMF(q)
   r = sreq//2
@@ -2281,10 +2238,10 @@ end
 
 function _johnson_solid(::Val{85})
   Qx, x = QQ["x"]
-  NF, a = number_field(x^6 - 2*x^5 - 13*x^4 + 8*x^3 + 32*x^2 - 8*x - 4)
+  NF, a = number_field(x^6 - 2*x^5 - 13*x^4 + 8*x^3 + 32*x^2 - 8*x - 4, "a")
   sr2 = -a^5//12 + 19*a^3//12 + a^2//2 - 25*a//6 + 1//3
   NFy, y = NF["y"]
-  MF, b = number_field(y^2 - (1 - (1 - sr2//2)*a^2))
+  MF, b = number_field(y^2 - (1 - (1 - sr2//2)*a^2), "b")
   EMF, eb = Hecke.embedded_field(MF, real_embeddings(MF)[6])
   ea = EMF(a)
   ec = (7*ea^5//12 - 9*ea^4//4 - 43*ea^3//12 + 45*ea^2//4 + a//6 - 5//6)*eb
@@ -2312,9 +2269,9 @@ end
 
 function _johnson_solid(::Val{86})
   Qx, x = QQ["x"]
-  NF, k = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23)
+  NF, k = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23, "a")
   NFy, y = NF["y"]
-  MF, mr = number_field(y^2 - 1 + k^2)
+  MF, mr = number_field(y^2 - 1 + k^2, "b")
   EMF, mre = Hecke.embedded_field(MF, real_embeddings(MF)[4])
   ke = EMF(k)
   V = [0 1//2 mre;
@@ -2334,9 +2291,9 @@ end
 
 function _johnson_solid(::Val{87})
   Qx, x = QQ["x"]
-  NF, k = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23)
+  NF, k = number_field(60*x^4 - 48*x^3 - 100*x^2 + 56*x + 23, "a")
   NFy, y = NF["y"]
-  MF, mr = number_field([y^2 - 1 + k^2, y^2 - 2])
+  MF, mr = number_field([y^2 - 1 + k^2, y^2 - 2], [:b, Symbol("sqrt(2)")])
   EMF, mra = Hecke.embedded_field(MF, real_embeddings(MF)[8])
   ke = EMF(k)
   mre, sre2 = mra
@@ -2358,9 +2315,9 @@ end
 
 function _johnson_solid(::Val{88})
   Qx, x = QQ["x"]
-  NF, ks = number_field(1680*x^16- 4800*x^15 - 3712*x^14 + 17216*x^13+ 1568*x^12 - 24576*x^11 + 2464*x^10 + 17248*x^9- 3384*x^8 - 5584*x^7 + 2000*x^6+ 240*x^5- 776*x^4+ 304*x^3 + 200*x^2 - 56*x - 23)
+  NF, ks = number_field(1680*x^16- 4800*x^15 - 3712*x^14 + 17216*x^13+ 1568*x^12 - 24576*x^11 + 2464*x^10 + 17248*x^9- 3384*x^8 - 5584*x^7 + 2000*x^6+ 240*x^5- 776*x^4+ 304*x^3 + 200*x^2 - 56*x - 23, "a")
   NFy, y = NF["y"]
-  UNF, us = number_field(y^2 - 1 + ks^2)
+  UNF, us = number_field(y^2 - 1 + ks^2, "b")
   ENF, u = Hecke.embedded_field(UNF, real_embeddings(UNF)[4])
   k = ENF(ks) 
   v = (-779398396//3645*k^15 + 1527897016//3645*k^14 + 47481585556//54675*k^13 - 80358097444//54675*k^12 - 626829326//405*k^11 + 34715953556//18225*k^10 + 15225336298//10935*k^9 - 61415739374//54675*k^8 - 30047329289//54675*k^7 + 16348591376//54675*k^6 - 128888737//18225*k^5 - 282199511//6075*k^4 + 7240761619//109350*k^3 + 925235176//54675*k^2 - 1435429847//109350*k - 404623837//109350)*u
@@ -2384,9 +2341,9 @@ end
 
 function _johnson_solid(::Val{89})
   Qx, x = QQ["x"]
-  NF, ks = number_field(26880*x^10 + 35328*x^9 - 25600*x^8 - 39680*x^7 + 6112x^6 + 13696*x^5 + 2128*x^4 - 1808*x^3 - 1119*x^2 + 494*x - 47)
+  NF, ks = number_field(26880*x^10 + 35328*x^9 - 25600*x^8 - 39680*x^7 + 6112x^6 + 13696*x^5 + 2128*x^4 - 1808*x^3 - 1119*x^2 + 494*x - 47, "a")
   NFy, y = NF["y"]
-  UNF, us = number_field(y^2 - 1 + ks^2)
+  UNF, us = number_field(y^2 - 1 + ks^2, "b")
   ENF, u = Hecke.embedded_field(UNF, real_embeddings(UNF)[6])
   k = ENF(ks) 
   v = (-174265//72*k^9 - 263299//72*k^8 + 354083//216*k^7 + 213419//54*k^6 + 333139//1728*k^5 - 2134337//1728*k^4 - 1505857//3456*k^3 + 147085//1728*k^2 + 6787789//55296*k - 1258781//55296)*u
@@ -2412,9 +2369,9 @@ end
 
 function _johnson_solid(::Val{90})
   Qx, x = QQ["x"]
-  NF, ks = number_field(256*x^12 - 512*x^11 - 1664*x^10 + 3712*x^9 + 1552*x^8 - 6592*x^7 + 1248*x^6 + 4352*x^5 - 2024*x^4 - 944*x^3 + 672*x^2 - 24*x - 23)
+  NF, ks = number_field(256*x^12 - 512*x^11 - 1664*x^10 + 3712*x^9 + 1552*x^8 - 6592*x^7 + 1248*x^6 + 4352*x^5 - 2024*x^4 - 944*x^3 + 672*x^2 - 24*x - 23, "a")
   NFy, y = NF["y"]
-  UNF, us = number_field(y^2 - 1 + ks^2)
+  UNF, us = number_field(y^2 - 1 + ks^2, "b")
   ENF, u = Hecke.embedded_field(UNF, real_embeddings(UNF)[6])
   k = ENF(ks) 
   v = (-12736//405*k^11 + 17728//405*k^10 + 32512//135*k^9 - 131488//405*k^8 - 184124//405*k^7 + 259436//405*k^6 + 125426//405*k^5 - 23542//45*k^4 - 13363//405*k^3 + 66277//405*k^2 - 17923//810*k - 5449//810)*u
@@ -2442,7 +2399,7 @@ end
 
 function _johnson_solid(::Val{92})
   Qx, x = QQ["x"]
-  NF, srs = number_field([x^2 - 3, x^2 - 5])
+  NF, srs = number_field([x^2 - 3, x^2 - 5], ["sqrt(3)", "sqrt(5)"])
   ENF, srse = Hecke.embedded_field(NF, real_embeddings(NF)[4])
   sr3, sr5 = srse
   V = [1//2 -sr3//6 sr3*(3+sr5)//6;
