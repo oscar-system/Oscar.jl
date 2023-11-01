@@ -148,13 +148,28 @@ end
 ################################################################################
 # Version info
 
-function get_version_info()
+function file_version_info(dict::Dict{Symbol, Any})
+  ns = dict[:_ns]
+  version_info = ns[:Oscar][2]
+  return version_number(version_info)
+end
+
+function version_number(v_number::String)
+  return VersionNumber(v_number)
+end
+
+# needed for older versions 
+function version_number(dict::Dict)
+  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+end
+
+function file_version_info()
   result = Dict{Symbol, Any}(
     :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
   )
   return result
 end
-const oscar_serialization_version = get_version_info()
+const oscar_serialization_version = file_version_info()
 
 ################################################################################
 # (De|En)coding types
@@ -425,25 +440,7 @@ include("polymake.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
 
-################################################################################
-# Include upgrade scripts
-
 include("upgrades/main.jl")
-
-function get_file_version(dict::Dict{Symbol, Any})
-  ns = dict[:_ns]
-  version_info = ns[:Oscar][2]
-  return get_version_number(version_info)
-end
-
-function get_version_number(v_number::String)
-  return VersionNumber(v_number)
-end
-
-# needed for older versions 
-function get_version_number(dict::Dict)
-  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
-end
 
 ################################################################################
 # Interacting with IO streams and files
@@ -598,7 +595,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades
-  file_version = get_file_version(jsondict)
+  file_version = file_version_info(jsondict)
 
   if file_version < VERSION_NUMBER
     jsondict = upgrade(jsondict, file_version)
