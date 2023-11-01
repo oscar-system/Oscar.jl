@@ -95,7 +95,7 @@ has_upper_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
 has_lower_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
 upper_bound(C::AbsSimpleComplex) = upper_bound(C, 1)
 lower_bound(C::AbsSimpleComplex) = lower_bound(C, 1)
-range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
+Base.range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
 map_range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
 
 underlying_complex(C::AbsSimpleComplex) = error("underlying_complex not implemented for $C")
