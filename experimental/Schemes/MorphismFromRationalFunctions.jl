@@ -601,7 +601,7 @@ end
 function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
-  all(x->isprime(x), components(D)) || error("divisor must be given in terms of irreducible components")
+  all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
   X = domain(Phi)
   Y = codomain(Phi)
   pushed_comps = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()

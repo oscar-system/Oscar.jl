@@ -331,7 +331,7 @@ function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
   X = scheme(W)
   result = zero(W)
   for I in components(W)
-    @check isprime(I) "all components of the first argument must be sheaves of prime ideals"
+    @check is_prime(I) "all components of the first argument must be sheaves of prime ideals"
     inc_Y = CoveredClosedEmbedding(X, I, check=false)
     #inc_Y = CoveredClosedEmbedding(X, I, covering=trivializing_covering(C), check=false)
     Y = domain(inc_Y)

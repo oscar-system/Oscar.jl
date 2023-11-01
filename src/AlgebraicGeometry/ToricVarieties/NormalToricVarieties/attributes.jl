@@ -1091,7 +1091,7 @@ julia> hilbert_basis(antv)
 """
 @attr ZZMatrix function hilbert_basis(v::AffineNormalToricVariety)
   @req is_pointed(weight_cone(v)) "Weight cone is not pointed"
-  @req isfulldimensional(weight_cone(v)) "Weight cone is not full dimensional"
+  @req is_fulldimensional(weight_cone(v)) "Weight cone is not full dimensional"
   return matrix(ZZ, hilbert_basis(weight_cone(v)))
 end
 

@@ -491,8 +491,8 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
     end
   else
     # Make sure all generators are actually prime so that they can be compared. 
-    all(I->isprime(I), keys(coefficient_dict(D))) || return irreducible_decomposition(D) == E
-    all(I->isprime(I), keys(coefficient_dict(E))) || return D == irreducible_decomposition(E)
+    all(is_prime, keys(coefficient_dict(D))) || return irreducible_decomposition(D) == E
+    all(is_prime, keys(coefficient_dict(E))) || return D == irreducible_decomposition(E)
 
     keys_D = collect(keys(coefficient_dict(D)))
     keys_E = collect(keys(coefficient_dict(E)))

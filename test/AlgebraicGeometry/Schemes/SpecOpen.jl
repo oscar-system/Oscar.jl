@@ -64,8 +64,8 @@ end
   @test f^2 == f*f
   @test f^2 == f^ZZRingElem(2)
   @test isone(divexact(f,f))
-  @test isunit(one(OU))
-  @test !isunit(OU(x))
+  @test is_unit(one(OU))
+  @test !is_unit(OU(x))
   g = OU(2)
   @test isone(g*inv(g))
   @test isone(OU(1))
