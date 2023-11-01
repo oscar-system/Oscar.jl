@@ -110,7 +110,7 @@ function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrM
    return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, ne(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
