@@ -354,6 +354,8 @@ import Serialization.deserialize
 import Serialization.serialize_type
 import Distributed.AbstractSerializer
 
+serialize_with_id(::Type) = false
+
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
     quote
