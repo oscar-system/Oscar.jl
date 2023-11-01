@@ -372,6 +372,94 @@ end
 
 is_pgroup_with_prime(G::GrpAbFinGen) = is_pgroup_with_prime(ZZRingElem, G)
 
+# Let `v` be a vector of integers.
+# This function returns the unique sorted vector `w` of zeros and prime powers
+# such that `v` and `w` describe the same abelian group in the sense that
+# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
+# the direct product of the groups `ZZ /(w[i]*ZZ)`.
+function abelian_invariants_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+  invs = T[]
+  for elm in v
+    if elm == 0
+      push!(invs, 0)
+    elseif 1 < elm
+      append!(invs, [x[1]^x[2] for x in factor(elm)])
+    elseif elm < -1
+      append!(invs, [x[1]^x[2] for x in factor(-elm)])
+    end
+  end
+  return sort!(invs)
+end
+
+# Let `v` be a vector of integers.
+# This function returns the unique vector `w` of nonnegative integers
+# such that `w[1] != 1`, `w[i]` divides `w[i+1]` for `1 < i < length(w)-1`
+# and such that `v` and `w` describe the same abelian group in the sense that
+# the direct product of the groups `ZZ /(v[i]*ZZ)` is isomorphic to
+# the direct product of the groups `ZZ /(w[i]*ZZ)`.
+function elementary_divisors_of_vector(::Type{T}, v::Vector) where T <: IntegerUnion
+  invs = T[]
+  d = Dict{T, Vector{T}}()
+  for elm in v
+    if elm == 0
+      push!(invs, 0)
+    else
+      if elm < -1
+        elm = -elm
+      end
+      for (p, e) in factor(elm)
+        if haskey(d, p)
+          push!(d[p], p^e)
+        else
+          d[p] = T[p^e]
+        end
+      end
+    end
+  end
+  l = 0
+  ps = keys(d)
+  for p in ps
+    l = max(l, length(d[p]))
+  end
+  o = T(1)
+  for p in ps
+    dp = d[p]
+    for i in 1:(l-length(dp))
+      push!(dp, o)
+    end
+    sort!(dp)
+  end
+  for i in l:-1:1
+    e = o
+    for p in ps
+      e = e * d[p][i]
+    end
+    push!(invs, e)
+  end
+  return reverse(invs)
+end
+
+abelian_invariants(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion =
+  abelian_invariants_of_vector(T, elementary_divisors(G))
+
+abelian_invariants(G::GrpAbFinGen) = abelian_invariants(ZZRingElem, G)
+
+function abelian_invariants_schur_multiplier(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+  # By a theorem of I. Schur,
+  # the multiplier of an abelian group with elementary divisors
+  # n_1 | n_2 | ... | n_k, with k > 1,
+  # has the elementary divisors n_i with multiplicity k-i, for 1 <= i < k.
+  invs = elementary_divisors(G)
+  res = T[]
+  k = length(invs)
+  for i in 1:(k-1)
+    append!(res, repeat(T[invs[i]], k-i))
+  end
+  return abelian_invariants_of_vector(T, res)
+end
+
+abelian_invariants_schur_multiplier(G::GrpAbFinGen) = abelian_invariants_schur_multiplier(ZZRingElem, G)
+
 nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 
 # helper for prime_of_pgroup: this helper is efficient thanks to

@@ -66,6 +66,11 @@ end
    @test maximal_abelian_quotient(G)[1] isa FPGroup
    @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
    @test_throws MethodError quo(PcGroup, G)
+
+   # `abelian_invariants`
+   @test abelian_invariants(free_group(2)) == [0, 0]
+   @test abelian_invariants(alternating_group(5)) == []
+   @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
 end
 
 @testset "Finitely presented groups" begin
