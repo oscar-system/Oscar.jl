@@ -608,7 +608,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
   if contains(string(file_version), "DEV")
     commit = split(string(file_version), "-")[end]
-    @warn "Attempting to load file from DEV commit $commit"
+    @warn "Attempting to load file stored using a DEV version with commit $commit"
   end
   
   if file_version < VERSION_NUMBER
