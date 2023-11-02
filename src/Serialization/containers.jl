@@ -67,7 +67,11 @@ end
 function load_object(s::DeserializerState, ::Type{<: Vector},
                                  v::Vector, params::Tuple)
   T = params[1]
-  return T[load_object(s, T, x, params[2]) for x in v]
+  if isempty(v)
+    return T[]
+  else
+    return [load_object(s, T, x, params[2]) for x in v]
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{<: Vector},
@@ -208,7 +212,6 @@ function load_object(s::DeserializerState, ::Type{<: NamedTuple},
   keys = map(Symbol, keys)
   return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
-
 
 ################################################################################
 # Saving and loading matrices
