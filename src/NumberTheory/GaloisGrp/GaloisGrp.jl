@@ -477,7 +477,7 @@ mutable struct ComplexRootCtx
   pr::Int
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(AcbField(20), f)
     return new(f, 20, rt)
   end
@@ -542,12 +542,12 @@ mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
   rt::Vector{nf_elem}
   function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
-    @assert ismonic(f)
+    @assert is_monic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(f, field)
     return new(f, rt)
   end

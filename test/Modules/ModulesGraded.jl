@@ -389,7 +389,7 @@ end
     W =  [x*M[1], y*M[2]];
     a = hom(M, M, W);
     @test degree(a) == Z[1]
-    @test iswelldefined(a)
+    @test is_welldefined(a)
     m = homomorphism_to_element(H, a)
     @test m == y*H[2]
 end
