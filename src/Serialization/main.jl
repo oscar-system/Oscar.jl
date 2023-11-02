@@ -164,9 +164,18 @@ function version_number(dict::Dict)
 end
 
 function file_version_info()
-  result = Dict{Symbol, Any}(
-    :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
-  )
+  if contains(string(VERSION_NUMBER), "DEV")
+    path = Oscar.oscardir
+    commit_hash = readchomp(`git -C $path log -n 1 --pretty=format:"%H"`)
+    version_info = "$VERSION_NUMBER-$commit_hash"
+    result = Dict{Symbol, Any}(
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
+    )
+  else
+    result = Dict{Symbol, Any}(
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
+    )
+  end
   return result
 end
 const oscar_serialization_version = file_version_info()
@@ -597,6 +606,11 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   # deal with upgrades
   file_version = file_version_info(jsondict)
 
+  if contains(string(file_version), "DEV")
+    commit = split(string(file_version), "-")[end]
+    @warn "Attempting to load file from DEV commit $commit"
+  end
+  
   if file_version < VERSION_NUMBER
     jsondict = upgrade(jsondict, file_version)
   end
