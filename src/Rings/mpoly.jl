@@ -1,5 +1,8 @@
 #module MPolyModule
 
+#TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
+
+if !applicable(polynomial_ring, ZZ, :x=>1:1)
 ##############################################################################
 #
 # could/ should be in AbstractAlgebra
@@ -7,8 +10,6 @@
 # some sugar to make creation of strange rings easier
 # possibly lacks the passing of the ordering...
 ##############################################################################
-
-#TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
 #allows
 # polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
@@ -103,6 +104,7 @@ function _collect_variables(c, v, start = 1)
   end
   return tuple(s, _collect_variables(c, Base.tail(v), next)...)
 end
+end#if !applicable(polynomial_ring, ZZ, :x=>1:1)
 
 function Base.getindex(R::MPolyRing, i::Int)
   i == 0 && return zero(R)
