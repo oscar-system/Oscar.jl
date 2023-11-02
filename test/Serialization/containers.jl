@@ -16,6 +16,14 @@
         @test nt == loaded
       end
     end
+
+    @testset "ids in containers" begin
+      R, x = QQ[:x]
+      test_save_load_roundtrip(path, (x^2, x + 1, R)) do loaded
+        @test loaded[3] == R
+        @test parent(loaded[1]) == parent(loaded[2]) == loaded[3]
+      end
+    end
     
     @testset "Vector{LinearProgram}" begin
       c = cube(3)

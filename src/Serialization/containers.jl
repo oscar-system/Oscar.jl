@@ -43,14 +43,23 @@ end
 function save_object(s::SerializerState, x::Vector)
   save_data_array(s) do
     for elem in x
-      save_object(s, elem)
+      if serialize_with_id(typeof(elem))
+        ref = save_as_ref(s, elem)
+        save_object(s, ref)
+      else
+        save_object(s, elem)
+      end
     end
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<: Vector},
                      v::Vector, params::Type)
-  loaded_v = params[load_object(s, params, x) for x in v]
+  if serialize_with_id(params)
+    loaded_v = params[load_ref(s, x) for x in v]
+  else
+    loaded_v = params[load_object(s, params, x) for x in v]
+  end
   return loaded_v
 end
 
@@ -104,7 +113,12 @@ end
 function save_object(s::SerializerState, obj::Tuple)
   save_data_array(s) do 
     for entry in obj
-      save_object(s, entry)
+      if serialize_with_id(typeof(entry))
+        ref = save_as_ref(s, entry)
+        save_object(s, ref)
+      else
+        save_object(s, entry)
+      end
     end
   end
 end
@@ -130,11 +144,21 @@ function get_tuple_type(params::Vector)
 end
 
 function load_object(s::DeserializerState, ::Type{<:Tuple},
-                                 v::Vector{Any}, params::Vector)
-  return Tuple(
-    params[i] isa Type ? load_object(s, params[i], v[i]) :
-      load_object(s, params[i][1], v[i], params[i][2]) for i in 1:length(v)
-  )
+                     v::Vector{Any}, params::Vector)
+  entries = []
+  for i in 1:length(v)
+    if params[i] isa Type
+      if serialize_with_id(params[i])
+        loaded_obj = load_ref(s, v[i])
+      else
+        loaded_obj = load_object(s, params[i], v[i])
+      end
+    else
+      loaded_obj = load_object(s, params[i][1], v[i], params[i][2])
+    end
+    push!(entries, loaded_obj)
+  end
+  return Tuple(entries)
 end
 
 ################################################################################
