@@ -164,7 +164,7 @@ function version_number(dict::Dict)
 end
 
 function file_version_info()
-  if contains(string(VERSION_NUMBER), "DEV")
+  if is_dev
     path = Oscar.oscardir
     commit_hash = readchomp(`git -C $path log -n 1 --pretty=format:"%H"`)
     version_info = "$VERSION_NUMBER-$commit_hash"
