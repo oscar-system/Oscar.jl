@@ -26,7 +26,12 @@ Oscar.system("precompile.jl")
 """)
 
 sysimage=joinpath(tmp, "Oscar.$(Libdl.dlext)")
-PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file=CO)
+if !("JULIA_CPU_TARGET" in keys(ENV)) || (ENV["JULIA_CPU_TARGET"] == "")
+  PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file=CO)
+else
+  target = ENV["JULIA_CPU_TARGET"]
+  PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file=CO; cpu_target=target)
+end
 
 println("(re)start julia as")
 println("\tjulia -J $(sysimage)")
