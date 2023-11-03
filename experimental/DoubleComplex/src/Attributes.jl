@@ -45,11 +45,13 @@ end
 @doc raw"""
     finalize!(D::DoubleComplexOfMorphisms)
 
-Compute all non-zero entries `D[i, j]` and maps of connected components of entries 
+Compute all (computable) non-zero entries `D[i, j]` and maps of contiguous pieces of entries 
 of `D` in the grid of the double complex, starting from non-zero entries in 
 the cache which have already been computed.
 
 This can be used to write a full double complex to disc by filling the cache first.
+
+!!! note This method might not terminate. Use carefully!
 """
 function finalize!(D::DoubleComplexOfMorphisms)
   isempty(keys(D.chains)) && error("can not finalize starting from empty cache")

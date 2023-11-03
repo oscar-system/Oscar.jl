@@ -4,7 +4,7 @@
 
 Construct the total complex of the double complex `D`. 
 
-Note that `dc` needs to be reasonably bounded for this to work so that the strands
+Note that `D` needs to be reasonably bounded for this to work so that the strands
 ``⨁ ᵢ₊ⱼ₌ₖ Dᵢⱼ`` are finite for every `k`. Moreover, the generic code uses the internal 
 function `_direct_sum`. See the docstring of that function to learn more.
 """

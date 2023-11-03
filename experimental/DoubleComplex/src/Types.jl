@@ -189,45 +189,11 @@ legitimate can be checked using `can_compute_index`.
 """
 lower_bound(D::AbsDoubleComplexOfMorphisms) = lower_bound(underlying_double_complex(D))
 
-#= Has become obsolete since has_index etc.
-@doc raw"""
-    extends_right(D::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if `D` knows how to extend itself to the right, i.e. to produce entries 
-`D[i, j]` and (co-)boundary maps for ``i ≫  0``.
-"""
-extends_right(D::AbsDoubleComplexOfMorphisms) = extends_right(underlying_double_complex(D))
-
-@doc raw"""
-    extends_left(D::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if `D` knows how to extend itself to the left, i.e. to produce entries 
-`D[i, j]` and (co-)boundary maps for ``i ≪  0``.
-"""
-extends_left(D::AbsDoubleComplexOfMorphisms) = extends_left(underlying_double_complex(D))
-
-@doc raw"""
-    extends_up(D::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if `D` knows how to extend itself upwards, i.e. to produce entries 
-`D[i, j]` and (co-)boundary maps for ``j ≫  0``.
-"""
-extends_up(D::AbsDoubleComplexOfMorphisms) = extends_up(underlying_double_complex(D))
-
-@doc raw"""
-    extends_down(D::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if `D` knows how to extend itself downwards, i.e. to produce entries 
-`D[i, j]` and (co-)boundary maps for ``j ≪  0``.
-"""
-extends_down(D::AbsDoubleComplexOfMorphisms) = extends_down(underlying_double_complex(D))
-=#
-
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
 
 Returns `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and 
-`dc[i, j]` non-zero, the vertex `(i, j)` lays on an "island" of non-zero entries 
+`dc[i, j]` non-zero, the vertex `(i, j)` is lying on an "island" of non-zero entries 
 in the grid of the double complex, which is bounded by either zero entries or 
 entries for indices `(i', j')` where `can_compute_index(dc, i', j') = false`.
 At least one index `dc[i, j]` must be known for this to return `true`.
@@ -275,34 +241,6 @@ function is_complete(D::AbsDoubleComplexOfMorphisms)
   return true
 end
 
-#= has become obsolete with the advent of has_entry etc. 
-@doc raw"""
-    is_horizontally_complete(dc::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if the double complex `dc` has bounds in the horizontal directions and 
-it can not extend to either of these directions.
-
-The entries `dc[i, j]` for `(i, j)` within this (possibly unbounded) strip should then be considered 
-to comprise all non-zero ones.
-"""
-function is_horizontally_complete(dc::AbsDoubleComplexOfMorphisms)
-  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) 
-end
-
-@doc raw"""
-    is_vertically_complete(dc::AbsDoubleComplexOfMorphisms)
-
-Returns `true` if the double complex `dc` has bounds in the vertical directions and 
-it can not extend to either of these directions.
-
-The entries `dc[i, j]` for `(i, j)` within this (possibly unbounded) strip should then be considered 
-to comprise all non-zero ones.
-"""
-function is_vertically_complete(dc::AbsDoubleComplexOfMorphisms)
-  return has_left_bound(dc) && !extends_left(dc) && has_right_bound(dc) && !extends_right(dc) 
-end
-=#
-
 # The concrete architecture of double complexes is lazy by default. 
 # Hence the constructor needs to be provided with the means to produce 
 # the entries of a double complex on request. This is achieved by passing
@@ -325,7 +263,7 @@ end
 can_compute(fac::ChainFactory, dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute(fac::ChainFactory, dc::AbsDoubleComplexOfMorphisms, t...)
 
 function can_compute(fac::ChainFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  error("testing whether the ($i, $j)-th entry of can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
+  error("testing whether the ($i, $j)-th entry can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
 end
 
 # A dummy placeholder which must be overwritten.
@@ -356,7 +294,7 @@ end
 can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute(fac::ChainFactory, dc::AbsDoubleComplexOfMorphisms, t...)
 
 function can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  error("testing whether the ($i, $j)-th entry of can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
+  error("testing whether the ($i, $j)-th entry can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
 end
 
 

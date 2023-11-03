@@ -134,7 +134,7 @@ with zeroes to the left and to the right, but is concentrated in the zeroeth row
 
 For double complexes we have some generic functionality available, e.g. 
 `total_complex(D::AbsDoubleComplexOfMorphisms{ChainType, MorphismType})`. 
-This generic functionality assumes certain methods to be implemented for the 
+Such generic functionality assumes certain methods to be implemented for the 
 `ChainType` and the `MorphismType` of the double complex `D`. For instance, 
 it must be possible to compose two morphisms of type `<:MorphismType` and 
 get a new object of type `<:MorphismType`. Sometimes, the required functionality 
@@ -150,6 +150,8 @@ double complexes, the generic code uses an internal method
 to make sure that the output has the correct format `(s, inc, pr)` consisting of the 
 direct sum `s` itself, together with the vectors of inclusion- and projection 
 maps `inc` and `pr`.
-If forming a total complex does not work for your custom implementation of a double 
+
+If any generic functionality, such as forming a total complex,
+ does not work for your custom implementation of a double 
 complex, check whether this might be due to a missing implementation of this method or others.
     

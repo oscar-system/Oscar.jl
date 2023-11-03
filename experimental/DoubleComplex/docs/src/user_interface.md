@@ -35,7 +35,7 @@ Double complexes can be bounded or unbounded. But even in the bounded case where
 many ``D_{i, j}`` can be non-zero, it is not clear that a concrete bound for the 
 range of indices ``(i, j)`` of possibly non-zero entries is known. Then again, even in that case 
 such a bound might be rather theoretical and it is still encouraged that double complexes be implemented 
-lazy and not fill out the full grid of morphisms on construction. Thus a merely theoretical bound 
+lazy and not fill out the full grid of morphisms on construction. Thus a merely *theoretical* bound 
 on the range of indices does not seem to be practically relevant. 
 
 To accomodate all of these cases, we are forced to employ a rather general pattern for the 
