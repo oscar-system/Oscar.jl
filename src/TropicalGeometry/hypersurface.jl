@@ -11,7 +11,7 @@
     multiplicities::Vector{ZZRingElem}
 
     # tropical hypersurfaces need to be embedded
-    function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:MinMax}
         @req codim(Sigma)==1 "input polyhedral complex not one-codimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
@@ -25,10 +25,10 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, th::TropicalHypersurface{typeof(min),true})
+function Base.show(io::IO, th::TropicalHypersurface{Min,true})
     print(io, "Min tropical hypersurface")
 end
-function Base.show(io::IO, th::TropicalHypersurface{typeof(max),true})
+function Base.show(io::IO, th::TropicalHypersurface{Max,true})
     print(io, "Max tropical hypersurface")
 end
 
@@ -40,12 +40,12 @@ end
 #
 ################################################################################
 
-function tropical_hypersurface(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    return TropicalHypersurface{typeof(minOrMax),true}(Sigma,mult)
+function tropical_hypersurface(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Type{<:MinMax}=Min)
+    return TropicalHypersurface{minOrMax,true}(Sigma,mult)
 end
 
 
-function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
+function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:MinMax}
     @req codim(TropV)==1 "tropical variety codimension not one"
     @req is_pure(TropV) "tropical variety not pure"
     return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
@@ -54,8 +54,8 @@ end
 # Decompose a tropical polynomial into parts that Polymake can eat.
 # First function deals with the coefficients,
 # Second function then deals with the entire polynomial.
-function homogenize_and_convert_to_pm(t::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
+function homogenize_and_convert_to_pm(t::TropicalSemiringElem{minOrMax}) where {minOrMax<:MinMax}
+   Add = (minOrMax==Max) ? Polymake.Max : Polymake.Min
    if isinf(t)
       return Polymake.TropicalNumber{Add}()
    else
@@ -63,8 +63,8 @@ function homogenize_and_convert_to_pm(t::TropicalSemiringElem{minOrMax}) where {
    end
 end
 
-function homogenize_and_convert_to_pm(f::Oscar.MPolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
+function homogenize_and_convert_to_pm(f::Oscar.MPolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax<:MinMax}
+   Add = (minOrMax==Max) ? Polymake.Max : Polymake.Min
    coeffs = Polymake.TropicalNumber{Add}[]
    td = total_degree(f)
    exps = Vector{Int}[]
@@ -104,7 +104,7 @@ function tropical_hypersurface(f::MPolyRingElem{<:TropicalSemiringElem}; weighte
     # Construct hypersurface in polymake
     minOrMax = convention(f)
     coeffs, exps = homogenize_and_convert_to_pm(f)
-    pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
+    pmhypproj = Polymake.tropical.Hypersurface{convention_function(minOrMax)}(MONOMIALS=exps, COEFFICIENTS=coeffs)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
 
     # Convert to Oscar objects
@@ -157,7 +157,7 @@ end
 
 
 @doc raw"""
-    tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min; weighted_polyhedral_complex_only::Bool=false)
+    tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{Min,Max}=min; weighted_polyhedral_complex_only::Bool=false)
 
 Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax` using the minimal weights that give rise to it.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
@@ -172,13 +172,13 @@ Subdivision of points in ambient dimension 2
 julia> # tropical_hypersurface(Delta) # issue 2628
 ```
 """
-function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min;
+function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Type{<:MinMax}=Min;
                                weighted_polyhedral_complex_only::Bool=false)
 
-    PMinOrMax =  (minOrMax==typeof(min)) ? Polymake.Min : Polymake.Max
+    PMinOrMax =  (minOrMax==Min) ? Polymake.Min : Polymake.Max
     coeffs = Polymake.TropicalNumber{PMinOrMax}.(Polymake.new_integer_from_fmpz.(min_weights(Delta)))
     exps = ZZ.(matrix(QQ,points(Delta)))
-    pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
+    pmhypproj = Polymake.tropical.Hypersurface{convention_function(minOrMax)}(MONOMIALS=exps, COEFFICIENTS=coeffs)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
 
     # Convert to Oscar objects

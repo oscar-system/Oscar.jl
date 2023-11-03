@@ -35,7 +35,7 @@ convention(nu::TropicalSemiringMap) = convention(tropical_semiring(nu))
 
 # Constructor:
 @doc raw"""
-    tropical_semiring_map(K::Field, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring_map(K::Field, minOrMax::Union{Min,Max}=min)
 
 Return a map `nu` from `K` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=one(T)` for `c` non-zero.  In other words, `nu` extends the trivial valuation on `K`.
 
@@ -61,32 +61,32 @@ julia> nu(0)
 
 ```
 """
-function tropical_semiring_map(K::Field, minOrMax::Union{typeof(min),typeof(max)}=min)
-    return TropicalSemiringMap{typeof(K),Nothing,typeof(minOrMax)}(K,nothing,tropical_semiring(minOrMax))
+function tropical_semiring_map(K::Field, minOrMax::Type{<:MinMax}=Min)
+    return TropicalSemiringMap{typeof(K),Nothing,minOrMax}(K,nothing,tropical_semiring(minOrMax))
 end
 
 # display:
-function Base.show(io::IO, nu::TropicalSemiringMap{K,Nothing,minOrMax} where {K<:Ring, minOrMax<:Union{typeof(min),typeof(max)}})
+function Base.show(io::IO, nu::TropicalSemiringMap{K,Nothing,minOrMax} where {K<:Ring, minOrMax<:Union{Min,Max}})
     print(io, "Map into $(tropical_semiring(nu)) encoding the trivial valuation on $(valued_field(nu))")
 end
 
 # evaluation:
-function (nu::TropicalSemiringMap{K,Nothing,minOrMax})(c::Union{RingElem,Integer,Rational}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+function (nu::TropicalSemiringMap{K,Nothing,minOrMax})(c::Union{RingElem,Integer,Rational}) where {K<:Field, minOrMax<:Union{Min,Max}}
     return (iszero(valued_field(nu)(c)) ? inf(tropical_semiring(nu)) : one(tropical_semiring(nu)))
 end
 
 # valued ring:
-function valued_ring(nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
+function valued_ring(nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{Min,Max}}
     return valued_field(nu)
 end
 
 # residue field:
-function residue_field(nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
+function residue_field(nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{Min,Max}}
     return valued_field(nu)
 end
 
 # initial:
-function initial(c::RingElem, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
+function initial(c::RingElem, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{Min,Max}}
     return residue_field(nu)(c)
 end
 
@@ -100,7 +100,7 @@ end
 
 # Constructor:
 @doc raw"""
-    tropical_semiring_map(QQ::QQField, p::QQFieldElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring_map(QQ::QQField, p::QQFieldElem, minOrMax::Union{Min,Max}=min)
 
 Return a map `nu` from `QQ` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `p`-adic valuation.  Requires `p` to be a prime.
 
@@ -125,42 +125,42 @@ julia> nu_2(1//4)
 
 ```
 """
-function tropical_semiring_map(K::QQField, p::Union{RingElem,Integer,Rational}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_semiring_map(K::QQField, p::Union{RingElem,Integer,Rational}, minOrMax::Type{<:MinMax}=Min)
     p = ZZ(p)
     @req isprime(ZZ(p)) "input p not prime"
     @req p < 2^63-1 "input p may not exceed 2^63"
-    return TropicalSemiringMap{typeof(K),typeof(p),typeof(minOrMax)}(K,p,tropical_semiring(minOrMax))
+    return TropicalSemiringMap{typeof(K),typeof(p),minOrMax}(K,p,tropical_semiring(minOrMax))
 end
 
 # Display:
-function Base.show(io::IO, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.show(io::IO, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{Min,Max}}
     print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(valued_field(nu))")
 end
 
 # Evaluation:
-function (nu::TropicalSemiringMap{QQField,ZZRingElem,typeof(min)})(c::Union{RingElem,Integer,Rational})
+function (nu::TropicalSemiringMap{QQField,ZZRingElem,Min})(c::Union{RingElem,Integer,Rational})
     c = valued_field(nu)(c)
     iszero(c) && return zero(tropical_semiring(nu)) # if input is zero, return tropical zero
     return tropical_semiring(nu)(valuation(c,ZZ(uniformizer(nu))))
 end
-function (nu::TropicalSemiringMap{QQField,ZZRingElem,typeof(max)})(c::Union{RingElem,Integer,Rational})
+function (nu::TropicalSemiringMap{QQField,ZZRingElem,Max})(c::Union{RingElem,Integer,Rational})
     c = valued_field(nu)(c)
     iszero(c) && return zero(tropical_semiring(nu)) # if input is zero, return tropical zero
     return tropical_semiring(nu)(-valuation(c,ZZ(uniformizer(nu))))
 end
 
 # valued ring:
-function valued_ring(nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function valued_ring(nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{Min,Max}}
     return ZZ
 end
 
 # residue field:
-function residue_field(nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function residue_field(nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{Min,Max}}
     return GF(Int(uniformizer(nu)))
 end
 
 # initial:
-function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{QQField,ZZRingElem,minOrMax}) where {minOrMax<:Union{Min,Max}}
     c = valued_field(nu)(c)
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
     c *= QQ(uniformizer(nu))^(-valuation(c,ZZ(uniformizer(nu))))
@@ -177,7 +177,7 @@ end
 
 # Constructor:
 @doc raw"""
-    tropical_semiring_map(Kt::Generic.RationalFunctionField, t::Generic.RationalFunctionFieldElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring_map(Kt::Generic.RationalFunctionField, t::Generic.RationalFunctionFieldElem, minOrMax::Union{Min,Max}=min)
 
 Return a map `nu` from rational function field `Kt` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `t`-adic valuation with uniformizer `t`.  Requires `t` to be non-constant and have denominator `1`.
 
@@ -205,15 +205,15 @@ julia> nu_t(1//t^2)
 
 ```
 """
-function tropical_semiring_map(Kt::Generic.RationalFunctionField, t::Generic.RationalFunctionFieldElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_semiring_map(Kt::Generic.RationalFunctionField, t::Generic.RationalFunctionFieldElem, minOrMax::Type{<:MinMax}=Min)
     @req isone(denominator(t)) "input uniformizer denominator not 1"
     t = numerator(t)
     @req degree(t)>0 "input uniformizer constant"
-    return TropicalSemiringMap{typeof(Kt),typeof(t),typeof(minOrMax)}(Kt,t,tropical_semiring(minOrMax))
+    return TropicalSemiringMap{typeof(Kt),typeof(t),minOrMax}(Kt,t,tropical_semiring(minOrMax))
 end
 
 # Display:
-function Base.show(io::IO, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.show(io::IO, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{Min,Max}}
     print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(valued_field(nu))")
 end
 
@@ -224,30 +224,30 @@ function t_adic_valuation(c::Generic.RationalFunctionFieldElem, t::PolyRingElem)
     return valuation(c_num,t)-valuation(c_nom,t)
 end
 
-function (nu::TropicalSemiringMap{Kt,t,typeof(min)})(c::Union{RingElem,Integer,Rational}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem}
+function (nu::TropicalSemiringMap{Kt,t,Min})(c::Union{RingElem,Integer,Rational}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem}
     c = valued_field(nu)(c)
     iszero(c) && return zero(tropical_semiring(nu)) # if c zero, return tropical zero
     return tropical_semiring(nu)(t_adic_valuation(c,uniformizer(nu)))
 end
 
-function (nu::TropicalSemiringMap{Kt,t,typeof(max)})(c::Union{RingElem,Integer,Rational}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem}
+function (nu::TropicalSemiringMap{Kt,t,Max})(c::Union{RingElem,Integer,Rational}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem}
     c = valued_field(nu)(c)
     iszero(c) && return zero(tropical_semiring(nu)) # if c zero, return tropical zero
     return tropical_semiring(nu)(-t_adic_valuation(c,uniformizer(nu)))
 end
 
 # valued ring:
-function valued_ring(nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
+function valued_ring(nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{Min,Max}}
     return polynomial_ring(base_ring(valued_field(nu)),symbols(valued_field(nu)))[1]
 end
 
 # residue field:
-function residue_field(nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
+function residue_field(nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{Min,Max}}
     return base_ring(valued_field(nu))
 end
 
 # initial:
-function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
+function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{Min,Max}}
     c = valued_field(nu)(c)
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
     c *= valued_field(nu)(uniformizer(nu))^(-t_adic_valuation(c,uniformizer(nu)))

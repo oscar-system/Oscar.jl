@@ -5,28 +5,28 @@
 ################################################################################
 
 # minOrMax distinguishes between the min-plus and max-plus semiring
-struct TropicalSemiring{minOrMax<:Union{typeof(min),typeof(max)}} <: Field
+struct TropicalSemiring{minOrMax<:Union{Min,Max}} <: Field
 end
 
-mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
+mutable struct TropicalSemiringElem{minOrMax<:Union{Min,Max}} <: FieldElem
     parent::TropicalSemiring{minOrMax}
     isinf::Bool        # distinguishes between ±∞ and other tropical numbers
     data::QQFieldElem
 
-    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, isinf::Bool) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, isinf::Bool) where {minOrMax<:Union{Min,Max}}
         @assert isinf
         return new{minOrMax}(R, true)
     end
 
-    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, x::RingElem) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, x::RingElem) where {minOrMax<:Union{Min,Max}}
         return new{minOrMax}(R, false, x)
     end
 end
 
 # Type gymnastics
-elem_type(::Type{TropicalSemiring{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}} = TropicalSemiringElem{minOrMax}
+elem_type(::Type{TropicalSemiring{minOrMax}}) where {minOrMax<:Union{Min,Max}} = TropicalSemiringElem{minOrMax}
 
-parent_type(::Type{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}} = TropicalSemiring{minOrMax}
+parent_type(::Type{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{Min,Max}} = TropicalSemiring{minOrMax}
 
 
 
@@ -65,18 +65,18 @@ julia> convention(T)
 max (generic function with 27 methods)
 ```
 """
-convention(T::TropicalSemiring{typeof(min)}) = min
-convention(T::TropicalSemiring{typeof(max)}) = max
-convention(a::TropicalSemiringElem{typeof(min)}) = min
-convention(a::TropicalSemiringElem{typeof(max)}) = max
-convention(v::Vector{TropicalSemiringElem{typeof(min)}}) = min
-convention(v::Vector{TropicalSemiringElem{typeof(max)}}) = max
-convention(M::Vector{Vector{TropicalSemiringElem{typeof(min)}}}) = min
-convention(M::Vector{Vector{TropicalSemiringElem{typeof(max)}}}) = max
-convention(M::Generic.MatSpaceElem{TropicalSemiringElem{typeof(min)}}) = min
-convention(M::Generic.MatSpaceElem{TropicalSemiringElem{typeof(max)}}) = max
-convention(f::Generic.MPoly{TropicalSemiringElem{typeof(min)}}) = min
-convention(f::Generic.MPoly{TropicalSemiringElem{typeof(max)}}) = max
+convention(T::TropicalSemiring{Min}) = Min
+convention(T::TropicalSemiring{Max}) = Max
+convention(a::TropicalSemiringElem{Min}) = Min
+convention(a::TropicalSemiringElem{Max}) = Max
+convention(v::Vector{TropicalSemiringElem{Min}}) = Min
+convention(v::Vector{TropicalSemiringElem{Max}}) = Max
+convention(M::Vector{Vector{TropicalSemiringElem{Min}}}) = Min
+convention(M::Vector{Vector{TropicalSemiringElem{Max}}}) = Max
+convention(M::Generic.MatSpaceElem{TropicalSemiringElem{Min}}) = Min
+convention(M::Generic.MatSpaceElem{TropicalSemiringElem{Max}}) = Max
+convention(f::Generic.MPoly{TropicalSemiringElem{Min}}) = Min
+convention(f::Generic.MPoly{TropicalSemiringElem{Max}}) = Max
 
 
 ################################################################################
@@ -86,7 +86,7 @@ convention(f::Generic.MPoly{TropicalSemiringElem{typeof(max)}}) = max
 ################################################################################
 
 @doc raw"""
-    tropical_semiring(M::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring(M::Union{Min,Max}=min)
 
 The tropical semiring with min (default) or max.
 
@@ -117,7 +117,7 @@ julia> T = tropical_semiring()
 Min tropical semiring
 
 julia> Tx,(x1,x2) = polynomial_ring(T,2)
-(Multivariate polynomial ring in 2 variables over min tropical semiring, AbstractAlgebra.Generic.MPoly{TropicalSemiringElem{typeof(min)}}[x1, x2])
+(Multivariate polynomial ring in 2 variables over min tropical semiring, AbstractAlgebra.Generic.MPoly{TropicalSemiringElem{Min}}[x1, x2])
 
 julia> f = x1 + -1*x2 + 0
 x1 + (-1)*x2 + (0)
@@ -147,16 +147,16 @@ julia> det(A)
 (0)
 
 julia> minors(A,1)
-4-element Vector{TropicalSemiringElem{typeof(min)}}:
+4-element Vector{TropicalSemiringElem{Min}}:
  (0)
  infty
  infty
  (0)
 ```
 """
-tropical_semiring() = TropicalSemiring{typeof(min)}()
-tropical_semiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
-tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
+tropical_semiring() = TropicalSemiring{Min}()
+tropical_semiring(::Type{Max}) = TropicalSemiring{Max}()
+tropical_semiring(::Type{Min}) = TropicalSemiring{Min}()
 
 
 
@@ -184,16 +184,16 @@ inf(T::TropicalSemiring) = zero(T)
 ################################################################################
 #
 #  Conversion between tropical numbers and rational numbers.
-#  If preserve_ordering==true and minOrMax==typeof(max), flip signs
+#  If preserve_ordering==true and minOrMax==Max, flip signs
 #  (for info on tropical semiring ordering see comparison below).
 #
 ################################################################################
 
-function (R::TropicalSemiring{typeof(min)})(x::QQFieldElem; preserve_ordering::Bool=false)
+function (R::TropicalSemiring{Min})(x::QQFieldElem; preserve_ordering::Bool=false)
   return TropicalSemiringElem(R,x)
 end
 
-function (R::TropicalSemiring{typeof(max)})(x::QQFieldElem; preserve_ordering::Bool=false)
+function (R::TropicalSemiring{Max})(x::QQFieldElem; preserve_ordering::Bool=false)
   return (preserve_ordering ? TropicalSemiringElem(R,-x) : TropicalSemiringElem(R,x))
 end
 
@@ -207,12 +207,12 @@ function (R::TropicalSemiring)(x::RingElem; preserve_ordering::Bool=false)
   return R(x, preserve_ordering=preserve_ordering)
 end
 
-function (::QQField)(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)
+function (::QQField)(x::TropicalSemiringElem{Min}; preserve_ordering::Bool=false)
     @req !iszero(x) "cannot convert $(repr(x))"
     return data(x)
 end
 
-function (::QQField)(x::TropicalSemiringElem{typeof(max)}; preserve_ordering::Bool=false)
+function (::QQField)(x::TropicalSemiringElem{Max}; preserve_ordering::Bool=false)
     @req !iszero(x) "cannot convert $(repr(x))"
     return (preserve_ordering ? -data(x) : data(x))
 end
@@ -252,19 +252,19 @@ end
 ################################################################################
 
 # Hook into the fancy printing, we use (x) for finite values and ±∞ for infinity.
-function AbstractAlgebra.expressify(x::TropicalSemiringElem{minOrMax}; context = nothing) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function AbstractAlgebra.expressify(x::TropicalSemiringElem{minOrMax}; context = nothing) where {minOrMax<:Union{Min,Max}}
     if isinf(x)
         if Oscar.is_unicode_allowed()
-            return minOrMax==typeof(min) ? "∞" : "-∞"
+            return minOrMax==Min ? "∞" : "-∞"
         else
-            return minOrMax==typeof(min) ? "infty" : "-infty"
+            return minOrMax==Min ? "infty" : "-infty"
         end
     end
     return Expr(:call, "", expressify(data(x), context = context))
 end
 
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Min tropical semiring"
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(max)}; context = nothing) = "Max tropical semiring"
+AbstractAlgebra.expressify(R::TropicalSemiring{Min}; context = nothing) = "Min tropical semiring"
+AbstractAlgebra.expressify(R::TropicalSemiring{Max}; context = nothing) = "Max tropical semiring"
 @enable_all_show_via_expressify TropicalSemiringElem
 @enable_all_show_via_expressify TropicalSemiring
 
@@ -312,13 +312,13 @@ isone(x::TropicalSemiringElem) = !isinf(x) && iszero(data(x))
 #
 ################################################################################
 
-function isless(x::TropicalSemiringElem{typeof(min)}, y::TropicalSemiringElem{typeof(min)})
+function isless(x::TropicalSemiringElem{Min}, y::TropicalSemiringElem{Min})
   iszero(x) && return false # x=-inf, no y is smaller
   iszero(y) && return true  # y=-inf, smaller than all x except x=-inf, which was handled above
   return data(x) < data(y)
 end
 
-function isless(x::TropicalSemiringElem{typeof(max)}, y::TropicalSemiringElem{typeof(max)})
+function isless(x::TropicalSemiringElem{Max}, y::TropicalSemiringElem{Max})
   iszero(x) && return false # x=inf, no y is smaller
   iszero(y) && return true  # y=inf, smaller than all x except x=inf, which was handled above
   return data(x) > data(y)
@@ -332,7 +332,7 @@ end
 #
 ################################################################################
 
-function Base.:(+)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.:(+)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{Min,Max}}
     iszero(x) && return deepcopy(y)                           # if x is zero, return y
     iszero(y) && return deepcopy(x)                           # if y is zero, return x
     return parent(x)(convention(parent(x))(data(x), data(y))) # otherwise, return their min / max
@@ -342,22 +342,22 @@ function Base.:(-)(x::TropicalSemiringElem, y::TropicalSemiringElem...)
   error("Tropical subtraction not defined (use tropical division for classical subtraction)")
 end
 
-function Base.:(*)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.:(*)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{Min,Max}}
     iszero(x) && return x # if x is zero, return it
     iszero(y) && return y # if y is zero, return it
     return parent(x)(data(x) + data(y)) # otherwise, return their sum
 end
 
-function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{Min,Max}}
     @req !iszero(y) "dividing by (tropical) zero"
     return (iszero(x) ? x : parent(x)(data(x)-data(y)))
 end
 
-function Base.:(//)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.:(//)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{Min,Max}}
     return divexact(x,y)
 end
 
-function Base.:(/)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function Base.:(/)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{Min,Max}}
     return divexact(x,y)
 end
 

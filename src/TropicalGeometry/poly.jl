@@ -214,7 +214,7 @@ end
 # # Disabled due to potential clash with
 # # tropical_polynomial(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
 # @doc raw"""
-#     tropical_polynomial(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
+#     tropical_polynomial(f::MPolyRingElem,M::Union{Min,Max}=min)
 
 # Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
 # on which a function `valuation` is defined such as `PadicField(7,2)`),
@@ -239,7 +239,7 @@ end
 # (-1)*x + y + (-2)
 # ```
 # """
-# function tropical_polynomial(f::MPolyRingElem, M::Union{typeof(min),typeof(max)}=min)
+# function tropical_polynomial(f::MPolyRingElem, M::Union{Min,Max}=min)
 #   T = tropical_semiring(M)
 #   if M==min
 #     s=1

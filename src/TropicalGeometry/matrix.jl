@@ -38,6 +38,6 @@ function det(A::Generic.MatSpaceElem{<:TropicalSemiringElem})
     return detA
 end
 
-function det(A::Matrix{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function det(A::Matrix{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{Min,Max}}
     return det(matrix(TropicalSemiring{minOrMax},A))
 end

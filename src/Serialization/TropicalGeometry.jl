@@ -1,6 +1,6 @@
 # Tropical Semiring
-@register_serialization_type TropicalSemiring{typeof(min)}
-@register_serialization_type TropicalSemiring{typeof(max)}
+@register_serialization_type TropicalSemiring{Min}
+@register_serialization_type TropicalSemiring{Max}
 
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params

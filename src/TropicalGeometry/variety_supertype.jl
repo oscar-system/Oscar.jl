@@ -60,11 +60,11 @@ function codim(TropV::TropicalVarietySupertype{minOrMax,true}) where minOrMax
 end
 
 
-function convention(TropV::TropicalVarietySupertype{typeof(min),isEmbedded}) where isEmbedded
-    return min
+function convention(TropV::TropicalVarietySupertype{Min,isEmbedded}) where isEmbedded
+    return Min
 end
-function convention(TropV::TropicalVarietySupertype{typeof(max),isEmbedded}) where isEmbedded
-    return max
+function convention(TropV::TropicalVarietySupertype{Max,isEmbedded}) where isEmbedded
+    return Max
 end
 
 

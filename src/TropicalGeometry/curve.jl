@@ -11,13 +11,13 @@
     multiplicities::Vector{ZZRingElem}
 
     # embedded tropical curves contain a PolyhedralComplex
-    function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{Min,Max}}
         @req dim(Sigma)==1 "input not one-dimensional"
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 
     # abstract tropical curves contain a Graph
-    function TropicalCurve{minOrMax,false}(Sigma::Graph, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalCurve{minOrMax,false}(Sigma::Graph, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{Min,Max}}
         return new{minOrMax,false}(Sigma,multiplicities)
     end
 end
@@ -30,16 +30,16 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, th::TropicalCurve{typeof(min),true})
+function Base.show(io::IO, th::TropicalCurve{Min,true})
     print(io, "Embedded min tropical curve")
 end
-function Base.show(io::IO, th::TropicalCurve{typeof(max),true})
+function Base.show(io::IO, th::TropicalCurve{Max,true})
     print(io, "Embedded max tropical curve")
 end
-function Base.show(io::IO, th::TropicalCurve{typeof(min),false})
+function Base.show(io::IO, th::TropicalCurve{Min,false})
     print(io, "Abstract min tropical curve")
 end
-function Base.show(io::IO, th::TropicalCurve{typeof(max),false})
+function Base.show(io::IO, th::TropicalCurve{Max,false})
     print(io, "Abstract max tropical curve")
 end
 
@@ -51,7 +51,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{Min,Max}=min)
 
 Return the embedded tropical curve consisting of the polyhedral complex `Sigma` and multiplicities `multiplicities`.
 
@@ -77,17 +77,17 @@ Embedded min tropical curve
 
 ```
 """
-function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{Type{Min},Type{Max}}=Min)
     return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
-function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{Type{Min},Type{Max}}=Min)
     multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
 
 @doc raw"""
-    tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{Min,Max}=min)
 
 Return the abstract tropical curve consisting of the graph `Sigma` and multiplicities `multiplicities`.
 
@@ -106,10 +106,10 @@ Abstract min tropical curve
 
 ```
 """
-function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Type{<:MinMax}=Min)
    return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
 end
-function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_curve(Sigma::Graph,minOrMax::Union{Min,Max}=min)
     multiplicities = ones(ZZRingElem, ne(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end

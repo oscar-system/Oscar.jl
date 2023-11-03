@@ -11,7 +11,7 @@
     multiplicities::Vector{ZZRingElem}
 
     # tropical varieties need to be embedded
-    function TropicalVariety{minOrMax,true}(Sigma::PolyhedralComplex,multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalVariety{minOrMax,true}(Sigma::PolyhedralComplex,multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{Min,Max}}
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
@@ -24,10 +24,10 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, tv::TropicalVariety{typeof(min), true})
+function Base.show(io::IO, tv::TropicalVariety{Min, true})
     print(io, "Min tropical variety")
 end
-function Base.show(io::IO, tv::TropicalVariety{typeof(max), true})
+function Base.show(io::IO, tv::TropicalVariety{Max, true})
     print(io, "Max tropical variety")
 end
 
@@ -40,7 +40,7 @@ end
 ################################################################################
 
 @doc raw"""
-    tropical_variety(Sigma::PolyhedralComplex, mult, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_variety(Sigma::PolyhedralComplex, mult, minOrMax::Union{Min,Max}=min)
 
 Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplicities `mult` and convention `minOrMax`. Here, `mult` is optional can be specified as a `Vector{ZZRingElem}` which represents a list of multiplicities on the maximal polyhedra in the order of `maximal_polyhedra(Sigma)`.  If `mult` is unspecified, then all multiplicities are set to one.
 
@@ -70,15 +70,15 @@ Max tropical variety
 
 ```
 """
-function tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    return TropicalVariety{typeof(minOrMax),true}(Sigma,mult)
+function tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Type{<:MinMax}=Min)
+    return TropicalVariety{minOrMax,true}(Sigma,mult)
 end
-function tropical_variety(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_variety(Sigma::PolyhedralComplex, minOrMax::Union{Min,Max}=min)
     mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_variety(Sigma,mult,minOrMax)
 end
 
-function tropical_variety(TropH::TropicalHypersurface{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function tropical_variety(TropH::TropicalHypersurface{minOrMax,true}) where {minOrMax<:Union{Min,Max}}
     TropV = tropical_variety(polyhedral_complex(TropH),multiplicities(TropH), convention(TropH))
 
     if has_attribute(TropH,:algebraic_polynomial)
@@ -92,7 +92,7 @@ function tropical_variety(TropH::TropicalHypersurface{minOrMax,true}) where {min
 end
 
 
-function tropical_variety(TropL::TropicalLinearSpace{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function tropical_variety(TropL::TropicalLinearSpace{minOrMax,true}) where {minOrMax<:Union{Min,Max}}
     TropV = tropical_variety(polyhedral_complex(TropL),multiplicities(TropL), convention(TropL))
 
     if has_attribute(TropL,:algebraic_ideal)
@@ -161,7 +161,7 @@ function polyhedral_complex(Sigma::Vector{<:Polyhedron})
 end
 
 
-function tropical_variety(Sigma::Vector{<:Polyhedron}, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+function tropical_variety(Sigma::Vector{<:Polyhedron}, multiplicities::Vector{ZZRingElem}, minOrMax::Union{Min,Max}=min)
     polyhedralComplex = polyhedral_complex(Sigma)
     return tropical_variety(polyhedralComplex,multiplicities,minOrMax)
 end
@@ -476,7 +476,7 @@ end
 #
 ################################################################################
 
-function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,QQFieldElem,<:Union{typeof(min),typeof(max)}})
+function tropical_variety_zerodimensional(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,QQFieldElem,<:Union{Min,Max}})
 
     k,(a,_) = number_field(I)
     zk = maximal_order(k)
@@ -579,7 +579,7 @@ end
 # Random.seed!(3847598273423);
 # TropI = tropical_variety(I,val)
 # =======#
-# function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::Union{typeof(min),typeof(max)}=min)
+# function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::Union{Min,Max}=min)
 
 #   ###
 #   # Part 0: Preprocessing
@@ -785,7 +785,7 @@ end
 #   new_incidence = [permutation[incidence] for incidence in incidence_matrix]
 #   mults = Dict(new_incidence[i] => multiplicities[i] for i in 1:length(working_list_done))
 
-#   TropI = TropicalVariety{typeof(max),true}(PC, mults)
+#   TropI = TropicalVariety{Max,true}(PC, mults)
 
 
 #   set_attribute!(TropI,:weight_vectors,weight_vectors)

@@ -5,25 +5,25 @@
         f = x^2+y^2+2*x+2*y
         w = [-1,-1]
         nuMin = tropical_semiring_map(QQ)
-        nuMax = tropical_semiring_map(QQ,max)
+        nuMax = tropical_semiring_map(QQ,Max)
         @test initial(f,nuMin,w) == x^2+y^2 # trivial, min
-        @test initial(f,nuMax,w) == 2*x+2*y # trivial, max
+        @test initial(f,nuMax,w) == 2*x+2*y # trivial, Max
 
         nuMin = tropical_semiring_map(QQ,2)
-        nuMax = tropical_semiring_map(QQ,2,max)
+        nuMax = tropical_semiring_map(QQ,2,Max)
         S,(x,y) = GF(2)["x","y"]
         @test initial(f,nuMin,w) == x^2+y^2 # padic, min
-        @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
+        @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, Max
 
         K,t = rational_function_field(GF(2),"t")
         R,(x,y) = K["x","y"]
         f = x^2+y^2+t*x+t*y
         w = [-1,-1]
         nuMin = tropical_semiring_map(K,t)
-        nuMax = tropical_semiring_map(K,t,max)
+        nuMax = tropical_semiring_map(K,t,Max)
         S,(x,y) = GF(2)["x","y"]
         @test initial(f,nuMin,w) == x^2+y^2 # tadic, min
-        @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
+        @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, Max
     end
 
     # no tests for initial(::MPolyIdeal,::TropicalSemiringMap,::Vector),

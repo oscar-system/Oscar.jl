@@ -11,7 +11,7 @@
     multiplicities::Vector{ZZRingElem}
 
     # tropical linear spaces need to be embedded
-    function TropicalLinearSpace{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    function TropicalLinearSpace{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{Min,Max}}
         return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
@@ -24,10 +24,10 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, th::TropicalLinearSpace{typeof(min), true})
+function Base.show(io::IO, th::TropicalLinearSpace{Min, true})
     print(io, "Min tropical linear space")
 end
-function Base.show(io::IO, th::TropicalLinearSpace{typeof(max), true})
+function Base.show(io::IO, th::TropicalLinearSpace{Max, true})
     print(io, "Max tropical linear space")
 end
 
@@ -39,12 +39,12 @@ end
 #
 ###############################################################################
 
-function tropical_linear_space(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
-    return TropicalLinearSpace{typeof(minOrMax),true}(Sigma,mult)
+function tropical_linear_space(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Type{<:MinMax}=Min)
+    return TropicalLinearSpace{minOrMax,true}(Sigma,mult)
 end
 
 
-function tropical_linear_space(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function tropical_linear_space(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:MinMax}
     mult = multiplicities(TropV)
     @req isnothing(findfirst(!isequal(one(ZZ)),collect(values(mult)))) "tropical variety not all multiplicities one"
     return tropical_linear_space(polyhedral_complex(TropV),mult,convention(TropV))
@@ -102,12 +102,12 @@ function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVec
     n = length(unique(Iterators.flatten(plueckerIndices)))
 
     # construct tropical linear space
-    valuatedMatroid = Polymake.matroid.ValuatedMatroid{minOrMax}(
+    valuatedMatroid = Polymake.matroid.ValuatedMatroid{convention_function(minOrMax)}(
         BASES = plueckerIndicesForPolymake,
         N_ELEMENTS = n,
         VALUATION_ON_BASES = plueckerVectorForPolymake)
 
-    Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{minOrMax}(valuatedMatroid))
+    Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{convention_function(minOrMax)}(valuatedMatroid))
     Sigma = add_missing_lineality_from_polymake(Sigma)
     multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 
