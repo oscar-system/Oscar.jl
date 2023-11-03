@@ -31,15 +31,24 @@ In which direction the maps in the rows and columns go can be asked with the fol
     horizontal_direction(dc::AbsDoubleComplexOfMorphisms)
     vertical_direction(dc::AbsDoubleComplexOfMorphisms)
 ```
-Double complexes can be bounded or unbounded. But even in the bounded case where only finitely 
-many ``D_{i, j}`` can be non-zero, it is not clear that a concrete bound for the 
-range of indices ``(i, j)`` of possibly non-zero entries is known. Then again, even in that case 
-such a bound might be rather theoretical and it is still encouraged that double complexes be implemented 
-lazy and not fill out the full grid of morphisms on construction. Thus a merely *theoretical* bound 
-on the range of indices does not seem to be practically relevant. 
-
-To accomodate all of these cases, we are forced to employ a rather general pattern for the 
-admissible ranges of a double complex.
+Double complexes can be bounded or unbounded. It is important to note that even if such 
+bounds exist and are known, this is a priori **not** related to whether or not 
+certain entries are computable! I.e. even in the case of a bounded complex `dc` 
+it might still be valid to call `dc[i, j]` beyond that bound. In general, one should 
+use the following functions to determine whether or not it is legitimate to ask for a 
+specific entry.
+```@docs 
+    has_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+    can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+```
+Explicitly known bounds for the non-zero entries of a complex are nevertheless relevant for 
+various generic functionalities. 
+For example, computing a total complex is only possible in practice if one has an a priori estimate 
+where the non-zero entries are located. For such purposes, we provide the following functionality:
 ```@docs
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
@@ -52,17 +61,6 @@ If they exist, these bounds can be asked for using
     left_bound(D::AbsDoubleComplexOfMorphisms)
     upper_bound(D::AbsDoubleComplexOfMorphisms)
     lower_bound(D::AbsDoubleComplexOfMorphisms)
-```
-The existence of the above bounds does **not** indicate whether the entry 
-`D[i, j]` or the maps leaving from it have been or can be computed! 
-In principal it is advised to check for this using 
-```@docs 
-    has_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 ```
 It is also possible to query whether or not a double complex 
 is already complete in the sense that it knows about all of its 
