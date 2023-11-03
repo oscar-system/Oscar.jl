@@ -53,20 +53,20 @@
         loadedU = Oscar.load(filenameU)
         @test GAP.Globals.GeneratorsOfGroup(loadedU)[1] in loadedF
 
-#        # full group and subgroup together in the same Julia session
-#        V = GAP.Globals.Subgroup(F, GAP.GapObj([Fgens[2]]))
-#        v = (F, U, V)
-#        test_save_load_roundtrip(path, v) do loaded
-#          @test v == loaded
-#        end
-#
-#        # full group and subgroup together in a new Julia session
-#        filenamev = joinpath(path, "v")
-#        Oscar.save(filenamev, v)
-#        Oscar.reset_global_serializer_state()
-#        loaded = Oscar.load(filenamev)
-#        @test GAP.Globals.GeneratorsOfGroup(loaded[2])[1] in loaded[1]
-#        @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
+        # full group and subgroup together in the same Julia session
+        V = GAP.Globals.Subgroup(F, GAP.GapObj([Fgens[2]]))
+        v = (F, U, V)
+        test_save_load_roundtrip(path, v) do loaded
+          @test v == loaded
+        end
+
+        # full group and subgroup together in a new Julia session
+        filenamev = joinpath(path, "v")
+        Oscar.save(filenamev, v)
+        Oscar.reset_global_serializer_state()
+        loaded = Oscar.load(filenamev)
+        @test GAP.Globals.GeneratorsOfGroup(loaded[2])[1] in loaded[1]
+        @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
       end
     end
 
@@ -103,8 +103,20 @@
       loadedU = Oscar.load(filenameU)
       @test GAP.Globals.GeneratorsOfGroup(loadedU)[1] in loadedG
 
-#      # full group and subgroup together in the same Julia session
-#      # full group and subgroup together in a new Julia session
+      # full group and subgroup together in the same Julia session
+      V = GAP.Globals.Subgroup(G, GAP.GapObj([Ggens[2]]))
+      v = (G, U, V)
+      test_save_load_roundtrip(path, v) do loaded
+        @test v == loaded
+      end
+
+      # full group and subgroup together in a new Julia session
+      filenamev = joinpath(path, "v")
+      Oscar.save(filenamev, v)
+      Oscar.reset_global_serializer_state()
+      loaded = Oscar.load(filenamev)
+      @test GAP.Globals.GeneratorsOfGroup(loaded[2])[1] in loaded[1]
+      @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
     end
 
     @testset "IsPcGroup" begin
@@ -144,8 +156,20 @@
         @test GAP.Globals.IsomorphismGroups(loadedG, G) != GAP.Globals.fail
         @test GAP.Globals.IsomorphismGroups(loadedU, U) != GAP.Globals.fail
 
-#      # full group and subgroup together in the same Julia session
-#      # full group and subgroup together in a new Julia session
+        # full group and subgroup together in the same Julia session
+        V = GAP.Globals.SylowSubgroup(G, 3)
+        v = (G, U, V)
+        test_save_load_roundtrip(path, v) do loaded
+          @test v == loaded
+        end
+
+        # full group and subgroup together in a new Julia session
+        filenamev = joinpath(path, "v")
+        Oscar.save(filenamev, v)
+        Oscar.reset_global_serializer_state()
+        loaded = Oscar.load(filenamev)
+        @test GAP.Globals.One(loaded[2]) in loaded[1]
+        @test GAP.Globals.One(loaded[3]) in loaded[1]
       end
     end
   end

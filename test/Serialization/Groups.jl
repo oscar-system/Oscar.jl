@@ -42,7 +42,7 @@
       # simulate loading into a fresh Julia session
       Oscar.reset_global_serializer_state()
       loadedv = load(filenamev)
-#     @test parent(loadedv[1]) === loadedv[3]
+      @test parent(loadedv[1]) === loadedv[3]
 
       loadedw = load(filenamew)
       @test parent(loadedw[1]) === parent(loadedw[2])
@@ -89,7 +89,7 @@
       filenamev = joinpath(path, "v")
       save(filenamev, v)
       loadedv = load(filenamev)
-#     @test v == loadedv
+      @test v == loadedv
 
       # three elements from two different groups
       w = (x, x^2, y)
@@ -102,12 +102,12 @@
       # simulate loading into a fresh Julia session
        Oscar.reset_global_serializer_state()
        loadedv = load(filenamev)
-#      @test parent(loadedv[1]) === loadedv[3]
+       @test parent(loadedv[1]) === loadedv[3]
 
        loadedw = load(filenamew)
        @test parent(loadedw[1]) === parent(loadedw[2])
        @test parent(loadedw[1]) !== parent(loadedw[3])
-       @test parent(loadedw[1]) !== G
+       @test parent(loadedw[1]) !== F
        @test parent(loadedw[3]) !== U
        @test loadedw[1] == loadedv[1]
        @test parent(loadedw[1]) === parent(loadedv[1])
@@ -145,7 +145,7 @@
        filenamev = joinpath(path, "v")
        save(filenamev, v)
        loadedv = load(filenamev)
-#      @test v == loadedv
+       @test v == loadedv
 
        # three elements from two different groups
        w = (x, x^2, y)
@@ -158,7 +158,7 @@
        # simulate loading into a fresh Julia session
        Oscar.reset_global_serializer_state()
        loadedv = load(filenamev)
-#      @test parent(loadedv[1]) === loadedv[3]
+       @test parent(loadedv[1]) === loadedv[3]
 
        loadedw = load(filenamew)
        @test parent(loadedw[1]) === parent(loadedw[2])
@@ -200,8 +200,8 @@
         filenamev = joinpath(path, "v")
         save(filenamev, v)
         loadedv = load(filenamev)
-#       @test v == loadedv
-  
+        @test v == loadedv
+
         # three elements from two different groups
         w = (x, x^2, y)
         filenamew = joinpath(path, "w")
@@ -209,11 +209,11 @@
         loadedw = load(filenamew)
         @test w == loadedw
         @test parent(loadedv[1]) === parent(loadedw[1])
-  
+
         # simulate loading into a fresh Julia session
         Oscar.reset_global_serializer_state()
         loadedv = load(filenamev)
-#       @test parent(loadedv[1]) === loadedv[3]
+        @test parent(loadedv[1]) === loadedv[3]
         loadedw = load(filenamew)
         @test parent(loadedv[1]) === parent(loadedw[2])
         @test parent(loadedw[1]) === parent(loadedw[2])
