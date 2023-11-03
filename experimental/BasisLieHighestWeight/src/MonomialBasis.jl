@@ -4,7 +4,7 @@ struct MonomialBasis
   highest_weight::Vector{Int}
   monomial_ordering::MonomialOrdering
   dimension::Int
-  monomials::Vector{ZZMPolyRingElem}
+  monomials::Set{ZZMPolyRingElem}
   monomials_parent::ZZMPolyRing
   minkowski_gens::Vector{Vector{ZZRingElem}} # TODO: put in attribute storage
   birational_sequence::BirationalSequence # TODO: put in attribute storage
@@ -13,7 +13,7 @@ struct MonomialBasis
     lie_algebra::LieAlgebraStructure,
     highest_weight::Vector{<:IntegerUnion},
     monomial_ordering::MonomialOrdering,
-    monomials::Vector{ZZMPolyRingElem},
+    monomials::Set{ZZMPolyRingElem},
     minkowski_gens::Vector{Vector{ZZRingElem}},
     birational_sequence::BirationalSequence,
   )

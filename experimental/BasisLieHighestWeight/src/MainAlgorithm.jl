@@ -72,12 +72,12 @@ function basis_lie_highest_weight_compute(
     no_minkowski,
   )
 
-  monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+  # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
 
   # output
   return MonomialBasis(
-    L, highest_weight, monomial_ordering, monomials, minkowski_gens, birational_sequence
+    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
   )
 end
 
