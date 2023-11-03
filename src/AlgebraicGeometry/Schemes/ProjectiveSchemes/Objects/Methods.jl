@@ -231,11 +231,54 @@ function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
   error("method not implemented for this type of input")
 end
 
-function homogenization_map(P::AbsProjectiveScheme{<:Field}, U::AbsSpec)
-  error("method not implemented for projective schemes over fields")
+# Projective schemes over a Field or ZZ or similar
+function homogenization_map(P::AbsProjectiveScheme{<:Field, <:Union{MPolyDecRing,MPolyQuoRing{<:MPolyDecRingElem}}}, U::AbsSpec)
+  cache = _homogenization_cache(P)
+  if haskey(cache, U)
+    return cache[U]
+  end
+  # Find the chart where U belongs to
+  X = covered_scheme(P)
+  i = findfirst(V->(U===V), affine_charts(X))
+  i === nothing && error("the given affine scheme is not one of the standard affine charts")
+
+  # Determine those variables which come from the homogeneous
+  # coordinates
+  S = homogeneous_coordinate_ring(P)
+  n = ngens(S)
+  R = ambient_coordinate_ring(U)
+  v = copy(gens(S))
+  # prepare a vector of elements on which to evaluate the lifts
+  popat!(v, i)  # remove the i-th variable
+  function my_dehom(a::RingElem)
+    parent(a) === OO(U) || error("element does not belong to the correct ring")
+    p = lifted_numerator(a)
+    q = lifted_denominator(a)
+    deg_p = total_degree(p)
+    deg_q = total_degree(q)
+    deg_a = deg_p - deg_q
+    ss = S[i] # the homogenization variable
+
+    # preliminary lifts, not yet homogenized!
+    pp = lift(evaluate(p, v))
+    qq = lift(evaluate(q, v))
+    # homogenize numerator and denominator
+    pp = sum([c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(pp), monomials(pp))])
+    qq = sum([c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(qq), monomials(qq))])
+
+    if deg_a > 0
+      return (pp, qq*ss^deg_a)
+    elseif deg_a <0
+      return (pp * ss^(-deg_a), qq)
+    end
+    return (pp, qq)
+  end
+  cache[U] = my_dehom
+  return my_dehom
 end
 
-function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::AbsSpec)
+
+function homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsSpec)
   cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
@@ -258,7 +301,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
   t = gens(S)
 
   w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
-  v = gens(S)
+  v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
   popat!(v, i)
   v = vcat(v, S.(gens(B)))
@@ -290,7 +333,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyDecRing}, U::Ab
   return my_dehom
 end
 
-function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::AbsSpec)
+function homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsSpec)
   cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
@@ -313,7 +356,7 @@ function homogenization_map(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}, U::Ab
   t = gens(S)
 
   w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
-  v = gens(S)
+  v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
   popat!(v, i)
   v = vcat(v, S.(gens(B)))
@@ -392,7 +435,7 @@ end
 function Base.intersect(comp::Vector{<:AbsProjectiveScheme})
   @assert length(comp) > 0 "list of schemes must not be empty"
   IP = ambient_space(first(comp))
-  @assert all(x->ambient_space(x)===IP, comp[2:end]) "schemes must have the same ambient space"
+  @assert all(x->ambient_space(x)==IP, comp[2:end]) "schemes must have the same ambient space"
   S = homogeneous_coordinate_ring(IP)
   I = sum([defining_ideal(x) for x in comp])
   result = subscheme(IP, I)
@@ -407,12 +450,13 @@ end
 function Base.union(comp::Vector{<:AbsProjectiveScheme})
   @assert length(comp) > 0 "list of schemes must not be empty"
   IP = ambient_space(first(comp))
-  @assert all(x->ambient_space(x)===IP, comp[2:end]) "schemes must have the same ambient space"
+  @assert all(x->ambient_space(x)==IP, comp[2:end]) "schemes must have the same ambient space"
   S = homogeneous_coordinate_ring(IP)
   I = intersect([defining_ideal(x) for x in comp])
   result = subscheme(IP, I)
   set_attribute!(result, :ambient_space, IP)
   return result
 end
+
 
 

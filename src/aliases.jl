@@ -61,7 +61,6 @@
 @alias issemisimple is_semisimple
 @alias issimplicial is_simplicial
 @alias issingular is_singular
-@alias issmooth_curve is_smooth_curve
 @alias issolvable is_solvable
 @alias issupersolvable is_supersolvable
 @alias istransitive is_transitive

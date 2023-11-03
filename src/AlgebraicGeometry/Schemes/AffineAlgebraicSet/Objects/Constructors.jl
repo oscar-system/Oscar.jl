@@ -58,7 +58,7 @@ defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
 
 ```
 """
-function algebraic_set(p::MPolyRingElem, is_radical::Bool =false, check::Bool=true)
+function algebraic_set(p::MPolyRingElem; is_radical::Bool =false, check::Bool=true)
   I = ideal(parent(p), p)
   return algebraic_set(I, check=check, is_radical=is_radical)
 end
@@ -121,6 +121,11 @@ true
 """
 function set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
   Z = intersect(fat_scheme(X), fat_scheme(Y))
+  return algebraic_set(Z)
+end
+
+function union(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
+  Z = union(fat_scheme(X), fat_scheme(Y))
   return algebraic_set(Z)
 end
 

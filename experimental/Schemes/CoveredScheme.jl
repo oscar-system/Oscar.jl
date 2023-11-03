@@ -101,6 +101,24 @@ affine_refinements(C::Covering) = C.affine_refinements
 ########################################################################
 
 @attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
+  return _standard_covering(X, identity)
+end
+
+
+@attr function standard_covering(X::AbsProjectiveAlgebraicSet)
+  return _standard_covering(X, i->AffineAlgebraicSet(i;check=false))
+end
+
+@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+  return _standard_covering(X, i->AffineVariety(AffineAlgebraicSet(i;check=false,is_reduced=true);check=false))
+end
+
+@attr function standard_covering(X::ProjectivePlaneCurve)
+  return _standard_covering(X, i->AffinePlaneCurve(i;check=false))
+end
+
+
+function _standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing}, F)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
@@ -112,7 +130,7 @@ affine_refinements(C::Covering) = C.affine_refinements
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
-    push!(U, Spec(quo(R, I)[1]))
+    push!(U, F(Spec(quo(R, I)[1])))
     decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
@@ -142,7 +160,8 @@ affine_refinements(C::Covering) = C.affine_refinements
 end
 
 
-@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+
+function _standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing}, F)
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
@@ -152,7 +171,7 @@ end
   decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    push!(U, Spec(R))
+    push!(U, F(Spec(R)))
     decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
   result = Covering(U)
