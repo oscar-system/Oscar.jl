@@ -17,6 +17,17 @@
       end
     end
 
+    @testset "Preserve Vector type" begin
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      Fy, y = F[:y]
+      v = [y^2, y + 1]
+
+      test_save_load_roundtrip(path, v) do loaded
+        @test typeof(loaded) == typeof(v)
+      end
+    end
+  
     @testset "ids in containers" begin
       R, x = QQ[:x]
       test_save_load_roundtrip(path, (x^2, x + 1, R)) do loaded
