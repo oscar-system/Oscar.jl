@@ -89,7 +89,7 @@
     @test cartan_type(cartan_matrix((:A, 1), (:A, 2)); check=false) == [(:A, 1), (:A, 2)]
     @test cartan_type(cartan_matrix((:A, 1), (:B, 2)); check=false) == [(:A, 1), (:B, 2)]
     @test cartan_type(cartan_matrix((:C, 2), (:B, 2)); check=false) == [(:C, 2), (:B, 2)]
-    @test cartan_type([2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]; check=false) ==
+    @test cartan_type(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]; check=false) ==
       [(:B, 2), (:C, 2)]
   end
 end
