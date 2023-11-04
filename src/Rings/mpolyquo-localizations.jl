@@ -91,14 +91,14 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
       RingElemType<:MPolyRingElem, 
       MultSetType<:AbsMultSet{RingType, RingElemType}
     }
-    base_ring(I) == R || error("Ideal does not belong to the ring")
-    base_ring(Q) == R || error("The quotient ring does not come from the given ring")
+    base_ring(I) === R || error("Ideal does not belong to the ring")
+    base_ring(Q) === R || error("The quotient ring does not come from the given ring")
     # The following line throws obscure error messages that might yield a bug for MPolyIdeals.
     # So it's commented out for now.
     #modulus(Q) == I || error("the modulus of the quotient ring does not coincide with the ideal")
-    S == inverted_set(W) || error("the multiplicative set does not coincide with the inverted set of the localized ring")
-    base_ring(W) == R || error("the localization does not come from the given ring")
-    ambient_ring(S) == R || error("Multiplicative set does not belong to the ring")
+    S === inverted_set(W) || error("the multiplicative set does not coincide with the inverted set of the localized ring")
+    base_ring(W) === R || error("the localization does not come from the given ring")
+    ambient_ring(S) === R || error("Multiplicative set does not belong to the ring")
     k = coefficient_ring(R)
     L = new{typeof(k), elem_type(k), typeof(R), RingElemType, MultSetType}(R, I, S, Q, W)
     return L
@@ -324,7 +324,7 @@ function localization(
     L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
+  ambient_ring(S) === base_ring(L) || error("multiplicative set does not belong to the correct ring")
   issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
   U = inverted_set(L)*S
   W = MPolyQuoLocRing(base_ring(L), modulus(underlying_quotient(L)), U, underlying_quotient(L), localization(U)[1])
@@ -361,7 +361,7 @@ end
 
 function Base.in(f::AbstractAlgebra.Generic.Frac{RET}, L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
-  R == parent(numerator(f)) || error("element does not belong to the correct ring")
+  R === parent(numerator(f)) || error("element does not belong to the correct ring")
   denominator(f) in inverted_set(L) && return true
   return numerator(f) in ideal(L, denominator(f))
 end
@@ -421,7 +421,7 @@ mutable struct MPolyQuoLocRingElem{
 
     S = inverted_set(L)
     R = base_ring(L)
-    parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
+    parent(a) === parent(b) === R || error("elements do not belong to the correct ring")
     @check b in S || error("denominator is not admissible")
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(L, a, b, is_reduced)
   end
@@ -531,7 +531,7 @@ function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::MPolyLocRingElem{BRT, 
 end
 
 function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoRingElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
-  base_ring(parent(f)) == base_ring(L) || error("the given element does not belong to the correct ring") 
+  base_ring(parent(f)) === base_ring(L) || error("the given element does not belong to the correct ring") 
   if parent(f) !== underlying_quotient(L) 
     @check all(x->(iszero(L(x))), gens(modulus(parent(f)))) "coercion is not well defined"
   end
@@ -589,19 +589,19 @@ function is_unit(f::MPolyQuoLocRingElem)
 end
 
 function is_unit(L::MPolyQuoLocRing, f::MPolyLocRingElem) 
-  parent(f) == localized_ring(L) || error("element does not belong to the correct ring")
+  parent(f) === localized_ring(L) || error("element does not belong to the correct ring")
   numerator(f) in inverted_set(L) && return true
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), f)
 end
 
 function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
-  parent(f) == base_ring(L) || error("element does not belong to the correct ring")
+  parent(f) === base_ring(L) || error("element does not belong to the correct ring")
   f in inverted_set(L) && return true
   return one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
 function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingElem{RET}) where {BRT, BRET, RT, RET, MST}
-  parent(f) == underlying_quotient(L) || error("element does not belong to the correct ring")
+  parent(f) === underlying_quotient(L) || error("element does not belong to the correct ring")
   lift(f) in inverted_set(L) && return true
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
@@ -611,7 +611,7 @@ end
 function inv(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     f::MPolyQuoRingElem{RET}) where {BRT, BRET, RT, RET}
   Q = underlying_quotient(L)
-  parent(f) == underlying_quotient(L) || error("element does not belong to the correct ring")
+  parent(f) === underlying_quotient(L) || error("element does not belong to the correct ring")
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
@@ -663,7 +663,7 @@ function convert(
   a = numerator(f)
   b = denominator(f)
   Q = underlying_quotient(L)
-  parent(a) == base_ring(L) || error("element does not belong to the correct ring")
+  parent(a) === base_ring(L) || error("element does not belong to the correct ring")
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
@@ -733,7 +733,7 @@ end
 
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   if lifted_denominator(a) == lifted_denominator(b) 
     return (parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false)
   end
@@ -755,7 +755,7 @@ function -(a::T, b::T) where {T<:MPolyQuoLocRingElem}
 end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
@@ -817,7 +817,8 @@ function divexact(a::T, b::T) where {T<:MPolyQuoLocRingElem}
 end
 
 function ==(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
+  a === b && return true
   return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in modulus(parent(a))
 end
 
@@ -872,7 +873,7 @@ function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocRingElem
   length(f) == 0 && error("need at least one argument to determine the return type")
   R = base_ring(parent(f[1]))
   for a in f
-    R == base_ring(parent(a)) || error("elements do not belong to the same ring")
+    R === base_ring(parent(a)) || error("elements do not belong to the same ring")
   end
   d = one(R)
   a = Vector{elem_type(R)}()
@@ -900,7 +901,7 @@ function write_as_linear_combination(
   L = parent(f)
   W = localized_ring(L)
   for a in g 
-    parent(a) == L || error("elements do not belong to the same ring")
+    parent(a) === L || error("elements do not belong to the same ring")
   end
   return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
 end
@@ -1097,6 +1098,7 @@ end
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom) 
+  f === g && return true
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   for x in gens(base_ring(domain(f)))
@@ -1577,7 +1579,7 @@ Ideals in localizations of affine algebras.
         )
     ) where {LocRingElemType<:MPolyQuoLocRingElem}
     for f in g
-      parent(f) == W || error("generator is not an element of the given ring")
+      parent(f) === W || error("generator is not an element of the given ring")
     end
 
     L = localized_ring(W)
@@ -1663,7 +1665,7 @@ julia> (I,J,K)
 """
 function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
-  L == base_ring(J) || error("ideals must be defined in the same ring")
+  L === base_ring(J) || error("ideals must be defined in the same ring")
   preI = pre_image_ideal(I)
   preJ = pre_image_ideal(J)
   R = base_ring(L)
@@ -1675,7 +1677,7 @@ function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal...)
   L = base_ring(I)
   erg = pre_image_ideal(I)
   for K in J
-    base_ring(K) == L || error("base rings must match")
+    base_ring(K) === L || error("base rings must match")
     erg = intersect(erg,pre_image_ideal(K))
   end
   return L(erg)
@@ -1684,7 +1686,7 @@ end
 function intersect(VI::Vector{<:MPolyQuoLocalizedIdeal{T}}) where T
   @assert length(VI) != 0
   L = base_ring(VI[1])
-  all(J -> base_ring(J) == L,VI) || error("base rings must match")
+  all(J -> base_ring(J) === L,VI) || error("base rings must match")
   VIpre = [pre_image_ideal(J) for J in VI]
   erg = intersect(VIpre)
   return L(erg)
@@ -1693,13 +1695,13 @@ end
 ### Basic functionality
 function ideal_membership(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
-  parent(a) == L || return L(a) in I
+  parent(a) === L || return L(a) in I
   return lift(a) in pre_image_ideal(I)
 end
 
 function coordinates(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
-  parent(a) == L || return coordinates(L(a), I)
+  parent(a) === L || return coordinates(L(a), I)
   a in I || error("the given element is not in the ideal")
   x = coordinates(lift(a), pre_image_ideal(I), check=false)
   return map_entries(L, x[1, 1:ngens(I)])
@@ -1792,7 +1794,7 @@ function quo(
 end
 
 function quo(A::MPolyQuoRing, I::MPolyQuoIdeal)
-  base_ring(I) == A || error("ideal does not belong to the correct ring")
+  base_ring(I) === A || error("ideal does not belong to the correct ring")
   R = base_ring(A)
   Q, _ = quo(R, modulus(A) + ideal(R, lift.(gens(I))))
   return Q, hom(A, Q, Q.(gens(R)), check=false)
@@ -1800,7 +1802,7 @@ end
 
 function divides(a::MPolyQuoLocRingElem, b::MPolyQuoLocRingElem)
   W = parent(a)
-  W == parent(b) || error("elements do not belong to the same ring")
+  W === parent(b) || error("elements do not belong to the same ring")
   F = FreeMod(W, 1)
   A = matrix(W, 1, 1, [b])
   M, _ = sub(F, A)
@@ -1833,7 +1835,7 @@ end
 function jacobi_matrix(g::Vector{<:MPolyQuoLocRingElem})
   L = parent(g[1])
   n = nvars(base_ring(L))
-  @assert all(x->parent(x) == L, g)
+  @assert all(x->parent(x) === L, g)
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
@@ -1935,7 +1937,7 @@ Return ``I:J^{\infty}`` together with the smallest integer ``m`` such that ``I:J
 """
 function saturation_with_index(I::T,J::T) where T <: Union{ MPolyQuoIdeal, MPolyLocalizedIdeal, MPolyQuoLocalizedIdeal}
   R = base_ring(I)
-  R == base_ring(J) || error("Ideals do not live in the same ring.")
+  R === base_ring(J) || error("Ideals do not live in the same ring.")
 
   I_sat = saturated_ideal(I)
   J_sat = saturated_ideal(J)
@@ -1955,7 +1957,7 @@ Internal function for weak and controlled transform.
 """
 function iterated_quotients(I::T, J::T, b::Int=0) where T <: MPolyAnyIdeal
   R = base_ring(I)
-  R == base_ring(J) || error("Ideals do not live in the same ring.")
+  R === base_ring(J) || error("Ideals do not live in the same ring.")
   b > -1 || error("negative multiplicity not allowed")
 
   Itemp = I
@@ -2061,7 +2063,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   shift, backshift = base_ring_shifts(L)
 
   function im(a::Generic.FreeModuleElem)
-    @assert parent(a) == V
+    @assert parent(a) === V
     b = R(0)
     for k=1:length(V_gens)
       c = a[k]
