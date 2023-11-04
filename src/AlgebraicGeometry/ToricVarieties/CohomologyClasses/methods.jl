@@ -122,5 +122,5 @@ function integrate(c::CohomologyClass)
     end
     n = AbstractAlgebra.leading_coefficient(top_form.f)
     m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
-    return QQFieldElem(ZZ(n),ZZ(m))
+    return n//m
 end
