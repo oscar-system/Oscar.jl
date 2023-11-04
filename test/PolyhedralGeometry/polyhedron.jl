@@ -433,7 +433,7 @@
 
       let rnorm = rand_normal_polytope(3, 4, seed = 213)
         @test rnorm isa Polyhedron{T}
-        @test isbounded(rnorm) 
+        @test is_bounded(rnorm)
         @test size(Oscar.pm_object(rnorm).POINTS, 1) == 4
       end
 
