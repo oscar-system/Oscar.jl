@@ -713,6 +713,7 @@ function issubset(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 end
 
 function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+  T === U && return true
   return (issubset(T, U) && issubset(U, T))
 end
 
@@ -2289,7 +2290,10 @@ function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedId
   return true
 end
 
-==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (issubset(I, J) && issubset(J, I))
+function ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  I === J && return true
+  (issubset(I, J) && issubset(J, I))
+end
 
 function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return ideal(base_ring(I), vcat(gens(I), gens(J)))
@@ -2911,6 +2915,7 @@ end
 (f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
 
 function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom) 
+  f === g && return true
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   for x in gens(base_ring(domain(f)))

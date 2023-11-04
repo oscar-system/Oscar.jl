@@ -420,14 +420,14 @@ function is_isomorphic(G::GAPGroup, H::GAPGroup)
   return mp !== GAP.Globals.fail
 end
 
-function isisomorphic(G::GAPGroup, H::GrpGen)
+function is_isomorphic(G::GAPGroup, H::GrpGen)
   P = PermGroup(H)
-  return isisomorphic(G, P)
+  return is_isomorphic(G, P)
 end
 
-function isisomorphic(G::GrpGen, H::GAPGroup)
+function is_isomorphic(G::GrpGen, H::GAPGroup)
   P = PermGroup(G)
-  return isisomorphic(P, H)
+  return is_isomorphic(P, H)
 end
 
 """

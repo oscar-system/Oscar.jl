@@ -1487,7 +1487,7 @@ function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
   phiHA, _ = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
   G = GSetByElements(OSB, _on_subgroups, TorQuadModule[HB])
-  ok, g = representative_action(G, phiHA, HB)
+  ok, g = is_conjugate_with_data(G, phiHA, HB)
   @hassert :ZZLatWithIsom 1 ok
   phi_1 = compose(phi, hom(g))
   @hassert :ZZLatWithIsom 1 sub(SB, elem_type(SB)[phi_1(SA(lift(a))) for a in gens(HA)])[1] == HB
