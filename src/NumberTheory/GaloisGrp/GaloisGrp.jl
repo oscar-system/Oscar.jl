@@ -1519,7 +1519,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
-        mfF = find_morphism(f, _F)
+        mfF = Hecke.find_morphism(f, _F)
       end
       #we should have
       # - d == r (in the appropriate setting)
@@ -2633,16 +2633,6 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
   return minpoly(a)
 end
 
-#TODO copied from MPolyFact in Hecke....
-function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
-   if degree(k) > 1
-    phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
-  else
-    phi = MapFromFunc(k, K, x->K((coeff(x, 0))), y->k((coeff(y, 0))))
-  end
-  return phi
-end
-
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2729,7 +2719,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     r = roots(GC, 5, raw = true)
     K, mK = residue_field(parent(r[1]))
     r = map(mK, r)
-    phi = find_morphism(K, k)
+    phi = Hecke.find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
 
