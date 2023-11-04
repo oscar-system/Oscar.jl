@@ -45,8 +45,7 @@
 end
 
 @testset "exterior powers of graded modules" begin
-  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
-  S, (x, y, u, v, w) = grade(R)
+  S, _ = graded_polynomial_ring(QQ, 5)
   F = graded_free_module(S, [1, 1, 1, 1, -2])
   Fwedge1, _ = Oscar.exterior_power(F, 1)
   Fwedge2, _ = Oscar.exterior_power(F, 2)
