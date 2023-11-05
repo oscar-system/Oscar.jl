@@ -44,7 +44,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
   # 2. The dimension of all maximal cones matches the dimension of the fan.
   @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
-  @req ispure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
+  @req is_pure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
 
   ideal_dict = IdDict{AbsSpec, Ideal}()
 

@@ -426,7 +426,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
   mQ = mQ*inv(mS)
 
   if Sylow > 0
-    @assert isprime(Sylow)
+    @assert is_prime(Sylow)
     G, mS = sylow_subgroup(G, Sylow)
     mG = mS*mG
   end

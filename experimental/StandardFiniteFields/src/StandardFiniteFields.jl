@@ -460,7 +460,7 @@ Finite field of degree 24 over GF(3)
 ```
 """
 function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
-  @req isprime(p) "first argument must be a prime"
+  @req is_prime(p) "first argument must be a prime"
   F = GF(p)
   set_standard_prime_field!(F)
 

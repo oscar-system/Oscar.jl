@@ -56,8 +56,8 @@ given by the pullback function
     (y//z) -> 0
 ```
 """
-function covering_morphism(f::AbsCoveredSchemeMorphism)::CoveringMorphism
-  return covering_morphism(underlying_morphism(f))
+function covering_morphism(f::AbsCoveredSchemeMorphism)
+  return covering_morphism(underlying_morphism(f))::CoveringMorphism
 end
 
 ### generically derived getters
