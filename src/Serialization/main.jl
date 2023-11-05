@@ -127,7 +127,6 @@
 # the only parameter needed for such types is their parent.
 
 using JSON
-using UUIDs
 
 include("serializers.jl")
 
@@ -165,8 +164,7 @@ end
 
 function serialization_version_info()
   if is_dev
-    path = Oscar.oscardir
-    commit_hash = readchomp(`git -C $path log -n 1 --pretty=format:"%H"`)
+    commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
