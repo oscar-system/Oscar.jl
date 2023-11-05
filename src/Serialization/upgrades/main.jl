@@ -84,6 +84,6 @@ function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
       upgraded_dict = upgrade_script(s, upgraded_dict)
     end
   end
-  upgraded_dict[:_ns] = oscar_serialization_version
+  upgraded_dict[:_ns] = get_oscar_serialization_version()
   return upgraded_dict
 end
