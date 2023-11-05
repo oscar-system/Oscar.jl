@@ -56,6 +56,7 @@ import AbstractAlgebra:
   @show_name,
   @show_special,
   addeq!,
+  allow_unicode,
   base_ring,
   canonical_unit,
   codomain,
@@ -83,6 +84,7 @@ import AbstractAlgebra:
   get_attribute!,
   Ideal,
   Indent,
+  is_unicode_allowed,
   Lowercase,
   LowercaseOff,
   map,
@@ -108,7 +110,8 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
-  total_degree
+  total_degree,
+  with_unicode
 
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
