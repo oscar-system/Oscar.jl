@@ -145,12 +145,12 @@ end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
+const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
 
 const is_dev = (function()
-        uuid = PROJECT_TOML["uuid"]
         deps = Pkg.dependencies()
-        if Base.haskey(deps, uuid)
-          if deps[uuid].is_tracking_path
+        if Base.haskey(deps, PROJECT_UUID)
+          if deps[PROJECT_UUID].is_tracking_path
             return true
           end
         end

@@ -127,7 +127,6 @@
 # the only parameter needed for such types is their parent.
 
 using JSON
-using UUIDs
 
 include("serializers.jl")
 
@@ -163,10 +162,14 @@ function version_number(dict::Dict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
 
-function serialization_version_info()
+const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
+
+function get_oscar_serialization_version()
+  if isassigned(oscar_serialization_version)
+    return oscar_serialization_version[]
+  end
   if is_dev
-    path = Oscar.oscardir
-    commit_hash = readchomp(`git -C $path log -n 1 --pretty=format:"%H"`)
+    commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
     version_info = "$VERSION_NUMBER-$commit_hash"
     result = Dict{Symbol, Any}(
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
@@ -176,9 +179,8 @@ function serialization_version_info()
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
     )
   end
-  return result
+  return oscar_serialization_version[] = result
 end
-const oscar_serialization_version = serialization_version_info()
 
 ################################################################################
 # (De|En)coding types
@@ -482,7 +484,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   s = state(serializer_open(io, serializer_type))
   save_data_dict(s) do
     # write out the namespace first
-    save_header(s, oscar_serialization_version, :_ns)
+    save_header(s, get_oscar_serialization_version(), :_ns)
 
     save_typed_object(s, obj)
 
