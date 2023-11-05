@@ -10,5 +10,10 @@
   subfields(F)
   G, = galois_group(F)
   @test is_isomorphic(G, symmetric_group(3))
+
+  K, a = cyclotomic_field(3, "a", cached = false)
+  G, C = galois_group(K)
+  k = fixed_field(C, G)
+  @test degree(k) == 1 && k isa AnticNumberField
 end
 
