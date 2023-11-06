@@ -524,7 +524,7 @@ end
 
 # TODO: Move to appropriate place eventually.
 function radical_membership(x::MPolyQuoRingElem, I::MPolyQuoIdeal)
-  return lift(x) in saturated_ideal(I)
+  return radical_membership(lift(x), saturated_ideal(I))
 end
 
 function coordinates(
