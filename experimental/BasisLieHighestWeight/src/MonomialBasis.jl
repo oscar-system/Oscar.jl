@@ -51,7 +51,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   print(
     io,
     Indent(),
-    "where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):",
+    "where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):",
     Indent(),
   )
   for weight in basis.birational_sequence.weights_alpha

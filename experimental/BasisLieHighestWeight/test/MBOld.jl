@@ -1,5 +1,5 @@
 # This file is an old version of the algorithm that can compute (not all cases) of 
-# BasisLieHighestWeight.basis_lie_highest_weight and is used only in runtests.jl to check that the newer algorithm matches
+# basis_lie_highest_weight and is used only in runtests.jl to check that the newer algorithm matches
 # There is code doubling, but I am not sure how the src part is going to change when its integrated with the other
 # lie algebra work and would prefer to change this file after doing the integration to make sure that everything stays
 # correct.

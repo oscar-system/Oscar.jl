@@ -13,7 +13,7 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
   # new algorithm
-  basis = BasisLieHighestWeight.basis_lie_highest_weight(dynkin, n, lambda)
+  basis = basis_lie_highest_weight(dynkin, n, lambda)
   mons_new = monomials(basis)
   L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
   gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
@@ -27,9 +27,7 @@ end
 function check_dimension(
   dynkin::Symbol, n::Int64, lambda::Vector{Int64}, monomial_ordering::Symbol
 )
-  basis = BasisLieHighestWeight.basis_lie_highest_weight(
-    dynkin, n, lambda; monomial_ordering
-  )
+  basis = basis_lie_highest_weight(dynkin, n, lambda; monomial_ordering)
   L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
   gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda)) # dimension
   @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
@@ -73,10 +71,10 @@ end
   end
 
   @testset "Known examples basis_lie_highest_weight" begin
-    base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0])
+    base = basis_lie_highest_weight(:A, 2, [1, 0])
     mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x3", "x1"]))
-    base = BasisLieHighestWeight.basis_lie_highest_weight(:A, 2, [1, 0], [1, 2, 1])
+    base = basis_lie_highest_weight(:A, 2, [1, 0], [1, 2, 1])
     mons = monomials(base)
     @test issetequal(string.(mons), Set(["1", "x2*x3", "x3"]))
   end
@@ -108,9 +106,7 @@ end
   end
 
   @testset "Compare against GAP algorithm of Xin on some examples" begin
-    basis_lusztig = BasisLieHighestWeight.basis_lie_highest_weight_lusztig(
-      :A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1]
-    )
+    basis_lusztig = basis_lie_highest_weight_lusztig(:A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1])
 
     @test issetequal(
       [only(exponents(m)) for m in monomials(basis_lusztig)],
@@ -258,9 +254,7 @@ end
       ],
     )
 
-    basis_string = BasisLieHighestWeight.basis_lie_highest_weight_string(
-      :A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1]
-    )
+    basis_string = basis_lie_highest_weight_string(:A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1])
 
     @test issetequal(
       [only(exponents(m)) for m in monomials(basis_string)],
@@ -408,9 +402,7 @@ end
       ],
     )
 
-    basis_nz = BasisLieHighestWeight.basis_lie_highest_weight_nz(
-      :A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1]
-    )
+    basis_nz = basis_lie_highest_weight_nz(:A, 3, [2, 1, 1], [2, 3, 1, 2, 3, 1])
 
     @test issetequal(
       [only(exponents(m)) for m in monomials(basis_nz)],
