@@ -66,11 +66,11 @@ end
 
 # elementary operations #######################################################
 @doc raw"""
-    check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    check_base_rings(I::MPolyIdeal, J::MPolyIdeal)
 
 Throws an error if the base rings of the ideals `I` and `J` do not coincide.
 """
-function check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function check_base_rings(I::MPolyIdeal, J::MPolyIdeal)
   if !isequal(base_ring(I), base_ring(J))
     error("Base rings must coincide.")
   end
@@ -670,9 +670,10 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
     setcoeff!(minpoly, e[nvars(Qxa)], QQ(c))
   end
   R, a = number_field(minpoly)
-  Rx, _ = polynomial_ring(R, symbols(Qx))
   if is_graded(Qx)
-     Rx, _ = grade(Rx, [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+  else
+    Rx, _ = polynomial_ring(R, symbols(Qx))
   end
   return _map_last_var(Rx, I, 2, a)
 end
@@ -969,7 +970,7 @@ end
 
 #######################################################
 @doc raw"""
-    ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    ==(I::MPolyIdeal, J::MPolyIdeal)
 
 Return `true` if `I` is equal to `J`, `false` otherwise.
 
@@ -988,7 +989,8 @@ julia> I == J
 false
 ```
 """
-function ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function ==(I::MPolyIdeal, J::MPolyIdeal)
+  check_base_rings(I, J)
   I === J && return true
   gens(I) == gens(J) && return true
   return issubset(I, J) && issubset(J, I)
@@ -998,7 +1000,7 @@ end
 
 #######################################################
 @doc raw"""
-    is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    is_subset(I::MPolyIdeal, J::MPolyIdeal)
 
 Return `true` if `I` is contained in `J`, `false` otherwise.
 
@@ -1017,7 +1019,8 @@ julia> is_subset(I, J)
 true
 ```
 """
-function is_subset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+function is_subset(I::MPolyIdeal, J::MPolyIdeal)
+  check_base_rings(I, J)
   return Singular.iszero(Singular.reduce(singular_generators(I), singular_groebner_generators(J)))
 end
 
@@ -1281,7 +1284,7 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal{T}) where {T<:MPolyElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
 codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
 
 # Some fixes which were necessary for the above
@@ -1452,13 +1455,12 @@ julia> small_generating_set(J)
  x*y^2 - z
 ```
 """
-function small_generating_set(I::MPolyIdeal)
+function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}
   # For non-homogeneous ideals, we do not have a notion of minimal generating
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.
 
   R = base_ring(I)
-  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
   sing_gb, sing_min = Singular.mstd(singular_generators(I))

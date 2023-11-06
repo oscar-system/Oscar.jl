@@ -196,6 +196,7 @@ a new polyhedron.
 bipyramid
 intersect(::Polyhedron...)
 pyramid
+vertex_figure
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.

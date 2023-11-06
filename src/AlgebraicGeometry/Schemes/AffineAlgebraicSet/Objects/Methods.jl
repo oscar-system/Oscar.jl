@@ -24,18 +24,15 @@ end
 # For compact printing, we value the notation V(bla) since it tells everything
 # we need to know, in a given contextual printing
 function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Affine algebraic set")
   elseif get_attribute(X, :is_empty, false)
+    io = pretty(io)
     print(io, "Empty affine algebraic set over ")
     K = base_ring(X)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(IOContext(io, :supercompact => true), Lowercase(), K)
   else
+    io = pretty(io)
     if isdefined(X, :Xred)
       I = ambient_closure_ideal(X)
     else
@@ -56,18 +53,15 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet)
 end
 
 function Base.show(io::IO, X::AffineAlgebraicSet)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print(io, "Affine algebraic set")
   elseif get_attribute(X, :is_empty, false)
+    io = pretty(io)
     print(io, "Empty affine algebraic set over ")
     K = base_ring(X)
-    if K == QQ
-      print(io, "QQ")
-    else
-      print(IOContext(io, :supercompact => true), Lowercase(), K)
-    end
+    print(IOContext(io, :supercompact => true), Lowercase(), K)
   else
+    io = pretty(io)
     print(io, "Reduced subscheme of ", Lowercase(), fat_scheme(X))
   end
 end

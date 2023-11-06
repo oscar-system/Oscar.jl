@@ -323,7 +323,7 @@ Given a finite group `E`, return the representation ring over `E` over the
 """
 function representation_ring(E::T) where T <: Oscar.GAPGroup
   e = exponent(E)
-  F, _ = CyclotomicField(Int(e), cached = false)
+  F, _ = cyclotomic_field(Int(e), cached = false)
   return RepRing{typeof(F), T}(F, E)
 end
 
@@ -888,7 +888,7 @@ space `V`, return an induced action on Sym^d V.
 function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{S}}, d::Int) where S
   n = ncols(mr[1])
   F = base_ring(mr[1])
-  R, _ = grade(polynomial_ring(F, "x"=>1:n, cached=false)[1])
+  R, _ = graded_polynomial_ring(F, "x"=>1:n, cached=false)
   R1, R1toR = homogeneous_component(R, 1)
   Rd, RdtoR = homogeneous_component(R, d)
   bsp = reverse(RdtoR.(gens(Rd)))
@@ -1060,7 +1060,7 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   f_gap = GG.EpimorphismSchurCover(G_gap)
   H_gap = GG.Source(f_gap)
   n, p = ispower(GG.Size(H_gap))
-  if isprime(p)
+  if is_prime(p)
     fff_gap = GG.EpimorphismPGroup(H_gap, p)
     E_gap = fff_gap(H_gap)
   else

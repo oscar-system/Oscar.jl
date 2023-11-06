@@ -105,7 +105,7 @@ free modules given by ``A``.
 function syz(A::MatrixElem{<:AbsLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(B)
-  return transpose(mul(transpose(D), transpose(L)))
+  return transpose(transpose(D) * transpose(L))
 end
 
 # The annihilator of b as an element of a free module modulo the cokernel of A
@@ -188,7 +188,7 @@ function has_solution(
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
-  return (success, S(one(R), v*u[1,1])*change_base_ring(S, transpose(mul(transpose(D), transpose(y)))))
+  return (success, S(one(R), v*u[1,1])*change_base_ring(S, transpose(transpose(D) * transpose(y))))
 end
 
 # This second version solves over the base ring and checks compatibility with 
@@ -432,7 +432,7 @@ function kernel(
   fb = hom(Fb, Gb, B)
   Kb, incb = kernel(fb)
   Cb = representing_matrix(incb)
-  C = change_base_ring(S, transpose(mul(transpose(D), transpose(Cb))))
+  C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
   #C = change_base_ring(S, Cb*D)
   K, inc = sub(domain(f), C)
   return K, inc
@@ -475,7 +475,7 @@ function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocaliz
     # # generator_matrix(M).
     # result = S(one(R), d_u)*(yc*Tr) 
     # return sparse_row(result)
-    return S(one(R), d_u, check=false)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
+    return S(one(R), d_u, check=false)*(change_base_ring(S, coordinates(u_clear, Mb)) * 
                                                pre_saturation_data_gens(M))
   end
 
@@ -515,12 +515,12 @@ function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocaliz
   # need to extend this matrix by one more row given by d_v ⋅ y.
   set_attribute!(M, :pre_saturation_data_gens, 
                  #vcat(Tr, d_v*y)
-                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(y), d_v), y)))
+                 push!(Tr, sparse_row(change_base_ring(base_ring(y), d_v) * y))
                 )
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
                  #vcat(Tr, d_w*z)
-                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(z), d_w), z)))
+                 push!(Tr, sparse_row(change_base_ring(base_ring(z), d_w) * z))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   # finally, return the computed coordinates
@@ -603,12 +603,12 @@ function represents_element(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:Abs
   # need to extend this matrix by one more row given by d_v ⋅ y.
   set_attribute!(M, :pre_saturation_data_gens, 
                  #vcat(Tr, d_v*y)
-                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(M), d_v), y)))
+                 push!(Tr, sparse_row(change_base_ring(base_ring(M), d_v) * y))
                 )
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
                  #vcat(Tr, d_w*z)
-                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(M), d_w), z)))
+                 push!(Tr, sparse_row(change_base_ring(base_ring(M), d_w) * z))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
 
@@ -764,7 +764,7 @@ function coordinates(
     # # generator_matrix(M).
     # result = S(one(R), d_u)*(yc*Tr) 
     # return sparse_row(result)
-    return S(one(R), d_u)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
+    return S(one(R), d_u)*(change_base_ring(S, coordinates(u_clear, Mb)) *
                                                pre_saturation_data_gens(M))
   end
 

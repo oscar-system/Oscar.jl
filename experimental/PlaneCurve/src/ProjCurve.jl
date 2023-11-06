@@ -92,8 +92,7 @@ Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 
 julia> PP = proj_space(QQ, 3)
-(Projective space of dim 3 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2], x[3]])
+(Projective space of dim 3 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2], x[3]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
 (0 : 2 : 0 : 5)

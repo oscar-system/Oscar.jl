@@ -177,7 +177,7 @@ function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
     k = K.fields[c]
     return k, gen(k)
   else
-    k, z = CyclotomicField(c, string("\$", "(", c, ")"), cached = false)
+    k, z = cyclotomic_field(c, string("\$", "(", c, ")"), cached = false)
     K.fields[c] = k
     return k, z
   end

@@ -2,15 +2,15 @@
 CurrentModule = Oscar
 ```
 
-# Quadratic space with isometry
+# Quadratic spaces with isometry
 
 We call *quadratic space with isometry* any pair $(V, f)$ consisting of a
 non-degenerate quadratic space $V$ together with an isometry $f\in O(V)$.
-We refer to the section about quadratic spaces of the documentation for
+We refer to the section about [Spaces](@ref) of the documentation for
 new users.
 
 Note that currently, we support only rational quadratic forms, i.e.
-quadratic spaces defined over the rational.
+quadratic spaces defined over $\mathbb{Q}$.
 
 In Oscar, such a pair is encoded by the type called `QuadSpaceWithIsom`:
 
@@ -18,7 +18,7 @@ In Oscar, such a pair is encoded by the type called `QuadSpaceWithIsom`:
 QuadSpaceWithIsom
 ```
 
-and it is seen as a triple $(V, f, n)$ where $n$ is the order of $f$. We
+It is seen as a triple $(V, f, n)$ where $n$ is the order of $f$. We
 actually support isometries of finite and infinite order. In the case where
 $f$ is of infinite order, then `n = PosInf`. If $V$ has rank 0, then any
 isometry $f$ of $V$ is trivial and we set by default `n = -1`.
@@ -77,8 +77,8 @@ rank(::QuadSpaceWithIsom)
 signature_tuple(::QuadSpaceWithIsom)
 ```
 
-Similarly, some basic operations on quadratic spaces are available for quadratic
-spaces with isometry.
+Similarly, some basic operations on quadratic spaces and matrices are available
+for quadratic spaces with isometry.
 
 ```@docs
 Base.:^(::QuadSpaceWithIsom, ::Int)
@@ -91,6 +91,6 @@ rescale(::QuadSpaceWithIsom, ::RationalUnion)
 ## Equality
 
 We choose as a convention that two pairs $(V, f)$ and $(V', f')$ of quadratic
-spaces with isometries are *equal* if and only if $V$ and $V'$ are the same
-space, and $f$ and $f'$ are represented by the same matrix with respect to the
-standard basis of $V = V'$.
+spaces with isometries are *equal* if $V$ and $V'$ are the same space, and $f$
+and $f'$ are represented by the same matrix with respect to the standard basis
+of $V = V'$.

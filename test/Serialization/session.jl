@@ -25,7 +25,6 @@
     loaded_poly = load(poly_path)
     loaded_R = load(R_path)
 
-
     @test loaded_R == parent(loaded_poly)
 
   end

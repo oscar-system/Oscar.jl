@@ -153,7 +153,7 @@ function issubset(
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
+  all(x->is_unit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
   return iszero(localized_ring(OO(Y))(modulus(OO(X))))
 end
 
@@ -164,7 +164,7 @@ function issubset(
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
+  all(x->is_unit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
   return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
 
@@ -464,7 +464,7 @@ function is_closed_embedding(
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   for f in inverted_set(OO(X))
-    isunit(OO(Y)(f)) || return false
+    is_unit(OO(Y)(f)) || return false
   end
   return true
 end
@@ -479,7 +479,7 @@ function is_closed_embedding(
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   for x in inverted_set(OO(X)) 
-    isunit(OO(Y)(x)) || return false
+    is_unit(OO(Y)(x)) || return false
   end
   for g in gens(modulus(OO(Y)))
     iszero(OO(X)(g)) || return false
@@ -517,7 +517,7 @@ function is_closed_embedding(
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  all(x->(isunit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
+  all(x->(is_unit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
   return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
 

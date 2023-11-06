@@ -1,12 +1,3 @@
-function Base.show(io::IO, ::MIME"text/plain", x::GAPGroupHomomorphism)
-  io = pretty(io)
-  println(IOContext(io, :supercompact => true), x)
-  print(io, Indent())
-  println(io, "from ", Lowercase(), domain(x))
-  print(io, "to ", Lowercase(), codomain(x))
-  print(io, Dedent())
-end
-
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   if get(io, :supercompact, false)
     print(io, "Group homomorphism")
@@ -429,14 +420,14 @@ function is_isomorphic(G::GAPGroup, H::GAPGroup)
   return mp !== GAP.Globals.fail
 end
 
-function isisomorphic(G::GAPGroup, H::GrpGen)
+function is_isomorphic(G::GAPGroup, H::GrpGen)
   P = PermGroup(H)
-  return isisomorphic(G, P)
+  return is_isomorphic(G, P)
 end
 
-function isisomorphic(G::GrpGen, H::GAPGroup)
+function is_isomorphic(G::GrpGen, H::GAPGroup)
   P = PermGroup(G)
-  return isisomorphic(P, H)
+  return is_isomorphic(P, H)
 end
 
 """
@@ -784,7 +775,7 @@ function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
      newgens = elem_type(S)[]
      for g in gensA
        j = g.i
-       p = S(A.mult_table[j, :])
+       p = S(A.mult_table[:, j])
        push!(newgens, p)
      end
 

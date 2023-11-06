@@ -197,7 +197,7 @@ end
 end
 
 @testset "groebner basis modular" begin
-  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   I = ideal(R, [x^2, x*y + 32771*y^2])
   gb = Oscar.groebner_basis_modular(I, ordering = degrevlex(R))
   @test is_groebner_basis(I.gb[degrevlex(R)], ordering = degrevlex(R))

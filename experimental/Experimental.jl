@@ -28,8 +28,9 @@ for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
     error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
-  if !isfile(joinpath(expdir, pkg, "test", "runtests.jl"))
-    error("experimental/$pkg is incomplete: $pkg/test/runtests.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
+  path = joinpath(expdir, pkg, "test")
+  if !isdir(path) || length(filter(endswith(".jl"), readdir(path))) == 0
+    error("experimental/$pkg is incomplete: $pkg/test/ missing or empty. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
 end
 
@@ -67,5 +68,13 @@ include("Schemes/BlowupMorphism.jl")
 include("Schemes/duValSing.jl")
 include("Schemes/elliptic_surface.jl")
 include("Schemes/MorphismFromRationalFunctions.jl")
+
+include("Schemes/ToricIdealSheaves/auxiliary.jl")
+include("Schemes/ToricIdealSheaves/constructors.jl")
+
+include("Schemes/ToricBlowups/types.jl")
+include("Schemes/ToricBlowups/constructors.jl")
+include("Schemes/ToricBlowups/attributes.jl")
+include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")

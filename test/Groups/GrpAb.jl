@@ -64,6 +64,8 @@ end
     sg1 = small_generating_set(G1)
     @test order(sub(G1, sg1)[1]) == order(G1)
     @test length(sg1) <= length(para)
+    @test abelian_invariants(G1) == abelian_invariants(G2)
+    @test abelian_invariants(Int, G1) isa Vector{Int}
 
     # conjugacy classes of elements
     cc = conjugacy_classes(G1)
@@ -142,4 +144,29 @@ end
           sort!([order(S) for S in hall_system(G2)])
     @test [images(iso, S)[1] for S in sylow_system(G1)] == sylow_system(G2)
   end
+end
+
+@testset "conversions between formats of abelian invariants" begin
+  @test Oscar.elementary_divisors_of_vector(Int, []) == []
+  @test Oscar.elementary_divisors_of_vector(Int, [0, 3, 2]) == [6, 0]
+  @test Oscar.abelian_invariants_of_vector(Int, []) == []
+  @test Oscar.abelian_invariants_of_vector(Int, [0, 6]) == [0, 2, 3]
+  for i in 1:100
+    v = rand(-5:30, 10)
+    elab = Oscar.elementary_divisors_of_vector(Int, v)
+    abinv = Oscar.abelian_invariants_of_vector(Int, v)
+    @test Oscar.elementary_divisors_of_vector(Int, abinv) == elab
+    @test Oscar.abelian_invariants_of_vector(Int, elab) == abinv
+    @test elementary_divisors(abelian_group([abs(x) for x in v])) == elab
+  end
+end
+
+@testset "abelian_invariants_schur_multiplier for GrpAbFinGen" begin
+  for g in all_small_groups(1:50, is_abelian)
+    gg = codomain(isomorphism(GrpAbFinGen, g))
+    @test abelian_invariants_schur_multiplier(g) == abelian_invariants_schur_multiplier(gg)
+    @test abelian_invariants(schur_multiplier(g)) == abelian_invariants_schur_multiplier(g)
+  end
+
+  @test schur_multiplier(PcGroup, abelian_group([2, 3, 4])) isa PcGroup
 end

@@ -240,7 +240,7 @@ end
 # Constructs Tate model from given Tate literature model
 function _construct_literature_tate_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = PolynomialRing(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
+  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
   
@@ -259,7 +259,7 @@ end
 # Constructs Weierstrass model from given Weierstrass literature model
 function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = PolynomialRing(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
+  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
   

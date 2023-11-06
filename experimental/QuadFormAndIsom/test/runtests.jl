@@ -8,8 +8,20 @@ set_verbosity_level(:ZZLatWithIsom, -1)
   function _show_details(io::IO, X::Union{ZZLatWithIsom, QuadSpaceWithIsom})
     return show(io, MIME"text/plain"(), X)
   end
+  # Finite order
   L = root_lattice(:A, 2)
   Lf = integer_lattice_with_isometry(L)
+  Vf = ambient_space(Lf)
+  for X in [Lf, Vf]
+    @test sprint(_show_details, X) isa String
+    @test sprint(Oscar.to_oscar, X) isa String
+    @test sprint(show, X) isa String
+    @test sprint(show, X; context=:supercompact => true) isa String
+  end
+  # Infinite order
+  L = integer_lattice(; gram = QQ[1 2; 2 1])
+  f = QQ[4 -1; 1 0]
+  Lf = integer_lattice_with_isometry(L, f)
   Vf = ambient_space(Lf)
   for X in [Lf, Vf]
     @test sprint(_show_details, X) isa String
@@ -77,9 +89,14 @@ end
   Lf = integer_lattice_with_isometry(L; neg = true)
   @test order_of_isometry(Lf) == -1
 
-  isdefined(Main, :test_save_load_roundtrip) || include(
-    joinpath(Oscar.oscardir, "test", "Serialization", "test_save_load_roundtrip.jl")
-  )
+  F, C = invariant_coinvariant_pair(Lf)
+  @test rank(F) + rank(C) == rank(Lf)
+  @test order_of_isometry(C) == order_of_isometry(Lf)
+  @test is_one(isometry(F))
+
+  @test is_primary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 6)))[1]
+  @test is_elementary_with_prime(integer_lattice_with_isometry(root_lattice(:E, 7)))[1]
+  @test is_unimodular(integer_lattice_with_isometry(hyperbolic_plane_lattice()))
 
   mktempdir() do path
     test_save_load_roundtrip(path, Lf) do loaded
@@ -88,6 +105,8 @@ end
   end
   
   L = @inferred integer_lattice_with_isometry(A3)
+  @test is_primary(L, 2)
+  @test !is_elementary(L, 2)
   @test length(unique([L, L, L])) == 1
   @test ambient_space(L) isa QuadSpaceWithIsom
   @test isone(isometry(L))
@@ -145,8 +164,9 @@ end
   Lf = integer_lattice_with_isometry(L, f);
 
   mktempdir() do path
-    test_save_load_roundtrip(path, Lf) do loaded
-      @test Lf == loaded
+    C = coinvariant_lattice(Lf)
+    test_save_load_roundtrip(path, C) do loaded
+      @test C == loaded
     end
   end
 
@@ -195,9 +215,15 @@ end
   @test C == A3
   _, _, G = invariant_coinvariant_pair(A3, OA3; ambient_representation = false)
   @test order(G) == order(OA3)
-  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1])
+  C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1]; ambient_representation = false)
   @test is_sublattice(A3, C)
 
+  B = matrix(QQ, 3, 3, [1 0 0; 0 1 0; 0 0 1]);
+  G = matrix(QQ, 3, 3, [2 -1 0; -1 2 0; 0 0 -4]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 3, 3, [0 -1 0; 1 1 0; 0 0 1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  @test is_bijective(image_centralizer_in_Oq(Lf)[2])
 end
 
 @testset "Enumeration of lattices with finite isometries" begin
@@ -284,4 +310,51 @@ end
   reps = @inferred admissible_equivariant_primitive_extensions(F, C, Lf^0, 5)
   @test length(reps) == 1
   @test is_of_same_type(Lf, reps[1])
+  reps = @inferred primitive_extensions(lattice(F), lattice(C); q = discriminant_group(L), classification = :emb)
+  @test length(reps) == 1
+  @test reps[1] == (L, lattice(F), lattice(C))
+
+  C = integer_lattice(; gram = QQ[-4 -2 -2  0  2 -2 -1 -3 -2 -1 -3 -2 -4  0 -2 -1;
+                                  -2 -4 -1 -3  1 -1  1 -3 -1 -5 -3  2 -1  2 -2 -1;
+                                  -2 -1 -4  0  2 -2 -1 -3 -2 -2 -3 -3 -4  0 -2  0;
+                                   0 -3  0 -8  0 -2  4 -2  0 -7 -1  4  1  2  1  0;
+                                   2  1  2  0 -4  0  0  2  2  1  1  2  3  0  1  0;
+                                  -2 -1 -2 -2  0 -4  0 -4 -1 -2 -2 -2 -2  0  0 -1;
+                                  -1  1 -1  4  0  0 -4  0 -1  3 -1 -3 -2 -1 -3 -1;
+                                  -3 -3 -3 -2  2 -4  0 -8 -2 -4 -3 -2 -2  1 -1 -3;
+                                  -2 -1 -2  0  2 -1 -1 -2 -4 -2 -3 -3 -4 -1 -3 -1;
+                                  -1 -5 -2 -7  1 -2  3 -4 -2 -10 -4 3 -1  2 -2 -1;
+                                  -3 -3 -3 -1  1 -2 -1 -3 -3 -4 -6 -1 -4  1 -5 -1;
+                                  -2  2 -3  4  2 -2 -3 -2 -3  3 -1 -8 -5 -3 -1 -1;
+                                  -4 -1 -4  1  3 -2 -2 -2 -4 -1 -4 -5 -8 -2 -4  0;
+                                   0  2  0  2  0  0 -1  1 -1  2  1 -3 -2 -4  0 -1;
+                                  -2 -2 -2  1  1  0 -3 -1 -3 -2 -5 -1 -4  0 -8 -2;
+                                  -1 -1  0  0  0 -1 -1 -3 -1 -1 -1 -1  0 -1 -2 -4])
+
+  L = integer_lattice(; gram = QQ[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 -2 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 1 -2 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 1 -2 1 0 0 0 1 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 1 -2 1 0 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 1 -2 0 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 1 0 0 0 0 -2 0 0 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2 1 0 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0 1 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 1 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 -2 0 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 -2 0;
+                                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -4])
+
+  ok, reps = primitive_embeddings(L, C; check = false)
+  @test length(reps) == 1
 end

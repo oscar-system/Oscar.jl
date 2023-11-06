@@ -100,7 +100,7 @@ function _is_projective_without_denominators(A::MatElem;
     projectors = MatElem[] # The local projectors on each component
     expon = Int[]
     for k in 1:l
-      L, inc = Localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because 
+      L, inc = localization(R, complement_equation(U[k])) # We can not use OO(U[k]) directly, because
                                                           # we'd be missing the map in that case. 
       success, p, k = _is_projective_without_denominators(change_base_ring(L, A), unit=L(unit), task=task)
       !success && return false, zero_matrix(R, n, n), 0
@@ -167,7 +167,7 @@ function _is_projective_without_denominators(A::MatElem;
       add_row!(B, -A[k, j], i, k)
     end
     Asub = B[[k for k in 1:m if k != i], [k for k in 1:n if k !=j]]
-    Rloc, inc = Localization(R, u)
+    Rloc, inc = localization(R, u)
     push!(sub_localizations, (Rloc, inc))
     # We expect a pair (Q, k) consisting of a matrix Q defined over Rloc, 
     # but liftable to a matrix over R without effort. The local projector 
@@ -262,7 +262,7 @@ _lifted_numerator(a::MPolyQuoLocRingElem) = lifted_numerator(a)
 # This deserves special constructors, because we can deliver maps for  # 
 # lifting which is not possible in general.                            #
 ########################################################################
-function Localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
+function localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
   R = base_ring(A)
   U = MPolyPowersOfElement(R, [lift(f)])
   W = MPolyLocRing(R, U)
@@ -286,7 +286,7 @@ function Localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
   return L, MapFromFunc(A, L, func, func_inv)
 end
 
-function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
+function localization(A::MPolyLocRing, f::MPolyLocRingElem)
   R = base_ring(A)
   d = numerator(f)
   U = MPolyPowersOfElement(R, [d])
@@ -307,7 +307,7 @@ function Localization(A::MPolyLocRing, f::MPolyLocRingElem)
   return L, MapFromFunc(A, L, func, func_inv)
 end
 
-function Localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
+function localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
   R = base_ring(A)
   d = lifted_numerator(f)
   U = MPolyPowersOfElement(R, [d])

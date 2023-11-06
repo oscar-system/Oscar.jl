@@ -52,7 +52,7 @@ Note: The matrix operates on the coefficient vectors from the right.
 """
 function matrix(
   h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
-) where {C2<:RingElement}
+) where {C2<:FieldElem}
   return (h.matrix)::dense_matrix_type(C2)
 end
 
@@ -234,7 +234,7 @@ function hom(
   V2::LieAlgebraModule{C},
   imgs::Vector{<:LieAlgebraModuleElem{C}};
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraModuleHom(V1, V2, imgs; check)
 end
 
@@ -270,7 +270,7 @@ julia> [(v, h(v)) for v in basis(V1)]
 """
 function hom(
   V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}, mat::MatElem{C}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraModuleHom(V1, V2, mat; check)
 end
 
@@ -319,7 +319,7 @@ Lie algebra module morphism
   to standard module of dimension 3 over sl_3
 ```
 """
-function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
+function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
   return hom(V1, V2, zero_matrix(coefficient_ring(V2), dim(V1), dim(V2)); check=false)
 end
 
@@ -427,7 +427,7 @@ If `hs` is a vector, then it is interpreted as a diagonal matrix.
 """
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req is_direct_sum(V) "First module must be a direct sum"
   @req is_direct_sum(W) "Second module must be a direct sum"
   Vs = base_modules(V)
@@ -453,7 +453,7 @@ end
 
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req is_direct_sum(V) "First module must be a direct sum"
   @req is_direct_sum(W) "Second module must be a direct sum"
   Vs = base_modules(V)
@@ -476,7 +476,7 @@ This works for $r$th tensor powers as well.
 """
 function hom_tensor(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req is_tensor_product(V) || is_tensor_power(V) "First module must be a tensor product or power"
   @req is_tensor_product(W) || is_tensor_power(W) "Second module must be a tensor product or power"
   Vs = base_modules(V)
@@ -501,7 +501,7 @@ $S^k h: V \to W$ (analogous for other types of powers).
 """
 function hom_power(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
-) where {C<:RingElement}
+) where {C<:FieldElem}
   if is_exterior_power(V)
     @req is_exterior_power(W) "First module is an exterior power, but second module is not"
     type = :ext

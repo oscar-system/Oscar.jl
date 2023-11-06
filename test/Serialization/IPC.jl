@@ -29,9 +29,9 @@ end
     put!(rings, (Qx, F, MR))
   end
 
-  n = 5
+  n = 3
   for i in 1:n
-    put!(jobs, MR([a a^i; F(0) a]))
+    put!(jobs, MR([a^i F(1); F(0) F(1)]))
   end
 
   for p in workers() # start tasks on the workers to process requests in parallel
@@ -46,7 +46,7 @@ end
     total *= determinant
   end
 
-  @test total == a
+  @test total == a^6
 
 end
 

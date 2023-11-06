@@ -6,9 +6,9 @@ K, a = number_field(q)
 Ky, y = K["y"]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
-Qu, u = RationalFunctionField(QQ, "u")
+Qu, u = rational_function_field(QQ, "u")
 Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
-Fin, d = FiniteField(t^2 + t + 1)
+Fin, d = finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = TropicalSemiring()
@@ -38,7 +38,7 @@ cases = [
     @testset "Empty Ideal" begin
       i = Oscar.ideal(QQ[:x, :y][1], [])
       test_save_load_roundtrip(path, i) do loaded
-        loaded == i
+        @test loaded == i
       end
     end
 
@@ -108,7 +108,7 @@ cases = [
       filter!(case-> case[4] != "Tropical Semiring", cases)
 
       @testset "Multivariate Laurent Polynomial over $(case[4])" begin
-        R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
+        R, (z, w) = laurent_polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)

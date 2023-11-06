@@ -24,15 +24,16 @@ coefficients(::LieAlgebraElem)
 coeff(::LieAlgebraElem, ::Int)
 getindex(::LieAlgebraElem, ::Int)
 symbols(::LieAlgebra)
+characteristic(L::LieAlgebra)
 ```
 
 ## Special functions for `LinearLieAlgebra`s
 
 ```@docs
-coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:RingElement}
-matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:RingElement}
-matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:RingElement}
-matrix_repr(::LinearLieAlgebraElem{C}) where {C<:RingElement}
+coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}
+matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:FieldElem}
+matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:FieldElem}
+matrix_repr(::LinearLieAlgebraElem{C}) where {C<:FieldElem}
 ```
 
 ## Element constructors
@@ -83,10 +84,10 @@ lie_algebra
 ## Classical Lie algebras
 
 ```@docs
-abelian_lie_algebra(R::Ring, n::Int)
-general_linear_lie_algebra(R::Ring, n::Int)
-special_linear_lie_algebra(R::Ring, n::Int)
-special_orthogonal_lie_algebra(R::Ring, n::Int)
+abelian_lie_algebra(R::Field, n::Int)
+general_linear_lie_algebra(R::Field, n::Int)
+special_linear_lie_algebra(R::Field, n::Int)
+special_orthogonal_lie_algebra(R::Field, n::Int)
 ```
 
 ## Relation to GAP Lie algebras

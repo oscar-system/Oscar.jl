@@ -108,6 +108,12 @@ end
 
 Return the trivial subgroup of `G`,
 together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> trivial_subgroup(symmetric_group(5))
+(Permutation group of degree 5 and order 1, Hom: permutation group -> permutation group)
+```
 """
 @gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X)::GapObj)
 
@@ -121,7 +127,15 @@ together with its embedding morphism into `G`.
 """
     index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, GrpAbFinGen}
 
-Return the index of `H` in `G`, as an instance of `I`.
+Return the index of `H` in `G`, as an instance of type `I`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5); H, _ = derived_subgroup(G);
+
+julia> index(G,H)
+2
+```
 """
 index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen} = index(ZZRingElem, G, H)
 
@@ -150,7 +164,25 @@ end
 """
     normal_subgroups(G::Group)
 
-Return the vector of normal subgroups of `G` (see [`is_normal`](@ref)).
+Return all normal subgroups of `G` (see [`is_normal`](@ref)).
+
+# Examples
+```jldoctest
+julia> normal_subgroups(symmetric_group(5))
+3-element Vector{PermGroup}:
+ Permutation group of degree 5 and order 120
+ Permutation group of degree 5 and order 60
+ Permutation group of degree 5 and order 1
+
+julia> normal_subgroups(quaternion_group(8))
+6-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 2
+ Pc group of order 1
+```
 """
 @gapattribute normal_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
@@ -158,7 +190,28 @@ Return the vector of normal subgroups of `G` (see [`is_normal`](@ref)).
 """
     subgroups(G::Group)
 
-Return the vector of all subgroups of `G`.
+Return all subgroups of `G`.
+
+# Examples
+```jldoctest
+julia> subgroups(symmetric_group(3))
+6-element Vector{PermGroup}:
+ Permutation group of degree 3 and order 1
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 3
+ Permutation group of degree 3 and order 6
+
+julia> subgroups(quaternion_group(8))
+6-element Vector{PcGroup}:
+ Pc group of order 1
+ Pc group of order 2
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 8
+```
 """
 function subgroups(G::GAPGroup)
   # TODO: this is super inefficient. Slightly better would be to return an iterator
@@ -169,7 +222,23 @@ end
 """
     maximal_subgroups(G::Group)
 
-Return the vector of maximal subgroups of `G`.
+Return all maximal subgroups of `G`.
+
+# Examples
+```jldoctest
+julia> maximal_subgroups(symmetric_group(3))
+4-element Vector{PermGroup}:
+ Permutation group of degree 3 and order 3
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+
+julia> maximal_subgroups(quaternion_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 4
+```
 """
 @gapattribute maximal_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
@@ -177,9 +246,22 @@ Return the vector of maximal subgroups of `G`.
 """
     maximal_normal_subgroups(G::Group)
 
-Return the vector of maximal normal subgroups of `G`,
-i.e., of those proper normal subgroups of `G` that are maximal
-among the proper normal subgroups.
+Return all maximal normal subgroups of `G`, i.e., those proper
+normal subgroups of `G` that are maximal among the proper normal
+subgroups.
+
+# Examples
+```jldoctest
+julia> maximal_normal_subgroups(symmetric_group(4))
+1-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 12
+
+julia> maximal_normal_subgroups(quaternion_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 4
+ Pc group of order 4
+ Pc group of order 4
+```
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
@@ -187,9 +269,20 @@ among the proper normal subgroups.
 """
     minimal_normal_subgroups(G::Group)
 
-Return the vector of minimal normal subgroups of `G`,
-i.e., of those nontrivial normal subgroups of `G` that are minimal
-among the nontrivial normal subgroups.
+Return all minimal normal subgroups of `G`, i.e., of those
+nontrivial normal subgroups of `G` that are minimal among the
+nontrivial normal subgroups.
+
+# Examples
+```jldoctest
+julia> minimal_normal_subgroups(symmetric_group(4))
+1-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 4
+
+julia> minimal_normal_subgroups(quaternion_group(8))
+1-element Vector{PcGroup}:
+ Pc group of order 2
+```
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
@@ -199,6 +292,24 @@ among the nontrivial normal subgroups.
 
 Return the list of characteristic subgroups of `G`,
 i.e., those subgroups that are invariant under all automorphisms of `G`.
+
+# Examples
+```jldoctest
+julia> subgroups(symmetric_group(3))
+6-element Vector{PermGroup}:
+ Permutation group of degree 3 and order 1
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 2
+ Permutation group of degree 3 and order 3
+ Permutation group of degree 3 and order 6
+
+julia> characteristic_subgroups(quaternion_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 2
+ Pc group of order 1
+```
 """
 @gapattribute characteristic_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
@@ -209,6 +320,15 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 Return the center of `G`, i.e.,
 the subgroup of all $x$ in `G` such that $x y$ equals $y x$ for every $y$
 in `G`, together with its embedding morphism into `G`.
+
+# Examples
+```jldoctest
+julia> center(symmetric_group(3))
+(Permutation group of degree 3 and order 1, Hom: permutation group -> permutation group)
+
+julia> center(quaternion_group(8))
+(Pc group of order 2, Hom: pc group -> pc group)
+```
 """
 @gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
 
@@ -234,7 +354,223 @@ function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(G.X, x.X))
 end
 
-const centraliser = centralizer
+const centraliser = centralizer # FIXME/TODO: use @alias?
+
+################################################################################
+#
+#
+#
+################################################################################
+
+@doc raw"""
+    chief_series(G::GAPGroup)
+
+Return a vector $[ G_1, G_2, \ldots ]$ of normal subgroups of `G` such
+that $G_i > G_{i+1}$ and there is no normal subgroup `N` of `G` such
+that `G_i > N > G_{i+1}`.
+
+Note that in general there is more than one chief series, this
+function returns an arbitrary one.
+
+# Examples
+```jldoctest
+julia> chief_series(alternating_group(4))
+3-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 12
+ Permutation group of degree 4 and order 4
+ Permutation group of degree 4 and order 1
+
+julia> chief_series(quaternion_group(8))
+4-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 4
+ Pc group of order 2
+ Pc group of order 1
+```
+"""
+@gapattribute chief_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.ChiefSeries(G.X))
+
+@doc raw"""
+    composition_series(G::GAPGroup)
+
+Return a vector $[ G_1, G_2, \ldots ]$ of subgroups forming a
+subnormal series which cannot be refined, i.e., $G_{i+1}$ is normal in
+$G_i$ and the quotient $G_i/G_{i+1}$ is simple.
+
+Note that in general there is more than one composition series, this
+function returns an arbitrary one.
+
+# Examples
+```jldoctest
+julia> composition_series(alternating_group(4))
+4-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 12
+ Permutation group of degree 4 and order 4
+ Permutation group of degree 4 and order 2
+ Permutation group of degree 4 and order 1
+
+julia> composition_series(quaternion_group(8))
+4-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 4
+ Pc group of order 2
+ Pc group of order 1
+```
+"""
+@gapattribute composition_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.CompositionSeries(G.X))
+
+@doc raw"""
+    jennings_series(G::GAPGroup)
+
+Return for a $p$-group $G$ the vector $[ G_1, G_2, \ldots ]$ where
+$G_1 = G$ and beyond that $G_{i+1} := [G_i,G] G_j^p$ where $j$ is the
+smallest integer $> i/p$.
+
+An exception is thrown if $G$ is not a $p$-group.
+
+# Examples
+```jldoctest
+julia> jennings_series(dihedral_group(16))
+5-element Vector{PcGroup}:
+ Pc group of order 16
+ Pc group of order 4
+ Pc group of order 2
+ Pc group of order 2
+ Pc group of order 1
+
+julia> jennings_series(dihedral_group(10))
+ERROR: ArgumentError: group must be a p-group
+```
+"""
+@gapattribute function jennings_series(G::GAPGroup)
+  @req is_pgroup(G) "group must be a p-group"
+  return _as_subgroups(G, GAP.Globals.JenningsSeries(G.X))
+end
+
+@doc raw"""
+    p_central_series(G::GAPGroup, p::IntegerUnion)
+
+Return the vector $[ G_1, G_2, \ldots ]$ where $G_1 = G$ and beyond
+that $G_{i+1} := [G, G_i] G_i^p$.
+
+An exception is thrown if $p$ is not a prime.
+
+# Examples
+```jldoctest
+julia> p_central_series(alternating_group(4), 2)
+1-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 12
+
+julia> p_central_series(alternating_group(4), 3)
+2-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 12
+ Permutation group of degree 4 and order 4
+
+julia> p_central_series(alternating_group(4), 4)
+ERROR: ArgumentError: p must be a prime
+```
+"""
+function p_central_series(G::GAPGroup, p::IntegerUnion)
+  @req is_prime(p) "p must be a prime"
+  return _as_subgroups(G, GAP.Globals.PCentralSeries(G.X, GAP.Obj(p)))
+end
+
+@doc raw"""
+    lower_central_series(G::GAPGroup)
+
+Return the vector $[ G_1, G_2, \ldots ]$ where $G_1 = G$ and beyond
+that $G_{i+1} := [G, G_i]$. The series ends as soon as it is repeating
+(e.g. when the trivial subgroup is reached, which happens if and only
+if $G$ is nilpotent).
+
+It is a central series of normal (and even characteristic) subgroups
+of $G$. The name derives from the fact that $G_i$ is contained in the
+$i$-th step subgroup of any central series.
+
+See also [`upper_central_series`](@ref) and [`nilpotency_class`](@ref).
+
+# Examples
+```jldoctest
+julia> lower_central_series(dihedral_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 2
+ Pc group of order 1
+
+julia> lower_central_series(dihedral_group(12))
+2-element Vector{PcGroup}:
+ Pc group of order 12
+ Pc group of order 3
+
+julia> lower_central_series(symmetric_group(4))
+2-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 24
+ Permutation group of degree 4 and order 12
+```
+"""
+@gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(G.X))
+
+@doc raw"""
+    upper_central_series(G::GAPGroup)
+
+Return the vector $[ G_1, G_2, \ldots ]$ where the last entry is the
+trivial group, and $G_i$ is defined as the overgroup of $G_{i+1}
+satisfying $G_i / G_{i+1} = Z(G/G_{i+1})$. The series ends as soon as
+it is repeating (e.g. when the whole group $G$ is reached, which
+happens if and only if $G$ is nilpotent).
+
+It is a central series of normal subgroups. The name derives from the
+fact that $G_i$ contains every $i$-th step subgroup of a central
+series.
+
+See also [`lower_central_series`](@ref) and [`nilpotency_class`](@ref).
+
+# Examples
+```jldoctest
+julia> upper_central_series(dihedral_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 2
+ Pc group of order 1
+
+julia> upper_central_series(dihedral_group(12))
+2-element Vector{PcGroup}:
+ Pc group of order 2
+ Pc group of order 1
+
+julia> upper_central_series(symmetric_group(4))
+1-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 1
+```
+"""
+@gapattribute upper_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.UpperCentralSeriesOfGroup(G.X))
+
+@doc raw"""
+    nilpotency_class(G::GAPGroup) -> Int
+
+Return the nilpotency class of `G`, i.e., the smallest integer $n$
+such that `G` has a central series with $n$ steps (meaning that it
+consists of $n+1$ groups). The trivial group is the unique group with
+nilpotency class 0 and all abelian groups have nilpotency class 1.
+
+An exception is thrown if `G` is not nilpotent.
+
+See also [`lower_central_series`](@ref) and [`upper_central_series`](@ref).
+
+# Examples
+```jldoctest
+julia> nilpotency_class(dihedral_group(8))
+2
+
+julia> nilpotency_class(dihedral_group(12))
+ERROR: ArgumentError: The group is not nilpotent.
+```
+"""
+@gapattribute function nilpotency_class(G::GAPGroup)
+   @req is_nilpotent(G) "The group is not nilpotent."
+   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
+end
+
 
 ################################################################################
 #
@@ -374,6 +710,18 @@ end
 Return whether `G` is solvable,
 i.e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
+
+# Examples
+```jldoctest
+julia> is_solvable(symmetric_group(3))
+true
+
+julia> is_solvable(symmetric_group(4))
+true
+
+julia> is_solvable(symmetric_group(5))
+false
+```
 """
 @gapattribute is_solvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
 
@@ -383,6 +731,15 @@ reaches the trivial subgroup in a finite number of steps.
 Return whether `G` is nilpotent,
 i.e., whether the lower central series of `G` reaches the trivial subgroup
 in a finite number of steps.
+
+# Examples
+```jldoctest
+julia> is_nilpotent(dihedral_group(8))
+true
+
+julia> is_nilpotent(dihedral_group(10))
+false
+```
 """
 @gapattribute is_nilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
 
@@ -391,6 +748,18 @@ in a finite number of steps.
 
 Return whether `G` is supersolvable,
 i.e., `G` is finite and has a normal series with cyclic factors.
+
+# Examples
+```jldoctest
+julia> is_supersolvable(symmetric_group(3))
+true
+
+julia> is_supersolvable(symmetric_group(4))
+false
+
+julia> is_supersolvable(symmetric_group(5))
+false
+```
 """
 @gapattribute is_supersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 
@@ -566,6 +935,109 @@ function set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomor
 end
 
 
+# see `prime_of_pgroup` why we introduce `_abelian_invariants`
+@gapattribute _abelian_invariants(G::GAPGroup) = GAP.Globals.AbelianInvariants(G.X)
+
+"""
+    abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+
+Return the sorted vector of abelian invariants of the commutator factor group
+of `G` (see [`maximal_abelian_quotient`](@ref)).
+The entries are prime powers or zeroes and have the type `T`.
+They describe the structure of the commutator factor group of `G`
+as a direct product of cyclic groups of prime power (or infinite) order.
+
+# Examples
+```jldoctest
+julia> abelian_invariants(symmetric_group(4))
+1-element Vector{ZZRingElem}:
+ 2
+
+julia> abelian_invariants(Int, abelian_group([2, 12]))
+3-element Vector{Int64}:
+ 2
+ 3
+ 4
+
+julia> abelian_invariants(alternating_group(5))
+ZZRingElem[]
+```
+"""
+abelian_invariants(G::GAPGroup) = abelian_invariants(ZZRingElem, G)
+
+abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
+  Vector{T}(_abelian_invariants(G))
+
+
+# see `prime_of_pgroup` why we introduce `_abelian_invariants_schur_multiplier`
+@gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
+
+"""
+    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+
+Return the sorted vector of abelian invariants
+(see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
+The entries are prime powers or zeroes and have the type `T`.
+They describe the structure of the Schur multiplier of `G`
+as a direct product of cyclic groups of prime power (or infinite) order.
+
+# Examples
+```jldoctest
+julia> abelian_invariants_schur_multiplier(symmetric_group(4))
+1-element Vector{ZZRingElem}:
+ 2
+
+julia> abelian_invariants_schur_multiplier(Int, alternating_group(6))
+2-element Vector{Int64}:
+ 2
+ 3
+
+julia> abelian_invariants_schur_multiplier(abelian_group([2, 12]))
+1-element Vector{ZZRingElem}:
+ 2
+
+julia> abelian_invariants_schur_multiplier(cyclic_group(5))
+ZZRingElem[]
+```
+"""
+abelian_invariants_schur_multiplier(G::GAPGroup) = abelian_invariants_schur_multiplier(ZZRingElem, G)
+
+abelian_invariants_schur_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
+  Vector{T}(_abelian_invariants_schur_multiplier(G))
+
+
+"""
+    schur_multiplier(::Type{T} = GrpAbFinGen, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+
+Return the Schur multiplier of `G`.
+This is an abelian group whose abelian invariants can be computed with
+[`abelian_invariants_schur_multiplier`](@ref).
+
+# Examples
+```jldoctest
+julia> schur_multiplier(symmetric_group(4))
+GrpAb: Z/2
+
+julia> schur_multiplier(PcGroup, alternating_group(6))
+Pc group of order 6
+
+julia> schur_multiplier(abelian_group([2, 12]))
+GrpAb: Z/2
+
+julia> schur_multiplier(cyclic_group(5))
+GrpAb: Z/1
+```
+"""
+schur_multiplier(G::Union{GAPGroup, GrpAbFinGen}) = schur_multiplier(GrpAbFinGen, G)
+
+function schur_multiplier(::Type{T}, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+  eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
+  M = abelian_group(eldiv)
+  (M isa T) && return M
+  return codomain(isomorphism(T, M))
+end
+
+
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
     el = GAPWrap.Image(mp, x.X)
@@ -617,8 +1089,15 @@ end
 """
     derived_subgroup(G::GAPGroup)
 
-Return the derived subgroup of `G`, i.e.,
-the subgroup generated by all commutators of `G`.
+Return the derived subgroup `G'` of `G`, i.e.,
+the subgroup generated by all commutators of `G`,
+together with an embedding `G'` into `G`.
+
+# Examples
+```jldoctest
+julia> derived_subgroup(symmetric_group(5))
+(Permutation group of degree 5 and order 60, Hom: permutation group -> permutation group)
+```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
   _as_subgroup(G, GAP.Globals.DerivedSubgroup(G.X))
@@ -628,8 +1107,50 @@ the subgroup generated by all commutators of `G`.
 
 Return the vector $[ G_1, G_2, \ldots ]$,
 where $G_1 =$ `G` and $G_{i+1} =$ `derived_subgroup`$(G_i)$.
+See also [`derived_length`](@ref).
+
+# Examples
+```jldoctest
+julia> G = derived_series(symmetric_group(4))
+4-element Vector{PermGroup}:
+ Permutation group of degree 4 and order 24
+ Permutation group of degree 4 and order 12
+ Permutation group of degree 4 and order 4
+ Permutation group of degree 4 and order 1
+
+julia> derived_series(symmetric_group(5))
+2-element Vector{PermGroup}:
+ Permutation group of degree 5 and order 120
+ Permutation group of degree 5 and order 60
+
+julia> derived_series(dihedral_group(8))
+3-element Vector{PcGroup}:
+ Pc group of order 8
+ Pc group of order 2
+ Pc group of order 1
+```
 """
-@gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeries(G.X))
+@gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeriesOfGroup(G.X))
+
+@doc raw"""
+    derived_length(G::GAPGroup)
+
+Return the number of steps in the derived series of $G$, that is the series length minus 1.
+See also [`derived_series`](@ref).
+
+# Examples
+```jldoctest
+julia> derived_length(symmetric_group(4))
+3
+
+julia> derived_length(symmetric_group(5))
+1
+
+julia> derived_length(dihedral_group(8))
+2
+```
+"""
+@gapattribute derived_length(G::GAPGroup) = GAP.Globals.DerivedLength(G.X)::Int
 
 
 ################################################################################

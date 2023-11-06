@@ -83,6 +83,8 @@ function Base.show(io::IO, ::MIME"text/plain", X::AbsCoveredScheme)
   end
 end
 
+_covering_for_printing(io::IO, X::AbsCoveredScheme) = get(io, :covering, get_attribute(X, :simplified_covering, default_covering(X)))
+
 # The explanation of the printing are the same as the function above. We need
 # this `_show_semi_compact` for detailed nested printing. Here, we assume that
 # in our nest, we already made precised the base ring of our covered scheme.
@@ -97,9 +99,9 @@ end
 # numbering of the labels, we add the possibility to have more using the string
 # `n`. Note that, in default use in CoveredSchemeMor printing, `n` is either "a"
 # or "b" depending on whether `X` is the domain or the codomain.
-function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X, :simplified_covering, default_covering(X)), n::String = "")
+function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering, n::String)
   io = pretty(io)
-  show(io, X, cov)
+  show(IOContext(io, :covering => cov, :show_semi_compact => false), X)
   print(io, Indent())
   co_str = String[""]
   for i in 1:length(cov)
@@ -120,28 +122,27 @@ function _show_semi_compact(io::IO, X::AbsCoveredScheme, cov::Covering = get_att
   print(io, Dedent())
 end
 
-function Base.show(io::IO, X::AbsCoveredScheme, cov::Covering = get_attribute(X, :simplified_covering, default_covering(X)))
-  io = pretty(io)
-  n = npatches(cov)
-  if has_name(X)
-    print(io, name(X))
-  elseif get(io, :supercompact, false)
-    print(io, "Covered scheme")
+function Base.show(io::IO, X::AbsCoveredScheme)
+  cov = _covering_for_printing(io, X)
+  if get(io, :show_semi_compact, false)
+    l = get(io, :label, "")
+    _show_semi_compact(io, X, cov, l)
   else
-    if get_attribute(X, :is_empty, false) || npatches(cov) == 0
-      print(io, "Empty covered scheme over ")
+    io = pretty(io)
+    n = npatches(cov)
+    if has_name(X)
+      print(io, name(X))
+    elseif get(io, :supercompact, false)
+      print(io, "Covered scheme")
     else
-      print(io, "Scheme over ")
-    end
-    if base_ring(X) == QQ
-      print(io, "QQ")
-    else
+      if get_attribute(X, :is_empty, false) || n == 0
+        print(io, "Empty covered scheme over ")
+      else
+        print(io, "Scheme over ")
+      end
       print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
     end
-    if n != 0
-      print(io, " covered with $n patch")
-      n > 1 && print(io, "es")
-    end
+    n > 0 && print(io, " covered with ", ItemQuantity(n, "patch"))
   end
 end
 

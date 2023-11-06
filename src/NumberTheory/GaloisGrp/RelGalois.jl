@@ -216,7 +216,7 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZ
 end
 
 function galois_group(f::PolyRingElem{nf_elem}, ::QQField)
-  @assert isirreducible(f)
+  @assert is_irreducible(f)
 
   g = f
   k = 0

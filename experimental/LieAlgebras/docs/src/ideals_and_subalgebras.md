@@ -20,7 +20,7 @@ dim(::LieAlgebraIdeal)
 basis(::LieAlgebraIdeal)
 basis(::LieAlgebraIdeal, ::Int)
 Base.in(::LieAlgebraElem, ::LieAlgebraIdeal)
-bracket(::LieAlgebraIdeal{C,LieT}, ::LieAlgebraIdeal{C,LieT}) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+bracket(::LieAlgebraIdeal{C,LieT}, ::LieAlgebraIdeal{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
 normalizer(::LieAlgebra, ::LieAlgebraIdeal)
 centralizer(::LieAlgebra, ::LieAlgebraIdeal)
 ```
@@ -32,7 +32,7 @@ dim(::LieSubalgebra)
 basis(::LieSubalgebra)
 basis(::LieSubalgebra, ::Int)
 Base.in(::LieAlgebraElem, ::LieSubalgebra)
-bracket(::LieSubalgebra{C,LieT}, ::LieSubalgebra{C,LieT}) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+bracket(::LieSubalgebra{C,LieT}, ::LieSubalgebra{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
 normalizer(::LieAlgebra, ::LieSubalgebra)
 centralizer(::LieAlgebra, ::LieSubalgebra)
 is_self_normalizing(S::LieSubalgebra)
@@ -44,7 +44,7 @@ is_self_normalizing(S::LieSubalgebra)
 
 ```@docs
 ideal(::LieAlgebra, ::Vector; is_basis::Bool=false)
-ideal(::LieAlgebra{C}, ::LieAlgebraElem{C}) where {C<:RingElement}
+ideal(::LieAlgebra{C}, ::LieAlgebraElem{C}) where {C<:FieldElem}
 ideal(::LieAlgebra)
 ```
 
@@ -52,7 +52,7 @@ ideal(::LieAlgebra)
 
 ```@docs
 sub(::LieAlgebra, ::Vector; is_basis::Bool=false)
-sub(::LieAlgebra{C}, ::LieAlgebraElem{C}) where {C<:RingElement}
+sub(::LieAlgebra{C}, ::LieAlgebraElem{C}) where {C<:FieldElem}
 sub(::LieAlgebra)
 ```
 
@@ -61,5 +61,5 @@ sub(::LieAlgebra)
 ```@docs
 lie_algebra(::LieSubalgebra)
 lie_algebra(::LieAlgebraIdeal)
-sub(::LieAlgebra{C}, ::LieAlgebraIdeal{C}) where {C<:RingElement}
+sub(::LieAlgebra{C}, ::LieAlgebraIdeal{C}) where {C<:FieldElem}
 ```

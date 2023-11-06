@@ -1,8 +1,7 @@
 @testset "projective_schemes_1" begin
   # test for relative projective space over a polynomial ring
   R, (x,y) = QQ["x", "y"]
-  R_ext, _ = polynomial_ring(R, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
 
   I = ideal(S, [x*v - y*u])
   X = ProjectiveScheme(S, I)
@@ -17,8 +16,7 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for projective space over a field
-  R_ext, _ = polynomial_ring(QQ, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
 
   I = ideal(S, [u])
   X = ProjectiveScheme(S, I)
@@ -35,8 +33,7 @@
   # test for relative projective space over MPolyQuoLocalizedRings
   Y = Spec(R)
   Q = OO(Y)
-  R_ext, _ = polynomial_ring(Q, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
   X = ProjectiveScheme(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])

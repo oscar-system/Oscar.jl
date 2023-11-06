@@ -1,4 +1,4 @@
-@attributes mutable struct LieAlgebraIdeal{C<:RingElement,LieT<:LieAlgebraElem{C}}
+@attributes mutable struct LieAlgebraIdeal{C<:FieldElem,LieT<:LieAlgebraElem{C}}
   base_lie_algebra::LieAlgebra{C}
   gens::Vector{LieT}
   basis_elems::Vector{LieT}
@@ -6,7 +6,7 @@
 
   function LieAlgebraIdeal{C,LieT}(
     L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
-  ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
     L::parent_type(LieT)
     if is_basis
@@ -38,7 +38,7 @@
 
   function LieAlgebraIdeal{C,LieT}(
     L::LieAlgebra{C}, gens::Vector; kwargs...
-  ) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
     return LieAlgebraIdeal{C,LieT}(L, Vector{LieT}(map(L, gens)); kwargs...)
   end
 end
@@ -49,9 +49,8 @@ end
 #
 ###############################################################################
 
-base_lie_algebra(
-  I::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}} = I.base_lie_algebra::parent_type(LieT)
+base_lie_algebra(I::LieAlgebraIdeal{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} =
+  I.base_lie_algebra::parent_type(LieT)
 
 function gens(I::LieAlgebraIdeal)
   return I.gens
@@ -67,7 +66,7 @@ end
 
 function basis_matrix(
   I::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   return I.basis_matrix::dense_matrix_type(C)
 end
 
@@ -131,14 +130,14 @@ end
 
 function Base.issubset(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
   return all(in(I2), gens(I1))
 end
 
 function Base.:(==)(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   base_lie_algebra(I1) === base_lie_algebra(I2) || return false
   gens(I1) == gens(I2) && return true
   return issubset(I1, I2) && issubset(I2, I1)
@@ -174,7 +173,7 @@ end
 
 function Base.:+(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
   return ideal(base_lie_algebra(I1), [gens(I1); gens(I2)])
 end
@@ -186,14 +185,14 @@ Return $[I_1,I_2]$.
 """
 function bracket(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
   return ideal(base_lie_algebra(I1), [x * y for x in gens(I1) for y in gens(I2)])
 end
 
 function bracket(
   L::LieAlgebra{C}, I::LieAlgebraIdeal{C,LieT}
-) where {C<:RingElement,LieT<:LieAlgebraElem{C}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req L === base_lie_algebra(I) "Incompatible Lie algebras."
   return bracket(ideal(L), I)
 end
@@ -256,7 +255,7 @@ end
 
 Return `I` as a subalgebra of `L`.
 """
-function sub(L::LieAlgebra{C}, I::LieAlgebraIdeal{C}) where {C<:RingElement}
+function sub(L::LieAlgebra{C}, I::LieAlgebraIdeal{C}) where {C<:FieldElem}
   @req base_lie_algebra(I) === L "Incompatible Lie algebras."
   return sub(L, basis(I); is_basis=true)
 end
@@ -282,7 +281,7 @@ end
 
 Return the smallest ideal of `L` containing `gen`.
 """
-function ideal(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:RingElement}
+function ideal(L::LieAlgebra{C}, gen::LieAlgebraElem{C}) where {C<:FieldElem}
   return ideal(L, [gen])
 end
 

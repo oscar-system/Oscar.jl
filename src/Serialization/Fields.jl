@@ -135,7 +135,7 @@ function load_object(s::DeserializerState,
                      ::Type{<: fqPolyRepField},
                      dict::Dict)
   def_pol = load_typed_object(s, dict[:def_pol])
-  K, _ = FiniteField(def_pol, cached=false)
+  K, _ = finite_field(def_pol, cached=false)
   return K
 end
 
@@ -248,7 +248,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
   K = parents[end]
   n = ngens(K)
-  # forces parent of MPolyElem
+  # forces parent of MPolyRingElem
   poly_ring = polynomial_ring(base_field(K), n)
   parents[end - 1], _ = poly_ring
   poly_elem_type = elem_type
@@ -325,7 +325,7 @@ function load_object(s::DeserializerState,
   else
     symbols = Symbol(dict[:symbols])
   end
-  return RationalFunctionField(R, symbols, cached=false)[1]
+  return rational_function_field(R, symbols, cached=false)[1]
 end
 
 #elements

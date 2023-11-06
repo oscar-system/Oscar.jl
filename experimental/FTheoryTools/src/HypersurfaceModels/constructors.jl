@@ -12,7 +12,7 @@ $2 \overline{K}_{B_3}$ and $y$ as $3 \overline{K}_{B_3}$.
 # Examples
 ```jldoctest
 julia> base = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> hypersurface_model(base; completeness_check = false)
 Hypersurface model over a concrete base
@@ -37,10 +37,10 @@ coordinates of the fiber ambient space transform.
 # Examples
 ```jldoctest
 julia> base = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
@@ -141,7 +141,7 @@ julia> d = 3
 3
 
 julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 

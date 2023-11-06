@@ -43,7 +43,7 @@ are computed via primary and secondary invariants (i.e.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -137,7 +137,8 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
   np = length(p_invars)
 
-  S, t = grade(polynomial_ring(K, "t" => 1:(np + length(is_invars)))[1], append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ]))
+  w = append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ])
+  S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w)
 
   if isempty(is_invars)
     I = ideal(S, elem_type(S)[])

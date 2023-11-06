@@ -418,7 +418,7 @@ mutable struct GaloisCtx{T}
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
     r.prime = (shft, p)
-    Qt, t = RationalFunctionField(QQ, "t", cached = false)
+    Qt, t = rational_function_field(QQ, "t", cached = false)
     Qts, s = polynomial_ring(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
@@ -477,7 +477,7 @@ mutable struct ComplexRootCtx
   pr::Int
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(AcbField(20), f)
     return new(f, 20, rt)
   end
@@ -542,12 +542,12 @@ mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
   rt::Vector{nf_elem}
   function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
-    @assert ismonic(f)
+    @assert is_monic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(f, field)
     return new(f, rt)
   end
@@ -583,7 +583,7 @@ end
 
 function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   @assert nvars(parent(f)) == 2
-  Qs, s = RationalFunctionField(FlintQQ, "t", cached = false)
+  Qs, s = rational_function_field(FlintQQ, "t", cached = false)
   Qsx, x = polynomial_ring(Qs, cached = false)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
@@ -1519,7 +1519,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
-        mfF = find_morphism(f, _F)
+        mfF = Hecke.find_morphism(f, _F)
       end
       #we should have
       # - d == r (in the appropriate setting)
@@ -2190,14 +2190,14 @@ function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = tru
 end
 
 function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
-  return FunctionField(f, n, cached = cached)
+  return function_field(f, n, cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
   return number_field(f, n, cached = cached)
 end
 
-Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+#Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
 
 
 @doc raw"""
@@ -2633,16 +2633,6 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
   return minpoly(a)
 end
 
-#TODO copied from MPolyFact in Hecke....
-function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
-   if degree(k) > 1
-    phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
-  else
-    phi = MapFromFunc(k, K, x->K((coeff(x, 0))), y->k((coeff(y, 0))))
-  end
-  return phi
-end
-
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2729,7 +2719,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     r = roots(GC, 5, raw = true)
     K, mK = residue_field(parent(r[1]))
     r = map(mK, r)
-    phi = find_morphism(K, k)
+    phi = Hecke.find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
 

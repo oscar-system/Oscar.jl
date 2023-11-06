@@ -71,7 +71,7 @@
   end
 
   @testset "so_n correctness regression" begin
-    function lie_algebra_struct_const(L::LieAlgebra{C}) where {C<:RingElement}
+    function lie_algebra_struct_const(L::LieAlgebra{C}) where {C<:FieldElem}
       R = coefficient_ring(L)
       dimL = dim(L)
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)

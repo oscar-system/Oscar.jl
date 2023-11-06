@@ -192,7 +192,7 @@ function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
   println(io, Indent(), Lowercase(), PU)
   println(io, Lowercase(), PV)
   print(io, Dedent(), "defined by ", Lowercase())
-  Oscar._show_semi_compact(io, f)
+  show(IOContext(io, :show_semi_compact => true), f)
 end
 
 ### type getters
@@ -278,8 +278,7 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
     end
     print(io, Lowercase(), base_scheme(CPS))
     if n != 0
-      print(io, " covered with $n projective patch")
-      n > 1 && print(io, "es")
+      print(io, " covered with ", ItemQuantity(n, "projective patch"))
     end
   end
 end
@@ -290,10 +289,9 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   n = length(pp)
   println(io, "Relative projective scheme")
   print(io, Indent(), "over ", Lowercase())
-  Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
+  show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
   println(io)
-  print(io, Dedent(), "covered with $n projective patch")
-  n > 1 && print(io, "es")
+  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch"))
   print(io, Indent())
   l = ndigits(n)
   for i in 1:n
@@ -318,7 +316,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 julia> empty_covered_projective_scheme(R)
 Relative projective scheme
   over empty covered scheme over multivariate polynomial ring
-covered with 0 projective patch
+covered with 0 projective patches
 ```
 """
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
@@ -471,7 +469,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   # It follows the generic Proj construction
   R = OO(W)
   T, (t,) = polynomial_ring(R, ["t"])
-  S, s = grade(polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])[1])
+  S, s = graded_polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
@@ -521,7 +519,7 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   length(g) == 0 && return true
   R = parent(g[1])
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
-  isunit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
+  is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
   A, p = quo(R, ideal(R, g))
   return is_regular_sequence(p.(g[2:end]))
@@ -1471,7 +1469,7 @@ end
 #        X = hypersurface_complement(subscheme(C, div_list[i]), prod(loc_list[i]))
 #        D = A[row_list[i], column_list[i]]
 #        g = det(D)
-#        isunit(OO(X)(g)) || error("selected minor is not a unit")
+#        is_unit(OO(X)(g)) || error("selected minor is not a unit")
 #      end
 #    end
 #  else
@@ -1680,7 +1678,7 @@ end
 #    A = Df[rl[i], cl[i]]
 #    g = det(A)
 #    U = hypersurface_complement(subscheme(C, ql[i]), h)
-#    @show isunit(OO(U)(g))
+#    @show is_unit(OO(U)(g))
 #  end
 #
 #

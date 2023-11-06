@@ -88,7 +88,7 @@ Over the rational function field, we can also compute the monodromy group:
 DocTestFilters = r"Galois context\(.*\]\)"
 ```
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
-julia> Qt, t = RationalFunctionField(QQ, "t");
+julia> Qt, t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 
@@ -145,8 +145,8 @@ julia> r = roots(C, 5)
 4-element Vector{qadic}:
  5*11^0 + 2*11^1 + 6*11^2 + 8*11^3 + 11^4 + O(11^5)
  6*11^0 + 8*11^1 + 4*11^2 + 2*11^3 + 9*11^4 + O(11^5)
- (11^0 + 6*11^1 + 6*11^2 + 2*11^4 + O(11^5))*a + 9*11^0 + 4*11^1 + 6*11^2 + 7*11^3 + 11^4 + O(11^5)
  (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
+ (11^0 + 6*11^1 + 6*11^2 + 2*11^4 + O(11^5))*a + 9*11^0 + 4*11^1 + 6*11^2 + 7*11^3 + 11^4 + O(11^5)
 
 julia> r[1]^2
 3*11^0 + O(11^5)
@@ -233,7 +233,7 @@ is now a polynomial with integer coefficients. Thus the bound needs
 to bound the degree as well as the coefficient size.
 
 ```jldoctest
-julia> Qt,t = RationalFunctionField(QQ, "t");
+julia> Qt,t = rational_function_field(QQ, "t");
 
 julia> Qtx, x = Qt["x"];
 

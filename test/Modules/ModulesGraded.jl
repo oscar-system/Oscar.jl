@@ -7,9 +7,8 @@ RNG = Random.MersenneTwister(42)
 ##################################################################
 
 @testset "Graded free modules constructors" begin
-    R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg = grade(R,[Z[1], Z[1], Z[1]])[1]
+    Rg, _ = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     M1 = graded_free_module(Rg, 2)
     @test degrees(M1) == [Z[0], Z[0]]
     M2 = graded_free_module(Rg, [2,2,4,3,3,5])
@@ -23,9 +22,7 @@ RNG = Random.MersenneTwister(42)
 end
 
 @testset "Graded free modules hom constructor" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 3)
     G = graded_free_module(Rg, 2)
     V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
@@ -43,9 +40,7 @@ end
 end
 
 @testset "Kernel and image free modules hom" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 3)
     G = graded_free_module(Rg, 2)
     V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
@@ -61,9 +56,8 @@ end
 end
 
 @testset "Presentations 1" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, 3)
     G = graded_free_module(Rg, 2)
     V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
@@ -80,9 +74,8 @@ end
 end
 
 @testset "Degrees of free module homomorphisms" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, 3)
     G = graded_free_module(Rg, 2)
     V = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
@@ -99,9 +92,8 @@ end
 end
 
 @testset "Subquotient constructors" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, [1,1,1])
     G = graded_free_module(Rg, [0,0])
     B = Rg[y 0; x y; 0 z]
@@ -122,7 +114,7 @@ end
         (2*x^2+x*y)*x (2*y^3+y*x^2)]
     B = Rg[4*x*y^3 (2*x+y)^4]
     F2 = graded_free_module(Rg, [0,0])
-    M1 = SubQuo(F2, A1, B)
+    M1 = SubquoModule(F2, A1, B)
     @test degrees_of_generators(M1) == [Z[1], 2*Z[1]]
     F = graded_free_module(Rg, 2)
     O = [x*F[1]+y*F[2],y*F[2]]
@@ -136,9 +128,8 @@ end
 end
 
 @testset "Graded modules from matrices constructors" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F2 = graded_free_module(Rg,[8,8])
     A1 = Rg[x y;
         2*x^2 3*y^2]
@@ -157,9 +148,8 @@ end
 end
 
 @testset "Graded morphisms from matrix constructor" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg,[1,2, 3])
     A2 = Rg[x^3 x^2 x;
        (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
@@ -169,9 +159,8 @@ end
 end
 
 @testset "Graded morphisms of subquotients constructor" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, 1);
     A = Rg[x; y]
     B = Rg[x^2; y^3; z^4]
@@ -184,9 +173,7 @@ end
 end
 
 @testset "Graded morphisms of subquotients and kernel" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1);
     A = Rg[x; y]
     B = Rg[x^2; y^3; z^4]
@@ -200,9 +187,7 @@ end
 end
 
 @testset "Is isomorphic for graded free modules" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z)=grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, [1,1,3,2])
     G = graded_free_module(Rg, [1,1,2,3])
     @test is_isomorphic(F, G)
@@ -212,9 +197,7 @@ end
 end
 
 @testset "Canonical isomorphism between graded subquotients" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F1 = graded_free_module(Rg,[2,3, 4])
     A2 = Rg[x^3 x^2 x;
        (2*x^2+x*y)*x^2 (2*y^2+x^2)*x x^2]
@@ -229,9 +212,7 @@ end
 end
 
 @testset "Being a subset and equality for graded subquotients" begin
-    R, _= polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg,2)
     O1 = [x*F[1]+y*F[2],y*F[2]]
     O1a = [x*F[1],y*F[2]]
@@ -247,9 +228,7 @@ end
 end
 
 @testset "Sum of graded subquotients" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     AM = Rg[x;]
     BM = Rg[x^2; y^3; z^4]
@@ -267,9 +246,7 @@ end
 
 
 @testset "Being well defined and equality for graded morphisms of subquotients" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; y^3; z^4]
@@ -290,9 +267,7 @@ end
 end
 
 @testset "Being zero for elements of graded subquotients" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; y^3; z^4]
@@ -302,9 +277,8 @@ end
 end
 
 @testset "Hom module of graded free modules" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F1 = graded_free_module(Rg, [1,2,2])
     F2 = graded_free_module(Rg, [3,5])
     V, f = hom(F1, F2)
@@ -319,9 +293,8 @@ end
 end
 
 @testset "Presentations 2" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, [1,2,2]);
     p = presentation(F)
     @test rank(p[-2]) == 0
@@ -364,9 +337,7 @@ end
 
 
 @testset "Equality morphism for subquotients" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1);
     A = Rg[x-y; x+y];
     B = Rg[x^2; y^3; z^4];
@@ -382,9 +353,8 @@ end
 end
 
 @testset "Free resolutions" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, 3)
     rs = free_resolution(F)
     @test is_graded(rs)
@@ -403,9 +373,8 @@ end
 end
 
 @testset "Hom module of graded subquotient modules" begin
-    R, _ = polynomial_ring(QQ, ["x", "y"]);
-    Z = abelian_group(0)
-    Rg, (x,y) = grade(R,[Z[1], Z[1]])
+    Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+    Z = grading_group(Rg)
     F = graded_free_module(Rg, 2);
     V = [x*F[1], y^2*F[2]];
     M = quo(F, V)[1]
@@ -419,15 +388,14 @@ end
     W =  [x*M[1], y*M[2]];
     a = hom(M, M, W);
     @test degree(a) == Z[1]
-    @test iswelldefined(a)
+    @test is_welldefined(a)
     m = homomorphism_to_element(H, a)
     @test m == y*H[2]
 end
 
 @testset "Dual and double dual" begin
-    R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-    Z = abelian_group(0)
-    Rg, (x,y) = grade(R,[Z[1], Z[1], Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F1 = graded_free_module(Rg, 1)
     F2 = graded_free_module(Rg, 2)
     F2v, ev = dual(F2, cod=F1)
@@ -467,9 +435,7 @@ end
 end
 
 @testset "Hom module element morphism conversion" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y"])
-    Z = abelian_group(0)
-    Rg, (x, y) = grade(R0, [Z[1],Z[1]])
+    Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
     A1 = Rg[x^2+y^2 x*y; x^2+y^2 x*y]
     B1 = Rg[x*y^3+x^4+y^2*x^2 x^4; y^4-3*x^4 x*y^3-x^4]
     F = graded_free_module(Rg, 2)
@@ -484,9 +450,7 @@ end
 end
 
 @testset "Multiplication morphism" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y"])
-    Z = abelian_group(0)
-    Rg, (x, y) = grade(R0, [Z[1],Z[1]])
+    Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
     A1 = Rg[x^2+y^2 x*y; x^2+y^2 x*y]
     B1 = Rg[x*y^3+x^4+y^2*x^2 x^4; y^4-3*x^4 x*y^3-x^4]
     F = graded_free_module(Rg, 2)
@@ -499,9 +463,8 @@ end
 end
 
 @testset "Graded tensor product of graded free modules" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y"])
-    Z = abelian_group(0)
-    Rg, (x, y) = grade(R0, [Z[1],Z[1]])
+    Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+    Z = grading_group(Rg)
     F1 = graded_free_module(Rg, [1,2]);
     F2 = graded_free_module(Rg, [3]);
     F3 = graded_free_module(Rg, [5,6]);
@@ -513,9 +476,8 @@ end
 end
 
 @testset "Graded tensor product of graded subquotients" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y"])
-    Z = abelian_group(0)
-    Rg, (x, y) = grade(R0, [Z[1],Z[1]])
+    Rg, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+    Z = grading_group(Rg)
     A1 = Rg[x^2+y^2 x*y; x^2+y^2 x*y]
     B1 = Rg[x*y^3+x^4+y^2*x^2 x^4; y^4-3*x^4 x*y^3-x^4]
     F = graded_free_module(Rg, 2)
@@ -532,9 +494,7 @@ end
 end
 
 @testset "Betti tables 1" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
@@ -548,9 +508,8 @@ end
 end
 
 @testset "Betti tables 2" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
     F = graded_free_module(Rg, 1)
@@ -575,9 +534,8 @@ end
 
 @testset "Resolution and Betti tables 2" begin
     K = GF(31991)
-    R, _ = polynomial_ring(K, ["x", "y", "z", "u", "v"])
-    Z = abelian_group(0)
-    Rg, (x,y,z,u,v) = grade(R, [Z[1],Z[1],Z[1],Z[1],Z[1]])
+    Rg, (x,y,z,u,v) = graded_polynomial_ring(K, ["x", "y", "z", "u", "v"])
+    Z = grading_group(Rg)
     I = ideal([10000*x^3-8565*x^2*y-7937*x*y^2+14060*x^2*z+1416*x*y*z-3771*x*z^2-15712*x^2*u-5990*x*y*u+3271*x*z*u-6141*x*u^2-14457*x^2*v-194*x*y*v-15529*y^2*v+12735*x*z*v+11618*y*z*v+9223*z^2*v+14387*x*u*v+7102*y*u*v+13097*z*u*v+3485*u^2*v+12211*x*v^2-4061*y*v^2+2878*z*v^2-6247*u*v^2-1256*v^3,-10000*x^2*y+8565*x*y^2+7937*y^3-14060*x*y*z-1416*y^2*z+3771*y*z^2+15712*x*y*u+5990*y^2*u-3271*y*z*u+6141*y*u^2-x^2*v+3340*x*y*v-797*y^2*v-7781*x*z*v+14337*y*z*v+7675*z^2*v+9192*x*u*v+1747*y*u*v-13195*z*u*v+9126*u^2*v-5013*x*v^2+15010*y*v^2-6899*z*v^2-6373*u*v^2-6580*v^3,-10000*x^2*z+8565*x*y*z+7937*y^2*z-14060*x*z^2-1416*y*z^2+3771*z^3+15712*x*z*u+5990*y*z*u-3271*z^2*u+6141*z*u^2+12149*x^2*v+669*x*y*v+9621*y^2*v+1543*x*z*v+8614*y*z*v-649*z^2*v-12278*x*u*v+14655*y*u*v+10594*z*u*v+10462*u^2*v-2455*x*v^2-10875*y*v^2-7761*z*v^2-10318*u*v^2-6636*v^3,-10000*x^2*u+8565*x*y*u+7937*y^2*u-14060*x*z*u-1416*y*z*u+3771*z^2*u+15712*x*u^2+5990*y*u^2-3271*z*u^2+6141*u^3-9289*x^2*v+13297*x*y*v+13024*y^2*v-12477*x*z*v+9258*y*z*v+10372*z^2*v-4128*x*u*v-3551*y*u*v+4570*z*u*v+15473*u^2*v+4446*x*v^2-7043*y*v^2-14100*z*v^2+5002*u*v^2+9799*v^3,-9289*x^3+13297*x^2*y+13024*x*y^2-12477*x^2*z+9258*x*y*z+10372*x*z^2+13406*x^2*u-3745*x*y*u-15529*y^2*u-14686*x*z*u+11618*y*z*u+9223*z^2*u-2131*x*u^2+7102*y*u^2+13097*z*u^2+3485*u^3+4446*x^2*v-7043*x*y*v-14100*x*z*v-14778*x*u*v-4061*y*u*v+2878*z*u*v-6247*u^2*v+9799*x*v^2-1256*u*v^2,9289*x^2*y-13297*x*y^2-13024*y^3+12477*x*y*z-9258*y^2*z-10372*y*z^2-x^2*u+7468*x*y*u+2754*y^2*u-7781*x*z*u+9767*y*z*u+7675*z^2*u+9192*x*u^2-13726*y*u^2-13195*z*u^2+9126*u^3-4446*x*y*v+7043*y^2*v+14100*y*z*v-5013*x*u*v+10008*y*u*v-6899*z*u*v-6373*u^2*v-9799*y*v^2-6580*u*v^2,9289*x^2*z-13297*x*y*z-13024*y^2*z+12477*x*z^2-9258*y*z^2-10372*z^3+12149*x^2*u+669*x*y*u+9621*y^2*u+5671*x*z*u+12165*y*z*u-5219*z^2*u-12278*x*u^2+14655*y*u^2-4879*z*u^2+10462*u^3-4446*x*z*v+7043*y*z*v+14100*z^2*v-2455*x*u*v-10875*y*u*v-12763*z*u*v-10318*u^2*v-9799*z*v^2-6636*u*v^2,12149*x^3+669*x^2*y+9621*x*y^2-12914*x^2*z+8420*x*y*z-15529*y^2*z+12086*x*z^2+11618*y*z^2+9223*z^3-12278*x^2*u+14655*x*y*u-7010*x*z*u+7102*y*z*u+13097*z^2*u+10462*x*u^2+3485*z*u^2-2455*x^2*v-10875*x*y*v+4450*x*z*v-4061*y*z*v+2878*z^2*v-10318*x*u*v-6247*z*u*v-6636*x*v^2-1256*z*v^2,-12149*x^2*y-669*x*y^2-9621*y^3-x^2*z+1797*x*y*z-9411*y^2*z-7781*x*z^2+14986*y*z^2+7675*z^3+12278*x*y*u-14655*y^2*u+9192*x*z*u-8847*y*z*u-13195*z^2*u-10462*y*u^2+9126*z*u^2+2455*x*y*v+10875*y^2*v-5013*x*z*v-9220*y*z*v-6899*z^2*v+10318*y*u*v-6373*z*u*v+6636*y*v^2-6580*z*v^2,x^3+11117*x^2*y+991*x*y^2+15529*y^3+7781*x^2*z+4919*x*y*z-11618*y^2*z-7675*x*z^2-9223*y*z^2-9192*x^2*u+15857*x*y*u-7102*y^2*u+13195*x*z*u-13097*y*z*u-9126*x*u^2-3485*y*u^2+5013*x^2*v+4770*x*y*v+4061*y^2*v+6899*x*z*v-2878*y*z*v+6373*x*u*v+6247*y*u*v+6580*x*v^2+1256*y*v^2])
     V = gens(I)
     F = graded_free_module(Rg,1)
@@ -612,9 +570,7 @@ end
 end
 
 @testset "Tensor module resolution" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
@@ -637,9 +593,7 @@ end
 end
 
 @testset "Tensor resolution module" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
@@ -662,9 +616,7 @@ end
 end
 
 @testset "Hom module resolution" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
@@ -699,9 +651,7 @@ end
 end
 
 @testset "Hom resolution module" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     A = Rg[x; y]
     B = Rg[x^2; x*y; y^2; z^4]
@@ -738,9 +688,7 @@ end
 end
 
 @testset "Tor and Ext" begin
-  R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-  Z = abelian_group(0)
-  Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+  Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   A = Rg[x; y]
   B = Rg[x^2; x*y; y^2; z^4]
   F = graded_free_module(Rg, 1)
@@ -783,9 +731,7 @@ end
 end
 
 @testset "Groebner bases graded" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     J = SubquoModule(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
     @test leading_module(J) == SubquoModule(F, [x*F[1], y*F[1]])
@@ -795,17 +741,13 @@ end
     lp = lex(gens(base_ring(F)))*lex(gens(F))
     M = SubquoModule(F, [(x^2*y^2*F[1]+y*z^3*F[2]), x*z*F[1]+z^2*F[2]])
     @test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x^2*y^2*F[1], x*y^2*z^2*F[2]])
-    R, _ = polynomial_ring(QQ, ["x_"*string(i) for i=1:4])
-    Z = abelian_group(0)
-    Rg, x = grade(R, [Z[1],Z[1],Z[1],Z[1]])
+    Rg, x = graded_polynomial_ring(QQ, "x#" => 1:4)
     F = graded_free_module(Rg, 1)
     lp = lex(gens(base_ring(F)))*lex(gens(F))
     J = SubquoModule(F, [(x[1]+x[2])*F[1], (x[1]+x[2]+2*x[3]+2*x[4])*F[1],(x[1]+x[2]+x[3]+x[4])*F[1]])
     @test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2])*F[1]], F).O
     @test haskey(J.groebner_basis, lp)
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F = graded_free_module(Rg, 1)
     lp = lex(gens(base_ring(F)))*lex(gens(F))
     I = SubquoModule(F, [(x-y)*F[1], (y^2-z^2)*F[1]])
@@ -824,9 +766,7 @@ end
 end
 
 @testset "Tensor product of morphisms graded" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     F2 = graded_free_module(Rg,2)
     F3 = graded_free_module(Rg,3)
     F4 = graded_free_module(Rg,4)
@@ -859,9 +799,8 @@ end
 end
 
 @testset "direct product graded" begin
-    R0, _ = polynomial_ring(QQ, ["x", "y", "z"])
-    Z = abelian_group(0)
-    Rg, (x, y, z) = grade(R0, [Z[1],Z[1],Z[1]])
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    Z = grading_group(Rg)
     F2 = graded_free_module(Rg, 2)
     F3 = graded_free_module(Rg, 3)
     A1 = Rg[6*x*y^2*z^2 + 4*y*z^4 + 12*y^2*z^3 6*x^2*y^2*z + 11*x^2*z^3; x y;  y*z   3*x*z + 3*x*y + 5*y*z]
@@ -970,10 +909,8 @@ end
 end
 
 @testset "Coordinates" begin
-    Z3, a = FiniteField(3,1,"a")
-    R, (x,y) = polynomial_ring(Z3, ["x", "y"])
-    Z = abelian_group(0)
-    Rg, (x, y) = grade(R, [Z[1],Z[1]])
+    Z3, a = finite_field(3,1,"a")
+    Rg, (x,y) = graded_polynomial_ring(Z3, ["x", "y"])
     coeffs = [Z3(i) for i=0:1]
     A = Rg[x*y x^2+y^2; y^2 x*y; x^2+y^2 y^2]
     B = Rg[2*x^2 (x+y)^2; x^2+y^2 x^2+2*x*y]
@@ -993,12 +930,10 @@ end
 
 
 @testset "Presentations 3" begin
-    R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-    Z = abelian_group(0);
-    Rg, (x, y, z) = grade(R, [-Z[1],Z[1],-Z[1]]);
-    F = graded_free_module(Rg, 1);
-    B = Rg[x^2; y^3; z^4];
-    M,inc = sub(F,B)
+    Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]; weights=[-1,1,-1])
+    F = graded_free_module(Rg, 1)
+    B = Rg[x^2; y^3; z^4]
+    M, inc = sub(F,B)
     M = cokernel(inc)
     fr = free_resolution(M)
     phi = map(fr,4)
@@ -1030,8 +965,7 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 end
 
 @testset "Basic degree and homogeneity tests for free modules" begin
-    Qx, x = polynomial_ring(QQ, 3)
-    R, x = grade(Qx)
+    R, x = graded_polynomial_ring(QQ, 3)
     F = FreeMod_dec(R, 3) #standard grading
 
     @test degree(F[1]) == decoration(R)[0]
@@ -1045,8 +979,7 @@ end
     @test D[2*decoration(R)[1]] == x[2]^2*F[2]
 
     g = abelian_group(2,0)
-    Qx, x = polynomial_ring(QQ, 2)
-    R, x = grade(Qx, [g[1], g[2]])
+    R, x = graded_polynomial_ring(QQ, 2; weights=[g[1], g[2]])
     F = FreeMod_dec(R, [g[2], g[1], g[1]-2*g[2]])
 
     @test degree(F[1]) == g[2]
@@ -1071,8 +1004,7 @@ end
 
 @testset "Tensor product of decorated free modules" begin
     Z = abelian_group(0)
-    Qx, x = polynomial_ring(QQ, 3)
-    R, x = grade(Qx, [Z[1], 5*Z[1], -Z[1]])
+    R, x = graded_polynomial_ring(QQ, 3; weights=[Z[1], 5*Z[1], -Z[1]])
     F2 = FreeMod_dec(R, [Z[0], Z[1]])
     F3 = FreeMod_dec(R, [Z[1], -2*Z[1], Z[0]])
 
@@ -1089,9 +1021,8 @@ end
 end
 
 @testset "Hom module for decorated free modules" begin
-    Z = abelian_group(0)
-    Qx, x = polynomial_ring(QQ, 3)
-    R, x = grade(Qx, [Z[1] for _ in 1:3])
+    R, x = graded_polynomial_ring(QQ, 3, "x")
+    Z = grading_group(R)
     F = FreeMod_dec(R, [Z[1], 2*Z[1]])
     G = FreeMod_dec(R, [Z[1], 2*Z[1], 3*Z[1]])
 
@@ -1125,43 +1056,40 @@ end
   @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
 
   # small example due to Janko
-  R, x = polynomial_ring(QQ, :x => 1:7)
-  R, x = grade(R)
+  R, x = graded_polynomial_ring(QQ, :x => 1:7)
   I = ideal(R, [x[1]*x[2]*x[5], x[1]*x[2]*x[6], x[3]*x[4]*x[6], x[3]*x[4]*x[7], x[5]*x[7]])
   A, _ = quo(R, I)
   @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
 
   # another example due to Wolfram
-  R, _ = polynomial_ring(QQ, [:x, :y, :z, :w])
-  R, (x, y, z, w) = grade(R)
+  R, (x, y, z, w) = graded_polynomial_ring(QQ, [:x, :y, :z, :w])
   I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
   A, _ = quo(R, I)
   @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
 end
 
 @testset "sheaf cohomology" begin
-  R, x = polynomial_ring(QQ, "x" => 1:4)
-  S, _ = grade(R)
+  S, _ = graded_polynomial_ring(QQ, "x" => 1:4)
   I = ideal(S, gens(S))
   FI = free_resolution(I)
   M = cokernel(map(FI, 2))
-  tbl = sheaf_cohomology_bgg(M, -6, 2)
+  tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
+  lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
+  @test tbl.values == lbt.values
   @test tbl[0, -6] == 70
   @test tbl[2, 0] == 1
   @test iszero(tbl[2, -2])
 
   F = free_module(S, 1)
-  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+  @test_throws AssertionError Oscar._sheaf_cohomology_bgg(F, -6, 2)
 
-  R, x = polynomial_ring(QQ, "x" => 1:4)
-  S, _ = grade(R, [1,2,3,4])
+  S, _ = graded_polynomial_ring(QQ, "x" => 1:4; weights=[1,2,3,4])
   F = graded_free_module(S, 1)
-  @test_throws AssertionError sheaf_cohomology_bgg(F, -6, 2)
+  @test_throws AssertionError Oscar._sheaf_cohomology_bgg(F, -6, 2)
 
-  R, x = polynomial_ring(QQ, "x" => 1:5)
-  S, _ = grade(R)
+  S, _ = graded_polynomial_ring(QQ, "x" => 1:5)
   F = graded_free_module(S, 1)
-  tbl = sheaf_cohomology_bgg(F, -7, 2)
+  tbl = sheaf_cohomology(F, -7, 2)
   a = tbl.values
   b = transpose(a) * a
   @test is_symmetric(b)
@@ -1176,3 +1104,15 @@ end
   @test Int(degree(gen(N, 1))[2]) == -2
 end
 
+@testset "all_monomials for graded free modules" begin
+  R, (x, y, u, v, w) = QQ[:x, :y, :u, :v, :w]
+  S, (x, y, u, v, w) = grade(R)
+
+  F = graded_free_module(S, [-1, 2])
+
+  for d in -4:4
+    amm = Oscar.all_monomials(F, d)
+    @test d < -1 || !isempty(amm)
+    @test all(x->degree(x) == grading_group(F)([d]), amm)
+  end
+end

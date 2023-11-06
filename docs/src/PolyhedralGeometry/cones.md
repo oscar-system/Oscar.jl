@@ -38,6 +38,7 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ambient_dim(C::Cone)
 Base.in(v::AbstractVector, C::Cone)
 Base.issubset(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+facet_degrees(C::Cone)
 f_vector(C::Cone)
 hilbert_basis(C::Cone{QQFieldElem})
 codim(C::Cone)
@@ -52,4 +53,5 @@ nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone{T}) where T<:scalar_types
 rays_modulo_lineality(C::Cone{T}) where T<:scalar_types
+ray_degrees(C::Cone)
 ```

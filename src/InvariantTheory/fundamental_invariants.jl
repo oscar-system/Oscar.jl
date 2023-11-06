@@ -185,7 +185,7 @@ In the modular case, only the second method is available for theoretical reasons
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])

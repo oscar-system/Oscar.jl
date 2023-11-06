@@ -2,7 +2,7 @@
 CurrentModule = Oscar
 ```
 
-# Introduction
+# Toric Schemes
 
 Toric varieties are special instances of schemes. As such, all scheme functionality is
 available to toric varieties.

@@ -3,7 +3,7 @@ q = x^2 + 3//4
 K, a = number_field(q)
 Z7 = residue_ring(ZZ, 7)
 Z7t, t = polynomial_ring(Z7, "t")
-Fin, d = FiniteField(t^2 + t + 1)
+Fin, d = finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 
 cases = [

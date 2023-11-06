@@ -31,7 +31,7 @@ mutable struct MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebr
   end
 end
 
-function Oscar.Localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
+function Oscar.localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
   return MPolyRingLoc(R, m)
 end
 
@@ -70,13 +70,13 @@ end
 
 function MPolyRingElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
-  return MPolyRingElemLoc{T}(f//R(1), Localization(R, m), false)
+  return MPolyRingElemLoc{T}(f//R(1), localization(R, m), false)
 end
 
 function MPolyRingElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
-  return MPolyRingElemLoc{elem_type(B)}(f, Localization(R, m))
+  return MPolyRingElemLoc{elem_type(B)}(f, localization(R, m))
 end
 
 ###############################################################################

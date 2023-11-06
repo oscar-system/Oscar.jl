@@ -112,7 +112,7 @@
     end
 
     @testset "val_t" begin
-        Kt,t = RationalFunctionField(QQ,"t")
+        Kt,t = rational_function_field(QQ,"t")
         Ktx,(x0,x1,x2,x3,x4,x5) = polynomial_ring(Kt,6)
         Cyclic5Homogenized = ideal([x1+x2+x3+x4+x5,
                                    x1*x2+x2*x3+x3*x4+x1*x5+x4*x5,

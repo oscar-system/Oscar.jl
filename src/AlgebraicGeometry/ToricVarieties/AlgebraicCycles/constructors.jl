@@ -21,7 +21,7 @@ Construct the rational equivalence class of algebraic cycles corresponding to a 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> chow_ring(P2)
 Quotient
@@ -54,7 +54,7 @@ Construct the rational equivalence class of algebraic cycles corresponding to a 
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> rational_equivalence_class(P2, [6, 5, 4, 3, 2, 1])
 Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
@@ -80,7 +80,7 @@ Construct the rational equivalence class of algebraic cycles corresponding to th
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> d = toric_divisor(P2, [1, 2, 3])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -108,7 +108,7 @@ Construct the algebraic cycle corresponding to the toric divisor class `c`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> tdc = toric_divisor_class(P2, [2])
 Divisor class on a normal toric variety
@@ -128,7 +128,7 @@ Construct the toric algebraic cycle corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(P2, [2])
 Toric line bundle on a normal toric variety
@@ -148,7 +148,7 @@ Construct the toric algebraic cycle corresponding to the cohomology class `cc`.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:

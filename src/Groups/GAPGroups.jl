@@ -312,6 +312,11 @@ function Base.show(io::IO, G::PermGroup)
       else
         print(io, " and infinite order")
       end
+    elseif GAP.Globals.HasStabChainMutable(G.X)
+      # HACK: to show order in a few more cases where it is trivial to get
+      # but really, GAP should be using this anyway?
+      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
+      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -344,12 +349,10 @@ Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)
 
 Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
 
-
 # Compatibility with GroupsCore interface
 one!(x::GAPGroupElem) = one(parent(x))
 inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
-mul(x::GAPGroupElem, y::GAPGroupElem) = x*y
 mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
 
 div_right(x::GAPGroupElem, y::GAPGroupElem) = x / y
@@ -495,6 +498,34 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 """
 @gapattribute function small_generating_set(G::GAPGroup)
    L = GAP.Globals.SmallGeneratingSet(G.X)::GapObj
+   res = Vector{elem_type(G)}(undef, length(L))
+   for i = 1:length(res)
+     res[i] = group_element(G, L[i]::GapObj)
+   end
+   return res
+end
+
+"""
+    minimal_generating_set(G::GAPGroup)
+
+Return a vector of minimal length of elements in `G` that generate `G`.
+
+# Examples
+```jldoctest
+julia> length(minimal_generating_set(abelian_group(PcGroup, [2,3,4])))
+2
+
+julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
+2
+
+julia> minimal_generating_set(symmetric_group(5))
+2-element Vector{PermGroupElem}:
+ (1,2,3,4,5)
+ (1,2)
+```
+"""
+@gapattribute function minimal_generating_set(G::GAPGroup)
+   L = GAP.Globals.MinimalGeneratingSet(G.X)::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
      res[i] = group_element(G, L[i]::GapObj)
@@ -1491,9 +1522,36 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
   set__prime_of_pgroup(G, GAP.Obj(p))
 end
 
+# TODO/FIXME: the rank method below is disabled because it conflicts
+# with semantics of  the `rank` method for GrpAbFinGen. We'll have
+# to resolve this first; afterwards we can uncomment this code,
+# and possibly rename it to whatever we agreed on (if it is different from `rank`)
+#"""
+#    rank(G::GAPGroup)
+#
+#Return the rank of the group `G`, i.e., the minimal size of a generating set.
+#
+## Examples
+#```jldoctest
+#julia> rank(symmetric_group(5))
+#2
+#
+#julia> rank(free_group(5))
+#5
+#```
+#`"""
+#function rank(G::GAPGroup)
+#  is_trivial(G) && return 0
+#  is_cyclic(G) && return 1
+#  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
+#    return GAP.Globals.Rank(G.X)::Int
+#  end
+#  has_is_finite(G) && is_finite(G) && return length(minimal_generating_set(G))
+#  error("not yet supported")
+#end
 
 """
-    is_finitelygenerated(G)
+    is_finitelygenerated(G::GAPGroup)
 
 Return whether `G` is a finitely generated group.
 
@@ -1513,6 +1571,33 @@ false
 ```
 """
 @gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+
+
+# TODO/FIXME: is_free is disabled for now as it is not universal; it only
+# really works for fp groups, and then also only for those without relators;
+# it returns `false` for a the quotient of the free group on x,y by y, which
+# is mathematically a free group, but maybe not in a pure "technical" sense
+#@doc raw"""
+#    is_free(G::GAPGroup)
+#
+#Return whether `G` is a free group.
+#
+## Examples
+#```jldoctest
+#julia> F = free_group(2)
+#<free group on the generators [ f1, f2 ]>
+#
+#julia> is_free(F)
+#true
+#
+#julia> H = derived_subgroup(F)[1]
+#Group(<free, no generators known>)
+#
+#julia> is_free(H)
+#true
+#```
+#"""
+#@gapattribute is_free(G::GAPGroup) = GAP.Globals.IsFreeGroup(G.X)::Bool
 
 
 @doc raw"""
@@ -1839,19 +1924,6 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    end
 
    return FPGroupElem(G, w)
-end
-
-@doc raw"""
-    nilpotency_class(G::GAPGroup) -> Int
-
-Return the nilpotency class of `G`, i.e.,
-the smallest integer $n$ such that `G` has a central series of length $n$.
-
-An exception is thrown if `G` is not nilpotent.
-"""
-@gapattribute function nilpotency_class(G::GAPGroup)
-   @assert is_nilpotent(G) "The group is not nilpotent."
-   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
 

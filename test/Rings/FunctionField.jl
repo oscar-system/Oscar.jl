@@ -2,8 +2,8 @@
   for (k, kk) in [(QQ, Singular.QQ), (GF(3), Singular.Fp(3))]
     tests = []
 
-    # RationalFunctionField
-    F, a = RationalFunctionField(k, "a")
+    # rational function field
+    F, a = rational_function_field(k, "a")
     push!(tests, (F, a, ["a"]))
 
     # univariate fraction_field

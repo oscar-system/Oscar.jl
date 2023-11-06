@@ -153,7 +153,7 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   c = ambient_coordinates(U)
   str = "["*join(c, ", ")*"]"
   print(io, Indent(), "of affine scheme with coordinate")
-  length(c) > 1 && print(io, "s")
+  length(c) != 1 && print(io, "s")
   println(io, " "*str)
   print(io, Dedent(), "complement to V(")
   join(io, gens(complement_ideal(U)), ", ")
@@ -161,8 +161,7 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   if npatches(U) > 0
     println(io)
     l = ndigits(npatches(U))
-    print(io, "covered by $(npatches(U)) affine patch")
-    npatches(U) > 1 && print(io, "es")
+    print(io, "covered by ", ItemQuantity(npatches(U), "affine patch"))
     print(io, Indent())
     co_str = [""]
     for V in affine_patches(U)
@@ -182,24 +181,26 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   end
 end
 
-function Base.show(io::IO, U::SpecOpen, show_coord::Bool = true)
-  io = pretty(io)
-  if isdefined(U, :name) 
+function Base.show(io::IO, U::SpecOpen)
+  show_coord = get(io, :show_coordinates, true)
+  if get(io, :show_semi_compact, false)
+    _show_semi_compact(io, U)
+  elseif isdefined(U, :name)
     print(io, name(U))
   elseif get(io, :supercompact, false)
     print(io, "Open subset of affine scheme")
   elseif get_attribute(U, :is_empty, false)
+    io = pretty(io)
     print(io, "Empty open subset of ", Lowercase(), ambient_space(U))
   else
+    io = pretty(io)
     print(io, "Complement to V(")
     print(io, join(gens(complement_ideal(U)), ", "), ")")
     if show_coord
       c = ambient_coordinates(U)
       str = "["*join(c, ", ")*"]"
       print(io, " in affine scheme with coordinate")
-      if length(c) > 1
-        print(io, "s")
-      end
+      length(c) != 1 && print(io, "s")
       print(io, " "*str)
     end
   end

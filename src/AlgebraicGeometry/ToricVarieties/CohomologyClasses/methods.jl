@@ -7,7 +7,7 @@ toric variety `toric_variety(c)`.
 # Examples
 ```jldoctest
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
 6-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -25,7 +25,7 @@ julia> integrate(c)
 -1
 
 julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> (x1, x2, x3, x4) = gens(cohomology_ring(F3))
 4-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -88,7 +88,7 @@ julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
 62
 ```
 """
-function integrate(c::CohomologyClass)::QQFieldElem
+function integrate(c::CohomologyClass)
     # can only integrate if the variety is simplicial, complete
     @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
     
@@ -97,30 +97,30 @@ function integrate(c::CohomologyClass)::QQFieldElem
         intersection_dict = _intersection_form_via_exponents(toric_variety(c))
         coeffs = coefficients(c)
         expos = exponents(c)
-        integral = 0
+        integral = zero(QQ)
         for i in 1:nrows(expos)
             if expos[i, :] in keys(intersection_dict)
                 integral += coeffs[i] * intersection_dict[expos[i, :]]
             end
         end
-        return integral
+        return integral::QQFieldElem
     end
     
     # otherwise, proceed "by hand"
     if is_trivial(c)
-        return 0
+        return zero(QQ)
     end
     poly = polynomial(c)
     dict = homogeneous_components(poly)
     elem = base_ring(parent(poly)).D([dim(toric_variety(c))])
     if !(elem in keys(dict))
-        return 0
+        return zero(QQ)
     end
     top_form = dict[elem]
     if iszero(top_form)
-        return 0
+        return zero(QQ)
     end
     n = AbstractAlgebra.leading_coefficient(top_form.f)
     m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
-    return QQFieldElem(n//m)
+    return n//m
 end
