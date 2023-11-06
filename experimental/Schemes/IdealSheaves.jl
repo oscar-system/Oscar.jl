@@ -54,8 +54,8 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
+  for U in patches(C)
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
