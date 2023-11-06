@@ -599,7 +599,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
   end
 
-    # handle different namespaces
+  # handle different namespaces
   @req haskey(obj, :_ns) "Namespace is missing"
   _ns = obj[:_ns]
   if haskey(_ns, :polymake)
