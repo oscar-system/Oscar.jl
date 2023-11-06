@@ -359,7 +359,6 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
     end
     return (pp, qq)
   end
-  cache[U] = my_dehom
   return my_dehom
 end
 

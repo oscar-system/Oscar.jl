@@ -261,6 +261,8 @@ end
   decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for (i, U) in chart_dict
     decomp_info[U] = gens(OO(U))[1:i-1]
+    _dehomogenization_cache(X)[U] = _dehomogenization_map(X, U, i)
+    _homogenization_cache(X)[U] = _homogenization_map(X, U, i)
   end
   result = Covering([chart_dict[i] for i in sort(collect(keys(chart_dict)))])
   set_decomposition_info!(result, decomp_info)

@@ -101,9 +101,8 @@ function IdealSheaf(
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  U = basic_patches(default_covering(X_covered))
-  for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
+  for U in patches(default_covering(X_covered))
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end
@@ -115,9 +114,8 @@ function IdealSheaf(
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  U = basic_patches(default_covering(X_covered))
-  for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
+  for U in patches(default_covering(X_covered))
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end
