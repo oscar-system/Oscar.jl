@@ -5,6 +5,9 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
     return G.pm_graph
 end
 
+function pm_object(PT::PhylogeneticTree)
+  return PT.pm_ptree
+end
 
 ################################################################################
 ################################################################################
@@ -1079,3 +1082,25 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
     print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
   end
 end
+
+################################################################################
+################################################################################
+##  Phylogenetic Trees
+################################################################################
+################################################################################
+
+function phylogenetic_tree(T::scalar_type_or_field, newick::String)
+  pm_ptree = Polymake.graph.PhylogeneticTree{T}(NEWICK = newick)
+
+  return PhylogeneticTree(pm_ptree)
+end
+
+function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Number
+  n_taxa = length(taxa)
+  @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
+
+  pm_ptree = Polymake.graph.PhylogeneticTree{T}(COPHENETIC_MATRIX = M, TAXA = taxa)
+  return PhylogeneticTree(pm_ptree)
+end
+
+

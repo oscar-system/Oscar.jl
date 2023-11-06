@@ -1141,6 +1141,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export phylogenetic_tree
 export picard_class
 export picard_group
 export picard_index
