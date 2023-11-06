@@ -432,6 +432,7 @@ export decoration
 export default_covering
 export default_ordering
 export defines_automorphism
+export defining_ideal
 export defining_ring_element
 export defining_ring_elements
 export deglex
