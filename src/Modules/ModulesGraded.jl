@@ -1522,7 +1522,7 @@ function Base.show(io::IO, table::sheafCohTable)
 end
 
 @doc raw"""
-    sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+    sheaf_cohomology(M::ModuleFP{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M`. The range of twists is between `l` and `h`.
@@ -1548,7 +1548,7 @@ S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
 
 julia> M = cokernel(map(FI, 2));
 
-julia> tbl = sheaf_cohomology_bgg(M, -6, 2)
+julia> tbl = sheaf_cohomology(M, -6, 2)
 twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 0:      70  36  15   4   -   -   -   -   *
@@ -1570,7 +1570,7 @@ julia> R, x = grade(R);
 
 julia> F = graded_free_module(R, 1);
 
-julia> sheaf_cohomology_bgg(F, -7, 2)
+julia> sheaf_cohomology(F, -7, 2, algorithm = :bgg)
 twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
 ----------------------------------------------
 0:      15   5   1   -   -   -   *   *   *   *
@@ -1582,7 +1582,79 @@ twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
 chi:     *   *   *   *   -   -   *   *   *   *
 ```
 """
-function sheaf_cohomology_bgg(M::ModuleFP{T},
+function sheaf_cohomology(M::ModuleFP{T},
+                          l::Int,
+                          h::Int;
+                          algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
+  if algorithm == :bgg
+    return _sheaf_cohomology_bgg(M, l, h)
+  else
+    error("Algorithm not supported.")
+  end
+end
+
+@doc raw"""
+    _sheaf_cohomology_bgg(M::ModuleFP{T}, l::Int, h::Int) where {T <: MPolyDecRingElem}
+
+Compute the cohomology of twists of of the coherent sheaf on projective
+space associated to `M`. The range of twists is between `l` and `h`.
+In the displayed result, '-' refers to a zero enty and '*' refers to a
+negative entry (= dimension not yet determined). To determine all values
+in the desired range between `l` and `h` use `sheafCoh_BGG_regul(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
+The values of the returned table can be accessed by indexing it
+with a cohomological index and a value between `l` and `h` as shown
+in the example below.
+
+```jldoctest
+julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+
+julia> S, _= grade(R);
+
+julia> I = ideal(S, gens(S))
+ideal(x[1], x[2], x[3], x[4])
+
+julia> FI = free_resolution(I)
+Free resolution of I
+S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
+0         1         2         3         4
+
+julia> M = cokernel(map(FI, 2));
+
+julia> tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
+twist:  -6  -5  -4  -3  -2  -1   0   1   2
+------------------------------------------
+0:      70  36  15   4   -   -   -   -   *
+1:       *   -   -   -   -   -   -   -   -
+2:       *   *   -   -   -   -   1   -   -
+3:       *   *   *   -   -   -   -   -   6
+------------------------------------------
+chi:     *   *   *   4   -   -   1   -   *
+
+julia> tbl[0, -6]
+70
+
+julia> tbl[2, 0]
+1
+
+julia> R, x = polynomial_ring(QQ, "x" => 1:5);
+
+julia> R, x = grade(R);
+
+julia> F = graded_free_module(R, 1);
+
+julia> Oscar._sheaf_cohomology_bgg(F, -7, 2)
+twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
+----------------------------------------------
+0:      15   5   1   -   -   -   *   *   *   *
+1:       *   -   -   -   -   -   -   *   *   *
+2:       *   *   -   -   -   -   -   -   *   *
+3:       *   *   *   -   -   -   -   -   -   *
+4:       *   *   *   *   -   -   -   1   5  15
+----------------------------------------------
+chi:     *   *   *   *   -   -   *   *   *   *
+```
+"""
+function _sheaf_cohomology_bgg(M::ModuleFP{T},
                               l::Int,
                               h::Int) where {T <: MPolyDecRingElem}
 

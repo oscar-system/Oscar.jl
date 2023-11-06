@@ -519,7 +519,7 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   length(g) == 0 && return true
   R = parent(g[1])
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
-  isunit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
+  is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
   A, p = quo(R, ideal(R, g))
   return is_regular_sequence(p.(g[2:end]))
@@ -1469,7 +1469,7 @@ end
 #        X = hypersurface_complement(subscheme(C, div_list[i]), prod(loc_list[i]))
 #        D = A[row_list[i], column_list[i]]
 #        g = det(D)
-#        isunit(OO(X)(g)) || error("selected minor is not a unit")
+#        is_unit(OO(X)(g)) || error("selected minor is not a unit")
 #      end
 #    end
 #  else
@@ -1678,7 +1678,7 @@ end
 #    A = Df[rl[i], cl[i]]
 #    g = det(A)
 #    U = hypersurface_complement(subscheme(C, ql[i]), h)
-#    @show isunit(OO(U)(g))
+#    @show is_unit(OO(U)(g))
 #  end
 #
 #

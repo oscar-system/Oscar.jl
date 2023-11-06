@@ -436,7 +436,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc raw"""
-    isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Vector{Int64}}})
+    is_regular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -452,7 +452,7 @@ julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
+function is_regular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
     as_sop = subdivision_of_points(pts,cells)
     is_regular(as_sop)
 end

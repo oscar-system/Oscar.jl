@@ -6852,7 +6852,7 @@ julia> W =  [M[1], y*M[2]];
 
 julia> a = hom(M, M, W);
 
-julia> iswelldefined(a)
+julia> is_welldefined(a)
 true
 
 julia> matrix(a)

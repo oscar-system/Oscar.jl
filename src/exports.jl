@@ -186,6 +186,8 @@ export Undirected
 export WreathProductGroup
 export ZZ
 export abelian_group
+export abelian_invariants
+export abelian_invariants_schur_multiplier
 export absolute_primary_decomposition
 export acting_domain
 export acting_group
@@ -1296,6 +1298,7 @@ export save_mps
 export scalar_product
 export scheme
 export schur_index
+export schur_multiplier
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
@@ -1316,7 +1319,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
-export sheaf_cohomology_bgg
+export sheaf_cohomology
 export short_right_transversal
 export shortest_path_dijkstra
 export show_morphism
