@@ -241,7 +241,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
           space[wt] = SparseVectorSpaceBasis([], [])
         end
 
-        vec = mul(vectors[p], transpose(mats[i]))
+        vec = vectors[p] * transpose(mats[i])
         vec = addAndReduce!(space[wt], vec)
         if vec == 0
           continue
