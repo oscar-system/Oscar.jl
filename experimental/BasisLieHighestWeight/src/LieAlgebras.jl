@@ -26,7 +26,8 @@ end
 end
 
 function Base.show(io::IO, L::LieAlgebraStructure)
-  print(io, "Lie-Algebra of type ", L.lie_type, " and rank ", L.rank)
+  io = pretty(io)
+  print(io, LowercaseOff(), "Lie Algebra of type $(L.lie_type)$(L.rank)")
 end
 
 function lie_algebra(type::Symbol, rk::Int)
