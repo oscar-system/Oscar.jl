@@ -205,8 +205,9 @@ with default covering
 ```
 """
 @attr AbsCoveredScheme function covered_scheme(P::AbsProjectiveScheme)
-  is_empty(P) && return empty_covered_scheme(base_ring(P))
+  #is_empty(P) && return empty_covered_scheme(base_ring(P))
   C = standard_covering(P)
+  is_empty(C) && return empty_covered_scheme(base_ring(P))
   X = CoveredScheme(C)
   return X
 end
