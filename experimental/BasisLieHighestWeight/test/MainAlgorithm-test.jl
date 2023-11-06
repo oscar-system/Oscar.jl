@@ -22,7 +22,6 @@ function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   # convert set of monomials over different ring objects to string representation to compare for equality
   @test issetequal(string.(mons_old), string.(mons_new)) # compare if result of old and new algorithm match
   @test gap_dim == length(mons_new) # check if dimension is correct
-  print(".")
 end
 
 function check_dimension(

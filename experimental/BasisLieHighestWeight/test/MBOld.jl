@@ -138,7 +138,6 @@ function tensorMatricesForOperators(L, hw, ops)
   """
   Calculates the matrices g_i corresponding to the operator ops[i].
   """
-  #println("hw: ", hw)
   mats = []
 
   for i in 1:length(hw)

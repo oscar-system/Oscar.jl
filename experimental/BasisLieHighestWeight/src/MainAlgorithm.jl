@@ -160,12 +160,6 @@ function compute_monomials(
     end
     # check if we found enough monomials
 
-    #println("")
-    #println("highest_weight: ", highest_weight)
-    #println("required monomials: ", gap_dim)
-    #println("monomials from Minkowski-sum: ", length(set_mon))
-    #println(set_mon)
-
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
@@ -189,8 +183,6 @@ function add_known_monomials!(
   extend the weightspace with missing monomials, we need to calculate and add the vector of each monomial to our 
   basis.
   """
-  # println("add_known_monomials")
-
   for mon in set_mon_in_weightspace[weight_w]
     # calculate the vector vec associated with mon
     vec = calc_vec(v0, mon, matrices_of_operators)
@@ -223,8 +215,6 @@ function add_new_monomials!(
   Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
   """
-  #println("add_new_monomials")
-
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
@@ -233,12 +223,9 @@ function add_new_monomials!(
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
-  #println("before sort")
-  #flush(stdout)
   poss_mon_in_weightspace = sort(
     poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
   )
-  #println("after sort")
 
   # check which monomials should get added to the basis
   i = 0
@@ -321,14 +308,11 @@ function add_by_hand(
   # Oscar dependencies. But I plan to reimplement this. 
   # insert known monomials into basis
   for (weight_w, _) in weightspaces
-    # print(".")
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
-  # println("")
   # calculate new monomials
   for (weight_w, dim_weightspace) in weightspaces
-    # print("*")
     add_new_monomials!(
       L,
       birational_sequence,
