@@ -9,7 +9,7 @@ import Oscar: dim, monomial_ordering, monomials
 
 import Base: length
 
-# TODO: Test im ZZx should be a graded_polynomial_ring with weights_w as weights
+# TODO: Test if ZZx should be a graded_polynomial_ring with weights_w as weights
 
 # TODO (?) Maybe export and docstring: 
 # get_dim_weightspace
@@ -25,20 +25,7 @@ import Base: length
 # w_to_aplha
 # alpha_to_w
 
-# TODO GAPWrap-wrappers are missing for 
-# ChevalleyBasis
-# DimensionOfHighestWeightModule
-# SimpleLieAlgebra
-# Rationals
-# HighestWeightModule
-# List
-# MatrixOfAction
-# RootSystem
-# CartanMatrix
-# WeylGroup
-# DominantCharacter
-# DimensionOfHighestWeightModule
-# CanonicalGenerators
+# TODO GAPWrap-wrappers are missing
 
 include("LieAlgebras.jl")
 include("BirationalSequence.jl")

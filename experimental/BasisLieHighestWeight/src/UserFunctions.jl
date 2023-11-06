@@ -1,4 +1,12 @@
-@doc """
+@doc raw"""
+    basis_lie_highest_weight_operators(type::Symbol, rank::Int)
+
+Lists the operators available for a given simple Lie algebra of type `type_rank`,
+together with their index.
+Operators of the form $f_\alpha$ are shown as the coefficients of $\alpha$
+w.r.t. the simple roots $\alpha_i$.
+
+# Example
 ```jldoctest
 julia> BasisLieHighestWeight.basis_lie_highest_weight_operators(:B, 2)
 4-element Vector{Tuple{Int64, Vector{QQFieldElem}}}:
@@ -16,26 +24,21 @@ function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
   return collect(enumerate(weights_alpha))
 end
 
-@doc """
-basis_lie_highest_weight(
-    type::Symbol,
-    rank::Int,
-    highest_weight::Vector{Int},
-    birational_sequence::Union{String, Vector{Union{Int, Vector{Int}}}};
-    monomial_ordering::Symbol = :degrevlex,
-)
+@doc raw"""
+    basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
+    basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
+    basis_lie_highest_weight(type::Symbol, rank::Int, highest_weight::Vector{Int}, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
 
 Computes a monomial basis for the highest weight module with highest weight
-``highest_weight`` (in terms of the fundamental weights), for a simple Lie algebra of type
-``type`` and rank ``rank``.
+`highest_weight` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra of type `type_rank`.
 
-# Parameters
-- `type`: type of liealgebra we want to investigate, one of :A, :B, :C, :D, :E, :F, :G
-- `rank`: rank of liealgebra
-- `highest_weight`: highest-weight
-- `birational_sequence`: list of operators
-- `monomial_ordering`: monomial order in which our basis gets defined with regards to our operators.
-                       If this is a weighted ordering, the height of the corresponding root is used as weight.
+If no birational sequence is given, all operators in the order of `basis_lie_highest_weight_operators` are used.
+A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
+A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
+
+`monomial_ordering` describes the monomial ordering used for the basis.
+If this is a weighted ordering, the height of the corresponding root is used as weight.
 
 # Examples
 ```jldoctest
@@ -162,7 +165,19 @@ function basis_lie_highest_weight(
   )
 end
 
-@doc """
+@doc raw"""
+    basis_lie_highest_weight_lusztig(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
+
+Computes a monomial basis for the highest weight module with highest weight
+`highest_weight` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra $L$ of type `type_rank`.
+
+Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
+given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
+Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\beta_1 := \alpha_{i_1}$ and \beta_k := s_{i_1} \cdots s_{i_{k-1}} \alpha_{i_k}$ for $k = 2, \dots, N$.
+
+The monomial ordering is fixed to `wdegrevlex` (weighted degree reverse lexicographic order).
+
 # Examples
 ```jldoctest
 julia> base = BasisLieHighestWeight.basis_lie_highest_weight_lusztig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
@@ -195,11 +210,6 @@ over Lie Algebra of type D4
 function basis_lie_highest_weight_lusztig(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
 )
-  """
-  lusztig polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_lusztig(:D, 4, [1,1,1,1], [4,3,2,4,3,2,1,2,4,3,2,1])
-  """
-  # operators = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   monomial_ordering = :wdegrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -209,7 +219,19 @@ function basis_lie_highest_weight_lusztig(
   )
 end
 
-@doc """
+@doc raw"""
+    basis_lie_highest_weight_string(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
+
+Computes a monomial basis for the highest weight module with highest weight
+`highest_weight` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra $L$ of type `type_rank`.
+
+Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
+given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
+Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
+
+The monomial ordering is fixed to `neglex` (negative lexicographic order).      
+
 # Examples
 ```jldoctest
 julia> BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
@@ -232,18 +254,35 @@ over Lie Algebra of type B3
     [1, 0, 0]
     [0, 1, 0]
     [0, 0, 1]
+
+julia> BasisLieHighestWeight.basis_lie_highest_weight_string(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
+Monomial basis of a highest weight module
+  of highest weight [1, 1, 1, 1]
+  of dimension 1024
+  with monomial ordering neglex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10])
+over Lie Algebra of type A4
+  where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
+    [0, 0, 0, 1]
+    [0, 0, 1, 0]
+    [0, 1, 0, 0]
+    [1, 0, 0, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+    [0, 0, 0, 1]
+    [0, 0, 1, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+  and the basis was generated by Minkowski sums of the bases of the following highest weight modules:
+    [1, 0, 0, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+    [0, 0, 0, 1]
+    [0, 1, 0, 1]
 ```
 """
 function basis_lie_highest_weight_string(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
 )
-  """
-  String / Littelmann-Berenstein-Zelevinsky polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_string(:B, 4, [1,1,1,1], [4,3,4,3,2,3,4,3,2,1,2,3,4,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_string(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
-  """
-  # reduced_expression = some sequence of the String / Littelmann-Berenstein-Zelevinsky polytope
   monomial_ordering = :neglex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -253,7 +292,17 @@ function basis_lie_highest_weight_string(
   )
 end
 
-@doc """
+@doc raw"""
+    basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
+
+Computes a monomial basis for the highest weight module with highest weight
+`highest_weight` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra $L$ of type `type_rank`.
+
+Then the birational sequence used consists of all operators in descening height of the corresponding root.
+
+The monomial ordering is fixed to `neglex` (negative lexicographic order).      
+      
 # Examples
 ```jldoctest
 julia> BasisLieHighestWeight.basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
@@ -276,10 +325,6 @@ over Lie Algebra of type A3
 ```
 """
 function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
-  """
-  Feigin-Fourier-Littelmann-Vinberg polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
-  """
   monomial_ordering = :neglex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -289,7 +334,19 @@ function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::V
   )
 end
 
-@doc """
+@doc raw"""
+    basis_lie_highest_weight_nz(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
+
+Computes a monomial basis for the highest weight module with highest weight
+`highest_weight` (in terms of the fundamental weights $\omega_i$),
+for a simple Lie algebra $L$ of type `type_rank`.
+
+Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
+given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
+Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
+
+The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).      
+
 # Examples
 ```jldoctest
 julia> BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
@@ -312,16 +369,35 @@ over Lie Algebra of type C3
     [1, 0, 0]
     [0, 1, 0]
     [0, 0, 1]
+
+julia> BasisLieHighestWeight.basis_lie_highest_weight_nz(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
+Monomial basis of a highest weight module
+  of highest weight [1, 1, 1, 1]
+  of dimension 1024
+  with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10])
+over Lie Algebra of type A4
+  where the birational sequence used consists of operators to the following weights (given as coefficients w.r.t. alpha_i):
+    [0, 0, 0, 1]
+    [0, 0, 1, 0]
+    [0, 1, 0, 0]
+    [1, 0, 0, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+    [0, 0, 0, 1]
+    [0, 0, 1, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+  and the basis was generated by Minkowski sums of the bases of the following highest weight modules:
+    [1, 0, 0, 0]
+    [0, 1, 0, 0]
+    [0, 0, 1, 0]
+    [0, 0, 0, 1]
+    [0, 1, 0, 1] 
 ```
 """
 function basis_lie_highest_weight_nz(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int}
 )
-  """
-  Nakashima-Zelevinsky polytope
-  BasisLieHighestWeight.basis_lie_highest_weight_nz(:C, 3, [1,1,1], [3,2,3,2,1,2,3,2,1])
-  BasisLieHighestWeight.basis_lie_highest_weight_nz(:A, 4, [1,1,1,1], [4,3,2,1,2,3,4,3,2,3])
-  """
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
