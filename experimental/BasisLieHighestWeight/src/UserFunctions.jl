@@ -3,7 +3,7 @@
 
 Lists the operators available for a given simple Lie algebra of type `type_rank`,
 together with their index.
-Operators of the form $f_\alpha$ are shown as the coefficients of $\alpha$
+Operators $f_\alpha$ of negative roots are shown as the coefficients of the corresponding positive root.
 w.r.t. the simple roots $\alpha_i$.
 
 # Example
@@ -33,7 +33,7 @@ Computes a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
 for a simple Lie algebra of type `type_rank`.
 
-If no birational sequence is given, all operators in the order of `basis_lie_highest_weight_operators` are used.
+If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
 A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
 A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
 
