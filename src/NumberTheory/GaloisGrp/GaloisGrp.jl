@@ -2314,8 +2314,8 @@ extension.
 """
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
-  if index(G, U) == 1 # not type stable
-    return QQ
+  if index(G, U) == 1
+    return Hecke.rationals_as_number_field()[1]
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
