@@ -105,7 +105,12 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   if haskey(cache, U)
     return cache[U]
   end
-  error("dehomogenization map not found")
+  Y = covered_scheme(X)
+  C = default_covering(Y)
+  inc, _ = _find_chart(U, C)
+  V = codomain(inc)
+  @assert V in keys(_dehomogenization_cache(X)) "dehomogenization map not found"
+  return compose(dehomogenization_map(X, V), OO(Y)(V, U))
 end
 
 function _dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec, i::Int)

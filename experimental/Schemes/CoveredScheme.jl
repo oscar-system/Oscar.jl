@@ -249,6 +249,8 @@ end
     pU[Y] = identity_map(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
+    _dehomogenization_cache(X)[Y] = _dehomogenization_map(X, Y, 1)
+    _homogenization_cache(X)[Y] = _homogenization_map(X, Y, 1)
     return result
   end
 
