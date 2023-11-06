@@ -105,39 +105,33 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   if haskey(cache, U)
     return cache[U]
   end
-  charts = affine_charts(covered_scheme(X))
-  any(x->(x===U), charts) || error("second argument is not an affine chart of the first")
-  i = findfirst(k->(charts[k] === U), 1:relative_ambient_dimension(X)+1) - 1
+  error("dehomogenization map not found")
+end
+
+function _dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec, i::Int)
   S = homogeneous_coordinate_ring(X)
-  C = default_covering(covered_scheme(X))
-  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
+  s = vcat(gens(OO(U))[1:i-1], [one(OO(U))], gens(OO(U))[i:relative_ambient_dimension(X)])
   phi = hom(S, OO(U), s, check=false)
-  cache[U] = phi
   return phi
 end
 
-function dehomogenization_map(
+function _dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
+    U::AbsSpec,
     i::Int
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
-  i in 0:relative_ambient_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
-  C = standard_covering(X)
-  U = C[i+1]
-  cache = _dehomogenization_cache(X)
-  if haskey(cache, U)
-    return cache[U]
-  end
-  p = covered_projection_to_base(X)
-  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:relative_ambient_dimension(X)])
-  phi = hom(S, OO(U), pullback(p[U]), s, check=false)
-  cache[U] = phi
+  R = base_ring(X)
+  r = relative_ambient_dimension(X)
+  p = hom(R, OO(U), gens(OO(U))[r+1:end], check=false)
+  s = vcat(gens(OO(U))[1:i-1], [one(OO(U))], gens(OO(U))[i:relative_ambient_dimension(X)])
+  phi = hom(S, OO(U), p, s, check=false)
   return phi
 end
 
-
+#=
 function dehomogenization_map(
     X::AbsProjectiveScheme{CRT}, 
     U::AbsSpec
@@ -146,7 +140,9 @@ function dehomogenization_map(
   }
   return dehomogenization_map(X, X[U][2]-1)
 end
+=#
 
+#=
 @doc raw"""
     dehomogenization_map(X::AbsProjectiveScheme, i::Int)
 
@@ -167,6 +163,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, i::Int)
   cache[U] = phi
   return phi
 end
+=#
 
 
 @doc raw"""
@@ -232,16 +229,15 @@ function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
 end
 
 # Projective schemes over a Field or ZZ or similar
-function homogenization_map(P::AbsProjectiveScheme{<:Field, <:Union{MPolyDecRing,MPolyQuoRing{<:MPolyDecRingElem}}}, U::AbsSpec)
+function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
   cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
   end
-  # Find the chart where U belongs to
-  X = covered_scheme(P)
-  i = findfirst(V->(U===V), affine_charts(X))
-  i === nothing && error("the given affine scheme is not one of the standard affine charts")
+  error("patch not found or homogenization map not set")
+end
 
+function _homogenization_map(P::AbsProjectiveScheme, U::AbsSpec, i::Int)
   # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
@@ -273,21 +269,10 @@ function homogenization_map(P::AbsProjectiveScheme{<:Field, <:Union{MPolyDecRing
     end
     return (pp, qq)
   end
-  cache[U] = my_dehom
   return my_dehom
 end
 
-
-function homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsSpec)
-  cache = _homogenization_cache(P)
-  if haskey(cache, U)
-    return cache[U]
-  end
-  # Find the chart where U belongs to
-  X = covered_scheme(P)
-  i = findfirst(V->(U===V), affine_charts(X))
-  i === nothing && error("the given affine scheme is not one of the standard affine charts")
-
+function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsSpec, i::Int)
   # Determine those variables which come from the homogeneous 
   # coordinates
   S = homogeneous_coordinate_ring(P)
@@ -329,20 +314,10 @@ function homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRin
     end
     return (pp, qq)
   end
-  cache[U] = my_dehom
   return my_dehom
 end
 
-function homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsSpec)
-  cache = _homogenization_cache(P)
-  if haskey(cache, U)
-    return cache[U]
-  end
-  # Find the chart where U belongs to
-  X = covered_scheme(P)
-  i = findfirst(V->(U===V), affine_charts(X))
-  i === nothing && error("the given affine scheme is not one of the standard affine charts")
-  
+function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsSpec, i::Int)
   # Determine those variables which come from the homogeneous 
   # coordinates
   S = homogeneous_coordinate_ring(P)

@@ -463,14 +463,14 @@ end
 
 function _dehomogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict()
+    X.dehomogenization_cache = IdDict{AbsSpec, Map}()
   end
   return X.dehomogenization_cache
 end
 
 function _homogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :homogenization_cache)
-    X.homogenization_cache = IdDict()
+    X.homogenization_cache = IdDict{AbsSpec, Function}()
   end
   return X.homogenization_cache
 end
