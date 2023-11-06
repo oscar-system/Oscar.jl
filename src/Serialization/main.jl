@@ -147,8 +147,8 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(dict::Dict{Symbol, Any})
-  ns = dict[:_ns]
+function serialization_version_info(obj::Object)
+  ns = obj[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
@@ -621,9 +621,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   # deal with upgrades
   file_version = serialization_version_info(s.obj)
 
-  if file_version < VERSION_NUMBER
-    jsondict = upgrade(jsondict, file_version)
-  end
+  #if file_version < VERSION_NUMBER
+  #  jsondict = upgrade(jsondict, file_version)
+  #end
+  @warn "skipped upgraded"
 
   try
     # add refs to state for referencing during recursion
@@ -652,7 +653,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         loaded = load_object(s, type, jsondict[:data])
       end
     else
-      loaded = load_typed_object(s, jsondict; override_params=params)
+      loaded = load_typed_object(s, nothing; override_params=params)
     end
 
     if haskey(jsondict, :id)
