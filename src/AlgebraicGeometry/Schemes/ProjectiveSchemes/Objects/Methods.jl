@@ -230,11 +230,7 @@ julia> phi.(gens(R))
 ```
 """
 function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
-  error("method not implemented for this type of input")
-end
-
-# Projective schemes over a Field or ZZ or similar
-function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+  # Projective schemes over a Field or ZZ or similar
   cache = _homogenization_cache(P)
   if haskey(cache, U)
     return cache[U]
