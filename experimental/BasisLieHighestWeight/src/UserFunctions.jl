@@ -47,7 +47,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1]
   of dimension 8
   with monomial ordering degrevlex([x1, x2, x3])
-over Lie Algebra of type A2
+over Lie algebra of type A2
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 0]
     [0, 1]
@@ -61,7 +61,7 @@ Monomial basis of a highest weight module
   of highest weight [2, 2, 3]
   of dimension 1260
   with monomial ordering lex([x1, x2, x3, x4, x5, x6])
-over Lie Algebra of type A3
+over Lie algebra of type A3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 0, 0]
     [0, 1, 0]
@@ -79,7 +79,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 0]
   of dimension 3
   with monomial ordering degrevlex([x1, x2, x3])
-over Lie Algebra of type A2
+over Lie algebra of type A2
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 0]
     [0, 1]
@@ -92,7 +92,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 0]
   of dimension 3
   with monomial ordering degrevlex([x1, x2, x3])
-over Lie Algebra of type A2
+over Lie algebra of type A2
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 0]
     [0, 1]
@@ -105,7 +105,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
   with monomial ordering lex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
-over Lie Algebra of type C3
+over Lie algebra of type C3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 0, 0]
     [0, 1, 0]
@@ -185,7 +185,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 4096
   with monomial ordering wdegrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12], [1, 1, 3, 2, 2, 1, 5, 4, 3, 3, 2, 1])
-over Lie Algebra of type D4
+over Lie algebra of type D4
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [0, 0, 0, 1]
     [0, 0, 1, 0]
@@ -239,7 +239,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
   with monomial ordering neglex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
-over Lie Algebra of type B3
+over Lie algebra of type B3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [0, 0, 1]
     [0, 1, 0]
@@ -260,7 +260,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 1024
   with monomial ordering neglex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10])
-over Lie Algebra of type A4
+over Lie algebra of type A4
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [0, 0, 0, 1]
     [0, 0, 1, 0]
@@ -310,7 +310,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 64
   with monomial ordering neglex([x1, x2, x3, x4, x5, x6])
-over Lie Algebra of type A3
+over Lie algebra of type A3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 1, 1]
     [0, 1, 1]
@@ -354,7 +354,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 512
   with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9])
-over Lie Algebra of type C3
+over Lie algebra of type C3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [0, 0, 1]
     [0, 1, 0]
@@ -375,7 +375,7 @@ Monomial basis of a highest weight module
   of highest weight [1, 1, 1, 1]
   of dimension 1024
   with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10])
-over Lie Algebra of type A4
+over Lie algebra of type A4
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [0, 0, 0, 1]
     [0, 0, 1, 0]
