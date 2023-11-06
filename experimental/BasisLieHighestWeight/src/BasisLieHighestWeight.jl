@@ -49,6 +49,8 @@ end
 
 using .BasisLieHighestWeight
 
+export BasisLieHighestWeight
+
 export basis_lie_highest_weight_operators
 export basis_lie_highest_weight
 export basis_lie_highest_weight_lusztig
