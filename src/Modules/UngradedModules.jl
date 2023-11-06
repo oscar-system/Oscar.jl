@@ -7569,11 +7569,11 @@ end
 
 
 @doc raw"""
-    tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+    tensor_product(C::ComplexOfMorphisms{<:ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
+function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
@@ -9038,3 +9038,44 @@ function has_monomials_on_all_axes(M::SubquoModule)
   end
   return true
 end
+
+### Some missing functionality
+function Base.:*(k::Int, f::ModuleFPHom)
+  return base_ring(codomain(f))(k)*f
+end
+
+function is_tensor_product(M::ModuleFP)
+  !has_attribute(M, :tensor_product) && return false, [M]
+  return true, get_attribute(M, :tensor_product)::Tuple
+end
+
+function tensor_pure_function(M::ModuleFP)
+  success, facs = is_tensor_product(M)
+  success || error("not a tensor product")
+  return get_attribute(M, :tensor_pure_function)
+end
+
+function tensor_generator_decompose_function(M::ModuleFP)
+  success, facs = is_tensor_product(M)
+  success || error("not a tensor product")
+  return get_attribute(M, :tensor_generator_decompose_function)
+end
+  
+function tensor_product(mod::Vector{<:ModuleFP})
+  return tensor_product(mod...)
+end
+
+function tensor_product(f::ModuleFPHom...)
+  return tensor_product(collect(f))
+end
+
+# We follow the convention to use the same function also for the 
+# constructor of induced maps.
+tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
+
+function tensor_product(maps::Vector{<:ModuleFPHom})
+  dom = tensor_product([domain(f) for f in maps])
+  cod = tensor_product([codomain(f) for f in maps])
+  return tensor_product(dom, cod, maps)
+end
+
