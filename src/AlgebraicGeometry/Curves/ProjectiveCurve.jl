@@ -42,11 +42,13 @@ projective_curve(I;kwargs...) = ProjectiveCurve(I;kwargs...)
 underlying_scheme(X::ProjectiveCurve) = X.X
 fat_scheme(X::ProjectiveCurve) = fat_scheme(underlying_scheme(X))
 
+#=
 function Base.show(io::IO, ::MIME"text/plain", C::ProjectivePlaneCurve)
   io = pretty(io)
   println(io, "Projective curve")
   print(io, Indent(), "defined by 0 = ", defining_equation(C), Dedent())
 end
+=#
 
 ################################################################################
 
