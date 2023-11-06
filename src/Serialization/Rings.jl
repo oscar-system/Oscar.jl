@@ -96,7 +96,7 @@ function save_object(s::SerializerState, x::ModRingElemUnion)
 end
 
 function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
-                                 str::String, parent_ring::T) where T <: ModRingUnion
+                     str::String, parent_ring::T) where T <: ModRingUnion
   return parent_ring(ZZRingElem(str))
 end
 
