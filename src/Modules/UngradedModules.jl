@@ -8183,11 +8183,7 @@ function default_ordering(F::FreeMod)
 end
 
 ##############################
-#should be in Singular.jl
-function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
-  c = base_ring(a)
-  return Singular.Module(c, Singular.libSingular.id_Intersection(a.ptr, b.ptr, c.ptr))
-end
+#TODO: move to Singular.jl ?
 
 function _reduce(a::Singular.smodule, b::Singular.smodule)
   @assert b.isGB

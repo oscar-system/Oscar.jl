@@ -599,7 +599,7 @@ julia> L = primary_decomposition(I)
 julia> AL = absolute_primary_decomposition(I)
 2-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}, Int64}}:
  (ideal(z^2 + 1, y + 1), ideal(z^2 + 1, y + 1), ideal(z - _a, y + 1), 2)
- (ideal(z^6 + 4*z^3 + 4, y - z^2), ideal(z^3 + 2, y - z^2), ideal(z - _a, y - _a*z), 3)
+ (ideal(z^6 + 4*z^3 + 4, y - z^2), ideal(z^3 + 2, y - z^2), ideal(z - _a, y - _a^2), 3)
 
 julia> AP = AL[1][3]
 ideal(z - _a, y + 1)
