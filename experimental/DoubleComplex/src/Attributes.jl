@@ -20,10 +20,10 @@ function vertical_map_cache(D::DoubleComplexOfMorphisms)
 end
 
 ### Boundedness
-has_right_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :right_bound)
-has_left_bound(D::DoubleComplexOfMorphisms) = isdefined(D, :left_bound)
-has_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :upper_bound)
-has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
+has_right_bound(D::DoubleComplexOfMorphisms) = D.right_bound !== nothing
+has_left_bound(D::DoubleComplexOfMorphisms) = D.left_bound !== nothing
+has_upper_bound(D::DoubleComplexOfMorphisms)   = D.upper_bound !== nothing
+has_lower_bound(D::DoubleComplexOfMorphisms)   = D.lower_bound !== nothing
 
 function is_complete(D::DoubleComplexOfMorphisms)
   D.is_complete isa Bool && D.is_complete && return true
@@ -128,23 +128,23 @@ function vertical_range(D::DoubleComplexOfMorphisms)
 end
 
 function right_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :right_bound) || error("complex has no known horizontal upper bound")
-  return D.right_bound
+  D.right_bound !== nothing || error("complex has no known horizontal upper bound")
+  return D.right_bound::Int
 end
 
 function left_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :left_bound) || error("complex has no known horizontal lower bound")
-  return D.left_bound
+  D.left_bound !== nothing || error("complex has no known horizontal lower bound")
+  return D.left_bound::Int
 end
 
 function upper_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :upper_bound) || error("complex has no known vertical upper bound")
-  return D.upper_bound
+  D.upper_bound !== nothing || error("complex has no known vertical upper bound")
+  return D.upper_bound::Int
 end
 
 function lower_bound(D::DoubleComplexOfMorphisms) 
-  isdefined(D, :lower_bound) || error("complex has no known vertical lower bound")
-  return D.lower_bound
+  D.lower_bound !== nothing || error("complex has no known vertical lower bound")
+  return D.lower_bound::Int
 end
 
 ### User facing functionality

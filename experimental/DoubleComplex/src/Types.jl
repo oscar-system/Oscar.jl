@@ -318,10 +318,10 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
   vertical_direction::Symbol
 
   # Information about boundedness and completeness of the complex
-  right_bound::Int
-  left_bound::Int
-  upper_bound::Int
-  lower_bound::Int
+  right_bound::Union{Nothing, Int}
+  left_bound::Union{Nothing, Int}
+  upper_bound::Union{Nothing, Int}
+  lower_bound::Union{Nothing, Int}
 
   # caching
   is_complete::Union{Bool, Nothing} # We can not use Bool and isdefined, 
@@ -345,10 +345,10 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
                                           chain_factory, horizontal_map_factory, 
                                           vertical_map_factory,
                                           horizontal_direction, vertical_direction)
-    right_bound !== nothing && (result.right_bound = right_bound)
-    left_bound !== nothing && (result.left_bound = left_bound)
-    upper_bound !== nothing && (result.upper_bound = upper_bound)
-    lower_bound !== nothing && (result.lower_bound = lower_bound)
+    result.right_bound = right_bound
+    result.left_bound = left_bound
+    result.upper_bound = upper_bound
+    result.lower_bound = lower_bound
     result.is_complete = nothing # Set value to 'unknown'
     return result
   end
