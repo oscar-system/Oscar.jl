@@ -141,8 +141,7 @@ function is_smooth_at(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalP
   @req P in X "not a point on X"
   X = codomain(P)
   S = standard_covering(X)
-  n = length(coordinates(P))
-  i = findfirst(i->!iszero(P[i]),1:n)
+  i = findfirst(!iszero,coordinates(P))
   U = S[i]
   return is_smooth_at(U,U(dehomogenization(P,i)))
 end
