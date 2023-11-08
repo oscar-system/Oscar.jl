@@ -100,6 +100,15 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
+@doc raw"""
+    _generate_affine_charts(X::Scheme) -> Dict{Int, AbsSpec}
+
+Helper to generate the affine charts of projective space for `standard_covering`.
+This should be overwritten if you want your charts to be of a type different from `Spec`,
+for instance `AffinePlaneCurve`.
+"""
+_generate_affine_charts(X::Scheme)
+
 # The case of a non-trivial homogeneous modulus
 function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   chart_dict = Dict{Int, Spec}()

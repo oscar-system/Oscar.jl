@@ -1,12 +1,3 @@
-export defining_equation
-export ProjectivePlaneCurve
-export are_transverse
-export common_components
-export geometric_genus
-export intersection_multiplicity
-export multiplicity
-export tangent
-export tangent_lines
 
 ################################################################################
 @doc raw"""
@@ -118,54 +109,7 @@ function irreducible_components(C::ProjectivePlaneCurve)
   return [ProjectivePlaneCurve(i[1]) for i in factor(defining_equation(C))]
 end
 
-################################################################################
-# If P is a smooth point of a projective plane curve C, compute the tangent of C
-# at the point P.
 
-@doc raw"""
-    tangent(C::ProjectivePlaneCurve{S}, P::Geometry.ProjSpcElem{S}) where S <: FieldElem
-
-Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
-
-# Examples
-```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
-Projective plane curve
-  defined by 0 = x^5*y - x*y^4*z
-
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> C = plane_curve(x^2*(x+y)*(y^3-x^2*z));
-
-julia> P = C([2, -2, 1])
-Projective rational point
-  of V(x^4*z + x^3*y*z - x^2*y^3 - x*y^4)
-with coordinates (2 : -2 : 1)
-
-julia> tangent(C, P)
-Projective plane curve
-  defined by 0 = x + y
-
-```
-"""
-function tangent(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
-  P in C || error("The point needs to be in C")
-
-  J = jacobi_ideal(defining_equation(C))
-  L = gens(J)
-  a = evaluate(L[1], coordinates(P))
-  b = evaluate(L[2], coordinates(P))
-  c = evaluate(L[3], coordinates(P))
-  if iszero(a) && iszero(b) && iszero(c)
-    error("This is a singular point of the curve")
-  else
-    V = gens(ambient_coordinate_ring(C))
-    T = a*V[1] + b*V[2] + c*V[3]
-    return ProjectivePlaneCurve(T)
-  end
-end
 
 
 
@@ -181,7 +125,7 @@ function multiplicity(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P in C || return 0
   P = C(coordinates(P))
   S = standard_covering(C)
-  i = findfirst(i->!is_zero(P[i]), 1:3)
+  i = findfirst(!iszero, coordinates(P))
   Ca = S[i]
   Q = Ca(P)
   return multiplicity(Ca, Q)
@@ -216,7 +160,7 @@ function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
   P = C(P)
   R = ambient_coordinate_ring(C)
   S = standard_covering(C)
-  i = findfirst(i->!iszero(P[i]), 1:3)
+  i = findfirst(!iszero, coordinates(P))
   Ca = S[i]
   Q = Ca(P)
   L = tangent_lines(Ca, Q)
@@ -236,7 +180,7 @@ function intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) wh
   P in ambient_space(C) || error("The point needs to be in a projective two dimensional space")
   SC = standard_covering(C)
   SD = standard_covering(D)
-  i = findfirst(x->!iszero(P[x]), 1:3)
+  i = findfirst(!iszero, coordinates(P))
   return intersection_multiplicity(SC[i], SD[i], SC[i](dehomogenization(P,i)))
 end
 
@@ -244,14 +188,14 @@ end
 
 
 @doc raw"""
-     are_transverse(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+     is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
-function are_transverse(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+function is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
   P in C && P in D || return false
   any(P in i for i in common_components(C,D)) && return false
-  is_smooth_at(C, P) && is_smooth_at(D, P) && intersection_multiplicity(C, D, P) == 1
+  is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################

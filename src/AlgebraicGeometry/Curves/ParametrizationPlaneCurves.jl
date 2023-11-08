@@ -1,12 +1,11 @@
-export parametrization_plane_curve
-export adjoint_ideal
-export rational_point_conic
-export parametrization_conic
-export map_to_rational_normal_curve
-export rat_normal_curve_anticanonical_map
-export rat_normal_curve_It_Proj_Odd
-export rat_normal_curve_It_Proj_Even
-export invert_birational_map
+# export parametrization_plane_curve
+# export rational_point_conic
+# export parametrization_conic
+# export map_to_rational_normal_curve
+# export rat_normal_curve_anticanonical_map
+# export rat_normal_curve_It_Proj_Odd
+# export rat_normal_curve_It_Proj_Even
+# export invert_birational_map
 
 
 ################################################################################
@@ -94,7 +93,7 @@ end
 @doc raw"""
     rational_point_conic(D::ProjectivePlaneCurve{QQField})
 
-If the conic `D` contains a rational point, return the homogeneous coordinates of such a point.
+If the plane conic `D` contains a rational point, return the homogeneous coordinates of such a point.
 If no such point exists, return a point on `D` defined over a quadratic field extension of $\mathbb Q$.
  
 # Examples
@@ -146,7 +145,7 @@ end
 @doc raw"""
     parametrization_conic(C::ProjectivePlaneCurve{QQField})
 
-Given a conic `C`, return a vector `V` of polynomials in a new ring which should be
+Given a plane conic `C`, return a vector `V` of polynomials in a new ring which should be
 considered as the homogeneous coordinate ring of `PP^1`. The vector `V` defines a
 rational parametrization `PP^1 --> C2 = {q=0}`.
 """
@@ -162,7 +161,7 @@ end
 @doc raw"""
     map_to_rational_normal_curve(C::ProjectivePlaneCurve{QQField})
 
-Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
+Return a rational normal curve of degree $\deg C-2$ which `C` is mapped to.
 
 # Examples
 ```jldoctest

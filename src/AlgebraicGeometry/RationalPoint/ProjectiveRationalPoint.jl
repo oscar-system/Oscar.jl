@@ -137,16 +137,16 @@ function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRat
   return ProjectiveRationalPoint(codomain(f), imgs, check=false)
 end
 
-function is_smooth_at(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalPoint)
+function is_smooth(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalPoint)
   @req P in X "not a point on X"
   X = codomain(P)
   S = standard_covering(X)
   i = findfirst(!iszero,coordinates(P))
   U = S[i]
-  return is_smooth_at(U,U(dehomogenization(P,i)))
+  return is_smooth(U,U(dehomogenization(P,i)))
 end
 
-is_smooth(P::AbsProjectiveRationalPoint) = is_smooth_at(codomain(P),P)
+is_smooth(P::AbsProjectiveRationalPoint) = is_smooth(codomain(P),P)
 
 function _is_projective(a::Vector{T}) where {T <: AbstractAlgebra.FieldElem}
   return !all(iszero, a)

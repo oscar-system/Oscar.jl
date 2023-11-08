@@ -1,21 +1,8 @@
-export multiplicity
-export tangent
-export tangent_lines
-export curve_intersect
-export geometric_genus
-export intersection_multiplicity
-export are_transverse
-export arithmetic_genus
-export common_components
-export AffinePlaneCurve
-export plane_curve
-export defining_equation
-export projective_closure
 
 @doc raw"""
     AffinePlaneCurve{BaseField<:Field, RingType<:Ring} <: AbsAffineCurve{BaseField, RingType}
 
-Reduced affine plane curves.
+Type for reduced affine plane curves.
 
 # Examples
 ```jldoctest
@@ -278,7 +265,7 @@ end
 # Check if the two curves intersect transversally at the given point.
 
 @doc raw"""
-    are_transverse(C::AffinePlaneCurve, D::AffinePlaneCurve, P::Point)
+    is_transverse_intersection(C::AffinePlaneCurve, D::AffinePlaneCurve, P::AbsAffineRationalPoint)
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 
@@ -305,17 +292,17 @@ Rational point
   of V(x^2 + x*y)
 with coordinates (2, -2)
 
-julia> are_transverse(C, D, P)
+julia> is_transverse_intersection(C, D, P)
 false
 
-julia> are_transverse(C, D, Q)
+julia> is_transverse_intersection(C, D, Q)
 true
 
 ```
 """
-function are_transverse(C::AffinePlaneCurve, D::AffinePlaneCurve, P::AbsAffineRationalPoint)
+function is_transverse_intersection(C::AffinePlaneCurve, D::AffinePlaneCurve, P::AbsAffineRationalPoint)
   P in C && P in D || return false
-  return is_smooth_at(C, P) && is_smooth_at(D, P) && intersection_multiplicity(C, D, P) == 1
+  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 

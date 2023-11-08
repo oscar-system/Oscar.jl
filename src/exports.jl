@@ -32,7 +32,9 @@ export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
+export AffinePlaneCurve
 export AffineVariety
+export arithmetic_genus
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BettiTable
@@ -138,6 +140,7 @@ export Polyhedron
 export Polymake
 export PrincipalOpenSubset
 export ProjectiveAlgebraicSet
+export ProjectivePlaneCurve
 export ProjectiveScheme
 export ProjectiveSchemeMor
 export ProjectiveVariety
@@ -199,6 +202,7 @@ export add_glueing!
 export add_vertex!
 export add_vertices!
 export adjacent_chamber
+export adjoint_ideal
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -358,6 +362,7 @@ export column
 export combinatorial_symmetries
 export comm
 export comm!
+export common_components
 export common_denominator
 export common_refinement
 export complement
@@ -432,6 +437,7 @@ export decoration
 export default_covering
 export default_ordering
 export defines_automorphism
+export defining_equation
 export defining_ideal
 export defining_ring_element
 export defining_ring_elements
@@ -581,6 +587,7 @@ export generic_fraction
 export generic_fractions
 export gens, has_gens
 export gens_of_rational_equivalence_classes
+export geometric_genus
 export geometric_irreducible_components
 export germ_at_point
 export girth
@@ -711,6 +718,7 @@ export integrate
 export interior_lattice_points
 export intersect
 export intersection_form
+export intersection_multiplicity
 export intersections
 export inv
 export inv!
@@ -866,6 +874,7 @@ export is_surjective
 export is_ternary
 export is_total
 export is_transitive
+export is_transverse_intersection
 export is_trivial
 export is_two_sided
 export is_unipotent
@@ -1030,6 +1039,7 @@ export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
 export multiplicities_eigenvalues
+export multiplicity
 export n_cones
 export n_connected_components
 export n_gon
@@ -1147,6 +1157,7 @@ export picard_group
 export picard_index
 export pile_polytope
 export pitman_stanley_polytope
+export plane_curve
 export platonic_solid
 export point_coordinates
 export point_matrix
@@ -1191,6 +1202,7 @@ export projective_general_linear_group
 export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
+export projective_closure
 export projective_plane
 export projective_scheme
 export projective_space
@@ -1393,6 +1405,7 @@ export syz
 export syzygy_generators
 export tail
 export tangent_space
+export tangent_lines
 export tensor_product
 export terms
 export tetrahedron

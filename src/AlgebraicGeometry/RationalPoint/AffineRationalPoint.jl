@@ -16,8 +16,7 @@ end
 parent(p::AffineRationalPoint) = p.parent
 
 coordinate(P::AbsAffineRationalPoint, i::Int) = coordinates(P)[i]
-getindex(P::AbsAffineRationalPoint, i::Int) = coordinate(P, i)
-
+Base.getindex(P::AbsAffineRationalPoint, i::Int) = coordinate(P, i)
 
 @doc raw"""
     coordinates(p::AffineRationalPoint{S,T}) -> Vector{S}
@@ -167,7 +166,7 @@ function MPolyComplementOfKPointIdeal(P::AbsAffineRationalPoint)
   return MPolyComplementOfKPointIdeal(R, coordinates(P))
 end
 
-function is_smooth_at(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+function is_smooth(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "not a point on X"
   U = MPolyComplementOfKPointIdeal(P)
   R = OO(codomain(P))
@@ -180,7 +179,7 @@ end
 
 Return whether ``P`` is a smooth point of its ambient scheme ``X``.
 """
-is_smooth(P::AbsAffineRationalPoint) = is_smooth_at(codomain(P),P)
+is_smooth(P::AbsAffineRationalPoint) = is_smooth(codomain(P),P)
 
 
 @doc raw"""

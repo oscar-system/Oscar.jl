@@ -42,26 +42,18 @@
       @test common_components(F, G) == []
       @test common_components(F, H) == [plane_curve(x * (x + y))]
 
-      @test curve_intersect(F, G) == [[], []]
-      @test curve_intersect(F, H) == [[plane_curve(x * (x + y))], []]
-      @test curve_intersect(F, M) == [[], [P, Q]] ||
-            curve_intersect(F, M) == [[], [Q, P]]
-
-      @test !are_transverse(F, H, P)
-      @test !are_transverse(F, G, P)
-      @test are_transverse(F, M, Q)
+      @test !is_transverse_intersection(F, H, P)
+      @test !is_transverse_intersection(F, G, P)
+      @test is_transverse_intersection(F, M, Q)
   end
 
   @testset "AffinePlaneCurve int_multiplicity functions" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
       F = plane_curve((x^2 + y^2) * (x^2 + y^2 + 2 * y))
       G = plane_curve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2))
-      L = curve_intersect(F, G)
       P = F([0, 0])
       Q = F([0, -2])
 
-      @test L == [[plane_curve(x^2 + y^2)], [P, Q]] ||
-            L == [[plane_curve(x^2 + y^2)], [Q, P]]
       @test intersection_multiplicity(F, G, Q) == 1
       @test_throws ArgumentError intersection_multiplicity(F, G, P)
   end

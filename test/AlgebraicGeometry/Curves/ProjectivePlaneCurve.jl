@@ -48,9 +48,9 @@
       @test common_components(F, G) == []
       @test common_components(F, H) == [ProjectivePlaneCurve(x * (x + y))]
 
-      @test !are_transverse(F, H, P)
-      @test !are_transverse(F, G, P)
-      @test are_transverse(F, M, Q)
+      @test !is_transverse_intersection(F, H, P)
+      @test !is_transverse_intersection(F, G, P)
+      @test is_transverse_intersection(F, M, Q)
   end
 
   @testset "int_multiplicity functions" begin
@@ -86,8 +86,8 @@
 
       @test is_smooth(G(P3))
 
-      @test tangent(G, P3) == ProjectivePlaneCurve(x + y)
       T = tangent_lines(G, P1)
+      @test length(T) == 2
       @test T[ProjectivePlaneCurve(x)] == 3
       @test T[ProjectivePlaneCurve(x + y)] == 1
 
