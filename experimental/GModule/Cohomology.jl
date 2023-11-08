@@ -38,7 +38,7 @@ struct MultGrp{T} <: Oscar.Hecke.GrpAb
 end
 
 function Base.show(io::IO, M::MultGrp)
-  println(io, "multiplicative group of $(M.data)")
+  print(io, "multiplicative group of $(M.data)")
 end
 
 struct MultGrpElem{T} <: Oscar.Hecke.GrpAbElem
