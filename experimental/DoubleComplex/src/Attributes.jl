@@ -26,9 +26,8 @@ has_upper_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :upper_bound)
 has_lower_bound(D::DoubleComplexOfMorphisms)   = isdefined(D, :lower_bound)
 
 function is_complete(D::DoubleComplexOfMorphisms)
-  if isdefined(D, :is_complete) && D.is_complete
-    return true
-  end
+  D.is_complete isa Bool && D.is_complete && return true
+
   todo = keys(D.chains)
   isempty(todo) && return false
   for (i, j) in todo
