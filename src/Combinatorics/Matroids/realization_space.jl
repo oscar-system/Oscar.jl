@@ -105,7 +105,19 @@ inequations(RS::MatroidRealizationSpace) = RS.inequations
 The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`. 
 """
 ambient_ring(RS::MatroidRealizationSpace) = RS.ambient_ring
+function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRing})
+  isdefined(RS, :underlying_scheme) && return RS.underlying_scheme
 
+  P = ambient_ring(RS)::MPolyRing
+  I = defining_ideal(RS)::MPolyIdeal
+  U = powers_of_element(inequations)::MPolyPowersOfElement
+  RS.underlying_scheme = Spec(R, I, U)
+  return RS.underlying_scheme
+end
+
+function underlying_scheme(RS::MatrixRealizationSpace)
+  error("method not implemented for realization spaces of type $(typeof(RS))")
+end
 @doc raw"""
     realization_matrix(RS::MatroidRealizationSpace)
 
