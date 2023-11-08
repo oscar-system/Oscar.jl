@@ -225,9 +225,13 @@ end
 ################################################################################
 
 @doc raw"""
-    geometric_genus(C::ProjectivePlaneCurve)
+    geometric_genus(C::ProjectivePlaneCurve; check::Bool=true)
 
-Return the geometric genus of `C`.
+Return the geometric genus.
+
+If `C` is singular this is defined as the geometric genus of any smooth birational model of `C`.
+
+If `check` is true, checks that `C` is an irreducible curve.
 
 # Examples
 ```jldoctest
@@ -242,7 +246,8 @@ julia> geometric_genus(C)
 
 ```
 """
-function geometric_genus(C::ProjectivePlaneCurve{<:QQField})
+function geometric_genus(C::ProjectivePlaneCurve{<:QQField}; check::Bool=true)
+  @check is_irreducible(C) "the curve must be irreducible"
   I = vanishing_ideal(C)
   singular_assure(I)
   return ZZ(Singular.LibNormal.genus(I.gens.S)::Int)
