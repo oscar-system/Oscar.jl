@@ -1,5 +1,5 @@
 
-@attributes mutable struct MatroidRealizationSpace
+@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrdIdl}
   inequations::Vector{RingElem}
   ambient_ring::Ring
@@ -8,6 +8,9 @@
   q::Union{Int,Nothing}
   ground_ring::Ring
   one_realization::Bool
+  
+  # Fields for caching
+  underlying_scheme::Spec{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
     I::Union{Ideal,NumFieldOrdIdl},
@@ -17,7 +20,14 @@
     char::Union{Int,Nothing},
     q::Union{Int,Nothing},
     ground_ring::Ring)
-    return new(I, ineqs, R, mat, char, q, ground_ring, false)
+    BaseRingType = typeof(ground_ring)
+    RingType = typeof(R)
+    if R isa MPolyRing
+      PolyRingType = typeof(R)
+      MultSetType = MPolyPowersOfElement{BaseRingType, elem_type(BaseRingType), PolyRingType, elem_type(PolyRingType)}
+      RingType = MPolyQuoLocRing{BaseRingType, elem_type(BaseRingType), PolyRingType, elem_type(PolyRingType), MultSetType}
+    end
+    return new{BaseRingType, RingType}(I, ineqs, R, mat, char, q, ground_ring, false)
   end
 end
 
