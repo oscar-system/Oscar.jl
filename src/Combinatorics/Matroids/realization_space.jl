@@ -10,7 +10,7 @@
   one_realization::Bool
   
   # Fields for caching
-  underlying_scheme::Spec{BaseRingType, RingType}
+  underlying_scheme::AbsSpec{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
     I::Union{Ideal,NumFieldOrdIdl},
@@ -31,7 +31,7 @@
   end
 end
 
-function Base.show(io::IO, RS::MatroidRealizationSpace)
+function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
     if RS.char == nothing && RS.q == nothing
       print(io, "The matroid is not realizable.")
@@ -115,6 +115,12 @@ inequations(RS::MatroidRealizationSpace) = RS.inequations
 The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`. 
 """
 ambient_ring(RS::MatroidRealizationSpace) = RS.ambient_ring
+
+### The following method uses types which are declared only later. 
+# Hence hit has been moved to 
+#
+#   src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Methods.jl.
+#=
 function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRing})
   isdefined(RS, :underlying_scheme) && return RS.underlying_scheme
 
@@ -124,8 +130,9 @@ function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRin
   RS.underlying_scheme = Spec(R, I, U)
   return RS.underlying_scheme
 end
+=#
 
-function underlying_scheme(RS::MatrixRealizationSpace)
+function underlying_scheme(RS::MatroidRealizationSpace)
   error("method not implemented for realization spaces of type $(typeof(RS))")
 end
 @doc raw"""
