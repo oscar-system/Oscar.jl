@@ -195,7 +195,7 @@ Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwis
 function is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
   P in C && P in D || return false
   any(P in i for i in common_components(C,D)) && return false
-  is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################

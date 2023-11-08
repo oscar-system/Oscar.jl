@@ -302,15 +302,15 @@ true
 """
 function is_transverse_intersection(C::AffinePlaneCurve, D::AffinePlaneCurve, P::AbsAffineRationalPoint)
   P in C && P in D || return false
-  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  any(P in i for i in common_components(C,D)) && return false
+  return intersection_multiplicity(C, D, P) == 1
 end
 
 
 function projective_closure(C::AffinePlaneCurve)
    F = defining_equation(C)
    K = base_ring(C)
-   R, (x, y, z) = polynomial_ring(K, ["x", "y", "z"])
-   T, _ = grade(R)
+   T, (x, y, z) = graded_polynomial_ring(K, ["x", "y", "z"])
    G = homogenization(F, T; pos=3)
    D = plane_curve(G)
 end

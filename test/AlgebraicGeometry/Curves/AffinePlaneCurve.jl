@@ -1,5 +1,5 @@
 @testset "AffinePlaneCurves" begin
-  @testset "AffinePlaneCurve constructors" begin
+  @testset "constructors" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
       F = y^3 * x^6 - y^6 * x^2
       C = plane_curve(F)
@@ -10,7 +10,7 @@
       @test C == plane_curve(2 * F)
   end
 
-  @testset "AffinePlaneCurve reducible functions" begin
+  @testset "reducible functions" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
       F = plane_curve((x^2 + y^2))
       P = F([0, 0])
@@ -29,7 +29,7 @@
       @test union(G, H) == plane_curve(x * y)
   end
 
-  @testset "AffinePlaneCurve intersection functions" begin
+  @testset "intersection functions" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
       F = plane_curve(x * (x + y))
       G = plane_curve(x + y^2 + 1)
@@ -47,7 +47,7 @@
       @test is_transverse_intersection(F, M, Q)
   end
 
-  @testset "AffinePlaneCurve int_multiplicity functions" begin
+  @testset "int_multiplicity functions" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
       F = plane_curve((x^2 + y^2) * (x^2 + y^2 + 2 * y))
       G = plane_curve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2))
@@ -58,7 +58,7 @@
       @test_throws ArgumentError intersection_multiplicity(F, G, P)
   end
 
-  @testset "AffinePlaneCurve singularity functions" begin
+  @testset "singularity functions" begin
       R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 
       F = plane_curve(x + y^2)
