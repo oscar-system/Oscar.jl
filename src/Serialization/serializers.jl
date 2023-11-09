@@ -1,4 +1,4 @@
-import JSON3: Object, read
+using JSON3
 
 ################################################################################
 # (de)Serializer States
@@ -129,38 +129,52 @@ function finish_writing(s::SerializerState)
   # nothing to do here
 end
 
-struct DeserializerState
+mutable struct DeserializerState
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
-  obj::Union{Object, Array}
-  #refs::Dict{Symbol, Dict}
+  obj::Union{JSON3.Object, JSON3.Array, BasicTypeUnion}
+  key::Union{Symbol, Nothing}
+  refs::Union{JSON3.Object, Nothing}
 end
-  
-function dict_node(f::Function, s::DeserializerState)
-  obj = copy(s.obj)
-  s.obj = s.obj[s.key]
+
+function set_key(s::DeserializerState, key::Union{Symbol, Int})
+  @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
+
+  s.key = key
+end
+
+function load_ref(s::DeserializerState)
+  id = s.obj
+  if haskey(global_serializer_state.id_to_obj, UUID(id))
+    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  else
+    s.obj = s.refs[Symbol(id)]
+    loaded_ref = load_typed_object(s)
+    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+  end
+  return loaded_ref
+end
+
+function deserialize_node(f::Function, s::DeserializerState)
+  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+    return load_ref(s)
+  end
+
+  obj = deepcopy(s.obj)
+  s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
   f()
   s.obj = obj
 end
 
-function set_key(s::DeserializerState, key::Union{Symbol, Int})
-  @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
-  s.key = key
-end
-
-function deserialize_dict(f::Function, s::DeserializerState)
-  dict_node(s) do
-    f()
-  end
-end
-
 function load_value(f::Function, s::DeserializerState,
-                    key::Union{Symbol, Int} = nothing)
+                    key::Union{Symbol, Int, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
-  deserialize_dict(s) do
-    f()
+  result = nothing
+  deserialize_node(s) do
+    return f()
   end
+  return result
 end
 
 ################################################################################
@@ -183,6 +197,11 @@ function serializer_open(io::IO, T::Type{<: OscarSerializer})
 end
 
 function deserializer_open(io::IO, T::Type{<: OscarSerializer})
-  obj = read(io)
-  return T(DeserializerState(obj))
+  obj = JSON3.read(io)
+  refs = nothing
+  if refs_key in keys(obj)
+    refs = obj[refs_key]
+  end
+  
+  return T(DeserializerState(obj, nothing, refs))
 end

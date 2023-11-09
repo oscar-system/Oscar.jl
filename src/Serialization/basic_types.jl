@@ -1,6 +1,3 @@
-# This type should not be exported
-const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
-                       Number, ZZRingElem, TropicalSemiringElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
   save_data_basic(s, x)
 end

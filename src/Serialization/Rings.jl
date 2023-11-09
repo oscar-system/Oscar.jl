@@ -41,8 +41,8 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion})
-  load_data_dict(s, type_key) do
-    load_data_dict(s, :params) do
+  load_value(s, type_key) do
+    load_value(s, :params) do
       return load_typed_object(s)
     end
   end
@@ -120,7 +120,7 @@ function load_object(s::DeserializerState,
                      T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}})
   base_ring = load_typed_object(s, :base_ring)
   symbols = map(Symbol, s.obj[:symbols])
-  
+
   if T <: PolyRing
     return polynomial_ring(base_ring, symbols..., cached=false)[1]
   elseif T <: UniversalPolyRing

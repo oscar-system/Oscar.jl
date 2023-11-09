@@ -126,7 +126,9 @@
 # use the save_type_params / load_type_params from RingElem since in both cases
 # the only parameter needed for such types is their parent.
 
-using JSON
+# This type should not be exported and should be before serializers
+const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
+                       Number, ZZRingElem, TropicalSemiringElem}
 
 include("serializers.jl")
 
@@ -147,7 +149,7 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::Object)
+function serialization_version_info(obj::JSON3.Object)
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
@@ -198,7 +200,7 @@ function decode_type(input::String)
   end
 end
 
-function decode_type(input::Dict{Symbol, Any})
+function decode_type(input::JSON3.Object)
   return decode_type(input[:name])
 end
 
@@ -211,18 +213,6 @@ end
 
 ################################################################################
 # High level
-
-function load_ref(s::DeserializerState, id::String)
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
-  else
-    ref_dict = s.refs[Symbol(id)]
-    ref_dict[:id] = id
-    loaded_ref = load_typed_object(s, ref_dict)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-  end
-  return loaded_ref
-end
 
 function save_as_ref(s::SerializerState, obj::T) where T
   # find ref or create one
@@ -298,7 +288,7 @@ end
 
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
-function load_typed_object(s::DeserializerState, key::Union{Symbol, Int, Nothing};
+function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = nothing;
                            override_params::Any = nothing)
   load_value(s, key) do
     T = decode_type(s)
@@ -311,7 +301,7 @@ function load_typed_object(s::DeserializerState, key::Union{Symbol, Int, Nothing
         # dict with keys and object values to be loaded
         # dict[type_key][:params] this can be found from state
         
-        params = load_type_params(s, T) 
+        params = load_type_params(s, T)
       end
       load_value(s, :data) do
         return load_object(s, T, params)
@@ -653,7 +643,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         loaded = load_object(s, type, jsondict[:data])
       end
     else
-      loaded = load_typed_object(s, nothing; override_params=params)
+      loaded = load_typed_object(s; override_params=params)
     end
 
     if haskey(jsondict, :id)
