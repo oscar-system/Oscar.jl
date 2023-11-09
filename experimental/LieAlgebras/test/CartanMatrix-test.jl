@@ -54,8 +54,7 @@
     @test is_cartan_matrix(ZZ[2 -4; -1 2]; generalized=false) == false
 
     # how test for loops ?
-    @test is_cartan_matrix(ZZ[2 -1 -1; -1 2 -1; -1 -1 2]; generalized=false) == false broken =
-      true
+    @test_broken is_cartan_matrix(ZZ[2 -1 -1; -1 2 -1; -1 -1 2]; generalized=false) == false
   end
 
   @testset "cartan_type(gcm::ZZMatrix; check::Bool)" begin

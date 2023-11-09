@@ -10,6 +10,7 @@
 Returns the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
 and `rk` is the rank of the associated the root system.
 The convention is $(a_ij) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
+# Example
 ```jldoctest
 julia> cartan_matrix(:B, 2)
 [ 2   -1]
@@ -93,7 +94,7 @@ function cartan_matrix(types::Tuple{Symbol,Int}...)
 end
 
 @doc raw"""
-    cartan_to_coxeter_matrix(mat::ZZMatrix; check::Bool=true) -> Bool
+    cartan_to_coxeter_matrix(mat::ZZMatrix; check::Bool=true) -> ZZMatrix
 
 
 """
@@ -222,7 +223,7 @@ function cartan_type(gcm::ZZMatrix; check::Bool=true)
 end
 
 @doc raw"""
-    cartan_type(gcm::ZZMatrix; check::Bool=true) -> Tuple{Vector{Tuple{Symbol, Int}}, Vector{Int}}
+    cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}, Vector{Int}
 
 Currently only works for Cartan matrices of finite type.
 """
