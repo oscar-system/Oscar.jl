@@ -290,13 +290,14 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
           v = 0
           for i in roots
             j = adj[i][1]
-            # we dealt with the rank 2 case, so there is at least one root with the following properties
-            if length(adj[i]) == 1 && length(adj[j]) < 3 && gcm[i, j] * gcm[j, i] == 1
+            if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
               v = i
-              push!(ord, v)
-              break
+              if length(adj[j]) < 3
+                break
+              end
             end
           end
+          push!(ord, v)
 
           n = 1
           adj3 = false # true if found a root with 3 adjacents

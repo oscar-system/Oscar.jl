@@ -73,7 +73,8 @@
 
     @test cartan_type(cartan_matrix(:C, 3); check=false) == [(:C, 3)]
     @test cartan_type(ZZ[2 -1 0; -2 2 -1; 0 -1 2]; check=false) == [(:C, 3)]
-
+    
+    @test cartan_type(cartan_matrix(:D, 4); check=false) == [(:D, 4)]
     @test cartan_type(cartan_matrix(:D, 6); check=false) == [(:D, 6)]
     @test cartan_type(cartan_matrix(:E, 6); check=false) == [(:E, 6)]
     @test cartan_type(cartan_matrix(:E, 7); check=false) == [(:E, 7)]
