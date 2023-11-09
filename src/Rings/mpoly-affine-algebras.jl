@@ -369,13 +369,13 @@ julia> hilbert_polynomial(A)
 3*t + 1
 ```
 """
-function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
+function hilbert_polynomial(A::MPolyQuoRing)
    if iszero(A.I)
        R = base_ring(A.I)
        @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        n = ngens(A)
        Qt, t = QQ["t"]
-       b = one(parent(t))
+       b = one(Qt)
        for i in QQ(1):QQ(n-1)
            b = b * (t+i)
        end
@@ -383,7 +383,7 @@ function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
        return b
    end
    H = HilbertData(A.I)
-   return hilbert_polynomial(H)
+   return hilbert_polynomial(H)::QQPolyRingElem
 end
 
 @doc raw"""

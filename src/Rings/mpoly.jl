@@ -503,16 +503,6 @@ end
 end
 
 
-function (S::Singular.Rationals)(a::QQFieldElem)
-  b = Base.Rational{BigInt}(a)
-  return S(b)
-end
-
-(F::Singular.N_ZpField)(a::Nemo.fpFieldElem) = F(lift(a))
-(F::Singular.N_ZpField)(a::Nemo.zzModRingElem) = F(lift(a))
-(F::Nemo.fpField)(a::Singular.n_Zp) = F(Int(a))
-(F::Nemo.zzModRing)(a::Singular.n_Zp) = F(Int(a))
-
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
 singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
 singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
@@ -1311,3 +1301,6 @@ end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
 
+function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
+  set_attribute!(S, :default_ordering, ord)
+end

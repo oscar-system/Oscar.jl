@@ -412,9 +412,7 @@ julia> ngens(ideal_of_linear_relations(p2))
 ```
 """
 @attr MPolyIdeal function ideal_of_linear_relations(v::NormalToricVarietyType)
-    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v))
-    weights = [1 for i in 1:ngens(R)]
-    grade(R, weights)
+    R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
     return ideal_of_linear_relations(R, v)
 end
 
@@ -1093,7 +1091,7 @@ julia> hilbert_basis(antv)
 """
 @attr ZZMatrix function hilbert_basis(v::AffineNormalToricVariety)
   @req is_pointed(weight_cone(v)) "Weight cone is not pointed"
-  @req isfulldimensional(weight_cone(v)) "Weight cone is not full dimensional"
+  @req is_fulldimensional(weight_cone(v)) "Weight cone is not full dimensional"
   return matrix(ZZ, hilbert_basis(weight_cone(v)))
 end
 

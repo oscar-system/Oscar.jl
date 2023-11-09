@@ -3,6 +3,7 @@ module GrpCoh
 using Oscar
 import Oscar: action
 import Oscar: induce
+import Oscar: word
 import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
 import AbstractAlgebra: Group, Module
 import Base: parent
@@ -37,7 +38,7 @@ struct MultGrp{T} <: Oscar.Hecke.GrpAb
 end
 
 function Base.show(io::IO, M::MultGrp)
-  println(io, "multiplicative group of $(M.data)")
+  print(io, "multiplicative group of $(M.data)")
 end
 
 struct MultGrpElem{T} <: Oscar.Hecke.GrpAbElem

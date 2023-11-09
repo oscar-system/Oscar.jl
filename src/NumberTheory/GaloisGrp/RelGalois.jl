@@ -154,7 +154,7 @@ function Oscar.roots(V::Hecke.vanHoeijCtx)
 end
 
 function Base.show(io::IO, C::GaloisCtx{Hecke.vanHoeijCtx})
-  println(io, "GaloisCtx for computations modulo $(C.C.P)")
+  print(io, "GaloisCtx for computations modulo $(C.C.P)")
 end
 
 function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = true)
@@ -216,7 +216,7 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZ
 end
 
 function galois_group(f::PolyRingElem{nf_elem}, ::QQField)
-  @assert isirreducible(f)
+  @assert is_irreducible(f)
 
   g = f
   k = 0

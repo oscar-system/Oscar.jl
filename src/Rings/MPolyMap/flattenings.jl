@@ -20,12 +20,38 @@
   flat_to_orig::Map{FlatRingType, TowerRingType}
   base_ring_to_flat::Map{CoeffRingType, FlatRingType}
 
+  flat_counterparts::AbstractAlgebra.WeakKeyIdDict{Any, Any}
+
   function RingFlattening(
       S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
     S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+    S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
+    return new{typeof(S), typeof(S_flat), typeof(R)}(S, S_flat, R, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     R_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyRingElem}
+    R = base_ring(S)
+    kk = coefficient_ring(R)
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(S_flat, 
+         matrix_ordering(S_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
     S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
@@ -46,6 +72,42 @@
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
     T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
+    S_flat, pr = quo(T_flat, I_flat)
+
+    A_to_S_flat = hom(A, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, A_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(A))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(A)}(S, S_flat, A, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     A_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoRingElem}
+    A = base_ring(S)::MPolyQuoRing
+    R = base_ring(A)::MPolyRing
+    I = modulus(A)::MPolyIdeal
+    kk = coefficient_ring(R)::Field
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
@@ -96,6 +158,49 @@
   end
 
   function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyQuoLocRingElem}
+    Q = base_ring(S)::MPolyQuoLocRing
+    R = base_ring(Q)::MPolyRing
+    L = localized_ring(Q)::MPolyLocRing
+    A = underlying_quotient(Q)::MPolyQuoRing
+    U = inverted_set(Q)::AbsMultSet
+    I = modulus(Q)::MPolyLocalizedIdeal
+    kk = coefficient_ring(R)::Field
+
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the localized quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
+    L_to_T_flat_loc = hom(L, T_flat_loc, gens(T_flat_loc)[ngens(S)+1:end], check=false)
+
+    I_flat = ideal(T_flat_loc, L_to_T_flat_loc.(gens(I)))
+    S_flat, pr = quo(T_flat_loc, I_flat)
+
+    Q_to_S_flat = hom(Q, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, Q_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(Q))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(Q)}(S, S_flat, Q, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     Q_to_S_flat
+                                                    )
+  end
+
+  function RingFlattening(
       S::MPolyRing{RingElemType}
     ) where {RingElemType <: MPolyLocRingElem}
     L = base_ring(S)::MPolyLocRing
@@ -121,6 +226,44 @@
                                                      L_to_S_flat
                                                     )
   end
+  
+  function RingFlattening(
+      S::MPolyDecRing{RingElemType}
+    ) where {RingElemType <: MPolyLocRingElem}
+    L = base_ring(S)::MPolyLocRing
+    R = base_ring(L)::MPolyRing
+    U = inverted_set(L)::AbsMultSet
+    kk = coefficient_ring(R)::Field
+
+    G = grading_group(S)
+    w = degree.(gens(S))
+    new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
+
+    # Before building S_flat, we have to create a polynomial 
+    # ring T_flat from which we can pass to the localized quotient.
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    set_default_ordering!(T_flat, 
+         matrix_ordering(T_flat, 
+             block_diagonal_matrix(
+                 [canonical_matrix(default_ordering(S)), 
+                  canonical_matrix(default_ordering(R))]
+               )))
+    R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
+
+    S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
+    L_to_S_flat = hom(L, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
+
+    S_to_S_flat = hom(S, S_flat, L_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
+    S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
+
+    return new{typeof(S), typeof(S_flat), typeof(L)}(S, S_flat, L, 
+                                                     S_to_S_flat, S_flat_to_S,
+                                                     L_to_S_flat
+                                                    )
+  end
+
 
   # Flattenings of quotient rings of the form (𝕜[x][u])/J → 𝕜[x, u]/J'
   function RingFlattening(
@@ -244,7 +387,12 @@ end
 
 ### Getters 
 function (phi::RingFlattening)(x::RingElem)
-  return phi.orig_to_flat(x)
+  if !haskey(flat_counterparts(phi), x)
+    result = phi.orig_to_flat(x)
+    flat_counterparts(phi)[x] = result
+    return result
+  end
+ return flat_counterparts(phi)[x]::elem_type(codomain(phi))
 end
 
 function inverse(phi::RingFlattening)
@@ -263,6 +411,30 @@ function map_from_coefficient_ring_to_flattening(phi::RingFlattening)
   return phi.base_ring_to_flat
 end
 
+### flat counterparts of algebraic objects defined over the domain
+# Given a `RingFlattening` `phi` from `R` to `S` and an algebraic object 
+# `M` on R, one wishes to be able to use `phi` to deflect questions 
+# on `M` to questions about its flattening `N` over `S`. 
+#
+# The common syntax should be to call `phi(M)` to get `N` and then 
+# proceed. Clearly, `N` should be cached. We could cache it in `M`, 
+# but then it is not clear how two different ring flattenings could 
+# distinguish which one of the attributes `N` is theirs. Also, `M` 
+# might not even be an object that supports attribute storage. 
+#
+# To solve this problem, we add a dictionary here in which we can 
+# store the flat counterparts to any object `M` as above. Any call 
+# of the form `phi(M)` should then first look up whether a flat 
+# counterpart for `M` has already been stored, using `M` itself as 
+# a key. Note that, to prevent memory flooding, this dictionary 
+# has weak keys. 
+function flat_counterparts(phi::RingFlattening)
+  if !isdefined(phi, :flat_counterparts)
+    phi.flat_counterparts = AbstractAlgebra.WeakKeyIdDict{Any, Any}()
+  end
+  return phi.flat_counterparts
+end
+
 ### Some basic functionality
 @attr RingFlattening function flatten(R::MPolyRing)
   return RingFlattening(R)
@@ -273,12 +445,12 @@ end
 end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
-  if !has_attribute(I, :flat_counterpart)
-    I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
-    set_attribute!(I, :flat_counterpart, I_flat)
-    return I_flat
+  if haskey(flat_counterparts(phi), I)
+    return flat_counterparts(phi)[I][1]
   end
-  return get_attribute(I, :flat_counterpart)
+  I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
+  flat_counterparts(phi)[I] = (I_flat, phi)
+  return I_flat
 end
 
 function preimage(phi::RingFlattening, x::RingElem)
@@ -371,7 +543,7 @@ function kernel(
   K_flat = kernel(f_flat)
   phi = flatten(domain(f))
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  set_attribute!(K, :flat_counterpart, K_flat) # TODO: Support attribute storage?
+  flat_counterparts(phi)[K] = (K_flat, phi)
   return K
 end
 
@@ -387,7 +559,7 @@ function kernel(
   f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))), check=false)
   K_flat = kernel(f_flat)
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  set_attribute!(K, :flat_counterpart, K_flat) # TODO: Support attribute storage?
+  flat_counterparts(phi)[K] = (K_flat, phi)
   return K
 end
 
@@ -450,4 +622,5 @@ HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyRing{<:FieldElem}} = HasRi
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoRing{<:MPolyRingElem{<:FieldElem}}} = HasRingFlattening()
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
 HasGroebnerAlgorithmTrait(::Type{T}) where {T <: MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}} = HasRingFlattening()
+
 

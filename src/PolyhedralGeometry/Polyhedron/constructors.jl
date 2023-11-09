@@ -137,6 +137,16 @@ function ==(P0::Polyhedron{T}, P1::Polyhedron{T}) where T<:scalar_types
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
+# For a proper hash function for cones we should use a "normal form",
+# which would require a potentially expensive convex hull computation
+# (and even that is not enough). But hash methods should be fast, so we
+# just consider the ambient dimension and the precise type of the polyhedron.
+function Base.hash(x::T, h::UInt) where {T <: Polyhedron}
+  h = hash(ambient_dim(x), h)
+  h = hash(T, h)
+  return h
+end
+
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc raw"""
     convex_hull([::Union{Type{T}, Field} = QQFieldElem,] V [, R [, L]]; non_redundant::Bool = false)

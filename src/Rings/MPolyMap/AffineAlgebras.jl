@@ -5,9 +5,10 @@
 ################################################################################
 
 const AffAlgHom = MPolyAnyMap{DT, CT, Nothing} where {T <: FieldElem,
-                                                       U <: MPolyRingElem{T},
-                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U}},
-                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U}}}
+                                                       U1 <: MPolyRingElem{T},
+                                                       U2 <: MPolyRingElem{T}, # types in domain an codomain might differ: one might be decorated, the other not.
+                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U1}},
+                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
 
 affine_algebra_morphism_type(::Type{T}) where {T <: Union{MPolyRing, MPolyQuoRing}} = morphism_type(T, T)
 

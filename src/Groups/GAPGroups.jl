@@ -349,12 +349,10 @@ Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)
 
 Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
 
-
 # Compatibility with GroupsCore interface
 one!(x::GAPGroupElem) = one(parent(x))
 inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
-mul(x::GAPGroupElem, y::GAPGroupElem) = x*y
 mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
 
 div_right(x::GAPGroupElem, y::GAPGroupElem) = x / y

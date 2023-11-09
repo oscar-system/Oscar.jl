@@ -53,8 +53,8 @@ end
 
       lie_algebras = [
         lie_algebra(RO, sl2_struct_consts(RO), ["e", "f", "h"]),
-        lie_algebra(RO, ('A', 3)),
-        lie_algebra(RO, ('B', 2)),
+        lie_algebra(RO, :A, 3),
+        lie_algebra(RO, :B, 2),
       ]
 
       @testset for LO in lie_algebras

@@ -477,7 +477,7 @@ mutable struct ComplexRootCtx
   pr::Int
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(AcbField(20), f)
     return new(f, 20, rt)
   end
@@ -542,12 +542,12 @@ mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
   rt::Vector{nf_elem}
   function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
-    @assert ismonic(f)
+    @assert is_monic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(f, field)
     return new(f, rt)
   end
@@ -1519,7 +1519,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
-        mfF = find_morphism(f, _F)
+        mfF = Hecke.find_morphism(f, _F)
       end
       #we should have
       # - d == r (in the appropriate setting)
@@ -2314,8 +2314,8 @@ extension.
 """
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
-  if index(G, U) == 1 # not type stable
-    return QQ
+  if index(G, U) == 1
+    return Hecke.rationals_as_number_field()[1]
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
@@ -2633,16 +2633,6 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
   return minpoly(a)
 end
 
-#TODO copied from MPolyFact in Hecke....
-function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
-   if degree(k) > 1
-    phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
-  else
-    phi = MapFromFunc(k, K, x->K((coeff(x, 0))), y->k((coeff(y, 0))))
-  end
-  return phi
-end
-
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2729,7 +2719,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     r = roots(GC, 5, raw = true)
     K, mK = residue_field(parent(r[1]))
     r = map(mK, r)
-    phi = find_morphism(K, k)
+    phi = Hecke.find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
 

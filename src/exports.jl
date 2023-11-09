@@ -186,6 +186,8 @@ export Undirected
 export WreathProductGroup
 export ZZ
 export abelian_group
+export abelian_invariants
+export abelian_invariants_schur_multiplier
 export absolute_primary_decomposition
 export acting_domain
 export acting_group
@@ -422,6 +424,7 @@ export cyclic_group
 export cyclic_polytope
 export cyclic_quotient_singularity
 export data
+export de_rham_complex
 export decide_du_val_singularity
 export decomposition_matrix
 export decorate
@@ -508,6 +511,7 @@ export exponent, has_exponent, set_exponent
 export exponents
 export ext
 export extension_field
+export exterior_derivative
 export exterior_power
 export f_vector
 export face_fan
@@ -890,6 +894,7 @@ export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
 export katsura
+export kaehler_differentials
 export kernel
 export klee_minty_cube
 export klein_bottle
@@ -1015,7 +1020,6 @@ export mpoly_dec_ring_type
 export mpoly_dec_type
 export mpoly_ring_type
 export mpoly_type
-export mul
 export mul!
 export mult_set_type
 export multi_hilbert_function
@@ -1294,6 +1298,7 @@ export save_mps
 export scalar_product
 export scheme
 export schur_index
+export schur_multiplier
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
@@ -1314,7 +1319,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
-export sheaf_cohomology_bgg
+export sheaf_cohomology
 export short_right_transversal
 export shortest_path_dijkstra
 export show_morphism
