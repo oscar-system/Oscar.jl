@@ -287,14 +287,12 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
           end
         else # rank > 2
           # find start of the Dynkin graph
-          v = 0
+          v = roots[1] # default to the first root (this only matters for D4)
           for i in roots
             j = adj[i][1]
-            if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
+            if length(adj[i]) == 1 && length(adj[j]) < 3 && gcm[i, j] * gcm[j, i] == 1
               v = i
-              if length(adj[j]) < 3
-                break
-              end
+              break
             end
           end
           push!(ord, v)
