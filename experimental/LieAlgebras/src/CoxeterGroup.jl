@@ -7,7 +7,7 @@ abstract type CoxeterGroup end # <: Group
 
 Returns the Coxeter matrix $m$ associated to the Cartan matrix `gcm`. If there is no relation between $i$ and $j$,
 then this will be expressed by $m_{ij} = 0$ (instead of the usual convention $m_{ij} = \infty$).
-`check` optionally verifies that `gcm` is indeed a generalized Cartan matrix.
+The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 """
 function coxeter_from_cartan_matrix(gcm; check::Bool=true)
   @req !check || is_cartan_matrix(gcm) "requires a generalized Cartan matrix"

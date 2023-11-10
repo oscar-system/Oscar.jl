@@ -142,19 +142,14 @@ function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
       if mat[i, j] >= 0 || mat[j, i] >= 0
         return false
       end
-
-      # if we only want a generalized Cartan matrix, we are done with this pair of entries
-      if generalized
-        continue
-      end
-
-      if !(mat[i, j] * mat[j, i] in 1:3)
-        return false
-      end
     end
   end
+  
+  if generalized
+    return true
+  end
 
-  return true
+  return is_positive_definite(mat)
 end
 
 @doc raw"""
