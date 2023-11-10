@@ -22,6 +22,7 @@ const polymake2OscarTypes = Dict{String, Type}([
   "topaz::SimplicialComplex" => SimplicialComplex,
   "common::GraphAdjacency<Undirected>" => Graph{Undirected},
   "common::GraphAdjacency<Directed>" => Graph{Directed},
+  "graph::PhylogeneticTree<Rational>" => PhylogenticTree{QQFieldElem}
 ])
 
 @register_serialization_type Polymake.BigObjectAllocated "Polymake.BigObject" uses_id
