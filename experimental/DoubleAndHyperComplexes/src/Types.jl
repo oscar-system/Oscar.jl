@@ -370,6 +370,22 @@ function is_complete(D::AbsDoubleComplexOfMorphisms)
   return true
 end
 
+### A concrete type using hypercomplexes in the background
+mutable struct DoubleComplexWrapper{ChainType, MapType} <: AbsDoubleComplexOfMorphisms{ChainType, MapType}
+  hc::AbsHyperComplex{ChainType, MapType}
+
+  function DoubleComplexWrapper(hc::AbsHyperComplex{ChainType, MapType}) where {ChainType, MapType}
+    @assert dim(hc) == 2 "hypercomplex must be one-dimensional"
+    return new{ChainType, MapType}(hc)
+  end
+end
+
+underlying_complex(dc::DoubleComplexWrapper) = dc.hc
+
+########################################################################
+# A standalone concrete type for double complexes 
+########################################################################
+
 # The concrete architecture of double complexes is lazy by default. 
 # Hence the constructor needs to be provided with the means to produce 
 # the entries of a double complex on request. This is achieved by passing
@@ -426,12 +442,7 @@ function can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms,
   error("testing whether the ($i, $j)-th entry can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
 end
 
-
-# A minimal concrete type realizing a double complex.
-#
-# The design is lazy by default. All entries are produced on 
-# request and then cached in dictionaries. For the production 
-# the user has to provide "factories" in the above sense. 
+### The actual concrete type
 mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
   chains::Dict{Tuple{Int, Int}, <:ChainType}
   horizontal_maps::Dict{Tuple{Int, Int}, <:MorphismType}

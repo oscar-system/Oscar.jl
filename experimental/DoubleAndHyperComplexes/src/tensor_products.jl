@@ -179,7 +179,7 @@ function (fac::TensorProductMapFactory{T})(HC::AbsHyperComplex, p::Int, i::Tuple
   return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
 end
 
-function can_compute(fac::TensorProductMapFactory, HC::AbsHyperComplex, i::Tuple)
+function can_compute(fac::TensorProductMapFactory, HC::AbsHyperComplex, p::Int, i::Tuple)
   return true
 end
 
