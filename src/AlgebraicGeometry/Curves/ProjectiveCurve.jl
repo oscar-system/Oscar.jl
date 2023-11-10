@@ -46,13 +46,6 @@ underlying_scheme(X::ProjectiveCurve) = X.X
 fat_scheme(X::ProjectiveCurve) = fat_scheme(underlying_scheme(X))
 
 
-function Base.show(io::IO, ::MIME"text/plain", C::ProjectiveCurve)
-  io = pretty(io)
-  println(io, "Projective curve")
-  println(io, Indent(), "in ", ambient_space(C))
-  print(io, Indent(), "defined by ", fat_ideal(C), Dedent())
-end
-
 function Base.show(io::IO, ::MIME"text/plain", X::ProjectiveCurve)
   io = pretty(io)
   println(io, "Projective curve")
