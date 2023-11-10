@@ -66,7 +66,7 @@ mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainTyp
   lower_bounds::Vector{Union{Int, Nothing}}
 
   # fields for caching
-  is_complete::Bool
+  is_complete::Union{Bool, Nothing}
 
   function HyperComplex(
       d::Int,
@@ -82,7 +82,8 @@ mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainTyp
     return new{ChainType, MorphismType}(d, chains, morphisms, 
                                         chain_factory, map_factory, directions, 
                                         Vector{Union{Int, Nothing}}(upper_bounds), 
-                                        Vector{Union{Int, Nothing}}(lower_bounds)
+                                        Vector{Union{Int, Nothing}}(lower_bounds),
+                                        nothing
                                        )
   end
 end
