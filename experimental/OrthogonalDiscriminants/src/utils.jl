@@ -99,6 +99,151 @@ function reduce_mod_squares(val::nf_elem)
   return val//s
 end
 
+
+@doc raw"""
+    possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroupCharacterTable, p::Int)
+
+Return either `nothing` or the vector of all those characters of `tbl` that
+may be equal to the permutation character $1_P^G$,
+where $G$ is the group of `tbl` and $P$ is a Sylow `p`-subgroup of $G$.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> l = Oscar.OrthogonalDiscriminants.possible_permutation_characters_from_sylow_subgroup(tbl, 2);
+
+julia> length(l)
+1
+
+julia> println(coordinates(Int, l[1]))
+[1, 0, 0, 1, 2]
+```
+"""
+function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroupCharacterTable, p::Int)
+  @req is_prime(p) "p must be a prime integer"
+  l = characteristic(tbl)
+  if l == p
+    # The permutation character is zero on all
+    # nonidentity `p`-regular classes.
+    pi = fill(0, nrows(tbl))
+    # index of the Sylow `p`-subgroup
+    _, n = remove(order(tbl), p)
+    pi[1] = n
+    return [Oscar.class_function(tbl, GapObj(pi, true))]
+  elseif l != 0
+    # Compute the corresponding ordinary characters, and restrict them.
+    pi = possible_permutation_characters_from_sylow_subgroup(
+             ordinary_table(tbl), p)
+    if pi != nothing
+      pi = [restrict(x, tbl) for x in pi]
+    end
+    return pi
+  end
+
+  # index of the Sylow 'p'-subgroup
+  q, n = remove(order(tbl), p)
+  q = p^q
+
+  # Perhaps the Sylow `p`-subgroup is cyclic.
+  pos = findfirst(x -> x == q, orders_class_representatives(tbl))
+  pos != nothing && return [induced_cyclic(tbl, [pos])[1]]
+
+  # Do we have the table of marks?
+  tom = GAP.Globals.TableOfMarks(Oscar.GAPTable(tbl))
+  if tom != GAP.Globals.fail
+    pos = findfirst(x -> x == q, Vector{Int}(GAP.Globals.OrdersTom(tom)))
+    return [Oscar.class_function(tbl, GAP.Globals.PermCharsTom(Oscar.GAPTable(tbl), tom)[pos])]
+  end
+
+  # Does the table have a nontrivial 'p'-core
+  # such that the table of the factor is a library table?
+  # If yes and if we can compute the result for the factor
+  # then inflate it to 'tbl'.
+  npos = class_positions_of_pcore(tbl, p)
+  if length(npos) != 1
+    for d in known_class_fusions(tbl)
+      if class_positions_of_kernel(d[:map]) == npos
+        s = character_table(d[:name])
+        if s != nothing && characteristic(s) == 0
+          # Try to recurse.
+          pi = possible_permutation_characters_from_sylow_subgroup(s, p)
+          if pi != nothing
+            return [restrict(x, tbl) for x in pi]
+          end
+        end
+      end
+    end
+  end
+
+  candlist = nothing
+  for name in names_of_fusion_sources(tbl)
+    s = character_table(name)
+    if s != nothing && characteristic(s) == 0
+      flag, fus = known_class_fusion(s, tbl)
+      if flag && length(class_positions_of_kernel(fus)) == 1
+        if mod(order(s), q) == 0
+          # Run over the known character tables of subgroups
+          # that contain Sylow subgroups of `tbl`.
+          npos = class_positions_of_pcore(s, p)
+          if sum(class_lengths(s)[npos]) == q
+            # The Sylow `p`-subgroup of `tbl` is normal in `s`.
+            pi = fill(0, nrows(s))
+            index = div(order(s), q)
+            for i in npos
+              pi[i] = index
+            end
+            pi = GAP.Globals.ClassFunction(Oscar.GAPTable(s), GapObj(pi, true))
+            return [Oscar.class_function(s, pi)^tbl]
+          else
+            # Try to recurse.
+            pi = possible_permutation_characters_from_sylow_subgroup(s, p)
+            if pi != nothing
+              pi = collect(Set([x^tbl for x in pi]))
+              if candlist == nothing
+                candlist = pi
+              else
+                intersect!(candlist, pi)
+              end
+              length(candlist) == 1 && return candlist
+            end
+          end
+        elseif mod(div(order(tbl), order(s)), p) == 0 &&
+               is_prime_power_with_data(div(order(tbl), order(s)))[1]
+          # Compute the perm. char. of the Sylow p-subgroup in the subgroup,
+          # and then try to extend the character uniquely to G.
+          cand = possible_permutation_characters_from_sylow_subgroup(s, p)
+          if cand != nothing
+            extcand = []
+            for pi in cand
+              pi = GAP.Globals.CompositionMaps(pi.values,
+                       GAP.Globals.InverseMap(GapObj(fus)))
+              union!(extcand, [Oscar.class_function(tbl, x) for x in
+                                GAP.Globals.PermChars(Oscar.GAPTable(tbl),
+                                  GAP.GapObj(Dict(:torso => pi), true))])
+            end
+            if candlist == nothing
+              candlist = extcand
+            else
+              intersect!(candlist, extcand)
+            end
+            length(candlist) == 1 && return candlist
+          end
+        end
+      end
+    end
+  end
+
+  isdefined(tbl, :group) && return [trivial_character(sylow_subgroup(group(tbl), p)[1])^tbl]
+
+  # If we arrive here,
+  # we can try to recurse to subgroups for which fusions must be composed,
+  # or to compute candidates.
+  # (Eventually a function that returns all candidates might be useful then.)
+  return candlist
+end
+
+
 # helper function:
 # array of identifiers of available character tables of (non-dashed)
 # automorphic extensions of a simple character table.
