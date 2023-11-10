@@ -5,7 +5,6 @@
 ###############################################################################
 
 #=====TODO
-- Setup a default "invariants function";
 - Implement a serialisation process to save and upload partial results;
 - Include the possibility to use isometry enumeration;
 ======#
@@ -19,8 +18,7 @@
 function neighbour(L::ZZLat, v::ZZMatrix, p::ZZRingElem)
   M = gram_matrix(L)*v
   r, K = left_kernel(matrix(GF(p), rank(L), 1, collect(M)))
-  LL = lattice_in_same_ambient_space(L, lift(view(K, 1:r, :))*basis_matrix(L))
-     + lattice_in_same_ambient_space(L, 1//p*(transpose(v)*basis_matrix(L))) + p*L
+  LL = lattice_in_same_ambient_space(L, lift(view(K, 1:r, :))*basis_matrix(L)) + lattice_in_same_ambient_space(L, 1//p*(transpose(v)*basis_matrix(L))) + p*L
   return LL
 end
 
@@ -35,7 +33,7 @@ function make_admissible!(w::ZZMatrix, form::ZZMatrix, p::ZZRingElem, K::FinFiel
   _, L = left_kernel(v)
   @hassert :ZZLatWithIsom 1 !iszero(view(L, :, 1))
   j = findfirst(j -> !iszero(L[j, 1]), 1:nrows(L))
-  @hassert :ZZLatWithIsoma 1 !isnothing(j)
+  @hassert :ZZLatWithIsom 1 !isnothing(j)
   L = map_entries(b -> b//L[j, 1], L)
   v = lift(L[j, 2:ncols(L)])
   for i in 1:nrows(w)
@@ -53,17 +51,18 @@ function _neighbours_definite_ex(L::ZZLat, p::ZZRingElem; callback::Function,
                                                           use_mass::Bool = true,
                                                           missing_mass::Union{Nothing, Base.RefValue{QQFieldElem}} = nothing)
   K = GF(p)
+  Tp = torsion_quadratic_module(L, p*L)
   form = map_entries(ZZ, gram_matrix(L))
 
   if use_mass
     __mass = missing_mass[]
   end
 
-  P = enumerate_lines(K, rank(L))
+  P = Hecke.enumerate_lines(K, rank(L))
 
   result = typeof(L)[]
 
-  @vprintln "$(length(P)) lines to try"
+  @vprintln :ZZLatWithIsom 1 "$(length(P)) lines to try"
 
   for x in P
 
@@ -77,9 +76,9 @@ function _neighbours_definite_ex(L::ZZLat, p::ZZRingElem; callback::Function,
 
     @hassert :ZZLatWithIsom 1 is_locally_isometric(LL, L, p)
 
-    keep = callback(result, LL)
+    keep = callback(LL)
     !keep && continue
-    @hassert :ZZLatWithIsom 1 "Keep an isometry class"
+    @vprintln :ZZLatWithIsom 1 "Keep an isometry class"
     invLL = _invariants(LL)
     if haskey(inv_dict, invLL)
       push!(inv_dict[invLL], LL)
@@ -89,8 +88,9 @@ function _neighbours_definite_ex(L::ZZLat, p::ZZRingElem; callback::Function,
     push!(result, LL)
 
     if use_mass
-      s = order(isometry_group(LL))
+      s = automorphism_group_order(LL)
       sub!(__mass, __mass, 1//s)
+      println(__mass)
       is_zero(__mass) && return result
     end
   end
@@ -105,25 +105,29 @@ function _neighbours_definite_orbit(L::ZZLat, p::ZZRingElem; callback::Function,
                                                              use_mass::Bool = true,
                                                              missing_mass::Union{Nothing, Base.RefValue{QQFieldElem}} = nothing)
   K = GF(p)
+  q = GAP.Obj(p)
   form = map_entries(ZZ, gram_matrix(L))
+  B = basis_matrix(L)
+  Tp = torsion_quadratic_module(L, p*L)
+  dmy = Oscar._orthogonal_group(Tp, ZZMatrix[])
 
   if use_mass
     __mass = missing_mass[]
   end
 
-  G = gens(isometry_group(L))
-  GTp = ZZMatrix[matrix(hom(Tp, Tp, elem_type(Tp)[Tp(lift(a)*matrix(g)) for a in gens(Tp)])) for g in G]
-  GK = dense_matrix_type(K)[map_entries(K, m) for m in G]
-  unique!(GK)
-  _LO = line_orbits(GK)
-  LO = Vector{eltype(K)}[x[1] for x in _LO]
+  G = isometry_group(L)
+  gensp = dense_matrix_type(K)[map_entries(K, solve_left(B, B*matrix(g))) for g in gens(G)]
+  filter!(!is_diagonal, gensp)
+  Gp = matrix_group(gensp)
+  orbs = GAP.Globals.Orbits(Gp.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^(rank(L)), 1))
+  LO = [[K(x) for x in GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1]))[1]] for orb in orbs]::Vector{Vector{elem_type(K)}}
 
   result = typeof(L)[]
 
-  @vprintln "$(length(LO)) orbits of lines to try"
+  @vprintln :ZZLatWithIsom 1 "$(length(LO)) orbits of lines to try"
 
   for x in LO
-
+   
     w = lift(matrix(x))
     a = Tp(abelian_group(Tp)(w))
     !iszero(quadratic_product(a)) && continue
@@ -134,9 +138,9 @@ function _neighbours_definite_orbit(L::ZZLat, p::ZZRingElem; callback::Function,
 
     @hassert :ZZLatWithIsom 1 is_locally_isometric(LL, L, p)
 
-    keep = callback(result, LL)
+    keep = callback(LL)
     !keep && continue
-    @hassert :ZZLatWithIsom 1 "Keep an isometry class"
+    @vprintln :ZZLatWithIsom 1 "Keep an isometry class"
     invLL = _invariants(LL)
     if haskey(inv_dict, invLL)
       push!(inv_dict[invLL], LL)
@@ -146,8 +150,9 @@ function _neighbours_definite_orbit(L::ZZLat, p::ZZRingElem; callback::Function,
     push!(result, LL)
 
     if use_mass
-      s = order(isometry_group(LL))
+      s = automorphism_group_order(LL)
       sub!(__mass, __mass, 1//s)
+      println(__mass)
       is_zero(__mass) && return result
     end
   end
@@ -164,16 +169,17 @@ function _neighbours_definite_rand(L::ZZLat, p::ZZRingElem; rand_neigh::Union{No
                                                             missing_mass::Union{Nothing, Base.RefValue{QQFieldElem}} = nothing)
   K = GF(p)
   form = map_entries(ZZ, gram_matrix(L))
+  Tp = torsion_quadratic_module(L, p*L)
 
   if use_mass
     __mass = missing_mass[]
   end
 
-  P = enumerate_lines(K, rank(L))
+  P = Hecke.enumerate_lines(K, rank(L))
 
   result = typeof(L)[]
 
-  maxlines = is_nothing(rand_neigh) ? min(100, length(P)) : min(rand_neigh, length(P))
+  maxlines = isnothing(rand_neigh) ? min(100, length(P)) : min(rand_neigh, length(P))
 
   @vprintln :ZZLatWithIsom 1 "Try $(maxlines) random lines"
 
@@ -189,9 +195,9 @@ function _neighbours_definite_rand(L::ZZLat, p::ZZRingElem; rand_neigh::Union{No
 
     @hassert :ZZLatWithIsom 1 is_locally_isometric(LL, L, p)
 
-    keep = callback(result, LL)
+    keep = callback(LL)
     !keep && continue
-    @hassert :ZZLatWithIsom 1 "Keep an isometry class"
+    @vprintln :ZZLatWithIsom 1 "Keep an isometry class"
     invLL = _invariants(LL)
     if haskey(inv_dict, invLL)
       push!(inv_dict[invLL], LL)
@@ -201,8 +207,9 @@ function _neighbours_definite_rand(L::ZZLat, p::ZZRingElem; rand_neigh::Union{No
     push!(result, LL)
 
     if use_mass
-      s = order(isometry_group(LL))
+      s = automorphism_group_order(LL)
       sub!(__mass, __mass, 1//s)
+      println(__mass)
       is_zero(__mass) && return result
     end
   end
@@ -241,16 +248,25 @@ function _unique_iso_class!(L::Vector{ZZLat})
   resize!(A, count)::typeof(A)
 end
 
+function default_func(L::ZZLat)
+  m = minimum(L)
+  rlr, _ = root_lattice_recognition(L)
+  sort!(rlr; lt=(a,b) -> a[1] < b[1] || a[1] == b[1] && a[2] <= b[2])
+  kn = kissing_number(L)::Int
+  igo = automorphism_group_order(L)::ZZRingElem
+  return (m, rlr, kn, igo)
+end
+
 function enumerate_definite_genus(
     known::Vector{ZZLat},
     alg_type::Symbol = :exhaustive;
-    rand_neigh::{Int, Nothing} = nothing
+    rand_neigh::Union{Int, Nothing} = nothing,
     distinct::Bool = true,
     invariant_func::Function = default_func,
     save_partial::Bool = false,
     save_path::Union{IO, String, Nothing} = nothing,
     use_mass::Bool = true,
-    missing_mass::Union{QQFieldElem, Nothing} = nothing,
+    _missing_mass::Union{QQFieldElem, Nothing} = nothing
   )
   @req !is_empty(known) "Should know at least one lattice in the genus"
   @req all(LL -> genus(LL) == genus(known[1]), known) "Known lattices must be in the same genus"
@@ -277,34 +293,33 @@ function enumerate_definite_genus(
     return invariant_func(M)
   end
 
-  _invariants_buddies(M::ZZLat) = inv_dict[_invariants(M)]
-
   callback = function(M::ZZLat)
-    any(isequal(M), known) && return true
+    any(isequal(M), known) && return false
     invM = _invariants(M)
-    !haskey(D, invM) && false
-    keep = all(N -> !is_isometric(N, M), _invariants_buddies(M))
+    !haskey(inv_dict, invM) && return true
+    keep = all(N -> !is_isometric(N, M), inv_dict[invM])
     return keep
   end
 
   if use_mass
     _mass = mass(L)
-    if isnothing(missing_mass)
-      found = sum(1//isometry_group_order(M) for M in res)
-      missing_mass = Ref(QQFieldElem)(_mass-found)
+    if isnothing(_missing_mass)
+      found = sum(1//automorphism_group_order(M) for M in res)
+      missing_mass = Ref{QQFieldElem}(_mass-found)
     else
+      missing_mass = Ref{QQFieldElem}(_missing_mass)
       @hassert :ZZLatWithIsom 1 missing_mass[] <= _mass
     end
   end
 
   ps = primes(genus(L))
-  p = 3
+  p = ZZ(3)
   if p in ps
     p = next_prime(p)
   end
 
   tbv = trues(length(res))
-
+  println(missing_mass[])
   while any(tbv)
     i = findfirst(tbv)
     tbv[i] = false
@@ -315,7 +330,7 @@ function enumerate_definite_genus(
     else
       N = _neighbours_definite_rand(res[i], p; rand_neigh, callback, inv_dict, _invariants, use_mass, missing_mass, save_partial, save_path)
     end
-    if !empty(N)
+    if !is_empty(N)
       for M in N
         push!(tbv, true)
         push!(res, M)
@@ -331,34 +346,64 @@ end
 function enumerate_definite_genus(
     G::ZZGenus,
     alg_type::Symbol = :exhaustive;
-    rand_neigh::{Int, Nothing} = nothing
+    rand_neigh::Union{Int, Nothing} = nothing,
     invariant_func::Function = default_func,
     save_partial::Bool = false,
     save_path::Union{IO, String, Nothing} = nothing,
     use_mass::Bool = true
   )
-  L = representative(G)
-  return enumerate_genus(ZZLat[L], alg_type; rand_neigh,
-                                             invariant_func,
-                                             save_partial,
-                                             save_path,
-                                             use_mass)
+  _L = representative(G)
+  neg = is_negative_definite(_L)
+  if neg
+    L = rescale(_L, -1)
+  else
+    L = _L
+  end
+  if use_mass
+    s = automorphism_group_order(L)
+    is_one(s*mass(G)) && return ZZLat[L], QQ(0)
+    _missing_mass = mass(G) - 1//s
+  end
+  edg, mm = enumerate_definite_genus(ZZLat[L], alg_type; rand_neigh,
+                                                         invariant_func,
+                                                         save_partial,
+                                                         save_path,
+                                                         use_mass,
+                                                         _missing_mass)
+  if neg
+    map!(LL -> rescale(LL, -1), edg, edg)
+  end
+  return edg, mm
 end
 
 function enumerate_definite_genus(
-    G::ZZLat,
+    _L::ZZLat,
     alg_type::Symbol = :exhaustive;
-    rand_neigh::{Int, Nothing} = nothing
+    rand_neigh::Union{Int, Nothing} = nothing,
     invariant_func::Function = default_func,
     save_partial::Bool = false,
     save_path::Union{IO, String, Nothing} = nothing,
-    use_mass::Bool = true,
-    missing_mass::Union{QQFieldElem, Nothing} = nothing
+    use_mass::Bool = true
   )
-  return enumerate_genus(ZZLat[L], alg_type; rand_neigh,
-                                             invariant_func,
-                                             save_partial,
-                                             save_path,
-                                             use_mass,
-                                             missing_mass)
+  neg = is_negative_definite(_L)
+  if neg
+    L = rescale(_L, -1)
+  else
+    L = _L
+  end
+  if use_mass
+    s = automorphism_group_order(L)
+    is_one(s*mass(L)) && return ZZLat[L], QQ(0)
+    _missing_mass = mass(L) - 1//s
+  end
+  edg, mm = enumerate_definite_genus(ZZLat[L], alg_type; rand_neigh,
+                                                         invariant_func,
+                                                         save_partial,
+                                                         save_path,
+                                                         use_mass,
+                                                         _missing_mass)
+  if neg
+    map!(LL -> rescale(LL, -1), edg, edg)
+  end
+  return edg, mm
 end
