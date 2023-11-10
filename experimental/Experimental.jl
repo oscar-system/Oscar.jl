@@ -79,3 +79,15 @@ include("Schemes/ToricBlowups/attributes.jl")
 include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
+
+module PlaneCurve
+  include("PlaneCurve/src/AffinePlaneCurve.jl")
+  include("PlaneCurve/src/ProjCurve.jl")
+  include("PlaneCurve/src/PlaneCurve.jl")
+  include("PlaneCurve/src/ProjPlaneCurve.jl")
+  include("PlaneCurve/src/ParaPlaneCurves.jl")
+  include("PlaneCurve/src/DivisorCurve.jl")
+  include("PlaneCurve/src/ProjEllipticCurve.jl")
+  include("PlaneCurve/src/EllCurveZnZ.jl")
+  include("PlaneCurve/src/Variety.jl")
+end
