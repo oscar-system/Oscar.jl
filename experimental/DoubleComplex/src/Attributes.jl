@@ -26,7 +26,7 @@ has_upper_bound(D::DoubleComplexOfMorphisms)   = D.upper_bound !== nothing
 has_lower_bound(D::DoubleComplexOfMorphisms)   = D.lower_bound !== nothing
 
 function is_complete(D::DoubleComplexOfMorphisms)
-  D.is_complete isa Bool && D.is_complete && return true
+  D.is_complete === true && return true
 
   todo = keys(D.chains)
   isempty(todo) && return false
