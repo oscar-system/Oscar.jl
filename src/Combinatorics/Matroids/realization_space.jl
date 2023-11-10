@@ -379,12 +379,6 @@ function realization_space(
     end
   end
 
-  if q != nothing
-    for i in 1:(polyR.nvars)
-      push!(eqs, polyR[i]^q - polyR[i])
-    end
-  end
-
   def_ideal = ideal(polyR, eqs)
   def_ideal = ideal(groebner_basis(def_ideal))
   if isone(def_ideal) 
@@ -399,6 +393,21 @@ function realization_space(
 
   if simplify
     RS = reduce_realization_space(RS)
+  end
+
+  if q != nothing
+    I = RS.defining_ideal
+    R = RS.ambient_ring
+    eqs = Vector{RingElem}()
+    for x in gens(R)
+      push!(eqs, x^q - x)
+    end
+    I = I + ideal(R,eqs)
+    RS.defining_ideal = I
+    if isone(RS.defining_ideal)
+        set_attribute!(RS, :is_realizable, :false)
+        return RS
+    end
   end
 
   if saturate
