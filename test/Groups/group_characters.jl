@@ -953,6 +953,7 @@ end
   indcyc = induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
+  @test indcyc == induced_cyclic(t, 1:nrows(t))
 
   # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
