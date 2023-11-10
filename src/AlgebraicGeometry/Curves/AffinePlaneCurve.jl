@@ -189,6 +189,8 @@ Return the tangent lines at `P` to `C` with their multiplicity.
 
 # Examples
 ```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
 julia> C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
 julia> P = C([0, 0])

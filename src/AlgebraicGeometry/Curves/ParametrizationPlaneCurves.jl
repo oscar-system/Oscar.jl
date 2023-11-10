@@ -1,6 +1,3 @@
-# export parametrization_plane_curve
-# export rational_point_conic
-# export parametrization_conic
 # export map_to_rational_normal_curve
 # export rat_normal_curve_anticanonical_map
 # export rat_normal_curve_It_Proj_Odd
@@ -36,7 +33,7 @@ function _tosingular_ideal(C::ProjectiveCurve)
 end
 
 @doc raw"""
-    parametrization_plane_curve(C::ProjectivePlaneCurve{QQField})
+    parametrization(C::ProjectivePlaneCurve{QQField})
 
 Return a rational parametrization of  `C`. 
 
@@ -45,16 +42,18 @@ Return a rational parametrization of  `C`.
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjectivePlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
-Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
+Projective plane curve
+  defined by 0 = 2*x^3*z - 3*x^2*z^2 - y^4 + 2*y^2*z^2
 
-julia> parametrization_plane_curve(C)
+julia> parametrization(C)
 3-element Vector{QQMPolyRingElem}:
  12*s^4 - 8*s^2*t^2 + t^4
  -12*s^3*t + 2*s*t^3
  8*s^4
+
 ```
 """
-function parametrization_plane_curve(C::ProjectivePlaneCurve{QQField})
+function parametrization(C::ProjectivePlaneCurve{QQField})
     s = "local"
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.paraPlaneCurve(F, s)
@@ -172,8 +171,8 @@ julia> C = ProjectivePlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2);
 julia> geometric_genus(C)
 0
 
-julia> map_to_rational_normal_curve(C)
-Projective algebraic set
+julia> Oscar.map_to_rational_normal_curve(C)
+Projective curve
   in projective 2-space over QQ with coordinates [y(1), y(2), y(3)]
 defined by ideal(y(1)^2 + 2*y(1)*y(3) - 2*y(2)^2)
 
@@ -218,11 +217,11 @@ julia> V = minors(M, 2)
 julia> I = ideal(R, V);
 
 julia> RNC = ProjectiveCurve(I)
-Projective algebraic set
+Projective curve
   in projective 4-space over QQ with coordinates [v, w, x, y, z]
 defined by ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
-julia> rat_normal_curve_anticanonical_map(RNC)
+julia> Oscar.rat_normal_curve_anticanonical_map(RNC)
 3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x
  -y
@@ -261,11 +260,11 @@ julia> V = minors(M, 2)
 julia> I = ideal(R, V);
 
 julia> TC = ProjectiveCurve(I)
-Projective algebraic set
+Projective curve
   in projective 3-space over QQ with coordinates [w, x, y, z]
 defined by ideal(w*y - x^2, w*z - x*y, x*z - y^2)
 
-julia> rat_normal_curve_It_Proj_Odd(TC)
+julia> Oscar.rat_normal_curve_It_Proj_Odd(TC)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  y
  -z
@@ -320,11 +319,11 @@ julia> V = minors(M, 2)
 julia> I = ideal(R, V);
 
 julia> RNC = ProjectiveCurve(I)
-Projective algebraic set
+Projective curve
   in projective 4-space over QQ with coordinates [v, w, x, y, z]
 defined by ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
-julia> rat_normal_curve_It_Proj_Even(RNC)
+julia> Oscar.rat_normal_curve_It_Proj_Even(RNC)
 (MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, -y, z], V(y(1)*y(3) - y(2)^2))
 
 ```

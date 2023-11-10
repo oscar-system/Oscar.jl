@@ -140,6 +140,7 @@ export Polyhedron
 export Polymake
 export PrincipalOpenSubset
 export ProjectiveAlgebraicSet
+export ProjectiveCurve
 export ProjectivePlaneCurve
 export ProjectiveScheme
 export ProjectiveSchemeMor
@@ -731,6 +732,7 @@ export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
 export invert
+export invert_birational_map
 export inverted_set
 export irreducible_components
 export irreducible_secondary_invariants
@@ -1137,6 +1139,8 @@ export outneighbors
 export p_central_series
 export pappus_matroid
 export parallel_extension
+export parametrization
+export parametrization_conic
 export parent
 export patches
 export pbw_algebra
@@ -1236,6 +1240,7 @@ export random_affine_linear_polynomials
 export rank
 export rank_action
 export rational_equivalence_class
+export rational_point_conic
 export rational_point_coordinates
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung

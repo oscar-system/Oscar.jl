@@ -1,10 +1,11 @@
 
-export ProjectiveCurve
 
 @doc raw"""
-    ProjectiveCurve(I::MPolyIdeal)
+    ProjectiveCurve(I::MPolyIdeal; check::Bool=true)
 
 Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve defined by `I`.
+
+If `check` is `true`, checks that the Krull dimension is indeed `2`.
 
 # Examples
 ```jldoctest
@@ -23,7 +24,10 @@ julia> V = minors(M, 2)
 julia> I = ideal(R, V);
 
 julia> TC = ProjectiveCurve(I)
-Projective curve defined by the ideal(w*y - x^2, w*z - x*y, x*z - y^2)
+Projective curve
+  in projective 3-space over QQ with coordinates [w, x, y, z]
+defined by ideal(w*y - x^2, w*z - x*y, x*z - y^2)
+
 ```
 """
 @attributes mutable struct ProjectiveCurve{BaseRingType<:Field, RingType<:Ring} <: AbsProjectiveCurve{BaseRingType, RingType}
@@ -42,13 +46,25 @@ projective_curve(I;kwargs...) = ProjectiveCurve(I;kwargs...)
 underlying_scheme(X::ProjectiveCurve) = X.X
 fat_scheme(X::ProjectiveCurve) = fat_scheme(underlying_scheme(X))
 
-#=
-function Base.show(io::IO, ::MIME"text/plain", C::ProjectivePlaneCurve)
+
+function Base.show(io::IO, ::MIME"text/plain", C::ProjectiveCurve)
   io = pretty(io)
   println(io, "Projective curve")
-  print(io, Indent(), "defined by 0 = ", defining_equation(C), Dedent())
+  println(io, Indent(), "in ", ambient_space(C))
+  print(io, Indent(), "defined by ", fat_ideal(C), Dedent())
 end
-=#
+
+function Base.show(io::IO, ::MIME"text/plain", X::ProjectiveCurve)
+  io = pretty(io)
+  println(io, "Projective curve")
+  println(io, Indent(), "in ", Lowercase(), ambient_space(X))
+  if isdefined(X, :Xred)
+    I = vanishing_ideal(X)
+  else
+    I = fat_ideal(X)
+  end
+  print(io, Dedent(), "defined by ", Lowercase(), I)
+end
 
 ################################################################################
 
