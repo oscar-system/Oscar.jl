@@ -94,6 +94,7 @@ function cartan_matrix(types::Tuple{Symbol,Int}...)
 end
 
 @doc raw"""
+<<<<<<< HEAD
     cartan_to_coxeter_matrix(mat::ZZMatrix; check::Bool=true) -> ZZMatrix
 
 
@@ -123,6 +124,8 @@ function cartan_to_coxeter_matrix(gcm; check::Bool=true)
 end
 
 @doc raw"""
+=======
+>>>>>>> 1ea0a505c (move and rename cartan_to_coxeter_matrix)
     is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true) -> Bool
 
 Test if `mat` is a generalized Cartan matrix. The keyword argument `generalized`
