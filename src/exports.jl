@@ -1207,6 +1207,7 @@ export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
 export projective_closure
+export projective_curve
 export projective_plane
 export projective_scheme
 export projective_space

@@ -54,7 +54,11 @@ dim(::AbsAffineCurve) = 1
 
 plane_curve(eq::MPolyRingElem) = AffinePlaneCurve(algebraic_set(eq))
 
+@doc raw"""
+    defining_equation(C::AffinePlaneCurve)
 
+Return the defining equation of `C`.
+"""
 function defining_equation(C::AffinePlaneCurve{S, MPolyQuoRing{E}}) where {S, E}
   if isdefined(C,:defining_equation)
     return C.defining_equation::E
@@ -308,7 +312,11 @@ function is_transverse_intersection(C::AffinePlaneCurve, D::AffinePlaneCurve, P:
   return intersection_multiplicity(C, D, P) == 1
 end
 
+@doc raw"""
+    projective_closure(C::AffinePlaneCurve) -> ProjectivePlaneCurve
 
+Return the projective closure of `C`.
+"""
 function projective_closure(C::AffinePlaneCurve)
    F = defining_equation(C)
    K = base_ring(C)

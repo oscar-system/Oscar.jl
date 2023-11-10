@@ -1,7 +1,7 @@
 
 ################################################################################
 @doc raw"""
-    ProjectivePlaneCurve
+    ProjectivePlaneCurve <: AbsProjectiveCurve
 
 A reduced curve in the projective plane.
 
@@ -60,6 +60,11 @@ end
 # Plane Curves related functions.
 ################################################################################
 
+@doc raw"""
+    defining_equation(C::ProjectivePlaneCurve)
+
+Return the defining equation of the (reduced) plane curve `C`.
+"""
 function defining_equation(C::ProjectivePlaneCurve{S,MPolyQuoRing{T}}) where {S,T}
   if isdefined(C, :defining_equation)
     return C.defining_equation::T
@@ -227,7 +232,7 @@ end
 @doc raw"""
     geometric_genus(C::ProjectivePlaneCurve; check::Bool=true)
 
-Return the geometric genus.
+Return the geometric genus of `C`.
 
 If `C` is singular this is defined as the geometric genus of any smooth birational model of `C`.
 
@@ -246,6 +251,8 @@ julia> geometric_genus(C)
 
 ```
 """
+geometric_genus(C::AbsProjectiveCurve)
+
 function geometric_genus(C::ProjectivePlaneCurve{<:QQField}; check::Bool=true)
   @check is_irreducible(C) "the curve must be irreducible"
   I = vanishing_ideal(C)

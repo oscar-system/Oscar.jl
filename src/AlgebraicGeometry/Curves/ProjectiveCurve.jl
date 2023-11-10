@@ -1,11 +1,10 @@
 
 
 @doc raw"""
-    ProjectiveCurve(I::MPolyIdeal; check::Bool=true)
+    ProjectiveCurve
 
-Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve defined by `I`.
-
-If `check` is `true`, checks that the Krull dimension is indeed `2`.
+A reduced projective curve, defined as the vanishing locus of
+a homogeneous (but not necessarily radical) ideal.
 
 # Examples
 ```jldoctest
@@ -23,7 +22,7 @@ julia> V = minors(M, 2)
 
 julia> I = ideal(R, V);
 
-julia> TC = ProjectiveCurve(I)
+julia> TC = projective_curve(I)
 Projective curve
   in projective 3-space over QQ with coordinates [w, x, y, z]
 defined by ideal(w*y - x^2, w*z - x*y, x*z - y^2)

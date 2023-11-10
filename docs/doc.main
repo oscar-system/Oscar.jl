@@ -201,7 +201,9 @@
         "AlgebraicGeometry/TropicalGeometry/curve.md",
      ],
      "Curves" => [
-         "AlgebraicGeometry/Curves/para_rational_curves.md",
+         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
+         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
+         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
