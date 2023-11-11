@@ -92,7 +92,7 @@ end
 @doc raw"""
     cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
-Returns a block diagonal matrix if indecomposable Cartan matrices as defined by type. For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
+Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type. For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
 
 # Example
 ```jldoctest
@@ -104,6 +104,8 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 ```
 """
 function cartan_matrix(type::Tuple{Symbol,Int}...)
+  @req length(type) > 0 "at least one type is required"
+
   blocks = ZZMatrix[cartan_matrix(t...) for t in type]
   return block_diagonal_matrix(blocks)
 end
@@ -144,7 +146,7 @@ function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
       end
     end
   end
-  
+
   if generalized
     return true
   end
@@ -153,7 +155,7 @@ function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
 end
 
 @doc raw"""
-    cartan_matrix_symmetrizer(gcm::ZZMatrix; check::Bool=true) -> Vector{ZZRingElem}
+    cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true) -> Vector{ZZRingElem}
 
 Return a vector $d$ of coprime integers such that $(d_i a_{ij})_{ij}$ is a symmetric matrix, where $a_{ij}$ are the entries of a Cartan matrix `gcm`.
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
@@ -169,9 +171,54 @@ function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
   @req !check || is_cartan_matrix(gcm) "requires a generalized Cartan matrix"
   rk = nrows(gcm)
   diag = ones(ZZRingElem, rk)
-  for i in 1:rk, j in (i + 1):rk
-    if !is_zero_entry(gcm, i, j)
-      diag[i] = lcm(diag[i], gcm[i, j], gcm[j, i])
+
+  # used for traversal
+  undone = trues(rk)
+  plan = zeros(Int, rk) # roots planned sorted asc grouped by component
+  head = 0
+  tail = 0
+
+  # we collect roots of the same length
+  # once we know if they are short or long we scale approriately
+  while any(undone)
+    if head == tail
+      head += 1
+      plan[head] = findfirst(undone)
+      undone[plan[head]] = false
+    end
+
+    i = plan[head]
+    for j in 1:rk
+      if i == j
+        continue
+      end
+
+      if undone[j] && !is_zero_entry(gcm, i, j)
+        head += 1
+        plan[head] = j
+        undone[j] = false
+
+        if diag[i] * gcm[i, j] == diag[j] * gcm[j, i]
+          continue
+        elseif gcm[i, j] == gcm[j, i]
+          diag[i] = lcm(diag[i], diag[j])
+          diag[j] = diag[i]
+          continue
+        end
+
+        if gcm[j, i] < -1
+          tail += 1
+          v = -gcm[j, i]
+          while tail < head
+            diag[plan[tail]] *= v
+            tail += 1
+          end
+        end
+        if gcm[i, j] < -1
+          diag[j] *= -gcm[i, j]
+          tail = head - 1
+        end
+      end
     end
   end
 
@@ -196,7 +243,7 @@ function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
   bil = deepcopy(gcm)
   sym = cartan_symmetrizer(gcm; check=false)
   for i in 1:length(sym)
-    mul!(bil[i, :], sym[i])
+    mul!(view(bil, i, :), sym[i])
   end
   return bil
 end
