@@ -452,6 +452,8 @@ include("Algebras.jl")
 include("polymake.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
+include("GAP.jl")
+include("Groups.jl")
 
 include("upgrades/main.jl")
 
