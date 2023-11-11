@@ -107,7 +107,7 @@
     @test cartan_bilinear_form(cartan_matrix(:G, 2)) == ZZ[2 -3; -3 6]
 
     @test cartan_bilinear_form(cartan_matrix((:B, 2), (:A, 1))) == ZZ[4 -2 0; -2 2 0; 0 0 2]
-    @test cartan_symmetrizer(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]) ==
+    @test cartan_bilinear_form(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]) ==
       ZZ[4 0 -2 0; 0 2 0 -2; -2 0 2 0; 0 -2 0 4]
 
     # affine type
