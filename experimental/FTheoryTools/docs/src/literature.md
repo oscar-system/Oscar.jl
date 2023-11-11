@@ -13,7 +13,7 @@ su5_tate_model_over_arbitrary_3d_base()
 ```
 More generally, we support literature constructions.
 ```@docs
-literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="")
+literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), desired_base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
 
 ## Attributes
