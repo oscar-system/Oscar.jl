@@ -140,7 +140,7 @@ function _get_refinable_facets(Sigma::_FanLikeType, new_ray::AbstractVector{<:In
   Sfacets = pm_object(Sigma).MAXIMAL_CONES_FACETS
   for mc_index in refinable_cones
     mc_indices = Polymake.row(mc_old, mc_index)
-    mc_facet_indices = findall(i->Sfacets[mc_index,i] != 0, 1:Polymake.ncols(Sfacets))
+    mc_facet_indices = Polymake.findnz(Sfacets[mc_index,:])[1]
     mc_hd_index = hd_maximal_cones[findfirst(i -> Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, i-1)) == mc_indices, hd_maximal_cones)]
     refinable_facets = _get_refinable_facets_of_cone(mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R, mc_facet_indices)
     append!(new_cones, refinable_facets)
