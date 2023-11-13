@@ -70,3 +70,64 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   return loci_fiber_intersections
 
 end
+
+
+
+#####################################################
+# 2: Resolve a Tate model
+#####################################################
+
+@doc raw"""
+    blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e")
+
+Resolve a global Tate model by blowing up a locus in the ambient space.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", desired_base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Global Tate model over a concrete base
+
+julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
+Global Tate model over a concrete base
+```
+"""
+function blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+  R = cox_ring(ambient_space(t))
+  I = ideal([eval_poly(k, R) for k in ideal_gens])
+  return blow_up(t, I; coordinate_name = coordinate_name)
+end
+
+function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e")
+  
+  # This method only works if the model is defined over a toric variety over toric scheme
+  @req typeof(base_space(t)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
+  @req typeof(ambient_space(t)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
+
+  # Compute the new ambient_space
+  bd = blow_up(ambient_space(t), I; coordinate_name = coordinate_name)
+  new_ambient_space = domain(bd)
+
+  # Compute the new base
+  # FIXME: THIS WILL IN GENERAL BE WRONG! IN PRINCIPLE, THE ABOVE ALLOWS TO BLOW UP THE BASE AND THE BASE ONLY.
+  # FIXME: We should save the projection \pi from the ambient space to the base space.
+  new_base = base_space(t)
+
+  # Compute the strict transform of the tate polynomial. ANDREW, HERE WE NEED YOUR FUNCTIONALITY.
+  new_pt = tate_polynomial(t)
+
+  # Extract the old Tate sections, which do not change.
+  ais = [tate_section_a1(t), tate_section_a2(t), tate_section_a3(t), tate_section_a4(t), tate_section_a6(t)]
+
+  # Construct the new model
+  # This is not really a Tate model any more, as the hypersurface equation is merely a strict transform of a Tate polynomial.
+  # Change/Fix? We may want to provide not only output that remains true forever but also output, while the internals may change?
+  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], new_pt, base_space(t), new_ambient_space)
+  set_attribute!(model, :base_fully_specified, true)
+  return model
+end
