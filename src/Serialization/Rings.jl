@@ -41,18 +41,19 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion})
-  load_value(s, type_key) do
-    load_value(s, :params) do
+  load_node(s, type_key) do
+    load_node(s, :params) do
       return load_typed_object(s)
     end
   end
 end
 
 # fix for polynomial cases
-function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion},
-                     terms::Vector{Any}, parent_ring::RingMatSpaceUnion) 
+function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion) 
   parents = get_parents(parent_ring)
-  return load_object(s, T, terms, parents)
+  deserialize_node(s) do terms
+    return load_object(s, T, terms, parents)
+  end
 end
 
 # fix for series and ideal cases
@@ -196,7 +197,7 @@ function save_object(s::SerializerState, p::PolyRingElem)
 end
 
 function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
-                     terms::Vector, parents::Vector)
+                     terms::JSON3.Array, parents::Vector)
   parent_ring = parents[end]
   if isempty(terms)
     return parent_ring(0)

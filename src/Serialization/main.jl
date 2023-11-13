@@ -282,6 +282,19 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
 end
 
 # general loading of a reference
+function load_ref(s::DeserializerState)
+  id = s.obj
+  if haskey(global_serializer_state.id_to_obj, UUID(id))
+    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  else
+    s.obj = s.refs[Symbol(id)]
+    println(s.obj, "***")
+    loaded_ref = load_typed_object(s)
+    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+  end
+  return loaded_ref
+end
+
 function load_type_params(s::DeserializerState, ::Type, ref::String)
   return load_ref(s, ref)
 end
@@ -290,7 +303,10 @@ end
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = nothing;
                            override_params::Any = nothing)
-  load_value(s, key) do
+  load_node(s, key) do
+    if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+      return load_ref(s)
+    end
     T = decode_type(s)
     if Base.issingletontype(T) && return T()
     elseif serialize_with_params(T)
@@ -303,11 +319,11 @@ function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = n
         
         params = load_type_params(s, T)
       end
-      load_value(s, :data) do
+      load_node(s, :data) do
         return load_object(s, T, params)
       end
     else
-      load_value(s, :data) do
+      load_node(s, :data) do
         return load_object(s, T)
       end
     end
@@ -646,18 +662,17 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       loaded = load_typed_object(s; override_params=params)
     end
 
-    if haskey(jsondict, :id)
+    if :id in keys(s.obj)
       global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
       global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
     end
     return loaded
   catch e
-    println(e.msg)
-    
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
       @warn "Attempting to load file stored using a DEV version with commit $commit"
     end
+    rethrow(e)
   end
 end
 

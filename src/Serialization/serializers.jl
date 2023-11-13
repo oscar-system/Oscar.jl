@@ -143,37 +143,19 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int})
   s.key = key
 end
 
-function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
-  else
-    s.obj = s.refs[Symbol(id)]
-    loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-  end
-  return loaded_ref
-end
 
 function deserialize_node(f::Function, s::DeserializerState)
-  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
-    return load_ref(s)
-  end
+  f(s.obj)
+end
 
+function load_node(f::Function, s::DeserializerState,
+                    key::Union{Symbol, Int, Nothing} = nothing)
+  !isnothing(key) && set_key(s, key)
   obj = deepcopy(s.obj)
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
-  f()
+  result = f()
   s.obj = obj
-end
-
-function load_value(f::Function, s::DeserializerState,
-                    key::Union{Symbol, Int, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  result = nothing
-  deserialize_node(s) do
-    return f()
-  end
   return result
 end
 
