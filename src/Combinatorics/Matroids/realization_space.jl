@@ -502,9 +502,9 @@ in the Rational field
 
 julia> realization(pappus_matroid(), q=4)
 One realization is given by
-[1   0   1   0        1        1    1        1    0]
-[0   1   1   0   x1 + 1   x1 + 1   x1        1    1]
-[0   0   0   1        1       x1   x1   x1 + 1   x1]
+[1   0   1   0   x1 + 1   x1 + 1   x1    1        0]
+[0   1   1   0        1        1    1    1        1]
+[0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
 in the Multivariate polynomial ring in 1 variable over GF(2)
 within the vanishing set of the ideal
 ideal(x1^2 + x1 + 1)
@@ -543,27 +543,31 @@ function realization(RS::MatroidRealizationSpace)
     error("A field or characteristic must be specified")
   end
 
-  if has_attribute(RS, :is_realizable) && !is_realizable(RS)
+  if !is_realizable(RS)
     return RS
   end
 
-  # If the ambient ring is not a polynomial ring we can reduce we stop
+  # If the ambient ring is not a polynomial ring we can't reduce and we stop
   R = RS.ambient_ring
 
   !(R isa MPolyRing) && return RS
   Inew = RS.defining_ideal
   eqs = copy(gens(Inew))
 
-  d = min(dim(Inew), nvars(R))
-  if d == 0
-    nvars(R) == 0 && return RS
-    for p in gens(Inew)
-      f = factor(p)
-      if length(f) > 1
-        push!(eqs, collect(f)[1][1])
-      end
+  if dim(Inew) == 0
+    for p in minimal_primes(Inew)
+        if !any(i -> i in p, RS.inequations)
+            Inew = p
+            break
+        end
     end
+    RSnew = MatroidRealizationSpace(Inew, Vector{RingElem}(), R, RS.realization_matrix, RS.char, RS.q, RS.ground_ring)
+    RSnew = reduce_realization_space(RSnew)
+    RSnew.one_realization = true
+    return RSnew
   end
+
+  d = min(dim(Inew), nvars(R))
   ineqsnew = RS.inequations
 
   counter = 0
