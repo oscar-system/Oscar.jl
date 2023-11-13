@@ -661,7 +661,6 @@ Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
 function Base.show(io::IO, FR::FreeResolution)
     C = FR.C
     show(io, C)
-    return
 end
 
 mutable struct BettiTable

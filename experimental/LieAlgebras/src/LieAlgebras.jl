@@ -51,6 +51,7 @@ import ..Oscar:
   is_perfect,
   is_simple,
   is_solvable,
+  is_tensor_product,
   is_welldefined,
   kernel,
   lower_central_series,
@@ -117,7 +118,6 @@ export is_self_normalizing
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
-export is_tensor_product
 export lie_algebra
 export lmul!
 export longest_element
