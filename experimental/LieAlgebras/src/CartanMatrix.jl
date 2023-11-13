@@ -92,7 +92,8 @@ end
 @doc raw"""
     cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
-Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type. For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
+Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
+For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
 
 # Example
 ```jldoctest
@@ -104,7 +105,7 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 ```
 """
 function cartan_matrix(type::Tuple{Symbol,Int}...)
-  @req length(type) > 0 "at least one type is required"
+  @req length(type) > 0 "At least one type is required"
 
   blocks = ZZMatrix[cartan_matrix(t...) for t in type]
   return block_diagonal_matrix(blocks)
@@ -113,7 +114,7 @@ end
 @doc raw"""
     is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true) -> Bool
 
-Test if `mat` is a generalized Cartan matrix. The keyword argument `generalized`
+Checks if `mat` is a generalized Cartan matrix. The keyword argument `generalized`
 can be set to `false` to restrict this to Cartan matrices of finite type.
 
 # Example
@@ -168,7 +169,7 @@ julia> cartan_symmetrizer(cartan_matrix(:B, 2))
  1
 """
 function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm) "requires a generalized Cartan matrix"
+  @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
   rk = nrows(gcm)
   diag = ones(ZZRingElem, rk)
 
@@ -238,7 +239,7 @@ julia> cartan_bilinear_form(cartan_matrix(:B, 2))
 [-2    2]
 """
 function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm) "requires a generalized Cartan matrix"
+  @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
 
   bil = deepcopy(gcm)
   sym = cartan_symmetrizer(gcm; check=false)
@@ -254,7 +255,7 @@ end
 Returns the Cartan type of a Cartan matrix `gcm` (currently only Cartan matrices of finite type are supported).
 This function is left inverse to `cartan_matrix`, i.e. in the case of isomorphic types (e.g. $B_2$ and $C_2$)
 the ordering of the roots does matter (see the example below).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
+The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
 
 # Example
 ```jldoctest
@@ -277,7 +278,7 @@ end
 
 Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating the canonical ordering of the roots
 (currently only Cartan matrices of finite type are supported).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
+The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
 # Example
 ```jldoctest
 julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
