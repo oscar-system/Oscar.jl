@@ -33,6 +33,8 @@ deviate from them in some cases; in that case just do so.
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
+- Input sanity checks should be enabled by default, they can then be disabled
+  internally if they are known to be true, and manually by users.
 
 
 ## Naming conventions
