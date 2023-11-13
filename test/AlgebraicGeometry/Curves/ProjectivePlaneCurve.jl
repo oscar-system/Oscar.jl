@@ -113,7 +113,7 @@ end
 @testset "ParametrizePlaneCurve" begin
     T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
     C1 = ProjectivePlaneCurve(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5)
-    I1 = Oscar.parametrization_plane_curve(C1)
+    I1 = parametrization(C1)
     I2 = Oscar.adjoint_ideal(C1)
     R1 = parent(I1[1])
     s, t = gens(R1)
