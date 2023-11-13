@@ -74,15 +74,15 @@ Careful: Currently, this assumes that all blowups are toric blowups.
 We hope to remove this requirement in the near future.
 
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> v = resolve(m, 1)
-Normal toric variety
+julia> t2 = resolve(t, 1)
+Global Tate model over a concrete base
 
-julia> cox_ring(v)
+julia> cox_ring(ambient_space(t2))
 Multivariate polynomial ring in 13 variables over QQ graded by 
   a1 -> [1 0 0 0 0 0 0 0]
   a21 -> [0 1 0 0 0 0 0 0]
@@ -115,10 +115,20 @@ function resolve(m::AbstractFTheoryModel, index::Int)
     @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
   end
   
-  # Perform resolution
-  for k in 1:nr_blowups
-    S = cox_ring(resolved_ambient_space)
-    resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
+  # If Tate model, use the new resolve function
+  # FIXME: To be extended to Weierstrass and hypersurface models
+  if typeof(m) == GlobalTateModel
+    resolved_model = m
+    for k in 1:nr_blowups
+      resolved_model = blow_up(resolved_model, centers[k]; coordinate_name = exceptionals[k])
+    end
+  else
+    # Perform resolution
+    for k in 1:nr_blowups
+      S = cox_ring(resolved_ambient_space)
+      resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
+    end
+    resolved_model = resolved_ambient_space
   end
-  return resolved_ambient_space
+  return resolved_model
 end
