@@ -107,6 +107,10 @@
     @test polyhedral_fan(cones(F1NR, 1)) isa PolyhedralFan
     @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
     @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
+
+    @test polyhedral_fan(cones(F1NR, 1); non_redundant=true) isa PolyhedralFan
+    @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
+    @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
   end
 
 end

@@ -106,13 +106,12 @@ pm_object(PF::PolyhedralFan) = PF.pm_fan
 
 Assemble a polyhedral fan from a non-empty list of cones.
 """
-function polyhedral_fan(cones::AbstractVector{Cone{T}}) where T<:scalar_types
+function polyhedral_fan(cones::AbstractVector{Cone{T}}; non_redundant::Bool=false) where T<:scalar_types
   @req length(cones) > 0 "list of cones must be non-empty"
-  pmfan = Polymake.fan.check_fan_objects(pm_object.(cones)...)
-  if pmfan.N_MAXIMAL_CONES == 0
-    # if check fan returns no cones then the rays are empty and we have just one trivial cone (maybe with lineality)
-    C = cones[1]
-    return polyhedral_fan(coefficient_field(C), rays(C), lineality_space(C), IncidenceMatrix(1,0); non_redundant=true)
+  if non_redundant
+    pmfan = Polymake.fan.fan_from_cones(pm_object.(cones)...)
+  else
+    pmfan = Polymake.fan.check_fan_objects(pm_object.(cones)...)
   end
   return PolyhedralFan{T}(pmfan, coefficient_field(iterate(cones)[1]))
 end

@@ -109,6 +109,10 @@
     @test f_vector(polyhedral_complex(faces(c, 1))) == [8, 12]
     @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
 
+    @test polyhedral_complex(faces(c, 1); non_redundant=true) isa PolyhedralComplex
+    @test f_vector(polyhedral_complex(faces(c, 1))) == [8, 12]
+    @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
+
   end
 
 end
