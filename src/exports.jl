@@ -844,7 +844,6 @@ export is_realizable
 export is_reduced
 export is_regular
 export is_regular_sequence
-#export is_representable
 export is_right
 export is_semiregular
 export is_semisimple
@@ -967,8 +966,6 @@ export matroid_from_matrix_rows
 export matroid_from_nonbases
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
-#export matroid_realization_space
-#export matroid_stratum_matrix_coordinates
 export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
@@ -1496,4 +1493,3 @@ export write_as_full
 export write_as_linear_combination
 export zonotope
 export zonotope_vertices_fukuda_matrix
-
