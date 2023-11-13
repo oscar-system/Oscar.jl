@@ -86,7 +86,7 @@ rational_point_conic(D::ProjectivePlaneCurve{QQField})
 ## Parametrizing Rational Plane Curves
 
 ```@docs
-parametrization_plane_curve(C::ProjectivePlaneCurve{QQField})
+parametrization(C::ProjectivePlaneCurve{QQField})
 ```
 
 
