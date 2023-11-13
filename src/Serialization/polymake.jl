@@ -12,6 +12,10 @@ function load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where
   return Graph{T}(polymake_object)
 end
 
+function load_from_polymake(::Type{PhylogeneticTree{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Float64, Int, QQFieldElem}}
+  polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  return PhylogeneticTree{T}(polymake_object)
+end
 
 const polymake2OscarTypes = Dict{String, Type}([
   "polytope::Cone<Rational>" => Cone{QQFieldElem},
@@ -22,7 +26,9 @@ const polymake2OscarTypes = Dict{String, Type}([
   "topaz::SimplicialComplex" => SimplicialComplex,
   "common::GraphAdjacency<Undirected>" => Graph{Undirected},
   "common::GraphAdjacency<Directed>" => Graph{Directed},
-  "graph::PhylogeneticTree<Rational>" => PhylogenticTree{QQFieldElem}
+  "graph::PhylogeneticTree<Rational>" => PhylogeneticTree{QQFieldElem},
+  "graph::PhylogeneticTree<Float>" => PhylogeneticTree{Float64},
+  "graph::PhylogeneticTree<Int>" => PhylogeneticTree{Int}
 ])
 
 @register_serialization_type Polymake.BigObjectAllocated "Polymake.BigObject" uses_id
