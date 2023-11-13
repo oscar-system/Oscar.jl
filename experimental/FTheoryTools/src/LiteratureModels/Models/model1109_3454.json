@@ -37,6 +37,7 @@
     },
     "model_data": {
         "base_dim": 3,
+        "model_sections": ["w"],
         "base_coordinates": ["a1", "a21", "a32", "a43", "w"],
         "a1": "a1",
         "a2": "a21*w",

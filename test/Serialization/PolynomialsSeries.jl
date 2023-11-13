@@ -38,7 +38,7 @@ cases = [
     @testset "Empty Ideal" begin
       i = Oscar.ideal(QQ[:x, :y][1], [])
       test_save_load_roundtrip(path, i) do loaded
-        loaded == i
+        @test loaded == i
       end
     end
 
