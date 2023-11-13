@@ -16,6 +16,13 @@ function get_parents(parent_ring::Field)
   return parents
 end
 
+function get_parents(e::EmbeddedField)
+  base = number_field(e)
+  parents = get_parents(base)
+  push!(parents, e)
+  return parents
+end
+
 function get_parents(parent_ring::T) where T <: Union{NfAbsNS, NfRelNS}
   n = ngens(parent_ring)
   base = polynomial_ring(base_field(parent_ring), n)[1]
@@ -148,6 +155,12 @@ const NumFieldElemTypeUnion = Union{nf_elem, fqPolyRepFieldElem, Hecke.NfRelElem
 function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
   K = parent(k)
   polynomial = parent(defining_polynomial(K))(k)
+  save_object(s, polynomial)
+end
+
+function save_object(s::SerializerState, k::Hecke.NfRelElem{NfAbsNSElem})
+  K = parent(k)
+  polynomial = parent(defining_polynomial(K))(data(k))
   save_object(s, polynomial)
 end
 
@@ -413,9 +426,12 @@ end
 ################################################################################
 # Field Embeddings
 
-@register_serialization_type Hecke.NumFieldEmbNfAbs  uses_id
+const FieldEmbeddingTypes = Union{Hecke.NumFieldEmbNfAbs, Hecke.NumFieldEmbNfRel}
 
-function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
+@register_serialization_type Hecke.NumFieldEmbNfAbs  uses_id
+@register_serialization_type Hecke.NumFieldEmbNfRel uses_id
+
+function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
   g = gen(K)
   g_ball = E(g)
@@ -426,18 +442,21 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, dict::Dict)
   K = load_typed_object(s, dict[:num_field])
   gen_ball = load_typed_object(s, dict[:gen_ball])
 
   return complex_embedding(K, gen_ball)
 end
 
-@register_serialization_type Hecke.NumFieldEmbNfAbsNS uses_id
+const FieldEmbeddingNSTypes = Union{Hecke.NumFieldEmbNfAbsNS, Hecke.NumFieldEmbNfNS}
 
-function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
+@register_serialization_type Hecke.NumFieldEmbNfAbsNS uses_id
+@register_serialization_type Hecke.NumFieldEmbNfNS uses_id
+
+function save_object(s::SerializerState, E::FieldEmbeddingNSTypes)
   K = number_field(E)
-  gen_balls = map(E, gens(K))
+  gen_balls = tuple(map(E, gens(K))...)
 
   save_data_dict(s) do
     save_typed_object(s, K, :num_field)
@@ -445,11 +464,45 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingNSTypes}, dict::Dict)
   K = load_typed_object(s, dict[:num_field])
   gen_balls = load_typed_object(s, dict[:gen_balls])
 
-  return complex_embedding(K, gen_balls)
+  return complex_embedding(K, collect(gen_balls))
+end
+
+@register_serialization_type Hecke.EmbeddedField uses_id
+
+function save_object(s::SerializerState, E::Hecke.EmbeddedField)
+  K = number_field(E)
+  e = embedding(E)
+
+  save_data_dict(s) do
+    save_typed_object(s, K, :num_field)
+    save_typed_object(s, e, :embedding)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{Hecke.EmbeddedField}, dict::Dict)
+  K = load_typed_object(s, dict[:num_field])
+  e = load_typed_object(s, dict[:embedding])
+
+  return Hecke.embedded_field(K, e)
+end
+
+@register_serialization_type EmbeddedElem uses_params
+
+function save_object(s::SerializerState, f::EmbeddedElem)
+  save_object(s, data(f))
+end
+
+function load_object(s::DeserializerState, ::Type{<:EmbeddedElem},
+                                 terms::Vector, parents::Vector)
+  parent_field = parents[end]
+  numfield_elem = terms
+  coeff_type = elem_type(parents[end - 1])
+  loaded_alg_elem = load_object(s, coeff_type, terms, parents[1:end - 1])
+  return parent_field(loaded_alg_elem)
 end
 
 ################################################################################
