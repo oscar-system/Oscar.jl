@@ -1,7 +1,7 @@
 """
-AbstractPartition
+    AbstractPartition
 
-Abstract type of Partition for classical-, colored- and spatial Partitions.
+Abstract type for classical-, colored- and spatial Partitions.
 """
 abstract type AbstractPartition end
 
@@ -15,4 +15,8 @@ end
 
 function ⊗(p::T, q::T) where {T <: AbstractPartition}
     tensor_product(p, q)
+end
+
+function *(p::AbstractPartition)
+    involution(p)
 end

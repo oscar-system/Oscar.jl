@@ -1,16 +1,16 @@
 """
-helper_new_point_values_array(p::Array)
+    helper_new_point_values_vector(p::vector)
 
-This function outputs a semantically identical Partition in form of an array which has new number values (in O(n)).
+This function outputs a semantically identical Partition in form of an vector which has new number values.
 
 # Arguments
-- `p`: The input partition as array which we do not change
-- `q`: The input partition as array that we change according to the values of p
+- `p`: The input partition as vector which we do not change
+- `q`: The input partition as vector that we change according to the values of p
 
 # Returns
-- Semantically equal partition as array to q without point numbers in p
+- Semantically equal partition as vector to q without point numbers in p
 """
-function helper_new_point_values_array(p::Array, q::Array)
+function helper_new_point_values_vector(p::Vector, q::Vector)
 
     p_points = vcat(copy(p[1]), copy(p[2]))
 
@@ -43,21 +43,21 @@ function helper_new_point_values_array(p::Array, q::Array)
 end
 
 """
-normal_form_array(p::Array)
+    normal_form_vector(p::Vector)
 
-This function outputs a semantically identical Partition of array form which has new number values from 1 to number of blocks of Partitions (in O(n)).
+This function outputs a semantically identical Partition of vector form which has new number values from 1 to number of blocks of Partitions.
 
 # Arguments
-- `p`: Input partition as array
+- `p`: Input partition as vector
 
 # Returns
 - `p` with consisten form
 """
-function normal_form_array(p::Array)
+function normal_form_vector(p::Vector)
 
     new_id = 1
-    new_ids = Dict()
-    p_return = helper_new_point_values_array([[length(p[1]) + length(p[2])], []], p)
+    new_ids = Dict{Int, Int}()
+    p_return = helper_new_point_values_vector([[length(p[1]) + length(p[2])], []], p)
 
     for (i, n) in enumerate(p_return[1])
         if !(n in keys(new_ids))
@@ -90,19 +90,17 @@ function add_partition_to_dict(dict::Dict, p::AbstractPartition)
     return dict
 end
 
-function add_partition_to_composition_dict(array::Array, p::AbstractPartition)
+function add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
 
     # add right partition in first dict for top size
-    add_apbs_top::Set = get(array[1], length(get_upper_points(p)), -1)
+    add_apbs_top::Set = get(vector[1], length(upper_points(p)), -1)
     push!(add_apbs_top, p)
-    (array[1])[length(get_upper_points(p))] = add_apbs_top
+    (vector[1])[length(upper_points(p))] = add_apbs_top
 
     # add right partition in first dict for bottom size
-    add_apbs_bottom::Set = get(array[2], length(get_lower_points(p)), -1)
+    add_apbs_bottom::Set = get(vector[2], length(lower_points(p)), -1)
     push!(add_apbs_bottom, p)
-    (array[2])[length(get_lower_points(p))] = add_apbs_bottom
+    (vector[2])[length(lower_points(p))] = add_apbs_bottom
 
-    return array
+    return vector
 end
-
-

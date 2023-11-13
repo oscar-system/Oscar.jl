@@ -1,6 +1,6 @@
 using Test
 
-include("../src/PartitionsJulia.jl")
+include("../src/SetPartitions.jl")
 
 
 include("Partition-test.jl")

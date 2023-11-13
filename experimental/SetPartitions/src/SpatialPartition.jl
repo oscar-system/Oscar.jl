@@ -8,15 +8,15 @@ SpatialPartition
 Initialize Spatial Partition object
 
 # Arguments
-- partition: Partition object which is generalized with dimension dimension
-- dimension: dimension of the spatial Partition
+- `partition`: SetPartition object which is generalized with dimension `dimension`
+- `dimension`: dimension of the spatial Partition
 """
 struct SpatialPartition <: AbstractPartition
-    partition::Partition
-    dimension::Int64
+    partition::SetPartition
+    dimension::Int
 end
 
-function spatial_partition(partition::Partition, dim::Int)
+function spatial_partition(partition::SetPartition, dim::Int)
 
     return SpatialPartition(partition, dim)
 
@@ -41,7 +41,7 @@ end
 """
 tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-This function applies on p tensor product with q (in O(n)).
+This function applies on p tensor product with q.
 
 # Arguments
 - `p`: Input Spatial partition
@@ -60,7 +60,7 @@ end
 """
 involution(p::SpatialPartition)
 
-This function applies an involution on `p` (in O(n) because normal_form, else O(1)).
+This function applies an involution on `p`.
 
 # Arguments
 - `p`: Input spatial partition
@@ -77,7 +77,7 @@ end
 """
 composition_loops(p::SpatialPartition, q::SpatialPartition)
 
-This function applies composition between p and q (in O(nlogn)).
+This function applies composition between p and q.
 
 # Arguments
 - `p`: Input partition

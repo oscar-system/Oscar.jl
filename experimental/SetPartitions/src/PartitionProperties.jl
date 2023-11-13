@@ -1,5 +1,5 @@
 """
-size(p::Partition)
+    size(p::SetPartition)
 
 This function outputs the size of the input partition (i.e. the number of points in `p`).
 
@@ -9,24 +9,24 @@ This function outputs the size of the input partition (i.e. the number of points
 # Returns
 - size of `p`
 """
-function size(p::Partition)
+function size(p::SetPartition)
     length(p.lower_points) + length(p.upper_points)
 end
 
-function is_composable(p::Partition, q::Partition)
+function is_composable(p::SetPartition, q::SetPartition)
     length(p.upper_points) == length(q.lower_points)
 end
 
-function get_upper_points(p::Partition)
+function upper_points(p::SetPartition)
     p.upper_points
 end
 
-function get_lower_points(p::Partition)
+function lower_points(p::SetPartition)
     p.lower_points
 end
 
 """
-size(p::ColoredPartition)
+    size(p::ColoredPartition)
 
 This function outputs the size of the input colroed partition (i.e. the number of points in `p`).
 
@@ -44,16 +44,16 @@ function is_composable(p::ColoredPartition, q::ColoredPartition)
     p.color_upper_points == q.color_lower_points && is_composable(p.partition, q.partition)
 end
 
-function get_upper_points(p::ColoredPartition)
+function upper_points(p::ColoredPartition)
     p.partition.upper_points
 end
 
-function get_lower_points(p::ColoredPartition)
+function lower_points(p::ColoredPartition)
     p.partition.lower_points
 end
 
 """
-size(p::SpatialPartition)
+    size(p::SpatialPartition)
 
 This function outputs the size of the input spatial partition (i.e. the number of points in `p`).
 
@@ -72,21 +72,21 @@ function is_composable(p::SpatialPartition, q::SpatialPartition)
 end
 
 function is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
-    length(get_upper_points(p)) != 0 && length(get_upper_points(p)) != max_length && length(get_lower_points(p)) + length(get_upper_points(q)) <= max_length
+    length(upper_points(p)) != 0 && length(upper_points(p)) != max_length && length(lower_points(p)) + length(upper_points(q)) <= max_length
 end
 
-function get_upper_points(p::SpatialPartition)
+function upper_points(p::SpatialPartition)
     p.partition.upper_points
 end
 
-function get_lower_points(p::SpatialPartition)
+function lower_points(p::SpatialPartition)
     p.partition.lower_points
 end
 
 """
-is_pair(p::Partition)
+    is_pair(p::AbstractPartition)
 
-This function checks whether `p` is a partition only including blocks of size two (in O(n) average).
+This function checks whether `p` is a partition only including blocks of size two.
 
 # Arguments
 - `p`: Input partition
@@ -103,10 +103,10 @@ true
 function is_pair(p::AbstractPartition)
 
     # Dictionary from block to size of block
-    block_to_size = Dict()
+    block_to_size = Dict{Int, Int}()
 
     # Initialize dictionary
-    for i in vcat(get_upper_points(p), get_lower_points(p))
+    for i in vcat(upper_points(p), lower_points(p))
         if !(i in keys(block_to_size))
             block_to_size[i] = 1
         else
@@ -120,9 +120,9 @@ function is_pair(p::AbstractPartition)
 end
 
 """
-is_balanced(p::Partition)
+    is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-This function checks whether `p` is a balanced partition (in O(n) average).
+This function checks whether `p` is a balanced partition.
 
 # Arguments
 - `p`: Input partition
@@ -132,60 +132,43 @@ This function checks whether `p` is a balanced partition (in O(n) average).
 
 # Examples
 ```julia-repl
-julia> is_balanced(Partition([1, 2, 3], [3, 2, 1]))
+julia> is_balanced(SetPartition([1, 2, 3], [3, 2, 1]))
 true
 ```
 """
-function is_balanced(p::T) where {T<:Union{Partition, ColoredPartition}}
+function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-    p_array = vcat(get_upper_points(p), get_lower_points(p))
+    p_vector = vcat(upper_points(p), lower_points(p))
 
     # remember length lower points
-    upper = length(get_upper_points(p))
+    upper = length(upper_points(p))
     upper_uneven = upper % 2 == 1 ? true : false
 
     # Dictionary from block to sum of -1 (repr odd indices) and 1 (repr even indices)
-    block_to_size = Dict()
-    block_to_blocksize = Dict()
+    block_to_size = Dict{Int, Int}()
 
     # prefill dict with zeros
-    for i in p_array
+    for i in p_vector
         block_to_size[i] = 0
     end
-    # to identify singeltons
-    # for i in p_array
-    #     if i in keys(block_to_blocksize)
-    #        block_to_blocksize[i] = get(block_to_blocksize, i, -1) + 1
-    #    else
-    #        block_to_blocksize[i] = 1
-    #    end
-    #end
 
     # Initialize dictionary
-    for (i, n) in enumerate(p_array)
+    for (i, n) in enumerate(p_vector)
         condition = upper_uneven ? i % 2 == 1 : (i <= upper ? i % 2 == 1 : i % 2 == 0)
-        if condition # && get(block_to_blocksize, n, -1) != 1
+        if condition
             block_to_size[n] = get(block_to_size, n, -1) - 1
-        else # if get(block_to_blocksize, n, -1) != 1
+        else
             block_to_size[n] = get(block_to_size, n, -1) + 1
         end
     end
-    # check whether singeltons are balanced
-    #singeltons = 0
-    #for i in keys(block_to_blocksize)
-    #    if get(block_to_blocksize, i, -1) != 1
-    #        continue
-    #    end
-    #    i % 2 == 1 ? singeltons -= 1 : singeltons += 1
-    #end
 
-    return all(i -> i == 0, values(block_to_size)) #&& singeltons == 0
+    return all(i -> i == 0, values(block_to_size))
 end
 
 """
-is_noncrossing(p::Partition)
+    is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-This function checks whether `p` is a non-crossing partition (in O(n) average).
+This function checks whether `p` is a non-crossing partition.
 
 # Arguments
 - `p`: Input partition
@@ -195,20 +178,20 @@ This function checks whether `p` is a non-crossing partition (in O(n) average).
 
 # Examples
 ```julia-repl
-julia> is_noncrossing(Partition([1, 2, 2, 3, 1, 4], [4, 3]))
+julia> is_noncrossing(SetPartition([1, 2, 2, 3, 1, 4], [4, 3]))
 false
 ```
 """
-function is_noncrossing(p::T) where {T<:Union{Partition, ColoredPartition}}
+function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
     # transform partition to only upper points
-    p_array = vcat(get_upper_points(p), reverse(get_lower_points(p)))
+    p_vector = vcat(upper_points(p), reverse(lower_points(p)))
 
     # Dictionary from block to size of block
-    block_to_size = Dict()
+    block_to_size = Dict{Int, Int}()
 
     # Initialize dictionary
-    for i in p_array
+    for i in p_vector
         if !(i in keys(block_to_size))
             block_to_size[i] = 1
         else
@@ -217,11 +200,11 @@ function is_noncrossing(p::T) where {T<:Union{Partition, ColoredPartition}}
     end
 
     # blocks we have already seen in the iteration process
-    already_seen = Set()
+    already_seen = Set{Int}()
     last_incompleted = []
-    incompleted = Set()
+    incompleted = Set{Int}()
 
-    for (i, n) in enumerate(p_array)
+    for (i, n) in enumerate(p_vector)
         if n in incompleted && (isempty(last_incompleted) ? -1 : last_incompleted[end]) != n
             return false
         end
@@ -233,7 +216,7 @@ function is_noncrossing(p::T) where {T<:Union{Partition, ColoredPartition}}
                 push!(incompleted, n)
             end
         else
-            if p_array[i-1] != n && get(block_to_size, p_array[i-1], -1) != 0
+            if p_vector[i-1] != n && get(block_to_size, p_vector[i-1], -1) != 0
                 return false
             else
                 block_to_size[n] = get(block_to_size, n, -1) - 1
