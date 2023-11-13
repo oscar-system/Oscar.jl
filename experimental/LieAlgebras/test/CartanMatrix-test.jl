@@ -88,7 +88,7 @@
 
     # affine type
     @test cartan_symmetrizer(ZZ[2 -2; -2 2]) == [1, 1] # A1~1
-    @test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == [1, 2, 1] # B3~1
+    @test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == [1, 2, 1] # D3~2
     @test cartan_symmetrizer(ZZ[2 -4; -1 2]) == [1, 4] # A1~2
 
     # hyperbolic type
@@ -150,5 +150,8 @@
     @test cartan_type(cartan_matrix((:C, 2), (:B, 2)); check=false) == [(:C, 2), (:B, 2)]
     @test cartan_type(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]; check=false) ==
       [(:B, 2), (:C, 2)]
+  end
+
+  @testset "cartan_type_with_ordering(gcm::ZZMatrix; check::Bool)" begin
   end
 end

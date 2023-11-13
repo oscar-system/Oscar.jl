@@ -9,7 +9,7 @@
 
 Returns the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
 and `rk` is the rank of the associated the root system; for $B$ and $C$ the rank has to be at least 2, for $D$ at least 4.
-The convention is $(a_ij) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
+The convention is $(a_{ij}) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
 
 # Example
 ```jldoctest
@@ -107,7 +107,7 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 function cartan_matrix(type::Tuple{Symbol,Int}...)
   @req length(type) > 0 "At least one type is required"
 
-  blocks = ZZMatrix[cartan_matrix(t...) for t in type]
+  blocks = [cartan_matrix(t...) for t in type]
   return block_diagonal_matrix(blocks)
 end
 
@@ -124,6 +124,7 @@ true
 
 julia> is_cartan_matrix(ZZ[2 -2; -2 2]; generalized=false)
 false
+```
 """
 function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
   n, m = size(mat)
@@ -158,7 +159,8 @@ end
 @doc raw"""
     cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true) -> Vector{ZZRingElem}
 
-Return a vector $d$ of coprime integers such that $(d_i a_{ij})_{ij}$ is a symmetric matrix, where $a_{ij}$ are the entries of a Cartan matrix `gcm`.
+Return a vector $d$ of coprime integers such that $(d_i a_{ij})_{ij}$ is a symmetric matrix,
+where $a_{ij}$ are the entries of the Cartan matrix `gcm`.
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 
 # Example
@@ -167,6 +169,7 @@ julia> cartan_symmetrizer(cartan_matrix(:B, 2))
 2-element Vector{ZZRingElem}:
  2
  1
+```
 """
 function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
   @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
@@ -237,6 +240,7 @@ The keyword argument `check` can be set to `false` to skip verification whether 
 julia> cartan_bilinear_form(cartan_matrix(:B, 2))
 [ 4   -2]
 [-2    2]
+```
 """
 function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
   @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
@@ -276,11 +280,22 @@ end
 @doc raw"""
     cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}, Vector{Int}
 
-Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating the canonical ordering of the roots
-(currently only Cartan matrices of finite type are supported).
+Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
+of the roots in the Dynkin diagram (currently only Cartan matrices of finite type are supported).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
 # Example
 ```jldoctest
+julia> cartan_matrix(:E, 6)
+[ 2    0   -1    0    0    0]
+[ 0    2    0   -1    0    0]
+[-1    0    2   -1    0    0]
+[ 0   -1   -1    2   -1    0]
+[ 0    0    0   -1    2   -1]
+[ 0    0    0    0   -1    2]
+
+julia> cartan_type_with_ordering(cartan_matrix(:E, 6))
+([(:E, 6)], [1, 3, 4, 2, 5, 6])
+
 julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
 ([(:B, 2), (:C, 2)], [1, 3, 2, 4])
 ```
