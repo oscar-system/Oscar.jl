@@ -29,7 +29,7 @@ export tangent_lines
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -63,7 +63,7 @@ end
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -102,7 +102,7 @@ end
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -138,7 +138,7 @@ end
 Return a list whose first element is the affine plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -231,14 +231,14 @@ end
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+julia> C = PlaneCurveModule.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-julia> curve_singular_locus(C)
+julia> PlaneCurveModule.curve_singular_locus(C)
 2-element Vector{Vector}:
  AffinePlaneCurve[Affine plane curve defined by x]
  Point[Point with coordinates QQFieldElem[-1, 1], Point with coordinates QQFieldElem[0, 0]]
@@ -317,17 +317,17 @@ end
 Return the multiplicity of `C` at `P`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+julia> C = PlaneCurveModule.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-julia> P = Point([QQ(2), QQ(-2)])
+julia> P = PlaneCurveModule.Point([QQ(2), QQ(-2)])
 Point with coordinates QQFieldElem[2, -2]
 
-julia> multiplicity(C, P)
+julia> PlaneCurveModule.multiplicity(C, P)
 1
 ```
 """
@@ -353,17 +353,17 @@ end
 Return the tangent lines at `P` to `C` with their multiplicity.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+julia> C = PlaneCurveModule.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-julia> P = Point([QQ(0), QQ(0)])
+julia> P = PlaneCurveModule.Point([QQ(0), QQ(0)])
 Point with coordinates QQFieldElem[0, 0]
 
-julia> tangent_lines(C, P)
+julia> PlaneCurveModule.tangent_lines(C, P)
 Dict{AffinePlaneCurve{QQFieldElem}, Int64} with 2 entries:
   x     => 4
   x + y => 1
@@ -418,20 +418,20 @@ end
 Return the intersection multiplicity of `C` and `D` at `P`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
+julia> C = PlaneCurveModule.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
 Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
 
-julia> D = AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
+julia> D = PlaneCurveModule.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
 Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
 
-julia> Q = Point([QQ(0), QQ(-2)])
+julia> Q = PlaneCurveModule.Point([QQ(0), QQ(-2)])
 Point with coordinates QQFieldElem[0, -2]
 
-julia> intersection_multiplicity(C, D, Q)
+julia> PlaneCurveModule.intersection_multiplicity(C, D, Q)
 2
 ```
 """
@@ -454,26 +454,26 @@ end
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(x*(x+y))
+julia> C = PlaneCurveModule.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-julia> D = AffinePlaneCurve((x-y)*(x-2))
+julia> D = PlaneCurveModule.AffinePlaneCurve((x-y)*(x-2))
 Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 
-julia> P = Point([QQ(0), QQ(0)])
+julia> P = PlaneCurveModule.Point([QQ(0), QQ(0)])
 Point with coordinates QQFieldElem[0, 0]
 
-julia> Q = Point([QQ(2), QQ(-2)])
+julia> Q = PlaneCurveModule.Point([QQ(2), QQ(-2)])
 Point with coordinates QQFieldElem[2, -2]
 
-julia> aretransverse(C, D, P)
+julia> PlaneCurveModule.aretransverse(C, D, P)
 false
 
-julia> aretransverse(C, D, Q)
+julia> PlaneCurveModule.aretransverse(C, D, Q)
 true
 ```
 """
@@ -490,14 +490,14 @@ end
 Return `true` if `C` has no singular point, and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(x*(x+y))
+julia> C = PlaneCurveModule.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-julia> is_smooth_curve(C)
+julia> PlaneCurveModule.is_smooth_curve(C)
 false
 ```
 """
@@ -534,14 +534,14 @@ end
 Return the geometric genus of the projective closure of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(GF(7), ["x", "y"])
 (Multivariate polynomial ring in 2 variables over GF(7), fpMPolyRingElem[x, y])
 
-julia> C = AffinePlaneCurve(y^9 - x^2*(x-1)^9)
+julia> C = PlaneCurveModule.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
 Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
 
-julia> geometric_genus(C)
+julia> PlaneCurveModule.geometric_genus(C)
 0
 ```
 """

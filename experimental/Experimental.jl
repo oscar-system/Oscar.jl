@@ -10,7 +10,6 @@ const oldexppkgs = [
   "ModStd",
   "Rings",
   "Schemes",
-  "PlaneCurve",
 ]
 # DEVELOPER OPTION:
 # The following lines ensure that ToricSchemes is loaded before FTheoryTools.
