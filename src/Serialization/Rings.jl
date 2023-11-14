@@ -324,6 +324,9 @@ function load_object(s::DeserializerState, ::Type{<:MatElem},
   else
     m = load_object(s, Matrix, entries, T)
   end
+  if isempty(m)
+    return parent()
+  end
   return parent(m)
 end
 

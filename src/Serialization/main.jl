@@ -652,12 +652,11 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
-    println(e.msg)
-    
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
       @warn "Attempting to load file stored using a DEV version with commit $commit"
     end
+    rethrow(e)
   end
 end
 
