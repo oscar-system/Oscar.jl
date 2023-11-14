@@ -81,7 +81,7 @@ This function applies composition between p and q.
 - `q`: Second input partition
 
 # Returns
-- [`p` composition `q`, number of loops]
+- (`p` composition `q`, number of loops)
 """
 function composition_loops(p::ColoredPartition, q::ColoredPartition)
 
@@ -89,7 +89,7 @@ function composition_loops(p::ColoredPartition, q::ColoredPartition)
 
     comp_loops = composition_loops(p.partition, q.partition)
     
-    [ColoredPartition(comp_loops[1], q.color_upper_points, p.color_lower_points), comp_loops[2]]
+    (ColoredPartition(comp_loops[1], q.color_upper_points, p.color_lower_points), comp_loops[2])
 
 end
 

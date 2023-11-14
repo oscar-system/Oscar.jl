@@ -174,12 +174,12 @@ This function applies composition between p and q.
 - `q`: Second input partition
 
 # Returns
-- [`p` composition `q`, number of loops]
+- ()`p` composition `q`, number of loops)
 
 # Examples
 ```julia-repl
 julia> composition_loops(SetPartition([1, 2], [2, 1]), SetPartition([1], [1, 1]))
-SetPartition([1], [1, 1]), 0
+(SetPartition([1], [1, 1]), 0)
 ```
 """
 function composition_loops(p::SetPartition, q::SetPartition)
@@ -187,7 +187,7 @@ function composition_loops(p::SetPartition, q::SetPartition)
     !is_composable(p, q) ? error("format not fitting") : 
 
     # Work with copies to not change the input partitions
-    p_copy::SetPartition = copy(p)
+    p_copy = copy(p)
 
     # new_ids dicts store the new Value we need to assign to the partition in order to connect new segments
     vector_q = helper_new_point_values_vector([p_copy.upper_points, p_copy.lower_points], [copy(q.upper_points), copy(q.lower_points)])
@@ -201,12 +201,12 @@ function composition_loops(p::SetPartition, q::SetPartition)
             if p.upper_points[i] in keys(new_ids) && get(new_ids, n, -1) in keys(new_ids)
                 # Do path compression if we have the case that we need to merge two tree's together and
                 # the nodes we operate on are not a root or a leaf
-                for ii::Int in [n]
-                    path::Vector = [ii]
+                for ii in [n]
+                    path = [ii]
                     already_in = Set()
                     push!(already_in, get(new_ids, ii, -1))
-                    z::Int = get(new_ids, ii, -1)
-                    while z::Int in keys(new_ids)
+                    z = get(new_ids, ii, -1)
+                    while z in keys(new_ids)
                         push!(path, z)
                         push!(already_in, z)
                         z = get(new_ids, z, -1)
@@ -215,7 +215,7 @@ function composition_loops(p::SetPartition, q::SetPartition)
                         end
                     end
                     push!(path, z)
-                    for nn::Int in path[1:end-1]
+                    for nn in path[1:end-1]
                         new_ids[nn] = path[end]
                     end
                 end

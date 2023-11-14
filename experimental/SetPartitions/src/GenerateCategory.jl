@@ -9,7 +9,7 @@ function do_unary(
     trace::Dict,
     spatial_rotation::Function)
 
-    stop::Bool = false
+    stop = false
     while !stop
         stop = true
 
@@ -17,9 +17,9 @@ function do_unary(
 
         for pp in to_unary_copy
             
-            pmod::AbstractPartition = copy(pp)
+            pmod = copy(pp)
 
-            a::AbstractPartition = copy(pp)
+            a = copy(pp)
 
             if pmod isa SetPartition || pmod isa ColoredPartition
                 # start with rotation
@@ -115,22 +115,21 @@ function do_tensor_products(
     all_partitions_by_size_top_bottom::Vector, 
     trace::Dict)
     
-    # analogical to all_pyrtitions_by_size in build function for new_tens
+    # similar to all_pyrtitions_by_size in build function for new_tens
     new_tens_by_size = Dict{Int, Set}(i => Set() for i in 0:max_length)
 
-    # store all partitions which are new constructed by tensor product
+    # store all partitions which are newly constructed by tensor product
     new_tens = Set{AbstractPartition}()
 
     # store for every i the ii's which are already used, to not use them in this iteration again
     without = Dict{AbstractPartition, Set{AbstractPartition}}()
 
-    # until no more new possibilities tensor
-    stop::Bool = false
+    # until no more new possibilities
+    stop = false
     while !stop
         stop = true
 
-        # if there are new partitions due to tensor and size constraint, remove pair which are already 
-        # calculated
+        # if there are new partitions due to tensor product and size constraint, remove pairs which are already calculated
         if !isempty(new_tens)
             aa = union(new_tens, all_partitions)
             for i in aa
@@ -158,7 +157,7 @@ function do_tensor_products(
         # do the tensor products
         al = copy(to_tens)
         for (i, ii) in al
-            a::AbstractPartition = tensor_product(i, ii)
+            a = tensor_product(i, ii)
             pop!(to_tens, (i, ii))
             if !(a in all_partitions)
                 trace[a] = ((i, ii), "t")
@@ -207,10 +206,10 @@ function do_composition(
     all_partitions_by_size_top_bottom::Vector, 
     trace::Dict)
 
-    # add newfound partitions due comp
+    # add newfound partitions due to composition
     new_comp = Set{AbstractPartition}()
 
-    # new_comp stored in tuple with a dict for top and bottom size (analogical to the technique in build function)
+    # new_comp stored in vector with a dict for top and bottom size (similar to the technique in the construct_category function)
     new_comp_by_size_top_bottom = [Dict(), Dict()]
     new_comp_by_size_top_bottom[1] = Dict{Int, Set}(i => Set() for i in 0:max_length)
     new_comp_by_size_top_bottom[2] = Dict{Int, Set}(i => Set() for i in 0:max_length)
@@ -218,12 +217,11 @@ function do_composition(
     # store for every i the ii's which are already used, to not use them in this iteration again
     without = Dict{AbstractPartition, Set{AbstractPartition}}()
 
-    # until no more new possibilities compose
-    stop::Bool = false
+    # until no more new possibilities
+    stop = false
     while !stop
-        #println("while comp", new_comp)
         stop = true
-        # if there are new partitions due to composition, remove pair which are already calculated
+        # if there are new partitions due to composition, remove pairs which are already calculated
         if !isempty(new_comp)
             aa = union(new_comp, all_partitions)
             for i in aa
@@ -252,8 +250,6 @@ function do_composition(
 
         # do the compositions
         al = copy(to_comp)
-
-        #println(to_comp)
         
         for (i, ii) in al
             a = composition(i, ii)
@@ -318,7 +314,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
     # all candidates stored in dict from size to partition
     all_partitions_by_size = Dict{Int, Set{AbstractPartition}}()
 
-    # all candidates stored in tuple with a dict for top and bottom size
+    # all candidates stored in vector with a dict for top and bottom size
     all_partitions_by_size_top_bottom = [Dict(), Dict()]
 
     # store partitions already unary
@@ -366,7 +362,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
     end
     
     # while new were found apply on them unary tensor and composition
-    stop_whole::Bool = false
+    stop_whole = false
     while !stop_whole
         
         stop_whole = true
@@ -381,7 +377,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
         (stop_whole, all_partitions, already_u, all_partitions_by_size, all_partitions_by_size_top_bottom, trace) = do_unary(to_unary, all_partitions, stop_whole, already_u, max_length, all_partitions_by_size, all_partitions_by_size_top_bottom, trace, spatial_rotation)
 
         # store pairs that are candidates to get tensor product
-        to_tens = Set()
+        to_tens = Set{Tuple}()
 
         # get all pairs to tensor
         for i in all_partitions
@@ -404,7 +400,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
         (all_partitions, already_t, stop_whole, all_partitions_by_size, all_partitions_by_size_top_bottom, trace) = do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
 
         # add new variations by tensor product or composition with all others
-        to_comp = Set()
+        to_comp = Set{Tuple}()
 
         # get all pairs to compose
         for i in all_partitions
@@ -444,7 +440,7 @@ This function prints out the trace of the partition `start` constructed with `co
 
 """
 function get_trace(trace::Dict, start)
-    # track the trace with breath first search
+    # track the trace with breath first search and print it
 
     if !(start in keys(trace))
         print("(spatial) Partition $(start) not found in trace")
