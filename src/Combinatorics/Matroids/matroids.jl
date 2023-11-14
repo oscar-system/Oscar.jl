@@ -1,9 +1,11 @@
 ################################################################################
 ##  Constructing
 ################################################################################
-const ElementType = Union{IntegerUnion,Char,String}
+const ElementType = Union{IntegerUnion,Char,String,Edge}
 const GroundsetType = Union{AbstractVector, AbstractSet} 
 
+# Later test if this works:
+# @attributes mutable struct Matroid
 
 struct Matroid
     pm_matroid::Polymake.BigObject
@@ -742,12 +744,35 @@ Construct the Pappus matroid.
 """
 pappus_matroid() = Matroid(Polymake.matroid.pappus_matroid())
 
+
+"""
+    moebius_kantor_matroid() 
+
+Construct the Möbius-Kantor matroid.
+"""
+moebius_kantor_matroid() = matroid_from_revlex_basis_encoding("0******0******0**********0********0*******0****0**0*****", 3, 8)
+
+"""
+    perles_matroid() 
+
+Construct the Perles matroid.
+"""
+perles_matroid() = matroid_from_revlex_basis_encoding("0000************0**********0****0**********0****0****************0*****0******0*****", 3, 9)
+
+
 """
     vamos_matroid()
 
 Construct the Vamos matroid.
 """
 vamos_matroid() = Matroid(Polymake.matroid.vamos_matroid())
+
+"""
+    R10_matroid() 
+
+Construct the R10 matroid.
+"""
+R10_matroid() = matroid_from_revlex_basis_encoding("0000000********0****00********0****00000*0**0**0**0*****0********0****0****00*0**0*0*0*00*******00**0***000**00*0**0*0*0**0*0*0********0****0*******000*00**0**00****0*0*0*00*0**00***0**0**0*00*0**0000**00****00********00**0**0*00****00***00*0**0*******", 5, 10)
 
 """
     all_subsets_matroid(r)
@@ -851,10 +876,10 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
 end
 
 @doc raw"""
-    automorphism_group(m::Matroid)
+    automorphism_group(M::Matroid)
 
-Given a matroid `m` return its automorphism group as a `PermGroup`.
-The group acts on the elements of `m`.
+Given a matroid `M` return its automorphism group as a `PermGroup`.
+The group acts on the elements of `M`.
 
 # Examples
 ```jldoctest
@@ -865,9 +890,9 @@ julia> automorphism_group(M)
 Permutation group of degree 4
 ```
 """
-function automorphism_group(m::Matroid) 
-  @req length(m) > 0 "The matroid should not be empty."
-  I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
-  resize!(I, nrows(I), length(m))
+function automorphism_group(M::Matroid) 
+  @req length(M) > 0 "The matroid should not be empty."
+  I = rank(M) < 1 ? IncidenceMatrix(bases(dual_matroid(M))) : IncidenceMatrix(bases(M))
+  resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end

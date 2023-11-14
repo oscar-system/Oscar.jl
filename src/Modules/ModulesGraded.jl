@@ -1362,7 +1362,7 @@ function Base.show(io::IO, b::BettiTable)
   T = induce_shift(b.B)
   x = collect(keys(T))
   if isempty(x)
-    println(io, "Empty table")
+    print(io, "Empty table")
     return
   end
   step, min, maxv = b.reverse_direction ? (-1, maximum(first, x), minimum(first, x)) : (1, minimum(first, x), maximum(first, x))

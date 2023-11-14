@@ -1,10 +1,10 @@
 @testset "PolyhedralComplex{$T}" for (f, T) in _prepare_scalar_types()
 
   I = IncidenceMatrix([[1, 2, 3], [2, 4]])
-  P = [0 0; 1 0; 0 1; 1 1]
-  P2 = [0 0 0; 1 0 0; 0 1 0; 1 1 0]
+  P = f.([0 0; 1 0; 0 1; 1 1])
+  P2 = f.([0 0 0; 1 0 0; 0 1 0; 1 1 0])
   F = [4]
-  L = [0 0 1]
+  L = f.([0 0 1])
 
   @testset "constructors" begin
 
@@ -21,6 +21,13 @@
   PCFL = polyhedral_complex(f, I, P2, F, L)
   PCFLN = polyhedral_complex(f, I, P2, F, L; non_redundant = true)
   PCL = polyhedral_complex(f, I, P2, nothing, L)
+
+  # check non-redundant flag
+  @test !Polymake.exists(Oscar.pm_object(PCFLN), "POINTS")
+  @test Polymake.exists(Oscar.pm_object(PCFLN), "VERTICES")
+
+  @test Polymake.exists(Oscar.pm_object(PCFL), "POINTS")
+  @test !Polymake.exists(Oscar.pm_object(PCFL), "VERTICES")
 
   @test common_refinement(PC, PCF) isa PolyhedralComplex{T}
   PCR = common_refinement(PC, PCF)
@@ -89,6 +96,22 @@
     @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
     @test IncidenceMatrix(maximal_polyhedra(PCFLN)) == I
     @test maximal_polyhedra(IncidenceMatrix, PCFLN) == I
+
+    @test polyhedral_complex(maximal_polyhedra(PCF)) isa PolyhedralComplex
+    # this should just deepcopy the object
+    PCFc = polyhedral_complex(maximal_polyhedra(PCF))
+    @test Polymake.list_properties(Oscar.pm_object(PCFc)) ==
+            Polymake.list_properties(Oscar.pm_object(PCF))
+
+    c = cube(f, 3, f(-5), f(2))
+    # construct from a generic list of polytopes
+    @test polyhedral_complex(faces(c, 1)) isa PolyhedralComplex
+    @test f_vector(polyhedral_complex(faces(c, 1))) == [8, 12]
+    @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
+
+    @test polyhedral_complex(faces(c, 1); non_redundant=true) isa PolyhedralComplex
+    @test f_vector(polyhedral_complex(faces(c, 1))) == [8, 12]
+    @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
 
   end
 

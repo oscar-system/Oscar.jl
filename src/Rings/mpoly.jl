@@ -233,9 +233,7 @@ mutable struct IdealGens{S}
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
     r = new{T}()
-    if isdefined(r, :isGB) # why can this even happen?
-      r.isGB = false
-    end
+    r.isGB = false
     r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
@@ -503,16 +501,6 @@ end
 end
 
 
-function (S::Singular.Rationals)(a::QQFieldElem)
-  b = Base.Rational{BigInt}(a)
-  return S(b)
-end
-
-(F::Singular.N_ZpField)(a::Nemo.fpFieldElem) = F(lift(a))
-(F::Singular.N_ZpField)(a::Nemo.zzModRingElem) = F(lift(a))
-(F::Nemo.fpField)(a::Singular.n_Zp) = F(Int(a))
-(F::Nemo.zzModRing)(a::Singular.n_Zp) = F(Int(a))
-
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
 singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
 singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
@@ -680,7 +668,7 @@ Fields:
     r.gens = B
     r.dim = -1
     r.gb = Dict()
-    if isdefined(B, :isGB) && B.isGB
+    if B.isGB
       r.gb[B.ord] = B
     end
     return r
