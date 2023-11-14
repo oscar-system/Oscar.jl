@@ -1,7 +1,3 @@
-import Base.hash
-import Base.==
-import Base.copy
-
 """
     ColoredPartition
 
@@ -119,44 +115,44 @@ function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
         error("Partition has no bottom part.")
     end
 
-    ret::Tuple = (copy(upper_points(p)), copy(lower_points(p)), copy(p.color_upper_points), copy(p.color_lower_points))
+    ret = (copy(upper_points(p)), copy(lower_points(p)), copy(p.color_upper_points), copy(p.color_lower_points))
 
-        if lr
-            if tb
-                a::Int = ret[1][1]
-                splice!(ret[1], 1)
-                pushfirst!(ret[2], a)
+    if lr
+        if tb
+            a = ret[1][1]
+            splice!(ret[1], 1)
+            pushfirst!(ret[2], a)
 
-                a = ret[3][1]
-                splice!(ret[3], 1)
-                pushfirst!(ret[4], Int(!Bool(a)))
-            else
-                a = ret[2][1]
-                splice!(ret[2], 1)
-                pushfirst!(ret[1], a)
-
-                a = ret[4][1]
-                splice!(ret[4], 1)
-                pushfirst!(ret[3], Int(!Bool(a)))
-            end
+            a = ret[3][1]
+            splice!(ret[3], 1)
+            pushfirst!(ret[4], Int(!Bool(a)))
         else
-            if tb
-                a = ret[1][end]
-                pop!(ret[1])
-                push!(ret[2], a)
+            a = ret[2][1]
+            splice!(ret[2], 1)
+            pushfirst!(ret[1], a)
 
-                a = ret[3][end]
-                pop!(ret[3])
-                push!(ret[4], Int(!Bool(a)))
-            else
-                a = ret[2][end]
-                pop!(ret[2])
-                push!(ret[1], a)
-
-                a = ret[4][end]
-                pop!(ret[4])
-                push!(ret[3], Int(!Bool(a)))
-            end
+            a = ret[4][1]
+            splice!(ret[4], 1)
+            pushfirst!(ret[3], Int(!Bool(a)))
         end
+    else
+        if tb
+            a = ret[1][end]
+            pop!(ret[1])
+            push!(ret[2], a)
+
+            a = ret[3][end]
+            pop!(ret[3])
+            push!(ret[4], Int(!Bool(a)))
+        else
+            a = ret[2][end]
+            pop!(ret[2])
+            push!(ret[1], a)
+
+            a = ret[4][end]
+            pop!(ret[4])
+            push!(ret[3], Int(!Bool(a)))
+        end
+    end
     ColoredPartition(SetPartition(ret[1], ret[2]), ret[3], ret[4])
 end

@@ -1,7 +1,3 @@
-import Base.hash
-import Base.==
-import Base.copy
-
 """
     SetPartition
 
@@ -141,29 +137,29 @@ function rotation(p::SetPartition, lr::Bool, tb::Bool)
         error("SetPartition has no bottom part.")
     end
 
-    ret = [copy(p.upper_points), copy(p.lower_points)]
+    ret = (copy(p.upper_points), copy(p.lower_points))
 
-        if lr
-            if tb
-                a::Int = ret[1][1]
-                splice!(ret[1], 1)
-                pushfirst!(ret[2], a)
-            else
-                a = ret[2][1]
-                splice!(ret[2], 1)
-                pushfirst!(ret[1], a)
-            end
+    if lr
+        if tb
+            a = ret[1][1]
+            splice!(ret[1], 1)
+            pushfirst!(ret[2], a)
         else
-            if tb
-                a = ret[1][end]
-                pop!(ret[1])
-                push!(ret[2], a)
-            else
-                a = ret[2][end]
-                pop!(ret[2])
-                push!(ret[1], a)
-            end
+            a = ret[2][1]
+            splice!(ret[2], 1)
+            pushfirst!(ret[1], a)
         end
+    else
+        if tb
+            a = ret[1][end]
+            pop!(ret[1])
+            push!(ret[2], a)
+        else
+            a = ret[2][end]
+            pop!(ret[2])
+            push!(ret[1], a)
+        end
+    end
     
     SetPartition(ret[1], ret[2])
 end

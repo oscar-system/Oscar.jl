@@ -1,5 +1,12 @@
 module SetPartitions
 
+import Base: hash, ==, copy
+
+import Oscar:
+    involution,
+    tensor_product,
+    size
+
 export SetPartition
 export ColoredPartition
 export SpatialPartition
@@ -17,7 +24,7 @@ export size
 
 include("AbstractPartition.jl")
 include("Util.jl")
-include("Partition.jl")
+include("SetPartition.jl")
 include("ColoredPartition.jl")
 include("SpatialPartition.jl")
 include("PartitionProperties.jl")

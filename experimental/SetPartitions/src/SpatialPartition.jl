@@ -1,7 +1,3 @@
-import Base.hash
-import Base.==
-import Base.copy
-
 """
     SpatialPartition
 

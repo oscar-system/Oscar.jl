@@ -1,7 +1,5 @@
 using Test
-
-include("../src/SetPartitions.jl")
-
+using Oscar
 
 include("Partition-test.jl")
 include("PartitionProperties-test.jl")
