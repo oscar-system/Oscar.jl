@@ -647,12 +647,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       # concrete, and `U <: T` should hold.
       #
       # This check should maybe change to a check on the whole type tree?
-      U = decode_type(jsondict[type_key])
+      U = decode_type(s)
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
       if serialize_with_params(type)
         if isnothing(params) 
-          params = load_type_params(s, type, jsondict[type_key][:params])
+          params = load_type_params(s, type)
         end
 
         loaded = load_object(s, type, jsondict[:data], params)
