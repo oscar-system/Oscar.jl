@@ -257,9 +257,7 @@ install_GAP_serialization(:IsPcGroup,
               Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne)))))
           end
         end
-        if length(rels) != 0
-          save_typed_object(s, rels, :power_rels)
-        end
+        save_object(s, rels, :power_rels)
         # commutator relators
         rels = Tuple{Int, Int, Vector{Int}}[]
         for i in 1:(length(relord)-1)
@@ -271,9 +269,7 @@ install_GAP_serialization(:IsPcGroup,
             end
           end
         end
-        if length(rels) != 0
-          save_typed_object(s, rels, :comm_rels)
-        end
+        save_object(s, rels, :comm_rels)
       end
     else
       # save full group and generators
@@ -298,18 +294,17 @@ install_GAP_deserialization(
                                   length(relord))
         fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
         rws = GAP.Globals.SingleCollector(F, GapObj(relord))::GapObj
-        reli = load_object(s, Vector, Int, :power_reli)
-        rels = load_object(s, Vector, (Vector{Int}, Int), :power_rels)
-        for k in 1:length(reli)
-          GAP.Globals.SetPower(rws, reli[k],
-                               GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
+        for data_rel in d[:power_rels]
+          (i, elm) = load_object(s, Tuple{Int, Vector{Int}}, data_rel,
+                       [Int, [Vector{Int}, Int]])
+          GAP.Globals.SetPower(rws, i,
+            GapObj(GAPWrap.ObjByExtRep(fam, GapObj(elm))))
         end
-        reli = load_object(s, Vector, (Vector{Int}, Int), :comm_reli)
-        rels = load_object(s, Vector, (Vector{Int}, Int), :comm_rels)
-        for k in 1:length(reli)
-          (j, i) = reli[k]
+        for data_rel in d[:comm_rels]
+          (j, i, elm) = load_object(s, Tuple{Int, Int, Vector{Int}}, data_rel,
+                          [Int, Int, [Vector{Int}, Int]])
           GAP.Globals.SetCommutator(rws, j, i,
-                                    GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
+            GapObj(GAPWrap.ObjByExtRep(fam, GapObj(elm))))
         end
         G = GAP.Globals.GroupByRwsNC(rws)
       else
