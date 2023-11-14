@@ -288,7 +288,6 @@ function load_ref(s::DeserializerState)
     loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
   else
     s.obj = s.refs[Symbol(id)]
-    println(s.obj, "***")
     loaded_ref = load_typed_object(s)
     global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
   end
@@ -655,10 +654,14 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
           params = load_type_params(s, type)
         end
 
-        loaded = load_object(s, type, jsondict[:data], params)
+        load_node(s, :data) do
+          loaded = load_object(s, type, params)
+        end
       else
         Base.issingletontype(type) && return type()
-        loaded = load_object(s, type, jsondict[:data])
+        load_node(s, :data) do
+          loaded = load_object(s, type)
+        end
       end
     else
       loaded = load_typed_object(s; override_params=params)

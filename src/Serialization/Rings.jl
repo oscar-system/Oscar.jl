@@ -52,7 +52,8 @@ end
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion) 
   parents = get_parents(parent_ring)
   deserialize_node(s) do terms
-    return load_object(s, T, terms, parents)
+    result = load_object(s, T, terms, parents)
+    return result
   end
 end
 
@@ -230,8 +231,8 @@ end
 
 
 function load_object(s::DeserializerState,
-                                 ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
-                                 terms::Vector, parents::Vector)
+                     ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
+                     terms::JSON3.Array, parents::Vector)
   parent_ring = parents[end]
   base = base_ring(parent_ring)
   polynomial = MPolyBuildCtx(parent_ring)
@@ -268,9 +269,8 @@ function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType},
-                          params::T) where T <: RingMatSpaceUnion
-  return load_type_params(s, RingElem, params)
+function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}) where T <: RingMatSpaceUnion
+  return load_type_params(s, RingElem)
 end
 
 function save_object(s::SerializerState, I::T) where T <: IdealUnionType
@@ -282,12 +282,15 @@ function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
   return load_object(s, T, gen_terms, params[end])
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealUnionType},
-                     gen_terms::Vector, parent_ring::RingMatSpaceUnion)
-  gens = [
-    load_object(s, elem_type(parent_ring), g, parent_ring) for g in gen_terms
-      ]
-  return ideal(parent_ring, gens)
+function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
+  deserialize_node(s) do gen_terms
+    for g in gen_terms
+      println(gen_terms)
+    gens = [
+      load_object(s, elem_type(parent_ring), g, parent_ring) for g in gen_terms
+        ]
+    return ideal(parent_ring, gens)
+  end
 end
 
 ################################################################################
