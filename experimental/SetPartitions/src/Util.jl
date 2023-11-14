@@ -1,14 +1,8 @@
 """
     helper_new_point_values_vector(p::vector)
 
-This function outputs a semantically identical Partition in form of an vector which has new number values.
-
-# Arguments
-- `p`: The input partition as vector which we do not change
-- `q`: The input partition as vector that we change according to the values of p
-
-# Returns
-- Semantically equal partition as vector to q without point numbers in p
+Output a semantically identical partition in form of an vector, 
+which has new number values.
 """
 function helper_new_point_values_vector(p::Vector, q::Vector)
 
@@ -45,13 +39,8 @@ end
 """
     normal_form_vector(p::Vector)
 
-This function outputs a semantically identical Partition of vector form which has new number values from 1 to number of blocks of Partitions.
-
-# Arguments
-- `p`: Input partition as vector
-
-# Returns
-- `p` with consisten form
+Return a semantically identical Partition of vector form, 
+which has new number values from 1 to number of blocks of `p`.
 """
 function normal_form_vector(p::Vector)
 

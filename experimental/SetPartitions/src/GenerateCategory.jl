@@ -7,7 +7,7 @@ function do_unary(
     all_partitions_by_size::Dict, 
     all_partitions_by_size_top_bottom::Vector, 
     trace::Dict,
-    spatial_rotation::Function)
+    spatial_rotation::Union{Function,Nothing})
 
     stop = false
     while !stop
@@ -29,7 +29,7 @@ function do_unary(
                     a = rotation(pmod, false, false)
                 end
 
-                # add to all_partitions
+                # add every new partition to all_partitions
                 if !(a in all_partitions)
                     trace[a] = tuple([pmod, "r"])
                     stop_whole = false
@@ -37,15 +37,16 @@ function do_unary(
                     push!(all_partitions, a)
                     push!(to_unary, a)
 
-                    # call functions which adds the partition a into the right set in the dict
-                    all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
+                    # call functions which adds partition a into the right set in the dict
+                    all_partitions_by_size = 
+                        add_partition_to_dict(all_partitions_by_size, a)
                     all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
-            elseif length(methods(spatial_rotation)[1].sig.parameters)-1 == 1
+            elseif spatial_rotation !== nothing
                 a = spatial_rotation(pmod)
 
-                # add to all_partitions
+                # add every new partition to all_partitions
                 if !(a in all_partitions)
                     trace[a] = tuple([pmod, "r"])
                     stop_whole = false
@@ -53,8 +54,9 @@ function do_unary(
                     push!(all_partitions, a)
                     push!(to_unary, a)
 
-                    # call functions which adds the partition a into the right set in the dict
-                    all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
+                    # call functions which adds partition a into the right set in the dict
+                    all_partitions_by_size = 
+                        add_partition_to_dict(all_partitions_by_size, a)
                     all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
@@ -63,7 +65,7 @@ function do_unary(
             # continue with involution
             a = involution(pmod)
 
-            # add to all_partitions
+            # add every new partition to all_partitions
             if !(a in all_partitions)
                 trace[a] = tuple([pmod, "i"])
                 stop_whole = false
@@ -78,10 +80,10 @@ function do_unary(
             end
 
             if pmod isa SetPartition
-                # end with involution y-axis
+                # end with vertical reflection
                 a = vertical_reflection(pmod)
 
-                # add to all_partitions
+                # add every new partition to all_partitions
                 if !(a in all_partitions)
                     trace[a] = tuple([pmod, "vr"])
                     stop_whole = false
@@ -89,19 +91,21 @@ function do_unary(
                     push!(all_partitions, a)
                     push!(to_unary, a)
 
-                    # call functions which adds the partition a into the right set in the dict 
-                    all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
+                    # call functions which adds partition a into the right set in the dict 
+                    all_partitions_by_size = 
+                        add_partition_to_dict(all_partitions_by_size, a)
                     all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
             end
-            # remember already unary
+            # remember already processed partitions 
             push!(already_u, pp)
             pop!(to_unary, pp)
         end
     end
 
-    return (stop_whole, all_partitions, already_u, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
+    return (stop_whole, all_partitions, already_u, all_partitions_by_size,
+        all_partitions_by_size_top_bottom, trace)
 
 end
 
@@ -121,7 +125,7 @@ function do_tensor_products(
     # store all partitions which are newly constructed by tensor product
     new_tens = Set{AbstractPartition}()
 
-    # store for every i the ii's which are already used, to not use them in this iteration again
+    # store for every i the ii's which are already used
     without = Dict{AbstractPartition, Set{AbstractPartition}}()
 
     # until no more new possibilities
@@ -129,7 +133,8 @@ function do_tensor_products(
     while !stop
         stop = true
 
-        # if there are new partitions due to tensor product and size constraint, remove pairs which are already calculated
+        # if there are new partitions due to tensor product and size constraint, 
+        # remove pairs which are already calculated
         if !isempty(new_tens)
             aa = union(new_tens, all_partitions)
             for i in aa
@@ -137,7 +142,8 @@ function do_tensor_products(
                 new_tens_temp_tensor = Set{AbstractPartition}()
                 for key in keys(new_tens_by_size)
                     if size(i) + Int(key) <= max_length
-                        new_tens_temp_tensor = union(new_tens_temp_tensor, get(new_tens_by_size, key, -1)::Set)
+                        new_tens_temp_tensor = union(new_tens_temp_tensor, 
+                            get(new_tens_by_size, key, -1)::Set)
                     end
                 end
                 if i in keys(without)
@@ -164,8 +170,9 @@ function do_tensor_products(
                 if size(a) == max_length
                     push!(all_partitions, a)
 
-                    # call function which adds the partition a into the right set in the dicts
-                    all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
+                    # call function which adds partition a to the right set in the dicts
+                    all_partitions_by_size = 
+                        add_partition_to_dict(all_partitions_by_size, a)
                     all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                         all_partitions_by_size_top_bottom, a)
 
@@ -173,8 +180,9 @@ function do_tensor_products(
                 else
                     push!(all_partitions, a)
 
-                    # call function which adds the partition a into the right set in the dicts
-                    all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
+                    # call function which adds partition a to the right set in the dicts
+                    all_partitions_by_size = 
+                        add_partition_to_dict(all_partitions_by_size, a)
                     all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                         all_partitions_by_size_top_bottom, a)
                     new_tens_by_size = add_partition_to_dict(new_tens_by_size, a)
@@ -193,7 +201,8 @@ function do_tensor_products(
             end
         end
     end
-    return (all_partitions, already_t, stop_whole, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
+    return (all_partitions, already_t, stop_whole, all_partitions_by_size, 
+        all_partitions_by_size_top_bottom, trace)
 end
 
 function do_composition(
@@ -209,26 +218,29 @@ function do_composition(
     # add newfound partitions due to composition
     new_comp = Set{AbstractPartition}()
 
-    # new_comp stored in vector with a dict for top and bottom size (similar to the technique in the construct_category function)
-    new_comp_by_size_top_bottom = [Dict(), Dict()]
-    new_comp_by_size_top_bottom[1] = Dict{Int, Set}(i => Set() for i in 0:max_length)
-    new_comp_by_size_top_bottom[2] = Dict{Int, Set}(i => Set() for i in 0:max_length)
+    # new_comp stored in vector with a dict for top and bottom size 
+    # (similar to the technique in the construct_category function)
+    new_comp_by_size_top_bottom = [Dict{Int, Set{AbstractPartition}}(), Dict{Int, Set{Int}}()]
+    new_comp_by_size_top_bottom[1] = Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
+    new_comp_by_size_top_bottom[2] = Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
     
-    # store for every i the ii's which are already used, to not use them in this iteration again
+    # store for every i the ii's which are already used
     without = Dict{AbstractPartition, Set{AbstractPartition}}()
 
     # until no more new possibilities
     stop = false
     while !stop
         stop = true
-        # if there are new partitions due to composition, remove pairs which are already calculated
+        # if there are new partitions due to composition, 
+        # remove pairs which are already calculated
         if !isempty(new_comp)
             aa = union(new_comp, all_partitions)
             for i in aa
                 # get fitting partitions in advance (improve runtime)
                 new_comp_temp_comp = Set()
                 if length(upper_points(i)) <= max_length
-                    new_comp_temp_comp = get(new_comp_by_size_top_bottom[2], length(upper_points(i)), -1)
+                    new_comp_temp_comp = get(new_comp_by_size_top_bottom[2], 
+                        length(upper_points(i)), -1)
                 end
                 if i in keys(without)
                     operate_on = setdiff(new_comp_temp_comp, get(without, i, -1))
@@ -257,11 +269,12 @@ function do_composition(
                 trace[a] = ((i, ii), "c")
                 push!(all_partitions, a)
 
-                # call function which adds the partition a into the right set in the dicts
+                # call function which adds the partition a to the right set in the dicts
                 all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
                 all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
                     all_partitions_by_size_top_bottom, a)
-                new_comp_by_size_top_bottom = add_partition_to_composition_dict(new_comp_by_size_top_bottom, a)
+                new_comp_by_size_top_bottom = 
+                    add_partition_to_composition_dict(new_comp_by_size_top_bottom, a)
 
                 stop_whole = false
                 push!(new_comp, a)
@@ -277,36 +290,44 @@ function do_composition(
             end
         end
     end
-    return (all_partitions, already_c, stop_whole, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
+    return (all_partitions, already_c, stop_whole, all_partitions_by_size, 
+        all_partitions_by_size_top_bottom, trace)
 end
 
 """
-    construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifical::Int = 0, spatial_rotation::Function)
+    construct_category(p::Vector, n::Int, tracing::Bool = false, 
+        max_artifical::Int = 0, spatial_rotation::Function, 
+        spatial_rotation::Union{Function,Nothing}=nothing)
 
-This function outputs list of all partitions size n constructed from partitions in p (without using partitions of size
-greater than max(max(n, max(p)), max_artifical))
+This function outputs list of all partitions size n constructed from partitions in p 
+(without using partitions of size greater than max(max(n, max(p)), max_artifical))
 
 # Arguments
 - `p`: list of partitions
 - `n`: size of partitions in constructing category
 - `tracing`: optinal input: activate tracing and get the output (category, trace)
-- `max_artifical`: optional input: allow partitions to grow greater while construction process
-- `spatial_rotation`: optional input: Function from SpatialPartition to SpatialPartition which performs a valide rotation or similar
+- `max_artifical`: optional input: allow partitions to grow > max_length
+- `spatial_rotation`: optional input: Function from SpatialPartition to SpatialPartition 
+    which performs a valid rotation or similar
 
 # Returns
 - list of all partitions size n constructed from partitions in p
 
 # Examples
-```julia-repl
+```jldoctest
 julia> length(construct_category([SetPartition([1, 2], [2, 1])], 6))
 105
 julia> length(construct_category([SetPartition([1, 2], [2, 1])], 6, true))
 [<SetPartition([1, 2], [2, 1])> ∩ P(6), Dict{SetPartition -> Tuple}]
 ```
 """
-function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artificial::Int = 0, spatial_rotation::Function = nothing_function() = nothing)
+function construct_category(
+    p::Vector, n::Int, 
+    tracing::Bool = false, 
+    max_artificial::Int = 0, 
+    spatial_rotation::Union{Function,Nothing}=nothing)
     
-    @assert length(methods(spatial_rotation)[1].sig.parameters)-1 == 0 || (p isa Vector{SpatialPartition})
+    @assert spatial_rotation === nothing || (p isa Vector{SpatialPartition})
 
     # store all candidates found
     all_partitions = Set{AbstractPartition}()
@@ -315,7 +336,8 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
     all_partitions_by_size = Dict{Int, Set{AbstractPartition}}()
 
     # all candidates stored in vector with a dict for top and bottom size
-    all_partitions_by_size_top_bottom = [Dict(), Dict()]
+    all_partitions_by_size_top_bottom = 
+        [Dict{Int, Set{AbstractPartition}}(), Dict{Int, Set{AbstractPartition}}()]
 
     # store partitions already unary
     already_u = Set{AbstractPartition}()
@@ -333,7 +355,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
     to_unary = Set{AbstractPartition}(copy(p))
 
     # trace for tracing
-    trace = Dict()
+    trace = Dict{AbstractPartition, Tuple}()
 
     # compare allowed expansion size with max(n, max_length)
     max_length = max(n, maximum(size(i) for i in p))
@@ -342,23 +364,27 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
         max_length = max(max_length, max_artificial)
     end
 
-    # define for all i <= size an empty set in which we fill the corresponding partition of size i (for tensor)
+    # define for all i <= size an empty set,
+    # in which we fill the corresponding partition of size i (for tensor)
     for i in 0:max_length
-        all_partitions_by_size[i] = Set()
+        all_partitions_by_size[i] = Set{AbstractPartition}()
     end
 
-    # define for all bottom and top size an empty set in which we fill the corresponding partition
-    all_partitions_by_size_top_bottom[1] = Dict{Int, Set}(i => Set() for i in 0:max_length)
-    all_partitions_by_size_top_bottom[2] = Dict{Int, Set}(i => Set() for i in 0:max_length)
+    # for all sizes bottom and top empty set in which we fill the corresponding partition
+    all_partitions_by_size_top_bottom[1] = 
+        Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
+    all_partitions_by_size_top_bottom[2] = 
+        Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
 
-    # add all partitions in p to all_partitions_by_size and all_partitions_by_size_top_bottom
+    # add partitions in p to all_partitions_by_size and all_partitions_by_size_top_bottom
     tuple_list_all_partitions = []
     for i in all_partitions
         push!(tuple_list_all_partitions, i)
     end
     for i in vcat(p, tuple_list_all_partitions)
         all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, i)
-        all_partitions_by_size_top_bottom = add_partition_to_composition_dict(all_partitions_by_size_top_bottom, i)
+        all_partitions_by_size_top_bottom = 
+            add_partition_to_composition_dict(all_partitions_by_size_top_bottom, i)
     end
     
     # while new were found apply on them unary tensor and composition
@@ -374,48 +400,63 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
         end
 
         # fist phase: all possible combinations of unary operations
-        (stop_whole, all_partitions, already_u, all_partitions_by_size, all_partitions_by_size_top_bottom, trace) = do_unary(to_unary, all_partitions, stop_whole, already_u, max_length, all_partitions_by_size, all_partitions_by_size_top_bottom, trace, spatial_rotation)
+        (stop_whole, all_partitions, already_u, all_partitions_by_size, 
+            all_partitions_by_size_top_bottom, trace) = 
+            do_unary(to_unary, all_partitions, stop_whole, already_u, max_length, 
+            all_partitions_by_size, all_partitions_by_size_top_bottom, trace, 
+            spatial_rotation)
 
-        # store pairs that are candidates to get tensor product
-        to_tens = Set{Tuple}()
+        # store pairs as candidates for the tensor products
+        to_tens = Set{Tuple{AbstractPartition, AbstractPartition}}()
 
-        # get all pairs to tensor
+        # get all candidates
         for i in all_partitions
             # get fitting partitions in advance (improve runtime)
             all_partitions_temp_tensor = Set()
             for key in keys(all_partitions_by_size)
                 if size(i) + Int(key) <= max_length
-                    all_partitions_temp_tensor = union(all_partitions_temp_tensor, get(all_partitions_by_size, key, -1))
+                    all_partitions_temp_tensor = union(all_partitions_temp_tensor, 
+                        get(all_partitions_by_size, key, -1))
                 end
             end
             for ii in all_partitions_temp_tensor
-                if !((i, ii) in already_t) && (length(upper_points(i)) + length(lower_points(i)) + length(upper_points(ii)) + length(lower_points(ii)) <= max_length)
+                if (!((i, ii) in already_t) && (length(upper_points(i)) + 
+                    length(lower_points(i)) + length(upper_points(ii)) + 
+                    length(lower_points(ii)) <= max_length))
                     push!(to_tens, (i, ii))
                     push!(already_t, (i, ii))
                 end
             end
         end
         
-        # second phase: all possible tensor product operations which aren't redundant (don't do tensor products twice)
-        (all_partitions, already_t, stop_whole, all_partitions_by_size, all_partitions_by_size_top_bottom, trace) = do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
+        # second phase: all possible tensor products which aren't redundant
+        (all_partitions, already_t, stop_whole, all_partitions_by_size, 
+            all_partitions_by_size_top_bottom, trace) = 
+            do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length, 
+            all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
 
-        # add new variations by tensor product or composition with all others
-        to_comp = Set{Tuple}()
+        # add new variations produced by tensor product for composition
+        to_comp = Set{Tuple{AbstractPartition, AbstractPartition}}()
 
-        # get all pairs to compose
+        # get all candidates for
         for i in all_partitions
             # get in advance the right second candidate (regarding format)
-            all_partitions_temp_comp = get(all_partitions_by_size_top_bottom[2], length(upper_points(i)), -1)
+            all_partitions_temp_comp = get(all_partitions_by_size_top_bottom[2], 
+                length(upper_points(i)), -1)
             for ii in all_partitions_temp_comp
-                if !((i, ii) in already_c) && is_composable(i, ii) && is_worth_composition(i, ii, max_length)
+                if !((i, ii) in already_c) && is_composable(i, ii) && 
+                        is_worth_composition(i, ii, max_length)
                     push!(to_comp, (i, ii))
                     push!(already_c, (i, ii))
                 end
             end
         end
 
-        # third phase: all possible compositions which aren't redundant (don't do tensor products twice)
-        (all_partitions, already_c, stop_whole, all_partitions_by_size, all_partitions_by_size_top_bottom, trace) = do_composition(all_partitions, already_c, stop_whole, max_length, to_comp, all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
+        # third phase: all possible compositions which aren't redundant
+        (all_partitions, already_c, stop_whole, all_partitions_by_size, 
+            all_partitions_by_size_top_bottom, trace) = do_composition(all_partitions, 
+            already_c, stop_whole, max_length, to_comp, all_partitions_by_size, 
+            all_partitions_by_size_top_bottom, trace)
     end
 
     # remove all partitions without size n
@@ -435,12 +476,12 @@ end
 """
     get_trace(trace::Dict, start::Partition)
 
-This function prints out the trace of the partition `start` constructed with `construct_category`
+Print the trace of the partition `start` constructed with `construct_category`.
 (via breath first search)
 
 """
 function get_trace(trace::Dict, start)
-    # track the trace with breath first search and print it
+    # iterate through trace with breath first search and print it
 
     if !(start in keys(trace))
         print("(spatial) Partition $(start) not found in trace")

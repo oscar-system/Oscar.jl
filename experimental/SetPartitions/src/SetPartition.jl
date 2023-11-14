@@ -3,10 +3,6 @@
 
 Initialize SetPartition object, while transforming object to "normal form". 
 
-# Arguments
-- `upper_points`: upper points of Partition as vector
-- `lower_points`: lower points of Partition as vector
-
 # Examples
 ```julia-repl
 julia> SetPartition([2, 4], [4, 99])
@@ -18,7 +14,8 @@ struct SetPartition <: AbstractPartition
     lower_points::Vector{Int}
 
     function SetPartition(_upper_points, _lower_points)
-        (__upper_points, __lower_points) = normal_form_vector(copy([Int.(copy(_upper_points)), Int.(copy(_lower_points))]))
+        (__upper_points, __lower_points) = 
+            normal_form_vector(copy([Int.(copy(_upper_points)), Int.(copy(_lower_points))]))
         a = new(__upper_points, __lower_points)
         return a
     end
@@ -42,14 +39,7 @@ end
 """
     tensor_product(p::SetPartition, q::SetPartition)
 
-This function applies on p tensor product with q.
-
-# Arguments
-- `p`: Input partition
-- `q`: Second input partition
-
-# Returns
-- `p` tensor product `q`
+Apply and return tensor product of `p` and `q` and return result.
 
 # Examples
 ```julia-repl
@@ -66,13 +56,7 @@ end
 """
     involution(p::SetPartition)
 
-This function applies an involution on `p`.
-
-# Arguments
-- `p`: Input partition
-
-# Returns
-- involution of `p`
+Apply and return involution of `p` and return result.
 
 # Examples
 ```julia-repl
@@ -89,13 +73,7 @@ end
 """
     vertical_reflection(p::SetPartition)
 
-This function applies an vertical reflection on `p`.
-
-# Arguments
-- `p`: Input partition
-
-# Returns
-- vertical reflection of `p`
+Apply and return vertical reflection of `p` and return result.
 
 # Examples
 ```julia-repl
@@ -112,16 +90,12 @@ end
 """
     rotation(p::SetPartition)
 
-This function applies a rotation on `p`. 
-Throws error if rotation not possible.
+Apply and return a rotation of `p` and return result. 
 
 # Arguments
 - `p`: Input partition
 - `lr`: lr whether left (true) or right (false)
 - `tb`: tb whether top (true) or bottom (false) rotation
-
-# Returns
-- rotation of `p`
 
 # Examples
 ```julia-repl
@@ -167,17 +141,11 @@ end
 """
     composition_loops(p::SetPartition, q::SetPartition)
 
-This function applies composition between p and q.
-
-# Arguments
-- `p`: Input partition
-- `q`: Second input partition
-
-# Returns
-- ()`p` composition `q`, number of loops)
+Apply composition between `p` and `q` and return tuple including the result
+as well as the number of removed loops.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> composition_loops(SetPartition([1, 2], [2, 1]), SetPartition([1], [1, 1]))
 (SetPartition([1], [1, 1]), 0)
 ```
@@ -189,18 +157,21 @@ function composition_loops(p::SetPartition, q::SetPartition)
     # Work with copies to not change the input partitions
     p_copy = copy(p)
 
-    # new_ids dicts store the new Value we need to assign to the partition in order to connect new segments
-    vector_q = helper_new_point_values_vector([p_copy.upper_points, p_copy.lower_points], [copy(q.upper_points), copy(q.lower_points)])
+    # new_ids dictionary stores the new value we need to assign to the partition,
+    # in order to connect new segments
+    vector_q = helper_new_point_values_vector([p_copy.upper_points, p_copy.lower_points], 
+        [copy(q.upper_points), copy(q.lower_points)])
     new_ids = Dict{Int, Int}()
     
-    # fitting the second partition-values to the first and changing if connection
+    # mapping the second the lower points of the second partition 
+    # to the upper points of the first partition and merge if connection
     for (i, n) in enumerate(vector_q[2])
         if !(n in keys(new_ids))
             new_ids[n] = p.upper_points[i]
         else
             if p.upper_points[i] in keys(new_ids) && get(new_ids, n, -1) in keys(new_ids)
-                # Do path compression if we have the case that we need to merge two tree's together and
-                # the nodes we operate on are not a root or a leaf
+                # Do path compression if we have the case that we need to merge two tree's 
+                # together and the nodes we operate on are not a root or a leaf
                 for ii in [n]
                     path = [ii]
                     already_in = Set()
@@ -264,7 +235,8 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
 
-    # removing the middle by just changing the top of our partition to the adjusted top of the second partition
+    # removing the middle by just changing the top of our partition 
+    # to the adjusted top of the second partition
     ret = SetPartition(vector_q[1], p_copy.lower_points)
 
     # calculating removed related components (loop)
@@ -285,7 +257,6 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
 
-    # if there is a ID in the middle part which is not in result partition set we know, that this is a loop
     for co in vcat(vector_q[2], p_copy.upper_points)
         if !(co in return_partition_as_set)
             push!(related_comp, co)

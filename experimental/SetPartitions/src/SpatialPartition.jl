@@ -1,11 +1,7 @@
 """
     SpatialPartition
 
-Initialize Spatial Partition object
-
-# Arguments
-- `partition`: SetPartition object which is generalized with dimension `dimension`
-- `dimension`: dimension of the spatial Partition
+Initialize SpatialPartition object
 """
 struct SpatialPartition <: AbstractPartition
     partition::SetPartition
@@ -37,18 +33,12 @@ end
 """
     tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-This function applies on p tensor product with q.
-
-# Arguments
-- `p`: Input Spatial partition
-- `q`: Second input Spatial partition
-
-# Returns
-- `p` tensor product `q`
+Apply tensor product of `p` and `q` and return result.
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-    p.dimension != q.dimension ? error("p and q have different dimensions in tensor product") : 
+    p.dimension != q.dimension ? 
+        error("p and q have different dimensions in tensor product") : 
 
     SpatialPartition(tensor_product(p.partition, q.partition), p.dimension)
 end
@@ -56,13 +46,7 @@ end
 """
     involution(p::SpatialPartition)
 
-This function applies an involution on `p`.
-
-# Arguments
-- `p`: Input spatial partition
-
-# Returns
-- involution of `p`
+Apply and return involution of `p` and return result.
 """
 function involution(p::SpatialPartition)
 
@@ -73,14 +57,8 @@ end
 """
     composition_loops(p::SpatialPartition, q::SpatialPartition)
 
-This function applies composition between p and q.
-
-# Arguments
-- `p`: Input partition
-- `q`: Second input partition
-
-# Returns
-- (`p` composition `q`, number of loops)
+Apply composition between `p` and `q` and return tuple including the result
+as well as the number of removed loops.
 """
 function composition_loops(p::SpatialPartition, q::SpatialPartition)
 
