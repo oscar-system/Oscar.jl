@@ -80,7 +80,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> t2 = resolve(t, 1)
-Global Tate model over a concrete base
+Partially resolved global Tate model over a concrete base
 
 julia> cox_ring(ambient_space(t2))
 Multivariate polynomial ring in 13 variables over QQ graded by 
@@ -112,7 +112,17 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   resolved_ambient_space = ambient_space(m)
   R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
   for center in centers
-    @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
+    blow_up_center = center
+    if has_attribute(m, :explicit_model_sections)
+      explicit_model_sections = get_attribute(m, :explicit_model_sections)
+      for l in 1:length(blow_up_center)
+        if haskey(explicit_model_sections, blow_up_center[l])
+          new_locus = string(explicit_model_sections[blow_up_center[l]])
+          blow_up_center[l] = new_locus
+        end
+      end
+    end
+    @req all(x -> x in gR, [eval_poly(p, R) for p in blow_up_center]) "Non-toric blowup currently not supported"
   end
   
   # If Tate model, use the new resolve function
@@ -120,7 +130,18 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   if typeof(m) == GlobalTateModel
     resolved_model = m
     for k in 1:nr_blowups
-      resolved_model = blow_up(resolved_model, centers[k]; coordinate_name = exceptionals[k])
+      # Center may involve base coordinates, subject to chosen base sections/variable names in the base. Adjust
+      blow_up_center = centers[k]
+      if has_attribute(resolved_model, :explicit_model_sections)
+        explicit_model_sections = get_attribute(resolved_model, :explicit_model_sections)
+        for l in 1:length(blow_up_center)
+          if haskey(explicit_model_sections, blow_up_center[l])
+            new_locus = string(explicit_model_sections[blow_up_center[l]])
+            blow_up_center[l] = new_locus
+          end
+        end
+      end
+      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
     end
   else
     # Perform resolution

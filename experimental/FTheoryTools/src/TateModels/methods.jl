@@ -78,7 +78,7 @@ end
 #####################################################
 
 @doc raw"""
-    blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e")
+    blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
 
 Resolve a global Tate model by blowing up a locus in the ambient space.
 
@@ -91,10 +91,10 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", desired_base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
-Global Tate model over a concrete base
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
-Global Tate model over a concrete base
+Partially resolved global Tate model over a concrete base
 ```
 """
 function blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -116,6 +116,7 @@ function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e
   # Compute the new base
   # FIXME: THIS WILL IN GENERAL BE WRONG! IN PRINCIPLE, THE ABOVE ALLOWS TO BLOW UP THE BASE AND THE BASE ONLY.
   # FIXME: We should save the projection \pi from the ambient space to the base space.
+  # FIXME: This is also ties in with the model sections to be saved, see below. Should the base change, so do these sections...
   new_base = base_space(t)
 
   # Prepare for the computation of the strict transform of the tate polynomial
@@ -144,6 +145,12 @@ function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e
   # This is not really a Tate model any more, as the hypersurface equation is merely a strict transform of a Tate polynomial.
   # Change/Fix? We may want to provide not only output that remains true forever but also output, while the internals may change?
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], new_pt, base_space(t), new_ambient_space)
+
+  # Set attributes
   set_attribute!(model, :base_fully_specified, true)
+  set_attribute!(model, :partially_resolved, true)
+  if has_attribute(t, :explicit_model_sections)
+    set_attribute!(model, :explicit_model_sections => get_attribute(t, :explicit_model_sections))
+  end
   return model
 end

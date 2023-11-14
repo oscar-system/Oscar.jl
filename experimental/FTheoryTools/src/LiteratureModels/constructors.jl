@@ -68,7 +68,7 @@ Torus-invariant, prime divisor on a normal toric variety
 julia> model_sections = Dict("w" => w);
 
 julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", desired_base_space = B3, model_sections = model_sections, completeness_check = false)
-Global Tate model over a concrete base
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> length(singular_loci(t2))
 2
@@ -148,7 +148,6 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     # Appropriately construct the model
     if model_dict["model_descriptors"]["type"] == "tate"
       model = _construct_literature_tate_model(model_dict, desired_base_space, model_sections, completeness_check)
-      return model
     elseif model_dict["model_descriptors"]["type"] == "weierstrass"
       @req false "Weierstrass literature models can currently not be created over a concrete base space"
     else
@@ -289,6 +288,7 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
   end
 
   # Return the model
+  set_attribute!(model, :partially_resolved, false)
   return model
 end
 
@@ -407,9 +407,15 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, desired_
     explicit_a6 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
   end
 
-  # Finally, construct the model
+  # Construct the model
   ais = [explicit_a1, explicit_a2, explicit_a3, explicit_a4, explicit_a6]
-  return global_tate_model(desired_base_space, ais; completeness_check = completeness_check)
+  model = global_tate_model(desired_base_space, ais; completeness_check = completeness_check)
+
+  # Remember the explicit model sections for autoresolution
+  set_attribute!(model, :explicit_model_sections => explicit_model_sections)
+
+  # Return the model
+  return model
 end
 
 # Constructs Tate model from given Tate literature model
