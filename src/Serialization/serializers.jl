@@ -133,13 +133,12 @@ mutable struct DeserializerState
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   obj::Union{JSON3.Object, JSON3.Array, BasicTypeUnion}
-  key::Union{Symbol, Nothing}
+  key::Union{Symbol, Int, Nothing}
   refs::Union{JSON3.Object, Nothing}
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
-
   s.key = key
 end
 
@@ -147,12 +146,8 @@ function deserialize_node(f::Function, s::DeserializerState)
   f(s.obj)
 end
 
-function deserialize_array_node(f::Function, s::DeserializerState)
-  
-end
-
 function load_node(f::Function, s::DeserializerState,
-                    key::Union{Symbol, Int, Nothing} = nothing)
+                   key::Union{Symbol, Int, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
   obj = deepcopy(s.obj)
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
@@ -160,6 +155,14 @@ function load_node(f::Function, s::DeserializerState,
   result = f()
   s.obj = obj
   return result
+end
+
+function deserialize_array_node(f::Function, s::DeserializerState)
+  loaded_array = []
+  for i in 1:length(s.obj)
+    push!(loaded_array, load_node(f, s, i))
+  end
+  return loaded_array
 end
 
 ################################################################################

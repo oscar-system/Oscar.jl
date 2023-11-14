@@ -51,15 +51,14 @@ end
 # fix for polynomial cases
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion) 
   parents = get_parents(parent_ring)
-  deserialize_node(s) do terms
-    result = load_object(s, T, terms, parents)
-    return result
+  load_node(s, :terms) do
+    load_object(s, T, parents)
   end
 end
 
 # fix for series and ideal cases
 function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, LaurentMPolyIdeal}},
-                     terms::Dict{Symbol, Any}, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
+                     terms::JSON3.Object, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
   parents = get_parents(parent_ring)
   return load_object(s, T, terms, parents)
 end
@@ -197,36 +196,39 @@ function save_object(s::SerializerState, p::PolyRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
-                     terms::JSON3.Array, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: PolyRingElem}, parents::Vector)
   parent_ring = parents[end]
-  if isempty(terms)
-    return parent_ring(0)
-  end
-  # load exponent
-  terms = map(x->(parse(Int, x[1]), x[2]), terms)
-  # shift so constant starts at 1
-  degree = max(map(x->x[1] + 1, terms)...)
-  base = base_ring(parent_ring)
-  loaded_terms = zeros(base, degree)
-  coeff_type = elem_type(base)
-
-  for term in terms
-    exponent, coeff = term
-    # account for shift
-    exponent += 1
-    if serialize_with_params(coeff_type)
-      if length(parents) == 1
-        params = coefficient_ring(parent_ring)
-      else
-        params = parents[1:end - 1]
-      end
-      loaded_terms[exponent] = load_object(s, coeff_type, coeff, params)
-    else
-      loaded_terms[exponent] = load_object(s, coeff_type, coeff)
+  
+  deserialize_node(s) do terms
+    if isempty(terms)
+      return parent_ring(0)
     end
+    # load exponent
+    terms = map(x->(parse(Int, x[1]), x[2]), terms)
+    # shift so constant starts at 1
+    degree = max(map(x->x[1] + 1, terms)...)
+    base = base_ring(parent_ring)
+    loaded_terms = zeros(base, degree)
+    coeff_type = elem_type(base)
+
+    for term in terms
+      load_node(s )
+      exponent, coeff = term
+      # account for shift
+      exponent += 1
+      if serialize_with_params(coeff_type)
+        if length(parents) == 1
+          params = coefficient_ring(parent_ring)
+        else
+          params = parents[1:end - 1]
+        end
+        loaded_terms[exponent] = load_object(s, coeff_type, params)
+      else
+        loaded_terms[exponent] = load_object(s, coeff_type)
+      end
+    end
+    return parent_ring(loaded_terms)
   end
-  return parent_ring(loaded_terms)
 end
 
 
@@ -269,7 +271,7 @@ function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType}) where T <: RingMatSpaceUnion
+function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType})
   return load_type_params(s, RingElem)
 end
 
@@ -283,12 +285,11 @@ function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
-  deserialize_array_node(s) do gens
-    deserialize_node(s) do
-      load_object(s, elem_type(parent_ring), parent_ring)
-    end
-    return ideal(parent_ring, gens)
+  gens = deserialize_array_node(s) do
+    # this function is applied to each element of the array
+    load_object(s, elem_type(parent_ring), parent_ring)
   end
+  return ideal(parent_ring, gens)
 end
 
 ################################################################################
