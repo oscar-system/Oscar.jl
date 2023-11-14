@@ -83,7 +83,7 @@ end
 
 function add_partition_to_dict(dict::Dict, p::AbstractPartition)
 
-    add_apbs::Set = get(dict, size(p), -1)
+    add_apbs = get(dict, size(p), -1)
     push!(add_apbs, p)
     dict[size(p)] = add_apbs
 
@@ -93,12 +93,12 @@ end
 function add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
 
     # add right partition in first dict for top size
-    add_apbs_top::Set = get(vector[1], length(upper_points(p)), -1)
+    add_apbs_top = get(vector[1], length(upper_points(p)), -1)
     push!(add_apbs_top, p)
     (vector[1])[length(upper_points(p))] = add_apbs_top
 
     # add right partition in first dict for bottom size
-    add_apbs_bottom::Set = get(vector[2], length(lower_points(p)), -1)
+    add_apbs_bottom = get(vector[2], length(lower_points(p)), -1)
     push!(add_apbs_bottom, p)
     (vector[2])[length(lower_points(p))] = add_apbs_bottom
 

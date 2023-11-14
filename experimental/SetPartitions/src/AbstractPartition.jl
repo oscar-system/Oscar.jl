@@ -1,7 +1,7 @@
 """
     AbstractPartition
 
-Abstract type for classical-, colored- and spatial Partitions.
+Abstract type for classical-, colored- and spatial partitions.
 """
 abstract type AbstractPartition end
 

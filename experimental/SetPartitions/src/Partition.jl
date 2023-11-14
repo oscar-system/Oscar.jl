@@ -141,7 +141,7 @@ function rotation(p::SetPartition, lr::Bool, tb::Bool)
         error("SetPartition has no bottom part.")
     end
 
-    ret::Vector = [copy(p.upper_points), copy(p.lower_points)]
+    ret = [copy(p.upper_points), copy(p.lower_points)]
 
         if lr
             if tb
@@ -296,5 +296,5 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
     
-    return [ret, length(related_comp)]
+    return (ret, length(related_comp))
 end

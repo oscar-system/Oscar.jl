@@ -3,7 +3,7 @@ import Base.==
 import Base.copy
 
 """
-SpatialPartition
+    SpatialPartition
 
 Initialize Spatial Partition object
 
@@ -39,7 +39,7 @@ function copy(p::SpatialPartition)
 end
 
 """
-tensor_product(p::SpatialPartition, q::SpatialPartition)
+    tensor_product(p::SpatialPartition, q::SpatialPartition)
 
 This function applies on p tensor product with q.
 
@@ -58,7 +58,7 @@ function tensor_product(p::SpatialPartition, q::SpatialPartition)
 end
 
 """
-involution(p::SpatialPartition)
+    involution(p::SpatialPartition)
 
 This function applies an involution on `p`.
 
@@ -75,7 +75,7 @@ function involution(p::SpatialPartition)
 end
 
 """
-composition_loops(p::SpatialPartition, q::SpatialPartition)
+    composition_loops(p::SpatialPartition, q::SpatialPartition)
 
 This function applies composition between p and q.
 
