@@ -249,33 +249,31 @@ install_GAP_serialization(:IsPcGroup,
                   for x in fullpcgs]
         save_object(s, relord, :relord)
         # power relators
-        reli = []
-        rels = []
+        rels = Tuple{Int, Vector{Int}}[]
         for i in 1:length(relord)
           ne = fullpcgs[i]^relord[i]
           if ! GAP.Globals.IsOne(ne)
-            push!(reli, i)
-            push!(rels, _free_group_extrep_from_exponents(
-              Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne))))
+            push!(rels, (i, _free_group_extrep_from_exponents(
+              Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne)))))
           end
         end
-        save_object(s, reli, :power_reli)
-        save_object(s, rels, :power_rels)
+        if length(rels) != 0
+          save_typed_object(s, rels, :power_rels)
+        end
         # commutator relators
-        reli = []
-        rels = []
+        rels = Tuple{Int, Int, Vector{Int}}[]
         for i in 1:(length(relord)-1)
           for j in (i+1):length(relord)
             ne = GAP.Globals.Comm(fullpcgs[j], fullpcgs[i])
             if ! GAP.Globals.IsOne(ne)
-              push!(reli, (j, i))
-              push!(rels, _free_group_extrep_from_exponents(
-                Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne))))
+              push!(rels, (j, i, _free_group_extrep_from_exponents(
+                Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne)))))
             end
           end
         end
-        save_object(s, reli, :comm_reli)
-        save_object(s, rels, :comm_rels)
+        if length(rels) != 0
+          save_typed_object(s, rels, :comm_rels)
+        end
       end
     else
       # save full group and generators
