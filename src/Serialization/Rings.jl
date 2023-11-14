@@ -283,12 +283,10 @@ function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
-  deserialize_node(s) do gen_terms
-    for g in gen_terms
-      println(gen_terms)
-    gens = [
-      load_object(s, elem_type(parent_ring), g, parent_ring) for g in gen_terms
-        ]
+  deserialize_array_node(s) do gens
+    deserialize_node(s) do
+      load_object(s, elem_type(parent_ring), parent_ring)
+    end
     return ideal(parent_ring, gens)
   end
 end

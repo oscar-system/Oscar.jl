@@ -143,9 +143,12 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int})
   s.key = key
 end
 
-
 function deserialize_node(f::Function, s::DeserializerState)
   f(s.obj)
+end
+
+function deserialize_array_node(f::Function, s::DeserializerState)
+  
 end
 
 function load_node(f::Function, s::DeserializerState,
