@@ -296,13 +296,13 @@ install_GAP_deserialization(
         rws = GAP.Globals.SingleCollector(F, GapObj(relord))::GapObj
         for data_rel in d[:power_rels]
           (i, elm) = load_object(s, Tuple{Int, Vector{Int}}, data_rel,
-                       [Int, [Vector{Int}, Int]])
+                       [Int, [Vector, Int]])
           GAP.Globals.SetPower(rws, i,
             GapObj(GAPWrap.ObjByExtRep(fam, GapObj(elm))))
         end
         for data_rel in d[:comm_rels]
           (j, i, elm) = load_object(s, Tuple{Int, Int, Vector{Int}}, data_rel,
-                          [Int, Int, [Vector{Int}, Int]])
+                          [Int, Int, [Vector, Int]])
           GAP.Globals.SetCommutator(rws, j, i,
             GapObj(GAPWrap.ObjByExtRep(fam, GapObj(elm))))
         end
