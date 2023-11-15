@@ -349,7 +349,7 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
     return weight_ordering(Int.(homogeneityVector),
                            weight_ordering(Int.(interior_facet_point),
                                            weight_ordering(Int.(outer_normal_vector),
-                                                           revlex(R))))
+                                                           invlex(R))))
 end
 
 function groebner_flip_adjacent_ordering(R::MPolyRing,
@@ -358,7 +358,7 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
                                          outer_normal_vector::Vector{ZZRingElem})
     return weight_ordering(Int.(interior_facet_point),
                            weight_ordering(Int.(outer_normal_vector),
-                                           revlex(R)))
+                                           invlex(R)))
 end
 
 
@@ -424,7 +424,7 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 3-element Vector{Any}:
  Polyhedral fan in ambient dimension 3
  Dict{Vector{ZZRingElem}, Vector{QQMPolyRingElem}}([0, -1, 0] => [x1, x2 + x3], [0, 0, -1] => [x2 + x3, x1])
- Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*revlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
+ Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
 
 ```
 """
