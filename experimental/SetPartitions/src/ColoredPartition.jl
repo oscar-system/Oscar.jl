@@ -5,14 +5,14 @@ Construct a colored partition from `partition` with colors `color_upper_points` 
 """
 struct ColoredPartition <: AbstractPartition
     partition::SetPartition
-    color_upper_points::Vector
-    color_lower_points::Vector
+    color_upper_points::Vector{Int}
+    color_lower_points::Vector{Int}
 end
 
 function colored_partition(
     partition::SetPartition, 
-    color_upper::Vector, 
-    color_lower::Vector)
+    color_upper::Vector{Int}, 
+    color_lower::Vector{Int})
 
     return ColoredPartition(partition, color_upper, color_lower)
 

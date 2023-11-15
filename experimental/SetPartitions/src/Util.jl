@@ -1,5 +1,5 @@
 """
-    helper_new_point_values_vector(p::vector)
+    helper_new_point_values_vector(p::Vector{Vector{Int}}, q::Vector{Vector{Int}})
 
 Return a semantically identical partition in form of an vector, 
 which has new number values.
@@ -70,7 +70,7 @@ function normal_form_vector(p::Vector)
     p_return
 end
 
-function add_partition_to_dict(dict::Dict, p::AbstractPartition)
+function add_partition_to_dict(dict::Dict{Int, Set{AbstractPartition}}, p::AbstractPartition)
 
     add_apbs = get(dict, size(p), -1)
     push!(add_apbs, p)

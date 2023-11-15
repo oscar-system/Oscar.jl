@@ -1,13 +1,13 @@
 function do_unary(
-    to_unary::Set, 
-    all_partitions::Set, 
+    to_unary::Set{T}, 
+    all_partitions::Set{T}, 
     stop_whole::Bool, 
-    already_u::Set, 
+    already_u::Set{T}, 
     max_length::Int, 
-    all_partitions_by_size::Dict, 
-    all_partitions_by_size_top_bottom::Vector, 
-    trace::Dict,
-    spatial_rotation::Union{Function,Nothing})
+    all_partitions_by_size::Dict{Int, Set{T}}, 
+    all_partitions_by_size_top_bottom::Vector{Dict{Int, Set{T}}}, 
+    trace::Dict{T, Tuple},
+    spatial_rotation::Union{Function, Nothing}) where {T <: AbstractPartition}
 
     stop = false
     while !stop
@@ -110,17 +110,17 @@ function do_unary(
 end
 
 function do_tensor_products(
-    all_partitions::Set, 
-    already_t::Set, 
-    to_tens::Set, 
+    all_partitions::Set{T}, 
+    already_t::Set{Tuple}, 
+    to_tens::Set{Tuple{T, T}}, 
     stop_whole::Bool, 
     max_length::Int, 
-    all_partitions_by_size::Dict, 
-    all_partitions_by_size_top_bottom::Vector, 
-    trace::Dict)
+    all_partitions_by_size::Dict{Int, Set{T}}, 
+    all_partitions_by_size_top_bottom::Vector{Dict{Int, Set{T}}}, 
+    trace::Dict{T, Tuple}) where {T <: AbstractPartition}
     
     # similar to all_pyrtitions_by_size in build function for new_tens
-    new_tens_by_size = Dict{Int, Set}(i => Set() for i in 0:max_length)
+    new_tens_by_size = Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
 
     # store all partitions which are newly constructed by tensor product
     new_tens = Set{AbstractPartition}()
@@ -143,7 +143,7 @@ function do_tensor_products(
                 for key in keys(new_tens_by_size)
                     if size(i) + Int(key) <= max_length
                         new_tens_temp_tensor = union(new_tens_temp_tensor, 
-                            get(new_tens_by_size, key, -1)::Set)
+                            get(new_tens_by_size, key, -1))
                     end
                 end
                 if i in keys(without)
@@ -206,14 +206,14 @@ function do_tensor_products(
 end
 
 function do_composition(
-    all_partitions::Set, 
-    already_c::Set, 
+    all_partitions::Set{T}, 
+    already_c::Set{Tuple}, 
     stop_whole::Bool, 
     max_length::Int, 
-    to_comp::Set, 
-    all_partitions_by_size::Dict, 
-    all_partitions_by_size_top_bottom::Vector, 
-    trace::Dict)
+    to_comp::Set{Tuple{T, T}}, 
+    all_partitions_by_size::Dict{Int, Set{T}}, 
+    all_partitions_by_size_top_bottom::Vector{Dict{Int, Set{T}}}, 
+    trace::Dict{T, Tuple}) where {T <: AbstractPartition}
 
     # add newfound partitions due to composition
     new_comp = Set{AbstractPartition}()
@@ -295,7 +295,7 @@ function do_composition(
 end
 
 """
-    construct_category(p::Vector, n::Int, tracing::Bool = false, 
+    construct_category(p::Vector{AbstractPartition}, n::Int, tracing::Bool = false, 
         max_artifical::Int = 0, spatial_rotation::Union{Function,Nothing}=nothing)
 
 Return a list of all partitions of size `n` constructed from partitions in `p` without using partitions of size greater than max(`n`, maxsize(`p`), `max_artifical`)
@@ -315,15 +315,14 @@ Return a list of all partitions of size `n` constructed from partitions in `p` w
 ```jldoctest
 julia> length(construct_category([SetPartition([1, 2], [2, 1])], 6))
 105
-julia> length(construct_category([SetPartition([1, 2], [2, 1])], 6, true))
-[<SetPartition([1, 2], [2, 1])> ∩ P(6), Dict{SetPartition -> Tuple}]
 ```
 """
 function construct_category(
-    p::Vector, n::Int, 
+    p::Vector, 
+    n::Int, 
     tracing::Bool = false, 
     max_artificial::Int = 0, 
-    spatial_rotation::Union{Function,Nothing}=nothing)
+    spatial_rotation::Union{Function, Nothing} = nothing)
     
     @assert spatial_rotation === nothing || (p isa Vector{SpatialPartition})
 
@@ -478,7 +477,7 @@ Print the trace of the partition `start` constructed with `construct_category`.
 (via breath first search)
 
 """
-function get_trace(trace::Dict, start)
+function get_trace(trace::Dict{AbstractPartition, Tuple}, start)
     # iterate through trace with breath first search and print it
 
     if !(start in keys(trace))
