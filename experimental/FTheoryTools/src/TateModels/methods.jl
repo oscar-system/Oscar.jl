@@ -90,7 +90,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", desired_base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
