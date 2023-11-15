@@ -1,12 +1,145 @@
-### Abstract type and interface for double complexes
-abstract type AbsDoubleComplexOfMorphisms{ChainType, MapType} end
+########################################################################
+# Hyper complexes
+#
+# The most general type of complexes from which everything else can 
+# be derived in principle.
+#
+# See the more documented double complexes below for details.
+########################################################################
+
+### Abstract type and interface for hyper complexes
+abstract type AbsHyperComplex{ChainType, MapType} end
 
 ### asking for the entries of the complex
-getindex(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = underlying_double_complex(dc)[i, j]
+getindex(HC::AbsHyperComplex, i::Tuple) = underlying_complex(HC)[i]
+has_index(HC::AbsHyperComplex, i::Tuple) = has_index(underlying_complex(HC), i)
+can_compute_index(HC::AbsHyperComplex, i::Tuple) = can_compute_index(underlying_complex(HC), i)
 
-function has_index(D::AbsDoubleComplexOfMorphisms, t::Tuple)
-  return has_index(D, t...)
+### accessing the maps
+map(HC::AbsHyperComplex, p::Int, i::Tuple) = map(underlying_complex(HC), p, i)
+has_map(HC::AbsHyperComplex, p::Int, i::Tuple) = has_map(underlying_complex(HC), p, i)
+can_compute_map(HC::AbsHyperComplex, p::Int, i::Tuple) = can_compute_map(underlying_complex(HC), p, i)
+
+### properties
+direction(HC::AbsHyperComplex, p::Int) = direction(underlying_complex(HC), p)
+dim(HC::AbsHyperComplex) = dim(underlying_complex(HC))
+is_complete(HC::AbsHyperComplex) = is_complete(underlying_complex(HC))
+has_upper_bound(HC::AbsHyperComplex, p::Int) = has_upper_bound(underlying_complex(HC), p)
+has_lower_bound(HC::AbsHyperComplex, p::Int) = has_lower_bound(underlying_complex(HC), p)
+upper_bound(HC::AbsHyperComplex, p::Int) = upper_bound(underlying_complex(HC), p)
+lower_bound(HC::AbsHyperComplex, p::Int) = lower_bound(underlying_complex(HC), p)
+
+### factories for the chains
+abstract type HyperComplexChainFactory{ChainType} end
+
+function (fac::HyperComplexChainFactory)(HC::AbsHyperComplex, i::Tuple)
+  error("production of the $i-th entry not implemented for factory of type $(typeof(fac))")
 end
+
+function can_compute(fac::HyperComplexChainFactory, HC::AbsHyperComplex, i::Tuple)
+  error("testing whether the $i-th entry can be computed using $fac is not implemented; please overwrite this method")
+end
+
+### factories for the maps
+abstract type HyperComplexMapFactory{MorphismType} end
+
+function (fac::HyperComplexMapFactory)(HC::AbsHyperComplex, p::Int, i::Tuple)
+  error("production of the $i-th map in the $p-th direction not implemented for factory of type $(typeof(fac))")
+end
+
+function can_compute(fac::HyperComplexMapFactory, HC::AbsHyperComplex, p::Int, i::Tuple)
+  error("testing whether the $i-th map in the $p-th direction can be computed using $fac is not implemented; please overwrite this method")
+end
+
+### A minimal concrete type for general hypercomplexes
+mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
+  d::Int 
+  chains::Dict{Tuple, <:ChainType}
+  morphisms::Dict{Tuple, Dict{Int, <:MorphismType}}
+
+  chain_factory::HyperComplexChainFactory{ChainType}
+  map_factory::HyperComplexMapFactory{MorphismType}
+
+  directions::Vector{Symbol}
+
+  upper_bounds::Vector{Union{Int, Nothing}}
+  lower_bounds::Vector{Union{Int, Nothing}}
+
+  # fields for caching
+  is_complete::Union{Bool, Nothing}
+
+  function HyperComplex(
+      d::Int,
+      chain_factory::HyperComplexChainFactory{ChainType},
+      map_factory::HyperComplexMapFactory{MorphismType},
+      directions::Vector{Symbol};
+      upper_bounds::Vector=[nothing for i in 1:d],
+      lower_bounds::Vector=[nothing for i in 1:d]
+    ) where {ChainType, MorphismType}
+    @assert d > 0 "can not create zero or negative dimensional hypercomplex"
+    chains = Dict{Tuple, ChainType}()
+    morphisms = Dict{Tuple, Dict{Int, <:MorphismType}}()
+    return new{ChainType, MorphismType}(d, chains, morphisms, 
+                                        chain_factory, map_factory, directions, 
+                                        Vector{Union{Int, Nothing}}(upper_bounds), 
+                                        Vector{Union{Int, Nothing}}(lower_bounds),
+                                        nothing
+                                       )
+  end
+end
+
+########################################################################
+# Simple complexes derived from hypercomplexes
+########################################################################
+
+abstract type AbsSimpleComplex{ChainType, MapType} <:AbsHyperComplex{ChainType, MapType} end
+
+getindex(C::AbsSimpleComplex, i::Int) = C[(i,)]
+has_index(C::AbsSimpleComplex, i::Int) = has_index(C, (i,))
+can_compute_index(C::AbsSimpleComplex, i::Int) = can_compute_index(C, (i,))
+map(C::AbsSimpleComplex, i::Int) = map(C, 1, (i,))
+has_map(C::AbsSimpleComplex, i::Int) = has_map(C, 1, (i,))
+can_compute_map(C::AbsSimpleComplex, i::Int) = can_compute_map(C, 1, (i,))
+
+direction(C::AbsSimpleComplex) = direction(C, 1)
+is_chain_complex(C::AbsSimpleComplex) = direction(C) == :chain
+is_cochain_complex(C::AbsSimpleComplex) = !is_chain_complex(C)
+has_upper_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+has_lower_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+upper_bound(C::AbsSimpleComplex) = upper_bound(C, 1)
+lower_bound(C::AbsSimpleComplex) = lower_bound(C, 1)
+Base.range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
+map_range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
+
+underlying_complex(C::AbsSimpleComplex) = error("underlying_complex not implemented for $C")
+
+mutable struct SimpleComplexWrapper{ChainType, MapType} <: AbsSimpleComplex{ChainType, MapType}
+  hc::HyperComplex{ChainType, MapType}
+
+  function SimpleComplexWrapper(hc::HyperComplex{ChainType, MapType}) where {ChainType, MapType}
+    @assert dim(hc) == 1 "hypercomplex must be one-dimensional"
+    return new{ChainType, MapType}(hc)
+  end
+end
+
+underlying_complex(C::SimpleComplexWrapper) = C.hc
+
+########################################################################
+# Double complexes
+########################################################################
+
+### Abstract type and interface for double complexes
+abstract type AbsDoubleComplexOfMorphisms{ChainType, MapType} <: AbsHyperComplex{ChainType, MapType} end
+
+### Extending generic functionality from hypercomplexes for the double complexes
+# Mostly this is providing you with the common syntax.
+getindex(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = C[(i, j)]
+
+horizontal_range(C::AbsDoubleComplexOfMorphisms) = (direction(C, 1) == :chain ? (left_bound(C):-1:left_bound(C)) : (left_bound(C):right_bound(C)))
+vertical_range(C::AbsDoubleComplexOfMorphisms) = (direction(C, 2) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
+
+underlying_complex(C::AbsDoubleComplexOfMorphisms) = error("underlying_complex not implemented for $C")
+
 
 @doc raw"""
     has_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -17,11 +150,7 @@ If the result is `false`, then it might nevertheless still be possible to comput
 `D[i, j]`; use `can_compute_index` for such queries.
 """
 function has_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  return has_index(underlying_double_complex(D), i, j)
-end
-
-function can_compute_index(D::AbsDoubleComplexOfMorphisms, t::Tuple)
-  return can_compute_index(D, t...)
+  has_index(D, (i, j))
 end
 
 @doc raw"""
@@ -30,7 +159,7 @@ end
 Returns `true` if the entry `D[i, j]` is known or `D` knows how to compute it.
 """
 function can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-  return can_compute_index(underlying_double_complex(D), i, j)
+  can_compute_index(D, (i, j))
 end
 
 ### asking for horizontal and vertical maps
@@ -39,8 +168,8 @@ end
 
 Return the morphism ``dc[i, j] → dc[i ± 1, j]`` (the sign depending on the `horizontal_direction` of `dc`). 
 """
-horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = horizontal_map(underlying_double_complex(dc), i, j)
-horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = horizontal_map(dc, t...)
+horizontal_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = map(C, 1, (i, j))
+horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 1, t)
 
 @doc raw"""
     has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -51,8 +180,8 @@ the sign depending on the `horizontal_direction` of `dc`.
 If this returns `false` this might just mean that the map has not been computed, yet. 
 Use `can_compute_horizontal_map` to learn whether or not this is possible.
 """
-has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = has_horizontal_map(underlying_double_complex(dc), i, j)
-has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_horizontal_map(dc, t...)
+has_horizontal_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = has_map(C, 1, (i, j))
+has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(dc, 1, t)
 
 @doc raw"""
     can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -60,17 +189,16 @@ has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_horizontal_m
 Returns `true` if `dc` can compute the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
 the sign depending on the `horizontal_direction` of `dc`, and `false` otherwise.
 """
-can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_horizontal_map(underlying_double_complex(dc), i, j)
-can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute_horizontal_map(dc, t...)
+can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 1, (i, j))
+can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute_map(C, 1, t)
 
 @doc raw"""
     vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
 Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`). 
 """
-vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = vertical_map(underlying_double_complex(dc), i, j)
-
-vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = vertical_map(dc, t...)
+vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = map(C, 2, (i, j))
+vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 2, t)
 
 @doc raw"""
     has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -81,8 +209,8 @@ the sign depending on the `vertical_direction` of `dc`.
 If this returns `false` this might just mean that the map has not been computed, yet. 
 Use `can_compute_vertical_map` to learn whether or not this is possible.
 """
-has_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = has_vertical_map(underlying_double_complex(dc), i, j)
-has_vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_vertical_map(dc, t...)
+has_vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = has_map(C, 2, (i, j))
+has_vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(C, 2, t)
 
 @doc raw"""
     can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
@@ -90,8 +218,8 @@ has_vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_vertical_map(d
 Returns `true` if `dc` can compute the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
 the sign depending on the `vertical_direction` of `dc`, and `false` otherwise.
 """
-can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_vertical_map(underlying_double_complex(dc), i, j)
-can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute_vertical_map(dc, t...)
+can_compute_vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 2, (i, j))
+can_compute_vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute_map(C, 2, t)
 
 
 ### asking for the direction of the row and the column complexes
@@ -101,14 +229,15 @@ can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_comput
 Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the rows 
 of `dc` decrease or increase the (co-)homological index.
 """
-horizontal_direction(dc::AbsDoubleComplexOfMorphisms) = horizontal_direction(underlying_double_complex(dc))
+horizontal_direction(dc::AbsDoubleComplexOfMorphisms) = direction(dc, 1)
+
 @doc raw"""
     vertical_direction(dc::AbsDoubleComplexOfMorphisms)
 
 Return a symbol `:chain` or `:cochain` depending on whether the morphisms of the columns 
 of `dc` decrease or increase the (co-)homological index.
 """
-vertical_direction(dc::AbsDoubleComplexOfMorphisms) = vertical_direction(underlying_double_complex(dc))
+vertical_direction(dc::AbsDoubleComplexOfMorphisms) = direction(dc, 2)
 
 ### asking for known bounds of the row and column complexes
 # These are also used to filter legitimate requests to entries and maps, 
@@ -127,7 +256,7 @@ is_bounded(dc::AbsDoubleComplexOfMorphisms) = is_horizontally_bounded(dc) && is_
 Returns `true` if a universal upper bound ``i ≤ B`` for non-zero `D[i, j]` 
 is known; `false` otherwise.
 """
-has_right_bound(D::AbsDoubleComplexOfMorphisms) = has_right_bound(underlying_double_complex(D))
+has_right_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 1)
 
 @doc raw"""
     has_left_bound(D::AbsDoubleComplexOfMorphisms)
@@ -135,7 +264,7 @@ has_right_bound(D::AbsDoubleComplexOfMorphisms) = has_right_bound(underlying_dou
 Returns `true` if a universal upper bound ``B ≤ i`` for non-zero `D[i, j]` 
 is known; `false` otherwise.
 """
-has_left_bound(D::AbsDoubleComplexOfMorphisms) = has_left_bound(underlying_double_complex(D))
+has_left_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 1)
 
 @doc raw"""
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
@@ -143,7 +272,7 @@ has_left_bound(D::AbsDoubleComplexOfMorphisms) = has_left_bound(underlying_doubl
 Returns `true` if a universal upper bound ``j ≤ B`` for non-zero `D[i, j]` 
 is known; `false` otherwise.
 """
-has_upper_bound(D::AbsDoubleComplexOfMorphisms) = has_upper_bound(underlying_double_complex(D))
+has_upper_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 2)
 
 @doc raw"""
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
@@ -151,7 +280,7 @@ has_upper_bound(D::AbsDoubleComplexOfMorphisms) = has_upper_bound(underlying_dou
 Returns `true` if a universal upper bound ``B ≤ j`` for non-zero `D[i, j]` 
 is known; `false` otherwise.
 """
-has_lower_bound(D::AbsDoubleComplexOfMorphisms)   = has_lower_bound(underlying_double_complex(D))
+has_lower_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 2)
 
 @doc raw"""
     right_bound(D::AbsDoubleComplexOfMorphisms)
@@ -160,7 +289,7 @@ Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``i > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
-right_bound(D::AbsDoubleComplexOfMorphisms) = right_bound(underlying_double_complex(D))
+right_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 1)
 
 @doc raw"""
     left_bound(D::AbsDoubleComplexOfMorphisms)
@@ -169,7 +298,7 @@ Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``i < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
-left_bound(D::AbsDoubleComplexOfMorphisms) = left_bound(underlying_double_complex(D))
+left_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 1)
 
 @doc raw"""
     upper_bound(D::AbsDoubleComplexOfMorphisms)
@@ -178,7 +307,7 @@ Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``j > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
-upper_bound(D::AbsDoubleComplexOfMorphisms) = upper_bound(underlying_double_complex(D))
+upper_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 2)
 
 @doc raw"""
     lower_bound(D::AbsDoubleComplexOfMorphisms)
@@ -187,7 +316,7 @@ Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``j < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
-lower_bound(D::AbsDoubleComplexOfMorphisms) = lower_bound(underlying_double_complex(D))
+lower_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 2)
 
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
@@ -240,6 +369,22 @@ function is_complete(D::AbsDoubleComplexOfMorphisms)
   set_attribute!(D, :is_complete, true)
   return true
 end
+
+### A concrete type using hypercomplexes in the background
+mutable struct DoubleComplexWrapper{ChainType, MapType} <: AbsDoubleComplexOfMorphisms{ChainType, MapType}
+  hc::AbsHyperComplex{ChainType, MapType}
+
+  function DoubleComplexWrapper(hc::AbsHyperComplex{ChainType, MapType}) where {ChainType, MapType}
+    @assert dim(hc) == 2 "hypercomplex must be one-dimensional"
+    return new{ChainType, MapType}(hc)
+  end
+end
+
+underlying_complex(dc::DoubleComplexWrapper) = dc.hc
+
+########################################################################
+# A standalone concrete type for double complexes 
+########################################################################
 
 # The concrete architecture of double complexes is lazy by default. 
 # Hence the constructor needs to be provided with the means to produce 
@@ -297,12 +442,7 @@ function can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms,
   error("testing whether the ($i, $j)-th entry can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")
 end
 
-
-# A minimal concrete type realizing a double complex.
-#
-# The design is lazy by default. All entries are produced on 
-# request and then cached in dictionaries. For the production 
-# the user has to provide "factories" in the above sense. 
+### The actual concrete type
 mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
   chains::Dict{Tuple{Int, Int}, <:ChainType}
   horizontal_maps::Dict{Tuple{Int, Int}, <:MorphismType}

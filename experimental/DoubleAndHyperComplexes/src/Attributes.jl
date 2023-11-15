@@ -1,3 +1,86 @@
+  ########################################################################
+  # concrete hypercomplexes
+  ########################################################################
+
+  ### asking for the entries of the complex
+  function getindex(HC::HyperComplex, i::Tuple)
+    haskey(HC.chains, i) && return HC.chains[i]
+
+    can_compute(HC.chain_factory, HC, i) || error("index out of bounds")
+
+    result = HC.chain_factory(HC, i)
+    HC.chains[i] = result
+    return result
+  end
+
+  function has_index(HC::HyperComplex, i::Tuple)
+    return haskey(HC.chains, i)
+  end
+
+  function can_compute_index(HC::HyperComplex, i::Tuple)
+    return can_compute(HC.chain_factory, HC, i)
+  end
+
+  ### accessing the maps
+  function emanating_maps(HC::HyperComplex{ChainType, MorphismType}, i::Tuple) where {ChainType, MorphismType}
+    haskey(HC.morphisms, i) && return HC.morphisms[i]
+    md = Dict{Int, MorphismType}()
+    HC.morphisms = md
+    return md
+  end
+
+  function map(HC::HyperComplex, p::Int, i::Tuple)
+    phi = emanating_maps(HC, i)
+    haskey(phi, p) && return phi[p]
+    result = HC.map_factory(HC, p, i)
+    phi[p] = result
+    return result
+  end
+
+  function has_map(HC::HyperComplex, p::Int, i::Tuple)
+    phi = emanating_maps(HC, i)
+    return haskey(phi, p)
+  end
+
+  function can_compute_map(HC::HyperComplex, p::Int, i::Tuple)
+    return can_compute(HC.map_factory, HC, p, i)
+  end
+
+  ### properties
+  function direction(HC::HyperComplex, p::Int)
+    return HC.directions[p]
+  end
+
+  function dim(HC::HyperComplex)
+    return HC.d
+  end
+
+  function is_complete(HC::HyperComplex)
+    HC.is_complete === true && return true
+    error("not implemented")
+  end
+
+  function has_upper_bound(HC::HyperComplex, p::Int) 
+    return HC.upper_bounds[p] !== nothing
+  end
+
+  function has_lower_bound(HC::HyperComplex, p::Int)
+    return HC.lower_bounds[p] !== nothing
+  end
+
+  function upper_bound(HC::HyperComplex, p::Int) 
+    return HC.upper_bounds[p]::Int
+  end
+
+  function lower_bound(HC::HyperComplex, p::Int)
+  return HC.lower_bounds[p]::Int
+end
+
+
+########################################################################
+# concrete double complexes
+########################################################################
+
 ### Basic getters
 function horizontal_direction(D::DoubleComplexOfMorphisms)
   return D.horizontal_direction
@@ -148,10 +231,6 @@ function lower_bound(D::DoubleComplexOfMorphisms)
 end
 
 ### User facing functionality
-function getindex(D::DoubleComplexOfMorphisms, t::Tuple)
-  return getindex(D, t...)
-end
-
 function getindex(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   # load from cache if applicable
   haskey(D.chains, (i, j)) && return D.chains[(i, j)]
@@ -207,5 +286,60 @@ end
 function can_compute_horizontal_map(D::DoubleComplexOfMorphisms, i::Int, j::Int)
   has_horizontal_map(D, i, j) && return true
   return can_compute(D.horizontal_map_factory, D, i, j)
+end
+
+### Implement the AbsHyperComplex interface for the generic case
+getindex(D::DoubleComplexOfMorphisms, i::Tuple) = D[i...]
+has_index(D::DoubleComplexOfMorphisms, i::Tuple) = has_index(D, i...)
+can_compute_index(D::DoubleComplexOfMorphisms, i::Tuple) = can_compute_index(D, i...)
+
+function map(D::DoubleComplexOfMorphisms, p::Int, i::Tuple)
+  isone(p) && return horizontal_map(D, i...)
+  p == 2 && return vertical_map(D, i...)
+  error("index out of bounds")
+end
+
+function has_map(D::DoubleComplexOfMorphisms, p::Int, i::Tuple)
+  isone(p) && return has_horizontal_map(D, i...)
+  p == 2 && return has_vertical_map(D, i...)
+  error("index out of bounds")
+end
+
+function can_compute_map(D::DoubleComplexOfMorphisms, p::Int, i::Tuple)
+  isone(p) && return can_compute_horizontal_map(D, i...)
+  p == 2 && return can_compute_vertical_map(D, i...)
+  error("index out of bounds")
+end
+
+function direction(D::DoubleComplexOfMorphisms, p::Int)
+  isone(p) && return horizontal_direction(D)
+  p == 2 && return vertical_direction(D)
+  error("index out of bounds")
+end
+
+dim(D::DoubleComplexOfMorphisms) = 2
+
+function has_upper_bound(D::DoubleComplexOfMorphisms, p::Int)
+  isone(p) && return has_right_bound(D)
+  p == 2 && return has_upper_bound(D)
+  error("index out of bounds")
+end
+
+function has_lower_bound(D::DoubleComplexOfMorphisms, p::Int)
+  isone(p) && return has_left_bound(D)
+  p == 2 && return has_lower_bound(D)
+  error("index out of bounds")
+end
+
+function upper_bound(D::DoubleComplexOfMorphisms, p::Int)
+  isone(p) && return right_bound(D)
+  p == 2 && return upper_bound(D)
+  error("index out of bounds")
+end
+
+function lower_bound(D::DoubleComplexOfMorphisms, p::Int)
+  isone(p) && return left_bound(D)
+  p == 2 && return lower_bound(D)
+  error("index out of bounds")
 end
 
