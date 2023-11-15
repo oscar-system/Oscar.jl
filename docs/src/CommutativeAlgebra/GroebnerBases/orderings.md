@@ -159,14 +159,24 @@ $x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\t
 deglex(R::MPolyRing)
 ```
 
-#### The Reverse Lexicographical Ordering
+#### The Inverse Lexicographical Ordering
 
-The *reverse lexicographical ordering* `revlex` is defined by setting
+The *inverse lexicographical ordering* `invlex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i.$
 
 ```@docs
-revlex(R::MPolyRing)
+invlex(R::MPolyRing)
+```
+
+#### The Degree Inverse Lexicographical Ordering
+
+The *degree inverse lexicographical ordering* `deginvlex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or } \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i.$
+
+```@docs
+deginvlex(R::MPolyRing)
 ```
 
 #### The Degree Reverse Lexicographical Ordering
@@ -225,14 +235,14 @@ $x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\t
 negdeglex(R::MPolyRing)
 ```
 
-#### The Negative Reverse Lexicographical Ordering
+#### The Negative Inverse Lexicographical Ordering
 
-The *negative reverse lexicographical ordering* `negrevlex` is defined by setting
+The *negative inverse lexicographical ordering* `neginvlex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  < \beta_i.$
 
 ```@docs
-negrevlex(R::MPolyRing)
+neginvlex(R::MPolyRing)
 ```
 
 #### The Negative Degree Reverse Lexicographical Ordering
