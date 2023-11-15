@@ -30,10 +30,17 @@ function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::Strin
   return decode_type(str)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, dict::Dict)
-  T = decode_type(dict[:name])
-  params = load_type_params(s, T, dict[:params])
-  return (T, params)
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
+  load_node(s, type_key) do _
+    load_node(s, :params) do _
+      T = decode_type(s)
+
+      load_node(s, :params) do _
+        params = load_type_params(s, T)
+      end
+      return (T, params)
+    end
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
@@ -53,31 +60,48 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                     v::Vector, params::Type)
-  if serialize_with_id(params)
-    loaded_v = params[load_ref(s, x) for x in v]
-  else
-    loaded_v = params[load_object(s, params, x) for x in v]
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
+  load_node(s) do v
+    if serialize_with_id(params)
+      loaded_v = params[load_ref(s, x) for x in v]
+    else
+      loaded_v = params[load_object(s, params, x) for x in v]
+    end
+    return loaded_v
   end
-  return loaded_v
 end
 
 # handles nested Vectors
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                                 v::Vector, params::Tuple)
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Tuple)
   T = params[1]
-  if isempty(v)
-    return T[]
-  else
-    return [load_object(s, T, x, params[2]) for x in v]
+  load_node(s) do v
+    if isempty(v)
+      return T[]
+    else
+      loaded_v = []
+      for i in 1:length(v)
+        entry = load_node(s, i) do _
+          load_object(s, T, params[2])
+        end
+        push!(loaded_v, entry)
+      end
+      return loaded_v
+    end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                     v::Vector, params::Ring)
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Ring)
   T = elem_type(params)
-  return T[load_object(s, T, x, params) for x in v]
+  loaded_v = T[]
+  load_node(s) do v
+    for i in 1:length(v)
+      entry = load_node(s, i) do _
+        load_object(s, T, params)
+      end
+      push!(loaded_v, entry)
+    end
+    return loaded_v
+  end
 end
 
 ################################################################################

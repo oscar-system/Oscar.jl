@@ -37,13 +37,15 @@ end
 # QQFieldElem
 @register_serialization_type QQFieldElem
 
-function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
+function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
-  fraction_parts = collect(map(String, split(q, "//")))
-  fraction_parts = [ZZRingElem(s) for s in fraction_parts]
+  load_node(s) do q
+    fraction_parts = String.(split(q, "//"))
+    fraction_parts = parse.(ZZRingElem, fraction_parts)
 
-  return QQFieldElem(fraction_parts...)
+    return QQFieldElem(fraction_parts...)
+  end
 end
 
 function load_internal_with_parent(s::DeserializerState,

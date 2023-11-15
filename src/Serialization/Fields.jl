@@ -73,7 +73,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem},
-                                 str::String, F::Nemo.fpField)
+                     str::String, F::Nemo.fpField)
   return F(parse(UInt64, str))
 end
 
@@ -225,11 +225,12 @@ function save_object(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
   end
 end
 
-function load_object(s::DeserializerState,
-                     ::Type{<: Union{NfAbsNS, NfRelNS}},
-                     dict::Dict{Symbol, Any})
-  def_pols = load_typed_object(s, dict[:def_pols])
-  vars = map(Symbol, dict[:vars])
+function load_object(s::DeserializerState, ::Type{<: Union{NfAbsNS, NfRelNS}})
+  def_pols = load_typed_object(s, :def_pols)
+
+  load_node(s :vars) do vars_data
+    vars = map(Symbol, vars_data)
+  end
   # fix since numberfield doesn't accept PolyRingElem vectors
   array_pols = Array{typeof(def_pols[1]), 1}(def_pols)
   K, _ = number_field(array_pols, vars, cached=false)
@@ -245,14 +246,17 @@ function save_object(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem
   save_object(s, polynomial)
 end
 
-function load_object(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}}, terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
+                     parents::Vector)
   K = parents[end]
   n = ngens(K)
   # forces parent of MPolyRingElem
   poly_ring = polynomial_ring(base_field(K), n)
   parents[end - 1], _ = poly_ring
   poly_elem_type = elem_type
-  polynomial = load_object(s, MPolyRingElem, terms, parents[1:end - 1])
+  load_node(s) do _
+    polynomial = load_object(s, MPolyRingElem, parents[1:end - 1])
+  end
   polynomial = evaluate(polynomial, gens(K))
   return K(polynomial)
 end

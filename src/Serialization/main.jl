@@ -205,7 +205,7 @@ function decode_type(input::JSON3.Object)
 end
 
 function decode_type(s::DeserializerState)
-  return decode_type(s.obj[type_key])
+  return decode_type(s.obj)
 end
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
@@ -302,11 +302,13 @@ end
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = nothing;
                            override_params::Any = nothing)
-  load_node(s, key) do
-    if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+  load_node(s, key) do node
+    if node isa String && !isnothing(tryparse(UUID, node))
       return load_ref(s)
     end
-    T = decode_type(s)
+    T = load_node(s, type_key) do _
+      decode_type(s)
+    end
     if Base.issingletontype(T) && return T()
     elseif serialize_with_params(T)
       if !isnothing(override_params)
@@ -318,11 +320,11 @@ function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = n
         
         params = load_type_params(s, T)
       end
-      load_node(s, :data) do
+      load_node(s, :data) do _
         return load_object(s, T, params)
       end
     else
-      load_node(s, :data) do
+      load_node(s, :data) do _
         return load_object(s, T)
       end
     end
@@ -646,7 +648,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       # concrete, and `U <: T` should hold.
       #
       # This check should maybe change to a check on the whole type tree?
-      U = decode_type(s)
+      U = load_node(s, type_key) do _
+        decode_type(s)
+      end
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
       if serialize_with_params(type)
@@ -654,12 +658,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
           params = load_type_params(s, type)
         end
 
-        load_node(s, :data) do
+        load_node(s, :data) do _
           loaded = load_object(s, type, params)
         end
       else
         Base.issingletontype(type) && return type()
-        load_node(s, :data) do
+        load_node(s, :data) do _
           loaded = load_object(s, type)
         end
       end

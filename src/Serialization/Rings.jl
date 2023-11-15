@@ -41,8 +41,8 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion})
-  load_node(s, type_key) do
-    load_node(s, :params) do
+  load_node(s, type_key) do _
+    load_node(s, :params) do _
       return load_typed_object(s)
     end
   end
@@ -51,9 +51,7 @@ end
 # fix for polynomial cases
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion) 
   parents = get_parents(parent_ring)
-  load_node(s, :terms) do
-    load_object(s, T, parents)
-  end
+  return load_object(s, T, parents)
 end
 
 # fix for series and ideal cases
@@ -77,14 +75,18 @@ function save_object(s::SerializerState, R::T) where T <: ModRingUnion
   save_object(s, modulus(R))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.zzModRing}, str::String)
-  modulus = parse(UInt64, str)
-  return Nemo.zzModRing(modulus)
+function load_object(s::DeserializerState, ::Type{Nemo.zzModRing})
+  load_node(s) do str
+    modulus = parse(UInt64, str)
+    return Nemo.zzModRing(modulus)
+  end
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.ZZModRing}, str::String)
-  modulus = ZZRingElem(str)
-  return Nemo.ZZModRing(modulus)
+function load_object(s::DeserializerState, ::Type{Nemo.ZZModRing})
+  load_node(s) do str
+    modulus = ZZRingElem(str)
+    return Nemo.ZZModRing(modulus)
+  end
 end
 
 #elements
@@ -97,8 +99,10 @@ function save_object(s::SerializerState, x::ModRingElemUnion)
 end
 
 function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
-                     str::String, parent_ring::T) where T <: ModRingUnion
-  return parent_ring(ZZRingElem(str))
+                     parent_ring::T) where T <: ModRingUnion
+  load_node(s) do str
+    return parent_ring(ZZRingElem(str))
+  end
 end
 
 ################################################################################
@@ -198,33 +202,34 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: PolyRingElem}, parents::Vector)
   parent_ring = parents[end]
-  
-  deserialize_node(s) do terms
+  load_node(s) do terms
     if isempty(terms)
       return parent_ring(0)
     end
-    # load exponent
-    terms = map(x->(parse(Int, x[1]), x[2]), terms)
-    # shift so constant starts at 1
-    degree = max(map(x->x[1] + 1, terms)...)
+    # load exponents and account for shift
+    exponents = [parse(Int, term[1]) + 1 for term in terms]
+    degree = max(exponents...)
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
     coeff_type = elem_type(base)
 
-    for term in terms
-      load_node(s )
-      exponent, coeff = term
-      # account for shift
-      exponent += 1
-      if serialize_with_params(coeff_type)
-        if length(parents) == 1
-          params = coefficient_ring(parent_ring)
+    for (i, exponent) in enumerate(exponents)
+      load_node(s, i) do term
+        if serialize_with_params(coeff_type)
+          if length(parents) == 1
+            params = coefficient_ring(parent_ring)
+          else
+            params = parents[1:end - 1]
+          end
+          # place coefficient at s.obj
+          load_node(s, 2) do _
+            loaded_terms[exponent] = load_object(s, coeff_type, params)
+          end
         else
-          params = parents[1:end - 1]
+          load_node(s, 2) do _
+            loaded_terms[exponent] = load_object(s, coeff_type)
+          end
         end
-        loaded_terms[exponent] = load_object(s, coeff_type, params)
-      else
-        loaded_terms[exponent] = load_object(s, coeff_type)
       end
     end
     return parent_ring(loaded_terms)
@@ -234,26 +239,37 @@ end
 
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
-                     terms::JSON3.Array, parents::Vector)
-  parent_ring = parents[end]
-  base = base_ring(parent_ring)
-  polynomial = MPolyBuildCtx(parent_ring)
-  coeff_type = elem_type(base)
-  for (e, coeff) in terms
-    if serialize_with_params(coeff_type)
-      if length(parents) == 1
-        params = coefficient_ring(parent_ring)
-      else
-        params = parents[1:end - 1]
+                     parents::Vector)
+  load_node(s) do terms
+    exponents = [term[1] for term in terms]
+    parent_ring = parents[end]
+    base = base_ring(parent_ring)
+    polynomial = MPolyBuildCtx(parent_ring)
+    coeff_type = elem_type(base)
+
+    for (i, e) in enumerate(exponents)
+      load_node(s, i) do _
+        c = nothing
+        if serialize_with_params(coeff_type)
+          if length(parents) == 1
+            params = coefficient_ring(parent_ring)
+          else
+            params = parents[1:end - 1]
+          end
+          load_node(s, 2) do _
+            c = load_object(s, coeff_type, params)
+          end
+        else
+          load_node(s, 2) do _
+            c = load_object(s, coeff_type)
+          end
+        end
+        e_int = [parse(Int, x) for x in e]
+        push_term!(polynomial, c, e_int)
       end
-      c = load_object(s, coeff_type, coeff, params)
-    else
-      c = load_object(s, coeff_type, coeff)
     end
-    e_int = [parse(Int, x) for x in e]
-    push_term!(polynomial, c, e_int)
+    return finish(polynomial)
   end
-  return finish(polynomial)
 end
 
 ################################################################################
@@ -285,9 +301,14 @@ function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
-  gens = deserialize_array_node(s) do
-    # this function is applied to each element of the array
-    load_object(s, elem_type(parent_ring), parent_ring)
+  gens = []
+  load_node(s) do gens_data
+    for i in 1:length(gens_data)
+      gen = load_node(s, i) do _
+        load_object(s, elem_type(parent_ring), parent_ring)
+      end
+      push!(gens, gen)
+    end
   end
   return ideal(parent_ring, gens)
 end
