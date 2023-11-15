@@ -77,7 +77,7 @@ end
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
    @test leading_ideal(groebner_basis(I, ordering=degrevlex([t, x, y, z]))) == ideal(R, [t, x^3])
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, ordering=revlex([t, x, y, z]))) == ideal(R, [y^2, z])
+   @test leading_ideal(groebner_basis(I, ordering=invlex([t, x, y, z]))) == ideal(R, [y^2, z])
    @test leading_ideal(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]))) == ideal(R, [z, t^3])
    @test leading_ideal(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]))) == ideal(R, [t, x^3])
 end
@@ -88,8 +88,8 @@ end
    I = ideal(R, [x + y + z, x^2 + y^2 + z^3])
 
    @test groebner_basis(I, ordering=lex([x])*lex([y,z])) == groebner_basis(I, ordering=lex([x, y, z]))
-   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=revlex([x, y, z]))
-   @test groebner_basis(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
+   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=invlex([x, y, z]))
+   @test groebner_basis(I, ordering=degrevlex([x, y, z])*invlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis(I, ordering=deglex([x, y, z])) == groebner_basis(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
    M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
@@ -101,9 +101,9 @@ end
    H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x]))
-   H, V = groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=invlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
-   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y]))
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*invlex([y]))
    H, V = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y]))
