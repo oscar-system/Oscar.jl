@@ -216,7 +216,7 @@ irreducible in the character table of `char` and $alpha = scalar_product(char, c
 is the multiplicity of chi in char. If `alpha = 0`, it is not added.
 """
 function character_decomposition(char::Oscar.GAPGroupClassFunction)
-  ct = char.table
+  ct = parent(char)
   decomp = Tuple{Int, typeof(char)}[]
   for chi in ct
     alpha = Int(scalar_product(chi, char))
@@ -234,7 +234,7 @@ end
 Given a class function `chi` on a group `G`, return whether `chi` defines a
 character of `G` (over its codomain).
 """
-is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(chi.table.GAPTable, chi.values)::Bool
+is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GAPTable(parent(chi)), chi.values)::Bool
 
 @doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
@@ -344,7 +344,7 @@ Note: here matrices in `mr` should correspond to the cached set of
 generators of the underlying group of `RR` (order matters.)
 """
 function _linear_representation(RR::RepRing{S, T}, mr::Vector{V}, chi::Oscar.GAPGroupClassFunction) where {S, T, U, V <: MatElem{U}}
-  @req chi.table === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
+  @req parent(chi) === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   G = underlying_group(RR)
   mg = matrix_group(mr)
   f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
@@ -369,7 +369,7 @@ domain of `f` corresponds to the underlying group of `RR`.
 If not provided, `chi` is automatically computed.
 """
 function linear_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism, chi::Oscar.GAPGroupClassFunction) where {S, T}
-  @req chi.table === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
+  @req parent(chi) === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"  
   @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
@@ -379,7 +379,7 @@ function linear_representation(RR::RepRing{S ,T}, f::GAPGroupHomomorphism) where
   @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"
   @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
   chi = character_representation(RR, f)
-  @assert chi.table === character_table_underlying_group(RR)
+  @assert parent(chi) === character_table_underlying_group(RR)
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
 end
 
@@ -394,7 +394,7 @@ projective representation of the codomain of `p`.
 This is equivalent to ask that the center of `chi` contains the kernel of `p`.
 """
 function is_projective(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism)
-  @req chi.table.GAPGroup === domain(p) "Incompatible representation ring of rep and domain of the cover p"
+  @req group(parent(chi)) === domain(p) "Incompatible representation ring of rep and domain of the cover p"
   return is_subgroup(kernel(p)[1], center(chi)[1])[1]
 end
 
@@ -627,7 +627,7 @@ projective representation of the codomain of `p`.
 This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
 """
 function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T, V}) where {T, V}
-  E = chi.table.GAPGroup::T
+  E = group(parent(chi))::T
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
   Z = center(chi)[1]::T

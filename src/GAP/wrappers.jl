@@ -30,12 +30,14 @@ GAP.@wrap Characteristic(x::Any)::GapInt
 GAP.@wrap CharacterParameters(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj, y::GAP.Obj)::GapObj
+GAP.@wrap CharacterTableFactorGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CharacterTableWreathSymmetric(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap ClassFunction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ClassNames(x::GapObj)::GapObj
 GAP.@wrap ClassMultiplicationCoefficient(x::GapObj, y::Int, z::Int, t::Int)::GAP.Obj
 GAP.@wrap ClassPositionsOfCentre(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfDerivedSubgroup(x::GapObj)::GapObj
+GAP.@wrap ClassPositionsOfNormalSubgroups(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfPCore(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ClassPositionsOfSolvableResiduum(x::GapObj)::GapObj
 GAP.@wrap ClassParameters(x::GapObj)::GapObj

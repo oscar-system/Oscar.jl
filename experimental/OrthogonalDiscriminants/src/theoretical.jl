@@ -26,7 +26,7 @@ function od_from_order(chi::GAPGroupClassFunction)
   characteristic(chi) == 0 && return (false, "")
   d = numerator(degree(chi))
   q = order_field_of_definition(chi)
-  tbl = ordinary_table(chi.table)
+  tbl = ordinary_table(parent(chi))
   ord = order(ZZRingElem, tbl)
 
   # Compute the order of the subgroup that shall embed into
@@ -72,7 +72,7 @@ function od_from_eigenvalues(chi::GAPGroupClassFunction)
   p = characteristic(chi)
   p == 2 && return (false, "")
 
-  tbl = chi.table
+  tbl = parent(chi)
   ord = orders_class_representatives(tbl)
   for i in 2:length(chi)
     n = ord[i]
@@ -141,7 +141,7 @@ function od_for_specht_module(chi::GAPGroupClassFunction)
   characteristic(chi) == 0 || return (false, "")
 
   # Find out to which alternating or symmetric group `chi` belongs.
-  tbl = chi.table
+  tbl = parent(chi)
   name = identifier(tbl)
   startswith(name, "A") || return (false, "")
   pos = findfirst('.', name)

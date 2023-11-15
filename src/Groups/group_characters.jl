@@ -393,7 +393,7 @@ Currently the following series are supported.
 | `:Suzuki` | odd power of 2 |
 | `:GU3` | prime power |
 | `:SU3` | prime power |
-| `Symbol("P:Q")` | array `[p, q]` with prime `p` and `q` dividing `p-1` |
+| `Symbol("P:Q")` | vector `[p, q]` with prime `p` and `q` dividing `p-1` |
 | `:ExtraspecialPlusOdd` | odd power of odd prime |
 """
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
@@ -459,8 +459,8 @@ true
 """
     all_character_table_names(L...; ordered_by = nothing)
 
-Return an array of strings that contains all those names of character tables
-in the character table library that satisfy the conditions in the array `L`.
+Return an vector of strings that contains all those names of character tables
+in the character table library that satisfy the conditions in the vector `L`.
 
 # Examples
 ```
@@ -903,7 +903,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 
     # Create the IO context.
     ioc = IOContext(io,
-      # header (an array of strings):
+      # header (a vector of strings):
       # name of the table and separating empty line
       :header => [headerstring, ""],
 
@@ -934,7 +934,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
                       [vcat(emptycor, [x]) for x in power_maps_primes]...,
                       vcat([""], field_label, ODlabel, [string(x) for x in ind]))),
 
-      # footer (an array of strings)
+      # footer (a vector of strings)
       :footer => length(legend) == 0 ? [] :
                  vcat([""], [triple[2]*" = "*triple[3] for triple in legend]),
     )
@@ -972,7 +972,7 @@ end
 @doc raw"""
     orders_class_representatives(tbl::GAPGroupCharacterTable)
 
-Return the array of the orders of conjugacy class representatives for `tbl`,
+Return the vector of the orders of conjugacy class representatives for `tbl`,
 ordered according to the columns of `tbl`.
 
 # Examples
@@ -986,7 +986,7 @@ julia> println(orders_class_representatives(character_table("A5")))
 @doc raw"""
     orders_centralizers(tbl::GAPGroupCharacterTable)
 
-Return the array of the orders of centralizers of conjugacy class
+Return the vector of the orders of centralizers of conjugacy class
 representatives for `tbl` in the group of `tbl`,
 ordered according to the columns of `tbl`.
 
@@ -1012,7 +1012,7 @@ ZZRingElem[1, 15, 20, 12, 12]
 @doc raw"""
     maxes(tbl::GAPGroupCharacterTable)
 
-Return either nothing (if the value is not known) or an array of identifiers
+Return either nothing (if the value is not known) or a vector of identifiers
 of the ordinary character tables of all maximal subgroups of `tbl`.
 There is no default method to compute this value from `tbl`.
 
@@ -1054,9 +1054,33 @@ julia> identifier(character_table("A5"))
 
 
 @doc raw"""
+    class_positions_of_normal_subgroups(tbl::GAPGroupCharacterTable)
+
+Return a vector whose entries describe all normal subgroups of the group
+of `tbl`.
+Each entry is a vector of those class positions such that the union of
+these classes forms a normal subgroup.
+
+# Examples
+```jldoctest
+julia> t = character_table("2.A5");
+
+julia> class_positions_of_normal_subgroups(t)
+3-element Vector{Vector{Int64}}:
+ [1]
+ [1, 2]
+ [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+"""
+function class_positions_of_normal_subgroups(tbl::GAPGroupCharacterTable)
+    return Vector{Vector{Int}}(GAPWrap.ClassPositionsOfNormalSubgroups(GAPTable(tbl)))
+end
+
+
+@doc raw"""
     class_positions_of_center(tbl::GAPGroupCharacterTable)
 
-Return the array of integers ``i`` such that the ``i``-th conjugacy class
+Return the vector of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the center of the group $G$ of `tbl`,
 i.e., the ``i``-th class has length `1`.
 
@@ -1076,7 +1100,7 @@ end
 @doc raw"""
     class_positions_of_derived_subgroup(tbl::GAPGroupCharacterTable)
 
-Return the array of integers ``i`` such that the ``i``-th conjugacy class
+Return the vector of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the derived subgroup of the group $G$ of `tbl`.
 
 # Examples
@@ -1095,7 +1119,7 @@ end
 @doc raw"""
     class_positions_of_solvable_residuum(tbl::GAPGroupCharacterTable)
 
-Return the array of integers ``i`` such that the ``i``-th conjugacy class
+Return the vector of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the solvable residuum of the group $G$ of `tbl`,
 i.e., the smallest normal subgroup $N$ of $G$ such that the factor group
 $G/N$ is solvable.
@@ -1118,7 +1142,7 @@ end
 @doc raw"""
     class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 
-Return the array of integers ``i`` such that the ``i``-th conjugacy class
+Return the vector of integers ``i`` such that the ``i``-th conjugacy class
 of `tbl` is contained in the `p`-core of the group of `tbl`,
 see [`pcore(G::GAPGroup, p::IntegerUnion)`](@ref).
 
@@ -1245,6 +1269,41 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     return matrix(ZZ, GAPWrap.DecompositionMatrix(GAPTable(modtbl)))
 end
 
+
+@doc raw"""
+    quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
+
+Return the pair `(fact, proj)` where `fact` is the character table of the
+factor of `tbl` modulo the normal subgroup that is the normal closure of
+the conjugacy classes whose positions are listed in `nclasses`,
+and `proj` is the class fusion from `tbl` to `fact`.
+
+# Examples
+```jldoctest
+julia> t = character_table("2.A5");
+
+julia> n = class_positions_of_center(t);  println(n)
+[1, 2]
+
+julia> fact, proj = quo(t, n);
+
+julia> order(fact)
+60
+
+julia> println(proj)
+[1, 1, 2, 3, 3, 4, 4, 5, 5]
+```
+"""
+function quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
+  @req characteristic(tbl) == 0 "supported only for ordinary character tables"
+  gap_fact = GAPWrap.CharacterTableFactorGroup(GAPTable(tbl), GapObj(nclasses))
+  fact = GAPGroupCharacterTable(gap_fact, 0)
+  flag, fus = known_class_fusion(tbl, fact)
+  @assert flag
+  return fact, fus
+end
+
+
 @doc raw"""
     class_multiplication_coefficient(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable, i::Int, j::Int, k::Int) where T <: IntegerUnion
 
@@ -1335,8 +1394,8 @@ end
                            decompose::Bool = true,
                            fusionmap::Vector = [])
 
-Return the array of possible class fusions from `subtbl` to `tbl`.
-Each entry is an array of positive integers, where the value at position `i`
+Return the vector of possible class fusions from `subtbl` to `tbl`.
+Each entry is an vector of positive integers, where the value at position `i`
 is the position of the conjugacy class in `tbl` that contains the `i`-th class
 of `subtbl`.
 
@@ -1494,7 +1553,7 @@ end
 @doc raw"""
     names_of_fusion_sources(tbl::GAPGroupCharacterTable)
 
-Return the array of strings that are identifiers of those character tables
+Return the vector of strings that are identifiers of those character tables
 which store a class fusion to `tbl`,
 which must be an ordinary character table.
 
@@ -1552,8 +1611,10 @@ struct GAPGroupClassFunction <: GroupClassFunction
     values::GapObj
 end
 
+parent(chi::GAPGroupClassFunction) = chi.table
+
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "class_function($(chi.table), $(values(chi)))")
+    print(io, "class_function($(parent(chi)), $(values(chi)))")
 end
 
 function values(chi::GAPGroupClassFunction)
@@ -1561,9 +1622,9 @@ function values(chi::GAPGroupClassFunction)
     return [QQAbElem(x) for x in gapvalues]
 end
 
-group(chi::GAPGroupClassFunction) = group(chi.table)
+group(chi::GAPGroupClassFunction) = group(parent(chi))
 
-characteristic(chi::GAPGroupClassFunction) = characteristic(chi.table)
+characteristic(chi::GAPGroupClassFunction) = characteristic(parent(chi))
 
 function class_function(tbl::GAPGroupCharacterTable, values::GapObj)
     @req GAPWrap.IsClassFunction(values) "values must be a class function"
@@ -1774,15 +1835,15 @@ julia> length(Set(ind))
 """
 function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
   # If the class fusion is stored then use it.
-  known, fus = known_class_fusion(chi.table, tbl)
+  known, fus = known_class_fusion(parent(chi), tbl)
   known && return induce(chi, tbl, fus)
 
-  subtbl = chi.table
+  subtbl = parent(chi)
   if !(isdefined(tbl, :group) && isdefined(subtbl, :group))
     # If there is no stored group then let GAP try to find the result.
     fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
-    ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(chi.table),
+    ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(subtbl),
           GAPTable(tbl), GapObj([chi.values]), GapObj(fus))
     return GAPGroupClassFunction(tbl, ind[1])
   else
@@ -1792,7 +1853,7 @@ function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
 end
 
 function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, fusion::Vector{Int})
-  ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(chi.table),
+  ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(parent(chi)),
           GAPTable(tbl), GapObj([chi.values]), GapObj(fusion))
   return GAPGroupClassFunction(tbl, ind[1])
 end
@@ -1809,7 +1870,7 @@ function _induce(chi::GAPGroupClassFunction,
               tbl::GAPGroupCharacterTable,
               G_chi::GrpAbFinGen, G_tbl::GrpAbFinGen)
   H, emb = is_subgroup(G_chi, G_tbl)
-  Hreps = [emb(representative(C)) for C in conjugacy_classes(chi.table)]
+  Hreps = [emb(representative(C)) for C in conjugacy_classes(parent(chi))]
   Greps = [representative(C) for C in conjugacy_classes(tbl)]
   fus = [findfirst(x -> x == y, Greps) for y in Hreps]
   return induce(chi, tbl, fus)
@@ -1819,7 +1880,7 @@ end
 @doc raw"""
     induced_cyclic(tbl::GAPGroupCharacterTable)
 
-Return the array of permutation characters of `tbl` that are induced from
+Return the vector of permutation characters of `tbl` that are induced from
 cyclic subgroups.
 """
 function induced_cyclic(tbl::GAPGroupCharacterTable)
@@ -1851,10 +1912,10 @@ julia> length(Set(rest))
 """
 function restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
   # If the class fusion is stored then use it.
-  known, fus = known_class_fusion(subtbl, chi.table)
+  tbl = parent(chi)
+  known, fus = known_class_fusion(subtbl, tbl)
   known && return restrict(chi, subtbl, fus)
 
-  tbl = chi.table
   if !(isdefined(tbl, :group) && isdefined(subtbl, :group))
     # If there is no stored group then let GAP try to find the result.
     fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
@@ -1876,7 +1937,7 @@ end
 
 # If `GAPGroup` groups are stored then we let GAP try to find the result.
 function _restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable, G_chi::GAPGroup, G_tbl::GAPGroup)
-  tbl = chi.table
+  tbl = parent(chi)
   fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
   rest = GAPWrap.ELMS_LIST(chi.values, GapObj(fus))
   rest = GAPWrap.ClassFunction(GAPTable(subtbl), rest)
@@ -1890,7 +1951,7 @@ function _restrict(chi::GAPGroupClassFunction,
               G_chi::GrpAbFinGen, G_subtbl::GrpAbFinGen)
   H, emb = is_subgroup(G_subtbl, G_chi)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(subtbl)]
-  Greps = [representative(C) for C in conjugacy_classes(chi.table)]
+  Greps = [representative(C) for C in conjugacy_classes(parent(chi))]
   fus = [findfirst(x -> x == y, Greps) for y in Hreps]
   return restrict(chi, subtbl, fus)
 end
@@ -1924,40 +1985,39 @@ end
 
 # arithmetic with class functions
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-    @req chi.table === psi.table "character tables must be identical"
-#T check_parent?
+    @req parent(chi) === parent(psi) "character tables must be identical"
     return chi.values == psi.values
 end
 
 # Currently we cannot implement a `hash` method based on the values,
 # since `hash(::QQAbElem)` is based on `objectid`.
 function Base.hash(chi::GAPGroupClassFunction, h::UInt)
-  return Base.hash(chi.table, h)
+  return Base.hash(parent(chi), h)
 end
 
 function Base.:+(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-    @req chi.table === psi.table "character tables must be identical"
-    return GAPGroupClassFunction(chi.table, chi.values + psi.values)
+    @req parent(chi) === parent(psi) "character tables must be identical"
+    return GAPGroupClassFunction(parent(chi), chi.values + psi.values)
 end
 
-Base.:-(chi::GAPGroupClassFunction) = GAPGroupClassFunction(chi.table, - chi.values)
+Base.:-(chi::GAPGroupClassFunction) = GAPGroupClassFunction(parent(chi), - chi.values)
 
 function Base.:-(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-    @req chi.table === psi.table "character tables must be identical"
-    return GAPGroupClassFunction(chi.table, chi.values - psi.values)
+    @req parent(chi) === parent(psi) "character tables must be identical"
+    return GAPGroupClassFunction(parent(chi), chi.values - psi.values)
 end
 
 function Base.:*(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-    @req chi.table === psi.table "character tables must be identical"
-    return GAPGroupClassFunction(chi.table, chi.values * psi.values)
+    @req parent(chi) === parent(psi) "character tables must be identical"
+    return GAPGroupClassFunction(parent(chi), chi.values * psi.values)
 end
 
 function Base.zero(chi::GAPGroupClassFunction)
     val = QQAbElem(0)
-    return class_function(chi.table, [val for i in 1:length(chi)])
+    return class_function(parent(chi), [val for i in 1:length(chi)])
 end
 
-Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
+Base.one(chi::GAPGroupClassFunction) = trivial_character(parent(chi))
 
 @doc raw"""
     scalar_product(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
@@ -1975,8 +2035,8 @@ which does not hold for the scalar product of characters.
 scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(QQFieldElem, chi, psi)
 
 function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
-    @req chi.table === psi.table "character tables must be identical"
-    return T(GAPWrap.ScalarProduct(chi.table.GAPTable, chi.values, psi.values))::T
+    @req parent(chi) === parent(psi) "character tables must be identical"
+    return T(GAPWrap.ScalarProduct(GAPTable(parent(chi)), chi.values, psi.values))::T
 end
 
 
@@ -2005,7 +2065,7 @@ julia> coordinates(Int, chi)
  1
  1
 
-julia> t = chi.table;  t3 = mod(t, 3);  chi3 = restrict(chi, t3);
+julia> t = parent(chi);  t3 = mod(t, 3);  chi3 = restrict(chi, t3);
 
 julia> coordinates(Int, chi3)
 4-element Vector{Int64}:
@@ -2018,8 +2078,8 @@ julia> coordinates(Int, chi3)
 coordinates(chi::GAPGroupClassFunction) = coordinates(QQFieldElem, chi)
 
 function coordinates(::Type{T}, chi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
-    t = chi.table
-    GAPt = t.GAPTable
+    t = parent(chi)
+    GAPt = GAPTable(t)
     if characteristic(t) == 0
       # use scalar products for an ordinary character
       c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([chi.values]))
@@ -2061,11 +2121,11 @@ multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, n * chi.values)
+    return GAPGroupClassFunction(parent(chi), n * chi.values)
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(chi.table, chi.values ^ n)
+    return GAPGroupClassFunction(parent(chi), chi.values ^ n)
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2073,7 +2133,7 @@ function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
 end
 
 function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, GrpAbFinGenElem})
-    tbl = chi.table
+    tbl = parent(chi)
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
     pi = [findfirst(x -> x^g in c, reps) for c in ccl]
@@ -2095,7 +2155,7 @@ julia> println([findfirst(y -> y == conj(x), tbl) for x in tbl])
 ```
 """
 function conj(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, GAPWrap.GaloisCyc(chi.values, -1))
+    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(chi.values, -1))
 end
 
 @doc raw"""
@@ -2105,7 +2165,7 @@ Return the class function whose values are the images of the values of `chi`
 under `sigma`.
 """
 function (sigma::QQAbAutomorphism)(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, GAPWrap.GaloisCyc(chi.values, sigma.exp))
+    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(chi.values, sigma.exp))
 end
 
 Base.:^(chi::GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
@@ -2176,7 +2236,7 @@ end
 
 # Apply a class function to a group element.
 function(chi::GAPGroupClassFunction)(g::Union{GAPGroupElem, GrpAbFinGenElem})
-    tbl = chi.table
+    tbl = parent(chi)
 
     # Identify the conjugacy class of `g`.
     ccl = conjugacy_classes(tbl)
@@ -2191,7 +2251,7 @@ end
 @doc raw"""
     class_positions_of_kernel(chi::GAPGroupClassFunction)
 
-Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
+Return the vector of those integers `i` such that `chi[i] == chi[1]` holds.
 
 # Examples
 ```jldoctest
@@ -2230,7 +2290,7 @@ julia> C, f = kernel(chi);  order(C)
 ```
 """
 function kernel(chi::GAPGroupClassFunction)
-    tbl = chi.table
+    tbl = parent(chi)
     iso = isomorphism_to_GAP_group(tbl)
     GAP_K = GAPWrap.KernelOfCharacter(GAPTable(tbl), chi.values)
     return preimages(iso, GAP_K)
@@ -2239,7 +2299,7 @@ end
 @doc raw"""
     class_positions_of_center(chi::GAPGroupClassFunction)
 
-Return the array of those integers `i` such that `chi[i]` is `chi[1]` times
+Return the vector of those integers `i` such that `chi[i]` is `chi[1]` times
 a root of unity.
 
 # Examples
@@ -2272,7 +2332,7 @@ julia> C, f = center(chi);  order(C)
 ```
 """
 function center(chi::GAPGroupClassFunction)
-    tbl = chi.table
+    tbl = parent(chi)
     iso = isomorphism_to_GAP_group(tbl)
     C = GAPWrap.CentreOfCharacter(GAPTable(tbl), chi.values)
     return preimages(iso, C)
@@ -2295,7 +2355,7 @@ true
 """
 function det(chi::GAPGroupClassFunction)
     values = GAPWrap.DeterminantOfCharacter(chi.values)
-    return GAPGroupClassFunction(chi.table, values)
+    return GAPGroupClassFunction(parent(chi), values)
 end
 
 # Note that defining the determinantal order for arbitrary characters
@@ -2339,10 +2399,10 @@ julia> println([indicator(chi) for chi in tbl])
 ```
 """
 function indicator(chi::GAPGroupClassFunction, n::Int = 2)
-    tbl = chi.table
+    tbl = parent(chi)
     if characteristic(tbl) == 0
       # The indicator can be computed for any character.
-      ind = GAPWrap.Indicator(GAPTable(chi.table), GapObj([chi.values]), n)
+      ind = GAPWrap.Indicator(GAPTable(tbl), GapObj([chi.values]), n)
       return ind[1]::Int
     else
       # The indicator is defined only for `n = 2` and irreducible characters.
@@ -2518,7 +2578,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # `m` divides the multiplicity of `chi` in any rational character
     # with trivial Schur index.
     # - Consider permutation characters induced from cyclic subgroups.
-    tbl = chi.table
+    tbl = parent(chi)
     for psi in induced_cyclic(tbl)
       bound = gcd(bound, scalar_product(ZZRingElem, chi, psi))
       bound == 1 && return 1
@@ -2586,7 +2646,7 @@ For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 """
 function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    tbl = characters[1].table
+    tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.Symmetrizations(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
@@ -2601,7 +2661,7 @@ see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    tbl = characters[1].table
+    tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymmetricParts(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
@@ -2616,7 +2676,7 @@ see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    tbl = characters[1].table
+    tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.AntiSymmetricParts(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
@@ -2634,7 +2694,7 @@ see also [`symmetrizations`](@ref) and [`anti_symmetric_parts`](@ref).
 """
 function exterior_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `ExteriorPower` method becomes available then use it
-    tbl = chi.table
+    tbl = parent(chi)
     return class_function(tbl,
       GAPWrap.AntiSymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
 end
@@ -2651,7 +2711,7 @@ see also [`symmetrizations`](@ref) and [`symmetric_parts`](@ref).
 """
 function symmetric_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `SymmetricPower` method becomes available then use it
-    tbl = chi.table
+    tbl = parent(chi)
     return class_function(tbl,
       GAPWrap.SymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
 end
@@ -2668,7 +2728,7 @@ characters with Frobenius-Schur indicator +1, see [`indicator`](@ref).
 function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
     @req (2 <= n && n <= 6) "the second ergument must be in 2:6"
     length(characters) == 0 && return eltype(typeof(characters))[]
-    tbl = characters[1].table
+    tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.OrthogonalComponents(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]
@@ -2686,7 +2746,7 @@ characters with Frobenius-Schur indicator -1, see [`indicator`](@ref).
 function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
     @req (2 <= n && n <= 6) "the second ergument must be in 2:6"
     length(characters) == 0 && return eltype(typeof(characters))[]
-    tbl = characters[1].table
+    tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymplecticComponents(GAPTable(tbl),
                          GAP.GapObj([chi.values for chi in characters]), n)]

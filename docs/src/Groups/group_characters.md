@@ -89,6 +89,10 @@ Ordinary and ``p``-modular Brauer tables in OSCAR are distinguished by
 their [`characteristic(tbl::GAPGroupCharacterTable)`](@ref);
 its value is `0` for ordinary tables and ``p`` otherwise.
 
+The character table to which a character `chi` belongs
+can be fetched as `parent(chi)`.
+
+
 ```@docs
 GAPGroupCharacterTable
 character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
@@ -97,6 +101,7 @@ character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
+quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
 ```
 
@@ -224,6 +229,7 @@ class_positions_of_center(chi::GAPGroupClassFunction)
 class_positions_of_derived_subgroup
 kernel(chi::GAPGroupClassFunction)
 class_positions_of_kernel
+class_positions_of_normal_subgroups
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 class_positions_of_solvable_residuum
