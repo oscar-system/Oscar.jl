@@ -80,7 +80,6 @@ To facilitate the interplay between an `AbsProjectiveScheme` and the affine char
 `covered_scheme` we provide the following methods:
 ```@docs
     dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
-    dehomogenization_map(X::AbsProjectiveScheme, i::Int)
     homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
 ```
 

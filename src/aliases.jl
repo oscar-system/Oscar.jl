@@ -56,7 +56,7 @@ Base.@deprecate_binding issemiregular is_semiregular
 Base.@deprecate_binding issemisimple is_semisimple
 Base.@deprecate_binding issimplicial is_simplicial
 Base.@deprecate_binding issingular is_singular
-Base.@deprecate_binding issmooth_curve is_smooth_curve
+#Base.@deprecate_binding issmooth_curve is_smooth_curve
 Base.@deprecate_binding issolvable is_solvable
 Base.@deprecate_binding issupersolvable is_supersolvable
 Base.@deprecate_binding istransitive is_transitive

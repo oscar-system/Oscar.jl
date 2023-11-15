@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.PlaneCurveModule
 DocTestSetup = quote
   using Oscar
 end
@@ -43,7 +43,7 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 
 #### Example
 
-```jldoctest
+```julia
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
@@ -107,7 +107,7 @@ rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}
 
 Projective elliptic curves over a ring are for example used in the Elliptic Curve Method. We give here an example (see Example 7.1 of [Was08](@cite)) on how to use the previous functions to apply it. 
 
-```jldoctest
+```julia
 julia> n = 4453
 4453
 

@@ -147,7 +147,7 @@ infinity point. If no point is specified it is expected that `eq` is in
 Weierstrass form, and the infinity point is `(0:1:0)`.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -262,7 +262,7 @@ Return the equation of a projective elliptic curve defined by an equation in
 Weierstrass form and which is linearly equivalent to `E`.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -341,7 +341,7 @@ end
 Create the point `P` on the elliptic curve `E`.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -552,7 +552,7 @@ return an elliptic curve birationally equivalent to `C` given by an equation in
 long Weierstrass form.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 

@@ -19,10 +19,23 @@ coordinates(p::ProjectiveRationalPoint) = p.coordinates
 
 homogeneous_coordinates(p::AbsProjectiveRationalPoint) = coordinates(p)
 
+function dehomogenization(p::AbsProjectiveRationalPoint, i::Int)
+  c = coordinates(p)
+  s = inv(c[i])
+  w = weights(codomain(p))
+  any(x->!isone(x), w) && error("cannot dehomogenize with weights")
+  return [s*c[j] for j in 1:length(c) if j!=i]
+end
+
 function (X::AbsProjectiveScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
   return ProjectiveRationalPoint(rational_point_set(X), coordinates; check=check)
+end
+
+function (X::AbsProjectiveScheme)(p::AbsProjectiveRationalPoint; check::Bool=true)
+  codomain(p) === X && return p
+  return X(coordinates(p); check=check)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveRationalPoint)
@@ -64,7 +77,10 @@ function ideal(P::AbsProjectiveRationalPoint)
   while iszero(P[i])
     i = i+1
   end
-  for j in i+1:n
+  for j in 1:n
+    if i==j
+      continue
+    end
     push!(m, P[i]^w[j]*V[j]^w[i] - P[j]^w[i]*V[i]^w[j])
   end
   return ideal(R, m)
@@ -121,12 +137,16 @@ function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRat
   return ProjectiveRationalPoint(codomain(f), imgs, check=false)
 end
 
-function is_smooth_at(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalPoint)
+function is_smooth(X::AbsProjectiveScheme{<:Field}, P::AbsProjectiveRationalPoint)
   @req P in X "not a point on X"
-  error("not implemented")
+  X = codomain(P)
+  S = standard_covering(X)
+  i = findfirst(!iszero,coordinates(P))
+  U = S[i]
+  return is_smooth(U,U(dehomogenization(P,i)))
 end
 
-is_smooth(P::AbsProjectiveRationalPoint) = is_smooth_at(codomain(P),P)
+is_smooth(P::AbsProjectiveRationalPoint) = is_smooth(codomain(P),P)
 
 function _is_projective(a::Vector{T}) where {T <: AbstractAlgebra.FieldElem}
   return !all(iszero, a)
