@@ -336,7 +336,7 @@ function construct_category(p::Vector, n::Int, tracing::Bool = false, max_artifi
     trace = Dict()
 
     # compare allowed expansion size with max(n, max_length)
-    max_length::Int = max(n, maximum(size(i) for i in p))
+    max_length = max(n, maximum(size(i) for i in p))
 
     if max_artificial > 0
         max_length = max(max_length, max_artificial)

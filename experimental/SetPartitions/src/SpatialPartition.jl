@@ -80,7 +80,7 @@ This function applies composition between p and q.
 - `q`: Second input partition
 
 # Returns
-- ()`p` composition `q`, number of loops)
+- (`p` composition `q`, number of loops)
 """
 function composition_loops(p::SpatialPartition, q::SpatialPartition)
 
