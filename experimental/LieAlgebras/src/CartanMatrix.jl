@@ -366,8 +366,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
           for i in roots
             j = adj[i][1]
             if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
-              if length(adj[j]) == 1 ||
-                (length(adj[j]) == 2 && gcm[j, adj[j][2]] * gcm[adj[j][2], j] == 1)
+              if length(adj[j]) == 1 || (length(adj[j]) == 2 && gcm[j, adj[j][2]] == -1)
                 v = i
                 break
               elseif v == 0

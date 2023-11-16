@@ -135,7 +135,7 @@
 
     # Dn
     @test cartan_type(cartan_matrix(:D, 4); check=false) == [(:D, 4)]
-    @test cartan_type(ZZ[2 -1 -1 -1; -1 2 0 0; -1 0 2 0; -1 0 0 2])
+    @test cartan_type(ZZ[2 -1 -1 -1; -1 2 0 0; -1 0 2 0; -1 0 0 2]) == [(:D, 4)]
     @test cartan_type(cartan_matrix(:D, 6); check=false) == [(:D, 6)]
 
     @test cartan_type(cartan_matrix(:E, 6); check=false) == [(:E, 6)]
@@ -201,7 +201,7 @@
     _, ord = cartan_type_with_ordering(cartan_matrix(:F, 4))
     @test ord == [1, 2, 3, 4]
 
-    _, ord = cartan_type_with_ordering(ZZ[2 -1 0 0; -1 2 -1 0; 0 -2 2 -1; 0 0 -1 2])
+    _, ord = cartan_type_with_ordering(ZZ[2 -1 0 0; -1 2 -2 0; 0 -1 2 -1; 0 0 -1 2])
     @test ord == [4, 3, 2, 1]
 
     # G2
