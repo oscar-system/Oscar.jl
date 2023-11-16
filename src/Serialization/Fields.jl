@@ -426,12 +426,9 @@ end
 ################################################################################
 # Field Embeddings
 
-const FieldEmbeddingTypes = Union{Hecke.NumFieldEmbNfAbs, Hecke.NumFieldEmbNfRel}
-
 @register_serialization_type Hecke.NumFieldEmbNfAbs  uses_id
-@register_serialization_type Hecke.NumFieldEmbNfRel uses_id
 
-function save_object(s::SerializerState, E::FieldEmbeddingTypes)
+function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   K = number_field(E)
   g = gen(K)
   g_ball = E(g)
@@ -442,11 +439,30 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
   K = load_typed_object(s, dict[:num_field])
   gen_ball = load_typed_object(s, dict[:gen_ball])
 
   return complex_embedding(K, gen_ball)
+end
+
+@register_serialization_type Hecke.NumFieldEmbNfRel uses_id
+
+function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfRel)
+  K = number_field(E)
+  ind = Hecke._absolute_index(E)
+
+  save_data_dict(s) do
+    save_typed_object(s, K, :num_field)
+    save_typed_object(s, ind, :absolute_index)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfRel}, dict::Dict)
+  K = load_typed_object(s, dict[:num_field])
+  ind = load_typed_object(s, dict[:absolute_index])
+
+  return complex_embeddings(K)[ind]
 end
 
 const FieldEmbeddingNSTypes = Union{Hecke.NumFieldEmbNfAbsNS, Hecke.NumFieldEmbNfNS}
