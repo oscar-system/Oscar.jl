@@ -1,11 +1,17 @@
 module SetPartitions
 
-import Base: hash, ==, copy
+import Base: 
+    hash, 
+    ==, 
+    copy
 
 import Oscar:
     involution,
     tensor_product,
-    size
+    size,
+    *,
+    ⊗,
+    adjoint
 
 export SetPartition
 export ColoredPartition
@@ -21,6 +27,10 @@ export is_noncrossing
 export construct_category
 export get_trace
 export size
+export *
+export ⊗
+export ⋅
+export adjoint
 
 include("AbstractPartition.jl")
 include("Util.jl")
@@ -47,3 +57,7 @@ export is_noncrossing
 export construct_category
 export get_trace
 export size
+export *
+export ⊗
+export ⋅
+export adjoint

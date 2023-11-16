@@ -10,13 +10,17 @@ function composition(p::T, q::T) where {T <: AbstractPartition}
 end
 
 function ⋅(p::T, q::T) where {T <: AbstractPartition}
-    composition_loops(p, q)[1]
+    composition(p, q)
+end
+
+function *(p::T, q::T) where {T <: AbstractPartition}
+    composition(p, q)
 end
 
 function ⊗(p::T, q::T) where {T <: AbstractPartition}
     tensor_product(p, q)
 end
 
-function *(p::AbstractPartition)
+function adjoint(p::AbstractPartition)
     involution(p)
 end

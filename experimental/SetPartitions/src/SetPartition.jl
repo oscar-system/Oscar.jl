@@ -4,7 +4,7 @@
 Initialize SetPartition object, while transforming object to "normal form". 
 
 # Examples
-```julia-repl
+```jldoctest
 julia> SetPartition([2, 4], [4, 99])
 SetPartition([1, 2], [2, 3])
 ```
@@ -42,7 +42,7 @@ end
 Apply and return tensor product of `p` and `q` and return result.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> tensor_product(SetPartition([1, 2], [2, 1]), SetPartition([1, 1], [1]))
 SetPartition([1, 2, 3, 3], [2, 1, 3])
 ```
@@ -59,7 +59,7 @@ end
 Apply and return involution of `p` and return result.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> involution(SetPartition([1, 2, 3], [2, 1]))
 SetPartition([1, 2], [2, 1, 3])
 ```
@@ -76,7 +76,7 @@ end
 Apply and return vertical reflection of `p` and return result.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> vertical_reflection(SetPartition([1, 2, 3], [2, 1]))
 SetPartition([1, 2, 3], [3, 2])
 ```
@@ -98,7 +98,7 @@ Apply and return a rotation of `p` and return result.
 - `tb`: tb whether top (true) or bottom (false) rotation
 
 # Examples
-```julia-repl
+```jldoctest
 julia> rotation(SetPartition([1, 2, 3], [2, 1]), true, true)
 SetPartition([1, 2], [3, 1, 3])
 ```
