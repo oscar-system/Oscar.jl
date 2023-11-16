@@ -317,8 +317,9 @@ function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = n
         # depending on the type, :params is either an object to be loaded or a
         # dict with keys and object values to be loaded
         # dict[type_key][:params] this can be found from state
-        
-        params = load_type_params(s, T)
+        params = load_node(s, type_key) do _
+          load_type_params(s, T)
+        end
       end
       load_node(s, :data) do _
         return load_object(s, T, params)

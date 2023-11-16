@@ -41,10 +41,8 @@ function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion})
-  load_node(s, type_key) do _
-    load_node(s, :params) do _
+  load_node(s, :params) do _
       return load_typed_object(s)
-    end
   end
 end
 
