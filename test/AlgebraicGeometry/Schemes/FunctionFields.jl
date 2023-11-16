@@ -3,7 +3,7 @@
   @test is_irreducible(Spec(R))
   @test is_irreducible(Spec(R, ideal(R, x)))
   @test !is_irreducible(Spec(R, ideal(R, x*y)))
-  @test is_irreducible(Spec(Localization(R, units_of(R))[1]))
+  @test is_irreducible(Spec(localization(R, units_of(R))[1]))
   @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
@@ -25,8 +25,7 @@ end
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  S, _ = grade(R, [1, 1])
+  S, _ = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 

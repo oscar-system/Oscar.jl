@@ -3,7 +3,7 @@ q = x^2 + 3//4
 K, a = number_field(q)
 Z7 = residue_ring(ZZ, 7)
 Z7t, t = polynomial_ring(Z7, "t")
-Fin, d = FiniteField(t^2 + t + 1)
+Fin, d = finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 
 cases = [
@@ -33,6 +33,13 @@ end
 
 @testset "Matrices" begin
   mktempdir() do path
+    @testset "Empty Matrix" begin
+      m = zero_matrix(ZZ, 0, 2)
+      test_save_load_roundtrip(path, m) do loaded
+        @test test_equality(m, loaded)
+      end
+    end
+    
     for case in cases
       @testset "Matrices over $(case[1])" begin
         m = matrix(case[1], case[2])

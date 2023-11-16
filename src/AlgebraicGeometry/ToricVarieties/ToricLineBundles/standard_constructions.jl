@@ -11,7 +11,7 @@ For convenience, we also support `structure_sheaf(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> structure_sheaf(v)
 Toric line bundle on a normal toric variety
@@ -29,7 +29,7 @@ For convenience, we also support `anticanonical_bundle(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> anticanonical_bundle(v)
 Toric line bundle on a normal toric variety
@@ -47,7 +47,7 @@ For convenience, we also support `canonical_bundle(variety)`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> canonical_bundle(v)
 Toric line bundle on a normal toric variety

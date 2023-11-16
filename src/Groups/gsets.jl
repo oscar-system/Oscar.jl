@@ -278,7 +278,7 @@ Return the G-set that consists of the elements `fun(omega, g)` where
 # Examples
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> Omega = gset(G, [1, 5]);
 
@@ -340,7 +340,7 @@ Return the vector of transitive G-sets in `Omega`.
 # Examples
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> orbs = orbits(gset(G));
 
@@ -370,7 +370,7 @@ Return the orbits of the natural G-set of `G`.
 # Examples
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> orbs = orbits(G);
 
@@ -457,10 +457,9 @@ julia> G = symmetric_group(6);
 julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
 
 julia> acthom = action_homomorphism(Omega)
-Group homomorphism from 
-Sym( [ 1 .. 6 ] )
-to
-Sym( [ 1 .. 15 ] )
+Group homomorphism
+  from permutation group of degree 6 and order 720
+  to permutation group of degree 15 and order 1307674368000
 
 julia> g = gen(G, 1)
 (1,2,3,4,5,6)
@@ -530,7 +529,7 @@ and `false` otherwise.
 # Examples
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> Omega = gset(G);
 
@@ -556,7 +555,7 @@ If not, return `false, nothing`.
 # Examples
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+Permutation group of degree 6 and order 16
 
 julia> Omega = gset(G);
 
@@ -643,7 +642,7 @@ An exception is thrown if this action is not transitive.
 # Examples
 ```jldoctest
 julia> g = sylow_subgroup(symmetric_group(4), 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4) ])
+Permutation group of degree 4 and order 8
 
 julia> collect(blocks(g))
 2-element Vector{Vector{Int64}}:
@@ -673,7 +672,7 @@ An exception is thrown if this action is not transitive.
 # Examples
 ```jldoctest
 julia> G = transitive_group(8, 2)
-4[x]2
+Permutation group of degree 8
 
 julia> collect(maximal_blocks(G))
 2-element Vector{Vector{Int64}}:
@@ -704,7 +703,7 @@ An exception is thrown if this action is not transitive.
 # Examples
 ```jldoctest
 julia> G = transitive_group(8, 2)
-4[x]2
+Permutation group of degree 8
 
 julia> minimal_block_reps(G)
 3-element Vector{Vector{Int64}}:
@@ -729,7 +728,7 @@ for the action of `G` on the set of moved points of `G`.
 # Examples
 ```jldoctest
 julia> G = transitive_group(8, 2)
-4[x]2
+Permutation group of degree 8
 
 julia> all_blocks(G)
 6-element Vector{Vector{Int64}}:
@@ -763,13 +762,13 @@ julia> G = symmetric_group(4); rank_action(G)  # 4-transitive
 2
 
 julia> H = sylow_subgroup(G, 2)[1]
-Group([ (1,2), (3,4), (1,3)(2,4) ])
+Permutation group of degree 4 and order 8
 
 julia> rank_action(H)  # not 2-transitive
 3
 
 julia> K = stabilizer(G, 1)[1]
-Group([ (2,4,3), (3,4) ])
+Permutation group of degree 4 and order 6
 
 julia> rank_action(K, 2:4)  # 2-transitive
 2
@@ -863,9 +862,9 @@ julia> G = alternating_group(6);
 
 julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
 3-element Vector{PermGroup}:
- Group([ (1,2)(3,4), (1,2)(5,6), (1,3,5)(2,4,6), (1,3)(2,4) ])
- Group([ (1,2,3), (4,5,6), (1,2)(4,5), (1,5,2,4)(3,6) ])
- PSL(2,5)
+ Permutation group of degree 6 and order 24
+ Permutation group of degree 6 and order 36
+ Permutation group of degree 6 and order 60
 
 julia> [(order(H), is_primitive(H)) for H in mx]
 3-element Vector{Tuple{ZZRingElem, Bool}}:
@@ -889,7 +888,7 @@ Return whether the action of `G` on `L` is regular
 julia> G = symmetric_group(6);
 
 julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
-Group([ (1,2,3,4,5,6) ])
+Permutation group of degree 6
 
 julia> is_regular(H)
 true
@@ -913,7 +912,7 @@ Return whether the action of `G` on `L` is semiregular
 julia> G = symmetric_group(6);
 
 julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
-Group([ (1,2,3)(4,5,6) ])
+Permutation group of degree 6
 
 julia> is_semiregular(H)
 true

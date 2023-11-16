@@ -1,5 +1,5 @@
 @testset "Presentation as affine algebra" begin
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
 
@@ -14,7 +14,7 @@
   @test is_injective(AtoR)
 
   # [KS99, Example 17.7]
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M = matrix(K, 2, 2, [ a, 0, 0, a ])
   for algo in [ :groebner_basis, :linear_algebra ]
     RG = invariant_ring(M)

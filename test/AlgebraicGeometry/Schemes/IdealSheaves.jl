@@ -2,8 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  S, _ = grade(R, [1, 1])
+  S, _ = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 
@@ -185,4 +184,15 @@ end
   J = IdealSheaf(IP2, [z^2])
 
   @test J == saturation(I*J, I)
+end
+
+@testset "pushforward of ideal sheaves" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  II = IdealSheaf(IP2, ideal(S, [x, y]))
+  bl = blow_up(II)
+  E = ideal_sheaf(exceptional_divisor(bl))
+  JJ = pushforward(bl, E)
+  @test JJ == II
 end

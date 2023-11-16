@@ -128,7 +128,7 @@ function load_object(s::DeserializerState,
     # the order in the symbols reflects the grading
     return graded_polynomial_ring(base_ring, symbols)[1]
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return LaurentPolynomialRing(base_ring, symbols, cached=false)[1]
+    return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
   end
   return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
@@ -259,7 +259,7 @@ const IdealUnionType = Union{MPolyIdeal, LaurentMPolyIdeal, FreeAssAlgIdeal}
 function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    ref = save_as_ref(s, parent(gens(x)[1]))
+    ref = save_as_ref(s, base_ring(x))
     save_object(s, ref, :params)
   end
 end
@@ -323,6 +323,9 @@ function load_object(s::DeserializerState, ::Type{<:MatElem},
     m = load_object(s, Matrix, entries, (T, params))
   else
     m = load_object(s, Matrix, entries, T)
+  end
+  if isempty(m)
+    return parent()
   end
   return parent(m)
 end
@@ -570,3 +573,61 @@ function load_object(s::DeserializerState, ::Type{<: Union{Generic.LaurentSeries
   scale = parse(Int, dict[:scale])
   return parent_ring(loaded_terms, pol_length, precision, valuation, scale)
 end
+
+### Affine algebras
+@register_serialization_type MPolyQuoRing uses_id
+
+function save_object(s::SerializerState, A::MPolyQuoRing)
+  save_data_dict(s) do # Saves stuff in a JSON dictionary. This opens a `{`, puts stuff 
+                       # inside there for the various keys and then closes it with `}`.
+                       # It's not using Julia Dicts.
+    save_typed_object(s, modulus(A), :modulus)
+    save_typed_object(s, ordering(A), :ordering) # Does this already serialize???
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, dict::Dict)
+  I = load_typed_object(s, dict[:modulus]) 
+  R = base_ring(I)
+  o = load_typed_object(s, dict[:ordering])
+  return MPolyQuoRing(R, I, o)
+end
+
+### Serialization of Monomial orderings
+@register_serialization_type MonomialOrdering
+
+function save_object(s::SerializerState, o::MonomialOrdering)
+  save_data_dict(s) do
+    save_typed_object(s, base_ring(o), :ring)
+    save_typed_object(s, o.o, :internal_ordering) # TODO: Is there a getter for this?
+    if isdefined(o, :is_total)
+      save_typed_object(s, o.is_total, :is_total)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{MonomialOrdering}, dict::Dict)
+  the_ring = load_typed_object(s, dict[:ring])
+  the_ordering = load_typed_object(s, dict[:internal_ordering])
+  result = MonomialOrdering(the_ring, the_ordering)
+  if haskey(dict, :is_total)
+    result.is_total = load_typed_object(s, dict[:is_total])
+  end
+  return result
+end
+
+@register_serialization_type Orderings.SymbOrdering
+
+function save_object(s::SerializerState, o::Orderings.SymbOrdering{S}) where {S}
+  save_data_dict(s) do
+    save_typed_object(s, S, :ordering_symbol_as_type)
+    save_typed_object(s, o.vars, :vars) # TODO: Is there a getter?
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering}, dict::Dict)
+  S = load_typed_object(s, dict[:ordering_symbol_as_type])
+  vars = load_typed_object(s, dict[:vars])
+  return Orderings.SymbOrdering(S, vars)
+end
+

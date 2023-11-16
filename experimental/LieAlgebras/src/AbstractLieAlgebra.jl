@@ -1,16 +1,19 @@
-@attributes mutable struct AbstractLieAlgebra{C<:RingElement} <: LieAlgebra{C}
-  R::Ring
+@attributes mutable struct AbstractLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
+  R::Field
   dim::Int
   struct_consts::Matrix{SRow{C}}
   s::Vector{Symbol}
 
+  # only set if known
+  root_system::RootSystem
+
   function AbstractLieAlgebra{C}(
-    R::Ring,
+    R::Field,
     struct_consts::Matrix{SRow{C}},
     s::Vector{Symbol};
     cached::Bool=true,
     check::Bool=true,
-  ) where {C<:RingElement}
+  ) where {C<:FieldElem}
     return get_cached!(
       AbstractLieAlgebraDict, (R, struct_consts, s), cached
     ) do
@@ -45,10 +48,10 @@
 end
 
 const AbstractLieAlgebraDict = CacheDictType{
-  Tuple{Ring,Matrix{SRow},Vector{Symbol}},AbstractLieAlgebra
+  Tuple{Field,Matrix{SRow},Vector{Symbol}},AbstractLieAlgebra
 }()
 
-struct AbstractLieAlgebraElem{C<:RingElement} <: LieAlgebraElem{C}
+struct AbstractLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::AbstractLieAlgebra{C}
   mat::MatElem{C}
 end
@@ -59,16 +62,61 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:RingElement} =
-  AbstractLieAlgebra{C}
+parent_type(::Type{AbstractLieAlgebraElem{C}}) where {C<:FieldElem} = AbstractLieAlgebra{C}
 
-elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:RingElement} = AbstractLieAlgebraElem{C}
+elem_type(::Type{AbstractLieAlgebra{C}}) where {C<:FieldElem} = AbstractLieAlgebraElem{C}
 
 parent(x::AbstractLieAlgebraElem) = x.parent
 
-coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:RingElement} = L.R::parent_type(C)
+coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra) = L.dim
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(L::LieAlgebra) = isdefined(L, :root_system)
+
+function root_system(L::LieAlgebra)
+  @req has_root_system(L) "No root system known."
+  return L.root_system
+end
+
+has_root_system_type(L::AbstractLieAlgebra) =
+  has_root_system(L) && has_root_system_type(L.root_system)
+
+function root_system_type(L::AbstractLieAlgebra)
+  @req has_root_system_type(L) "No root system type known."
+  return root_system_type(root_system(L))
+end
+
+function root_system_type_string(L::AbstractLieAlgebra)
+  @req has_root_system_type(L) "No root system type known."
+  return root_system_type_string(root_system(L))
+end
+
+@doc raw"""
+    chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
+
+Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
+then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
+to the order of the roots in the root system.
+"""
+function chevalley_basis(L::AbstractLieAlgebra)
+  @req has_root_system(L) "No root system known."
+
+  npos = num_positive_roots(root_system(L))
+  b = basis(L)
+  # root vectors
+  r_plus = b[1:npos]
+  r_minus = b[(npos + 1):(2 * npos)]
+  # basis for cartan algebra
+  h = b[(2 * npos + 1):dim(L)]
+  return (r_plus, r_minus, h)
+end
 
 ###############################################################################
 #
@@ -80,6 +128,8 @@ function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
+  has_root_system_type(L) &&
+    println(io, Indent(), "of type $(root_system_type_string(L))", Dedent())
   print(io, "over ")
   print(io, Lowercase(), coefficient_ring(L))
 end
@@ -114,7 +164,7 @@ end
 
 function bracket(
   x::AbstractLieAlgebraElem{C}, y::AbstractLieAlgebraElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
   mat = sum(
@@ -142,7 +192,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Ring, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -159,18 +209,18 @@ such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
   satisfy the Jacobi identity. This is `true` by default.
 """
 function lie_algebra(
-  R::Ring,
+  R::Field,
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
   cached::Bool=true,
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
   return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
 end
 
 @doc raw"""
-    lie_algebra(R::Ring, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -224,12 +274,12 @@ julia> h * f
 ```
 """
 function lie_algebra(
-  R::Ring,
+  R::Field,
   struct_consts::Array{C,3},
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
   cached::Bool=true,
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
   struct_consts2 = Matrix{SRow{elem_type(R)}}(
     undef, size(struct_consts, 1), size(struct_consts, 2)
@@ -245,7 +295,7 @@ end
 
 function lie_algebra(
   basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   parent_L = parent(basis[1])
   @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)
@@ -265,29 +315,80 @@ function lie_algebra(
 end
 
 @doc raw"""
-    lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the simple Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
-The actual construction is done in GAP.
+The internally used basis of this Lie algebra is the Chevalley basis.
 
 If `cached` is `true`, the constructed Lie algebra is cached.
 """
-function lie_algebra(R::Ring, dynkin::Tuple{Char,Int}; cached::Bool=true)
-  @req dynkin[1] in 'A':'G' "Unknown Dynkin type"
+function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
+  rs = root_system(S, n)
+  cm = cartan_matrix(rs)
+  @req is_cartan_matrix(cm; generalized=false) "The type does not correspond to a classical root system"
 
+  npos = num_positive_roots(rs)
+  nsimp = num_simple_roots(rs)
+  n = 2 * npos + nsimp
+
+  #=
+  struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
+  for i in 1:npos, j in 1:npos
+    # [x_i, x_j]
+    fl, k = is_positive_root_with_index(positive_root(rs, i) + positive_root(rs, j))
+    struct_consts[i, j] = fl ? sparse_row(R, [k], [1]) : sparse_row(R)
+    # [x_i, y_j] = δ_ij h_i
+    struct_consts[i, npos + j] = i == j ? sparse_row(R, [2 * npos + i], [1]) : sparse_row(R)
+    # [y_j, x_i] = -[x_i, y_j]
+    struct_consts[npos + j, i] = -struct_consts[i, npos + j]
+    # [y_i, y_j]
+    fl, k = is_negative_root_with_index(negative_root(rs, i) + negative_root(rs, j))
+    struct_consts[npos + i, npos + j] = fl ? sparse_row(R, [npos + k], [1]) : sparse_row(R)
+  end
+  for i in 1:nsimp, j in 1:npos
+    # [h_i, x_j] = <α_j, α_i> x_j
+    struct_consts[2 * npos + i, j] = sparse_row(R, [j], [cm[j, i]])
+    # [h_i, y_j] = - <α_j, α_i> y_j
+    struct_consts[2 * npos + i, npos + j] = sparse_row(R, [npos + j], [-cm[j, i]])
+    # [x_j, h_i] = -[h_i, x_j]
+    struct_consts[j, 2 * npos + i] = -struct_consts[2 * npos + i, j]
+    # [y_j, h_i] = -[h_i, y_j]
+    struct_consts[npos + j, 2 * npos + i] = -struct_consts[2 * npos + i, npos + j]
+  end
+  for i in 1:nsimp, j in 1:nsimp
+    # [h_i, h_j] = 0
+    struct_consts[2 * npos + i, 2 * npos + j] = sparse_row(R)
+  end
+
+  s = [
+    [Symbol("x_$i") for i in 1:npos]
+    [Symbol("y_$i") for i in 1:npos]
+    [Symbol("h_$i") for i in 1:nsimp]
+  ]
+
+  L = lie_algebra(R, struct_consts, s; cached, check=true) # TODO: remove check
+  =#
+
+  # start temporary workaround # TODO: reenable code above
+  type = only(root_system_type(rs))
   coeffs_iso = inv(Oscar.iso_oscar_gap(R))
-  LG = GAP.Globals.SimpleLieAlgebra(
-    GAP.Obj(string(dynkin[1])), dynkin[2], domain(coeffs_iso)
-  )
-  s = [Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)]
-  LO = codomain(
+  LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(string(type[1])), type[2], domain(coeffs_iso))
+  @req GAPWrap.Dimension(LG) == n "Dimension mismatch. Something went wrong."
+  s = [
+    [Symbol("x_$i") for i in 1:npos]
+    [Symbol("y_$i") for i in 1:npos]
+    [Symbol("h_$i") for i in 1:nsimp]
+  ]
+  L = codomain(
     _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso, cached)
   )::AbstractLieAlgebra{elem_type(R)}
+  # end temporary workaround
 
-  return LO
+  set_attribute!(L, :is_simple, true)
+  return L
 end
 
-function abelian_lie_algebra(::Type{T}, R::Ring, n::Int) where {T<:AbstractLieAlgebra}
+function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:AbstractLieAlgebra}
   @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
   s = ["x_$(i)" for i in 1:n]

@@ -74,14 +74,14 @@ function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{Tor
     end
   end
 
-  total_rays_gens = vcat([modified_ray_gens[ray] for ray in rays(v)], [vcat(RayVector(zeros(Int64, dim(v))), l[i]) for i in eachindex(E)])
+  total_rays_gens = vcat([modified_ray_gens[ray] for ray in rays(v)], [vcat(ray_vector(zeros(Int64, dim(v))), l[i]) for i in eachindex(E)])
 
   return normal_toric_variety(polyhedral_fan(total_rays_gens, IncidenceMatrix(new_maximal_cones)))
 end
 
 function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Union{ToricDivisor, ToricLineBundle})::RayVector{QQFieldElem}
 
-  ans = RayVector(zeros(QQFieldElem, dim(sigma)))
+  ans = ray_vector(zeros(QQFieldElem, dim(sigma)))
   coeff = coefficients(isa(D, ToricDivisor) ? D : toric_divisor(D))
 
   dual_ray = QQFieldElem[]

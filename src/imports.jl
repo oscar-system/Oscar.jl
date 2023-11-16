@@ -2,6 +2,7 @@
 using Pkg
 using Random
 using RandomExtensions
+using UUIDs
 
 # our packages
 import AbstractAlgebra

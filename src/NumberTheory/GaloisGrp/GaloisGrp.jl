@@ -6,6 +6,8 @@ import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
               upper_bound
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
+import Oscar: pretty, LowercaseOff
+
 export cauchy_ideal
 export elementary_symmetric
 export fixed_field
@@ -416,7 +418,7 @@ mutable struct GaloisCtx{T}
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
     r.prime = (shft, p)
-    Qt, t = RationalFunctionField(QQ, "t", cached = false)
+    Qt, t = rational_function_field(QQ, "t", cached = false)
     Qts, s = polynomial_ring(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
@@ -475,7 +477,7 @@ mutable struct ComplexRootCtx
   pr::Int
   rt::Vector{acb}
   function ComplexRootCtx(f::ZZPolyRingElem)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(AcbField(20), f)
     return new(f, 20, rt)
   end
@@ -485,7 +487,7 @@ mutable struct ComplexRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{ComplexRootCtx})
-  print(io, "Galois Context for $(GC.f) using complex roots\n")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) using complex roots")
 end
 
 function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = false)
@@ -540,12 +542,12 @@ mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
   rt::Vector{nf_elem}
   function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
-    @assert ismonic(f)
+    @assert is_monic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
-    @assert ismonic(f)
+    @assert is_monic(f)
     rt = roots(f, field)
     return new(f, rt)
   end
@@ -556,7 +558,7 @@ mutable struct SymbolicRootCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx{SymbolicRootCtx})
-  print(io, "Galois Context for $(GC.f) using symbolic roots\n")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) using symbolic roots")
 end
 
 function Hecke.roots(C::GaloisCtx{SymbolicRootCtx}, ::Int; raw::Bool = false)
@@ -581,7 +583,7 @@ end
 
 function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
   @assert nvars(parent(f)) == 2
-  Qs, s = RationalFunctionField(FlintQQ, "t", cached = false)
+  Qs, s = rational_function_field(FlintQQ, "t", cached = false)
   Qsx, x = polynomial_ring(Qs, cached = false)
   F = evaluate(f, [x, Qsx(s)])
   dis = numerator(discriminant(F))
@@ -598,10 +600,10 @@ function Nemo.roots_upper_bound(f::ZZMPolyRingElem, t::Int = 0)
 end
 
 function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})
-  print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f) and prime $(GC.C.p)")
 end
 function Base.show(io::IO, GC::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries})
-  print(io, "Galois Context for $(GC.f)")
+  print(pretty(io), LowercaseOff(), "Galois context for $(GC.f)")
 end
 
 
@@ -1517,7 +1519,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
-        mfF = find_morphism(f, _F)
+        mfF = Hecke.find_morphism(f, _F)
       end
       #we should have
       # - d == r (in the appropriate setting)
@@ -1933,7 +1935,7 @@ extension of the p-adics.
 julia> K, a = cyclotomic_field(5);
 
 julia> G, C = galois_group(K)
-(Group([ (1,4,2,3), (1,2)(3,4) ]), Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
+(Permutation group of degree 4 and order 4, Galois context for x^4 + x^3 + x^2 + x + 1 and prime 19)
 
 julia> describe(G)
 "C4"
@@ -2188,14 +2190,14 @@ function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = tru
 end
 
 function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
-  return FunctionField(f, n, cached = cached)
+  return function_field(f, n, cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
   return number_field(f, n, cached = cached)
 end
 
-Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+#Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
 
 
 @doc raw"""
@@ -2312,8 +2314,8 @@ extension.
 """
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
-  if index(G, U) == 1 # not type stable
-    return QQ
+  if index(G, U) == 1
+    return Hecke.rationals_as_number_field()[1]
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
@@ -2382,7 +2384,7 @@ Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
-```jldoctest; filter = r"Group\(.*\]\)"
+```jldoctest; filter = r"Galois context\(.*\]\)"
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-2);
@@ -2392,7 +2394,7 @@ julia> galois_quotient(C, 6)
  Number field of degree 6 over QQ
 
 julia> galois_group(ans[1])
-(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Permutation group of degree 6 and order 6, Galois context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
@@ -2631,16 +2633,6 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
   return minpoly(a)
 end
 
-#TODO copied from MPolyFact in Hecke....
-function find_morphism(k::fqPolyRepField, K::fqPolyRepField)
-   if degree(k) > 1
-    phi = Nemo.find_morphism(k, K) #avoids embed - which stores the info
-  else
-    phi = MapFromFunc(k, K, x->K((coeff(x, 0))), y->k((coeff(y, 0))))
-  end
-  return phi
-end
-
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2727,7 +2719,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     r = roots(GC, 5, raw = true)
     K, mK = residue_field(parent(r[1]))
     r = map(mK, r)
-    phi = find_morphism(K, k)
+    phi = Hecke.find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
 

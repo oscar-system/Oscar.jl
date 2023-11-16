@@ -66,6 +66,11 @@ end
    @test maximal_abelian_quotient(G)[1] isa FPGroup
    @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
    @test_throws MethodError quo(PcGroup, G)
+
+   # `abelian_invariants`
+   @test abelian_invariants(free_group(2)) == [0, 0]
+   @test abelian_invariants(alternating_group(5)) == []
+   @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
 end
 
 @testset "Finitely presented groups" begin
@@ -116,4 +121,15 @@ end
    @test order(G) == 2
    @test f(S([1,2,4,3]))==G[1]
    @test f(S([2,1,4,3]))==one(G)
+end
+
+@testset "matrix groups" begin
+   K, a = cyclotomic_field(3, "a");
+   S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+   T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+   H3 = matrix_group(S, T)
+   C, iC = center(H3);
+   @test !has_is_finite(C)
+   Q, pQ = quo(H3, C);
+   @test has_is_finite(C)
 end

@@ -118,24 +118,37 @@ end
 #
 ########################################################################
 
-function Base.show(io::IO, x::MatrixGroup)
-   AbstractAlgebra.@show_name(io, x)
-   AbstractAlgebra.@show_special(io,x)
+function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  if x.descr==:GU || x.descr==:SU
+    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+  elseif x.ring isa Field && is_finite(x.ring)
+    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+  else
+    print(io, string(x.descr), "(",x.deg,",")
+    print(IOContext(io, :supercompact => true), x.ring)
+    print(io ,")")
+  end
+end
 
-   if isdefined(x, :descr)
-      if x.descr==:GU || x.descr==:SU
-         print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
-      elseif x.ring isa Field && is_finite(x.ring)
-         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
-      else
-         print(io, string(x.descr), "(",x.deg,",")
-         print(IOContext(io, :supercompact => true), x.ring)
-         print(io ,")")
-      end
-   else
-      print(io, "Matrix group of degree ", x.deg, " over ")
-      show(IOContext(io, :compact => true), x.ring)
-   end
+function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
+  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+  println(io, "Matrix group of degree ", degree(x))
+  io = AbstractAlgebra.pretty(io)
+  print(io, Indent())
+  print(io, "over ", Lowercase(), base_ring(x))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, x::MatrixGroup)
+  @show_name(io, x)
+  @show_special(io, x)
+  isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
+  print(io, "Matrix group")
+  if !get(io, :supercompact, false)
+    print(io, " of degree ", degree(x))
+    io = pretty(io)
+    print(IOContext(io, :supercompact => true), " over ", Lowercase(), base_ring(x))
+  end
 end
 
 Base.show(io::IO, x::MatrixGroupElem) = show(io, x.elm)
@@ -277,15 +290,14 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
          end
       end
    end
-   if isdefined(G,:descr) && G.descr==:GL
+   if isdefined(G,:descr) && G.descr === :GL
       return det(x)!=0, x_gap
-   elseif isdefined(G,:descr) && G.descr==:SL
+   elseif isdefined(G,:descr) && G.descr === :SL
       return det(x)==1, x_gap
-   else
-      if x_gap==nothing x_gap = map_entries(G.ring_iso, x) end
-     # x_gap !=nothing || x_gap = map_entries(G.ring_iso, x)
-      return (x_gap in G.X), x_gap
+   elseif x_gap === nothing
+      x_gap = map_entries(G.ring_iso, x)
    end
+   return (x_gap in G.X), x_gap
 end
 
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
@@ -293,7 +305,9 @@ Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    isdefined(x,:X) && return lies_in(x.elm,G,x.X)[1]
    _is_true, x_gap = lies_in(x.elm,G,nothing)
-   if x_gap !=nothing x.X = x_gap end
+   if x_gap !== nothing
+      x.X = x_gap
+   end
    return _is_true
 end
 
@@ -303,7 +317,7 @@ function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
       @req _is_true "Element not in the group"
-      x_gap != nothing && return MatrixGroupElem(G,x,x_gap)
+      x_gap !== nothing && return MatrixGroupElem(G,x,x_gap)
    end
    return MatrixGroupElem(G,x)
 end
@@ -328,9 +342,10 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    else
       _is_true, x_gap = lies_in(x.elm,G,nothing)
       @req _is_true "Element not in the group"
-      if x_gap==nothing return MatrixGroupElem(G,x.elm)
-      else return MatrixGroupElem(G,x.elm,x_gap)
+      if x_gap === nothing
+        return MatrixGroupElem(G,x.elm)
       end
+      return MatrixGroupElem(G,x.elm,x_gap)
    end
 end
 

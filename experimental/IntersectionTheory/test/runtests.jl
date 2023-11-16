@@ -18,7 +18,7 @@ let pushforward = IntersectionTheory.pushforward
     # @test euler_characteristic(trivial_line_bundle(C)) == 1//2 * c
 
     # # generic abstract_variety with parameter
-    # F, (g,) = FunctionField(Singular.QQ, ["g"])
+    # F, (g,) = function_field(Singular.QQ, ["g"])
     # C = abstract_variety(1, base=F)
     # c = gens(C.ring)[1]
     # trim!(C.ring)
@@ -148,7 +148,7 @@ let pushforward = IntersectionTheory.pushforward
     @test euler_characteristic(cotangent_bundle(P2)) == -1
     hilb = hilbert_polynomial(P2)
     t = gens(parent(hilb))[1]
-    @test hilb isa fmpq_poly
+    @test hilb isa QQPolyRingElem
     @test hilb == 1 + 3//2*t + 1//2*t^2
 
     # Grassmannian
@@ -218,8 +218,8 @@ let pushforward = IntersectionTheory.pushforward
   end
 
   # @testset "Pushfwd" begin
-  #   A = IntersectionTheory.ChRing(PolynomialRing(Singular.QQ, ["x","y","z","w"])[1], [3,3,3,3])
-  #   B = IntersectionTheory.ChRing(PolynomialRing(Singular.QQ, ["s","t"])[1], [1,1])
+  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["x","y","z","w"])[1], [3,3,3,3])
+  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["s","t"])[1], [1,1])
   #   s, t = gens(B)
   #   f = IntersectionTheory.ChAlgHom(A, B, [s^3,s^2*t,s*t^2,t^3]) # twisted cubic
   #   M, g, pf = IntersectionTheory._pushfwd(f)
@@ -227,8 +227,8 @@ let pushforward = IntersectionTheory.pushforward
   #   x = s^3 + 5s*t + t^20 # random element from B
   #   @test sum(g .* f.salg.(pf(x.f))) == x.f
      
-  #   A = IntersectionTheory.ChRing(PolynomialRing(Singular.QQ, ["x","y","z","w"])[1], [4,4,2,1])
-  #   B = IntersectionTheory.ChRing(PolynomialRing(Singular.QQ, ["s","t","u"])[1], [1,1,1])
+  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["x","y","z","w"])[1], [4,4,2,1])
+  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["s","t","u"])[1], [1,1,1])
   #   s, t, u = gens(B)
   #   f = IntersectionTheory.ChAlgHom(A, B, [s^4+u^4,s*t^2*u,s^2-t^2-u^2,t]) # random morphism
   #   M, g, pf = IntersectionTheory._pushfwd(f)
@@ -280,7 +280,7 @@ let pushforward = IntersectionTheory.pushforward
   #   @test integral(quad^2 * cubic) == 1
     
   #   # blowup twisted cubic, with parameters
-  #   F, (r, s, t) = FunctionField(Singular.QQ, ["r", "s", "t"])
+  #   F, (r, s, t) = function_field(Singular.QQ, ["r", "s", "t"])
   #   P1 = abstract_projective_space(1, base=F)
   #   P3 = abstract_projective_space(3, base=F)
   #   i = hom(P1, P3, [3P1.O1])
@@ -299,7 +299,7 @@ let pushforward = IntersectionTheory.pushforward
   #   @test simplify(e^5) != 0
     
   #   # blowup space curve of degree d and genus g
-  #   F, (r,s,t,d,g) = FunctionField(Singular.QQ, ["r", "s", "t", "d", "g"])
+  #   F, (r,s,t,d,g) = function_field(Singular.QQ, ["r", "s", "t", "d", "g"])
   #   P3 = abstract_projective_space(3, base=F)
   #   C = abstract_variety(1, base=F)
   #   trim!(C.ring)

@@ -1201,7 +1201,7 @@ function is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)
   D = reduce(vcat, prSDelta_w, init=i)
   P = positive_hull(D)  # the dual cone of C
   # If P has a linear subspace, then its dual C is not of full dimension.
-  return ispointed(P)
+  return is_pointed(P)
 end
 
 function inner_point(L::ZZLat, S::ZZLat, w::QQMatrix)
@@ -1594,7 +1594,7 @@ function span_in_S(L, S, weyl)
   if N==0
     M = zero_matrix(QQ, 0, rank(S))
   else
-    M = reduce(vcat, (matrix(QQ, 1, rank(S), v.a) for v in spanC))
+    M = linear_equation_matrix(spanC)
   end
   k, K = kernel(M)
   gensN = transpose(K)[1:k,:]

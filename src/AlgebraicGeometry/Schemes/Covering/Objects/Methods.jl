@@ -247,7 +247,7 @@ true
 function add_glueing!(C::Covering, G::AbsGlueing)
   (X, Y) = patches(G)
   C.glueings[(X, Y)] = G
-  C.glueings[(Y, X)] = inverse(G)
+  C.glueings[(Y, X)] = LazyGlueing(Y, X, inverse, G)
   return C
 end
 
@@ -292,8 +292,7 @@ function Base.show(io::IO, C::Covering)
   if get(io, :supercompact, false)
     print(io, "Covering")
   else
-    print(io,  "Covering with $(npatches(C)) patch") 
-    npatches(C) > 1 && print(io, "es")
+    print(io,  "Covering with ", ItemQuantity(npatches(C), "patch"))
   end
 end
 

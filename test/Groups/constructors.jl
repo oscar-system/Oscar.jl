@@ -1,3 +1,5 @@
+import Oscar.AbstractAlgebra.GroupsCore
+
 @testset "The groups Sym(n) and Alt(n)" begin
 
   for n = 5:8

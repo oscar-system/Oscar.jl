@@ -91,8 +91,8 @@ AbsAffineAlgebraicSet
 ## Constructors
 One can create an algebraic set from an ideal or a multivariate polynomial.
 ```@docs
-algebraic_set(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
-algebraic_set(f::MPolyElem; check::Bool=true)
+algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; check::Bool=true)
+algebraic_set(f::MPolyRingElem; check::Bool=true)
 ```
 Convert an affine scheme to an affine algebraic set in order to ignore
 its (non-reduced) scheme structure.

@@ -105,7 +105,7 @@ Construct a tropical linear space from a matrix `A` and a map to the tropical se
 
 # Examples
 ```jldoctest
-julia> Kt, t = RationalFunctionField(QQ,"t");
+julia> Kt, t = rational_function_field(QQ,"t");
 
 julia> val = TropicalSemiringMap(Kt,t);
 

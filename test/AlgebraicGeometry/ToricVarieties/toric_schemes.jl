@@ -1,10 +1,7 @@
-using Oscar
-using Test
-
-@testset "Toric schemes (set_attributes = $set_attributes)" for set_attributes in [true, false]
+@testset "Toric schemes" begin
   
   C = positive_hull([-1 1; 1 1])
-  antv = affine_normal_toric_variety(C; set_attributes = set_attributes)
+  antv = affine_normal_toric_variety(C)
   
   @testset "A simplicial (and not smooth) affine toric scheme" begin
     @test is_smooth(underlying_scheme(antv)) == is_smooth(antv)
@@ -13,14 +10,14 @@ using Test
     @test ngens(ambient_coordinate_ring(antv)) == nrows(hilbert_basis(antv)) == 3
   end
   
-  X = hirzebruch_surface(NormalToricVariety, 3; set_attributes = set_attributes)
+  X = hirzebruch_surface(NormalToricVariety, 3)
   
   @testset "Toric Scheme of Hirzebruch surface F3" begin
     @test is_smooth(underlying_scheme(X)) == is_smooth(X)
     @test dim(underlying_scheme(X)) == dim(X)
   end
   
-  IP1 = projective_space(NormalToricVariety, 1; set_attributes = set_attributes)
+  IP1 = projective_space(NormalToricVariety, 1)
   set_coordinate_names(IP1, ["x", "y"])
   Y = IP1*IP1
   
@@ -29,7 +26,7 @@ using Test
     @test length(values(glueings(default_covering(Y)))) == 16
   end
 
-  IP2 = projective_space(NormalToricVariety, 2; set_attributes = set_attributes)
+  IP2 = projective_space(NormalToricVariety, 2)
   set_coordinate_names(IP2, ["x", "y", "z"])
   X, iso = Oscar.forget_toric_structure(IP2)
 
@@ -44,7 +41,7 @@ using Test
     @test codomain(inverse(iso)) === X 
   end
   
-  IP3 = projective_space(NormalToricVariety, 3; set_attributes = set_attributes)
+  IP3 = projective_space(NormalToricVariety, 3)
   
   @testset "Toric ideal sheaves" begin
     S = cox_ring(IP3)
@@ -60,7 +57,7 @@ using Test
   pb_I = pullback(bl, I)
   pb_J = pullback(bl, J)
 
-  @testset "toric blowdown morphism as morphism of covered schemes" begin
+  @testset "Toric blowdown morphism as morphism of covered schemes" begin
     @test scheme(I) === IP2
     @test length(Oscar.maximal_associated_points(I)) == 2
     @test length(Oscar.maximal_associated_points(pb_I)) == 3
@@ -68,7 +65,7 @@ using Test
     @test dim(pb_J) == 1
   end
 
-  F2 = hirzebruch_surface(NormalToricVariety, 2; set_attributes = set_attributes)
+  F2 = hirzebruch_surface(NormalToricVariety, 2)
   f = toric_morphism(F2, matrix(ZZ, [[1], [0]]), IP1; check = true)
   S = cox_ring(IP1)
   (x, y) = gens(S)
@@ -86,4 +83,33 @@ using Test
     @test is_smooth(subscheme(pb_K)) == true
   end
 
+  S = cox_ring(IP2)
+  x, y, z = gens(S)
+  I = ideal(S, [x-y])*ideal(S, [z])
+  II = IdealSheaf(IP2, I)
+
+  @testset "Blowups that leave the toric setting" begin
+    @test is_surjective(grid_morphism(underlying_morphism(bl)))
+    @test is_injective(grid_morphism(underlying_morphism(bl)))
+    @test length(Oscar.maximal_associated_points(pullback(bl,II))) == 3
+    @test length(Oscar.maximal_associated_points(strict_transform(bl, II))) == 2
+  end
 end
+
+@testset "Lazy glueings" begin
+  f = polyhedral_fan([0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1], IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]))
+  n_maximal_cones(f)
+  ntv = normal_toric_variety(f)
+  X = underlying_scheme(ntv)
+  for g in values(glueings(default_covering(X)))
+    @test !(g isa Oscar.LazyGlueing) || !isdefined(g, :G)
+  end
+
+  for g in values(glueings(default_covering(X)))
+    g isa Oscar.LazyGlueing || continue
+    g_sub = underlying_glueing(g)
+    @test g_sub isa Oscar.SimpleGlueing
+    @test g_sub === g.G
+  end
+end
+

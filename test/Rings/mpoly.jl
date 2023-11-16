@@ -85,6 +85,13 @@ end
   @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
   @test intersect(I,J,P) == intersect([I,J,P])
 
+  @test I != J
+  RR, (xx, yy) = grade(R, [1, 1])
+  @test_throws ErrorException ideal(R, [x]) == ideal(RR, [xx])
+  @test is_subset(I, I)
+  RR, (xx, yy) = polynomial_ring(QQ, ["xx", "yy"])
+  @test_throws ErrorException is_subset(ideal(R, [x]), ideal(RR, [xx]))
+
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]
@@ -220,7 +227,7 @@ end
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
-  F, a = FiniteField(11, 2, "a")
+  F, a = finite_field(11, 2, "a")
   R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
@@ -287,7 +294,7 @@ end
 end
 
 @testset "IdealGens" begin
-   R, (x0, x1, x2) = PolynomialRing(QQ, ["x0", "x1", "x2"])
+   R, (x0, x1, x2) = polynomial_ring(QQ, ["x0", "x1", "x2"])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
    @test elements(g) == [x0*x1, x2]
@@ -314,5 +321,13 @@ end
   equidimensional_hull(I)
   equidimensional_hull_radical(I)
   equidimensional_decomposition_weak(I)
+end
+
+@testset "Hessian matrix" begin
+  R, (x, y, z) = QQ[:x, :y, :z]
+  f = x^2 + x*y^2 - z^3
+  H = hessian_matrix(f)
+  @test H == R[2 2*y 0; 2*y 2*x 0; 0 0 -6*z]
+  @test hessian(f) == -24*x*z + 24*y^2*z
 end
 

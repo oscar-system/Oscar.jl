@@ -131,7 +131,7 @@ end
   @test intersect(I,J,K) == ideal(Q, [y+1, x])
   @test intersect(I,J,K) == intersect([I,J,K])
 
-  R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y" ], [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
@@ -175,19 +175,19 @@ end
   @test modulus(R) == ideal(R,[zero(R)])
   @test modulus(A) == I
   U=MPolyComplementOfKPointIdeal(R,[0,0,0])
-  Rl,_ = Localization(R,U)
+  Rl,_ = localization(R,U)
   Il = Rl(I)
   Al, _ = quo(Rl, Il)
   @test modulus(Rl) == ideal(Rl,[zero(Rl)])
   @test modulus(Al) == Il
   U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
-  Rl2,_ = Localization(R,U2)
+  Rl2,_ = localization(R,U2)
   Il2 = Rl2(I)
   Al2,_ = quo(Rl2,Il2)
   @test modulus(Rl2) == ideal(Rl2,[zero(Rl2)])
   @test modulus(Al2) == Il2
   U3=MPolyPowersOfElement(x+y)
-  Rl3,_ = Localization(R,U3)
+  Rl3,_ = localization(R,U3)
   Il3 = Rl3(I)
   Al3,_ = quo(Rl3,Il3)
   @test modulus(Rl3) == ideal(Rl3,[zero(Rl3)])
@@ -213,7 +213,7 @@ end
 
 @testset "issue #1901" begin
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-  L, _ = Localization(R, powers_of_element(R[1]))
+  L, _ = localization(R, powers_of_element(R[1]))
   S, (s0, s1, s2) = polynomial_ring(L, ["s0", "s1", "s2"])
   I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
   Q, _ = quo(S, I)
@@ -264,6 +264,101 @@ end
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, 1-x*y)
   o = revlex([x, y])
-  Q = MPolyQuo(R, I, o)
+  Q = MPolyQuoRing(R, I, o)
   @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
+end
+
+@testset "representatives and hashing" begin
+  R1, (x1, y1) = QQ["x", "y"]
+  R2, (x2, y2) = ZZ["x", "y"]
+  R3, (x3, y3) = GF(7)["x", "y"]
+
+  Q1, p1 = quo(R1, ideal(R1, [x1-3]))
+  Q2, p2 = quo(R2, ideal(R2, [x2-3]))
+  Q3, p3 = quo(R3, ideal(R3, [x3-3]))
+
+
+  @test hash(p1(x1)) == hash(Q1(3))
+  @test hash(p2(x2)) == hash(Q2(3))
+  @test hash(p3(x3)) == hash(Q3(3))
+
+  @test simplify(p1(x1)).f == Q1(3).f
+  @test simplify(p2(x2)).f == Q2(3).f
+  @test simplify(p3(x3)).f == Q3(3).f
+
+  # A case that uses the RingFlattening and does not have a singular backend:
+  P, (u, v) = Q3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+
+  P, (u, v) = R3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+
+  L3, _ = localization(R3, powers_of_element(y3))
+  P, (u, v) = L3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+
+  W3, _ = localization(Q3, powers_of_element(y3))
+  P, (u, v) = W3["u", "v"]
+  QP, pP = quo(P, ideal(P, [u]))
+  @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
+  @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
+  # representatives to normal form
+  @test pP(v-3*u) == pP(v) # Equality check works via ideal membership
+  a = pP(v) # Simplification only checks for being zero
+  @test !a.simplified
+  simplify(a)
+  @test a.simplified
+  @test !iszero(a.f)
+  b = pP(u) # Only in case the element is zero, the representative is changed
+  simplify(b)
+  @test iszero(b.f)
+  
+  @test Oscar.HasNormalFormTrait(ZZ) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(zero(ZZ)) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(QQ) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasNormalFormTrait(zero(QQ)) isa Oscar.HasSingularNormalForm
+  @test Oscar.HasGroebnerAlgorithmTrait(ZZ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(one(ZZ)) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(QQ) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasGroebnerAlgorithmTrait(one(QQ)) isa Oscar.HasSingularGroebnerAlgorithm
+  @test Oscar.HasNormalFormTrait(R1) isa Oscar.HasNoNormalForm
+  @test Oscar.HasNormalFormTrait(one(R1)) isa Oscar.HasNoNormalForm
+  @test Oscar.HasGroebnerAlgorithmTrait(R1) isa Oscar.HasRingFlattening
+  @test Oscar.HasGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasRingFlattening
 end

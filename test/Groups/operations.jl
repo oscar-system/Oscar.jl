@@ -18,7 +18,6 @@
       @test x isa PermGroupElem
       @test ox isa ZZRingElem
       @test inv(x) in G
-      @test mul(x,y) == x*y
       @test mul!(x,x,y) == x*y
       @test inv(x)==x^-1
       @test inv!(x,x) == x^-1
@@ -83,7 +82,7 @@ end
    @test is_skew_symmetric(P-transpose(P))
    @test is_alternating(P-transpose(P))
 
-   F,z = FiniteField(2,2)
+   F,z = finite_field(2,2)
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
    @test is_symmetric(y)
@@ -136,7 +135,7 @@ end
    @test base_ring(f1)==F1
    x = Oscar._centralizer(f1)(companion_matrix(f1))
    @test order(GL(2,F1)(x))==8
-   K,z = FiniteField(f,"z")
+   K,z = finite_field(f,"z")
    @test z^4==1
    @test (change_base_ring(K,Oscar._centralizer(f1))(z))^4 !=1
 

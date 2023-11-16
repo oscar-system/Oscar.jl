@@ -1,8 +1,7 @@
 @testset "projective_schemes_1" begin
   # test for relative projective space over a polynomial ring
   R, (x,y) = QQ["x", "y"]
-  R_ext, _ = polynomial_ring(R, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
 
   I = ideal(S, [x*v - y*u])
   X = ProjectiveScheme(S, I)
@@ -17,8 +16,7 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for projective space over a field
-  R_ext, _ = polynomial_ring(QQ, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
 
   I = ideal(S, [u])
   X = ProjectiveScheme(S, I)
@@ -35,8 +33,7 @@
   # test for relative projective space over MPolyQuoLocalizedRings
   Y = Spec(R)
   Q = OO(Y)
-  R_ext, _ = polynomial_ring(Q, ["u", "v"])
-  S, (u,v) = grade(R_ext, [1,1])
+  S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
   X = ProjectiveScheme(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
@@ -311,4 +308,45 @@ end
   @test X1 == X2
   @test issubset(X1, P2)
   @test issubset(X1, X2)
+end
+
+@testset "closed embeddings" begin
+  IP2 = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  I = ideal(S, [x^2 + y^2 + z^2])
+  X, inc = sub(IP2, I)
+  X, inc = sub(IP2, gens(I))
+
+  J = ideal(S, [x+y+z])
+  X2, inc2 = sub(IP2, J)
+  inc_cov = covered_scheme_morphism(inc)
+  inc2_cov = covered_scheme_morphism(inc2)
+  j1, j2 = fiber_product(inc_cov, inc2_cov)
+  @test pushforward(inc_cov)(image_ideal(j2)) == pushforward(inc2_cov)(image_ideal(j1))
+  
+  @test X === domain(inc)
+  @test IP2 === codomain(inc)
+  T = homogeneous_coordinate_ring(X)
+  Y, inc_Y = sub(X, T[1]*T[2] - T[3]^2)
+  @test domain(inc_Y) === Y
+  @test codomain(inc_Y) === X
+  @test image_ideal(inc_Y) == ideal(T, T[1]*T[2] - T[3]^2)
+  map_on_affine_cones(inc_Y)
+  inc_comp = compose(inc_Y, inc)
+  @test inc_comp isa Oscar.ProjectiveClosedEmbedding
+  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)), 
+            homogeneous_coordinate_ring(domain(inc_comp)),
+            pullback(inc_comp).(gens(homogeneous_coordinate_ring(codomain(inc_comp))))
+           )
+  K = kernel(phi)
+  @test K == I + ideal(S, S[1]*S[2] - S[3]^2)
+end
+
+@testset "empty charts" begin
+  P = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P)
+  X = subscheme(P, S[2])
+  Y = covered_scheme(X)
+  @test length(affine_charts(Y)) == 2
 end

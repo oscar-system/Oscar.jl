@@ -1,7 +1,6 @@
 @testset "kernels via flattenings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-
-  S, _ = polynomial_ring(R, ["s", "t"])
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -66,10 +65,9 @@
 end
 
 @testset "cross kernel computations" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-
-  S, (s, t) = polynomial_ring(R, ["s", "t"])
-
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, (s, t) = polynomial_ring(R, ["s", "t"], cached=false)
+  
   f = hom(R, S, [s, s, t])
   @test x-y in kernel(f)
 
@@ -82,9 +80,9 @@ end
 end
 
 @testset "flattenings of quotient rings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
 
-  S, _ = polynomial_ring(R, ["s", "t"])
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q)
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -117,3 +115,198 @@ end
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
 end
 
+@testset "flattenings of graded rings" begin
+  # towers of polynomial rings
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+
+  @test is_graded(S_flat)
+  G = grading_group(S_flat)
+
+  @test degree.(gens(S_flat)) == [G[1], G[1], zero(G), zero(G)]
+  @test default_ordering(S_flat) == degrevlex(gens(S_flat)[1:2])*degrevlex(gens(S_flat)[3:4])
+
+  I = ideal(S, [u-v])
+  I_flat = flat(I)
+  @test is_graded(I_flat)
+  @test !(u in I)
+  @test u-v in I
+
+  # graded rings over quotient rings
+  A, _ = quo(R, [x-y])
+  S, (u, v) = grade(A[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_flat) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*x])
+  I_flat = flat(I)
+  @test !(u in I)
+  @test u*y in I
+
+  # graded rings over localizations of quotient rings
+  U = powers_of_element(x^2 + y^2)
+  W, _ = localization(A, U)
+  S, (u, v) = graded_polynomial_ring(W, [:u, :v])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_poly) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*x])
+  I_flat = flat(I)
+  @test u in I
+  @test !(v in I)
+
+  # graded rings over localizations of polynomial rings 
+  L, _ = localization(R, U)
+  S, (u, v) = graded_polynomial_ring(L, [:u, :v])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+  S_poly = base_ring(S_flat)
+
+  @test default_ordering(S_poly) == degrevlex(gens(S_poly)[1:2])*degrevlex(gens(S_poly)[3:4])
+
+  I = ideal(S, [u*(x^2 + y^2)])
+  I_flat = flat(I)
+  @test u in I
+  @test !(v in I)
+end
+
+@testset "flattenings of modules" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test is_graded(F_flat)
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+
+  A, _ = quo(R, [x-y])
+
+  S, (u, v) = grade(A[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+
+  U = powers_of_element(y)
+  L, _ = localization(R, U)
+  S, (u, v) = grade(L[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+  U, V, X, Y = gens(S_flat)
+
+  @test degree(U) == degree(u)
+  @test iszero(degree(X))
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+
+  U = powers_of_element(y)
+  W, _ = localization(A, U)
+  S, (u, v) = grade(W[:u, :v][1])
+
+  flat = Oscar.flatten(S)
+  S_flat = codomain(flat)
+  U, V, X, Y = gens(S_flat)
+
+  @test degree(U) == degree(u)
+  @test iszero(degree(X))
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = sub(F, [F[1]])
+  M_flat, iso_M, iso_M_inv = Oscar.flatten(M)
+  @test is_graded(M_flat)
+  @test ambient_free_module(M_flat) === F_flat
+  @test F[1] in M
+  @test coordinates(u*F[1], M)[1] == u
+
+  @test iso_inv(iso(F[1])) == F[1]
+  @test F_flat === Oscar.flatten(F)[1]
+  @test is_graded(F_flat)
+end
+
+@testset "free (graded) resolutions" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y], cached=false)
+  S, (u, v) = grade(polynomial_ring(R, [:u, :v], cached=false)[1])
+
+  flat = Oscar.flatten(S)
+
+  S_flat = codomain(flat)
+
+  F = graded_free_module(S, [-2, 1])
+  F_flat, iso, iso_inv = Oscar.flatten(F)
+
+  M, _ = quo(F, [u^5*F[1], v*F[1]])
+  M_flat, iso, iso_inv = Oscar.flatten(M)
+  res = free_resolution(M)
+  @test Oscar._regularity_bound(M) == 2
+end
+
+@testset "garbage collection" begin
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
+  phi = Oscar.flatten(S)
+  a = x^2 + y^2
+  b = phi(a)
+  @test phi(a) === b
+  a = 5
+  GC.gc()
+  @test isempty(keys(Oscar.flat_counterparts(phi)))
+end
+  

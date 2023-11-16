@@ -43,7 +43,7 @@ are computed via primary and secondary invariants (i.e.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -57,13 +57,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over K
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
 (Quotient of multivariate polynomial ring by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
@@ -136,7 +137,8 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
   np = length(p_invars)
 
-  S, t = grade(polynomial_ring(K, "t" => 1:(np + length(is_invars)))[1], append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ]))
+  w = append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ])
+  S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w)
 
   if isempty(is_invars)
     I = ideal(S, elem_type(S)[])

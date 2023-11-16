@@ -156,7 +156,7 @@ true
 ### Reducing Polynomial Representatives
 
 ```@docs
-simplify(f::MPolyQuoRingElem{T}) where {S<:Union{FieldElem, ZZRingElem}, T<:MPolyRingElem{S}}
+simplify(f::MPolyQuoRingElem)
 ```
 
 ### Tests on Elements of Affine Algebras

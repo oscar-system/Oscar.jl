@@ -79,8 +79,7 @@ julia> I = ideal(R, [x^2, y^3])
 ideal(x^2, y^3)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map from
-R to A defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x^2, y^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> L = monomial_basis(A)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -133,8 +132,7 @@ julia> I = ideal(R, [x^2])
 ideal(x^2)
 
 julia> A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal(x^2), Map from
-R to A defined by a julia-function with inverse)
+(Quotient of multivariate polynomial ring by ideal(x^2), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> L = monomial_basis(A, 3)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -371,13 +369,13 @@ julia> hilbert_polynomial(A)
 3*t + 1
 ```
 """
-function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
+function hilbert_polynomial(A::MPolyQuoRing)
    if iszero(A.I)
        R = base_ring(A.I)
        @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        n = ngens(A)
        Qt, t = QQ["t"]
-       b = one(parent(t))
+       b = one(Qt)
        for i in QQ(1):QQ(n-1)
            b = b * (t+i)
        end
@@ -385,7 +383,7 @@ function hilbert_polynomial(A::MPolyQuoRing)::QQPolyRingElem
        return b
    end
    H = HilbertData(A.I)
-   return hilbert_polynomial(H)
+   return hilbert_polynomial(H)::QQPolyRingElem
 end
 
 @doc raw"""
@@ -521,9 +519,11 @@ julia> H
 GrpAb: Z
 
 julia> iso
-Map: GrpAb: Z -> (General) abelian group with relation matrix
-[1 -1]
-with structure of GrpAb: Z
+Map
+  from GrpAb: Z
+  to (General) abelian group with relation matrix
+  [1 -1]
+  with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series(
@@ -714,9 +714,11 @@ julia> H[2][1]
 GrpAb: Z
 
 julia> H[2][2]
-Map: GrpAb: Z -> (General) abelian group with relation matrix
-[1 -1]
-with structure of GrpAb: Z
+Map
+  from GrpAb: Z
+  to (General) abelian group with relation matrix
+  [1 -1]
+  with structure of GrpAb: Z
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)

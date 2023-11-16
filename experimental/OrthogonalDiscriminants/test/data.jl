@@ -26,7 +26,7 @@
   @test length(all_od_infos(orthogonal_discriminant => "O+")) +
         length(all_od_infos(orthogonal_discriminant => "O-")) ==
         length(Oplusminus)
-  @test length(Oplusminus) <= length(all_od_infos(characteristic => ispositive))
+  @test length(Oplusminus) <= length(all_od_infos(characteristic => is_positive))
   deg_1 = all_od_infos(degree => 1);
   deg_other = all_od_infos(degree => (x -> x > 1));
   @test length(all_entries) == length(deg_1) + length(deg_other)
@@ -118,6 +118,9 @@ function dummy_placeholder end
 end
 
 @testset "show and print character tables" begin
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
   doctest(nothing, [AuxDocTest_show_with_ODs])
   #doctest(nothing, [AuxDocTest_show_with_ODs]; fix=true)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
 end

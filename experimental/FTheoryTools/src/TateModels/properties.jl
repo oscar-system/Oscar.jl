@@ -18,3 +18,27 @@ false
 ```
 """
 base_fully_specified(t::GlobalTateModel) = get_attribute(t, :base_fully_specified)
+
+@doc raw"""
+    is_partially_resolved(t::GlobalTateModel)
+
+Return `true` if resolution techniques were applies to the global Tate model,
+thereby potentially resolving its singularities.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> is_partially_resolved(t)
+false
+
+julia> t2 = blow_up(t, ["x", "y", "w"]; coordinate_name = "e1")
+Partially resolved global Tate model over a concrete base
+
+julia> is_partially_resolved(t2)
+true
+```
+"""
+is_partially_resolved(t::GlobalTateModel) = get_attribute(t, :partially_resolved)

@@ -40,7 +40,7 @@ end
 
   @testset for RO in baserings
     @testset "AbstractLieAlgebra" begin
-      function sl2_struct_consts(R::Ring)
+      function sl2_struct_consts(R::Field)
         sc = zeros(R, 3, 3, 3)
         sc[1, 2, 3] = R(1)
         sc[2, 1, 3] = R(-1)
@@ -53,8 +53,8 @@ end
 
       lie_algebras = [
         lie_algebra(RO, sl2_struct_consts(RO), ["e", "f", "h"]),
-        lie_algebra(RO, ('A', 3)),
-        lie_algebra(RO, ('B', 2)),
+        lie_algebra(RO, :A, 3),
+        lie_algebra(RO, :B, 2),
       ]
 
       @testset for LO in lie_algebras

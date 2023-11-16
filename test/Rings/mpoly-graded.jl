@@ -2,7 +2,7 @@
   R, (x,) = graded_polynomial_ring(QQ, ["x"], [1])
   Q = quo(R, ideal([x^4]))[1];
   @test_throws ArgumentError ideal(R, [x-x^2])
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   h = homogeneous_components(Q[1])
   @test valtype(h) === elem_type(Q)
@@ -173,7 +173,7 @@ end
 end
 
 @testset "Coercion" begin
-  R, (x, y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
   Q = quo(R, ideal([x^2, y]))[1];
   @test parent(Q(x)) === Q
   @test parent(Q(gen(R.R, 1))) === Q
@@ -183,17 +183,17 @@ end
 end
 
 @testset "Evaluation" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x(y, x) == y
 end
 
 @testset "Promotion" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test x + QQ(1//2) == x + 1//2
 end
 
 @testset "Degree" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   @test_throws ArgumentError degree(zero(R))
 
   Z = abelian_group(0)
@@ -202,13 +202,13 @@ end
 end
 
 @testset "Grading" begin
-  R, (x,y) = grade(polynomial_ring(QQ, ["x", "y"])[1]);
+  R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
   D = grading_group(R)
   @test is_isomorphic(D, abelian_group([0]))
 end
 
 @testset "Minimal generating set" begin
-  R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y"], [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
   @test !isempty(I.gb)
@@ -289,7 +289,7 @@ end
   @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
 
   W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
-  S, _ = LaurentPolynomialRing(QQ, ["t₁", "t₂", "t₃"])
+  S, _ = laurent_polynomial_ring(QQ, ["t₁", "t₂", "t₃"])
   custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
   gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
   generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
@@ -342,7 +342,7 @@ end
 
 
 @testset "homogenization: ideal()" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -368,7 +368,7 @@ end
 end
 
 @testset "homogenization: ideal(0)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -394,7 +394,7 @@ end
 end
 
 @testset "homogenization: ideal(1)" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -421,7 +421,7 @@ end
 
 
 
-@testset "homogenizaton: big principal ideal" begin
+@testset "homogenization: big principal ideal" begin
   # It is easy to honogenize a principal ideal: just homogenize the gen!
   # Do not really need lots of vars; just a "large" single polynomial
   LotsOfVars = 250;
@@ -450,7 +450,7 @@ end
 
 
 @testset "homogenization: random ideal" begin
-  R, (x,y,z,w) = PolynomialRing(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
   W1 = [1 1 1 1]; # same as std graded
   W2 = [1 2 3 4]; # positive but not std graded
   W3 = [1 0 1 1]; # non-negative graded
@@ -463,9 +463,10 @@ end
                           x^3*y^2+x*y*z^3+x*y+y^2,
                           x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2], W1, "h");
   Ih_std = homogenization(I, "h")
-  Ih_expected = ideal(Ih_W1)
+  Ih_expected = ideal(base_ring(Ih_std), Ih_W1)
   @test Ih_std == Ih_expected
   Ih = homogenization(I, W1, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W1)
   @test Ih == Ih_expected
   Ih_W2 = homogenization([x*y*z^3+x^3*y^2+y^2+x*y,
                           x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
@@ -473,19 +474,19 @@ end
                           x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2,
                           y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2],
                          W2, "h");
-  Ih_expected = ideal(Ih_W2)
   Ih = homogenization(I, W2, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W2)
   @test Ih == Ih_expected
   Ih_W3 = homogenization([x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2,
                           x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
                           x^3*y^2+y^2+x*y*z^3+x*y],
                          W3, "h");
-  Ih_expected = ideal(Ih_W3)
   Ih = homogenization(I, W3, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W3)
   @test Ih == Ih_expected
   # Ih_W4 = ????
-  # Ih_expected = ideal(Ih_W4)
   # Ih = homogenization(I, W4, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W4)
   # @test Ih = Ih_expected
   Ih_W2a = homogenization([x*y*z^3+x^3*y^2+y^2+x*y,
                            x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
@@ -493,12 +494,12 @@ end
                            y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2,
                            x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2],
                           W2a, "h");
-  Ih_expected = ideal(Ih_W2a)  
   Ih = homogenization(I, W2a, "h")
+  Ih_expected = ideal(base_ring(Ih), Ih_W2a)
   @test Ih == Ih_expected
   # Ih_W2b = ????
-  # Ih_expected = ideal(Ih_W2b)
   # Ih = homogenization(I, W2b, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W2b)
   # @test Ih == Ih_expected
 end
 
@@ -506,7 +507,7 @@ end
 # expanding rational function
 
 let
-  Qx, x = PolynomialRing(QQ, "x", cached = false)
+  Qx, x = polynomial_ring(QQ, "x", cached = false)
   e = expand(1//(1 - x), 10)
   t = gen(parent(e))
   @test e == sum(t^i for i in 1:10; init = t^0)

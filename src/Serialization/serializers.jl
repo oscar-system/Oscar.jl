@@ -34,6 +34,44 @@ function SerializerState(io::IO)
   return SerializerState(true, UUID[], io, nothing)
 end
 
+struct DeserializerState
+  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+  # the values of refs are objects to be deserialized
+  refs::Dict{Symbol, Dict}
+end
+
+function DeserializerState()
+  return DeserializerState(Dict{Symbol, Any}())
+end
+
+################################################################################
+# Serializers
+abstract type OscarSerializer end
+
+struct JSONSerializer <: OscarSerializer
+  state::S where S <: Union{SerializerState, DeserializerState}
+end
+
+struct IPCSerializer <: OscarSerializer
+  state::S where S <: Union{SerializerState, DeserializerState}
+end
+
+state(s::OscarSerializer) = s.state
+
+function serializer_open(io::IO, T::Type{<: OscarSerializer})
+  # some level of handling should be done here at a later date
+  return T(SerializerState(io))
+end
+
+function serializer_close(s::SerializerState)
+  finish_writing(s)
+end
+
+function deserializer_open(io::IO, T::Type{<: OscarSerializer})
+  # should eventually take io
+  return T(DeserializerState())
+end
+
 function serialize_dict(f::Function, s::SerializerState)
   begin_dict_node(s)
   f()
@@ -82,16 +120,6 @@ function end_array_node(s::SerializerState)
   end
 end
 
-struct DeserializerState
-  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
-  # the values of refs are objects to be deserialized
-  refs::Dict{Symbol, Dict}
-end
-
-function DeserializerState()
-  return DeserializerState(Dict{Symbol, Any}())
-end
-
 function finish_writing(s::SerializerState)
   # nothing to do here
 end
@@ -137,16 +165,3 @@ function save_data_json(s::SerializerState, jsonstr::Any,
   write(s.io, jsonstr)
 end
 
-function serializer_open(io::IO)
-  # some level of handling should be done here at a later date
-  return SerializerState(io)
-end
-
-function serializer_close(s::SerializerState)
-  finish_writing(s)
-end
-
-function deserializer_open(io::IO)
-  # should eventually take io
-  return DeserializerState()
-end

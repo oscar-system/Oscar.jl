@@ -13,7 +13,7 @@
 
 # Computes the space of weight vectors w.r.t. which G is weighted homogeneous
 @doc raw"""
-    homogeneity_space(G::Vector{<:MPolyElem})
+    homogeneity_space(G::Vector{<:MPolyRingElem})
 
 Return a `Cone` that is the space of all weight vectors under which all elements of `G` are weighted homogeneous.  The cone will be a linear subspace without any rays.
 
@@ -24,7 +24,7 @@ Return a `Cone` that is the space of all weight vectors under which all elements
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> G1 = [x1+x2,x2+x3,x3]
@@ -56,8 +56,8 @@ julia> rays_modulo_lineality(homogeneity_space(G3))
 
 ```
 """
-function homogeneity_space(G::Vector{<:MPolyElem})
-    inequalities = fmpq_mat(0,0)
+function homogeneity_space(G::Vector{<:MPolyRingElem})
+    inequalities = QQMatrix(0,0)
     equations = Vector{Vector{Int}}()
     for g in G
         alpha,tail_exponents = Iterators.peel(exponents(g))
@@ -71,17 +71,17 @@ end
 
 
 @doc raw"""
-    homogeneity_vector(G::Vector{<:MPolyElem})
+    homogeneity_vector(G::Vector{<:MPolyRingElem})
 
-Return a positive `Vector{fmpz}` under which every element of `G` is weighted
+Return a positive `Vector{ZZRingElem}` under which every element of `G` is weighted
 homogeneous. If no such vector exists, return `nothing`.
 
 # Note
-Suppose `G` is the reduced Groebner basis of an ideal `I` with respect to a global ordering. If a `Vector{fmpz}` is returned, then `I` is weighted homogeneous with respect to it.  If `nothing` is returned, then `I` is not weighted homogeneous with respect to any positive weight vector.
+Suppose `G` is the reduced Groebner basis of an ideal `I` with respect to a global ordering. If a `Vector{ZZRingElem}` is returned, then `I` is weighted homogeneous with respect to it.  If `nothing` is returned, then `I` is not weighted homogeneous with respect to any positive weight vector.
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> G1 = [x1+x2,x2+x3,x3]
@@ -114,12 +114,12 @@ julia> G3 = [x1^2+x2,x2^2+x3,x3+1]
  x2^2 + x3
  x3 + 1
 
-julia> homogeneity_vector(G3) == nothing
+julia> homogeneity_vector(G3) === nothing
 true
 
 ```
 """
-function homogeneity_vector(G::Vector{<:MPolyElem})
+function homogeneity_vector(G::Vector{<:MPolyRingElem})
     homogeneitySpace = homogeneity_space(G)
 
     # return nothing if homogeneitySpace is the origin
@@ -130,7 +130,7 @@ function homogeneity_vector(G::Vector{<:MPolyElem})
 
     # test if homogeneitySpace contains the ones vector
     n = ambient_dim(homogeneitySpace)
-    homogeneityVector = ones(fmpz,n)
+    homogeneityVector = ones(ZZRingElem,n)
     if homogeneityVector in homogeneitySpace
         return homogeneityVector
     end
@@ -150,7 +150,7 @@ end
 
 
 @doc raw"""
-    maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem}; homogeneityWeight::Union{Nothing,Vector{fmpz}}=nothing)
+    maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}; homogeneityWeight::Union{Nothing,Vector{ZZRingElem}}=nothing)
 
 Returns the maximal Groebner cone of a Groebner basis `G`, i.e., the closure of all weight vectors with respect to whose weighted ordering `G` is a Groebner basis (independent of tie-breaker).
 
@@ -162,7 +162,7 @@ If `homogeneityWeight` is unspecified, will test if `G` is quasi-homogeneous, an
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal([x1,x2+x3])
@@ -180,7 +180,7 @@ julia> rays_modulo_lineality(maximal_groebner_cone(G))
 
 ```
 """
-function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem})
+function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
     @assert is_groebner_basis(G)
     ord = ordering(G)
     G = collect(G)
@@ -188,14 +188,14 @@ function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem})
     return maximal_groebner_cone(G,ord,homogeneityWeight)
 end
 
-function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyElem}, homogeneityWeight::Union{Vector{fmpz},Nothing})
+function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}, homogeneityWeight::Union{Vector{ZZRingElem},Nothing})
     @assert is_groebner_basis(G)
     ord = ordering(G)
     G = collect(G)
     return maximal_groebner_cone(G,ord,homogeneityWeight)
 end
 
-function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, homogeneityWeight::Nothing)
+function maximal_groebner_cone(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, homogeneityWeight::Nothing)
     # calling with `nothing` as homogeneityWeight
     # means that C needs to be restricted to the positive orthant
     C = maximal_groebner_cone_extended(G,ord)
@@ -203,13 +203,13 @@ function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, ho
     return intersect(C,positiveOrthant)
 end
 
-function maximal_groebner_cone(G::Vector{<:MPolyElem}, ord::MonomialOrdering, homogeneityWeight::Vector{fmpz})
+function maximal_groebner_cone(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, homogeneityWeight::Vector{ZZRingElem})
     # calling with a positive homogeneityWeight
     # means that C does not be restricted to the positive orthant
     return maximal_groebner_cone_extended(G,ord)
 end
 
-function maximal_groebner_cone_extended(G::Vector{<:MPolyElem}, ord::MonomialOrdering)
+function maximal_groebner_cone_extended(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
     # iterate over all elements of G and construct the inequalities
     inequalities = Vector{Vector{Int}}()
     for g in G
@@ -220,7 +220,7 @@ function maximal_groebner_cone_extended(G::Vector{<:MPolyElem}, ord::MonomialOrd
     end
     # if there are none, which means G is monomial, return the entire ambient space
     if isempty(inequalities)
-        return cone_from_inequalities(fmpq_mat(0,ngens(base_ring(ord))))
+        return cone_from_inequalities(QQMatrix(0,ngens(base_ring(ord))))
     end
     return cone_from_inequalities(matrix(QQ,inequalities))
 end
@@ -235,11 +235,11 @@ function unique_identifying_point(C::Cone)
     R,_ = rays_modulo_lineality(C)
     # if there are none, return zero vector
     if isempty(R)
-        return zeros(fmpz,ambient_dim(C))
+        return zeros(ZZRingElem,ambient_dim(C))
     end
     # otherwise compute the sum of rays, cast it to a rational vector
     # and return a primitive integer vector
-    pt = Vector{fmpq}(sum(R))
+    pt = Vector{QQFieldElem}(sum(R))
     return numerator.(pt .* lcm(denominator.(pt)))
 end
 
@@ -256,7 +256,7 @@ end
 # Returns a primitive outer normal vector for each facet.
 function outer_normal_vectors(C::Cone)
     outerNormalMatrix = linear_inequality_matrix(facets(C))
-    normals = Vector{Vector{fmpz}}()
+    normals = Vector{Vector{ZZRingElem}}()
     for i in 1:nrows(outerNormalMatrix)
         v = [outerNormalMatrix[i,:]...]
         push!(normals,numerator.(v .* lcm(denominator.(v))))
@@ -268,16 +268,16 @@ end
 
 # Returns the initial form of polynomial g with respect to weight vector u.
 # Requires a monomial ordering that is compatible with respect to u, i.e., the leading monomial is of highest weighted degree.
-function initial(g::MPolyElem, ordering::MonomialOrdering, u::Vector{fmpz})
+function initial(g::MPolyRingElem, ordering::MonomialOrdering, u::Vector{ZZRingElem})
     lt,tail = Iterators.peel(terms(g,ordering=ordering));
-    d = dot(u,fmpz.(leading_exponent_vector(lt)))
-    initial_terms = [s for s in tail if dot(u,fmpz.(leading_exponent_vector(s)))==d]
+    d = dot(u,ZZRingElem.(leading_exponent_vector(lt)))
+    initial_terms = [s for s in tail if dot(u,ZZRingElem.(leading_exponent_vector(s)))==d]
     push!(initial_terms,lt)
     return sum(initial_terms)
 end
 
 # Applies the function above to each polynomial in a list of polynomials.
-function initial(G::Vector{<:MPolyElem}, ord::MonomialOrdering, u::Vector{fmpz})
+function initial(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering, u::Vector{ZZRingElem})
     return initial.(G,Ref(ord),Ref(u))
 end
 
@@ -287,7 +287,7 @@ end
 # - G is a Groebner basis with respect to ord
 # Returns:
 # - a reduced Groebner basis with respect to ord
-function interreduce(G::Vector{<:MPolyElem}, ord::MonomialOrdering)
+function interreduce(G::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
     # sort G by its leading monomials (result is smallest first)
     # then reduce G[i] by G[1:i-1] for i=length(G),...,2
     sort!(G,
@@ -307,9 +307,9 @@ end
 # - ordH and ordG are adjacent orderings
 # Returns:
 # - Gnew, a Groebner basis of the original ideal w.r.t. ordH
-function groebner_lift(Hnew::Vector{<:MPolyElem},
+function groebner_lift(Hnew::Vector{<:MPolyRingElem},
                        ordH::MonomialOrdering,
-                       G::Vector{<:MPolyElem},
+                       G::Vector{<:MPolyRingElem},
                        ordG::MonomialOrdering)
     # lift to groebner basis
     Gnew = Hnew - reduce(Hnew,G,ordering=ordG,complete_reduction=true)
@@ -327,11 +327,11 @@ end
 # Returns:
 # - the reduced Groebner basis with respect to the adjacent ordering
 #     in direction v
-function groebner_flip(G::Vector{<:MPolyElem},
+function groebner_flip(G::Vector{<:MPolyRingElem},
                        ordG::MonomialOrdering,
-                       homogeneityVector::Union{Vector{fmpz},Nothing},
-                       interior_facet_point::Vector{fmpz},
-                       outer_normal_vector::Vector{fmpz})
+                       homogeneityVector::Union{Vector{ZZRingElem},Nothing},
+                       interior_facet_point::Vector{ZZRingElem},
+                       outer_normal_vector::Vector{ZZRingElem})
     R = parent(first(G))
     n = ngens(R)
     adjacentOrdering = groebner_flip_adjacent_ordering(R,homogeneityVector,interior_facet_point,outer_normal_vector)
@@ -343,9 +343,9 @@ end
 
 # helper functions for groebner_flip
 function groebner_flip_adjacent_ordering(R::MPolyRing,
-                                         homogeneityVector::Vector{fmpz},
-                                         interior_facet_point::Vector{fmpz},
-                                         outer_normal_vector::Vector{fmpz})
+                                         homogeneityVector::Vector{ZZRingElem},
+                                         interior_facet_point::Vector{ZZRingElem},
+                                         outer_normal_vector::Vector{ZZRingElem})
     return weight_ordering(Int.(homogeneityVector),
                            weight_ordering(Int.(interior_facet_point),
                                            weight_ordering(Int.(outer_normal_vector),
@@ -354,8 +354,8 @@ end
 
 function groebner_flip_adjacent_ordering(R::MPolyRing,
                                          homogeneityVector::Nothing,
-                                         interior_facet_point::Vector{fmpz},
-                                         outer_normal_vector::Vector{fmpz})
+                                         interior_facet_point::Vector{ZZRingElem},
+                                         outer_normal_vector::Vector{ZZRingElem})
     return weight_ordering(Int.(interior_facet_point),
                            weight_ordering(Int.(outer_normal_vector),
                                            revlex(R)))
@@ -368,7 +368,7 @@ function polyhedral_fan_from_cones(listOfCones::Vector{<:Cone})
     ###
     # Collect incidence information
     ###
-    fanRays = Vector{Vector{fmpq}}()
+    fanRays = Vector{Vector{QQFieldElem}}()
     fanIncidences = Vector{Vector{Int}}()
     for cone in listOfCones
         coneIncidence = Vector{Int}()
@@ -411,7 +411,7 @@ If `return_orderings==true`, returns a dictionary whose keys are interior points
 
 # Examples
 ```jldoctest
-julia> Qx,(x1,x2,x3) = PolynomialRing(QQ,["x1","x2","x3"])
+julia> Qx,(x1,x2,x3) = polynomial_ring(QQ,["x1","x2","x3"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x1, x2, x3])
 
 julia> I = ideal([x1,x2+x3])
@@ -447,7 +447,7 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     C = maximal_groebner_cone(G,ord,homogeneityWeight)
     workingList = [(G,ord,C,unique_identifying_point(C))] # list of Groebner cones whose neighbours may be unknown
     finishedList = typeof(workingList)()     # list of Groebner cones whose neighbours are known
-    finishedFacets = Vector{Vector{fmpz}}()  # list of interior facet points whose facet has been traversed
+    finishedFacets = Vector{Vector{ZZRingElem}}()  # list of interior facet points whose facet has been traversed
 
 
     ###
@@ -465,7 +465,7 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
             # check whether facet is supposed to be traversed
             # (i.e., if ideal is not quasi-homogeneous,
             #  check whether facet lies inside the positive orthant)
-            if homogeneityWeight==nothing && !reduce(&,isless.(0,u))
+            if homogeneityWeight === nothing && !reduce(&,isless.(0,u))
                 continue
             end
 

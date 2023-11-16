@@ -42,7 +42,7 @@ julia> hilbert_series_reduced(R)
 
 ```
 """
-function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=false)
+function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=false, graded::Bool=false)
     is_loopless(M) || error("Matroid has loops")
     Flats = flats(M)
     number_flats = length(Flats)
@@ -50,14 +50,19 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
     proper_flats = Flats[2:number_flats-1]
 
     #construct polynomial ring and extract variables
-    if ring==nothing
+    if ring===nothing
         # create variable names, indexed by the proper flats of M
         var_names = ["x_{" * join(S, ",") * "}" for S in proper_flats]
         if extended
             #add the variables for the simplicial generators
             var_names = [var_names; ["h_{" * join(S, ",") * "}" for S in [proper_flats;[Flats[number_flats]]]]]
         end
-        ring, vars = polynomial_ring(QQ, var_names, cached=false)
+        
+        if graded
+            ring, vars = graded_polynomial_ring(QQ, var_names, cached=false)
+        else
+            ring, vars = polynomial_ring(QQ, var_names, cached=false)
+        end
     else
         if extended
             nvars(ring) == 2*length(proper_flats)+1 || error("the ring has the wrong number of variables")
@@ -79,7 +84,7 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
     return chow_ring
 end
 
-function linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector, M::Matroid)
+function linear_relations(ring::MPolyRing, proper_flats::Vector{Vector{T}}, vars::Vector, M::Matroid) where T <: ElementType
     alpha = zero(ring)
     relations = elem_type(ring)[]
     for i in M.groundset
@@ -96,7 +101,7 @@ function linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::V
     return relations
 end
 
-function quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector)
+function quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector{T}}, vars::Vector) where T <: ElementType
     relations = elem_type(ring)[]
     for i in 1:length(proper_flats)
         F = proper_flats[i]
@@ -110,7 +115,7 @@ function quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars
     return relations
 end
 
-function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector)
+function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector{T}}, vars::Vector)  where T <: ElementType
     relations = elem_type(ring)[]
     s = length(proper_flats)
     # h_E = alpha = -x_E
@@ -173,7 +178,7 @@ function augmented_chow_ring(M::Matroid)
     return chow_ring
 end
 
-function augmented_linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, element_vars::Vector, flat_vars::Vector, M::Matroid)
+function augmented_linear_relations(ring::MPolyRing, proper_flats::Vector{Vector{T}}, element_vars::Vector, flat_vars::Vector, M::Matroid)  where T <: ElementType
     n = length(M)
     relations = Vector{elem_type(ring)}(undef,n)
     i = 1
@@ -191,7 +196,7 @@ function augmented_linear_relations(ring::MPolyRing, proper_flats::Vector{Vector
     return relations
 end
 
-function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector}, element_vars::Vector, flat_vars::Vector, M::Matroid)
+function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector{T}}, element_vars::Vector, flat_vars::Vector, M::Matroid)  where T <: ElementType
     incomparable_polynomials = quadratic_relations(ring, proper_flats, flat_vars)
     xy_polynomials = elem_type(ring)[]
 
@@ -210,11 +215,36 @@ function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vec
     return vcat(incomparable_polynomials, xy_polynomials)
 end
 
+@doc raw"""
+    volume_map(M::Matroid; A::MPolyQuoRing)
+
+Return A (normalized) function that maps the top degree component of the Chow ring to the base ring.
+
+# Examples
+The following computes the volume map of the Chow ring of the Fano matroid.
+```jldoctest
+julia> M = fano_matroid();
+
+julia> R = chow_ring(M);
+
+julia> f = volume_map(M,R);
+
+julia> f(R[1]*R[8])
+1
+
+julia> f(R[1]^2)
+-2
+```
 """
-A helper function to select indices of a vector that do `include` elements of a given set and `exclude` another
-"""
-function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
-    all = union(set...)
-    compl = setdiff(all,exclude)
-    return findall(s->issubset(include,s)&&issubset(s,compl),set);
+function volume_map(M::Matroid, A::MPolyQuoRing)
+    mflats = flats(M)
+    flat = mflats[1]
+    prod = one(A)
+    for i in 2:length(mflats)-1
+        if is_subset(flat, mflats[i])
+            flat = mflats[i]
+            prod*= A[i-1]
+        end
+    end
+    return f -> is_zero(f) ? 0//coeff(lift(prod),1) : coeff(lift(f),1)//coeff(lift(prod),1)
 end

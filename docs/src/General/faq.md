@@ -23,7 +23,7 @@ Yes, Julia provides the function [methodswith](https://docs.julialang.org/en/v1/
 For your convenience, let us give an example here. To this end, we first create a projective space in OSCAR:
 ```jldoctest
 julia> v = projective_space(NormalToricVariety,2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> typeof(v)
 NormalToricVariety

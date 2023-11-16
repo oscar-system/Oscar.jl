@@ -6,10 +6,10 @@ Return the domain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> domain(toric_identity_morphism(F4))
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 domain(tm::ToricMorphism) = tm.domain
@@ -23,10 +23,10 @@ Return the codomain of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain(toric_identity_morphism(F4))
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 codomain(tm::ToricMorphism) = tm.codomain
@@ -40,10 +40,12 @@ Return the underlying grid morphism of the toric morphism `tm`.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> grid_morphism(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
@@ -58,10 +60,12 @@ map of the torusinvariant Weil divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^4 -> GrpAb: Z^4
+Map
+  from GrpAb: Z^4
+  to GrpAb: Z^4
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
@@ -69,14 +73,14 @@ Map: GrpAb: Z^4 -> GrpAb: Z^4
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
-    mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(d)), 0))
+    mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
       m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end
-    return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), mapping_matrix)
+    return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
 end
 
 
@@ -89,10 +93,12 @@ map of the Cartier divisors.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^4 -> GrpAb: Z^4
+Map
+  from GrpAb: Z^4
+  to GrpAb: Z^4
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
@@ -114,10 +120,12 @@ map of the Class groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
@@ -139,10 +147,12 @@ map of the Picard groups.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
-Map: GrpAb: Z^2 -> GrpAb: Z^2
+Map
+  from GrpAb: Z^2
+  to GrpAb: Z^2
 ```
 """
 @attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
@@ -169,7 +179,7 @@ blow-down morphism of a blow-up of the projective space.
 # Examples
 ```jldoctest
 julia> IP2 = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> bl = blow_up(IP2, [1, 1]);
 
@@ -178,10 +188,10 @@ julia> cov_bl = covering_morphism(bl);
 julia> domain(cov_bl)
 Covering
   described by patches
-    1: normal, affine toric variety
-    2: normal, affine toric variety
-    3: normal, affine toric variety
-    4: normal, affine toric variety
+    1: normal toric variety
+    2: normal toric variety
+    3: normal toric variety
+    4: normal toric variety
   in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]
@@ -191,9 +201,9 @@ Covering
 julia> codomain(cov_bl)
 Covering
   described by patches
-    1: normal, affine toric variety
-    2: normal, affine toric variety
-    3: normal, affine toric variety
+    1: normal toric variety
+    2: normal toric variety
+    3: normal toric variety
   in the coordinate(s)
     1: [x_1_1, x_2_1]
     2: [x_1_2, x_2_2]
@@ -248,7 +258,7 @@ function _my_mult(u::PointVector{ZZRingElem}, A::ZZMatrix)
   m = length(u)
   m == nrows(A) || error("sizes incompatible")
   n = ncols(A)
-  result = zero(MatrixSpace(ZZ, 1, n))
+  result = zero_matrix(ZZ, 1, n)
   for k in 1:n
     result[1, k] = sum(u[i]*A[i, k] for i in 1:m; init=zero(ZZ))
   end
@@ -257,7 +267,7 @@ end
 
 function _to_ZZ_matrix(u::PointVector{ZZRingElem})
   n = length(u)
-  result = zero(MatrixSpace(ZZ, 1, n))
+  result = zero_matrix(ZZ, 1, n)
   for i in 1:n
     result[1, i] = u[i]
   end

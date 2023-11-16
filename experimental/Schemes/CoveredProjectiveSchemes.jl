@@ -173,23 +173,11 @@ mutable struct ProjectiveGlueing{
 end
 
 function Base.show(io::IO, PG::LazyProjectiveGlueing)
-  if get(io, :supercompact, false)
-    print(io, "Projective glueing")
-  else
-    if isdefined(G, :underlying_glueing)
-      show(io, underlying_glueing(G))
-    else
-      print(io, "Glueing of projective patches (not yet computed)")
-    end
-  end
+  print(io, "Glueing of projective patches (not yet computed)")
 end
 
 function Base.show(io::IO, PG::ProjectiveGlueing)
-  if get(io, :supercompact, false)
-    print(io, "Projective glueing")
-  else
-    print(io, "Glueing of projective patches")
-  end
+  print(io, "Glueing of projective patches")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
@@ -204,7 +192,7 @@ function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
   println(io, Indent(), Lowercase(), PU)
   println(io, Lowercase(), PV)
   print(io, Dedent(), "defined by ", Lowercase())
-  Oscar._show_semi_compact(io, f)
+  show(IOContext(io, :show_semi_compact => true), f)
 end
 
 ### type getters
@@ -281,17 +269,16 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
   n = length(projective_patches(CPS))
   K = base_ring(base_scheme(CPS))
   if get(io, :supercompact, false)
-    print(io, "Scheme")
+    print(io, "Relative projective scheme")
   else
     if length(projective_patches(CPS)) == 0
-      print(io, "Empty covered projective scheme over ")
+      print(io, "Empty relative projective scheme over ")
     else
       print(io, "Relative projective scheme over ")
     end
     print(io, Lowercase(), base_scheme(CPS))
     if n != 0
-      print(io, " covered with $n projective patch")
-      n > 1 && print(io, "es")
+      print(io, " covered with ", ItemQuantity(n, "projective patch"))
     end
   end
 end
@@ -302,10 +289,9 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   n = length(pp)
   println(io, "Relative projective scheme")
   print(io, Indent(), "over ", Lowercase())
-  Oscar._show_semi_compact(io, base_scheme(CPS), base_covering(CPS))
+  show(IOContext(io, :show_semi_compact => true, :covering => base_covering(CPS)), base_scheme(CPS))
   println(io)
-  print(io, Dedent(), "covered with $n projective patch")
-  n > 1 && print(io, "es")
+  print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch"))
   print(io, Indent())
   l = ndigits(n)
   for i in 1:n
@@ -330,7 +316,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 julia> empty_covered_projective_scheme(R)
 Relative projective scheme
   over empty covered scheme over multivariate polynomial ring
-covered with 0 projective patch
+covered with 0 projective patches
 ```
 """
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
@@ -483,7 +469,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   # It follows the generic Proj construction
   R = OO(W)
   T, (t,) = polynomial_ring(R, ["t"])
-  S, s = grade(polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])[1])
+  S, s = graded_polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
@@ -533,7 +519,7 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   length(g) == 0 && return true
   R = parent(g[1])
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
-  isunit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
+  is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
   A, p = quo(R, ideal(R, g))
   return is_regular_sequence(p.(g[2:end]))
@@ -1483,7 +1469,7 @@ end
 #        X = hypersurface_complement(subscheme(C, div_list[i]), prod(loc_list[i]))
 #        D = A[row_list[i], column_list[i]]
 #        g = det(D)
-#        isunit(OO(X)(g)) || error("selected minor is not a unit")
+#        is_unit(OO(X)(g)) || error("selected minor is not a unit")
 #      end
 #    end
 #  else
@@ -1692,7 +1678,7 @@ end
 #    A = Df[rl[i], cl[i]]
 #    g = det(A)
 #    U = hypersurface_complement(subscheme(C, ql[i]), h)
-#    @show isunit(OO(U)(g))
+#    @show is_unit(OO(U)(g))
 #  end
 #
 #
@@ -1756,3 +1742,45 @@ end
 #
 #
 
+function fiber_product(
+    i1::CoveredClosedEmbedding,
+    i2::CoveredClosedEmbedding
+  )
+  X1 = domain(i1)
+  X2 = domain(i2)
+  Y = codomain(i1)
+  Y === codomain(i2) || error("codomains do not coincide")
+  i1_cov = covering_morphism(i1)
+  i2_cov = covering_morphism(i2)
+  codomain(i1_cov) === codomain(i2_cov) || error("case of different coverings in codomain not implemented")
+  cod_cov = codomain(i1_cov)
+  #=
+  cod_ref, ref1, ref2 = common_refinement(codomain(i1_cov), codomain(i2_cov))
+  dom_ref1, i1_res = fiber_product(i1, ref1)
+  dom_ref2, i2_res = fiber_product(i1, ref2)
+  # etc. etc.... This is roughly the generic code to come.
+  =#
+  I1 = image_ideal(i1)
+  pb_I1 = pullback(i2, I1)
+  I2 = image_ideal(i2)
+  pb_I2 = pullback(i1, I2)
+
+  j1 = Oscar.CoveredClosedEmbedding(domain(i2), pb_I1)
+  Z = domain(j1)
+  morphism_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  for U in affine_charts(Z)
+    V2 = codomain(j1[U])
+    W = codomain(i2[V2])
+    V1_candidates = maps_with_given_codomain(i1, W)
+    @assert length(V1_candidates) == 1 "not the correct number of patches found"
+    V1 = domain(first(V1_candidates))
+    x = gens(OO(V1))
+    lift_x = [preimage(pullback(i1[V1]), f) for f in x]
+    pb_x = pullback(i2[V2]).(lift_x)
+    pb_x = pullback(j1[U]).(pb_x)
+    morphism_dict[U] = ClosedEmbedding(SpecMor(U, V1, pb_x, check=false), pb_I2(V1), check=false)
+  end
+  j2_cov = CoveringMorphism(default_covering(Z), domain(i1_cov), morphism_dict, check=false)
+  j2 = Oscar.CoveredClosedEmbedding(Z, X1, j2_cov)
+  return j1, j2
+end

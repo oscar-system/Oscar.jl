@@ -5,12 +5,12 @@
 using Oscar
 
 import Oscar.Nemo.zzModRing
-import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero
+import Oscar: base_ring, inverted_set, ambient_ring, localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export NmodComplementOfPrimeIdeal, NmodLocalizedRing, NmodLocalizedRingElem
 
-export generator, ambient_ring, Localization, parent, numerator, denominator
+export generator, ambient_ring, localization, parent, numerator, denominator
 
 
 #######################################################################
@@ -74,7 +74,7 @@ base_ring(W::NmodLocalizedRing) = W.R::zzModRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
-function Localization(S::NmodComplementOfPrimeIdeal) 
+function localization(S::NmodComplementOfPrimeIdeal)
   L = NmodLocalizedRing(S)
   return L, MapFromFunc(base_ring(L), L, x->(L(x)))
 end
@@ -152,7 +152,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
-  W, _ = Localization(U)
+  W, _ = localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)

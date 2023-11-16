@@ -13,6 +13,7 @@ export ambient_space
 export analyze_fibers
 export base_fully_specified
 export base_space
+export blow_up
 export coordinate_ring
 export calabi_yau_hypersurface
 export discriminant
@@ -60,6 +61,7 @@ export has_weighted_resolutions
 export has_weighted_resolution_generating_sections
 export has_weighted_resolution_zero_sections
 export has_zero_section
+export is_partially_resolved
 export arxiv_id
 export arxiv_doi
 export arxiv_link

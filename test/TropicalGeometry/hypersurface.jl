@@ -1,7 +1,7 @@
 @testset "hypersurface" begin
   for addition in (max, min)
     T = TropicalSemiring(addition)
-    R,(x,y,z) = PolynomialRing(T,3)
+    R,(x,y,z) = polynomial_ring(T,3)
     b = [T(10),T(3//2095), T(-5//2)]
     m = [[1,0,1],[0,3,4],[1,0,7]]
     f = R(b,m)

@@ -47,11 +47,16 @@ function get_document(set_meta::Bool)
   doc = Document(root = joinpath(oscardir, "docs"), doctest = :fix)
 
   if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    #ugly: needs to be in sync with the docs/make_docs.jl file
     Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
   end
 
-  return doc
+  if isdefined(Main.Documenter, :DocTests)
+    doctest = Main.Documenter.DocTests.doctest
+  else
+    doctest = Main.Documenter._doctest
+  end
+
+  return doc, doctest
 end
 
 """
@@ -61,13 +66,14 @@ Fixes all doctests for the given function `f`.
 """
 function doctest_fix(f::Function; set_meta::Bool = false)
   S = Symbol(f)
-  doc = get_document(set_meta)
+  doc, doctest = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(Oscar)
-  md = bm[Base.Docs.Binding(Oscar, S)]
+  pm = parentmodule(f)
+  bm = Base.Docs.meta(pm)
+  md = bm[Base.Docs.Binding(pm, S)]
   for s in md.order
-    Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+    doctest(md.docs[s], Oscar, doc)
   end
 end
 
@@ -78,14 +84,14 @@ Fixes all doctests for the file `n`, ie. all files in Oscar where
   `n` occurs in the full pathname of.
 """
 function doctest_fix(n::String; set_meta::Bool = false)
-  doc = get_document(set_meta)
+  doc, doctest = get_document(set_meta)
 
   #essentially inspired by Documenter/src/DocTests.jl
-  bm = Main.Documenter.DocSystem.getmeta(Oscar)
+  bm = Base.Docs.meta(Oscar)
   for (k, md) = bm
     for s in md.order
       if occursin(n, md.docs[s].data[:path])
-        Main.Documenter.DocTests.doctest(md.docs[s], Oscar, doc)
+        doctest(md.docs[s], Oscar, doc)
       end
     end
   end
@@ -127,7 +133,7 @@ function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
 end
 
 @doc raw"""
-    build_doc(; doctest=false, strict=false, open_browser=true, start_server=false)
+    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
 
 Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
@@ -143,9 +149,11 @@ doctests are run with >= 1.7. Using a different Julia version may produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
 
-The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
-and if set to `true` then according to the manual of `Documenter.jl` "a
+The optional parameter `warnonly` is passed on to `makedocs` of `Documenter.jl`
+and if set to `false` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
+Alternatively, one can pass a list of symbols to `warnonly` to suppress
+errors for the given error types.
 
 To prevent the opening of the browser at the end, set the optional parameter
 `open_browser` to `false`.
@@ -171,11 +179,10 @@ using Revise, Oscar;
 The first run of `build_doc` will take the usual few minutes, subsequent runs
 will be significantly faster.
 """
-function build_doc(; doctest::Union{Symbol, Bool} = false, strict::Bool = false, open_browser::Bool = true, start_server::Bool = false)
+function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false)
   versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
-  versionwarn = 
-"The Julia reference version for the doctests is 1.7 or later, but you are using
-$(VERSION). Running the doctests will produce errors that you do not expect."
+  versionwarn = """The Julia reference version for the doctests is 1.7 or later, but you are using
+                $(VERSION). Running the doctests will produce errors that you do not expect."""
   if doctest != false && !versioncheck
     @warn versionwarn
   end
@@ -183,7 +190,7 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
     doc_init()
   end
   Pkg.activate(docsproject) do
-    Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
+    Base.invokelatest(Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest)
   end
   if start_server
     start_doc_preview_server(open_browser = open_browser)

@@ -176,12 +176,15 @@ end
   @test length(free_res.C.maps) == 4
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
+	@test free_res[100] == free_module(R, 0)
   @test is_complete(free_res) == true
 	free_res = free_resolution(M)
+  @test get_attribute(free_res.C, :algorithm) == :fres
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
 	free_res = free_resolution(M, algorithm = :mres)
+  @test get_attribute(free_res.C, :algorithm) == :mres
 	@test all(iszero, homology(free_res.C))
 	free_res = free_resolution(M, algorithm = :nres)
 	@test all(iszero, homology(free_res.C))
@@ -690,7 +693,7 @@ end
     N,pure_N = tensor_product(M3,F4, task=:map)
 
     M3_to_M1 = SubQuoHom(M3,M1, matrix([randpoly(R,0:2,2,2) for i=1:ngens(M3), j=1:ngens(M1)]))
-    @assert is_welldefined(M3_to_M1)
+    is_welldefined(M3_to_M1) || continue
     F4_to_M2 = FreeModuleHom(F4,M2, matrix([randpoly(R,0:2,2,2) for i=1:ngens(F4), j=1:ngens(M2)]))
 
     phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
@@ -801,7 +804,7 @@ end
 end
 
 @testset "Coordinates (lift)" begin
-  Z3, a = FiniteField(3,1,"a")
+  Z3, a = finite_field(3,1,"a")
   R, (x,y) = polynomial_ring(Z3, ["x", "y"])
   coeffs = [Z3(i) for i=0:1]
 

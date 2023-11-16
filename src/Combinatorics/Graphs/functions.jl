@@ -276,6 +276,10 @@ function dst(e::Edge)
     return e.target
 end
 
+Vector{Int}(e::Edge) = [src(e), dst(e)]
+
+Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
+
 
 @doc raw"""
     reverse(e::Edge)
@@ -642,7 +646,7 @@ Return the automorphism group of the graph `g`.
 julia> g = complete_graph(4);
 
 julia> automorphism_group(g)
-Group([ (3,4), (2,3), (1,2) ])
+Permutation group of degree 4
 ```
 """
 function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}

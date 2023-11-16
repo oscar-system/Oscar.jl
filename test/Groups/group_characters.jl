@@ -27,13 +27,13 @@ julia> t_a5_2 = mod(t_a5, 2);
 
 ```jldoctest group_characters.test
 julia> print(t_a4)
-character table of group Alt( [ 1 .. 4 ] )
+character table of permutation group
 
 julia> print(t_a5)
 character table of A5
 
 julia> print(t_a4_2)
-2-modular Brauer table of group Alt( [ 1 .. 4 ] )
+2-modular Brauer table of permutation group
 
 julia> print(t_a5_2)
 2-modular Brauer table of A5
@@ -43,13 +43,13 @@ julia> print(t_a5_2)
 
 ```jldoctest group_characters.test
 julia> show([t_a4])
-Oscar.GAPGroupCharacterTable[character table of group Alt( [ 1 .. 4 ] )]
+Oscar.GAPGroupCharacterTable[character table of permutation group]
 
 julia> show([t_a5])
 Oscar.GAPGroupCharacterTable[character table of A5]
 
 julia> show([t_a4_2])
-Oscar.GAPGroupCharacterTable[2-modular Brauer table of group Alt( [ 1 .. 4 ] )]
+Oscar.GAPGroupCharacterTable[2-modular Brauer table of permutation group]
 
 julia> show([t_a5_2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
@@ -76,7 +76,7 @@ default `show` with unicode
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), t_a4)
        end
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
  2  2  2       .       .
  3  1  .       1       1
@@ -95,7 +95,7 @@ default `show` without unicode
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
   2  2  2        .        .
   3  1  .        1        1
@@ -114,9 +114,9 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-$Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
 3 & 1 & . & 1 & 1 \\
  &  &  &  &  \\
@@ -140,7 +140,7 @@ in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
        end
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
  2  2  2  .  .
  3  1  .  1  1
@@ -160,7 +160,7 @@ A̅ = ζ₃
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
   2  2  2  .  .
   3  1  .  1  1
@@ -181,9 +181,9 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-$Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
 3 & 1 & . & 1 & 1 \\
  &  &  &  &  \\
@@ -326,9 +326,9 @@ X_5| 5  1 -1                 .                 .|
 julia> show(IOContext(stdout, :separators_col => [0,5],
                           :separators_row => [0,5]),
             MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rrrrr|}
+$\begin{array}{r|rrrrr|}
 2 & 2 & 2 & . & . & . \\
 3 & 1 & . & 1 & . & . \\
 5 & 1 & . & . & 1 & 1 \\
@@ -441,9 +441,9 @@ julia> show(IOContext(stdout, :separators_col => [0],
                      :separators_row => [0],
                      :portions_col => [2,3]),
        MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rr}
+$\begin{array}{r|rr}
 2 & 2 & 2 \\
 3 & 1 & . \\
 5 & 1 & . \\
@@ -564,9 +564,9 @@ julia> show(IOContext(stdout, :separators_col => [0],
                           :separators_row => [0],
                           :portions_row => [2,3]),
             MIME("text/latex"), t_a5)
-$A5
+A5
 
-\begin{array}{r|rrrrr}
+$\begin{array}{r|rrrrr}
 2 & 2 & 2 & . & . & . \\
 3 & 1 & . & 1 & . & . \\
 5 & 1 & . & . & 1 & 1 \\
@@ -605,7 +605,7 @@ show indicators in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
        end
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
     2  2  2       .       .
     3  1  .       1       1
@@ -624,9 +624,9 @@ Alt( [ 1 .. 4 ] )
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-$Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrrr}
+$\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
  & 3 & 1 & . & 1 & 1 \\
  &  &  &  &  &  \\
@@ -649,7 +649,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
        end
-Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
     2  2  2       .       .
     3  1  .       1       1
@@ -668,9 +668,9 @@ Alt( [ 1 .. 4 ] )
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-$Alt( [ 1 .. 4 ] )
+Character table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrrr}
+$\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
  & 3 & 1 & . & 1 & 1 \\
  &  &  &  &  &  \\
@@ -693,7 +693,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
        end
-Alt( [ 1 .. 4 ] ) mod 2
+2-modular Brauer table of permutation group of degree 4 and order 12
 
     2  2       .       .
     3  1       1       1
@@ -711,9 +711,9 @@ Alt( [ 1 .. 4 ] ) mod 2
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-$Alt( [ 1 .. 4 ] ) mod 2
+2-modular Brauer table of permutation group of degree 4 and order 12
 
-\begin{array}{rrrrr}
+$\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
  & 3 & 1 & 1 & 1 \\
  &  &  &  &  \\
@@ -734,8 +734,11 @@ end
 
 
 @testset "show and print character tables" begin
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
   doctest(nothing, [AuxDocTest_GroupCharacters])
   #doctest(nothing, [AuxDocTest_GroupCharacters]; fix=true)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
 end
 
 @testset "create character tables" begin
@@ -782,7 +785,7 @@ end
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
-  @test character_parameters(modtbl) == nothing
+  @test character_parameters(modtbl) === nothing
   @test class_lengths(ordtbl) == [1, 15, 20, 12, 12]
   @test class_lengths(modtbl) == [1, 20, 12, 12]
   @test class_names(ordtbl) == ["1a", "2a", "3a", "5a", "5b"]
@@ -794,7 +797,7 @@ end
   @test identifier(modtbl) == "A5mod2"
   @test !is_duplicate_table(ordtbl)
   @test maxes(ordtbl) == ["a4", "D10", "S3"]
-  @test maxes(modtbl) == nothing
+  @test maxes(modtbl) === nothing
   @test "D10" in names_of_fusion_sources(ordtbl)
   @test order(ordtbl) == 60
   @test order(modtbl) == 60
@@ -815,6 +818,7 @@ end
   @test ncols(t) == 5
   @test_throws ErrorException t[6]
   tr = trivial_character(t)
+  @test parent(tr) === t
   @test tr in t
   @test tr != t[1]
   @test tr == t[5]

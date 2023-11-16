@@ -1,5 +1,5 @@
 @testset "Invariant rings (for matrix groups)" begin
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
@@ -8,6 +8,11 @@
   invariant_ring([ M1, M2 ])
   invariant_ring(K, [ M1, M2 ])
   invariant_ring(matrix_group([ M1, M2 ]))
+
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), ordering = :degrevlex)
+  @test polynomial_ring(invariant_ring(R, [ M1, M2 ])) === R
+  @test polynomial_ring(invariant_ring(R, M1, M2)) === R
+  @test polynomial_ring(invariant_ring(R, matrix_group(M1, M2))) === R
 
   F = GF(3)
   N1 = matrix(F, 3, 3, [ 0, 1, 0, 2, 0, 0, 0, 0, 2 ])
@@ -104,7 +109,7 @@ end
   G = symmetric_group(3)
   RGQ = invariant_ring(G)   # char. 0, over QQ
 
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   RGK = invariant_ring(K, G)   # char. 0, over K
 
   F5 = GF(5)
@@ -112,6 +117,9 @@ end
 
   F3 = GF(3)
   RGM = invariant_ring(F3, G)  # char. p, modular
+
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), ordering = :degrevlex)
+  @test polynomial_ring(invariant_ring(R, G)) === R
 
   @test coefficient_ring(RGQ) == QQ
   @test coefficient_ring(RGK) == K

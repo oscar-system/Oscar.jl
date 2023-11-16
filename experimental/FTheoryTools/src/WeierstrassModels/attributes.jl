@@ -77,10 +77,13 @@ Return the base space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> base_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
+Normal toric variety
+```
 """
 function base_space(w::WeierstrassModel)
   base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
@@ -121,7 +124,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 fiber_ambient_space(w::WeierstrassModel) = w.fiber_ambient_space
