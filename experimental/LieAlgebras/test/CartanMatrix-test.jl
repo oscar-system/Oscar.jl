@@ -129,11 +129,15 @@
     @test cartan_type(cartan_matrix(:B, 3); check=false) == [(:B, 3)]
     @test cartan_type(ZZ[2 -2 0; -1 2 -1; 0 -1 2]; check=false) == [(:B, 3)]
 
+    # Cn
     @test cartan_type(cartan_matrix(:C, 3); check=false) == [(:C, 3)]
     @test cartan_type(ZZ[2 -1 0; -2 2 -1; 0 -1 2]; check=false) == [(:C, 3)]
 
+    # Dn
     @test cartan_type(cartan_matrix(:D, 4); check=false) == [(:D, 4)]
+    @test cartan_type(ZZ[2 -1 -1 -1; -1 2 0 0; -1 0 2 0; -1 0 0 2])
     @test cartan_type(cartan_matrix(:D, 6); check=false) == [(:D, 6)]
+
     @test cartan_type(cartan_matrix(:E, 6); check=false) == [(:E, 6)]
     @test cartan_type(cartan_matrix(:E, 7); check=false) == [(:E, 7)]
     @test cartan_type(cartan_matrix(:E, 8); check=false) == [(:E, 8)]
@@ -153,5 +157,58 @@
   end
 
   @testset "cartan_type_with_ordering(gcm::ZZMatrix; check::Bool)" begin
+    # we only test the ordering here the type detection is tested in "cartan_type(gcm::ZZMatrix; check::Bool)"
+
+    # An
+    _, ord = cartan_type_with_ordering(cartan_matrix(:A, 1))
+    @test ord == [1]
+
+    _, ord = cartan_type_with_ordering(cartan_matrix(:A, 2))
+    @test ord == [1, 2]
+
+    # Bn
+    _, ord = cartan_type_with_ordering(cartan_matrix(:B, 2))
+    @test ord == [1, 2]
+
+    _, ord = cartan_type_with_ordering(cartan_matrix(:B, 3))
+    @test ord == [1, 2, 3]
+
+    # Cn
+    _, ord = cartan_type_with_ordering(cartan_matrix(:C, 2))
+    @test ord == [1, 2]
+
+    _, ord = cartan_type_with_ordering(cartan_matrix(:C, 3))
+    @test ord == [1, 2, 3]
+
+    # Dn
+    _, ord = cartan_type_with_ordering(cartan_matrix(:D, 4))
+    @test ord == [1, 2, 3, 4]
+
+    _, ord = cartan_type_with_ordering(ZZ[2 -1 -1 -1; -1 2 0 0; -1 0 2 0; -1 0 0 2])
+    @test ord == [2, 1, 3, 4]
+
+    # En
+    _, ord = cartan_type_with_ordering(cartan_matrix(:E, 6))
+    @test ord == [1, 3, 4, 2, 5, 6]
+
+    _, ord = cartan_type_with_ordering(cartan_matrix(:E, 7))
+    @test ord == [1, 3, 4, 2, 5, 6, 7]
+
+    _, ord = cartan_type_with_ordering(cartan_matrix(:E, 8))
+    @test ord == [1, 3, 4, 2, 5, 6, 7, 8]
+
+    # F4
+    _, ord = cartan_type_with_ordering(cartan_matrix(:F, 4))
+    @test ord == [1, 2, 3, 4]
+
+    _, ord = cartan_type_with_ordering(ZZ[2 -1 0 0; -1 2 -1 0; 0 -2 2 -1; 0 0 -1 2])
+    @test ord == [4, 3, 2, 1]
+
+    # G2
+    _, ord = cartan_type_with_ordering(cartan_matrix(:G, 2))
+    @test ord == [1, 2]
+
+    _, ord = cartan_type_with_ordering(transpose(cartan_matrix(:G, 2)))
+    @test ord == [2, 1]
   end
 end

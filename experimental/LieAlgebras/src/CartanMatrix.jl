@@ -1,7 +1,8 @@
 ###############################################################################
 #
-#   Cartan Matrix Helpers
-#   
+#   Cartan Matrix Functionality
+#   - Cartan matrices (and root orderings) are taken from Bourbaki
+#
 ###############################################################################
 
 @doc raw"""
@@ -308,7 +309,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
 
   # global information
   ord = sizehint!(Int[], rk) # ordering of the roots
-  adj = [sizehint!(Int[], 3) for _ in 1:rk] # store adjacent roots
+  adj = [sizehint!(Int[], 3) for _ in 1:rk] # store adjacent roots, adj[i] is ordered asc
 
   # information about current type
   num = 0 # number of roots
@@ -354,19 +355,24 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
             push!(ord, i, j)
           elseif gcm[i, j] == -3
             push!(type, (:G, 2))
-            push!(ord, j, i)
+            push!(ord, i, j)
           else
             push!(type, (:G, 2))
-            push!(ord, i, j)
+            push!(ord, j, i)
           end
         else # rank > 2
           # find start of the Dynkin graph
-          v = roots[1] # default to the first root (this only matters for D4)
+          v = 0
           for i in roots
             j = adj[i][1]
-            if length(adj[i]) == 1 && length(adj[j]) < 3 && gcm[i, j] * gcm[j, i] == 1
-              v = i
-              break
+            if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
+              if length(adj[j]) == 1 ||
+                (length(adj[j]) == 2 && gcm[j, adj[j][2]] * gcm[adj[j][2], j] == 1)
+                v = i
+                break
+              elseif v == 0
+                v = i
+              end
             end
           end
           push!(ord, v)
