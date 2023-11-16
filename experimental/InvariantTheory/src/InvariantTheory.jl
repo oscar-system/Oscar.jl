@@ -51,7 +51,7 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-        println(io, "Reductive group ", G.group[1], G.group[2])
+    print(io, "Reductive group ", G.group[1], G.group[2])
 end
 
 function reductive_group(sym::Symbol, m::Int, F::Field)
@@ -113,7 +113,7 @@ end
 function Base.show(io::IO, R::RepresentationReductiveGroup)
     println(io, "Representation of ", R.group.group[1], R.group.group[2])
     if R.sym_deg[1]
-        println(io, "over symmetric forms of degree ", R.sym_deg[2])
+        print(io, "over symmetric forms of degree ", R.sym_deg[2])
     else
         println(io, "with representation matrix")
         show(io, R.rep_mat)
@@ -132,30 +132,23 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int, F::Field)
     group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
     vars = [t[i] for i in 1:m]
     new_vars = group_mat*vars
+
     degree_basiss = reverse(degree_basis(mixed_ring,m, sym_deg))
-    sum = mixed_ring()
-    for j in 1:length(degree_basiss)
-        prod = mixed_ring(1)
-        coeff = collect(coefficients(degree_basiss[j]))[1]
-        factors_ = factorise(degree_basiss[j])
-        for i in 1:length((factors_)[1:m])
-            prod = prod*new_vars[i]^(factors_[i][2])
-        end
-        prod = prod*a[j]*coeff
-        sum += prod
-    end
-    mons = collect(monomials(sum))
-    coeffs = collect(coefficients(sum))
-    mat = matrix(mixed_ring, n,n,[0 for i in 1:n^2])
+    
+    # transform the degree_basiss elements
+    new_vars_plus_rest = vcat(new_vars, gens(mixed_ring)[m+1:nvars(mixed_ring)])
+    images_of_degree_basiss = [evaluate(f, new_vars_plus_rest) for f in degree_basiss]
+
+    mat = zero_matrix(mixed_ring, n, n)
     for i in 1:n
-        for j in 1:n
-            for k in 1:length(mons)
-                if divides(mons[k], a[i])[1] && divides(mons[k], degree_basiss[j])[1]
-                    #if we divide just by degree_basiss[i], we lose the coefficient. 
-                    c = collect(coefficients(degree_basiss[j]))[1]
-                    dd = degree_basiss[j]//c
-                    mat[i,j] += coeffs[k]*numerator((mons[k]//dd)//a[i])
-                    #mat[i,j] += coeffs[k]*numerator((mons[k]//degree_basiss[j])//a[i])
+        f = images_of_degree_basiss[i]
+        # express f as a linear combination of degree_basis
+        for t in terms(f)
+            for j in 1:n
+                if divides(t, degree_basiss[j])[1]
+                    c = leading_coefficient(degree_basiss[j])
+                    mat[i,j] += t / degree_basiss[j] * c
+                    #mat[i,j] += t / degree_basiss[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
                 end
             end
         end
@@ -216,18 +209,18 @@ function rep_mat_(m::Int, v::Vector{Int}, dir_sum::Bool)
         big_matrix = matrix(mixed_ring, 0,0,[])
         for sym_deg in v
             degree_basiss = degree_basis(mixed_ring,m, sym_deg)
-            sum = mixed_ring()
+            sum_ = mixed_ring()
             for j in 1:length(degree_basiss)
-                prod = mixed_ring(1)
+                prod_ = mixed_ring(1)
                 factors_ = factorise(degree_basiss[j])
                 for i in 1:length((factors_)[1:m])
-                    prod = prod*new_vars[i]^(factors_[i][2])
+                    prod_ = prod_*new_vars[i]^(factors_[i][2])
                 end
-                prod = prod*a[j]
-                sum += prod
+                prod_ = prod_*a[j]
+                sum_ += prod_
             end
-            mons = collect(monomials(sum))
-            coeffs = collect(coefficients(sum))
+            mons = collect(monomials(sum_))
+            coeffs = collect(coefficients(sum_))
             N = binomial(m + sym_deg - 1, m - 1)
             mat = matrix(mixed_ring, N,N,[0 for i in 1:N^2])
             for i in 1:N
@@ -281,8 +274,8 @@ end
 
 function num_of_as(m::Int, v::Vector{Int})
     max = maximum(v)
-    sum = binomial(m + max - 1, m - 1)
-    return sum
+    sum_ = binomial(m + max - 1, m - 1)
+    return sum_
 end
 
 ##########################
@@ -510,7 +503,7 @@ end
 function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyDecRingElem, m::Int)
     D = mu_star(new_rep_mat)
     mixed_ring_xy = parent(elem)
-    sum = mixed_ring_xy()
+    sum_ = mixed_ring_xy()
     #mu_star: 
     mons = collect(monomials(elem))
     coeffs = collect(coefficients(elem))
@@ -523,21 +516,21 @@ function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Gen
                 k = k*(neww^(factors[j][2]))
             end
         end
-        sum += coeffs[i]*k
+        sum_ += coeffs[i]*k
     end
-    t = needed_degree(sum, m)
+    t = needed_degree(sum_, m)
     if !divides(t, m)[1]
         return parent(elem)()
     else
         p = divexact(t, m)
     end
-    #num = omegap_(p, new_det, sum)
+    #num = omegap_(p, new_det, sum_)
     #den = omegap_(p, new_det, (new_det)^p)
     #if !(denominator(num//den)==1)
     #    error("denominator of reynolds not rational")
     #end
     #return numerator(num//den)
-    return reynolds_slm(sum, new_det, p)
+    return reynolds_slm(sum_, new_det, p)
 end
 
 function reynolds_slm(elem::MPolyElem, det_::MPolyElem, p::Int)
@@ -642,7 +635,7 @@ function mu_star(elem_::MPolyElem, R::RepresentationReductiveGroup)
     vector_ring = parent(elem_)
     map2 = hom(vector_ring, mixed_ring_xz, gens(mixed_ring_xz)[1:n])
     elem = map2(elem_)
-    sum = mixed_ring_xz()
+    sum_ = mixed_ring_xz()
     #mu_star: 
     mons = collect(monomials(elem))
     coeffs = collect(coefficients(elem))
@@ -655,7 +648,7 @@ function mu_star(elem_::MPolyElem, R::RepresentationReductiveGroup)
                 k = k*(neww^(factors[j][2]))
             end
         end
-        sum += coeffs[i]*k
+        sum_ += coeffs[i]*k
     end
-    return sum
+    return sum_
 end
