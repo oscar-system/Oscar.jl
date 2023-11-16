@@ -205,6 +205,9 @@ function decode_type(input::JSON3.Object)
 end
 
 function decode_type(s::DeserializerState)
+  if type_key in keys(s.obj)
+    return decode_type(s.obj[type_key])
+  end
   return decode_type(s.obj)
 end
 # ATTENTION
@@ -281,34 +284,19 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
-# general loading of a reference
-function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
-  else
-    s.obj = s.refs[Symbol(id)]
-    loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-  end
-  return loaded_ref
-end
-
-function load_type_params(s::DeserializerState, ::Type, ref::String)
-  return load_ref(s, ref)
-end
-
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
-function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = nothing;
-                           override_params::Any = nothing)
+function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
   load_node(s, key) do node
     if node isa String && !isnothing(tryparse(UUID, node))
       return load_ref(s)
     end
-    T = load_node(s, type_key) do _
-      decode_type(s)
-    end
+    return load_typed_object
+  end
+end
+
+function load_typed_object(s::DeserializerState; override_params::Any = nothing)
+    T = decode_type(s)
     if Base.issingletontype(T) && return T()
     elseif serialize_with_params(T)
       if !isnothing(override_params)
@@ -317,9 +305,7 @@ function load_typed_object(s::DeserializerState, key::Union{Symbol, Nothing} = n
         # depending on the type, :params is either an object to be loaded or a
         # dict with keys and object values to be loaded
         # dict[type_key][:params] this can be found from state
-        params = load_node(s, type_key) do _
-          load_type_params(s, T)
-        end
+        params = load_params_node(s)
       end
       load_node(s, :data) do _
         return load_object(s, T, params)

@@ -142,10 +142,6 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int})
   s.key = key
 end
 
-function deserialize_node(f::Function, s::DeserializerState)
-  f(s.obj)
-end
-
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
@@ -157,12 +153,24 @@ function load_node(f::Function, s::DeserializerState,
   return result
 end
 
-function deserialize_array_node(f::Function, s::DeserializerState)
-  loaded_array = []
-  for i in 1:length(s.obj)
-    push!(loaded_array, load_node(f, s, i))
+# general loading of a reference
+function load_ref(s::DeserializerState)
+  id = s.obj
+  if haskey(global_serializer_state.id_to_obj, UUID(id))
+    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  else
+    s.obj = s.refs[Symbol(id)]
+    loaded_ref = load_typed_object(s)
+    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
   end
-  return loaded_array
+  return loaded_ref
+end
+
+function load_params_node(f::Function, s::DeserializerState)
+  T = decode_type(s)
+  load_node(s, :params) do params
+    
+  end
 end
 
 ################################################################################
