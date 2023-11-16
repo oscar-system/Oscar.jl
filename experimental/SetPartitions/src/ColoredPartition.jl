@@ -1,7 +1,7 @@
 """
     ColoredPartition
 
-Initialize colored SetPartition object as ColoredPartition.
+Construct a colored partition from `partition` with colors `color_upper_points` and `color_lower_points`.
 """
 struct ColoredPartition <: AbstractPartition
     partition::SetPartition
@@ -42,7 +42,7 @@ end
 """
     tensor_product(p::ColoredPartition, q::ColoredPartition)
 
-Apply tensor product of `p` and `q` and return result.
+Return the tensor product of `p` and `q`.
 """
 function tensor_product(p::ColoredPartition, q::ColoredPartition)
 
@@ -54,7 +54,7 @@ end
 """
     involution(p::ColoredPartition)
 
-Apply involution on `p` and return result.
+Return the involution of `p`.
 """
 function involution(p::ColoredPartition)
 
@@ -65,8 +65,7 @@ end
 """
     composition_loops(p::ColoredPartition, q::ColoredPartition)
 
-Apply composition between `p` and `q` and return tuple including the result
-as well as the number of removed loops.
+Return the composition of `p` and `q` as well as the number of removed loops.
 """
 function composition_loops(p::ColoredPartition, q::ColoredPartition)
 
@@ -83,12 +82,12 @@ end
 """
     rotation(p::ColoredPartition)
 
-Apply rotation on `p` and return result.
+Return the rotation of `p` in the direction given by `lr` and `tb`.
 
 # Arguments
-- `p`: Input partition
-- `lr`: lr whether left (true) or right (false)
-- `tb`: tb whether top (true) or bottom (false) rotation
+- `p`: input partition
+- `lr`: whether left (true) or right (false)
+- `tb`: whether top (true) or bottom (false)
 """
 function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
 

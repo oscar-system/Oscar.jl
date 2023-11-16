@@ -1,7 +1,7 @@
 """
     helper_new_point_values_vector(p::vector)
 
-Output a semantically identical partition in form of an vector, 
+Return a semantically identical partition in form of an vector, 
 which has new number values.
 """
 function helper_new_point_values_vector(p::Vector, q::Vector)
@@ -39,7 +39,7 @@ end
 """
     normal_form_vector(p::Vector)
 
-Return a semantically identical Partition of vector form, 
+Return a semantically identical partition of vector form, 
 which has new number values from 1 to number of blocks of `p`.
 """
 function normal_form_vector(p::Vector)

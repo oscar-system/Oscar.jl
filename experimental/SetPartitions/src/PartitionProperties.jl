@@ -54,7 +54,7 @@ end
 """
     is_pair(p::AbstractPartition)
 
-Check and output whether `p` is a partition only consisting of blocks of size two.
+Return whether `p` is a partition only consisting of blocks of size two.
 
 # Examples
 ```jldoctest
@@ -84,7 +84,7 @@ end
 """
     is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-Check and output whether `p` is a balanced partition.
+Return whether `p` is a balanced partition.
 
 # Examples
 ```jldoctest
@@ -124,7 +124,7 @@ end
 """
     is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-Check and output whether `p` is a non-crossing partition.
+Return whether `p` is a non-crossing partition.
 
 # Examples
 ```jldoctest

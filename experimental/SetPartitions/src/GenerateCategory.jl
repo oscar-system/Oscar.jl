@@ -296,22 +296,20 @@ end
 
 """
     construct_category(p::Vector, n::Int, tracing::Bool = false, 
-        max_artifical::Int = 0, spatial_rotation::Function, 
-        spatial_rotation::Union{Function,Nothing}=nothing)
+        max_artifical::Int = 0, spatial_rotation::Union{Function,Nothing}=nothing)
 
-This function outputs list of all partitions size n constructed from partitions in p 
-(without using partitions of size greater than max(max(n, max(p)), max_artifical))
+Return a list of all partitions of size `n` constructed from partitions in `p` without using partitions of size greater than max(`n`, maxsize(`p`), `max_artifical`)
 
 # Arguments
 - `p`: list of partitions
 - `n`: size of partitions in constructing category
 - `tracing`: optinal input: activate tracing and get the output (category, trace)
 - `max_artifical`: optional input: allow partitions to grow > max_length
-- `spatial_rotation`: optional input: Function from SpatialPartition to SpatialPartition 
+- `spatial_rotation`: optional input: function from SpatialPartition to SpatialPartition 
     which performs a valid rotation or similar
 
 # Returns
-- list of all partitions size n constructed from partitions in p
+- list of all partitions of size `n` constructed from partitions in `p`
 
 # Examples
 ```jldoctest
