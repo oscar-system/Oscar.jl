@@ -334,6 +334,7 @@ export class_parameters
 export class_positions_of_center
 export class_positions_of_derived_subgroup
 export class_positions_of_kernel
+export class_positions_of_normal_subgroups
 export class_positions_of_pcore
 export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
