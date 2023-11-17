@@ -18,6 +18,7 @@ export ColoredPartition
 export SpatialPartition
 export tensor_product
 export composition
+export composition_loops
 export involution
 export rotation
 export vertical_reflection
@@ -48,6 +49,7 @@ export SpatialPartition
 export ColoredPartition
 export tensor_product
 export composition
+export composition_loops
 export involution
 export rotation
 export vertical_reflection

@@ -58,7 +58,7 @@ Return whether `p` is a partition only consisting of blocks of size two.
 
 # Examples
 ```jldoctest
-julia> is_pair(Partition([1, 2, 2, 1, 3], [3]))
+julia> is_pair(SetPartition([1, 2, 2, 1, 3], [3]))
 true
 ```
 """
